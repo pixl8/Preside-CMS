@@ -5,7 +5,7 @@ component {
 	property name="taskmanagerService"         inject="taskmanagerService";
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailLayoutService"         inject="emailLayoutService";
-	property name="formBuilderService"         inject="FormBuilderService";
+	property name="formBuilderService"         inject="formBuilderService";
 	property name="formBuilderActionsService"  inject="FormBuilderActionsService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
@@ -263,11 +263,29 @@ component {
 				formHtml = '<a href="#event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=#formId#" )#">#renderLabel( "formbuilder_form", formId )#</a>';
 				break;
 
+			case "item":
+				var formItemName   = args.detail.formItemName   ?: "";
+				var formQuestionId = args.detail.formQuestionId ?: "";
+
+				var question = formBuilderService.getQuestion( id=formQuestionId );
+
+				recordLabel = question.field_label ?: ""
+				if ( isEmptyString( recordLabel ) ) {
+					 recordLabel = args.detail.formQuestionLabel ?: formQuestionId;
+				}
+				recordLabel &= " (<code>#formItemName#</code>)";
+
+				recordLink = event.buildAdminLink( linkTo="formbuilder.manageForm", queryString="id=#formId#" );
+				recordHtml = '<a href="#recordLink#">#recordLabel#</a>';
+
+				formHtml = '<a href="#event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=#formId#" )#">#renderLabel( "formbuilder_form", formId )#</a>';
+				break;
+
 			default:
 				recordLabel = renderLabel( objectName=recordObjectName, recordId=recordId );
 
 				if ( IsValid( "UUID", recordLabel ) ) {
-					recordHtml = args.detail.label ?: ( args.detail.name ?: "" );
+					recordHtml = args.detail.label ?: ( args.detail.name ?: recordLabel );
 				} else {
 					recordLink = event.buildAdminLink( objectName=recordObjectName, recordId=recordId );
 					recordHtml = '<a href="#recordLink#">#recordLabel#</a>';
@@ -275,14 +293,7 @@ component {
 				break;
 		}
 
-		return translateResource(
-			  uri  = "auditlog.formbuilder:#action#.message"
-			, data = [
-				  userHtml
-				, recordHtml
-				, formHtml
-			]
-		);
+		return translateResource( uri="auditlog.formbuilder:#action#.message", data=[ userHtml, recordHtml, formHtml ] );
 	}
 
 }

@@ -174,12 +174,7 @@ component {
 
 		var actionId = formActionDao.insertData( data=data );
 
-		var formAction = getFormAction( id=actionId );
-
-		StructAppend( data, {
-			  formId         = formAction.formId    ?: ""
-			, formActionType = formAction.action.id ?: ""
-		} );
+		StructAppend( data, _getFormActionAuditDetail( formActionId=actionId ) );
 
 		$audit(
 			  action   = "formbuilder_add_action"
@@ -211,12 +206,7 @@ component {
 
 		var recordsCount = $getPresideObject( "formbuilder_formaction" ).updateData( id=arguments.id, data=data );
 
-		var formAction = getFormAction( id=arguments.id );
-
-		StructAppend( data, {
-			  formId         = formAction.formId    ?: ""
-			, formActionType = formAction.action.id ?: ""
-		} );
+		StructAppend( data, _getFormActionAuditDetail( formActionId=arguments.id ) );
 
 		$audit(
 			  action   = "formbuilder_edit_action"
@@ -238,17 +228,13 @@ component {
 	 */
 	public boolean function deleteAction( required string id ) {
 		if ( Len( Trim( arguments.id ) ) ) {
-			var data       = {};
 			var formAction = getFormAction( id=arguments.id );
 
-			StructAppend( data, {
-				  formId         = formAction.formId    ?: ""
-				, formActionType = formAction.action.id ?: ""
-			} );
+			var data = _getFormActionAuditDetail( formActionId=arguments.id );
 
-			var updated = $getPresideObject( "formbuilder_formaction" ).deleteData( id=arguments.id );
+			var recordsCount = $getPresideObject( "formbuilder_formaction" ).deleteData( id=arguments.id );
 
-			if ( updated > 0 ) {
+			if ( recordsCount > 0 ) {
 				$audit(
 					  action   = "formbuilder_delete_action"
 					, type     = "formbuilder"
@@ -359,6 +345,14 @@ component {
 		};
 	}
 
+	private struct function _getFormActionAuditDetail( required string formActionId ) {
+		var formAction = getFormAction( id=arguments.formActionId );
+
+		return {
+			  formId         = formAction.formId    ?: ""
+			, formActionType = formAction.action.id ?: ""
+		};
+	}
 
 // GETTERS AND SETTERS
 	private array function _getConfiguredActions() {

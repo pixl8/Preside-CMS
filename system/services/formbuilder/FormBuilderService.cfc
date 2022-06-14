@@ -203,13 +203,26 @@ component {
 		var formItemDao   = $getPresideObject( "formbuilder_formitem" );
 		var existingItems = formItemDao.selectData( selectFields=[ "Max( sort_order ) as max_sort_order" ], filter={ form=arguments.formId } );
 
-		return formItemDao.insertData( data={
+		var data = {
 			  form          = arguments.formId
 			, item_type     = arguments.itemType
 			, question      = arguments.question
 			, sort_order    = Val( existingItems.max_sort_order ?: "" ) + 1
 			, configuration = SerializeJson( arguments.configuration )
-		} );
+		};
+
+		var itemId = formItemDao.insertData( data=data );
+
+		StructAppend( data, _getFormItemAuditDetail( formItemId=itemId ) );
+
+		$audit(
+			  action   = "formbuilder_add_item"
+			, type     = "formbuilder"
+			, recordId = itemId
+			, detail   = data
+		);
+
+		return itemId;
 	}
 
 	/**
@@ -225,14 +238,27 @@ component {
 		, required struct configuration
 		,          string question = ""
 	) {
-		if ( !arguments.id.len() || isFormLocked( itemId=arguments.id ) ) {
+		if ( !Len( arguments.id ) || isFormLocked( itemId=arguments.id ) ) {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data={
+		var data = {
 			  configuration = SerializeJson( arguments.configuration )
 			, question      = arguments.question
-		} );
+		};
+
+		var recordsCount = $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data=data );
+
+		StructAppend( data, _getFormItemAuditDetail( formItemId=arguments.id ) );
+
+		$audit(
+			  action   = "formbuilder_edit_item"
+			, type     = "formbuilder"
+			, recordId = arguments.id
+			, detail   = data
+		);
+
+		return recordsCount;
 	}
 
 	/**
@@ -279,8 +305,26 @@ component {
 	 *
 	 */
 	public boolean function deleteItem( required string id ) {
+		var formItem     = getFormItem( id=arguments.id );
+		var formQuestion = getQuestion( id=formItem.questionId ?: "" );
+
+		var data = _getFormItemAuditDetail( formItemId=arguments.id );
+
 		if ( Len( Trim( arguments.id ) ) && !isFormLocked( itemId=arguments.id ) ) {
-			return $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+			var recordsCount =  $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+
+			if ( recordsCount > 0 ) {
+				$audit(
+					  action   = "formbuilder_delete_item"
+					, type     = "formbuilder"
+					, recordId = arguments.id
+					, detail   = data
+				);
+
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		return false;
@@ -2134,6 +2178,20 @@ component {
 		);
 
 		return responses;
+	}
+
+	private struct function _getFormItemAuditDetail( required string formItemId ) {
+		var formItem     = getFormItem( id=arguments.formItemId );
+		var formQuestion = getQuestion( id=formItem.questionId ?: "" );
+
+		return {
+			  formId            = formItem.formId              ?: ""
+			, formItemType      = formItem.type.id             ?: ""
+			, formItemLabel     = formItem.configuration.label ?: ""
+			, formItemName      = formItem.configuration.name  ?: ""
+			, formQuestionId    = formItem.questionId          ?: ""
+			, formQuestionLabel = formQuestion.field_label     ?: ""
+		};
 	}
 
 // GETTERS AND SETTERS
