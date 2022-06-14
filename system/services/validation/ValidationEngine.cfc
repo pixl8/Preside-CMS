@@ -302,6 +302,10 @@ component displayName="Validation Engine" {
 					validator = "dateISO";
 					break;
 
+				case "required":
+					jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], '"normalizer" : function(value) { return $.trim(value); }' );
+					break;
+
 				default:
 					break;
 			}
