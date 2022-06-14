@@ -833,7 +833,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object           = "formbuilder_form"
-				, postActionUrl    = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & formId )
+				, postActionUrl    = event.buildAdminLink( linkTo="formbuilder" )
 				, audit            = true
 				, auditAction      = "formbuilder_delete_form"
 				, auditType        = "formbuilder"

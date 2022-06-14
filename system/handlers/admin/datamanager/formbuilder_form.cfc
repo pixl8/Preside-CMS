@@ -37,9 +37,4 @@ component {
 		return arguments.queryString;
 	}
 
-	private void function postDeleteRecordAction( event, rc, prc, args={} ) {
-
-
-	}
 }
-
