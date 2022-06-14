@@ -404,17 +404,20 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "activateForm", function(){
 			it( "should set the given's form active status to true", function(){
-				var service = getService();
-				var formId  = CreateUUId();
+				var service  = getService();
+				var formId   = CreateUUId();
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
+
 				service.$( "isFormLocked", false );
 
 				expect( service.activateForm( formId ) ).toBe( 1 );
 
 				var callLog = mockFormDao.$callLog().updateData;
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=true } } );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=true, formId=formId, formName=formName, objectName="formbuilder_form" } } );
 			} );
 
 			it( "should do nothing when the passed ID is an empty string", function(){
@@ -446,17 +449,20 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "deactivateForm", function(){
 			it( "should set the given's form active status to false", function(){
-				var service = getService();
-				var formId  = CreateUUId();
+				var service  = getService();
+				var formId   = CreateUUId();
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
+
 				service.$( "isFormLocked", false );
 
 				expect( service.deactivateForm( formId ) ).toBe( 1 );
 
 				var callLog = mockFormDao.$callLog().updateData;
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=false } } );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=false, formId=formId, formName=formName, objectName="formbuilder_form" } } );
 			} );
 
 			it( "should do nothing when the passed ID is an empty string", function(){
