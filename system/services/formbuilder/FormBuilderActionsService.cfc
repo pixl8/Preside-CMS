@@ -195,7 +195,7 @@ component {
 	 *
 	 */
 	public any function saveAction( required string id, required struct configuration ) {
-		if ( !Len( arguments.id ) ) {
+		if ( !Len( Trim( arguments.id ) ) ) {
 			return 0;
 		}
 

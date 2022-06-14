@@ -238,7 +238,7 @@ component {
 		, required struct configuration
 		,          string question = ""
 	) {
-		if ( !Len( arguments.id ) || isFormLocked( itemId=arguments.id ) ) {
+		if ( !Len( Trim( arguments.id ) ) || isFormLocked( itemId=arguments.id ) ) {
 			return 0;
 		}
 
@@ -400,10 +400,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { active = true }
+		var data = { active=true };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_activate"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -418,10 +433,23 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { active = false }
+		var data = { active=false };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_deactivate"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
 	}
 
 	/**
@@ -2191,6 +2219,16 @@ component {
 			, formItemName      = formItem.configuration.name  ?: ""
 			, formQuestionId    = formItem.questionId          ?: ""
 			, formQuestionLabel = formQuestion.field_label     ?: ""
+		};
+	}
+
+	private struct function _getFormAuditDetail( required string formId ) {
+		var formForm = getForm( id=arguments.formId );
+
+		return {
+			  formId     = formForm.id   ?: ""
+			, name       = formForm.name ?: ""
+			, objectName = "formbuilder_form"
 		};
 	}
 
