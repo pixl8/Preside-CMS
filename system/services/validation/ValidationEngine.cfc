@@ -303,7 +303,7 @@ component displayName="Validation Engine" {
 					break;
 
 				case "required":
-					jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], '"normalizer" : function(value) { return $.trim(value); }' );
+					jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], ' "normalizer" : function(value) { return $.trim(value); }' );
 					break;
 
 				default:
