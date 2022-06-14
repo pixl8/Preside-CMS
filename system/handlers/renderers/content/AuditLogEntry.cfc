@@ -5,6 +5,8 @@ component {
 	property name="taskmanagerService"         inject="taskmanagerService";
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailLayoutService"         inject="emailLayoutService";
+	property name="formBuilderService"         inject="FormBuilderService";
+	property name="formBuilderActionsService"  inject="FormBuilderActionsService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
@@ -241,17 +243,46 @@ component {
 
 		var userHtml = '<a href="#( args.userLink ?: "" )#">#( args.known_as ?: "" )#</a>';
 
-		var formId    = args.record_id ?: "";
-		var formLabel = renderLabel( objectName="formbuilder_form", recordId=formId );
-		var formHtml  = "";
+		var recordId         = args.record_id         ?: "";
+		var recordObjectName = args.detail.objectName ?: "";
+		var recordLabel      = "";
+		var recordLink       = "";
+		var recordHtml       = "";
 
-		if ( IsValid( "UUID", formLabel ) ) {
-			formHtml = args.detail.label ?: ( args.detail.name ?: "" );
-		} else {
-			formHtml = '<a href="#event.buildAdminLink( objectName="formbuilder_form", recordId=formId )#">#formLabel#</a>';
+		var formId   = args.detail.formId ?: "";
+		var formHtml = "";
+
+		switch ( ListLast( action, "_" ) ) {
+			case "action":
+				var formActionType = args.detail.formActionType ?: "";
+
+				recordLabel = translateResource( uri="formbuilder.actions.#formActionType#:title", defaultValue=recordId );
+				recordLink  = event.buildAdminLink( linkTo="formbuilder.actions", queryString="id=#formId#" );
+				recordHtml  = '<a href="#recordLink#">#recordLabel#</a>';
+
+				formHtml = '<a href="#event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=#formId#" )#">#renderLabel( "formbuilder_form", formId )#</a>';
+				break;
+
+			default:
+				recordLabel = renderLabel( objectName=recordObjectName, recordId=recordId );
+
+				if ( IsValid( "UUID", recordLabel ) ) {
+					recordHtml = args.detail.label ?: ( args.detail.name ?: "" );
+				} else {
+					recordLink = event.buildAdminLink( objectName=recordObjectName, recordId=recordId );
+					recordHtml = '<a href="#recordLink#">#recordLabel#</a>';
+				}
+				break;
 		}
 
-		return translateResource( uri="auditlog.formbuilder:#args.action#.message", data=[ userHtml, formHtml ] );
+		return translateResource(
+			  uri  = "auditlog.formbuilder:#action#.message"
+			, data = [
+				  userHtml
+				, recordHtml
+				, formHtml
+			]
+		);
 	}
 
 }

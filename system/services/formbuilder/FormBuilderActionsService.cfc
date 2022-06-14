@@ -164,14 +164,31 @@ component {
 	) {
 		var formActionDao   = $getPresideObject( "formbuilder_formaction" );
 		var existingActions = formActionDao.selectData( selectFields=[ "Max( sort_order ) as max_sort_order" ], filter={ form=arguments.formId } );
-
-		return formActionDao.insertData( data={
+		var data            = {
 			  form          = arguments.formId
 			, action_type   = arguments.action
 			, configuration = SerializeJson( arguments.configuration )
 			, condition     = ( arguments.configuration.condition ?: "" )
 			, sort_order    = Val( existingActions.max_sort_order ?: "" ) + 1
+		};
+
+		var actionId = formActionDao.insertData( data=data );
+
+		var formAction = getFormAction( id=actionId );
+
+		StructAppend( data, {
+			  formId         = formAction.formId    ?: ""
+			, formActionType = formAction.action.id ?: ""
 		} );
+
+		$audit(
+			  action   = "formbuilder_add_action"
+			, type     = "formbuilder"
+			, recordId = actionId
+			, detail   = data
+		);
+
+		return actionId;
 	}
 
 	/**
@@ -183,14 +200,32 @@ component {
 	 *
 	 */
 	public any function saveAction( required string id, required struct configuration ) {
-		if ( !arguments.id.len() ) {
+		if ( !Len( arguments.id ) ) {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_formaction" ).updateData( id=arguments.id, data={
+		var data = {
 			  configuration = SerializeJson( arguments.configuration )
 			, condition     = ( arguments.configuration.condition ?: "" )
+		};
+
+		var recordsCount = $getPresideObject( "formbuilder_formaction" ).updateData( id=arguments.id, data=data );
+
+		var formAction = getFormAction( id=arguments.id );
+
+		StructAppend( data, {
+			  formId         = formAction.formId    ?: ""
+			, formActionType = formAction.action.id ?: ""
 		} );
+
+		$audit(
+			  action   = "formbuilder_edit_action"
+			, type     = "formbuilder"
+			, recordId = arguments.id
+			, detail   = data
+		);
+
+		return recordsCount;
 	}
 
 	/**
@@ -203,7 +238,28 @@ component {
 	 */
 	public boolean function deleteAction( required string id ) {
 		if ( Len( Trim( arguments.id ) ) ) {
-			return $getPresideObject( "formbuilder_formaction" ).deleteData( id=arguments.id ) > 0;
+			var data       = {};
+			var formAction = getFormAction( id=arguments.id );
+
+			StructAppend( data, {
+				  formId         = formAction.formId    ?: ""
+				, formActionType = formAction.action.id ?: ""
+			} );
+
+			var updated = $getPresideObject( "formbuilder_formaction" ).deleteData( id=arguments.id );
+
+			if ( updated > 0 ) {
+				$audit(
+					  action   = "formbuilder_delete_action"
+					, type     = "formbuilder"
+					, recordId = arguments.id
+					, detail   = data
+				);
+
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		return false;
