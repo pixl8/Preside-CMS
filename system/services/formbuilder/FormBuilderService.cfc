@@ -134,7 +134,7 @@ component {
 
 		for( var item in items ) {
 			result = {
-					id          = item.id
+				  id            = item.id
 				, formId        = item.form
 				, questionId    = item.question
 				, item_type     = item.item_type
@@ -203,13 +203,26 @@ component {
 		var formItemDao   = $getPresideObject( "formbuilder_formitem" );
 		var existingItems = formItemDao.selectData( selectFields=[ "Max( sort_order ) as max_sort_order" ], filter={ form=arguments.formId } );
 
-		return formItemDao.insertData( data={
+		var data = {
 			  form          = arguments.formId
 			, item_type     = arguments.itemType
 			, question      = arguments.question
 			, sort_order    = Val( existingItems.max_sort_order ?: "" ) + 1
 			, configuration = SerializeJson( arguments.configuration )
-		} );
+		};
+
+		var itemId = formItemDao.insertData( data=data );
+
+		StructAppend( data, _getFormItemAuditDetail( formItemId=itemId ) );
+
+		$audit(
+			  action   = "formbuilder_add_item"
+			, type     = "formbuilder"
+			, recordId = itemId
+			, detail   = data
+		);
+
+		return itemId;
 	}
 
 	/**
@@ -225,14 +238,27 @@ component {
 		, required struct configuration
 		,          string question = ""
 	) {
-		if ( !arguments.id.len() || isFormLocked( itemId=arguments.id ) ) {
+		if ( !Len( Trim( arguments.id ) ) || isFormLocked( itemId=arguments.id ) ) {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data={
+		var data = {
 			  configuration = SerializeJson( arguments.configuration )
 			, question      = arguments.question
-		} );
+		};
+
+		var recordsCount = $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data=data );
+
+		StructAppend( data, _getFormItemAuditDetail( formItemId=arguments.id ) );
+
+		$audit(
+			  action   = "formbuilder_edit_item"
+			, type     = "formbuilder"
+			, recordId = arguments.id
+			, detail   = data
+		);
+
+		return recordsCount;
 	}
 
 	/**
@@ -279,8 +305,23 @@ component {
 	 *
 	 */
 	public boolean function deleteItem( required string id ) {
+		var data = _getFormItemAuditDetail( formItemId=arguments.id );
+
 		if ( Len( Trim( arguments.id ) ) && !isFormLocked( itemId=arguments.id ) ) {
-			return $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+			var recordsCount = $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+
+			if ( recordsCount > 0 ) {
+				$audit(
+					  action   = "formbuilder_delete_item"
+					, type     = "formbuilder"
+					, recordId = arguments.id
+					, detail   = data
+				);
+
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		return false;
@@ -356,10 +397,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { active = true }
+		var data = { active=true };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_activate"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -374,10 +430,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { active = false }
+		var data = { active=false };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_deactivate"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -392,10 +463,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { locked = true }
+		var data = { locked=true };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_lock"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -410,10 +496,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { locked = false }
+		var data = { locked=false };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_unlock"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -2134,6 +2235,37 @@ component {
 		);
 
 		return responses;
+	}
+
+	private struct function _getFormItemAuditDetail( required string formItemId ) {
+		var formItem = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  id           = arguments.formItemId
+			, selectFields = [
+				  "form"
+				, "question"
+				, "question.field_id"
+				, "question.field_label"
+				, "question.item_type"
+			  ]
+		);
+
+		return {
+			  formId            = formItem.form        ?: ""
+			, formItemType      = formItem.item_type   ?: ""
+			, formItemName      = formItem.field_id    ?: ""
+			, formQuestionId    = formItem.question    ?: ""
+			, formQuestionLabel = formItem.field_label ?: ""
+		};
+	}
+
+	private struct function _getFormAuditDetail( required string formId ) {
+		var formForm = getForm( id=arguments.formId );
+
+		return {
+			  formId     = formForm.id   ?: ""
+			, formName   = formForm.name ?: ""
+			, objectName = "formbuilder_form"
+		};
 	}
 
 // GETTERS AND SETTERS

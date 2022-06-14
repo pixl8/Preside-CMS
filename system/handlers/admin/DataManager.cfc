@@ -2673,6 +2673,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean audit             = false
 		,          string  auditAction       = "datamanager_delete_record"
 		,          string  auditType         = "datamanager"
+		,          struct  auditDetail       = {}
 		,          boolean batch             = false
 		,          boolean batchAll          = false
 		,          struct  batchSrcArgs      = {}
@@ -2743,11 +2744,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( presideObjectService.deleteData( objectName=objectName, id=id ) ) {
 			if ( arguments.audit ) {
+				StructAppend( arguments.auditDetail, { id=id, label=recordLabel, objectName=objectName }, false );
+
 				event.audit(
 					  action   = arguments.auditAction
 					, type     = arguments.auditType
 					, recordId = id
-					, detail   = { id=id, label=recordLabel, objectName=objectName }
+					, detail   = arguments.auditDetail
 				);
 			}
 
