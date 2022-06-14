@@ -2259,7 +2259,7 @@ component {
 
 		return {
 			  formId     = formForm.id   ?: ""
-			, name       = formForm.name ?: ""
+			, formName   = formForm.name ?: ""
 			, objectName = "formbuilder_form"
 		};
 	}

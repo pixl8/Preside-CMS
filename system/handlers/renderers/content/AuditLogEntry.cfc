@@ -290,7 +290,7 @@ component {
 				recordLabel = renderLabel( objectName=recordObjectName, recordId=recordId );
 
 				if ( IsValid( "UUID", recordLabel ) ) {
-					recordHtml = args.detail.label ?: ( args.detail.name ?: recordLabel );
+					recordHtml = args.detail.label ?: ( args.detail.formName ?: recordLabel );
 				} else {
 					recordLink = event.buildAdminLink( objectName=recordObjectName, recordId=recordId );
 					recordHtml = '<a href="#recordLink#">#recordLabel#</a>';

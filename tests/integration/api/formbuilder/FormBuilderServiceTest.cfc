@@ -490,21 +490,25 @@ component extends="testbox.system.BaseSpec"{
 			it( "should set the given's form locked status to true", function(){
 				var service = getService();
 				var formId  = CreateUUId();
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
 
 				expect( service.lockForm( formId ) ).toBe( 1 );
 
 				var callLog = mockFormDao.$callLog().updateData;
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=true } } );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=true, formId=formId, formName=formName, objectName="formbuilder_form" } } );
 			} );
 
 			it( "should do nothing when the passed ID is an empty string", function(){
-				var service = getService();
-				var formId  = "";
+				var service  = getService();
+				var formId   = "";
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
 
 				expect( service.lockForm( formId ) ).toBe( 0 );
 
@@ -515,16 +519,19 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "unlockForm", function(){
 			it( "should set the given's form locked status to false", function(){
-				var service = getService();
-				var formId  = CreateUUId();
+				var service  = getService();
+				var formId   = CreateUUId();
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
 
 				expect( service.unlockForm( formId ) ).toBe( 1 );
 
 				var callLog = mockFormDao.$callLog().updateData;
+
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=false } } );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=false, formId=formId, formName=formName, objectName="formbuilder_form" } } );
 			} );
 
 			it( "should do nothing when the passed ID is an empty string", function(){
@@ -1215,6 +1222,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
 		service.$( "$getRequestContext", justAStub );
+		service.$( "$audit" );
 		justAStub.$( "getValue", {} );
 		justAStub.$( "setValue" );
 
