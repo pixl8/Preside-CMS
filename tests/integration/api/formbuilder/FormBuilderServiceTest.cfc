@@ -297,10 +297,14 @@ component extends="testbox.system.BaseSpec"{
 		describe( "deleteItem", function(){
 
 			it( "should remove item from the database", function(){
-				var service = getService();
-				var itemId  = CreateUUId();
+				var service  = getService();
+				var itemId   = CreateUUID();
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 1 );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				service.deleteItem( itemId );
@@ -312,34 +316,42 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should return true when an item was deleted from the database", function(){
-				var service = getService();
-				var itemId  = CreateUUId();
+				var service  = getService();
+				var itemId   = CreateUUID();
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 1 );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				expect( service.deleteItem( itemId )  ).toBeTrue();
-
-
 			} );
 
 			it( "should return false when no records were deleted from the database", function(){
-				var service = getService();
-				var itemId  = CreateUUId();
+				var service  = getService();
+				var itemId   = CreateUUID();
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 0 );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				expect( service.deleteItem( itemId )  ).toBeFalse();
-
-
 			} );
 
 			it( "should not attempt to delete anything and return false when an empty string is passed as the id", function(){
-				var service = getService();
-				var itemId  = "";
+				var service  = getService();
+				var itemId   = "";
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				expect( service.deleteItem( itemId )  ).toBeFalse();
@@ -348,10 +360,14 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should not attempt to delete anything and return false when form is locked", function(){
-				var service = getService();
-				var itemId  = CreateUUId();
+				var service  = getService();
+				var itemId   = CreateUUID();
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( true );
 
 				expect( service.deleteItem( itemId )  ).toBeFalse();

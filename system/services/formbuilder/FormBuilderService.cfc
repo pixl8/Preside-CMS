@@ -305,13 +305,10 @@ component {
 	 *
 	 */
 	public boolean function deleteItem( required string id ) {
-		var formItem     = getFormItem( id=arguments.id );
-		var formQuestion = getQuestion( id=formItem.questionId ?: "" );
-
 		var data = _getFormItemAuditDetail( formItemId=arguments.id );
 
 		if ( Len( Trim( arguments.id ) ) && !isFormLocked( itemId=arguments.id ) ) {
-			var recordsCount =  $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+			var recordsCount = $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
 
 			if ( recordsCount > 0 ) {
 				$audit(
@@ -2241,16 +2238,23 @@ component {
 	}
 
 	private struct function _getFormItemAuditDetail( required string formItemId ) {
-		var formItem     = getFormItem( id=arguments.formItemId );
-		var formQuestion = getQuestion( id=formItem.questionId ?: "" );
+		var formItem = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  id           = arguments.formItemId
+			, selectFields = [
+				  "form"
+				, "question"
+				, "question.field_id"
+				, "question.field_label"
+				, "question.item_type"
+			  ]
+		);
 
 		return {
-			  formId            = formItem.formId              ?: ""
-			, formItemType      = formItem.type.id             ?: ""
-			, formItemLabel     = formItem.configuration.label ?: ""
-			, formItemName      = formItem.configuration.name  ?: ""
-			, formQuestionId    = formItem.questionId          ?: ""
-			, formQuestionLabel = formQuestion.field_label     ?: ""
+			  formId            = formItem.form        ?: ""
+			, formItemType      = formItem.item_type   ?: ""
+			, formItemName      = formItem.field_id    ?: ""
+			, formQuestionId    = formItem.question    ?: ""
+			, formQuestionLabel = formItem.field_label ?: ""
 		};
 	}
 
