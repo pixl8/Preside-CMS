@@ -134,7 +134,7 @@ component {
 
 		for( var item in items ) {
 			result = {
-					id          = item.id
+				  id            = item.id
 				, formId        = item.form
 				, questionId    = item.question
 				, item_type     = item.item_type
@@ -450,6 +450,8 @@ component {
 				, detail   = data
 			);
 		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -464,10 +466,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { locked = true }
+		var data = { locked=true };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_lock"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -482,10 +499,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { locked = false }
+		var data = { locked=false };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_unlock"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
