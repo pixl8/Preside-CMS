@@ -207,14 +207,19 @@ component extends="BaseAdapter" {
 			sql &= " having " & arguments.having;
 		}
 
+		sql &= getOrderByAndMaxRowsSql( argumentCollection=arguments );
+
+		return sql;
+	}
+
+	public string function getOrderByAndMaxRowsSql( string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
+		var sql = "";
 		if ( Len( Trim ( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
 		}
-
 		if ( arguments.maxRows ) {
 			sql &= " limit #arguments.startRow-1#, #arguments.maxRows#";
 		}
-
 		return sql;
 	}
 

@@ -2943,6 +2943,75 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test085b_selectData_shouldReturnRawSQLAndPrefixedFilters_withoutExecution_whenReturnSqlIsSetToTrue" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, having              = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy             = "obj_a.id"
+				, filterParams        = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters        = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly     = true
+				, getSqlAndParamsOnly = true
+				, sqlAndParamsPrefix  = "test_prefix__"
+			);
+
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :test_prefix__bees_count) and (Count( lots_of_bees.id ) = :test_prefix__bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( [ { name="test_prefix__bees_count", type="cf_sql_int", value=2 }, { name="test_prefix__bees_count_2", type="cf_sql_int", value=4 } ], result.params ?: [] );
+
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test085c_selectData_shouldReturnRawSQLAndPrefixedFormattedFilters_whenFormatSqlParamsIsSetToTrue" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname          = "obj_a"
+				, having              = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy             = "obj_a.id"
+				, filterParams        = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters        = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly     = true
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+				, sqlAndParamsPrefix  = "test_prefix__"
+			);
+
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :test_prefix__bees_count) and (Count( lots_of_bees.id ) = :test_prefix__bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( { test_prefix__bees_count={ type="cf_sql_int", value=2 }, test_prefix__bees_count_2={ type="cf_sql_int", value=4 } }, result.params ?: {} );
+
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test086_selectData_shouldMakeUseOfAdditionalJoinsPassed" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
@@ -3324,6 +3393,250 @@
 			var actual    = poService.getObjectAttribute( "this_is_a_very_long_name_for_the_many_to_many_linking_table_too_long_in_fact", "tableName" );
 
 			super.assertEquals( expected, actual, "A controlled error was not thrown" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test098_selectUnion_unionAllShouldIncludeDuplicateResults" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
+			poService.dbSync();
+
+			for( var i=1; i<=5; i++ ) {
+				poService.insertData( objectName="object_1", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_2", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_3", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_4", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_5", data={ id="id_#i#", label="label #i#" } );
+			}
+
+			result = poService.selectUnion(
+				selectDataArgs = [
+					{
+						  objectName   = "object_1"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_2"
+						, selectFields = [ "id", "label" ]
+					}
+				]
+				, union   = "ALL"
+				, orderBy = "id desc"
+			);
+
+			super.assertEquals( 10, result.recordcount );
+			super.assertEquals( "id_5", result.id[ 1 ] );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test099_selectUnion_unionDistinctShouldEliminateDuplicateResults" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
+			poService.dbSync();
+
+			for( var i=1; i<=5; i++ ) {
+				poService.insertData( objectName="object_1", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_2", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_3", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_4", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_5", data={ id="id_#i#", label="label #i#" } );
+			}
+
+			result = poService.selectUnion(
+				selectDataArgs = [
+					{
+						  objectName   = "object_1"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_2"
+						, selectFields = [ "id", "label" ]
+					}
+				]
+				, union   = "DISTINCT"
+				, orderBy = "id"
+			);
+
+			super.assertEquals( 5, result.recordcount );
+			super.assertEquals( "id_1", result.id[ 1 ] );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test100_selectUnion_ensureUnionsBetweenSameObjectDoNotCollide" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
+			poService.dbSync();
+
+			for( var i=1; i<=5; i++ ) {
+				poService.insertData( objectName="object_1", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_2", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_3", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_4", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_5", data={ id="id_#i#", label="label #i#" } );
+			}
+
+			result = poService.selectUnion(
+				selectDataArgs = [
+					{
+						  objectName   = "object_1"
+						, selectFields = [ "id", "label" ]
+						, filter       = { id="id_1" }
+					},
+					{
+						  objectName   = "object_1"
+						, selectFields = [ "id", "label" ]
+						, filter       = { id="id_3" }
+					}
+				]
+			);
+
+			super.assertEquals( 2, result.recordcount );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test101_selectUnion_shouldAllowUnionOfMultipleRecordsets" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
+			poService.dbSync();
+
+			for( var i=1; i<=5; i++ ) {
+				poService.insertData( objectName="object_1", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_2", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_3", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_4", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_5", data={ id="id_#i#", label="label #i#" } );
+			}
+
+			result = poService.selectUnion(
+				selectDataArgs = [
+					{
+						  objectName   = "object_1"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_2"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_3"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_4"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_5"
+						, selectFields = [ "id", "label" ]
+					}
+				],
+				union = "ALL"
+			);
+
+			super.assertEquals( 25, result.recordcount );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test102_selectUnion_shouldAllowMaxRowsAndOrderByWithinClauses" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
+			poService.dbSync();
+
+			for( var i=1; i<=5; i++ ) {
+				poService.insertData( objectName="object_1", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_2", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_3", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_4", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_5", data={ id="id_#i#", label="label #i#" } );
+			}
+
+			result = poService.selectUnion(
+				selectDataArgs = [
+					{
+						  objectName   = "object_1"
+						, selectFields = [ "id", "label" ]
+						, orderBy      = "id desc"
+						, maxRows      = 2
+					},
+					{
+						  objectName   = "object_2"
+						, selectFields = [ "id", "label" ]
+						, orderBy      = "id desc"
+						, maxRows      = 2
+					},
+					{
+						  objectName   = "object_3"
+						, selectFields = [ "id", "label" ]
+						, orderBy      = "id desc"
+						, maxRows      = 2
+					},
+					{
+						  objectName   = "object_4"
+						, selectFields = [ "id", "label" ]
+						, orderBy      = "id desc"
+						, maxRows      = 2
+					},
+					{
+						  objectName   = "object_5"
+						, selectFields = [ "id", "label" ]
+						, orderBy      = "id desc"
+						, maxRows      = 2
+					}
+				]
+				, union   = "ALL"
+				, orderBy = "id"
+			);
+
+			super.assertEquals( 10, result.recordcount );
+			super.assertEquals( "id_4", result.id[ 1 ] );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test103_selectUnion_shouldAllowMaxRowsAndOrderByForJoinedResults" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
+			poService.dbSync();
+
+			for( var i=1; i<=5; i++ ) {
+				poService.insertData( objectName="object_1", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_2", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_3", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_4", data={ id="id_#i#", label="label #i#" } );
+				poService.insertData( objectName="object_5", data={ id="id_#i#", label="label #i#" } );
+			}
+
+			result = poService.selectUnion(
+				selectDataArgs = [
+					{
+						  objectName   = "object_1"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_2"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_3"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_4"
+						, selectFields = [ "id", "label" ]
+					},
+					{
+						  objectName   = "object_5"
+						, selectFields = [ "id", "label" ]
+					}
+				]
+				, union    = "ALL"
+				, orderBy  = "id desc"
+				, maxRows  = 6
+				, startRow = 11
+			);
+
+			super.assertEquals( 6, result.recordcount );
+			super.assertEquals( "id_3", result.id[ 5 ] );
+			super.assertEquals( "id_2", result.id[ 6 ] );
 		</cfscript>
 	</cffunction>
 

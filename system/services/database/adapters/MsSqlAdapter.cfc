@@ -287,14 +287,19 @@ component extends="BaseAdapter" {
 			sql &= " having " & arguments.having;
 		}
 
+		sql &= getOrderByAndMaxRowsSql( argumentCollection=arguments );
+
+		return sql;
+	}
+
+	public string function getOrderByAndMaxRowsSql( string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
+		var sql = "";
 		if ( Len( Trim ( arguments.orderBy ) )  && !arguments.maxRows ) {
 			sql &= " order by " & arguments.orderBy;
 		}
-
 		if ( arguments.maxRows ) {
 			sql = "select * from ( " & sql & " ) as recordset where _rownumber between #( arguments.startRow )# and #( ( arguments.startRow + arguments.maxRows ) - 1 )#";
 		}
-
 		return sql;
 	}
 

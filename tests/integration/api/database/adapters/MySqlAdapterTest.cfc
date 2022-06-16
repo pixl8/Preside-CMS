@@ -700,6 +700,19 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test36_getOrderByAndMaxRowsSql_shouldReturnCorrectOrderByAndLimitClauses" returntype="void">
+		<cfscript>
+			var adapter = _getAdapter( "mysql" );
+
+			super.assertEquals( ""                         , adapter.getOrderByAndMaxRowsSql() );
+			super.assertEquals( ""                         , adapter.getOrderByAndMaxRowsSql( orderBy=" ", maxRows=0, startRow=1) );
+			super.assertEquals( " order by col1,col2"      , adapter.getOrderByAndMaxRowsSql( orderBy="col1,col2" ) );
+			super.assertEquals( " limit 0, 5"              , adapter.getOrderByAndMaxRowsSql( maxRows=5 ) );
+			super.assertEquals( " limit 2, 10"             , adapter.getOrderByAndMaxRowsSql( maxRows=10, startRow=3 ) );
+			super.assertEquals( " order by col1 limit 2, 5", adapter.getOrderByAndMaxRowsSql( maxRows=5, startRow=3, orderBy="col1" ) );
+		</cfscript>
+	</cffunction>
+
 <!--- te helpers --->
 	<cffunction name="_getAdapter" access="private" returntype="any" output="false">
 		<cfargument name="vendor" default="MariaDB">
