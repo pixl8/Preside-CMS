@@ -372,7 +372,7 @@ component displayName="Preside Object Service" {
 		}
 
 		var adapter = _getAdapter( dsn );
-		sql = ArrayToList( sqlParts, unionJoin ) & adapter.getOrderByAndMaxRowsSql( maxRows=arguments.maxRows, startRow=arguments.startRow, orderBy=arguments.orderBy );
+		sql = adapter.applyOrderByAndMaxRowsSql( sql=ArrayToList( sqlParts, unionJoin ), maxRows=arguments.maxRows, startRow=arguments.startRow, orderBy=arguments.orderBy );
 
 		return _runSql( sql=sql, params=params, dsn=dsn );
 	}

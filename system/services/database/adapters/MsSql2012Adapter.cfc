@@ -50,13 +50,13 @@ component extends="MsSqlAdapter" {
 			sql &= " having " & arguments.having;
 		}
 
-		sql &= getOrderByAndMaxRowsSql( argumentCollection=arguments );
+		sql = applyOrderByAndMaxRowsSql( sql=sql, orderBy=arguments.orderBy, maxRows=arguments.maxRows, startRow=arguments.startRow );
 
 		return sql;
 	}
 
-	public string function getOrderByAndMaxRowsSql( string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
-		var sql = "";
+	public string function applyOrderByAndMaxRowsSql( required string sql, string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
+		var sql = arguments.sql;
 		if ( Len( Trim( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
 		}
