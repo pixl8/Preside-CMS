@@ -766,8 +766,9 @@ component displayName="Forms service" {
 	 *
 	 */
 	public string function createForm( any generator, string basedOn="", string formName ) {
-		var basedOnDef     = Len( Trim( arguments.basedOn ) ) ? Duplicate( getForm( arguments.basedOn ) ) : { tabs=[] };
-		var formDefinition = new FormDefinition( basedOnDef );
+		var basedOnDef       = Len( Trim( arguments.basedOn ) ) ? Duplicate( getForm( arguments.basedOn ) ) : { tabs=[] };
+		var formDefinition   = new FormDefinition( basedOnDef );
+		var persistToDbCache = !( application._preside_reloading ?: false );
 
 		if ( StructKeyExists( arguments, "generator" ) ) {
 			arguments.generator( formDefinition );
@@ -779,7 +780,7 @@ component displayName="Forms service" {
 			arguments.formName = _generateFormNameFromDefinition( rawDefinition );
 		}
 
-		_registerForm( arguments.formName, rawDefinition );
+		_registerForm( arguments.formName, rawDefinition, persistToDbCache );
 
 		return arguments.formName;
 	}
