@@ -156,6 +156,7 @@ component displayName="Preside Object Service" {
 	 * @extraJoins.hint              An array of explicit joins to add to the query (can define subquery joins this way)
 	 * @recordCountOnly.hint         If set to true, the method will just return the number of records that the select statement would return
 	 * @getSqlAndParamsOnly.hint     If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
+	 * @sqlAndParamsPrefix.hint      If specified, all the params in the returned sql and params will be prefixed with the given string
 	 * @formatSqlParams.hint         If set to true, params returned by `getSqlAndParamsOnly` will be in the format required by `selectData()`'s `filterParams`
 	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
 	 * @tenantIds.hint               Struct of tenant IDs. Keys of the struct indicate the tenant, values indicate the ID. e.g. `{ site=specificSiteId }`. These values will override the current active tenant for the request.
@@ -192,6 +193,7 @@ component displayName="Preside Object Service" {
 		,          array   extraJoins              = []
 		,          boolean recordCountOnly         = false
 		,          boolean getSqlAndParamsOnly     = false
+		,          string  sqlAndParamsPrefix      = ""
 		,          boolean formatSqlParams         = false
 		,          boolean distinct                = false
 		,          struct  tenantIds               = {}
@@ -256,10 +258,11 @@ component displayName="Preside Object Service" {
 			);
 
 			if ( arguments.getSqlAndParamsOnly ) {
-				return {
+				return _prefixSqlAndParams(
 					  sql    = versionTablePrep.sql
 					, params = arguments.formatSqlParams ? _formatParams( versionTablePrep.params ) : versionTablePrep.params
-				};
+					, prefix = arguments.sqlAndParamsPrefix
+				);
 			} else {
 				args.result = _runSql(
 					  sql    = versionTablePrep.sql
@@ -287,10 +290,11 @@ component displayName="Preside Object Service" {
 				sql = args.adapter.getCountSql( sql );
 			}
 			if ( arguments.getSqlAndParamsOnly ) {
-				return {
+				return _prefixSqlAndParams(
 					  sql    = sql
 					, params = arguments.formatSqlParams ? _formatParams( args.preparedFilter.params ) : args.preparedFilter.params
-				};
+					, prefix = arguments.sqlAndParamsPrefix
+				);
 			}
 			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
 			if ( arguments.recordCountOnly ) {
@@ -317,6 +321,85 @@ component displayName="Preside Object Service" {
 	 */
 	public any function selectView( required string view ) {
 		return selectData( argumentCollection=_getSelectDataArgsFromView( argumentCollection=arguments ) );
+	}
+
+	/**
+	 * Performs a UNION SELECT of two or more SQL queries. Accepts an array of structs of selectData() arguments.
+	 *
+	 * @autodoc             true
+	 * @selectDataArgs.hint An array of structs of arguments to be passed to each selectData in the union.
+	 * @union.hint          The type of UNION join: DISTINCT (default) or ALL
+	 * @orderBy.hint        The sort order for the final dataset. Can only be column names contained in the first query, and not prefixed with object names
+	 * @maxRows.hint        Maximum number of rows to select
+	 * @startRow.hint       Offset the recordset when using maxRows
+	 */
+	public query function selectUnion(
+		  required array   selectDataArgs
+		,          string  union    = "DISTINCT"
+		,          string  orderBy  = ""
+		,          numeric maxRows  = 0
+		,          numeric startRow = 1
+	) {
+		var sqlAndParams = {};
+		var sqlParts     = [];
+		var params       = [];
+		var sql          = "";
+		var i            = 0;
+		var orderBy      = Len( Trim( arguments.orderBy ) ) ? " ORDER BY #arguments.orderBy#" : "";
+		var union        = ListFindNoCase( "DISTINCT,ALL", arguments.union ) ? arguments.union : "DISTINCT";
+		var unionJoin    = " UNION #union# ";
+		var dsn          = "";
+		var thisDsn      = "";
+
+		for( var args in arguments.selectDataArgs ) {
+			thisDsn = _getObject( args.objectName ).meta.dsn;
+			if ( Len( dsn ) && dsn != thisDsn ) {
+				throw(
+					  type    = "PresideObjects.selectUnionMultipleDsns"
+					, message = "Unable to perform a selectUnion() between objects from different DSNs"
+				);
+			}
+			dsn = thisDsn;
+
+			sqlAndParams = selectData(
+				  argumentCollection  = args
+				, getSqlAndParamsOnly = true
+				, sqlAndParamsPrefix  = "union_query_#++i#__"
+			);
+
+			ArrayAppend( params, sqlAndParams.params, true );
+			ArrayAppend( sqlParts, "( #sqlAndParams.sql# )" );
+		}
+
+		var adapter = _getAdapter( dsn );
+		sql = adapter.applyOrderByAndMaxRowsSql( sql=ArrayToList( sqlParts, unionJoin ), maxRows=arguments.maxRows, startRow=arguments.startRow, orderBy=arguments.orderBy );
+
+		return _runSql( sql=sql, params=params, dsn=dsn );
+	}
+
+	private struct function _prefixSqlAndParams( required string sql, required any params, string prefix="" ) {
+		var sqlAndParams = { sql=arguments.sql, params=arguments.params };
+		var key          = "";
+		var param        = "";
+
+		if ( !Len( Trim( arguments.prefix ) ) ) {
+			return sqlAndParams;
+		}
+
+		for( param in sqlAndParams.params ) {
+			if ( IsStruct( param ) ) {
+				key        = param.name;
+				param.name = arguments.prefix & key;
+			} else {
+				key = param;
+				sqlAndParams.params[ arguments.prefix & key ] = sqlAndParams.params[ key ];
+				StructDelete( sqlAndParams.params, key );
+			}
+
+			sqlAndParams.sql = ReReplaceNoCase( sqlAndParams.sql, ":#key#(\b)", ":#arguments.prefix##key#\1", "all" );
+		}
+
+		return sqlAndParams;
 	}
 
 	private function _formatParams( required array rawParams ) {
@@ -2531,7 +2614,7 @@ component displayName="Preside Object Service" {
 
 		_setAliasCache( aliasCache );
 	}
-	
+
 	private void function _setupTableNameObjectLookupCache() {
 		var objects     = _getObjects();
 		var lookupCache = {};

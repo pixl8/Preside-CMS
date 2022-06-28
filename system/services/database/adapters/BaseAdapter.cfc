@@ -238,6 +238,15 @@ component {
 		return "getSelectSql() not implemented. Must be implemented by extended adapters.";
 	}
 
+	public string function applyOrderByAndMaxRowsSql(
+		  required string  sql
+		           string  orderBy  = ""
+		,          numeric maxRows  = 0
+		,          numeric startRow = 1
+	) {
+		return "getOrderByAndMaxRowsSql() not implemented. Must be implemented by extended adapters.";
+	}
+
 	public string function getJoinSql( required string tableName, string tableAlias="", array joins=[] ) {
 		var aliases     = {};
 		var join        = "";
