@@ -1,6 +1,8 @@
 component validationProvider=true {
 
 	public boolean function required( required string fieldName, any value="", struct data={} ) validatorMessage="cms:validation.required.default" {
+		var value = IsSimpleValue( arguments.value ) ? Trim( arguments.value ) : arguments.value;
+
 		return StructKeyExists( arguments.data, fieldName ) && !IsEmpty( value );
 	}
 
@@ -91,7 +93,7 @@ component validationProvider=true {
 
 		return ( DateCompare( dateTimeFormat( arguments.value, "HH:nn" ), arguments.minimumTime ) >= 0 );
 	}
-	
+
 	public boolean function maximumTime( required string value, required string maximumTime ) validatorMessage="cms:validation.maximumTime.default" {
 		if ( !IsDate( arguments.value ) ) {
 			return true;
@@ -99,7 +101,7 @@ component validationProvider=true {
 
 		return ( DateCompare( dateTimeFormat( arguments.value, "HH:nn" ), arguments.maximumTime ) <= 0 );
 	}
-	
+
 	public boolean function datetime( required string value ) validatorMessage="cms:validation.date.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
