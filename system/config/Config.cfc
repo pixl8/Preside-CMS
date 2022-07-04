@@ -863,7 +863,7 @@ component {
 			, emailCenter              = { enabled=true , siteTemplates=[ "*" ] }
 			, emailCenterResend        = { enabled=false, siteTemplates=[ "*" ] }
 			, emailStyleInliner        = { enabled=true , siteTemplates=[ "*" ] }
-			, emailLinkShortener       = { enabled=false, siteTemplates=[ "*" ] }
+			, emailLinkShortener       = { enabled=true , siteTemplates=[ "*" ] }
 			, emailOverwriteDomain     = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates     = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager               = { enabled=false, siteTemplates=[ "*" ] }
