@@ -810,7 +810,7 @@ component {
 				, format_tags                     = 'p;h1;h2;h3;h4;h5;h6;pre;div'
 				, autoGrow_onStartup              = true
 				, emailProtection                 = 'encode'
-				, removePlugins                   = 'iframe'
+				, removePlugins                   = 'iframe,wsc,scayt'
 				, disallowedContent               = 'font; *[align]; *{line-height,margin*}'
 				, scayt_sLang                     = "en_GB"
 				, pasteFromWordDisallow           = [
