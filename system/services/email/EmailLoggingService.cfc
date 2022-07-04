@@ -714,13 +714,13 @@ component {
 			return false;
 		}
 
-		// the email log no longer exists - have we included links to this domain in any of
+		// the email log no longer exists - have we included this link in *any* of
 		// our historical email templates?!
 		var start = GetTickCount();
 		return poService.dataExists(
 			  objectName   = ( Len( versionObjName ) ? versionObjName : "email_template" )
 			, filter       = "html_body like :html_body"
-			, filterParams = { html_body="%#domain#%"}
+			, filterParams = { html_body="%#arguments.link#%"}
 		);
 	}
 
