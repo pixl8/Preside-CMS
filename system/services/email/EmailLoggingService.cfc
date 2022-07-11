@@ -664,7 +664,7 @@ component {
 		}
 
 		// is the domain of the link one that we host ourselves? (if so, fine)
-		var domain = ReReplace( arguments.link, "^https?://([^/]+).*$", "\1" );
+		var domain = ReReplace( arguments.link, "^https?://([^/\?\&]+).*$", "\1" );
 		if ( !Len( domain ) ) {
 			return false;
 		}
