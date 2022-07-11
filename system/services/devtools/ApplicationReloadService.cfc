@@ -13,6 +13,7 @@ component {
 	 * @resourceBundleService.inject          resourceBundleService
 	 * @stickerForPreside.inject              stickerForPreside
 	 * @delayedStickerRendererService.inject  delayedStickerRendererService
+	 * @delayedViewletRendererService.inject  delayedViewletRendererService
 	 * @widgetsService.inject                 widgetsService
 	 * @pageTypesService.inject               pageTypesService
 	 * @formsService.inject                   formsService
@@ -24,6 +25,7 @@ component {
 		, required any resourceBundleService
 		, required any stickerForPreside
 		, required any delayedStickerRendererService
+		, required any delayedViewletRendererService
 		, required any widgetsService
 		, required any pageTypesService
 		, required any formsService
@@ -35,6 +37,7 @@ component {
 		_setResourceBundleService( arguments.resourceBundleService );
 		_setStickerForPreside( arguments.stickerForPreside );
 		_setDelayedStickerRendererService( arguments.delayedStickerRendererService );
+		_setDelayedViewletRendererService( arguments.delayedViewletRendererService );
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setFormsService( arguments.formsService );
@@ -79,7 +82,7 @@ component {
 	}
 
 	public void function reloadStatic() {
-		_getStickerForPreside().init( coldbox=_getColdbox(), delayedStickerRendererService=_getDelayedStickerRendererService() );
+		_getStickerForPreside().init( delayedStickerRendererService=_getDelayedStickerRendererService(), delayedViewletRendererService=_getDelayedViewletRendererService() );
 	}
 
 	public void function reloadWidgets() {
@@ -130,6 +133,13 @@ component {
 	}
 	private void function _setDelayedStickerRendererService( required any delayedStickerRendererService ) {
 		_delayedStickerRendererService = arguments.delayedStickerRendererService;
+	}
+
+	private any function _getDelayedViewletRendererService() {
+		return _delayedViewletRendererService;
+	}
+	private void function _setDelayedViewletRendererService( required any delayedViewletRendererService ) {
+		_delayedViewletRendererService = arguments.delayedViewletRendererService;
 	}
 
 	private any function _getWidgetsService() {
