@@ -697,8 +697,22 @@ component {
 			, id           = arguments.messageId
 			, selectFields = [ "email_template.id", "email_template.html_body" ]
 		);
+
+		// layers of depth for encoded links found in nested widgets :o
+		var encodedLinks = [ UrlEncode( arguments.link ) ];
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		var contentFilter = { filter = "html_body like :html_body", filterParams={ html_body="%#arguments.link#%" } };
+		for( var i=1; i<=ArrayLen( encodedLinks ); i++  ) {
+			contentFilter.filter &= " or html_body like :html_body_#i#";
+			contentFilter.filterParams[ "html_body_#i#" ] = { type="cf_sql_varchar", value="%#encodedLinks[ i ]#%" };
+		}
+
 		if ( emailTemplate.recordCount ) {
-			if ( Find( arguments.link, emailTemplate.html_body ) ) {
+			if ( Find( arguments.link, emailTemplate.html_body ) || ArrayFind( encodedLinks, arguments.link ) ) {
 				return true;
 			}
 
@@ -706,8 +720,8 @@ component {
 			if ( Len( Trim( versionObjName ) ) ) {
 				return poService.dataExists(
 					  objectName   = versionObjName
-					, filter       = "id = :id and html_body like :html_body"
-					, filterParams = { html_body="%#arguments.link#%", id=emailTemplate.id }
+					, id           = emailTemplate.id
+					, extraFilters = [ contentFilter ]
 				);
 			}
 
@@ -719,8 +733,7 @@ component {
 		var start = GetTickCount();
 		return poService.dataExists(
 			  objectName   = ( Len( versionObjName ) ? versionObjName : "email_template" )
-			, filter       = "html_body like :html_body"
-			, filterParams = { html_body="%#arguments.link#%"}
+			, extraFilters = [ contentFilter ]
 		);
 	}
 
