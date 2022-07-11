@@ -690,6 +690,16 @@ component {
 			}
 		}
 
+		// is the link in our link table
+		var linkExists =  $getPresideObject( "link" ).dataExists( filter={
+			  type             = "url"
+			, external_address = ReReplace( arguments.link, "^https?://", "" )
+		} )
+		if ( linkExists ) {
+			return true;
+		}
+
+
 		// is the link included in the email content
 		var versionObjName = poService.getVersionObjectName( "email_template" );
 		var emailTemplate  = poService.selectData(
