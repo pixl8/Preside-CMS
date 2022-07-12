@@ -102,6 +102,13 @@ component displayName="Preside Object View Service" {
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
 
+		if ( !data.recordCount && StructKeyExists( selectDataArgs, "fromVersionTable" ) ) {
+			StructDelete( selectDataArgs, "fromVersionTable" );
+			StructDelete( selectDataArgs, "specificVersion"  );
+
+			data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
+		}
+
 		for( record in data ) {
 			var viewArgs = _renderFields( arguments.presideObject, record, viewDetails.fieldOptions );
 			viewArgs.append( arguments.args );
