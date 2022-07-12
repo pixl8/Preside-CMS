@@ -101,9 +101,9 @@ component displayName="Preside Object View Service" {
 		}
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
-
-		if ( !data.recordCount && StructKeyExists( selectDataArgs, "fromVersionTable" ) ) {
-			StructDelete( selectDataArgs, "fromVersionTable" );
+		if ( !data.recordCount && selectDataArgs.allowDraftVersions ) {
+			selectDataArgs.fromVersionTable = false;
+			selectDataArgs.allowDraftVersions = false;
 			StructDelete( selectDataArgs, "specificVersion"  );
 
 			data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
