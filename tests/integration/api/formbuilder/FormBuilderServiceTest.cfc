@@ -297,10 +297,14 @@ component extends="testbox.system.BaseSpec"{
 		describe( "deleteItem", function(){
 
 			it( "should remove item from the database", function(){
-				var service = getService();
-				var itemId  = CreateUUId();
+				var service  = getService();
+				var itemId   = CreateUUID();
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 1 );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				service.deleteItem( itemId );
@@ -312,34 +316,42 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should return true when an item was deleted from the database", function(){
-				var service = getService();
-				var itemId  = CreateUUId();
+				var service  = getService();
+				var itemId   = CreateUUID();
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 1 );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				expect( service.deleteItem( itemId )  ).toBeTrue();
-
-
 			} );
 
 			it( "should return false when no records were deleted from the database", function(){
-				var service = getService();
-				var itemId  = CreateUUId();
+				var service  = getService();
+				var itemId   = CreateUUID();
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 0 );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				expect( service.deleteItem( itemId )  ).toBeFalse();
-
-
 			} );
 
 			it( "should not attempt to delete anything and return false when an empty string is passed as the id", function(){
-				var service = getService();
-				var itemId  = "";
+				var service  = getService();
+				var itemId   = "";
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				expect( service.deleteItem( itemId )  ).toBeFalse();
@@ -348,10 +360,14 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should not attempt to delete anything and return false when form is locked", function(){
-				var service = getService();
-				var itemId  = CreateUUId();
+				var service  = getService();
+				var itemId   = CreateUUID();
+				var itemType = "textarea";
+				var formId   = CreateUUID();
 
 				mockFormItemDao.$( "deleteData" );
+				mockFormItemDao.$( "selectData", QueryNew( "form,question,field_id,field_label,item_type", "varchar,varchar,varchar,varchar,varchar", [ { "form": formId, "question": "x", "field_id": "foobar", "field_label": "Foobar", "item_type": itemType } ] ) );
+
 				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( true );
 
 				expect( service.deleteItem( itemId )  ).toBeFalse();
@@ -404,17 +420,20 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "activateForm", function(){
 			it( "should set the given's form active status to true", function(){
-				var service = getService();
-				var formId  = CreateUUId();
+				var service  = getService();
+				var formId   = CreateUUId();
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
+
 				service.$( "isFormLocked", false );
 
 				expect( service.activateForm( formId ) ).toBe( 1 );
 
 				var callLog = mockFormDao.$callLog().updateData;
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=true } } );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=true, formId=formId, formName=formName, objectName="formbuilder_form" } } );
 			} );
 
 			it( "should do nothing when the passed ID is an empty string", function(){
@@ -446,17 +465,20 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "deactivateForm", function(){
 			it( "should set the given's form active status to false", function(){
-				var service = getService();
-				var formId  = CreateUUId();
+				var service  = getService();
+				var formId   = CreateUUId();
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
+
 				service.$( "isFormLocked", false );
 
 				expect( service.deactivateForm( formId ) ).toBe( 1 );
 
 				var callLog = mockFormDao.$callLog().updateData;
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=false } } );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=false, formId=formId, formName=formName, objectName="formbuilder_form" } } );
 			} );
 
 			it( "should do nothing when the passed ID is an empty string", function(){
@@ -490,21 +512,25 @@ component extends="testbox.system.BaseSpec"{
 			it( "should set the given's form locked status to true", function(){
 				var service = getService();
 				var formId  = CreateUUId();
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
 
 				expect( service.lockForm( formId ) ).toBe( 1 );
 
 				var callLog = mockFormDao.$callLog().updateData;
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=true } } );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=true, formId=formId, formName=formName, objectName="formbuilder_form" } } );
 			} );
 
 			it( "should do nothing when the passed ID is an empty string", function(){
-				var service = getService();
-				var formId  = "";
+				var service  = getService();
+				var formId   = "";
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
 
 				expect( service.lockForm( formId ) ).toBe( 0 );
 
@@ -515,16 +541,19 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "unlockForm", function(){
 			it( "should set the given's form locked status to false", function(){
-				var service = getService();
-				var formId  = CreateUUId();
+				var service  = getService();
+				var formId   = CreateUUId();
+				var formName = "Foobar";
 
 				mockFormDao.$( "updateData", 1 );
+				mockFormDao.$( "selectData", QueryNew( "id,name", "varchar,varchar", [ { "id": formId, "name": formName } ] ) );
 
 				expect( service.unlockForm( formId ) ).toBe( 1 );
 
 				var callLog = mockFormDao.$callLog().updateData;
+
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=false } } );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=false, formId=formId, formName=formName, objectName="formbuilder_form" } } );
 			} );
 
 			it( "should do nothing when the passed ID is an empty string", function(){
@@ -1215,6 +1244,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
 		service.$( "$getRequestContext", justAStub );
+		service.$( "$audit" );
 		justAStub.$( "getValue", {} );
 		justAStub.$( "setValue" );
 
