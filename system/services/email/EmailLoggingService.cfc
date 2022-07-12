@@ -664,7 +664,8 @@ component {
 		}
 
 		// is the domain of the link one that we host ourselves? (if so, fine)
-		var domain = ReReplace( arguments.link, "^https?://([^/]+).*$", "\1" );
+		var linkMinusQs = ListFirst( arguments.link, "?&" );
+		var domain = ReReplace( linkMinusQs, "^https?://([^/]+).*$", "\1" );
 		if ( !Len( domain ) ) {
 			return false;
 		}
@@ -695,9 +696,9 @@ component {
 		}
 
 		// is the link in our link table
-		var linkExists =  $getPresideObject( "link" ).dataExists( filter={
+		var linkExists =  $getPresideObject( "link" ).dataExists( filter="type = :type and external_address like :external_address", filterParams={
 			  type             = "url"
-			, external_address = ReReplace( arguments.link, "^https?://", "" )
+			, external_address = ReReplace( linkMinusQs, "^https?://", "" ) & "%"
 		} )
 		if ( linkExists ) {
 			return true;
@@ -713,7 +714,7 @@ component {
 		);
 
 		// layers of depth for encoded links found in nested widgets :o
-		var encodedLinks = [ UrlEncode( arguments.link ) ];
+		var encodedLinks = [ UrlEncode( linkMinusQs ) ];
 		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
 		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
 		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
@@ -726,7 +727,7 @@ component {
 		}
 
 		if ( emailTemplate.recordCount ) {
-			if ( Find( arguments.link, emailTemplate.html_body ) || ArrayFind( encodedLinks, arguments.link ) ) {
+			if ( Find( linkMinusQs, emailTemplate.html_body ) || ArrayFind( encodedLinks, arguments.link ) ) {
 				return true;
 			}
 
