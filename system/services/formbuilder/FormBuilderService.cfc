@@ -1253,10 +1253,9 @@ component {
 	 */
 	public void function deleteSubmissionFiles( required string submissionId ) {
 		var submission    = getSubmission( submissionId=arguments.submissionId );
+		var formId        = submission.form ?: "";
 		var fileItemTypes = _getItemTypesService().getFileUploadItemTypes();
 		var files         = [];
-
-		formId = submission.form ?: "";
 
 		if ( isV2Form( formId=formId ) ) {
 			var fileFields = $getPresideObject( "formbuilder_question_response" ).selectData(
@@ -1302,6 +1301,44 @@ component {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Delete the given submission question responses.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteSubmissionResponses( required string submissionId ) {
+		var submission = getSubmission( submissionId=arguments.submissionId );
+		var formId     = submission.form ?: "";
+
+		deleteSubmissionFiles( submissionId=submissionId );
+
+		if ( isV2Form( formId=formId ) ) {
+			$getPresideObject( "formbuilder_question_response" ).deleteData(
+				filter = { submission_type="formbuilder", submission_reference=formId, submission=arguments.submissionId }
+			);
+		}
+	}
+
+	/**
+	 * Delete the given form question responses.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteFormResponses( required string formId ) {
+		var submissions = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  selectFields = [ "id" ]
+			, filter = { form=arguments.formId }
+		);
+
+		for ( var submission in submissions ) {
+			deleteSubmissionResponses( submissionId=submission.id );
 		}
 	}
 

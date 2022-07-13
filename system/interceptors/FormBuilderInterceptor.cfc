@@ -13,7 +13,11 @@ component extends="coldbox.system.Interceptor" {
 
 		if ( objectName == "formbuilder_formsubmission" ) {
 			if ( !isEmptyString( interceptData.id ?: "" ) ) {
-				formBuilderService.deleteSubmissionFiles( submissionId=interceptData.id );
+				formBuilderService.deleteSubmissionResponses( submissionId=interceptData.id );
+			}
+
+			if ( StructKeyExists( interceptData, "filter" ) && !isEmptyString( interceptData.filter.form ?: "" ) ) {
+				formBuilderService.deleteFormResponses( formId=interceptData.filter.form );
 			}
 		}
 	}
