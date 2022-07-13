@@ -1245,61 +1245,64 @@ component {
 	}
 
 	/**
-	 * Delete the submission files.
+	 * Delete the given submission files.
 	 *
 	 * @autodoc
 	 * @submissionId.hint The ID of the submission
 	 *
 	 */
 	public void function deleteSubmissionFiles( required string submissionId ) {
-			var submission    = getSubmission( submissionId=arguments.submissionId );
-			var fileItemTypes = _getItemTypesService().getFileUploadItemTypes();
-			var filePaths     = [];
+		var submission    = getSubmission( submissionId=arguments.submissionId );
+		var fileItemTypes = _getItemTypesService().getFileUploadItemTypes();
+		var files         = [];
 
-			formId = submission.form ?: "";
+		formId = submission.form ?: "";
 
+		if ( isV2Form( formId=formId ) ) {
+			var fileFields = $getPresideObject( "formbuilder_question_response" ).selectData(
+				  selectFields = [ "response" ]
+				, filter       = "submission_type = 'formbuilder' and question.item_type in ( :question.item_type ) and submission = :submission"
+				, filterParams = {
+					  "question.item_type" = fileItemTypes
+					, submission           = submissionId
+				  }
+			);
 
-			if ( isV2Form( formId=formId ) ) {
-				var fileFields = $getPresideObject( "formbuilder_question_response" ).selectData(
-					  selectFields = [ "response" ]
-					, filter       = "submission_type = 'formbuilder' and question.item_type in ( :question.item_type ) and submission = :submission"
+			for ( var fileField in fileFields ) {
+				ArrayAppend( files, fileField.response ?: "" );
+			}
+		} else {
+			if ( !$helpers.isEmptyString( submission.submitted_data ?: "" ) ) {
+				var submissionData = DeserializeJSON( submission.submitted_data );
+
+				var fileFields = $getPresideObject( "formbuilder_formitem" ).selectData(
+					  filter       = "form = :form and item_type in ( :item_type )"
 					, filterParams = {
-						  "question.item_type" = fileItemTypes
-						, submission           = submissionId
+						  form     = formId
+						, item_type= fileItemTypes
 					  }
+					, selectFields = [ "configuration" ]
 				);
 
 				for ( var fileField in fileFields ) {
-					ArrayAppend( filePaths, fileField.response ?: "" );
+					var fileFieldConfig = DeserializeJSON( fileFields.configuration ?: "" );
+
+					ArrayAppend( files, submissionData[ fileFieldConfig.name ?: "" ] ?: "" );
 				}
-			} else {
-				if ( !$helpers.isEmptyString( submission.submitted_data ?: "" ) ) {
-					var submissionData = DeserializeJSON( submission.submitted_data );
+			}
+		}
 
-					var fileFields = $getPresideObject( "formbuilder_formitem" ).selectData(
-						  filter       = "form = :form and item_type in ( :item_type )"
-						, filterParams = {
-							  form     = formId
-							, item_type= fileItemTypes
-						  }
-						, selectFields = [ "configuration" ]
-					);
+		if ( ArrayLen( files ) ) {
+			for ( var file in files ) {
+				if ( !$helpers.isEmptyString( file ) ) {
+					var filePaths = ListToArray( file );
 
-					for ( var fileField in fileFields ) {
-						var fileFieldConfig = DeserializeJSON( fileFields.configuration ?: "" );
-
-						ArrayAppend( filePaths, submissionData[ fileFieldConfig.name ?: "" ] ?: "" );
+					for ( var filePath in filePaths ) {
+						formBuilderStorageProvider.deleteObject( path=filePath, private=formBuilderStorageProvider.objectExists( path=filePath, private=true ) );
 					}
 				}
 			}
-
-			if ( ArrayLen( filePaths ) ) {
-				for ( var filePath in filePaths ) {
-					if ( !$helpers.isEmptyString( filePath ) ) {
-						formBuilderStorageProvider.deleteObject( path=filePath, private=true );
-					}
-				}
-			}
+		}
 	}
 
 	/**
