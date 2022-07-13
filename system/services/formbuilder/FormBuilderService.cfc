@@ -7,6 +7,8 @@
  */
 component {
 
+	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
+
 // CONSTRUCTOR
 	/**
 	 * @itemTypesService.inject             formbuilderItemTypesService
@@ -1240,6 +1242,64 @@ component {
 		return $getPresideObject( "formbuilder_formsubmission" ).deleteData(
 			filter = { id = arguments.submissionIds }
 		);
+	}
+
+	/**
+	 * Delete the submission files.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteSubmissionFiles( required string submissionId ) {
+			var submission    = getSubmission( submissionId=arguments.submissionId );
+			var fileItemTypes = _getItemTypesService().getFileUploadItemTypes();
+			var filePaths     = [];
+
+			formId = submission.form ?: "";
+
+
+			if ( isV2Form( formId=formId ) ) {
+				var fileFields = $getPresideObject( "formbuilder_question_response" ).selectData(
+					  selectFields = [ "response" ]
+					, filter       = "submission_type = 'formbuilder' and question.item_type in ( :question.item_type ) and submission = :submission"
+					, filterParams = {
+						  "question.item_type" = fileItemTypes
+						, submission           = submissionId
+					  }
+				);
+
+				for ( var fileField in fileFields ) {
+					ArrayAppend( filePaths, fileField.response ?: "" );
+				}
+			} else {
+				if ( !$helpers.isEmptyString( submission.submitted_data ?: "" ) ) {
+					var submissionData = DeserializeJSON( submission.submitted_data );
+
+					var fileFields = $getPresideObject( "formbuilder_formitem" ).selectData(
+						  filter       = "form = :form and item_type in ( :item_type )"
+						, filterParams = {
+							  form     = formId
+							, item_type= fileItemTypes
+						  }
+						, selectFields = [ "configuration" ]
+					);
+
+					for ( var fileField in fileFields ) {
+						var fileFieldConfig = DeserializeJSON( fileFields.configuration ?: "" );
+
+						ArrayAppend( filePaths, submissionData[ fileFieldConfig.name ?: "" ] ?: "" );
+					}
+				}
+			}
+
+			if ( ArrayLen( filePaths ) ) {
+				for ( var filePath in filePaths ) {
+					if ( !$helpers.isEmptyString( filePath ) ) {
+						formBuilderStorageProvider.deleteObject( path=filePath, private=true );
+					}
+				}
+			}
 	}
 
 	/**
