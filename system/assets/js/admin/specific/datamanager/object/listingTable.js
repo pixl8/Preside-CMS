@@ -494,8 +494,6 @@
 				} else {
 					filtersPopulated = true;
 				}
-
-
 			};
 
 			updateFilterFolderCount = function( $group ) {
