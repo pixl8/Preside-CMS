@@ -922,8 +922,11 @@ component {
 		var labelFieldIsRelationship = ( props[ labelField ].relationship ?: "" ) contains "-to-";
 		var replacedLabelField       = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
 
-		sqlFields.delete( "id" );
-		sqlFields.append( "#objName#.#idField# as id" );
+		if ( sqlFields.find( "id" ) ) {
+			sqlFields.delete( "id" );
+			sqlFields.append( "#objName#.#idField# as id" );
+		}
+
 		if ( !labelFieldIsRelationship && ListLen( labelField, "." ) < 2 && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
