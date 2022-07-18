@@ -27,6 +27,7 @@ component {
 			return [ event.buildLink(
 				  fileStorageProvider = 'formBuilderStorageProvider'
 				, fileStoragePath     = args.response
+				, fileStoragePrivate  = formBuilderStorageProvider.objectExists( path=args.response ?: "", private=true )
 			) ];
 		}
 
