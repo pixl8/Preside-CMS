@@ -921,8 +921,9 @@ component {
 		var dateModifiedField        = obj.getDateModifiedField();
 		var labelFieldIsRelationship = ( props[ labelField ].relationship ?: "" ) contains "-to-";
 		var replacedLabelField       = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
+		var objectHasIdField         = booleanFormat( len( trim( _getPresideObjectService().getIdField( objectName=arguments.objectName ) ) ) );
 
-		if ( sqlFields.find( "id" ) ) {
+		if ( objectHasIdField ) {
 			sqlFields.delete( "id" );
 			sqlFields.append( "#objName#.#idField# as id" );
 		}
