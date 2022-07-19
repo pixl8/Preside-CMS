@@ -491,6 +491,8 @@
 					if ( filterState.favourites && filterState.favourites.length ) {
 						setFavourites( filterState.favourites );
 					}
+				} else {
+					filtersPopulated = true;
 				}
 			};
 
@@ -708,8 +710,6 @@
 			};
 
 			prePopulateFilter = function( filter ) {
-				var loaded = false;
-
 				if ( filter && filter.length ) {
 					$( document ).on( "conditionBuilderInitialized", function(){
 						filtersPopulated = true;
