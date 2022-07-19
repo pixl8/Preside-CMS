@@ -1996,28 +1996,29 @@ component extends="preside.system.base.AdminHandler" {
 		var optionsCol                    = [];
 		var objectTitleSingular           = prc.objectTitle ?: "";
 		var hasRecordActionsCustomization = !actionsView.len() && customizationService.objectHasCustomization( objectName, "getRecordActionsForGridListing" );
+		var objectHasIdField              = booleanFormat( len( trim( presideObjectService.getIdField( objectName=objectName ) ) ) );
 
 		if ( !actionsView.len() && !hasRecordActionsCustomization ) {
 			var parentProperty = isTreeView ? dataManagerService.getTreeParentProperty( objectName ) : "";
 
 			if ( objectName == ( prc.objectName ?: "" ) ) {
-				var canView         = IsTrue( prc.canView         ?: "" );
-				var canAdd          = IsTrue( prc.canAdd          ?: "" );
-				var canEdit         = IsTrue( prc.canEdit         ?: "" );
-				var canClone        = IsTrue( prc.canClone        ?: "" );
-				var canDelete       = IsTrue( prc.canDelete       ?: "" );
-				var canSort         = IsTrue( prc.canSort         ?: "" );
-				var canViewVersions = IsTrue( prc.canViewVersions ?: "" );
-				var useVersioning   = IsTrue( prc.useVersioning   ?: "" ) && canViewVersions;
+				var canView         = IsTrue( prc.canView         ?: "" ) && objectHasIdField;
+				var canAdd          = IsTrue( prc.canAdd          ?: "" ) && objectHasIdField;
+				var canEdit         = IsTrue( prc.canEdit         ?: "" ) && objectHasIdField;
+				var canClone        = IsTrue( prc.canClone        ?: "" ) && objectHasIdField;
+				var canDelete       = IsTrue( prc.canDelete       ?: "" ) && objectHasIdField;
+				var canSort         = IsTrue( prc.canSort         ?: "" ) && objectHasIdField;
+				var canViewVersions = IsTrue( prc.canViewVersions ?: "" ) && objectHasIdField;
+				var useVersioning   = IsTrue( prc.useVersioning   ?: "" ) && objectHasIdField && canViewVersions;
 			} else {
-				var canView         = _checkPermission( argumentCollection=arguments, object=objectName, key="read"        , throwOnError=false );
-				var canAdd          = _checkPermission( argumentCollection=arguments, object=objectName, key="add"         , throwOnError=false );
-				var canEdit         = _checkPermission( argumentCollection=arguments, object=objectName, key="edit"        , throwOnError=false );
-				var canClone        = _checkPermission( argumentCollection=arguments, object=objectName, key="clone"       , throwOnError=false );
-				var canDelete       = _checkPermission( argumentCollection=arguments, object=objectName, key="delete"      , throwOnError=false );
-				var canViewVersions = _checkPermission( argumentCollection=arguments, object=objectName, key="viewversions", throwOnError=false );
+				var canView         = _checkPermission( argumentCollection=arguments, object=objectName, key="read"        , throwOnError=false ) && objectHasIdField;
+				var canAdd          = _checkPermission( argumentCollection=arguments, object=objectName, key="add"         , throwOnError=false ) && objectHasIdField;
+				var canEdit         = _checkPermission( argumentCollection=arguments, object=objectName, key="edit"        , throwOnError=false ) && objectHasIdField;
+				var canClone        = _checkPermission( argumentCollection=arguments, object=objectName, key="clone"       , throwOnError=false ) && objectHasIdField;
+				var canDelete       = _checkPermission( argumentCollection=arguments, object=objectName, key="delete"      , throwOnError=false ) && objectHasIdField;
+				var canViewVersions = _checkPermission( argumentCollection=arguments, object=objectName, key="viewversions", throwOnError=false ) && objectHasIdField;
 				var canSort         = datamanagerService.isSortable( objectName ) && canEdit;
-				var useVersioning   = datamanagerService.isOperationAllowed( objectName, "viewversions" ) && presideObjectService.objectIsVersioned( objectName );
+				var useVersioning   = datamanagerService.isOperationAllowed( objectName, "viewversions" ) && presideObjectService.objectIsVersioned( objectName ) && objectHasIdField;
 			}
 
 			var canFlagRecord          = canEdit && isFlaggingEnabled( objectName=objectName );
@@ -2042,7 +2043,7 @@ component extends="preside.system.base.AdminHandler" {
 				ArrayAppend( optionsCol, renderViewlet( event=actionsViewlet, args=viewletArgs ) );
 			} else {
 				var actions     = [];
-				var recordLabel = renderLabel( objectName, record.id  )
+				var recordLabel = structKeyExists( record, "id" ) ? renderLabel( objectName, record.id  ) : "";
 
 				if ( hasRecordActionsCustomization ) {
 					actions = customizationService.runCustomization(
