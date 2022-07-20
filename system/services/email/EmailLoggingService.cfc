@@ -663,6 +663,10 @@ component {
 			return false;
 		}
 
+		if ( $helpers.isTrue( $getPresideSetting( "email", "disable_link_checking" ) ) ) {
+			return true;
+		}
+
 		// is the domain of the link one that we host ourselves? (if so, fine)
 		var linkMinusQs = ListFirst( arguments.link, "?&" );
 		var domain = ReReplace( linkMinusQs, "^https?://([^/]+).*$", "\1" );
