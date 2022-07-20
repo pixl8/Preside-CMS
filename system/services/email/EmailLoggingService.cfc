@@ -663,6 +663,10 @@ component {
 			return false;
 		}
 
+		if ( $helpers.isTrue( $getPresideSetting( "email", "disable_link_checking" ) ) ) {
+			return true;
+		}
+
 		// is the domain of the link one that we host ourselves? (if so, fine)
 		var linkMinusQs = ListFirst( arguments.link, "?&" );
 		var domain = ReReplace( linkMinusQs, "^https?://([^/]+).*$", "\1" );
@@ -714,7 +718,7 @@ component {
 		);
 
 		// layers of depth for encoded links found in nested widgets :o
-		var encodedLinks = [ UrlEncode( linkMinusQs ) ];
+		var encodedLinks = [ UrlEncodedFormat( linkMinusQs ) ];
 		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
 		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
 		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
@@ -727,8 +731,13 @@ component {
 		}
 
 		if ( emailTemplate.recordCount ) {
-			if ( Find( linkMinusQs, emailTemplate.html_body ) || ArrayFind( encodedLinks, arguments.link ) ) {
+			if ( Find( linkMinusQs, emailTemplate.html_body ) ) {
 				return true;
+			}
+			for( var encodedLink in encodedLinks ) {
+				if ( Find( encodedLink, emailTemplate.html_body ) ) {
+					return true;
+				}
 			}
 
 			// or any previous versions of the email content?!
