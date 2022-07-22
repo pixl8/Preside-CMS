@@ -133,6 +133,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onAccessDenied"                        );
 		interceptorSettings.customInterceptionPoints.append( "onNotFound"                            );
 		interceptorSettings.customInterceptionPoints.append( "onReturnAsset304"                      );
+		interceptorSettings.customInterceptionPoints.append( "preRulesForField"                      );
+		interceptorSettings.customInterceptionPoints.append( "postRulesForField"                     );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
