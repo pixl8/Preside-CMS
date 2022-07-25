@@ -509,6 +509,7 @@ component {
 			, orderBy            = "_hierarchy_sort_order"
 			, selectFields       = arguments.selectFields
 			, allowDraftVersions = arguments.allowDrafts
+			, fromVersionTable   = false
 			, filter             = {
 				  _hierarchy_depth = 0
 				, active           = true
