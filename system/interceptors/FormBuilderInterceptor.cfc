@@ -20,10 +20,11 @@ component extends="coldbox.system.Interceptor" {
 
 			if ( !isEmptyString( id ) ) {
 				formBuilderService.deleteSubmissionResponses( submissionId=id );
+				return;
 			}
 
-			if ( !isEmptyString( filter.form ?: "" ) ) {
-				formBuilderService.deleteFormResponses( formId=filter.form );
+			if ( !StructIsEmpty( filter ) ) {
+				formBuilderService.deleteFormResponses( filter=filter );
 			}
 		}
 	}

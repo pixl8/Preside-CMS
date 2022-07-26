@@ -1229,10 +1229,10 @@ component {
 	 * @submissionId.hint The ID of the submission
 	 *
 	 */
-	public void function deleteFormResponses( required string formId ) {
+	public void function deleteFormResponses( required struct filter ) {
 		var submissions = $getPresideObject( "formbuilder_formsubmission" ).selectData(
 			  selectFields = [ "id" ]
-			, filter = { form=arguments.formId }
+			, filter       = arguments.filter
 		);
 
 		for ( var submission in submissions ) {
