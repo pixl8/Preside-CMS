@@ -36,5 +36,5 @@ component {
 
 		return arguments.queryString;
 	}
-}
 
+}
