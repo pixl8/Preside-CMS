@@ -1195,7 +1195,11 @@ component {
 					var filePaths = ListToArray( file );
 
 					for ( var filePath in filePaths ) {
-						formBuilderStorageProvider.deleteObject( path=filePath, private=formBuilderStorageProvider.objectExists( path=filePath, private=true ) );
+						try {
+							formBuilderStorageProvider.deleteObject( path=filePath, private=formBuilderStorageProvider.objectExists( path=filePath, private=true ) );
+						} catch( any e ) {
+							$raiseError( e );
+						}
 					}
 				}
 			}
