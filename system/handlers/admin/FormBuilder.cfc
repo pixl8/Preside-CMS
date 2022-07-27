@@ -811,23 +811,45 @@ component extends="preside.system.base.AdminHandler" {
 	public void function deleteRecordAction( event, rc, prc ) {
 		_permissionsCheck( "deleteform", event );
 
-		var ids           = rc.id ?: "";
-		var postActionUrl = event.buildAdminLink( linkto="formbuilder" );
-		var messages      = "";
+		var id      = rc.id ?: "";
+		var isBatch = ListLen( id ) > 1;
 
-		if ( listLen(ids) == 1 ) {
-			messages = translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ "Form", renderLabel( "formbuilder_form", ids ) ] ) ;
+		if ( isBatch ) {
+			_deleteForm( argumentCollection=arguments, id=id, isBatch=true );
 		} else {
-			messages = translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ "Forms", listLen(ids) ] );
+			var taskId = createTask(
+				  event             = "admin.FormBuilder.deleteFormInBgThread"
+				, args              = {
+					id = id
+				  }
+				, runNow            = true
+				, adminOwner        = event.getAdminUserId()
+				, discardOnComplete = false
+				, title             = "formbuilder:task.form.delete.title"
+				, returnUrl         = event.buildAdminLink( linkTo="formbuilder" )
+			);
+
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=#taskId#"
+			) );
 		}
-
-		formBuilderService.deleteForms( ids );
-
-		messageBox.info( messages );
-
-		setNextEvent( url=postActionUrl );
 	}
 
+	private void function deleteFormInBgThread( event, rc, prc, args={}, logger, progress ) {
+		var logger      = arguments.logger  ?: NullValue();
+		var canProgress = StructKeyExists( arguments, "progress" );
+
+		logMessage( logger, "info", "Start deleting the form and all its data..." );
+
+		_deleteForm( argumentCollection=arguments, id=args.id ?: "", isBatch=false );
+
+		if ( canProgress ) {
+			arguments.progress.setProgress( 100 );
+		}
+
+		logMessage( logger, "info", "Finished delete." );
+	}
 
 // VIEWLETS
 	private string function formDataTableGridFields( event, rc, prc, args ) {
@@ -910,8 +932,6 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/formbuilder/_workbenchFormAction", args=args );
 	}
 
-
-
 // PRIVATE UTILITY
 	private void function _permissionsCheck( required string key, required any event ) {
 		var permKey   = "formbuilder." & arguments.key;
@@ -921,4 +941,30 @@ component extends="preside.system.base.AdminHandler" {
 			event.adminAccessDenied();
 		}
 	}
+
+	private void function _deleteForm(
+		  required string  id
+		,          boolean isBatch = false
+	) {
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object            = "formbuilder_form"
+				, postActionUrl     = event.buildAdminLink( linkTo="formbuilder" )
+				, audit             = true
+				, auditAction       = "formbuilder_delete_form"
+				, auditType         = "formbuilder"
+				, batch             = arguments.isBatch
+				, redirectOnSuccess = arguments.isBatch
+				, rc                = {
+					    id          = arguments.id
+					  , forceDelete = true
+				  }
+				, logger = arguments.logger ?: NullValue()
+			}
+		);
+	}
+
 }
