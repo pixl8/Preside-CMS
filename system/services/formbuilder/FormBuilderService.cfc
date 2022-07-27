@@ -6,6 +6,7 @@
  * @autodoc
  */
 component {
+	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
 
 // CONSTRUCTOR
 	/**
@@ -1240,6 +1241,108 @@ component {
 		return $getPresideObject( "formbuilder_formsubmission" ).deleteData(
 			filter = { id = arguments.submissionIds }
 		);
+	}
+
+	/**
+	 * Delete the given submission files.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteSubmissionFiles( required string submissionId ) {
+		var submission    = getSubmission( submissionId=arguments.submissionId );
+		var formId        = submission.form ?: "";
+		var fileItemTypes = _getItemTypesService().getFileUploadItemTypes();
+		var files         = [];
+
+		if ( isV2Form( formId=formId ) ) {
+			var fileFields = $getPresideObject( "formbuilder_question_response" ).selectData(
+				  selectFields = [ "response" ]
+				, filter       = "submission_type = 'formbuilder' and question.item_type in ( :question.item_type ) and submission = :submission"
+				, filterParams = {
+					  "question.item_type" = fileItemTypes
+					, submission           = submissionId
+				  }
+			);
+
+			for ( var fileField in fileFields ) {
+				ArrayAppend( files, fileField.response ?: "" );
+			}
+		} else {
+			if ( !$helpers.isEmptyString( submission.submitted_data ?: "" ) ) {
+				var submissionData = DeserializeJSON( submission.submitted_data );
+
+				var fileFields = $getPresideObject( "formbuilder_formitem" ).selectData(
+					  filter       = "form = :form and item_type in ( :item_type )"
+					, filterParams = {
+						  form     = formId
+						, item_type= fileItemTypes
+					  }
+					, selectFields = [ "configuration" ]
+				);
+
+				for ( var fileField in fileFields ) {
+					var fileFieldConfig = DeserializeJSON( fileFields.configuration ?: "" );
+
+					ArrayAppend( files, submissionData[ fileFieldConfig.name ?: "" ] ?: "" );
+				}
+			}
+		}
+
+		if ( ArrayLen( files ) ) {
+			for ( var file in files ) {
+				if ( !$helpers.isEmptyString( file ) ) {
+					var filePaths = ListToArray( file );
+
+					for ( var filePath in filePaths ) {
+						try {
+							formBuilderStorageProvider.deleteObject( path=filePath, private=formBuilderStorageProvider.objectExists( path=filePath, private=true ) );
+						} catch( any e ) {
+							$raiseError( e );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Delete the given submission question responses.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteSubmissionResponses( required string submissionId ) {
+		var submission = getSubmission( submissionId=arguments.submissionId );
+		var formId     = submission.form ?: "";
+
+		deleteSubmissionFiles( submissionId=submissionId );
+
+		if ( isV2Form( formId=formId ) ) {
+			$getPresideObject( "formbuilder_question_response" ).deleteData(
+				filter = { submission_type="formbuilder", submission_reference=formId, submission=arguments.submissionId }
+			);
+		}
+	}
+
+	/**
+	 * Delete the given form question responses.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteFormResponses( required struct filter ) {
+		var submissions = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = arguments.filter
+		);
+
+		for ( var submission in submissions ) {
+			deleteSubmissionResponses( submissionId=submission.id );
+		}
 	}
 
 	/**
