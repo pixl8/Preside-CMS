@@ -178,7 +178,16 @@ component {
 			args.fromVersionTable = true;
 		}
 
-		return _getPObj().selectData( argumentCollection = args );
+		var result = _getPObj().selectData( argumentCollection = args );
+		if ( !result.recordCount && arguments.allowDrafts ) {
+			args.fromVersionTable = false;
+			args.allowDraftVersions = false;
+			StructDelete( args, "specificVersion" );
+
+			result = _getPObj().selectData( argumentCollection = args );
+		}
+
+		return result;
 	}
 
 	public query function getPagesForAjaxSelect(
@@ -500,6 +509,7 @@ component {
 			, orderBy            = "_hierarchy_sort_order"
 			, selectFields       = arguments.selectFields
 			, allowDraftVersions = arguments.allowDrafts
+			, fromVersionTable   = false
 			, filter             = {
 				  _hierarchy_depth = 0
 				, active           = true
@@ -519,6 +529,12 @@ component {
 		}
 
 		var homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+		if ( !homepage.recordCount && homepageArgs.fromVersionTable ) {
+			homepageArgs.fromVersionTable = false;
+			homepageArgs.allowDraftVersions = false;
+			StructDelete( homepageArgs, "specificVersion" );
+			homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+		}
 
 
 		if ( homepage.recordCount || !arguments.createIfNotExists ) {
