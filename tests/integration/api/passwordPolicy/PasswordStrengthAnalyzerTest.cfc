@@ -26,7 +26,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					ArrayAppend( pw, RandRange( 0, 9 ) );
 				}
 
-				expect( analyzer.calculatePasswordStrength( ArrayToList( pw, "" ) ) ).toBe( 260 );
+				expect( analyzer.calculatePasswordStrength( ArrayToList( pw, "" ) ) ).toBe( 100 );
 			} );
 		} );
 	}
