@@ -144,6 +144,8 @@ component output="false" singleton=true {
 					} else {
 						ArrayAppend( rules, { fieldName=arguments.fieldName, validator=Trim( field.format ) } );
 					}
+				} else if ( StructKeyExists( field, "dbtype" ) and ( field.dbtype == "text" ) ) {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="maxLength", params={ length = 65535 } } );
 				}
 			break;
 		}
