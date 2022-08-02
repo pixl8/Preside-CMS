@@ -23,18 +23,19 @@ component {
 
 		var bruteForceTimeInSeconds = _getBruteForceTimeInSeconds( arguments.password );
 		var bruteForceScore         = _calculateStrengthFromTime( bruteForceTimeInSeconds );
+		var score                   = bruteForceScore;
 
 		// it is highly unlikely that rules based score is going
 		// to be meaninful for long passwords: and it is exponentially slow!
 		// cut short straight away for long passwords
-		if ( bruteForceScore && Len( arguments.password ) >= 35 ) {
-			return bruteForceScore;
+		if ( Len( arguments.password ) < 35 ) {
+			var rulesBasedTimeInSeconds = -_getRulesBasedTimeInSeconds( arguments.password );
+			var rulesBasedScore         = rulesBasedTimeInSeconds >= 0 ? _calculateStrengthFromTime( rulesBasedTimeInSeconds ) : -1;
+
+			score = ( rulesBasedScore >=0 && rulesBasedScore < bruteForceScore ) ? rulesBasedScore : bruteForceScore;
 		}
 
-		var rulesBasedTimeInSeconds = -_getRulesBasedTimeInSeconds( arguments.password );
-		var rulesBasedScore         = rulesBasedTimeInSeconds >= 0 ? _calculateStrengthFromTime( rulesBasedTimeInSeconds ) : -1;
-
-		return ( rulesBasedScore >=0 && rulesBasedScore < bruteForceScore ) ? rulesBasedScore : bruteForceScore;
+		return score > 100 ? 100 : score;
 	}
 
 // PRIVATE UTILITY
