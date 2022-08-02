@@ -23,10 +23,19 @@ component {
 
 		var bruteForceTimeInSeconds = _getBruteForceTimeInSeconds( arguments.password );
 		var bruteForceScore         = _calculateStrengthFromTime( bruteForceTimeInSeconds );
-		var rulesBasedTimeInSeconds = -_getRulesBasedTimeInSeconds( arguments.password );
-		var rulesBasedScore         = rulesBasedTimeInSeconds >= 0 ? _calculateStrengthFromTime( rulesBasedTimeInSeconds ) : -1;
+		var score                   = bruteForceScore;
 
-		return ( rulesBasedScore >=0 && rulesBasedScore < bruteForceScore ) ? rulesBasedScore : bruteForceScore;
+		// it is highly unlikely that rules based score is going
+		// to be meaninful for long passwords: and it is exponentially slow!
+		// cut short straight away for long passwords
+		if ( Len( arguments.password ) < 35 ) {
+			var rulesBasedTimeInSeconds = -_getRulesBasedTimeInSeconds( arguments.password );
+			var rulesBasedScore         = rulesBasedTimeInSeconds >= 0 ? _calculateStrengthFromTime( rulesBasedTimeInSeconds ) : -1;
+
+			score = ( rulesBasedScore >=0 && rulesBasedScore < bruteForceScore ) ? rulesBasedScore : bruteForceScore;
+		}
+
+		return score > 100 ? 100 : score;
 	}
 
 // PRIVATE UTILITY
@@ -64,19 +73,6 @@ component {
 			return -1;
 		}
 
-		// Binomial coefficient implementation
-		var binom = function (n, k) {
-			var coeff = 1;
-
-			for (var i = n - k + 1; i <= n; i += 1) {
-					coeff *= i;
-			}
-			for (var i = 1; i <= k; i += 1) {
-					coeff /= i;
-			}
-			return coeff;
-		};
-
 		var symbolClassSizes = [];
 		for ( var symbolClass in detectedSymbolClasses ) {
 			if ( !_symbolClasses[ symbolClass ].isUnicode ) {
@@ -101,7 +97,7 @@ component {
 				factor = 1;
 
 				for ( var i=1; i <= charsetsCount; i++ ) {
-					factor *= binom( symbolClassSizes[ i ], digits[ i ] );
+					factor *= _binom( symbolClassSizes[ i ], digits[ i ] );
 				}
 
 				rselect += factor;
@@ -132,47 +128,7 @@ component {
 		}
 		var Lfactorial = _factorial( passwordLength );
 		var Xfactorial = _factorial( diffCharsCount );
-		var rrest = 0;
-		var divide = function (Min, Index, Remain) {
-			if (Index == diffCharsCount - 1) {
-				digits[diffCharsCount - 1] = Remain;
-
-				var passwordsPerms = Lfactorial;
-				var denominator = 1;
-
-				for ( var i=1; i<=digits.len(); i++ ) {
-					denominator *= _factorial( digits[i] );
-				}
-
-				var lastVal = -1;
-				var arr = [];
-				for ( var i=1; i<=digits.len(); i++ ) {
-					var num = digits[i];
-					if (lastVal != num) {
-						arr.append(1);
-					} else {
-						arr[arr.len()] += 1;
-					}
-					lastVal = num;
-				}
-
-				var permutationsDenominator = 1;
-				for( var i=1; i<=arr.len(); i++ ) {
-					permutationsDenominator *= _factorial( arr[i] );
-				}
-
-				rrest += (Xfactorial / permutationsDenominator) * (passwordsPerms / denominator);
-			} else {
-				for ( var i = Min; i < Remain; i += 1) {
-					digits[Index] = i;
-					if (i <= Remain - i) {
-						divide( i, Index + 1, Remain - i );
-					}
-				}
-			}
-		};
-
-		divide( 1, 1, passwordLength );
+		var rrest = _divide( 1, 1, passwordLength, diffCharsCount, digits, Xfactorial, Lfactorial );
 
 		//  FINAL
 		var result = rselect * rrest;
@@ -180,6 +136,60 @@ component {
 			result = result / _botnetCalculationsPerSecond / 2;
 
 		return result;
+	}
+
+	// Binomial coefficient implementation
+	private numeric function _binom(n, k) {
+		var coeff = 1;
+
+		for (var i = n - k + 1; i <= n; i += 1) {
+				coeff *= i;
+		}
+		for (var i = 1; i <= k; i += 1) {
+				coeff /= i;
+		}
+		return coeff;
+	};
+
+	private numeric function _divide( Min, Index, Remain, diffCharsCount, digits, Xfactorial, Lfactorial, rrest=0 ) {
+		if (Index == diffCharsCount - 1) {
+			digits[diffCharsCount - 1] = Remain;
+
+			var passwordsPerms = Lfactorial;
+			var denominator = 1;
+
+			for ( var i=1; i<=digits.len(); i++ ) {
+				denominator *= _factorial( digits[i] );
+			}
+
+			var lastVal = -1;
+			var arr = [];
+			for ( var i=1; i<=digits.len(); i++ ) {
+				var num = digits[i];
+				if (lastVal != num) {
+					arr.append(1);
+				} else {
+					arr[arr.len()] += 1;
+				}
+				lastVal = num;
+			}
+
+			var permutationsDenominator = 1;
+			for( var i=1; i<=arr.len(); i++ ) {
+				permutationsDenominator *= _factorial( arr[i] );
+			}
+
+			rrest += (Xfactorial / permutationsDenominator) * (passwordsPerms / denominator);
+		} else {
+			for ( var i = Min; i < Remain; i += 1) {
+				digits[Index] = i;
+				if (i <= Remain - i) {
+					rrest = _divide( i, Index + 1, Remain - i, diffCharsCount, digits, Xfactorial, Lfactorial, rrest );
+				}
+			}
+		}
+
+		return rrest;
 	}
 
 	private numeric function _calculateCharsetSize( required string password ) {
