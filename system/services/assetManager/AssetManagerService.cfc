@@ -237,8 +237,6 @@ component displayName="AssetManager Service" {
 		return true;
 	}
 
-	property name="dumpLogService" inject="dumpLogService";
-
 	public boolean function isAssetAllowedInFolder(
 		  required string  type
 		, required string  size
