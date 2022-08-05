@@ -5,15 +5,18 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockLogger               = _getTestLogger();
 		mockResourceBundleSvc    = getMockbox().createEmptyMock( "preside.system.services.i18n.ResourceBundleService" );
 		mockAssetManagerSvc      = getMockbox().createEmptyMock( "preside.system.services.assetManager/AssetManagerService" );
+		mockInterceptorSvc       = getMockbox().createStub();
 
 		mockPresideObjectService.$( "getResourceBundleUriRoot", "preside-objects.test:" );
 		mockResourceBundleSvc.$( "getResource", "somevalue" );
+		mockInterceptorSvc.$( "processState" );
 
 		generator = new preside.system.services.validation.PresideFieldRuleGenerator(
 			  presideObjectService  = mockPresideObjectService
 			, logger                = mockLogger
 			, resourceBundleService = mockResourceBundleSvc
 			, assetManagerService   = mockAssetManagerSvc
+			, interceptorService    = mockInterceptorSvc
 		);
 	}
 
