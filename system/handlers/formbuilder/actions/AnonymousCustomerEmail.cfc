@@ -15,8 +15,7 @@ component {
 				data = DeserializeJson( args.submissionData.submitted_data ?: "" );
 			} catch( any e ) {}
 
-
-			var address = isFeatureEnabled( "formbuilder2" ) ? Trim( data[ fieldId ]?:"" ) : Trim( data[ field ] ?: "" );
+			var address = formbuilderService.isV2Form( data[ "form" ] ?: "" ) ? Trim( data[ fieldId ] ?: "" ) : Trim( data[ field ] ?: "" );
 
 			if ( template.len() && address.len() ) {
 				emailService.send(
