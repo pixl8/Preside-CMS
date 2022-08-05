@@ -223,7 +223,7 @@ component displayName="AssetManager Service" {
 				, size            = asset.size
 				, currentFolderId = asset.asset_folder
 				, folderId        = arguments.folderId
-				, title           = asset.title
+				, title           = IsValid( "UUID", asset.title ) ? asset.original_title : asset.title
 				, throwIfNot      = arguments.throwIfNot
 				, restore         = arguments.restore
 				, restrictions    = restrictions
@@ -249,20 +249,21 @@ component displayName="AssetManager Service" {
 		,          string  fileHeight      = 0
 		,          struct  restrictions    = getFolderRestrictions( arguments.folderId )
 	) {
-		var typeDisallowed  = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
-		var sizeInMb        = arguments.size / 1048576;
-		var tooBig          = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
-		var tooSmallWidth   = restrictions.minImageWidth  && val( arguments.fileWidth  ) && val( restrictions.minImageWidth  ) && arguments.fileWidth  < restrictions.minImageWidth;
-		var tooBigWidth     = restrictions.maxImageWidth  && val( arguments.fileWidth  ) && val( restrictions.maxImageWidth  ) && arguments.fileWidth  > restrictions.maxImageWidth;
-		var tooSmallHeight  = restrictions.minImageHeight && val( arguments.fileHeight ) && val( restrictions.minImageHeight ) && arguments.fileHeight < restrictions.minImageHeight;
-		var tooBigHeight    = restrictions.maxImageHeight && val( arguments.fileHeight ) && val( restrictions.maxImageHeight ) && arguments.fileHeight > restrictions.maxImageHeight;
-		var fileExist       = _getAssetDao().dataExists( filter={ title=arguments.title, asset_folder=arguments.folderId } );
+		var typeDisallowed = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
+		var sizeInMb       = arguments.size / 1048576;
+		var tooBig         = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
+		var tooSmallWidth  = restrictions.minImageWidth  && val( arguments.fileWidth  ) && val( restrictions.minImageWidth  ) && arguments.fileWidth  < restrictions.minImageWidth;
+		var tooBigWidth    = restrictions.maxImageWidth  && val( arguments.fileWidth  ) && val( restrictions.maxImageWidth  ) && arguments.fileWidth  > restrictions.maxImageWidth;
+		var tooSmallHeight = restrictions.minImageHeight && val( arguments.fileHeight ) && val( restrictions.minImageHeight ) && arguments.fileHeight < restrictions.minImageHeight;
+		var tooBigHeight   = restrictions.maxImageHeight && val( arguments.fileHeight ) && val( restrictions.maxImageHeight ) && arguments.fileHeight > restrictions.maxImageHeight;
+		var fileExist      = _getAssetDao().dataExists( filter={ title=arguments.title, asset_folder=arguments.folderId } );
+		var folder         = getFolder( arguments.folderId );
 
 		if ( typeDisallowed  ) {
 			if ( arguments.throwIfNot ) {
 				throw(
 					  type    = "PresideCMS.AssetManager.asset.wrong.type.for.folder"
-					, message = "Cannot add file to asset folder due to file type restrictions. File type supplied: [#arguments.type#]. Allowed types: [#restrictions.allowedExtensions#]"
+					, message = "Cannot add asset, [#arguments.title#], to folder, [#folder.label#], due to file type restrictions. File type supplied: [#arguments.type#]. Allowed types: [#restrictions.allowedExtensions#]"
 				);
 			}
 
@@ -273,7 +274,7 @@ component displayName="AssetManager Service" {
 			if ( arguments.throwIfNot ) {
 				throw(
 					  type    = "PresideCMS.AssetManager.asset.too.big.for.folder"
-					, message = "Cannot add file to asset folder due to size restriction. Size of file: [#NumberFormat( sizeInMb, '0.00' )#Mb]. Maximum size: [#restrictions.maxFileSize#Mb]."
+					, message = "Cannot add asset, [#arguments.title#], to folder, [#folder.label#], due to size restriction. Size of file: [#NumberFormat( sizeInMb, '0.00' )#Mb]. Maximum size: [#restrictions.maxFileSize#Mb]."
 				);
 			}
 
@@ -284,7 +285,7 @@ component displayName="AssetManager Service" {
 			if ( arguments.throwIfNot ) {
 				throw(
 					  type    = "PresideCMS.Assetmanager.asset.too.small.resolution.for.folder"
-					, message = "Cannot add file to asset folder due to image resolution. Resolution of file: [#arguments.fileWidth#X#arguments.fileHeight# pixels]. Minimum resolution: [#restrictions.minImageWidth#X#restrictions.minImageHeight# pixels]."
+					, message = "Cannot add asset, [#arguments.title#], to folder, [#folder.label#], due to image resolution. Resolution of file: [#arguments.fileWidth#X#arguments.fileHeight# pixels]. Minimum resolution: [#restrictions.minImageWidth#X#restrictions.minImageHeight# pixels]."
 				);
 			}
 
@@ -295,7 +296,7 @@ component displayName="AssetManager Service" {
 			if ( arguments.throwIfNot ) {
 				throw(
 					  type    = "PresideCMS.Assetmanager.asset.too.big.resolution.for.folder"
-					, message = "Cannot add file to asset folder due to image resolution. Resolution of file: [#arguments.fileWidth#X#arguments.fileHeight# pixels]. Maximum resolution: [#restrictions.maxImageWidth#X#restrictions.maxImageHeight# pixels]."
+					, message = "Cannot add asset, [#arguments.title#], to folder, [#folder.label#], due to image resolution. Resolution of file: [#arguments.fileWidth#X#arguments.fileHeight# pixels]. Maximum resolution: [#restrictions.maxImageWidth#X#restrictions.maxImageHeight# pixels]."
 				);
 			}
 
@@ -310,7 +311,7 @@ component displayName="AssetManager Service" {
 				if ( arguments.throwIfNot ) {
 					throw(
 						  type    = "PresideCMS.AssetManager.folder.in.different.location"
-						, message = "Cannot move file to asset folder due to folder location ([#( newLocation.name ?: 'default' )#]) being different from the source folder location ([#( currentLocation.name ?: 'default' )#])"
+						, message = "Cannot move asset, [#arguments.title#], to folder, [#folder.label#], due to folder location ([#( newLocation.name ?: 'default' )#]) being different from the source folder location ([#( currentLocation.name ?: 'default' )#])"
 					);
 				}
 
@@ -322,7 +323,7 @@ component displayName="AssetManager Service" {
 			if ( arguments.throwIfNot ) {
 				throw(
 					  type    = "PresideCMS.AssetManager.asset.file.exist.in.folder"
-					, message = "Cannot add file to asset folder due file already existing in the folder."
+					, message = "Cannot add asset, [#arguments.title#], to folder, [#folder.label#], due file already existing in the folder."
 				);
 			}
 
@@ -1068,6 +1069,7 @@ component displayName="AssetManager Service" {
 	) {
 		var canLog      = StructKeyExists( arguments, "logger" );
 		var canInfo     = canLog && arguments.logger.canInfo();
+		var canError    = canLog && arguments.logger.canError();
 		var canProgress = StructKeyExists( arguments, "progress" );
 		var folder      = getFolder( arguments.toFolder );
 
@@ -1079,9 +1081,11 @@ component displayName="AssetManager Service" {
 					, throwIfNot = true
 				);
 			} catch( any e ) {
-				if ( canLog ) {
-					arguments.logger.error( e );
+				if ( canError && !$helpers.isEmptyString( e.message ?: "" ) ) {
+					arguments.logger.error( $translateResource( "cms:assetmanager.move.assets.task.error.log" ) );
+					arguments.logger.error( e.message );
 				}
+
 				$raiseError( e );
 
 				if ( canProgress ) {
@@ -1103,9 +1107,9 @@ component displayName="AssetManager Service" {
 					ensureAssetsAreInCorrectLocation( assetId=assetId );
 				} catch( any e ) {
 					$raiseError( e );
-					if ( canLog ) {
-						arguments.logger.error( "Failed to ensure files stored in the correct location. See error below." );
-						arguments.logger.error( e );
+					if ( canError && !$helpers.isEmptyString( e.message ?: "" ) ) {
+						arguments.logger.error( $translateResource( "cms:assetmanager.moving.assets.task.error.log" ) );
+						arguments.logger.error( e.message );
 					}
 				}
 
@@ -1154,9 +1158,9 @@ component displayName="AssetManager Service" {
 				);
 			} catch( any e ) {
 				if ( arguments.skipErrors ) {
-					if ( canError ) {
+					if ( canError && !$helpers.isEmptyString( e.message ?: "" ) ) {
 						arguments.logger.error( $translateResource( "cms:assetmanager.restore.assets.task.error.log" ) );
-						arguments.logger.error( e );
+						arguments.logger.error( e.message );
 					}
 					return false;
 				}
