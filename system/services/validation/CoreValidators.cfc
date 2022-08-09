@@ -42,7 +42,7 @@ component validationProvider=true {
 		return Val( arguments.value ) < Val( arguments.data[ arguments.field ] );
 	}
 	public string function lessThanField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value < $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || (parseFloat(value) < parseFloat($field.val())); }";
 	}
 
 	public boolean function lessThanOrEqualToField( required string value, required struct data, required string field ) validatorMessage="cms:validation.lessThanOrEqualToField.default" {
@@ -53,7 +53,7 @@ component validationProvider=true {
 		return Val( arguments.value ) <= Val( arguments.data[ arguments.field ] );
 	}
 	public string function lessThanOrEqualToField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value <= $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || (parseFloat(value) <= parseFloat($field.val())); }";
 	}
 
 	public boolean function max( required string fieldName, string value="", required numeric max ) validatorMessage="cms:validation.max.default" {
@@ -76,7 +76,7 @@ component validationProvider=true {
 		return Val( arguments.value ) > Val( arguments.data[ arguments.field ] );
 	}
 	public string function greaterThanField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value > $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || (parseFloat(value) > parseFloat($field.val())); }";
 	}
 
 	public boolean function greaterThanOrEqualToField( required string value, required struct data, required string field ) validatorMessage="cms:validation.greaterThanOrEqualToField.default" {
@@ -87,7 +87,7 @@ component validationProvider=true {
 		return Val( arguments.value ) >= Val( arguments.data[ arguments.field ] );
 	}
 	public string function greaterThanOrEqualToField_js() {
-		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value >= $field.val(); }";
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || (parseFloat(value) >= parseFloat($field.val())); }";
 	}
 
 	public boolean function range( required string fieldName, string value="", required numeric min, required numeric max ) validatorMessage="cms:validation.range.default" {
