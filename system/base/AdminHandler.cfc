@@ -25,7 +25,12 @@ component {
 			, adminBaseUrl = event.getAdminPath()
 			, siteId       = event.getSiteId()
 		} );
-		event.includeData( event.getCollection() );
+
+		var data = event.getCollection();
+		for ( var key in data ) {
+			data[ key ] = HtmlEditFormat( data[ key ] );
+		}
+		event.includeData( data );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:home.title" )
