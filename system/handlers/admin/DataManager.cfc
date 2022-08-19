@@ -1083,8 +1083,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( argumentCollection=arguments, key="add" );
 
 		var object = prc.objectName ?: "";
+		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=object, action="preRenderQuickAddRecordForm" );
+		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=object, action="postRenderQuickAddRecordForm" );
 
 		prc.formName = _getDefaultQuickAddFormName( argumentCollection=arguments, objectName=object );
+		prc.preForm  = hasPreFormCustomization       ? customizationService.runCustomization( objectName=object, action="preRenderQuickAddRecordForm" , args=prc ) : "";
+		prc.postForm = hasPostFormCustomization      ? customizationService.runCustomization( objectName=object, action="postRenderQuickAddRecordForm", args=prc ) : "";
 
 		if ( customizationService.objectHasCustomization( object, "preQuickAddRecordForm" ) ) {
 			customizationService.runCustomization(
@@ -1135,8 +1139,12 @@ component extends="preside.system.base.AdminHandler" {
 		prc.record = queryRowToStruct( prc.record );
 
 		var object = prc.objectName ?: "";
+		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=object, action="preRenderQuickAddRecordForm" );
+		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=object, action="postRenderQuickAddRecordForm" );
 
 		prc.formName = _getDefaultQuickEditFormName( argumentCollection=arguments, objectName=object );
+		prc.preForm  = hasPreFormCustomization       ? customizationService.runCustomization( objectName=object, action="preRenderQuickAddRecordForm" , args=prc ) : "";
+		prc.postForm = hasPostFormCustomization      ? customizationService.runCustomization( objectName=object, action="postRenderQuickAddRecordForm", args=prc ) : "";
 
 		if ( customizationService.objectHasCustomization( object, "preQuickEditRecordForm" ) ) {
 			customizationService.runCustomization(
@@ -1888,6 +1896,10 @@ component extends="preside.system.base.AdminHandler" {
 		getRecordsArgs.orderBy       = dtHelper.getSortOrder();
 		getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
 		getRecordsArgs.gridFields    = getRecordsArgs.gridFields.listToArray();
+
+		if ( !isFeatureEnabled( "useDistinctForDatatables" ) ) {
+			getRecordsArgs.distinct = false;
+		}
 
 		if ( Len( Trim( rc.sFilterExpression ?: "" ) ) ) {
 			try {
@@ -2662,6 +2674,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean audit             = false
 		,          string  auditAction       = "datamanager_delete_record"
 		,          string  auditType         = "datamanager"
+		,          struct  auditDetail       = {}
 		,          boolean batch             = false
 		,          boolean batchAll          = false
 		,          struct  batchSrcArgs      = {}
@@ -2732,11 +2745,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( presideObjectService.deleteData( objectName=objectName, id=id ) ) {
 			if ( arguments.audit ) {
+				StructAppend( arguments.auditDetail, { id=id, label=recordLabel, objectName=objectName }, false );
+
 				event.audit(
 					  action   = arguments.auditAction
 					, type     = arguments.auditType
 					, recordId = id
-					, detail   = { id=id, label=recordLabel, objectName=objectName }
+					, detail   = arguments.auditDetail
 				);
 			}
 

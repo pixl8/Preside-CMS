@@ -1,6 +1,7 @@
 component {
 	property name="applicationReloadService"      inject="applicationReloadService";
-	property name="databaseMigrationService"      inject="databaseMigrationService";
+	property name="coreDatabaseMigrationService"  inject="coreDatabaseMigrationService";
+	property name="appDatabaseMigrationService"   inject="appDatabaseMigrationService";
 	property name="applicationsService"           inject="applicationsService";
 	property name="websiteLoginService"           inject="websiteLoginService";
 	property name="adminLoginService"             inject="loginService";
@@ -208,7 +209,17 @@ component {
 	}
 
 	private void function _performDbMigrations() {
-		databaseMigrationService.migrate();
+		coreDatabaseMigrationService.migrate();
+		appDatabaseMigrationService.doMigrations();
+		createTask(
+			  event             = "general._performAsyncDbMigrations"
+			, runIn             = CreateTimespan( 0, 0, 1, 0 ) // one minute, at least
+			, discardOnComplete = true
+		);
+	}
+
+	private void function _performAsyncDbMigrations() {
+		appDatabaseMigrationService.doMigrations( async=true );
 	}
 
 	private void function _populateDefaultLanguages() {

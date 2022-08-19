@@ -76,6 +76,7 @@ component {
 			, "preside-ext-redirects"
 			, "preside-ext-individual-filter"
 			, "preside-ext-vips"
+			, "preside-ext-db-perf-enhancements"
 		];
 
 		settings.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
@@ -849,6 +850,7 @@ component {
 			, websiteBenefits          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, datamanager              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, batchOperationSelectAll  = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, useDistinctForDatatables = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemConfiguration      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs                = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
@@ -865,7 +867,7 @@ component {
 			, emailCenter              = { enabled=true , siteTemplates=[ "*" ] }
 			, emailCenterResend        = { enabled=false, siteTemplates=[ "*" ] }
 			, emailStyleInliner        = { enabled=true , siteTemplates=[ "*" ] }
-			, emailLinkShortener       = { enabled=false, siteTemplates=[ "*" ] }
+			, emailLinkShortener       = { enabled=true , siteTemplates=[ "*" ] }
 			, emailOverwriteDomain     = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates     = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager               = { enabled=false, siteTemplates=[ "*" ] }

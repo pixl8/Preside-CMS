@@ -7,6 +7,8 @@
 	param name="args.stripPermissionedFields" type="boolean" default=true;
 	param name="args.permissionContext"       type="string"  default=args.objectName;
 	param name="args.permissionContextKeys"   type="array"   default=ArrayNew( 1 );
+	param name="args.preForm"                 type="string"  default=( prc.preForm ?: '' );
+	param name="args.postForm"                type="string"  default=( prc.postForm ?: '' );
 
 	editRecordPrompt    = translateResource( uri="preside-objects.#args.objectName#:editRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular"   , defaultValue=args.objectName );
@@ -19,6 +21,8 @@
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-edit-form" method="post" action="#args.editRecordAction#">
 		<input name="id" type="hidden" value="#( rc.id ?: '' )#" />
 
+		#args.preForm#
+		
 		#renderForm(
 			  formName                = args.formName
 			, context                 = "admin"
@@ -29,5 +33,8 @@
 			, permissionContext       = args.permissionContext
 			, permissionContextKeys   = args.permissionContextKeys
 		)#
+		
+		#args.postForm#
+		
 	</form>
 </cfoutput>

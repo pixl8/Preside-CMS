@@ -50,10 +50,16 @@ component extends="MsSqlAdapter" {
 			sql &= " having " & arguments.having;
 		}
 
+		sql = applyOrderByAndMaxRowsSql( sql=sql, orderBy=arguments.orderBy, maxRows=arguments.maxRows, startRow=arguments.startRow );
+
+		return sql;
+	}
+
+	public string function applyOrderByAndMaxRowsSql( required string sql, string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
+		var sql = arguments.sql;
 		if ( Len( Trim( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
 		}
-
 		if ( arguments.maxRows ) {
 			if ( IsEmpty( Trim( arguments.orderBy ) ) ) {
 				// using offset/fetch requires 'order by'
@@ -61,7 +67,6 @@ component extends="MsSqlAdapter" {
 			}
 			sql &= " offset #arguments.startRow-1# rows fetch next #arguments.maxRows# rows only";
 		}
-
 		return sql;
 	}
 

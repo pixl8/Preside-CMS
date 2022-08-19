@@ -34,49 +34,28 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  relationshipKey
 		,          string  parentObjectName   = ""
 		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
-		,          boolean _is   = true
-		,          string  value = ""
+		,          string  filterPrefix       = ""
+		,          boolean _is                = true
+		,          string  value              = ""
 	){
-		var defaultPrefix  = parentPropertyName.len() ? "#parentPropertyName#$#propertyName#" : propertyName;
-		var prefix         = filterPrefix.len() ? ( filterPrefix & "$#propertyName#" ) : defaultPrefix;
-		var paramName      = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var relatedIdField = presideObjectService.getIdField( arguments.relatedTo );
-
-		if ( _is ) {
-			return [ {
-				  filter       = "#prefix#.#relatedIdField# in (:#paramName#)"
-				, filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } }
-			} ];
-		}
-
-		var params        = {};
-		var subQueryAlias = paramName;
-		var subQuery      = presideObjectService.selectData(
+		var prefix    = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
+		var hasParent = Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName );
+		var paramName = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
+		var valuePk   = presideObjectService.getIdField( arguments.relatedto );
+		var outerPk   = hasParent ? "#arguments.parentObjectName#.#arguments.parentPropertyName#" : "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+		var exists    = arguments._is ? "exists" : "not exists";
+		var subquery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
-			, selectFields        = [ "#arguments.relatedTo#.#arguments.relationshipKey# as id" ]
-			, forceJoins          = "inner"
+			, selectFields        = [ "1" ]
+			, filter              = obfuscateSqlForPreside( "#arguments.relationshipKey# = #outerPk# and #arguments.relatedTo#.#valuePk# in (:#paramName#)" )
+			, filterParams        = { "#paramName#" = { type="cf_sql_varchar", value=arguments.value, list=true } }
 			, getSqlAndParamsOnly = true
-			, filter              = { "#arguments.relatedTo#.#relatedIdField#" = listToArray( arguments.value ) }
+			, formatSqlParams     = true
 		);
-		for( var param in subQuery.params ) {
-			params[ param.name ] = param;
-			params[ param.name ].delete( "name" );
-		}
-
-		prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 
 		return [ {
-			  filter = "#subQueryAlias#.id is null"
-			, filterParams = params
-			, extraJoins = [{
-				  type           = "left"
-				, subQuery       = subQuery.sql
-				, subQueryAlias  = subQueryAlias
-				, subQueryColumn = "id"
-				, joinToTable    = prefix
-				, joinToColumn   = presideObjectService.getIdField( objectName )
-			} ]
+			  filter = obfuscateSqlForPreside( "#exists# (#subquery.sql#)" )
+			, filterParams = subquery.params
 		}];
 	}
 

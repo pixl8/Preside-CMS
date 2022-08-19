@@ -79,7 +79,7 @@ component displayName="Validation Engine" {
 					var params = provider.getValidatorParamValues( name=rule.validator, params=ruleParams );
 
 					if ( Len( Trim( rule.fieldLabel ?: "" ) ) ) {
-						params.append( _translateLabel( fieldLabel=rule.fieldLabel, fieldName=rule.fieldName ) );
+						arrayPrepend( params, _translateLabel( fieldLabel=rule.fieldLabel, fieldName=rule.fieldName ) );
 					}
 
 					result.addError(
@@ -311,7 +311,7 @@ component displayName="Validation Engine" {
 			}
 
 			if ( Len( Trim( rule.fieldLabel ?: "" ) ) ) {
-				data.append( _translateLabel( fieldLabel=rule.fieldLabel, fieldName=fieldName ) );
+				arrayPrepend( data, _translateLabel( fieldLabel=rule.fieldLabel, fieldName=fieldName ) );
 			}
 
 			jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], ' "#validator#" : { param : #_parseParamsForJQueryValidate( params, validator )#' );

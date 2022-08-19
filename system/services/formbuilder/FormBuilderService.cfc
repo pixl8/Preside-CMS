@@ -6,6 +6,7 @@
  * @autodoc
  */
 component {
+	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
 
 // CONSTRUCTOR
 	/**
@@ -134,7 +135,7 @@ component {
 
 		for( var item in items ) {
 			result = {
-					id          = item.id
+				  id            = item.id
 				, formId        = item.form
 				, questionId    = item.question
 				, item_type     = item.item_type
@@ -203,13 +204,26 @@ component {
 		var formItemDao   = $getPresideObject( "formbuilder_formitem" );
 		var existingItems = formItemDao.selectData( selectFields=[ "Max( sort_order ) as max_sort_order" ], filter={ form=arguments.formId } );
 
-		return formItemDao.insertData( data={
+		var data = {
 			  form          = arguments.formId
 			, item_type     = arguments.itemType
 			, question      = arguments.question
 			, sort_order    = Val( existingItems.max_sort_order ?: "" ) + 1
 			, configuration = SerializeJson( arguments.configuration )
-		} );
+		};
+
+		var itemId = formItemDao.insertData( data=data );
+
+		StructAppend( data, _getFormItemAuditDetail( formItemId=itemId ) );
+
+		$audit(
+			  action   = "formbuilder_add_item"
+			, type     = "formbuilder"
+			, recordId = itemId
+			, detail   = data
+		);
+
+		return itemId;
 	}
 
 	/**
@@ -225,14 +239,27 @@ component {
 		, required struct configuration
 		,          string question = ""
 	) {
-		if ( !arguments.id.len() || isFormLocked( itemId=arguments.id ) ) {
+		if ( !Len( Trim( arguments.id ) ) || isFormLocked( itemId=arguments.id ) ) {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data={
+		var data = {
 			  configuration = SerializeJson( arguments.configuration )
 			, question      = arguments.question
-		} );
+		};
+
+		var recordsCount = $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data=data );
+
+		StructAppend( data, _getFormItemAuditDetail( formItemId=arguments.id ) );
+
+		$audit(
+			  action   = "formbuilder_edit_item"
+			, type     = "formbuilder"
+			, recordId = arguments.id
+			, detail   = data
+		);
+
+		return recordsCount;
 	}
 
 	/**
@@ -279,8 +306,23 @@ component {
 	 *
 	 */
 	public boolean function deleteItem( required string id ) {
+		var data = _getFormItemAuditDetail( formItemId=arguments.id );
+
 		if ( Len( Trim( arguments.id ) ) && !isFormLocked( itemId=arguments.id ) ) {
-			return $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+			var recordsCount = $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+
+			if ( recordsCount > 0 ) {
+				$audit(
+					  action   = "formbuilder_delete_item"
+					, type     = "formbuilder"
+					, recordId = arguments.id
+					, detail   = data
+				);
+
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		return false;
@@ -356,10 +398,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { active = true }
+		var data = { active=true };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_activate"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -374,10 +431,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { active = false }
+		var data = { active=false };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_deactivate"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -392,10 +464,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { locked = true }
+		var data = { locked=true };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_lock"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -410,10 +497,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { locked = false }
+		var data = { locked=false };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_unlock"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -1139,6 +1241,108 @@ component {
 		return $getPresideObject( "formbuilder_formsubmission" ).deleteData(
 			filter = { id = arguments.submissionIds }
 		);
+	}
+
+	/**
+	 * Delete the given submission files.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteSubmissionFiles( required string submissionId ) {
+		var submission    = getSubmission( submissionId=arguments.submissionId );
+		var formId        = submission.form ?: "";
+		var fileItemTypes = _getItemTypesService().getFileUploadItemTypes();
+		var files         = [];
+
+		if ( isV2Form( formId=formId ) ) {
+			var fileFields = $getPresideObject( "formbuilder_question_response" ).selectData(
+				  selectFields = [ "response" ]
+				, filter       = "submission_type = 'formbuilder' and question.item_type in ( :question.item_type ) and submission = :submission"
+				, filterParams = {
+					  "question.item_type" = fileItemTypes
+					, submission           = submissionId
+				  }
+			);
+
+			for ( var fileField in fileFields ) {
+				ArrayAppend( files, fileField.response ?: "" );
+			}
+		} else {
+			if ( !$helpers.isEmptyString( submission.submitted_data ?: "" ) ) {
+				var submissionData = DeserializeJSON( submission.submitted_data );
+
+				var fileFields = $getPresideObject( "formbuilder_formitem" ).selectData(
+					  filter       = "form = :form and item_type in ( :item_type )"
+					, filterParams = {
+						  form     = formId
+						, item_type= fileItemTypes
+					  }
+					, selectFields = [ "configuration" ]
+				);
+
+				for ( var fileField in fileFields ) {
+					var fileFieldConfig = DeserializeJSON( fileFields.configuration ?: "" );
+
+					ArrayAppend( files, submissionData[ fileFieldConfig.name ?: "" ] ?: "" );
+				}
+			}
+		}
+
+		if ( ArrayLen( files ) ) {
+			for ( var file in files ) {
+				if ( !$helpers.isEmptyString( file ) ) {
+					var filePaths = ListToArray( file );
+
+					for ( var filePath in filePaths ) {
+						try {
+							formBuilderStorageProvider.deleteObject( path=filePath, private=formBuilderStorageProvider.objectExists( path=filePath, private=true ) );
+						} catch( any e ) {
+							$raiseError( e );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Delete the given submission question responses.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteSubmissionResponses( required string submissionId ) {
+		var submission = getSubmission( submissionId=arguments.submissionId );
+		var formId     = submission.form ?: "";
+
+		deleteSubmissionFiles( submissionId=submissionId );
+
+		if ( isV2Form( formId=formId ) ) {
+			$getPresideObject( "formbuilder_question_response" ).deleteData(
+				filter = { submission_type="formbuilder", submission_reference=formId, submission=arguments.submissionId }
+			);
+		}
+	}
+
+	/**
+	 * Delete the given form question responses.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteFormResponses( required struct filter ) {
+		var submissions = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = arguments.filter
+		);
+
+		for ( var submission in submissions ) {
+			deleteSubmissionResponses( submissionId=submission.id );
+		}
 	}
 
 	/**
@@ -2134,6 +2338,37 @@ component {
 		);
 
 		return responses;
+	}
+
+	private struct function _getFormItemAuditDetail( required string formItemId ) {
+		var formItem = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  id           = arguments.formItemId
+			, selectFields = [
+				  "form"
+				, "question"
+				, "question.field_id"
+				, "question.field_label"
+				, "question.item_type"
+			  ]
+		);
+
+		return {
+			  formId            = formItem.form        ?: ""
+			, formItemType      = formItem.item_type   ?: ""
+			, formItemName      = formItem.field_id    ?: ""
+			, formQuestionId    = formItem.question    ?: ""
+			, formQuestionLabel = formItem.field_label ?: ""
+		};
+	}
+
+	private struct function _getFormAuditDetail( required string formId ) {
+		var formForm = getForm( id=arguments.formId );
+
+		return {
+			  formId     = formForm.id   ?: ""
+			, formName   = formForm.name ?: ""
+			, objectName = "formbuilder_form"
+		};
 	}
 
 // GETTERS AND SETTERS
