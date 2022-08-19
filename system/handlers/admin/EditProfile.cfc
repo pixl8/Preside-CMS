@@ -213,7 +213,15 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		if ( !isEmptyString( homepageUrl ) ) {
 			if ( REFindNoCase( "^" & event.getAdminPath(), homepageUrl ) ) {
-				applicationsService.setAdminHomepageUrl( event.getSiteId(), homepageUrl );
+				var siteId = event.getSiteId();
+
+				if ( isEmptyString( siteId ) ) {
+					event.autoSetSiteByHost();
+
+					siteId = event.getSiteId();
+				}
+
+				applicationsService.setAdminHomepageUrl( siteId, homepageUrl );
 
 				messageBox.info( translateResource( uri="cms:editProfile.homepage.success.message" ) );
 			} else {
