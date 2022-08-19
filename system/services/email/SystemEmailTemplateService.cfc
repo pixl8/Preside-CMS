@@ -132,19 +132,24 @@ component {
 	 *
 	 * @autodoc             true
 	 * @template.hint       ID of the template whose parameters are to be prepared
-	 * @templateDetail.hint Struct with details of the template whose parameters are to be prepared
 	 * @args.hint           A struct of args that have been passed to the email sending logic that will inform the building of this email
+	 * @templateDetail.hint Struct with details of the template whose parameters are to be prepared
+ 	 * @detectedParams.hint Array of parameter names that have been detected in the content - providers can use this to restrict the rendering of parameters to only those necessary
 	 *
 	 */
 	public struct function prepareParameters(
 		  required string template
 		,          struct args           = {}
 		,          struct templateDetail = {}
+		,          array  detectedParams
 	) {
 		var handlerAction = "email.template.#arguments.template#.prepareParameters";
 		var prepArgs      = arguments.args.copy();
 
 		prepArgs.templateDetail = arguments.templateDetail;
+		if ( StructKeyExists( arguments, "detectedParams" ) ) {
+			prepArgs.detectedParams = arguments.detectedParams;
+		}
 
 		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(

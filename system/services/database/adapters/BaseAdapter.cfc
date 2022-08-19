@@ -1,7 +1,9 @@
 component {
 
 // CONSTRUCTOR
-	public any function init() {
+	public any function init( required query dbInfo ) {
+		_setDbInfo( arguments.dbInfo );
+
 		return this;
 	}
 
@@ -472,6 +474,14 @@ component {
 		return false;
 	}
 
+	public boolean function supportsCountOverWindowFunction() {
+		return false;
+	}
+
+	public string function getCountOverWindowFunctionSql() {
+		return "null";
+	}
+
 	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
 		return "getRenameColumnSql() not implemented. Must be implemented by extended adapters.";
 	}
@@ -484,7 +494,22 @@ component {
 		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getDatabaseNameSql method." );
 	}
 
+	public string function getAllTablesSql() {
+		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getAllTablesSql method." );
+	}
+
 	public string function getAllForeignKeysSql( required string database ) {
 		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getAllForeignKeysSql method." );
+	}
+
+
+	private struct function _getDbInfo() {
+		return _dbInfo;
+	}
+	private void function _setDbInfo( required query dbInfo ) {
+		for( var row in arguments.dbInfo ) {
+			_dbInfo = row;
+			return;
+		}
 	}
 }

@@ -4,13 +4,14 @@ component {
 	property name="customizationService"   inject="dataManagerCustomizationService";
 	property name="datamanagerService"     inject="datamanagerService";
 	property name="messageBox"             inject="messagebox@cbmessagebox";
+	property name="taskManagerService"     inject="TaskManagerService";
 
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var objectName       = "saved_export";
 		var allowedOps       = datamanagerService.getAllowedOperationsForObject( objectName );
 		var permissionsBase  = "savedExport"
 		var alwaysDisallowed = [ "manageContextPerms" ];
-		var operationMapped  = [ "read", "add", "edit", "delete", "batchdelete" ];
+		var operationMapped  = [ "read", "add", "edit", "delete", "batchdelete", "clone" ];
 		var permissionKey    = "#permissionsBase#.#( args.key ?: "" )#";
 		var hasPermission    = !alwaysDisallowed.find( args.key )
 		                    && ( !operationMapped.find( args.key ) || allowedOps.find( args.key ) )
@@ -67,6 +68,22 @@ component {
 
 		if ( !isEmpty( newId ) ) {
 			scheduledExportService.updateScheduleExport( newId );
+		}
+	}
+
+	private void function preEditRecordAction( event, rc, prc, args={} ){
+		if ( !isInstanceOf( args.validationResult ?: "", "ValidationResult" ) ) {
+			return;
+		}
+
+		var formData = args.formData ?: {};
+
+		if ( len( formData.schedule ?: "" ) && formData.schedule != "disabled" ) {
+			var scheduleValidationMessage = taskManagerService.getValidationErrorMessageForPotentiallyBadCrontabExpression( formData.schedule );
+
+			if ( len( trim( scheduleValidationMessage ) ) ) {
+				args.validationResult.addError( fieldName="schedule", message=scheduleValidationMessage );
+			}
 		}
 	}
 
@@ -157,6 +174,10 @@ component {
 			  title = translateResource( uri="preside-objects.saved_export:title" )
 			, link  = event.buildAdminLink( objectName="saved_export" )
 		);
+	}
+
+	private void function preRenderEditRecordForm( event, rc, prc, args={} ) {
+		rc.filterObject = args.record.object_name ?: "";
 	}
 
 // HELPERS

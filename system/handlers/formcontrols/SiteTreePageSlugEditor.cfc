@@ -3,7 +3,12 @@ component {
 		var parentPage = rc.parent_page ?: ( prc.page.parent_page ?: "" );
 
 		if ( Len( Trim( parentPage ) ) ) {
-			args.parentSlug = event.buildLink( page=parentPage ).reReplace( "\.html$", "/" );
+			var parentUrl   = event.buildLink(
+				  page        = parentPage
+				, siteId      = rc._sid ?: ""
+				, forceDomain = true
+			);
+			args.parentSlug = reReplace( parentUrl, "\.html(\?.*)?$", "/" );
 		} else {
 			args.parentSlug = "/";
 		}
@@ -11,8 +16,12 @@ component {
 	}
 
 	public string function getParentPage( event, rc, prc, args={} ) {
-		var parentSlug = event.buildLink( page=( rc.parent_page ?: "" ) );
+		var parentUrl = event.buildLink(
+			  page        = rc.parent_page ?: ""
+			, siteId      = rc._sid ?: ""
+			, forceDomain = true
+		);
 
-		return parentSlug.reReplace( "\.html$", "/" );
+		return reReplace( parentUrl, "\.html(\?.*)?$", "/" );
 	}
 }

@@ -7,6 +7,7 @@
 }
 .focal-point-image-container .focal-point-image {
   cursor: crosshair;
+  background: url(../../../../images/backgrounds/asset-preview.png) repeat top left;
 }
 .focal-point-image-container .focal-point-crosshair {
   border: 5px solid white;

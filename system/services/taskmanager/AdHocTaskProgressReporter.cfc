@@ -56,7 +56,7 @@ component {
 	 * @resultUrl URL to which user will be redirected to on successful completion of task
 	 */
 	public void function setResultUrl( required string resultUrl ) {
-		_getAdhocTaskManagerService().setResult(
+		_getAdhocTaskManagerService().setResultUrl(
 			  resultUrl = arguments.resultUrl
 			, taskId    = _getTaskId()
 		);

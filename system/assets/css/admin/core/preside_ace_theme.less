@@ -25,7 +25,6 @@
 	.ace-nav {
 		> li, > li.open {
 			position    : relative;
-			z-index     : 2;
 			border-left : 1px solid @preside-bar-separator-shadow-colour;
 
 			&:after {
@@ -121,6 +120,23 @@
 			list-style   : none !important;
 			margin-left  : 0;
 			padding-left : 0;
+
+			> a.dropdown-menu-anchor {
+				display: flex;
+				align-items: center;
+
+				> i:first-child {
+					margin-right: 5px;
+				}
+
+				.dropdown-menu-title {
+					flex: 1 1 auto;
+				}
+
+				.dropdown-menu-caret {
+					margin-left: 16px;
+				}
+			}
 		}
 
 		&.dropdown-navbar {

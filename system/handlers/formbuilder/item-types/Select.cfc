@@ -27,7 +27,7 @@ component {
 
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		var responses = ListToArray( args.response ?: "" );
+		var responses  = ListToArray( ReReplace( ( args.response ?: "" ), '^"(.*?)"$', "\1" ) );
 		var itemConfig = args.itemConfiguration    ?: {};
 
 		if ( !IsEmpty( itemConfig.datamanagerObject ?: "" ) ) {
@@ -54,5 +54,13 @@ component {
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
 		args.delim = ", ";
 		return [ renderResponse( argumentCollection=arguments ) ];
+	}
+
+	private array function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		return ListToArray( args.response ?: "" );
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "shorttext";
 	}
 }

@@ -133,6 +133,11 @@ component {
 						default:
 							return DateTimeFormat( arguments.value, "yyyy-mm-dd HH:nn:ss" );
 					}
+				case "string":
+					if ( Len( Trim( propertyDefinitions[ arguments.fieldName ].enum ?: "" ) ) ) {
+						return $translateResource( uri="enum.#propertyDefinitions[ arguments.fieldName ].enum#:#arguments.value#.label", defaultValue=arguments.value );
+					}
+					break;
 			}
 
 			return value;
@@ -145,6 +150,12 @@ component {
 
 			var results = presideObjectService.selectData(
 				argumentCollection=selectDataArgs
+			);
+
+			_getDataManagerCustomizationService().runCustomization(
+				  objectName = selectDataArgs.objectName
+				, action     = "postFetchRecordsForGridListing"
+				, args       = { records=results, objectName=selectDataArgs.objectName }
 			);
 
 			if ( canInfo || canReportProgress ) {
@@ -309,7 +320,7 @@ component {
 	public numeric function getSavedExportCountForObject( required string objectName ) {
 		return $getPresideObject( "saved_export" ).selectData(
 			  filter          = { object_name = arguments.objectName }
-			, selectFields    = [ "1" ]
+			, selectFields    = [ "1 as record" ]
 			, recordCountOnly = true
 		);
 	}

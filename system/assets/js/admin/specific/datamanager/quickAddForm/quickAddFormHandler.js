@@ -72,6 +72,11 @@
 
 	resetForm = function(){
 		$quickAddForm.trigger( "reset" );
+		$quickAddForm.find(".search-choice").remove();
+		$quickAddForm.find(".has-info").removeClass("has-info");
+		$quickAddForm.find(".result-container").remove();
+		$quickAddForm.find(".chosen-hidden-field.valid").val("");
+		$quickAddForm.find(".chosen-hidden-field").val("");
 		clearRicheditor();
 	};
 

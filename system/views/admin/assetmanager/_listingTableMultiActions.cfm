@@ -31,9 +31,11 @@
 			</button>
 		</cfif>
 
-		<button class="btn btn-info" type="submit" name="clearDerivatives" disabled="disabled" title="#translateResource( "cms:assetmanager.clear.derivatives.prompt" )#">
-			<i class="fa fa-redo bigger-110"></i>
-			#translateResource( "cms:assetmanager.clear.derivatives.btn" )#
-		</button>
+		<cfif !isTrash>
+			<button class="btn btn-info" type="submit" name="clearDerivatives" disabled="disabled" title="#translateResource( "cms:assetmanager.clear.derivatives.prompt" )#">
+				<i class="fa fa-redo bigger-110"></i>
+				#translateResource( "cms:assetmanager.clear.derivatives.btn" )#
+			</button>
+		</cfif>
 	</div>
 </cfoutput>

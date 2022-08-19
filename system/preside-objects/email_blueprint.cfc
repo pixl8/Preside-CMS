@@ -3,6 +3,7 @@
  * common settings for an email to use).
  *
  * @labelfield name
+ * @datamanagerEnabled true
  */
  component extends="preside.system.base.SystemPresideObject" {
 	property name="name"             type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="blueprintname";

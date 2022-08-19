@@ -18,14 +18,15 @@ component implements="iRouteHandler" singleton=true {
 	public void function translate( required string path, required any event ) output=false {
 		var storagePath     = ToString( ToBinary( ReReplace( UrlDecode( arguments.path ), "^/file/(.*?)/.*$", "\1" ) ), "UTF-8" );
 		var storageProvider = ListFirst( storagePath, "/" );
+		var storagePrivate  = ListLen( storagePath, "/" ) > 3 ? ( listGetAt( storagePath, 2, "/" ) == "__private" ) : false;
 		var filename        = ListLen( storagePath, "|" ) > 1 ? ListRest( storagePath, "|" ) : ListLast( storagePath, "/" );
 		var derivativeId = "";
 		var urlParam     = "";
 
 		event.setValue( "storageProvider", storageProvider );
 		event.setValue( "filename"       , filename );
-		event.setValue( "storagePath"    , "/" & ListFirst( ListRest( storagePath, "/" ), "|" ) );
-
+		event.setValue( "fileIsPrivate"  , storagePrivate );
+		event.setValue( "storagePath"    , "/" & ListFirst( ListRest( storagePath, "/" ), "|" ).replace( "__private/", "" ) );
 		event.setValue( _getEventName(), "core.FileDownload" );
 
 		if ( ReFind( "^/file/.*?/(.*?)/.*$", arguments.path ) ) {
@@ -39,7 +40,7 @@ component implements="iRouteHandler" singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var path = '/' & buildArgs.fileStorageProvider & buildArgs.fileStoragePath;
+		var path = '/' & buildArgs.fileStorageProvider & ( ( buildArgs.fileStoragePrivate ?: false ) ? "/__private" : "" ) & buildArgs.fileStoragePath;
 
 		if ( Len( Trim( buildArgs.filename ?: "" ) ) ) {
 			path &= "|" & buildArgs.filename;

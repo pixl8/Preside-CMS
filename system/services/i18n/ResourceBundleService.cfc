@@ -4,10 +4,16 @@ component singleton=true {
 	/**
 	 * @bundleDirectories.inject presidecms:directories:i18n
 	 * @siteService.inject       siteService
+	 * @defaultLocale.inject     coldbox:setting:default_locale
 	 */
-	public any function init( required array bundleDirectories, required any siteService ) output=false {
+	public any function init(
+		  required array  bundleDirectories
+		, required any    siteService
+		, required string defaultLocale
+	) {
 		_setBundleDirectories( arguments.bundleDirectories );
 		_setSiteService( arguments.siteService );
+		_setDefaultLocale( arguments.defaultLocale );
 		_setBundleDataCache( {} );
 		_discoverBundles();
 
@@ -38,7 +44,9 @@ component singleton=true {
 		var resourceKey = "";
 		var bundleData  = "";
 
-		_validateUri( arguments.uri );
+		if ( !isValidResourceUri( arguments.uri ) ) {
+			return arguments.defaultValue;
+		}
 
 		bundle      = ListFirst( arguments.uri, ":" );
 		resourceKey = ListRest( arguments.uri, ":" );
@@ -111,27 +119,39 @@ component singleton=true {
 					if ( not StructKeyExists( locales, bundleName ) ) {
 						locales[ bundleName ] = {};
 					}
-					locales[ bundleName ][ locale ] = 1;
+					locales[ bundleName ][ locale ] = locales[ bundleName ][ locale ] ?: [];
+					ArrayAppend( locales[ bundleName ][ locale ], file.directory & "/" & file.name );
 				} else {
-					bundles[ bundleName ] = 1;
+					bundles[ bundleName ] = bundles[ bundleName ] ?: [];
+					ArrayAppend( bundles[ bundleName ], file.directory & "/" & file.name );
 				}
 			}
 		}
-
-		bundles = StructKeyArray( bundles );
-		ArraySort( bundles, "text" );
-		_setBundleNames( bundles );
-
-		locales._all = StructKeyArray( locales._all );
-		ArraySort( locales._all, "text" );
-		for( bundleName in bundles ){
-			if ( StructKeyExists( locales, bundleName ) ) {
-				locales[ bundleName ] = StructKeyArray( locales[ bundleName ] );
-				ArraySort( locales[ bundleName ], "text" );
+		var defaultLocale = _getDefaultLocale();
+		for( var resource in locales ) {
+			if ( resource != "_ALL" && StructKeyExists( locales[ resource ], defaultLocale ) ) {
+				bundles[ resource ] = bundles[ resource ] ?: [];
+				ArrayAppend( bundles[ resource ], locales[ resource ][ defaultLocale ], true );
 			}
 		}
 
-		_setLocales( locales );
+		_setBundleFileDiscoveryCache( bundles, locales );
+
+		var bundleNames = StructKeyArray( bundles );
+		ArraySort( bundleNames, "text" );
+		_setBundleNames( bundleNames );
+
+		var localeNames = {};
+		localeNames._all = StructKeyArray( locales._all );
+		ArraySort( localeNames._all, "text" );
+		for( bundleName in bundleNames ){
+			if ( StructKeyExists( locales, bundleName ) ) {
+				localeNames[ bundleName ] = StructKeyArray( locales[ bundleName ] );
+				ArraySort( localeNames[ bundleName ], "text" );
+			}
+		}
+
+		_setLocales( localeNames );
 	}
 
 	private struct function _getBundleData( required string bundleName, string language, string country ) output=false {
@@ -172,44 +192,16 @@ component singleton=true {
 	}
 
 	private struct function _readBundleData( required string bundleName, string language, string country ) output=false {
-		var directories        = _getBundleDirectories();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
-		var siteTemplate       = "";
-		var subDirectory       = "";
-		var files              = "";
-		var directory          = "";
-		var file               = "";
 		var bundleData         = {};
-		var filePattern        = ListLast( arguments.bundleName, "." );
+		var files              = _getBundleFiles( argumentCollection=arguments );
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
 
-		if ( ListLen( arguments.bundleName, "." ) gt 1 ) {
-			subDirectory = ListDeleteAt( arguments.bundleName, ListLen( arguments.bundleName, "." ), "." );
-			subDirectory = "/" & ListChangeDelims( subDirectory, "/", "." );
-		}
-
-		if ( StructKeyExists( arguments, "language" ) ) {
-			filePattern &= "_" & LCase( arguments.language );
-			if ( StructKeyExists( arguments, "country" ) ) {
-				filePattern &= "_" & UCase( arguments.country );
-			}
-		}
-
-		filePattern &= ".properties";
-
-		for( directory in directories ){
-			directory = ReReplace( directory, "[\\/]$", "" );
-
-			siteTemplate = _getSiteTemplateFromPath( directory );
+		for( var file in files ){
+			var directory = ReReplace( getDirectoryFromPath( file ), "[\\/]$", "" );
+			var siteTemplate = _getSiteTemplateFromPath( directory );
 
 			if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
-				files = DirectoryList( directory & subDirectory, false, "path", "*.properties" );
-
-				for( file in files ){
-					if ( filePattern == ListLast( file, "\/" ) ) {
-						StructAppend( bundleData, _propertiesFileToStruct( file ) );
-						break;
-					}
-				}
+				StructAppend( bundleData, _propertiesFileToStruct( file ) );
 			}
 		}
 
@@ -239,16 +231,6 @@ component singleton=true {
 		return returnStruct;
 	}
 
-	private void function _validateUri( required string uri ) output=false {
-		if ( !isValidResourceUri( arguments.uri ) ) {
-			throw(
-				  type    = "ResourceBundleService.MalformedResourceUri"
-				, message = "The URI, [#arguments.uri#], was malformed. Valid URIs take the form {bundleName}:{keyName}"
-				, detail  = "Example, well-formed, URIs: 'mybundle:my.key', or 'main:cancel_btn'"
-			);
-		}
-	}
-
 	private string function _getSiteTemplateFromPath( required string path ) output=false {
 		var regex = "^.*[\\/]site-templates[\\/]([^\\/]+)/.*$";
 
@@ -257,6 +239,97 @@ component singleton=true {
 		}
 
 		return ReReplaceNoCase( arguments.path, regex, "\1" );
+	}
+
+	private array function _getBundleFiles( required string bundleName, string language, string country ) {
+		if ( _isDefaultLocale( argumentCollection=arguments ) ) {
+			return variables._bundleFileDiscoveryCache[ arguments.bundleName ] ?: _discoverOutlierBundleFiles( argumentCollection=arguments );
+		}
+
+		var languageFiles = variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] ?: _discoverOutlierBundleFiles( bundleName=arguments.bundleName, language=arguments.language );
+		if ( !StructKeyExists( arguments, "country" ) ) {
+			return languageFiles;
+		}
+
+		ArrayAppend( languageFiles, variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language & "_" & arguments.country ] ?: _discoverOutlierBundleFiles( argumentCollection=arguments ), true );
+
+		return languageFiles;
+	}
+
+	private array function _discoverOutlierBundleFiles( required string bundleName, string language, string country ) {
+		var localeRegex     = "(_[a-z]{2})(_[A-Z]{2})?$";
+		var shouldWeBother  = ReFind( localeRegex, arguments.bundleName ); // we should only have missed files that accidentally match the language-country suffix pattern
+		var discoveredFiles = [];
+
+		if ( shouldWeBother ) {
+			var directories        = _getBundleDirectories();
+			var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
+			var filePattern        = ListLast( arguments.bundleName, "." );
+			var siteTemplate       = "";
+			var subDirectory       = "";
+			var files              = "";
+			var directory          = "";
+			var file               = "";
+
+			if ( ListLen( arguments.bundleName, "." ) > 1 ) {
+				subDirectory = ListDeleteAt( arguments.bundleName, ListLen( arguments.bundleName, "." ), "." );
+				subDirectory = "/" & ListChangeDelims( subDirectory, "/", "." );
+			}
+
+			if ( StructKeyExists( arguments, "language" ) ) {
+				filePattern &= "_" & LCase( arguments.language );
+				if ( StructKeyExists( arguments, "country" ) ) {
+					filePattern &= "_" & UCase( arguments.country );
+				}
+			}
+
+			filePattern &= ".properties";
+
+			for( directory in directories ){
+				directory = ReReplace( directory, "[\\/]$", "" );
+
+				siteTemplate = _getSiteTemplateFromPath( directory );
+
+				if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
+					files = DirectoryList( directory & subDirectory, false, "path", "*.properties" );
+
+					for( file in files ){
+						if ( filePattern == ListLast( file, "\/" ) ) {
+							ArrayAppend( discoveredFiles, file );
+						}
+					}
+				}
+			}
+		}
+
+		if ( StructKeyExists( arguments, "language" ) ) {
+			if ( StructKeyExists( arguments, "country" ) ) {
+				variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language & "_" & arguments.country ] = discoveredFiles;
+			} else {
+				variables._localeFileDiscoveryCache[ arguments.bundleName ][ arguments.language ] = discoveredFiles;
+			}
+		} else {
+			variables._bundleFileDiscoveryCache[ arguments.bundleName ] = discoveredFiles;
+		}
+
+		return discoveredFiles;
+	}
+
+	private void function _setBundleFileDiscoveryCache( required struct bundles, required struct locales ) {
+	    variables._bundleFileDiscoveryCache = arguments.bundles;
+	    variables._localeFileDiscoveryCache = arguments.locales;
+	}
+
+	private boolean function _isDefaultLocale( string language="", string country="" ) {
+		if ( !Len( Trim( arguments.language ) ) ) {
+			return true;
+		}
+		var locale = arguments.language;
+		if ( Len( Trim( arguments.country ) ) ) {
+			locale &= "_#arguments.country#";
+		}
+
+		return locale == _getDefaultLocale();
 	}
 
 // GETTERS AND SETTERS
@@ -293,5 +366,12 @@ component singleton=true {
 	}
 	private void function _setBundleDataCache( required struct bundleDataCache ) output=false {
 		_bundleDataCache = arguments.bundleDataCache;
+	}
+
+	private string function _getDefaultLocale() {
+	    return _defaultLocale;
+	}
+	private void function _setDefaultLocale( required string defaultLocale ) {
+	    _defaultLocale = arguments.defaultLocale;
 	}
 }

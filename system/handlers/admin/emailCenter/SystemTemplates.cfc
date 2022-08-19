@@ -241,7 +241,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function stats( event, rc, prc ) {
-		var templateId = rc.template ?: "";
+		var templateId = rc.id ?: ( rc.template ?: "" );
 
 		prc.template = emailTemplateService.getTemplate( id=templateId );
 

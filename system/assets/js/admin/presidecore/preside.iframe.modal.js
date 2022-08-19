@@ -77,10 +77,31 @@
 			this.setupIframe();
 			this.setupModalOptions();
 
-			var bootbox   = this.getBootbox()
-			  , modal     = this.modal = bootbox.dialog( this.modalOptions )
-			  , callbacks = this.callbacks
-			  , getIframe = this.getIframe;
+			var bootbox        = this.getBootbox()
+			  , modal          = this.modal = bootbox.dialog( this.modalOptions )
+			  , callbacks      = this.callbacks
+			  , getIframe      = this.getIframe
+			  , $parent        = $( parent.CKEDITOR.document.$ )
+			  , $dialogIframe  = $parent.find( ".cke_dialog_ui_iframe:visible, .bootbox-body > iframe:visible" )
+			  , $parentModal   = $parent.find( ".bootbox.modal:visible" )
+			  , $parentEditor  = $parent.find( ".cke_dialog:visible" )
+			  , nestedInModal  = $parentModal.length
+			  , nestedInEditor = $parentEditor.length;
+
+			if ( nestedInEditor || nestedInModal ) {
+				$( "html" ).addClass( "has-parent-dialog" );
+				$parent.find( ".cke_dialog" ).addClass( "is-parent-dialog" );
+				if ( nestedInEditor ) {
+					$dialogIframe.width( $dialogIframe.width()+20 ).height( $dialogIframe.height()+106 );
+				}
+
+				modal.on( "hide.bs.modal", function(){
+					$parent.find( ".cke_dialog" ).removeClass( "is-parent-dialog" );
+					if ( nestedInEditor ) {
+						$dialogIframe.width( $dialogIframe.width()-20 ).height( $dialogIframe.height()-106 );
+					}
+				} );
+			}
 
 			if ( typeof callbacks.onShow === "function" ) {
 				modal.on( "shown.bs.modal", function(){

@@ -69,7 +69,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		}
 
 		if ( _possesses ) {
-			filterSql = "#subQueryAlias#.manytomany_count > 0";
+			filterSql = "( #subQueryAlias#.manytomany_count is not null and #subQueryAlias#.manytomany_count > 0 )";
 		} else {
 			filterSql = "( #subQueryAlias#.manytomany_count is null or #subQueryAlias#.manytomany_count = 0 )";
 		}
@@ -94,12 +94,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  parentPropertyName = ""
 	) {
 		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
-		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated  = translateObjectProperty( objectName, propertyName );
 		var possesses            = translateResource(
 			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
-			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )
+			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses.with.negative" )
 		);
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
@@ -118,9 +117,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string parentPropertyName = ""
 	){
 		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
-		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated  = translateObjectProperty( objectName, propertyName );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );

@@ -35,4 +35,36 @@ component {
 
 		return rules;
 	}
+
+	private string function renderResponse( event, rc, prc, args={} ) {
+		var number = args.response ?: "";
+
+		if ( len( number ) ) {
+			number = replace( number, """", "", "all" );
+
+			if( isNumeric( number ) ) {
+				return presideStandardNumberFormat( val( number ) );
+			}
+		}
+
+		return "";
+	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		if ( Len( args.response ?: "" ) ) {
+			return Val( Replace( args.response, ",", "", "all" ) );
+		}
+
+		return "";
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		var format = args.configuration.format ?: "";
+
+		if ( format == "integer" ) {
+			return "int";
+		}
+
+		return "float";
+	}
 }

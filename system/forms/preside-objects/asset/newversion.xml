@@ -8,7 +8,7 @@ through the asset manager interface.
 <form>
 	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
-			<field name="file" sortorder="10" required="true" control="fileupload" label="cms:assetmanager.newversion.form.file.label" help="cms:assetmanager.newversion.form.file.help" />
+			<field name="file" sortorder="10" required="true" control="fileupload" label="cms:assetmanager.newversion.form.file.label" help="cms:assetmanager.newversion.form.file.help" preProcessBinary="false" />
 		</fieldset>
 	</tab>
 </form>

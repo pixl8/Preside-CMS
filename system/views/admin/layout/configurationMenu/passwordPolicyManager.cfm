@@ -1,12 +1,15 @@
-<cfif isFeatureEnabled( "passwordPolicyManager" )>
-	<cfoutput>
-		<cfif hasCmsPermission( "passwordpolicymanager.manage" )>
-			<li>
-				<a href="#event.buildAdminLink( linkTo='passwordpolicymanager' )#">
-					<i class="fa fa-fw fa-key"></i>
-					#translateResource( 'cms:passwordpolicymanager.configmenu.title' )#
-				</a>
-			</li>
-		</cfif>
-	</cfoutput>
-</cfif>
+<!---
+ * This file exists purely for backward compatibility.
+ * This just proxies the "new" admin menu system (https://presidecms.atlassian.net/browse/PRESIDECMS-2293)
+ * Exists for any systems/extensions that are referencing this file directly
+ *
+--->
+<cfoutput>
+	#renderViewlet( event="admin.layout.adminMenu", args={
+		  menuItems       = [ "passwordPolicyManager" ]
+		, legacyViewBase  = "/deliberately/wrong/"
+		, itemRenderer    = "/admin/layout/topnav/_subitem"
+		, subItemRenderer = "/admin/layout/topnav/_subitem"
+		, itemRendererArgs = { dropdownDirection="left" }
+	} )#
+</cfoutput>

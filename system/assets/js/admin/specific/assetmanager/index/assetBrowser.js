@@ -11,6 +11,8 @@
 	  , colConfig         = []
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
+	  , defaultPageLength = cfrequest.defaultPageLength || 10
+	  , paginationOptions = cfrequest.paginationOptions || [ 5, 10, 25, 50, 100 ]
 	  , activeFolderTitle = ""
 	  , dataTable, i, nodeClickHandler, presideTreeNav, setupCheckboxBehaviour, enabledContextHotkeys, setupMultiActionButtons;
 
@@ -121,7 +123,7 @@
 	$tree.presideTreeNav( {
 		  onClick      : nodeClickHandler
 		, collapseIcon : "fa-folder-open"
-		, expandIcon   : "fa-folder"
+		, expandIcon   : "fa-folder-plus"
 	} );
 	presideTreeNav = $tree.data( 'presideTreeNav' );
 
@@ -148,6 +150,11 @@
 		, bSortable : true
 	} );
 	colConfig.push( {
+		  mData     : $( $tableHeaders.get(4) ).data( 'field' )
+		, sWidth    : $( $tableHeaders.get(4) ).data( 'width' ) || 'auto'
+		, bSortable : true
+	} );
+	colConfig.push( {
 		sClass    : "center",
 		bSortable : false,
 		sWidth    : "8em",
@@ -161,12 +168,14 @@
 		fnServerParams: function ( aoData ) {
 	    	aoData.push( { name : "folder", value : activeFolder } );
 		},
-		processing    : true,
-		bStateSave    : true,
-		bPaginate     : true,
-		bLengthChange : true,
-		aaSorting     : [],
-		sDom          : "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
+		processing     : true,
+		bStateSave     : true,
+		bPaginate      : true,
+		bLengthChange  : true,
+		iDisplayLength : parseInt( defaultPageLength ),
+		aLengthMenu    : paginationOptions,
+		aaSorting      : [],
+		sDom           : "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
 		fnRowCallback : function( row ){
 			$row = $( row );
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system

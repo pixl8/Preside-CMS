@@ -34,47 +34,50 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * Registers a new task, optionally running it there and then
 	 * in a background thread
 	 *
-	 * @autodoc           true
-	 * @event             Coldbox event that will be run
-	 * @args              Args struct to pass to the coldbox event
-	 * @adminOwner        Optional admin user ID, owner of the task
-	 * @adminOwner        Optional admin user ID, owner of the task
-	 * @webOwner          Optional website user ID, owner of the task
-	 * @runNow            Whether or not to immediately run the task in a background thread. **Note:** If neither `runNow` or `runIn` is set, you will be responsible for running the task yourself with [[adhoctaskmanagerservice-runtask]].
-	 * @runIn             Optional *timespan* (`CreateTimeSpan()`) to delay the execution of this task (will only be used if `runNow` is `false`). **Note:** If neither `runNow` or `runIn` is set, you will be responsible for running the task yourself with [[adhoctaskmanagerservice-runtask]].
-	 * @discardOnComplete Whether or not to discard the task once completed or permanently failed.
-	 * @retryInterval     Definition of retry attempts for tasks that fail to run. Either a single struct, or array of structs with the following keys: `tries`: number of attempts, `interval`:number in seconds between tries (can also use CreateTimeSpan()). For example: `[ { tries:3, interval=CreateTimeSpan( 0, 0, 5, 0 ) }, { tries:2, interval=3600 }]` will retry three times with 5 minutes between attempts and then retry a further two times with 60 minutes between attempts.
-	 * @title             Optional title of the task, can be an i18n resource URI for later translation. This will be used in any task progress UIs, etc.
-	 * @titleData         Optional array of strings that will be passed into translateResource() along with title URI to create translatable title
-	 * @resultUrl         Optional URL at which the result of this task can be viewed / downloaded. The token, `{taskId}`, within the URL will be replaced with the actual ID of the task
-	 * @returnUrl         Optional URL to which to direct users from core admin UIs when they have finished with viewing a task
+	 * @autodoc              true
+	 * @event                Coldbox event that will be run
+	 * @args                 Args struct to pass to the coldbox event
+	 * @adminOwner           Optional admin user ID, owner of the task
+	 * @adminOwner           Optional admin user ID, owner of the task
+	 * @webOwner             Optional website user ID, owner of the task
+	 * @runNow               Whether or not to immediately run the task in a background thread. **Note:** If neither `runNow` or `runIn` is set, you will be responsible for running the task yourself with [[adhoctaskmanagerservice-runtask]].
+	 * @runIn                Optional *timespan* (`CreateTimeSpan()`) to delay the execution of this task (will only be used if `runNow` is `false`). **Note:** If neither `runNow` or `runIn` is set, you will be responsible for running the task yourself with [[adhoctaskmanagerservice-runtask]].
+	 * @discardOnComplete    Whether or not to discard the task once completed or permanently failed. Defaults to `false`
+	 * @discardAfterInterval Interval from completion after which the task will be deleted. Defaults to 1 day. Only used when `discardOnComplete` is set to `false` (default).
+	 * @retryInterval        Definition of retry attempts for tasks that fail to run. Either a single struct, or array of structs with the following keys: `tries`: number of attempts, `interval`:number in seconds between tries (can also use CreateTimeSpan()). For example: `[ { tries:3, interval=CreateTimeSpan( 0, 0, 5, 0 ) }, { tries:2, interval=3600 }]` will retry three times with 5 minutes between attempts and then retry a further two times with 60 minutes between attempts.
+	 * @title                Optional title of the task, can be an i18n resource URI for later translation. This will be used in any task progress UIs, etc.
+	 * @titleData            Optional array of strings that will be passed into translateResource() along with title URI to create translatable title
+	 * @resultUrl            Optional URL at which the result of this task can be viewed / downloaded. The token, `{taskId}`, within the URL will be replaced with the actual ID of the task
+	 * @returnUrl            Optional URL to which to direct users from core admin UIs when they have finished with viewing a task
 	 */
 	public string function createTask(
 		  required string   event
-		,          struct   args              = {}
-		,          string   adminOwner        = ""
-		,          string   webOwner          = ""
-		,          boolean  runNow            = false
-		,          timespan runIn             = CreateTimeSpan( 0, 0, 0, 0 )
-		,          boolean  discardOnComplete = false
-		,          any      retryInterval     = []
-		,          string   title             = ""
-		,          array    titleData         = []
-		,          string   resultUrl         = ""
-		,          string   returnUrl         = ""
+		,          struct   args                 = {}
+		,          string   adminOwner           = ""
+		,          string   webOwner             = ""
+		,          boolean  runNow               = false
+		,          timespan runIn                = CreateTimeSpan( 0, 0, 0, 0 )
+		,          boolean  discardOnComplete    = false
+		,          any      discardAfterInterval = CreateTimeSpan( 1, 0, 0, 0 )
+		,          any      retryInterval        = []
+		,          string   title                = ""
+		,          array    titleData            = []
+		,          string   resultUrl            = ""
+		,          string   returnUrl            = ""
 	) {
 		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
-			  event               = arguments.event
-			, event_args          = SerializeJson( _addRequestStateArgs( arguments.args ) )
-			, admin_owner         = arguments.adminOwner
-			, web_owner           = arguments.webOwner
-			, discard_on_complete = arguments.discardOnComplete
-			, next_attempt_date   = ( arguments.runNow || !Val( arguments.runIn ) ) ? "" : DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
-			, retry_interval      = _serializeRetryInterval( arguments.retryInterval )
-			, title               = arguments.title
-			, title_data          = SerializeJson( arguments.titleData )
-			, result_url          = arguments.resultUrl
-			, return_url          = arguments.returnUrl
+			  event                  = arguments.event
+			, event_args             = SerializeJson( _addRequestStateArgs( arguments.args ) )
+			, admin_owner            = arguments.adminOwner
+			, web_owner              = arguments.webOwner
+			, discard_on_complete    = arguments.discardOnComplete
+			, discard_after_interval = _isTimespan( arguments.discardAfterInterval ?: "" ) ? _timespanToSeconds( arguments.discardAfterInterval ) : arguments.discardAfterInterval
+			, next_attempt_date      = ( arguments.runNow || !Val( arguments.runIn ) ) ? "" : DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
+			, retry_interval         = _serializeRetryInterval( arguments.retryInterval )
+			, title                  = arguments.title
+			, title_data             = SerializeJson( arguments.titleData )
+			, result_url             = arguments.resultUrl
+			, return_url             = arguments.returnUrl
 		} );
 
 		if ( arguments.resultUrl.findNoCase( "{taskId}" ) ) {
@@ -97,6 +100,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	public boolean function runTask( required string taskId ) {
 		lock timeout="1" name="adhocRunTask#arguments.taskId#" {
 			$getRequestContext().setUseQueryCache( false );
+			$getRequestContext().isBackgroundThread( true );
 
 			var task  = getTask( arguments.taskId );
 			var event = task.event ?: "";
@@ -119,6 +123,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			}
 
 			markTaskAsRunning( taskId=arguments.taskId );
+			$getRequestContext().setValue( name="_runningAdhocTaskId", value=arguments.taskId, private=true );
 
 			var logger   = _getTaskLogger( taskId );
 			var progress = _getTaskProgressReporter( taskId );
@@ -262,9 +267,14 @@ component displayName="Ad-hoc Task Manager Service" {
 			return;
 		}
 
+		var updatedTaskData = { status="succeeded", finished_on=_now() };
+		if ( Val( task.discard_after_interval ?: "" ) > 0 ) {
+			updatedTaskData.discard_expiry = DateAdd( 's', task.discard_after_interval, Now() );
+		}
+
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  id   = arguments.taskId
-			, data = { status="succeeded", finished_on=_now() }
+			, data = updatedTaskData
 		);
 	}
 
@@ -424,9 +434,48 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @taskId  ID of the task to discard
 	 */
 	public boolean function discardTask( required string taskId ) {
+
 		$getPresideObject( "taskmanager_adhoc_task" ).deleteData( id=arguments.taskId );
 
 		return true;
+	}
+
+	/**
+	 * Cancels a given task
+	 *
+	 * @autodoc true
+	 * @taskId  ID of the task to discard
+	 */
+	public boolean function cancelTask( required string taskId ) {
+		var task = getTask( arguments.taskId );
+
+		if ( IsBoolean( task.discard_on_complete ?: "" ) && task.discard_on_complete ) {
+			return discardTask( taskId=arguments.taskId );
+		}
+
+		var updatedTaskData = { status="cancelled", finished_on=_now() };
+		if ( Val( task.discard_after_interval ?: "" ) > 0 ) {
+			updatedTaskData.discard_expiry = DateAdd( 's', task.discard_after_interval, Now() );
+		}
+
+		return $getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = updatedTaskData
+		);
+	}
+
+	/**
+	 * isActiveTaskCancelled
+	 *
+	 */
+	public boolean function isActiveTaskCancelled() {
+		var taskId = $getRequestContext().getValue( name="_runningAdhocTaskId", defaultValue="", private=true );
+		if ( !Len( Trim( taskId ) ) ) {
+			return false;
+		}
+
+		var task = getTask( taskId );
+		return !task.recordCount || task.status == "cancelled";
 	}
 
 	/**
@@ -477,6 +526,30 @@ component displayName="Ad-hoc Task Manager Service" {
 		}
 
 		return event.buildLink( linkto="taskmanager.runAdhocTask", queryString="taskId=" & arguments.taskId );
+	}
+
+	public boolean function deleteExpiredAdhocTasks( logger ) {
+		var canLog = StructKeyExists( arguments, "logger" );
+		var canInfo = canLog && arguments.logger.canInfo();
+
+		if ( canInfo ) {
+			arguments.logger.info( "Deleting ad-hoc tasks that have expired..." );
+		}
+
+		var tasksDeleted = $getPresideObject( "taskmanager_adhoc_task" ).deleteData(
+			  filter       = "discard_expiry is not null and :discard_expiry > discard_expiry"
+			, filterParams = { discard_expiry=Now() }
+		);
+
+		if ( canInfo ) {
+			if ( tasksDeleted ) {
+				arguments.logger.info( "Deleted [#NumberFormat( tasksDeleted )#] expired tasks." );
+			} else {
+				arguments.logger.info( "There were no expired tasks to delete." );
+			}
+		}
+
+		return true;
 	}
 
 // PRIVATE HELPERS

@@ -45,22 +45,22 @@ component {
 
 				if ( len( trim( savedExportDetail.search_query ?: "" ) ) ) {
 					try {
-						configArgs.extraFilters.append( {
-		 					  filter       = dataManagerService.buildSearchFilter(
+						configArgs.extraFilters.append(
+		 					dataManagerService.buildSearchFilter(
 		 						  q            = savedExportDetail.search_query
 		 						, objectName   = savedExportDetail.object_name
 		 						, gridFields   = dataManagerService.listGridFields( savedExportDetail.object_name )
 		 						, searchFields = dataManagerService.listSearchFields( savedExportDetail.object_name )
-		 					  )
-		 					, filterParams = { q = { type="varchar", value="%" & savedExportDetail.search_query & "%" } }
-		 				} );
+		 						, expandTerms  = true
+		 					)
+		 				);
 					} catch (any e) {}
 				}
 
 				var exportedFile = dataExportService.exportData( argumentCollection=configArgs );
 
 				if ( !isEmpty( exportedFile ) ) {
-					var filePath = "#savedExportDetail.file_name# #dateTimeFormat( now() )#.#exporterDetail.fileExtension#";
+					var filePath = slugify( "#savedExportDetail.file_name# #dateTimeFormat( now() )#" ) & ".#exporterDetail.fileExtension#";
 
 					exportStorageProvider.putObject( object=fileReadBinary( exportedFile ), path=filePath );
 					scheduledExportService.saveFilePathToHistoryExport( filepath=filePath, historyExportId=historyId );

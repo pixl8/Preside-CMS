@@ -178,7 +178,16 @@ component {
 			args.fromVersionTable = true;
 		}
 
-		return _getPObj().selectData( argumentCollection = args );
+		var result = _getPObj().selectData( argumentCollection = args );
+		if ( !result.recordCount && arguments.allowDrafts ) {
+			args.fromVersionTable = false;
+			args.allowDraftVersions = false;
+			StructDelete( args, "specificVersion" );
+
+			result = _getPObj().selectData( argumentCollection = args );
+		}
+
+		return result;
 	}
 
 	public query function getPagesForAjaxSelect(
@@ -302,9 +311,10 @@ component {
 			if ( Len( Trim( sourceObject ) ) ) {
 				if ( poService.isManyToManyProperty( sourceObject, arguments.propertyName ) ) {
 					var relatedRecords = poService.selectManyToManyData(
-						  objectName   = sourceObject
-						, propertyName = arguments.propertyName
-						, filter       = ( sourceObject == "page" ? { id = arguments.page.id } : { page = arguments.page.id } )
+						  objectName       = sourceObject
+						, propertyName     = arguments.propertyName
+						, filter           = ( sourceObject == "page" ? { id = arguments.page.id } : { page = arguments.page.id } )
+						, fromVersionTable = $getRequestContext().showNonLiveContent()
 					);
 
 					if ( relatedRecords.recordCount ) {
@@ -499,6 +509,7 @@ component {
 			, orderBy            = "_hierarchy_sort_order"
 			, selectFields       = arguments.selectFields
 			, allowDraftVersions = arguments.allowDrafts
+			, fromVersionTable   = false
 			, filter             = {
 				  _hierarchy_depth = 0
 				, active           = true
@@ -518,6 +529,12 @@ component {
 		}
 
 		var homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+		if ( !homepage.recordCount && homepageArgs.fromVersionTable ) {
+			homepageArgs.fromVersionTable = false;
+			homepageArgs.allowDraftVersions = false;
+			StructDelete( homepageArgs, "specificVersion" );
+			homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+		}
 
 
 		if ( homepage.recordCount || !arguments.createIfNotExists ) {
@@ -1160,7 +1177,7 @@ component {
 	public boolean function userHasPageAccess( required string pageId ) {
 		var restrictionRules = getAccessRestrictionRulesForPage( arguments.pageId );
 
-		if ( [ "none", "partial" ].find( restrictionRules.access_restriction ) ) {
+		if ( [ "none" ].find( restrictionRules.access_restriction ) ) {
 			return true;
 		}
 
@@ -1382,7 +1399,22 @@ component {
 			}
 		}
 
+		_unsetPageRestrictFields( data );
+
 		return data;
+	}
+
+	private void function _unsetPageRestrictFields( required struct data ) {
+		var data           = arguments.data;
+		var restrictFields = [ "access_condition", "full_login_required", "grantaccess_to_all_logged_in_users", "exclude_from_navigation_when_restricted" ];
+
+		if( StructKeyExists( data, "access_restriction" ) && data.access_restriction == "none" ) {
+			for ( var field in restrictFields ) {
+				if( StructKeyExists( data, field ) ) {
+					data[ field ] = "";
+				}
+			}
+		}
 	}
 
 	private array function _treeQueryToNestedArray( required query treeQuery, any rootPage ) {
@@ -1654,7 +1686,7 @@ component {
 
 	private boolean function _isAutoRedirectEnabled() {
 		var site = $getRequestContext().getSite();
-		return isBoolean( site.auto_redirect ) && site.auto_redirect;
+		return IsBoolean( site.auto_redirect ?: "" ) && site.auto_redirect;
 	}
 
 	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page="", string site="" ) {

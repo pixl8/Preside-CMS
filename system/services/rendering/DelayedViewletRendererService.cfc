@@ -136,30 +136,42 @@ component {
 			return _viewletDelayedLookupCache[ cacheKey ];
 		}
 
-		if ( $isFeatureEnabled( "fullPageCaching" ) ) {
-			var coldbox       = $getColdbox();
-			var defaultAction = _getDefaultHandlerAction();
-			var handlerName   = arguments.viewlet;
-			var handlerExists = coldbox.handlerExists( handlerName );
+		var coldbox       = $getColdbox();
+		var defaultAction = _getDefaultHandlerAction();
+		var handlerName   = arguments.viewlet;
+		var handlerExists = coldbox.handlerExists( handlerName );
 
-			if ( !handlerExists ) {
-				handlerName = ListAppend( handlerName, defaultAction, "." );
-				handlerExists = coldbox.handlerExists( handlerName );
+		if ( !handlerExists ) {
+			handlerName = ListAppend( handlerName, defaultAction, "." );
+			handlerExists = coldbox.handlerExists( handlerName );
+		}
+
+		if ( handlerExists ) {
+			var meta = _getHandlerMethodMeta( handlerName );
+
+			if ( IsBoolean( meta.cacheable ?: "" ) ) {
+				isDelayed = !meta.cacheable;
 			}
-
-			if ( handlerExists ) {
-				var meta = _getHandlerMethodMeta( handlerName );
-
-				if ( IsBoolean( meta.cacheable ?: "" ) ) {
-					isDelayed = !meta.cacheable;
-				}
-			}
-		} else {
-			isDelayed = false;
 		}
 
 		_viewletDelayedLookupCache[ cacheKey ] = isDelayed;
 		return isDelayed;
+	}
+
+	/**
+	 * Returns whether or not the current context should allow delayed viewlets
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public boolean function isDelayableContext() {
+		var event = $getRequestContext();
+
+		if ( event.isAdminRequest() || event.isEmailRenderingContext() || event.isBackgroundThread() || event.isApiRequest()  ) {
+			return false;
+		}
+
+		return true;
 	}
 
 // PRIVATE HELPERS
@@ -174,7 +186,7 @@ component {
 			parsed[ key ] = ToString( ToBinary( value ) );
 
 			if ( IsJson( parsed[ key ] ) ) {
-				parsed[ key ] = DeserializeJSON( parsed[ key ] );
+				parsed[ key ] = DeserializeJSON( parsed[ key ], false );
 			}
 		}
 

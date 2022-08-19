@@ -4,10 +4,13 @@
  */
 component {
 
-	property name="emailLoggingService" inject="emailLoggingService";
-	property name="notificationService" inject="notificationService";
-	property name="workflowService"     inject="WorkflowService";
-	property name="websiteLoginService" inject="websiteLoginService";
+	property name="emailLoggingService"     inject="emailLoggingService";
+	property name="notificationService"     inject="notificationService";
+	property name="workflowService"         inject="WorkflowService";
+	property name="websiteLoginService"     inject="websiteLoginService";
+	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
+	property name="assetQueueService"       inject="assetQueueService";
+	property name="batchOperationService"   inject="dataManagerBatchOperationService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -61,4 +64,44 @@ component {
 	private boolean function deleteExpiredPasswordResetTokens( logger ) {
 		return websiteLoginService.deleteExpiredPasswordResetTokens( arguments.logger ?: NullValue() );
 	}
+
+	/**
+	 * Delete expired ad-hoc tasks
+	 *
+	 * @priority     5
+	 * @schedule     0 0 3 * * *
+	 * @timeout      1200
+	 * @displayName  Delete expired ad-hoc tasks
+	 * @displayGroup Cleanup
+	 */
+	private boolean function deleteExpiredAdhocTasks( logger ) {
+		return adhocTaskManagerService.deleteExpiredAdhocTasks( arguments.logger ?: NullValue() );
+	}
+
+	/**
+	 * Delete expired batch operation queues
+	 *
+	 * @schedule     0 41 3 * * *
+	 * @displayName  Delete expired batch operation queues
+	 * @displayGroup Cleanup
+	 */
+	private boolean function deleteExpiredBatchOperationQueues( logger ) {
+		return batchOperationService.deleteExpiredOperationQueues( arguments.logger ?: NullValue() );
+	}
+
+
+	/**
+	 * Delete expired derivative generation queues
+	 *
+	 * @priority     5
+	 * @schedule     0 0 7 * * *
+	 * @timeout      1200
+	 * @displayName  Cleanup asset generation queue
+	 * @displayGroup Cleanup
+	 * @feature      assetQueue
+	 */
+	private boolean function deleteExpiredQueuedAssetGenerations( logger ) {
+		return assetQueueService.deleteExpiredQueuedItems( arguments.logger ?: NullValue() );
+	}
+
 }

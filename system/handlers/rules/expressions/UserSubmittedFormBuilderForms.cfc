@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User has visited any/all of the following pages"
+ * Expression handler for "User has submitted any/all of the following form builder forms"
  *
  * @feature websiteUsers
  * @expressionContexts user
@@ -7,7 +7,7 @@
  */
 component {
 
-	property name="websiteUserActionService" inject="websiteUserActionService";
+	property name="formBuilderFilterService" inject="formBuilderFilterService";
 
 	/**
 	 * @forms.fieldType    object
@@ -21,35 +21,16 @@ component {
 	) {
 		var userId = payload.user.id ?: "";
 
-		if ( forms.listLen() > 1 && _all ) {
-			for( var fbform in forms.listToArray() ) {
-				var result = websiteUserActionService.hasPerformedAction(
-					  type        = "formbuilder"
-					, action      = "submitform"
-					, userId      = userId
-					, identifiers = [ fbform ]
-					, dateFrom    = _pastTime.from ?: ""
-					, dateTo      = _pastTime.to   ?: ""
-				);
-
-				if ( result != _has ) {
-					return false;
-				}
-			}
-
-			return true;
-		} else {
-			var result = websiteUserActionService.hasPerformedAction(
-				  type        = "formbuilder"
-				, action      = "submitform"
-				, userId      = userId
-				, identifiers = ListToArray( forms )
-				, dateFrom    = _pastTime.from ?: ""
-				, dateTo      = _pastTime.to   ?: ""
-			);
+		if ( !userId.len() ) {
+			return !arguments._has;
 		}
 
-		return _has ? result : !result;
+		return formBuilderFilterService.evaluateUserHasSubmittedForm(
+			  argumentCollection = arguments
+			, userId             = userId
+			, extraFilters       = prepareFilters( argumentCollection=arguments )
+		);
+
 	}
 
 	/**
@@ -64,17 +45,16 @@ component {
 		,          string  filterPrefix       = ""
 		,          string  parentPropertyName = ""
 	) {
-		return websiteUserActionService.getUserPerformedActionFilter(
-			  action             = "submitform"
-			, type               = "formbuilder"
-			, has                = arguments._has
-			, datefrom           = arguments._pastTime.from ?: ""
-			, dateto             = arguments._pastTime.to   ?: ""
-			, identifiers        = arguments.forms.listToArray()
-			, allIdentifiers     = arguments._all
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+
+		return formBuilderFilterService.prepareFilterForUserHasSubmittedFormFilter(
+			  formId = ListToArray( forms )
+			, _has   = arguments._has
+			, _all   = arguments._all
+			, dateFrom = arguments._pastTime.from ?: ""
+			, dateTo   = arguments._pastTime.to   ?: ""
 		);
+
+
 	}
 
 }

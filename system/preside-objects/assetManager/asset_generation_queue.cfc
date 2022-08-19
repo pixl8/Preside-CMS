@@ -17,5 +17,5 @@ component extends="preside.system.base.SystemPresideObject" displayName="Asset g
 	property name="retry_count"  type="numeric" dbtype="int"                  required=true default=0         indexes="retrycount";
 	property name="queue_status" type="string"  dbtype="varchar" maxlength=10 required=true default="pending" indexes="queuestatus" enum="assetQueueStatus";
 
-	property name="last_error" type="string" dbtype="text";
+	property name="last_error" type="string" dbtype="longtext";
 }

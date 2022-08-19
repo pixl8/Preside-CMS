@@ -3,8 +3,19 @@
  *
  */
 component {
+	property name="formBuilderService"   inject="formBuilderService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
+
+		if ( len( trim( arguments.config.question?:"" ) ) ) {
+			var theQuestion  = formBuilderService.getQuestion( arguments.config.question );
+			var questionConfig = DeserializeJson( theQuestion.item_type_config );
+			switch ( questionConfig.format?:"" ) {
+				case "free"  : return value ;
+				case "price" : return decimalFormat( value );
+			}
+		}
+
 		return NumberFormat( value );
 	}
 

@@ -76,7 +76,10 @@ input.ace.ace-switch[type="checkbox"] + .lbl {
 	right: 10px;
 	top: -62px;
 
-	button {
+	.btn-group button.btn {
+		margin-left : 1em;
+	}
+	.btn {
 		margin-left : 1em;
 	}
 
@@ -225,6 +228,11 @@ span.input-icon {
 
 .help-button {
 	line-height : 19px;
+	margin-top  : 7px;
+
+	@media (max-width: 814px) {
+		float: right;
+	}
 }
 
 .popover-content {
@@ -269,7 +277,7 @@ input.ace[type="checkbox"] {
 
 .btn-group > .btn,
 .btn-group + .btn {
-  border-width: 5px;
+  border-width: 4px;
 }
 
 .widget-body .table.no-top-border {

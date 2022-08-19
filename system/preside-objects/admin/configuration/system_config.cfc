@@ -7,7 +7,8 @@ component output="false" extends="preside.system.base.SystemPresideObject" label
 
 	property name="site" relationship="many-to-one" relatedTo="site" uniqueindexes="categorysetting|1";
 
-	property name="category" type="string" dbtype="varchar" maxlength="50" required="true"  uniqueindexes="categorysetting|2";
-	property name="setting"  type="string" dbtype="varchar" maxlength="50" required="true"  uniqueindexes="categorysetting|3";
-	property name="value"    type="string" dbtype="text"                   required="false";
+	property name="category"  type="string" dbtype="varchar" maxlength="50" required="true"  uniqueindexes="categorysetting|2";
+	property name="setting"   type="string" dbtype="varchar" maxlength="50" required="true"  uniqueindexes="categorysetting|3";
+	property name="value"     type="string" dbtype="text"                   required="false";
+	property name="tenant_id" type="string" dbtype="varchar" maxlength="50" required="false" indexes="tenantid";
 }

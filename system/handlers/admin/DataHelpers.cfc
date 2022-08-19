@@ -61,20 +61,29 @@ component extends="preside.system.base.adminHandler" {
 		var useVersioning = presideObjectService.objectIsVersioned( objectName );
 
 		if ( useVersioning && Val( version ) ) {
-			prc.record = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
+			prc.record       = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
+			prc.sourceRecord = presideObjectService.selectData( objectName=objectName, filter={ id=recordId }, useCache=false );
+			if ( prc.sourceRecord.recordCount > 0 ) {
+				var dateCreatedField  = presideObjectService.getDateCreatedField( objectName );
+
+				prc.record[ dateCreatedField ]  = prc.sourceRecord[ dateCreatedField ];
+			}
 		} else {
 			prc.record = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, allowDraftVersions=true );
 		}
 
 		args.renderedProps = [];
-		for( var propertyName in props ) {
+		for ( var propertyName in props ) {
 			var renderedValue = adminDataViewsService.renderField(
 				  objectName   = objectName
 				, propertyName = propertyName
 				, recordId     = recordId
 				, value        = prc.record[ propertyName ] ?: ""
 			);
-			args.renderedProps.append( {
+
+			renderedValue = _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue=renderedValue );
+
+			ArrayAppend( args.renderedProps, {
 				  objectName    = objectName
 				, propertyName  = propertyName
 				, propertyTitle = translateResource( uri="#uriRoot#field.#propertyName#.title", defaultValue=translateResource( uri="cms:preside-objects.default.field.#propertyName#.title", defaultValue=propertyName ) )
@@ -107,27 +116,31 @@ component extends="preside.system.base.adminHandler" {
 	 *
 	 */
 	private string function relatedRecordsDatatable( event, rc, prc, args={} ) {
-		var objectName    = args.objectName   ?: "";
-		var propertyName  = args.propertyName ?: "";
-		var recordId      = args.recordId     ?: "";
-		var queryString   = "objectName=#args.objectName#&propertyName=#args.propertyName#&recordId=#args.recordId#";
-		var datasourceUrl = event.buildAdminLink( linkto="dataHelpers.getRecordsForRelatedRecordsDatatable", queryString=queryString );
-		var relatedObject = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
-		var gridFields    = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName );
+		var objectName       = args.objectName   ?: "";
+		var propertyName     = args.propertyName ?: "";
+		var recordId         = args.recordId     ?: "";
+		var record           = prc.record        ?: queryNew("");
+		var fromVersionTable = isTrue( prc.useVersioning ?: false ) && isTrue( record._version_has_drafts ?: "" );
+		var queryString      = "objectName=#args.objectName#&propertyName=#args.propertyName#&recordId=#args.recordId#&fromVersionTable=#fromVersionTable#";
+		var datasourceUrl    = event.buildAdminLink( linkto="dataHelpers.getRecordsForRelatedRecordsDatatable", queryString=queryString );
+		var relatedObject    = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
+		var gridFields       = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName );
 
 		return renderView( view="/admin/datamanager/_objectDataTable", args={
-			  objectName        = relatedObject
-			, gridFields        = gridFields
-			, dataSourceUrl     = dataSourceUrl
-			, id                = "related-object-datatable-#objectName#-#propertyName#-" & CreateUUId()
-			, compact           = true
-			, useMultiActions   = false
-			, isMultilingual    = false
-			, draftsEnabled     = false
-			, allowSearch       = true
-			, allowFilter       = false
-			, allowDataExport   = false
-			, objectTitlePlural = translatePropertyName( objectName, propertyName )
+			  objectName               = relatedObject
+			, gridFields               = gridFields
+			, dataSourceUrl            = dataSourceUrl
+			, id                       = "related-object-datatable-#objectName#-#propertyName#-" & CreateUUId()
+			, compact                  = true
+			, useMultiActions          = false
+			, isMultilingual           = false
+			, draftsEnabled            = false
+			, allowSearch              = true
+			, allowFilter              = false
+			, allowDataExport          = false
+			, noRecordTableHide        = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="showNoValue", defaultValue=true )
+			, noRecordTableHideMessage = _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" )
+			, objectTitlePlural        = translatePropertyName( objectName, propertyName )
 		} );
 	}
 
@@ -141,19 +154,27 @@ component extends="preside.system.base.adminHandler" {
 		var propertyName  = args.propertyName ?: "";
 		var recordId      = args.recordId     ?: "";
 		var relatedObject = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
-		var records       = presideObjectService.selectData( objectName=objectName, id=recordId, selectFields=[ "#propertyName#.id", "#propertyName#.${labelfield} as label" ], forceJoins="inner" );
+		var labelRenderer = presideObjectService.getObjectAttribute( objectName=relatedObject, attributeName="labelRenderer" );
+		var hasNoLabel    = isTrue( presideObjectService.getObjectAttribute( objectName=relatedObject, attributeName="noLabel" ) );
+		var labelField    = hasNoLabel ? "id" : "${labelfield}";
+		var selectFields  = [ "#propertyName#.id", "#propertyName#.#labelField# as label" ];
+		var records       = presideObjectService.selectData( objectName=objectName, id=recordId, selectFields=selectFields, forceJoins="inner" );
 		var baseLink      = event.buildadminLink( objectName=relatedObject, recordId="{recordId}" );
 		var list          = [];
+		var label         = "";
 
 		for( var record in records ) {
-			if ( baseLink.len() ) {
-				list.append( '<a href="#( baseLink.replace( '{recordId}', record.id ))#">#record.label#</a>' );
-			} else {
-				list.append( '#record.label#' );
+			label = Len( labelRenderer ) ? renderLabel( relatedObject, record.id ) : record.label;
+			if ( !isEmptyString( label ) ) {
+				if ( Len( baseLink ) ) {
+					ArrayAppend( list, '<a href="#( Replace( baseLink, '{recordId}', record.id ))#">#label#</a>' );
+				} else {
+					ArrayAppend( list, label );
+				}
 			}
 		}
 
-		return list.toList( ", " );
+		return ArrayLen( list ) ? ArrayToList( list, ", " ) : _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue="" );
 	}
 
 	/**
@@ -161,18 +182,20 @@ component extends="preside.system.base.adminHandler" {
 	 *
 	 */
 	public void function getRecordsForRelatedRecordsDatatable( event, rc, prc ) {
-		var objectName     = rc.objectName   ?: "";
-		var propertyName   = rc.propertyName ?: "";
-		var recordId       = rc.recordId     ?: "";
-		var gridFields     = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName ).toList();
-		var relatedObject  = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
-		var relatedIdField = presideObjectService.getIdField( objectName=relatedObject );
-		var extraFilters   = [];
-		var subquerySelect = presideObjectService.selectData(
+		var objectName       = rc.objectName   ?: "";
+		var propertyName     = rc.propertyName ?: "";
+		var recordId         = rc.recordId     ?: "";
+		var fromVersionTable = isTrue( rc.fromVersionTable ?: "" );
+		var gridFields       = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName ).toList();
+		var relatedObject    = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
+		var relatedIdField   = presideObjectService.getIdField( objectName=relatedObject );
+		var extraFilters     = [];
+		var subquerySelect   = presideObjectService.selectData(
 			  objectName          = objectName
 			, id                  = recordId
 			, selectFields        = [ "#propertyName#.#relatedIdField# as id" ]
 			, getSqlAndParamsOnly = true
+			, fromVersionTable    = fromVersionTable
 		);
 		var subQueryAlias = "relatedRecordsFilter";
 		var params        = {};
@@ -269,6 +292,23 @@ component extends="preside.system.base.adminHandler" {
 				FileDelete( localExportFile );
 			}
 		}
+	}
+
+	private string function _renderNoValue(
+		  required string objectName
+		, required string propertyName
+		, required string propertyValue
+	) {
+		var value   = arguments.propertyValue;
+		var uriRoot = presideObjectService.getResourceBundleUriRoot( objectName=arguments.objectName );
+
+		if ( isEmptyString( value ) ) {
+			if ( presideObjectService.getObjectPropertyAttribute( objectName=arguments.objectName, propertyName=arguments.propertyName, attributeName="showNoValue", defaultValue=true ) ) {
+				value = translateResource( uri="#uriRoot#field.#arguments.propertyName#.no_value.title", defaultValue=translateResource( uri="cms:preside-objects.default.field.no_value.title", defaultValue="" ) );
+			}
+		}
+
+		return value;
 	}
 
 }

@@ -6,7 +6,7 @@
  * @autodoc
  *
  */
-component implements="preside.system.services.fileStorage.StorageProvider" displayname="File System Storage Provider" {
+component implements="preside.system.services.fileStorage.StorageProvider,preside.system.services.fileStorage.StorageProviderFileSystemSupport" displayname="File System Storage Provider" {
 
 // CONSTRUCTOR
 	public any function init(
@@ -93,12 +93,19 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	public binary function getObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
 			return FileReadBinary( _expandPath( arguments.path, arguments.trashed, arguments.private, true ) );
-		} catch ( java.io.FileNotFoundException e ) {
-			throw(
-				  type    = "storageProvider.objectNotFound"
-				, message = "The object, [#arguments.path#], could not be found or is not accessible"
-			);
+		} catch ( any e ) {
+			if ( e.type contains "FileNotFoundException" || e.type contains "NoSuchFileException" ) {
+				throw(
+					  type    = "storageProvider.objectNotFound"
+					, message = "The object, [#arguments.path#], could not be found or is not accessible"
+				);
+			}
+			rethrow;
 		}
+	}
+
+	public string function getObjectLocalPath( required string path, boolean trashed=false, boolean private=false ) {
+		return _expandPath( arguments.path, arguments.trashed, arguments.private, true );
 	}
 
 	public struct function getObjectInfo( required string path, boolean trashed=false, boolean private=false ){
@@ -138,6 +145,10 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		} else {
 			FileCopy( arguments.object, fullPath );
 		}
+	}
+
+	public void function putObjectFromLocalPath( required string localPath, required string path, boolean private=false ) {
+		return putObject( object=arguments.localPath, path=arguments.path, private=arguments.private );
 	}
 
 	public void function deleteObject( required string path, boolean trashed=false, boolean private=false ){

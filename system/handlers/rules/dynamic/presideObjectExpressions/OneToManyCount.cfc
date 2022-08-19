@@ -65,7 +65,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
 		var paramName     = subQueryAlias;
-		var filterSql     = "#subQueryAlias#.onetomany_count ${operator} :#paramName#";
+		var filterSql     = "ifnull( #subQueryAlias#.onetomany_count, 0 ) ${operator} :#paramName#";
 		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
 
 		for( var param in subQuery.params ) {
@@ -119,8 +119,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  parentPropertyName = ""
 	) {
 		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated = translateObjectProperty( objectName, propertyName );
 		var possesses           = translateResource(
 			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
 			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )
@@ -143,8 +142,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string parentPropertyName = ""
 	){
 		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated = translateObjectProperty( objectName, propertyName );
 		var possesses           = translateResource(
 			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
 			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )

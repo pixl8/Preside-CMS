@@ -11375,6 +11375,7 @@ tr.detail-row > td {
   right: 0;
   background-color: #FFF;
   border-width: 3px;
+  overflow: auto;
   z-index: 1040 !important;
 }
 .widget-box.fullscreen:not([class*="widget-color-"]) {
@@ -16593,10 +16594,15 @@ img.editable-click:hover {
 .bootstrap-timepicker-widget.timepicker-orient-bottom:after {
   -moz-border-top-colors: #FFF;
 }
+.bootstrap-datetimepicker-widget .timepicker table {
+  width: auto !important;
+  margin: 0 auto !important;
+}
 .bootstrap-datetimepicker-widget [class=btn] {
   border-width: 0 !important;
   background-color: transparent !important;
   color: #7399b8 !important;
+  min-width: 0 !important;
   text-shadow: none !important;
 }
 .bootstrap-datetimepicker-widget [class=btn]:hover {
@@ -19169,6 +19175,9 @@ input.typeahead.scrollable ~ .tt-menu {
 .knob-container {
   direction: ltr;
   text-align: left;
+}
+.no-value {
+  color: #bbbbbb;
 }
 .tags {
   display: inline-block;
