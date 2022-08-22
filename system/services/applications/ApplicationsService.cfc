@@ -160,8 +160,11 @@ component {
 			return a.patternAccuracy < b.patternAccuracy ? 1 : -1;
 		} );
 
-
-		return matches[ 1 ].id;
+		if ( ArrayLen( matches ) ) {
+			return matches[ 1 ].id;
+		} else {
+			$getRequestContext().adminAccessDenied();
+		}
 	}
 
 // PRIVATE HELPERS
