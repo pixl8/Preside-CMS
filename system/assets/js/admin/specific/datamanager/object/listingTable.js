@@ -52,7 +52,8 @@
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
 			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
-			  , filtersPopulated=false;
+			  , filtersPopulated=false
+			  , hasPreFilters=false;
 
 			if ( allowFilter ) {
 				filterSettings = $( ".object-listing-table-filter" ).data();
@@ -196,7 +197,9 @@
 							setupDataExport( settings );
 						}
 
-						this.fnDraw();
+						if ( !hasPreFilters ) {
+							this.fnDraw();
+						}
 					},
 					oLanguage : {
 						oAria : {
@@ -711,6 +714,7 @@
 
 			prePopulateFilter = function( filter ) {
 				if ( filter && filter.length ) {
+					hasPreFilters = true;
 					$( document ).on( "conditionBuilderInitialized", function(){
 						filtersPopulated = true;
 						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).load( filter );
@@ -718,6 +722,7 @@
 					toggleAdvancedFilter();
 				} else {
 					filtersPopulated = true;
+					hasPreFilters = false;
 				}
 			}
 
