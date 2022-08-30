@@ -700,6 +700,7 @@
 					toggleAdvancedFilter();
 				} else {
 					filtersPopulated = true;
+					hasPreFilters = false;
 				}
 			}
 
