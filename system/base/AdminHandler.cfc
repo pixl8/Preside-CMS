@@ -3,6 +3,8 @@ component {
 	property name="loginService"        inject="loginService";
 	property name="sessionStorage"      inject="sessionStorage";
 	property name="messageBox"          inject="messagebox@cbmessagebox";
+	property name="antiSamySettings"    inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"     inject="antiSamyService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		if( event.isStatelessRequest() ){
@@ -26,10 +28,17 @@ component {
 			, siteId       = event.getSiteId()
 		} );
 
-		var data = event.getCollection();
-		for ( var key in data ) {
-			data[ key ] = HtmlEditFormat( data[ key ] );
+		var data = StructCopy( event.getCollection() );
+
+		// Only necessary if antisamy is disabled or disabled in admin
+		if ( IsFalse( antiSamySettings.enabled ?: "" ) || IsTrue( antiSamySettings.bypassForAdministrators ?: "" ) ) {
+			var policy = antiSamySettings.policy ?: "myspace";
+
+			for ( var key in data ) {
+				data[ key ] = antiSamyService.clean( data[ key ], policy );
+			}
 		}
+
 		event.includeData( data );
 
 		event.addAdminBreadCrumb(
