@@ -35,7 +35,9 @@ component {
 			var policy = antiSamySettings.policy ?: "myspace";
 
 			for ( var key in data ) {
-				data[ key ] = antiSamyService.clean( data[ key ], policy );
+				if ( IsSimpleValue( data[ key ] ) ) {
+					data[ key ] = antiSamyService.clean( data[ key ], policy );
+				}
 			}
 		}
 
