@@ -32,13 +32,7 @@ component {
 
 		// Only necessary if antisamy is disabled or disabled in admin
 		if ( IsFalse( antiSamySettings.enabled ?: "" ) || IsTrue( antiSamySettings.bypassForAdministrators ?: "" ) ) {
-			var policy = antiSamySettings.policy ?: "myspace";
-
-			for ( var key in data ) {
-				if ( IsSimpleValue( data[ key ] ) ) {
-					data[ key ] = antiSamyService.clean( data[ key ], policy );
-				}
-			}
+			data = _cleanData( data, antiSamySettings.policy ?: "myspace" );
 		}
 
 		event.includeData( data );
@@ -50,6 +44,27 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private any function _cleanData(
+		  required any    data
+		,          string policy="myspace"
+	) {
+		if ( IsSimpleValue( data ) ) {
+			return antiSamyService.clean( data, arguments.policy );
+		} else {
+			if ( IsStruct( data ) ) {
+				for ( var key in data ) {
+					data[ key ] = _cleanData( data[ key ], arguments.policy );
+				}
+			} else if ( IsArray( data ) ) {
+				for ( var i = 1; i <= ArrayLen( data ); i++ ) {
+					data[ i ] = _cleanData( data[ i ], arguments.policy );
+				}
+			}
+
+			return data;
+		}
+	}
+
 	private void function _checkLogin( event ) {
 		var currentEvent = event.getCurrentEvent();
 		var loginExcempt = currentEvent.reFindNoCase( "^admin\.(login|ajaxProxy|general\.setlocale)" );
