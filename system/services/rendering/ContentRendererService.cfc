@@ -73,7 +73,7 @@ component {
 		if ( ArrayLen( selectFields ) ) {
 			var record = _getPresideObjectService().selectData(
 				  objectName         = arguments.objectName
-				, filter             = "#keyField# = :keyField"
+				, filter             = "#arguments.objectName#.#arguments.keyField# = :keyField"
 				, filterParams       = { "keyField"={ type="cf_sql_varchar", value=arguments.recordId } }
 				, selectFields       = selectFields
 				, allowDraftVersions = $getRequestContext().showNonLiveContent()
