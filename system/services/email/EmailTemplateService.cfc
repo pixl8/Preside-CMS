@@ -1153,7 +1153,7 @@ component {
 	 * @dateFrom   Optional date from which to fetch link clicking stats
 	 * @dateTo     Optional date to which to fetch link clicking stats
 	 */
-	public array function getLinkClickStats(
+	public struct function getLinkClickStats(
 		  required string templateId
 		,          string dateFrom = ""
 		,          string dateTo   = ""
@@ -1177,22 +1177,31 @@ component {
 			});
 		}
 
-		var clickStats    = [];
+		var clickStats    = StructNew( "ordered" );
 		var rawClickStats = $getPresideObject( "email_template" ).selectData(
 			  id           = arguments.templateId
-			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.link", "send_logs$activities.link_title", "send_logs$activities.link_body" ]
+			, selectFields = [ "count( 1 ) as click_count", "send_logs$activities.link", "send_logs$activities.link_title", "send_logs$activities.link_body" ]
 			, extraFilters = extraFilters
 			, autoGroupBy  = true
 			, orderBy      = "click_count desc"
 		);
 
 		for( var link in rawClickStats ) {
-			clickStats.append( {
+			if ( !StructKeyExists( clickStats, link.link_body ) ) {
+				clickStats[ link.link_body ] = {
+					  links      = []
+					, totalCount = 0
+				};
+			}
+
+			ArrayAppend( clickStats[ link.link_body ].links, {
 				  link       = link.link
 				, title      = link.link_title
 				, body       = link.link_body
 				, clickCount = link.click_count
-			} );
+			} )
+
+			clickStats[ link.link_body ].totalCount += link.click_count;
 		}
 
 		return clickStats;

@@ -1,5 +1,5 @@
 <cfscript>
-	clickStats = args.clickStats ?: [];
+	clickStats = args.clickStats ?: {};
 	event.include( "/css/admin/specific/emailcenter/clickstatstable/" );
 </cfscript>
 <cfoutput>
@@ -23,13 +23,37 @@
 	 							</tr>
 	 						</thead>
 	 						<tbody>
-								<cfloop array="#clickStats#" item="clickStat" index="i">
+								<cfloop item="currentItem" collection="#clickStats#" index="currentIndex">
+									<cfset itemSlug=slugify( currentIndex ) />
 									<tr>
 										<td>
-											#renderEmailTrackingLink( clickStat.link, clickStat.title, clickStat.body )#
+											<a href="javascript: void(0);" data-toggle="collapse" data-target=".click-stat-#itemSlug#">
+												<i class="fa fa-plus"></i>
+												#currentIndex#
+											</a>
 										</td>
-										<td class="count-col">#NumberFormat( clickStat.clickCount )#</td>
+										<td class="count-col">
+											#currentItem.totalCount#
+										</td>
 									</tr>
+									<cfloop array="#currentItem.links#" item="clickStat" index="i">
+										<tr class="collapse click-stat-#itemSlug#">
+											<td>
+												&nbsp;&nbsp;
+												<a href="#clickStat.link#" class="email-stats-link">
+													<i class="fa fa-link"></i>
+													<cfif isEmptyString( clickStat.title )>
+														#clickStat.link#
+													<cfelse>
+														#clickStat.title#
+													</cfif>
+												</a>
+											</td>
+											<td width="200">
+												#NumberFormat( clickStat.clickCount )#
+											</td>
+										</tr>
+									</cfloop>
 								</cfloop>
 							</tbody>
 						</table>
