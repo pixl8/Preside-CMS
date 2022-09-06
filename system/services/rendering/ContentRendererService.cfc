@@ -67,12 +67,15 @@ component {
 		var selectFields         = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : ( Len( labelField ) ? [ "${labelfield} as label" ] : [] );
 
 		if ( ArrayLen( selectFields ) ) {
-			var record = _getPresideObjectService().selectData(
+			var poService       = _getPresideObjectService();
+			var escapedKeyField = poService.getDbAdapterForObject( arguments.objectName ).escapeEntity( "#arguments.objectName#.#arguments.keyField#" );
+			var record          = poService.selectData(
 				  objectName         = arguments.objectName
-				, filter             = { "#keyField#"=arguments.recordId }
+				, filter             = "#escapedKeyField# = :keyField"
+				, filterParams       = { "keyField"={ type="cf_sql_varchar", value=arguments.recordId } }
 				, selectFields       = selectFields
 				, allowDraftVersions = $getRequestContext().showNonLiveContent()
-				, bypassTenants     = arguments.bypassTenants
+				, bypassTenants      = arguments.bypassTenants
 			);
 
 			if ( Len( Trim( arguments.labelRenderer ) ) ) {
