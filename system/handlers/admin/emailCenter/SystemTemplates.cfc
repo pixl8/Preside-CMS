@@ -295,6 +295,24 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function resetAction( event, rc, prc ) {
+		var template = rc.template ?: "";
+
+		if ( !hasCmsPermission( "emailcenter.systemtemplates.publish" ) ) {
+			event.adminAccessDenied();
+		}
+
+		if ( !emailTemplateService.templateExists( template ) ) {
+			event.notFound();
+		}
+
+		systemEmailTemplateService.resetTemplate( template=template );
+
+		messagebox.info( translateResource( "cms:emailcenter.systemTemplates.template.reset.confirmation" ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#template#" ) );
+	}
+
 // VIEWLETS AND HELPERS
 	private string function _templateTabs( event, rc, prc, args={} ) {
 		var template     = prc.template ?: {};

@@ -10,15 +10,6 @@
 
 <cfsavecontent variable="body">
 	<cfoutput>
-		#renderViewlet( event='admin.datamanager.versionNavigator', args={
-			  object           = "email_template"
-			, id               = templateId
-			, version          = rc.version ?: ""
-			, isDraft          = IsTrue( savedTemplate._version_is_draft ?: "" )
-			, baseUrl          = event.buildAdminLink( linkto="emailCenter.systemTemplates.template", queryString="template=#templateId#&version={version}" )
-			, allVersionsUrl   = event.buildAdminLink( linkto="emailCenter.systemTemplates.versionHistory", queryString="template=#templateId#" )
-		} )#
-
 		<h4 class="blue lighter">#translateResource( uri="cms:emailcenter.systemTemplates.template.preview.subject", data=[ preview.subject ] )#</h4>
 		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">

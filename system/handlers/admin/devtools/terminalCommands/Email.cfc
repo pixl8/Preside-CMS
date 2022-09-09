@@ -105,18 +105,7 @@ component hint="Manage Preside email templates" extends="preside.system.base.Com
 
 		if ( Len( Trim( template ) ) ) {
 			if ( systemEmailTemplateService.templateExists( template=template ) ) {
-				emailTemplateService.saveTemplate(
-					  id       = template
-					, template = {
-						  name            = translateResource( uri="email.template.#template#:title", defaultValue=template )
-						, layout          = systemEmailTemplateService.getDefaultLayout( template )
-						, subject         = systemEmailTemplateService.getDefaultSubject( template )
-						, html_body       = systemEmailTemplateService.getDefaultHtmlBody( template )
-						, text_body       = systemEmailTemplateService.getDefaultTextBody( template )
-						, recipient_type  = systemEmailTemplateService.getRecipientType( template )
-						, is_system_email = true
-					}
-				);
+				systemEmailTemplateService.resetTemplate( template=template );
 
 				message &= writeText( text="System email template '#template#' content has been reset.", newLine=true, type="info" );
 			} else {
