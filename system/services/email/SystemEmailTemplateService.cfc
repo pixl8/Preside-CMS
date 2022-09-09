@@ -7,10 +7,15 @@
 component {
 
 	/**
-	 * @configuredTemplates.inject coldbox:setting:email.templates
+	 * @configuredTemplates.inject  coldbox:setting:email.templates
+	 * @emailTemplateService.inject delayedInjector:emailTemplateService
 	 */
-	public any function init( required struct configuredTemplates ) {
+	public any function init(
+		required struct configuredTemplates
+	  , required any    emailTemplateService
+	) {
 		_setConfiguredTemplates( arguments.configuredTemplates );
+		_setEmailTemplateService( arguments.emailTemplateService );
 
 		return this;
 	}
@@ -53,6 +58,28 @@ component {
 	 */
 	public boolean function templateExists( required string template ) {
 		return StructKeyExists( _getConfiguredTemplates(), arguments.template );
+	}
+
+	/**
+	 * Reset the provided system email template
+	 *
+	 * @autodoc  true
+	 * @template The ID of the template to reset
+	 *
+	 */
+	public void function resetTemplate( required string template ) {
+		_getEmailTemplateService().saveTemplate(
+			  id       = arguments.template
+			, template = {
+				  name            = $translateResource( uri="email.template.#arguments.template#:title", defaultValue=arguments.template )
+				, layout          = getDefaultLayout( arguments.template )
+				, subject         = getDefaultSubject( arguments.template )
+				, html_body       = getDefaultHtmlBody( arguments.template )
+				, text_body       = getDefaultTextBody( arguments.template )
+				, recipient_type  = getRecipientType( arguments.template )
+				, is_system_email = true
+			}
+		);
 	}
 
 	/**
@@ -333,6 +360,13 @@ component {
 				_configuredTemplates[ templateId ] = configuredTemplates[ templateId ];
 			}
 		}
+	}
+
+	private any function _getEmailTemplateService() {
+		return _emailTemplateService;
+	}
+	private void function _setEmailTemplateService( required any emailTemplateService ) {
+		_emailTemplateService = arguments.emailTemplateService;
 	}
 
 }
