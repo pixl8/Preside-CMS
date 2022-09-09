@@ -30,11 +30,11 @@ component {
 
 		var data = StructCopy( event.getCollection() );
 
-		// Only necessary if antisamy is disabled or disabled in admin
-		if ( IsFalse( antiSamySettings.enabled ?: "" ) || IsTrue( antiSamySettings.bypassForAdministrators ?: "" ) ) {
+		// Only necessary for GET request and where antisamy is disabled or disabled in admin
+		// clean rc data before setting in javascript data
+		if ( !event.isPostRequest() && IsFalse( antiSamySettings.enabled ?: "" ) || IsTrue( antiSamySettings.bypassForAdministrators ?: "" ) ) {
 			data = _cleanData( data, antiSamySettings.policy ?: "myspace" );
 		}
-
 		event.includeData( data );
 
 		event.addAdminBreadCrumb(

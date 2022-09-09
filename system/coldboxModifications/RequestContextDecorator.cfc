@@ -335,6 +335,12 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return currentUrl.left( adminPath.len() ) == adminPath;
 	}
 
+	public boolean function isPostRequest() {
+		var req = getHTTPRequestData( false );
+
+		return ( req.method ?: "GET" ) == "POST";
+	}
+
 	public string function getApiPath() {
 		var path = getController().getSetting( "rest.path" );
 
