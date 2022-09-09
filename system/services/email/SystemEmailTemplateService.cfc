@@ -5,17 +5,13 @@
  *
  */
 component {
+	property name="emailTemplateService" inject="delayedInjector:emailTemplateService";
 
 	/**
 	 * @configuredTemplates.inject  coldbox:setting:email.templates
-	 * @emailTemplateService.inject delayedInjector:emailTemplateService
 	 */
-	public any function init(
-		required struct configuredTemplates
-	  , required any    emailTemplateService
-	) {
+	public any function init( required struct configuredTemplates ) {
 		_setConfiguredTemplates( arguments.configuredTemplates );
-		_setEmailTemplateService( arguments.emailTemplateService );
 
 		return this;
 	}
@@ -68,7 +64,7 @@ component {
 	 *
 	 */
 	public void function resetTemplate( required string template ) {
-		_getEmailTemplateService().saveTemplate(
+		emailTemplateService.saveTemplate(
 			  id       = arguments.template
 			, template = {
 				  name            = $translateResource( uri="email.template.#arguments.template#:title", defaultValue=arguments.template )
@@ -360,13 +356,6 @@ component {
 				_configuredTemplates[ templateId ] = configuredTemplates[ templateId ];
 			}
 		}
-	}
-
-	private any function _getEmailTemplateService() {
-		return _emailTemplateService;
-	}
-	private void function _setEmailTemplateService( required any emailTemplateService ) {
-		_emailTemplateService = arguments.emailTemplateService;
 	}
 
 }
