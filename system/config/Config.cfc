@@ -917,6 +917,7 @@ component {
 		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
+		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
 	}
 
 	private void function __setupFormValidationProviders() {
