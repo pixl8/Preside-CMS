@@ -18,6 +18,7 @@ component {
 		var workbook      = spreadsheetLib.new( xmlformat=true, streamingXml=true );
 		var data          = [];
 		var dataCols      = [];
+		var dataColTypes  = [];
 		var row           = 1;
 		var col           = 0;
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
@@ -29,8 +30,9 @@ component {
 		}
 
 		do {
-			data     = arguments.batchedRecordIterator();
-			dataCols = ListToArray( data.columnList );
+			data         = arguments.batchedRecordIterator();
+			dataCols     = ListToArray( data.columnList );
+			dataColTypes = _getColumnDataTypes( data );
 
 			if ( row == 1 ) {
 				for( var i=1; i <= dataCols.len(); i++ ){
@@ -42,7 +44,7 @@ component {
 				col = 0;
 				for( var field in dataCols ) {
 					col++;
-					spreadsheetLib.setCellValue( workbook, record[ field ] ?: "", row, col, "string" );
+					spreadsheetLib.setCellValue( workbook, record[ field ] ?: "", row, col, dataColTypes[ col ] ?: "string" );
 				}
 			}
 		} while( data.recordCount );
@@ -64,5 +66,46 @@ component {
 		name     = trim( left( name, 31 ) );
 
 		return name;
+	}
+
+	private array function _getColumnDataTypes( required query data ) {
+		var mappingBehaviour = getSystemSetting( "data-export", "excel_data_types" );
+		var metadata         = getMetaData( arguments.data );
+		var dataTypes        = [];
+
+		if ( mappingBehaviour == "string" ) {
+			return [];
+		}
+
+		for( var colDef in metadata ) {
+			switch( LCase( colDef.typeName ?: "" ) ) {
+				case "double":
+				case "float":
+				case "decimal":
+				case "money":
+				case "integer":
+				case "int":
+				case "smallint":
+				case "bigint":
+					ArrayAppend( dataTypes, "numeric" );
+					break;
+				case "boolean":
+				case "bit":
+					ArrayAppend( dataTypes, "boolean" );
+					break;
+				case "timestamp":
+				case "date":
+					ArrayAppend( dataTypes, "date" );
+					break;
+				case "time":
+					ArrayAppend( dataTypes, "time" );
+					break;
+				default:
+					ArrayAppend( dataTypes, "string" );
+					break;
+			}
+		}
+
+		return dataTypes;
 	}
 }
