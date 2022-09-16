@@ -14,7 +14,7 @@
 		<thead>
 			<tr>
 				<cfloop array="#gridFields#" index="fieldName">
-					<th>#translateResource( uri="preside-objects.#objectName#:field.#fieldName#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#fieldName#.title" ) )#</th>
+					<th>#translatePropertyName( objectName, fieldName, "listing" )#</th>
 				</cfloop>
 				<cfif draftsEnabled>
 					<th>#translateResource( uri="cms:datamanager.column.draft.status" )#</th>
