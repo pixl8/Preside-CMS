@@ -76,7 +76,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName  = args.objectName ?: "";
 		var listing     = "";
 
-		args.usesTreeView = dataManagerService.usesTreeView( objectName );
+		args.usesTreeView = IsTrue( args.usesTreeView ?: dataManagerService.usesTreeView( objectName ) );
 		args.treeOnly     = args.usesTreeView && IsTrue( args.treeOnly ?: "" );
 
 		if ( args.usesTreeView && !args.treeOnly ) {
