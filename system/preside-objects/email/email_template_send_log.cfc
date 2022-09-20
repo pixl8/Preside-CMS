@@ -15,10 +15,10 @@ component extends="preside.system.base.SystemPresideObject" {
 
 	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false feature="emailCenterResend";
 
-	property name="recipient" type="string" dbtype="varchar" maxlength=255 required=true;
-	property name="sender"    type="string" dbtype="varchar" maxlength=255 required=true;
-	property name="subject"   type="string" dbtype="varchar" maxlength=255;
-	property name="resend_of" type="string" dbtype="varchar" maxlength=35;
+	property name="recipient" type="string" dbtype="varchar" maxlength=255 required=true indexes="recipient";
+	property name="sender"    type="string" dbtype="varchar" maxlength=255 required=true indexes="sender";
+	property name="subject"   type="string" dbtype="varchar" maxlength=255               indexes="subject";
+	property name="resend_of" type="string" dbtype="varchar" maxlength=35                indexes="resendof";
 	property name="send_args" type="string" dbtype="text" autofilter=false;
 
 	property name="sent"           type="boolean" dbtype="boolean" default=false indexes="sent,template_sent|2";
