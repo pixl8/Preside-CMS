@@ -39,15 +39,121 @@ component {
 			, additionalArgs = { fields={ exporter = { allowedExporters=allowedExporters } } }
 		};
 
-		if ( _templateMethodExists( arguments.templateId, "preRenderConfigForm" ) ) {
-			_runTemplateMethod( arguments.templateId, "preRenderConfigForm", { objectName=arguments.objectName, renderFormArgs=renderFormArgs } );
+		if ( templateMethodExists( arguments.templateId, "preRenderConfigForm" ) ) {
+			runTemplateMethod( arguments.templateId, "preRenderConfigForm", { objectName=arguments.objectName, renderFormArgs=renderFormArgs } );
 		}
 
 		return _getFormsService().renderForm( argumentCollection=renderFormArgs );
 	}
 
+	public struct function getSubmittedConfig( required string templateId, required string objectName ) {
+		if ( templateMethodExists( arguments.templateId, "getSubmittedConfig" ) ) {
+			return runTemplateMethod( arguments.templateId, "getSubmittedConfig", { objectName=arguments.objectName } );
+		}
+
+		return {};
+	}
+
+	public struct function getExportMeta(
+		  required string templateId
+		, required string objectName
+		, required struct templateConfig
+	) {
+		if ( templateMethodExists( arguments.templateId, "getExportMeta" ) ) {
+			return runTemplateMethod( arguments.templateId, "getExportMeta", {
+				  objectName     = arguments.objectName
+				, templateConfig = arguments.templateConfig
+			} );
+		}
+
+		return {};
+	}
+
+	public any function getSelectFields(
+		  required string templateId
+		, required string objectName
+		, required struct templateConfig
+		, required array  suppliedFields
+	) {
+		if ( templateMethodExists( arguments.templateId, "getSelectFields" ) ) {
+			return runTemplateMethod( arguments.templateId, "getSelectFields", {
+				  objectName     = arguments.objectName
+				, templateConfig = arguments.templateConfig
+				, suppliedFields = arguments.suppliedFields
+			} );
+		}
+
+		return arguments.suppliedFields;
+	}
+
+	public struct function prepareFieldTitles(
+		  required string templateId
+		, required string objectName
+		, required struct templateConfig
+		, required array  selectFields
+	) {
+		if ( templateMethodExists( arguments.templateId, "prepareFieldTitles" ) ) {
+			return runTemplateMethod( arguments.templateId, "prepareFieldTitles", {
+				  objectName     = arguments.objectName
+				, templateConfig = arguments.templateConfig
+				, selectFields   = arguments.selectFields
+			} );
+		}
+
+		return {};
+	}
+
+	public void function prepareSelectDataArgs(
+		  required string templateId
+		, required string objectName
+		, required struct templateConfig
+		, required struct selectDataArgs
+	) {
+		if ( templateMethodExists( arguments.templateId, "prepareSelectDataArgs" ) ) {
+			runTemplateMethod( arguments.templateId, "prepareSelectDataArgs", {
+				  objectName     = arguments.objectName
+				, templateConfig = arguments.templateConfig
+				, records        = arguments.selectDataArgs
+			} );
+		}
+	}
+
+
+	public void function renderRecords(
+		  required string templateId
+		, required string objectName
+		, required struct templateConfig
+		, required query  records
+	) {
+		if ( templateMethodExists( arguments.templateId, "renderRecords" ) ) {
+			runTemplateMethod( arguments.templateId, "renderRecords", {
+				  objectName     = arguments.objectName
+				, templateConfig = arguments.templateConfig
+				, records        = arguments.records
+			} );
+		}
+	}
+
+	public boolean function templateMethodExists( required string templateId, required string methodName ) {
+		return $getColdbox().handlerExists( "dataExportTemplates.#arguments.templateId#.#arguments.methodName#" );
+	}
+
+	public any function runTemplateMethod(
+		  required string templateId
+		, required string methodName
+		,          struct args = {}
+
+	) {
+		return $runEvent(
+			  event          = "dataExportTemplates.#arguments.templateId#.#arguments.methodName#"
+			, private        = true
+			, prepostExempt  = true
+			, eventArguments = args
+		);
+	}
+
 // PRIVATE HELPERS
-	public array function _readTemplates() {
+	private array function _readTemplates() {
 		var handlers = $getColdbox().listHandlers( thatStartWith="dataExportTemplates." );
 		var templates = [];
 
@@ -62,30 +168,12 @@ component {
 		return templates;
 	}
 
-	public boolean function _templateMethodExists( required string templateId, required string customisation ) {
-		return $getColdbox().handlerExists( "dataExportTemplates.#arguments.templateId#.#arguments.customisation#" );
-	}
-
-	public any function _runTemplateMethod(
-		  required string templateId
-		, required string customisation
-		,          struct args = {}
-
-	) {
-		return $runEvent(
-			  event          = "dataExportTemplates.#arguments.templateId#.#arguments.customisation#"
-			, private        = true
-			, prepostExempt  = true
-			, eventArguments = args
-		);
-	}
-
 	private string function _getConfigFormName( templateId, objectName ) {
 		var formName  = "dataExport.exportConfiguration.base";
 		var mergeWith = "";
 
-		if ( _templateMethodExists( arguments.templateId, "getConfigFormName" ) ) {
-			formName = _runTemplateMethod( arguments.templateId, "getConfigFormName", { objectName=arguments.objectName, baseFormName=formName } );
+		if ( templateMethodExists( arguments.templateId, "getConfigFormName" ) ) {
+			formName = runTemplateMethod( arguments.templateId, "getConfigFormName", { objectName=arguments.objectName, baseFormName=formName } );
 
 		} else if ( _getFormsService().formExists( "dataExportTemplate.#arguments.templateId#" ) ) {
 			mergeWith = "dataExportTemplate.#arguments.templateId#";
@@ -99,8 +187,8 @@ component {
 	}
 
 	private string function _getAllowedExporters( templateId, objectName ) {
-		if ( _templateMethodExists( arguments.templateId, "getAllowedExporters" ) ) {
-			var exporters = _runTemplateMethod( arguments.templateId, "getAllowedExporters", { objectName=arguments.objectName } );
+		if ( templateMethodExists( arguments.templateId, "getAllowedExporters" ) ) {
+			var exporters = runTemplateMethod( arguments.templateId, "getAllowedExporters", { objectName=arguments.objectName } );
 			if ( IsArray( exporters ) ) {
 				return ArrayToList( exporters );
 			}
@@ -117,16 +205,16 @@ component {
 			return arguments.allowedExporters;
 		}
 
-		if ( _templateMethodExists( arguments.templateId, "getDefaultExporter" ) ) {
-			return _runTemplateMethod( arguments.templateId, "getDefaultExporter", { objectName=arguments.objectName } );
+		if ( templateMethodExists( arguments.templateId, "getDefaultExporter" ) ) {
+			return runTemplateMethod( arguments.templateId, "getDefaultExporter", { objectName=arguments.objectName } );
 		}
 
 		return $getColdbox().getSetting( name="dataExport.defaultExporter" , defaultValue="" );
 	}
 
 	private string function _getDefaultFileName( templateId, objectName ) {
-		if ( _templateMethodExists( arguments.templateId, "getDefaultFilename" ) ) {
-			return _runTemplateMethod( arguments.templateId, "getDefaultFilename", { objectName=arguments.objectName } );
+		if ( templateMethodExists( arguments.templateId, "getDefaultFilename" ) ) {
+			return runTemplateMethod( arguments.templateId, "getDefaultFilename", { objectName=arguments.objectName } );
 		}
 		return $translateresource(
 			  uri  = "cms:dataexport.config.form.field.title.default"

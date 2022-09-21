@@ -10,11 +10,13 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @dataExporterReader.inject              dataExporterReader
+	 * @dataExportTemplateService.inject       dataExportTemplateService
 	 * @dataManagerCustomizationService.inject dataManagerCustomizationService
 	 *
 	 */
-	public any function init( required any dataExporterReader, required any dataManagerCustomizationService ) {
+	public any function init( required any dataExporterReader, required any dataExportTemplateService, required any dataManagerCustomizationService ) {
 		_setExporters( arguments.dataExporterReader.readExportersFromDirectories() );
+		_setDataExportTemplateService( arguments.dataExportTemplateService );
 		_setDataManagerCustomizationService( arguments.dataManagerCustomizationService );
 		_setupExporterMap();
 
@@ -38,6 +40,7 @@ component {
 	public any function exportData(
 		  required string  exporter
 		, required string  objectName
+		,          string  exportTemplate     = ""
 		,          struct  meta               = {}
 		,          struct  fieldTitles        = {}
 		,          array   selectFields       = []
@@ -47,6 +50,7 @@ component {
 		,          string  exportFileName     = ""
 		,          string  orderBy            = ""
 		,          string  mimetype           = ""
+		,          struct  templateConfig     = {}
 		,          any     logger
 		,          any     progress
 	) {
@@ -56,10 +60,22 @@ component {
 		var canLog               = StructKeyExists( arguments, "logger" );
 		var canInfo              = canLog && logger.canInfo();
 		var canReportProgress    = StructKeyExists( arguments, "progress" );
+		var templateService      = _getDataExportTemplateService();
 
 		if ( !coldboxController.handlerExists( exporterHandler ) ) {
 			throw( type="preside.dataExporter.missing.action", message="No 'export' action could be found for the [#arguments.exporter#] exporter. The exporter should provide an 'export' handler action at /handlers/dataExporters/#arguments.exporter#.cfc to process the export. See documentation for further details." );
 		}
+
+		if ( !Len( arguments.exportTemplate ) || !templateService.templateExists( arguments.exportTemplate ) ) {
+			arguments.exportTemplate = "default";
+		}
+
+		arguments.selectFields = templateService.getSelectFields(
+			  templateId     = arguments.exportTemplate
+			, objectName     = arguments.objectName
+			, templateConfig = arguments.templateConfig
+			, suppliedFields = arguments.selectFields
+		);
 
 		if ( !arguments.selectFields.len() ) {
 			arguments.append( getDefaultExportFieldsForObject( arguments.objectName ) );
@@ -67,17 +83,20 @@ component {
 
 		$announceInterception( "preDataExportPrepareData", arguments );
 
-		var selectDataArgs       = Duplicate( arguments );
-		var cleanedSelectFields  = [];
-		var presideObjectService = $getPresideObjectService();
-		var propertyDefinitions  = presideObjectService.getObjectProperties( arguments.objectName );
-		var propertyRendererMap  = {};
+		var selectDataArgs            = Duplicate( arguments );
+		var cleanedSelectFields       = [];
+		var presideObjectService      = $getPresideObjectService();
+		var propertyDefinitions       = presideObjectService.getObjectProperties( arguments.objectName );
+		var propertyRendererMap       = {};
+		var templateHasCustomRenderer = templateService.templateMethodExists( arguments.exportTemplate, "renderRecords" );
 
 		selectDataArgs.delete( "exporter" );
 		selectDataArgs.delete( "meta" );
 		selectDataArgs.delete( "fieldTitles" );
 		selectDataArgs.delete( "exportPagingSize" );
 		selectDataArgs.delete( "exportFilterString" );
+		selectDataArgs.delete( "exportTemplate" );
+		selectDataArgs.delete( "templateConfig" );
 		selectDataArgs.maxRows      = arguments.exportPagingSize;
 		selectDataArgs.startRow     = 1;
 		selectDataArgs.autoGroupBy  = true;
@@ -100,6 +119,13 @@ component {
 			  objectName = arguments.objectName
 			, action     = "preFetchRecordsForGridListing"
 			, args       = selectDataArgs
+		);
+
+		templateService.prepareSelectDataArgs(
+			  templateId     = arguments.exportTemplate
+			, objectName     = arguments.objectName
+			, templateConfig = arguments.templateConfig
+			, selectDataArgs = selectDataArgs
 		);
 
 		if ( canReportProgress || canLog ) {
@@ -191,11 +217,20 @@ component {
 
 			selectDataArgs.startRow += selectDataArgs.maxRows;
 
-			var columns = ListToArray( results.columnList );
-			for( var i=1; i<=results.recordCount; i++ ) {
-				for( var field in cleanedSelectFields ) {
-					if ( ArrayFindNoCase( columns, field ) ) {
-						results[ field ][ i ] = simpleFormatField( field, results[ field ][ i ] );
+			if ( templateHasCustomRenderer ) {
+				templateService.renderRecords(
+					  templateId     = exportTemplate
+					, objectName     = objectName
+					, templateConfig = templateConfig
+					, records        = results
+				);
+			} else {
+				var columns = ListToArray( results.columnList );
+				for( var i=1; i<=results.recordCount; i++ ) {
+					for( var field in cleanedSelectFields ) {
+						if ( ArrayFindNoCase( columns, field ) ) {
+							results[ field ][ i ] = simpleFormatField( field, results[ field ][ i ] );
+						}
 					}
 				}
 			}
@@ -208,47 +243,62 @@ component {
 			cleanedSelectFields.append( field.listLast( " " ) );
 		}
 
-		for( var field in cleanedSelectFields ) {
-			propertyRendererMap[ field ] = "none";
+		if ( !templateHasCustomRenderer ) {
+			for( var field in cleanedSelectFields ) {
+				propertyRendererMap[ field ] = "none";
 
-			if ( StructKeyExists( propertyDefinitions, field ) ) {
-				if ( StructKeyExists( propertyDefinitions[ field ], "dataExportRenderer" ) && Len( propertyDefinitions[ field ].dataExportRenderer )  ) {
-					propertyRendererMap[ field ] = "renderer";
-					continue;
-				}
+				if ( StructKeyExists( propertyDefinitions, field ) ) {
+					if ( StructKeyExists( propertyDefinitions[ field ], "dataExportRenderer" ) && Len( propertyDefinitions[ field ].dataExportRenderer )  ) {
+						propertyRendererMap[ field ] = "renderer";
+						continue;
+					}
 
-				if ( StructKeyExists( propertyDefinitions[ field ], "type" ) && Len( propertyDefinitions[ field ].type )  ) {
-					switch( propertyDefinitions[ field ].type ?: "" ) {
-						case "boolean":
-							propertyRendererMap[ field ] = "boolean";
-							continue;
-						case "date":
-						case "time":
-							switch( propertyDefinitions[ field ].dbtype ?: "" ) {
-								case "date":
-									propertyRendererMap[ field ] = "date";
-									continue;
-								case "time":
-									propertyRendererMap[ field ] = "time";
-									continue;
-								default:
-									propertyRendererMap[ field ] = "datetime";
-									continue;
-							}
-						case "string":
-							if ( Len( Trim( propertyDefinitions[ field ].enum ?: "" ) ) ) {
-								propertyRendererMap[ field ] = "enum";
+					if ( StructKeyExists( propertyDefinitions[ field ], "type" ) && Len( propertyDefinitions[ field ].type )  ) {
+						switch( propertyDefinitions[ field ].type ?: "" ) {
+							case "boolean":
+								propertyRendererMap[ field ] = "boolean";
 								continue;
-							}
-							break;
+							case "date":
+							case "time":
+								switch( propertyDefinitions[ field ].dbtype ?: "" ) {
+									case "date":
+										propertyRendererMap[ field ] = "date";
+										continue;
+									case "time":
+										propertyRendererMap[ field ] = "time";
+										continue;
+									default:
+										propertyRendererMap[ field ] = "datetime";
+										continue;
+								}
+							case "string":
+								if ( Len( Trim( propertyDefinitions[ field ].enum ?: "" ) ) ) {
+									propertyRendererMap[ field ] = "enum";
+									continue;
+								}
+								break;
+						}
 					}
 				}
 			}
 		}
 
+		arguments.fieldTitles = templateService.prepareFieldTitles(
+			  templateId     = arguments.exportTemplate
+			, objectName     = arguments.objectName
+			, templateConfig = arguments.templateConfig
+			, selectFields   = cleanedSelectFields
+		);
 		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles );
 
 		$announceInterception( "postDataExportPrepareData", arguments );
+
+		var exportMeta = templateService.getExportMeta(
+			  templateId     = arguments.exportTemplate
+			, objectName     = arguments.objectName
+			, templateConfig = arguments.templateConfig
+		);
+		StructAppend( exportMeta, arguments.meta, false );
 
 		var result = coldboxController.runEvent(
 			  private        = true
@@ -257,7 +307,7 @@ component {
 			, eventArguments = {
 				  selectFields          = cleanedSelectFields
 				, fieldTitles           = arguments.fieldTitles
-				, meta                  = arguments.meta
+				, meta                  = exportMeta
 				, batchedRecordIterator = batchedRecordIterator
 				, objectName            = arguments.objectName
 			  }
@@ -467,6 +517,13 @@ component {
 	}
 	private void function _setExporters( required array exporters ) {
 		_exporters = arguments.exporters;
+	}
+
+	private any function _getDataExportTemplateService() {
+	    return _dataExportTemplateService;
+	}
+	private void function _setDataExportTemplateService( required any dataExportTemplateService ) {
+	    _dataExportTemplateService = arguments.dataExportTemplateService;
 	}
 
 	private any function _getDataManagerCustomizationService() {

@@ -3208,6 +3208,7 @@ component extends="preside.system.base.AdminHandler" {
 		  required any    event
 		, required struct rc
 		, required struct prc
+		,          string exportTemplate     = ( rc.exportTemplate     ?: 'default' )
 		,          string exporter           = ( rc.exporter           ?: 'CSV' )
 		,          string objectName         = ( rc.object             ?: '' )
 		,          string exportFields       = ( rc.exportFields       ?: '' )
@@ -3225,7 +3226,8 @@ component extends="preside.system.base.AdminHandler" {
 		var selectFields   = arguments.exportFields.listToArray();
 		var fullFileName   = arguments.fileName & ".#exporterDetail.fileExtension#";
 		var args           = {
-			  exporter           = exporter
+			  exportTemplate     = exportTemplate
+			, exporter           = exporter
 			, objectName         = objectName
 			, selectFields       = selectFields
 			, extraFilters       = arguments.extraFilters
@@ -3235,6 +3237,7 @@ component extends="preside.system.base.AdminHandler" {
 			, exportFileName     = fullFileName
 			, mimetype           = exporterDetail.mimeType
 			, additionalArgs     = arguments.additionalArgs
+			, templateConfig     = dataExportTemplateService.getSubmittedConfig( exportTemplate, objectName )
 		};
 
 		try {
