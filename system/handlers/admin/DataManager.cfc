@@ -7,6 +7,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="batchOperationService"            inject="dataManagerBatchOperationService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
+	property name="dataExportTemplateService"        inject="dataExportTemplateService";
 	property name="scheduledExportService"           inject="scheduledExportService";
 	property name="formsService"                     inject="formsService";
 	property name="siteService"                      inject="siteService";
@@ -1368,15 +1369,15 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !isFeatureEnabled( "dataexport" ) ) {
 			event.notFound();
 		}
-		var args   = {};
+		var templateId = rc.exportTemplate ?: "";
+		var args       = {};
 
-		args.objectName            = prc.objectName ?: "";
-		args.objectTitle           = prc.objectTitle ?: "";
-		args.defaultExporter       = getSetting( name="dataExport.defaultExporter" , defaultValue="" );
-		args.defaultExportFilename = translateresource(
-			  uri  = "cms:dataexport.config.form.field.title.default"
-			, data = [ args.objectTitle, DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
-		);
+		if ( !Len( Trim( templateId ) ) || !dataExportTemplateService.templateExists( templateId ) ) {
+			templateId = "default";
+		}
+
+		args.objectName = prc.objectName ?: "";
+		args.configForm = dataExportTemplateService.renderConfigForm( templateId=templateId, objectName=args.objectName );
 
 		event.setView( view="/admin/datamanager/dataExportConfigModal", layout="adminModalDialog", args=args );
 	}

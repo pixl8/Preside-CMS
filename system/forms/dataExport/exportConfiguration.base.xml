@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Data export: configuration form base
+
+This form is used as a base for configuring data exports.
+-->
+<form i18nBaseUri="cms:dataexport.config.form.">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field name="filename"     control="hidden"                required="true" sortorder="10" />
+			<field name="exporter"     control="dataExporterPicker"    required="true" sortorder="100" />
+		</fieldset>
+	</tab>
+</form>
