@@ -608,7 +608,7 @@ component {
 		var coreLayoutViewlet = "formbuilder.core.formLayout";
 		var formLayoutArgs    = Duplicate( arguments.configuration );
 		var formLayoutViewlet = _getFormBuilderRenderingService().getFormLayoutViewlet( layout=arguments.layout );
-		var idPrefixForFields = _createIdPrefix();
+		var idPrefixForFields = _createIdPrefix( formId=arguments.formId );
 
 		for( var item in items ) {
 			var config    = Duplicate( item.configuration );
@@ -1976,8 +1976,8 @@ component {
 		return newFormId;
 	}
 
-	private string function _createIdPrefix() {
-		return "formbuilder_" & LCase( Hash( Now() ) );
+	private string function _createIdPrefix( required string formId ) {
+		return "formbuilder_" & LCase( Hash( Now() & arguments.formId ) );
 	}
 
 	private struct function _getItemConfigurationForV2Question( required string questionId ) {
