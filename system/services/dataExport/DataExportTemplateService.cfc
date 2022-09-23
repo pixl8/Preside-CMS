@@ -27,6 +27,8 @@ component {
 		  required string templateId
 		, required string objectName
 	) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		var formName              = _getConfigFormName( argumentCollection=arguments );
 		var allowedExporters      = getAllowedExporters( argumentCollection=arguments );
 		var defaultExporter       = getDefaultExporter( argumentCollection=arguments, allowedExporters=allowedExporters );
@@ -47,6 +49,8 @@ component {
 	}
 
 	public struct function getSubmittedConfig( required string templateId, required string objectName ) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		if ( templateMethodExists( arguments.templateId, "getSubmittedConfig" ) ) {
 			return runTemplateMethod( arguments.templateId, "getSubmittedConfig", { objectName=arguments.objectName } );
 		}
@@ -58,6 +62,8 @@ component {
 		  required string templateId
 		, required string objectName
 	) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		var formName              = getSaveExportFormName( argumentCollection=arguments );
 		var allowedExporters      = getAllowedExporters( argumentCollection=arguments );
 		var defaultExporter       = getDefaultExporter( argumentCollection=arguments, allowedExporters=allowedExporters );
@@ -82,6 +88,8 @@ component {
 		, required string objectName
 		, required struct templateConfig
 	) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		if ( templateMethodExists( arguments.templateId, "getExportMeta" ) ) {
 			return runTemplateMethod( arguments.templateId, "getExportMeta", {
 				  objectName     = arguments.objectName
@@ -98,6 +106,8 @@ component {
 		, required struct templateConfig
 		, required array  suppliedFields
 	) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		if ( templateMethodExists( arguments.templateId, "getSelectFields" ) ) {
 			return runTemplateMethod( arguments.templateId, "getSelectFields", {
 				  objectName     = arguments.objectName
@@ -115,6 +125,8 @@ component {
 		, required struct templateConfig
 		, required array  selectFields
 	) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		if ( templateMethodExists( arguments.templateId, "prepareFieldTitles" ) ) {
 			return runTemplateMethod( arguments.templateId, "prepareFieldTitles", {
 				  objectName     = arguments.objectName
@@ -132,6 +144,8 @@ component {
 		, required struct templateConfig
 		, required struct selectDataArgs
 	) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		if ( templateMethodExists( arguments.templateId, "prepareSelectDataArgs" ) ) {
 			runTemplateMethod( arguments.templateId, "prepareSelectDataArgs", {
 				  objectName     = arguments.objectName
@@ -148,6 +162,8 @@ component {
 		, required struct templateConfig
 		, required query  records
 	) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		if ( templateMethodExists( arguments.templateId, "renderRecords" ) ) {
 			runTemplateMethod( arguments.templateId, "renderRecords", {
 				  objectName     = arguments.objectName
@@ -158,6 +174,8 @@ component {
 	}
 
 	public boolean function templateMethodExists( required string templateId, required string methodName ) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		return $getColdbox().handlerExists( "dataExportTemplates.#arguments.templateId#.#arguments.methodName#" );
 	}
 
@@ -167,6 +185,8 @@ component {
 		,          struct args = {}
 
 	) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		return $runEvent(
 			  event          = "dataExportTemplates.#arguments.templateId#.#arguments.methodName#"
 			, private        = true
@@ -176,6 +196,8 @@ component {
 	}
 
 	public string function getSaveExportFormName( templateId, objectName, baseForm="dataExport.saveExportConfiguration.base" ) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		var formName  = arguments.baseForm;
 		var mergeWith = "";
 
@@ -193,6 +215,8 @@ component {
 	}
 
 	public string function getAllowedExporters( templateId, objectName ) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		if ( templateMethodExists( arguments.templateId, "getAllowedExporters" ) ) {
 			var exporters = runTemplateMethod( arguments.templateId, "getAllowedExporters", { objectName=arguments.objectName } );
 			if ( IsArray( exporters ) ) {
@@ -207,6 +231,8 @@ component {
 	}
 
 	public string function getDefaultExporter( templateId, objectName, allowedExporters ) {
+		arguments.templateId = _getValidTemplateId( arguments.templateId );
+
 		if ( ListLen( Trim( arguments.allowedExporters ) )==1 ) {
 			return arguments.allowedExporters;
 		}
@@ -260,6 +286,14 @@ component {
 			  uri  = "cms:dataexport.config.form.field.title.default"
 			, data = [ $helpers.translateObjectName( arguments.objectName ), DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
 		);
+	}
+
+	private string function _getValidTemplateId( templateId ) {
+		if ( !Len( Trim( arguments.templateId ) ) || !templateExists( arguments.templateId ) ) {
+			return "default";
+		}
+
+		return Trim( arguments.templateId );
 	}
 
 

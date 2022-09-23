@@ -40,7 +40,7 @@ component {
 	public any function exportData(
 		  required string  exporter
 		, required string  objectName
-		,          string  exportTemplate     = ""
+		,          string  exportTemplate     = "default"
 		,          struct  meta               = {}
 		,          struct  fieldTitles        = {}
 		,          array   selectFields       = []
@@ -64,10 +64,6 @@ component {
 
 		if ( !coldboxController.handlerExists( exporterHandler ) ) {
 			throw( type="preside.dataExporter.missing.action", message="No 'export' action could be found for the [#arguments.exporter#] exporter. The exporter should provide an 'export' handler action at /handlers/dataExporters/#arguments.exporter#.cfc to process the export. See documentation for further details." );
-		}
-
-		if ( !Len( arguments.exportTemplate ) || !templateService.templateExists( arguments.exportTemplate ) ) {
-			arguments.exportTemplate = "default";
 		}
 
 		arguments.selectFields = templateService.getSelectFields(

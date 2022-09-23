@@ -36,13 +36,8 @@ component extends="preside.system.base.adminHandler" {
 			}
 
 			rc.filterObject = rc.object;
-			rc.exportTemplate = rc.exportTemplate ?: "default";
-			if ( !Len( Trim( rc.exportTemplate ?: "" ) ) || !dataExportTemplateService.templateExists( rc.exportTemplate ) ) {
-				rc.exportTemplate = "default";
-			}
-
 			prc.saveExportForm = dataExportTemplateService.renderSaveExportForm(
-				  templateId = rc.exportTemplate
+				  templateId = rc.exportTemplate ?: ""
 				, objectName = rc.object
 			);
 		}
@@ -57,15 +52,11 @@ component extends="preside.system.base.adminHandler" {
 			messageBox.error( translateResource( uri="cms:datamanager.saveexport.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkto="dataExport.saveExport" ), persistStruct=formData );
 		}
-		var exportTemplate = formData.exportTemplate ?: "default";
-		if ( !Len( Trim( exportTemplate ) ) || !dataExportTemplateService.templateExists( exportTemplate ) ) {
-			exportTemplate = "default";
-		}
 
 		var newSavedExportId = "";
 		var data             =  {
 			  label           = formData.label              ?: ""
-			, template        = exportTemplate
+			, template        = formData.exportTemplate     ?: ""
 			, description     = formData.description        ?: ""
 			, file_name       = formData.filename           ?: ""
 			, object_name     = formData.object             ?: ""
@@ -77,7 +68,7 @@ component extends="preside.system.base.adminHandler" {
 			, created_by      = loginService.getLoggedInUserId()
 			, recipients      = formData.recipients         ?: ""
 			, schedule        = formData.schedule           ?: "disabled"
-			, template_config = SerializeJson( dataExportTemplateService.getSubmittedConfig( templateId=exportTemplate, objectName=( formData.object ?: "" ) ) )
+			, template_config = SerializeJson( dataExportTemplateService.getSubmittedConfig( templateId=( formData.exportTemplate ?: "" ), objectName=( formData.object ?: "" ) ) )
 		};
 
 		if ( isFeatureEnabled( "rulesEngine" ) ) {

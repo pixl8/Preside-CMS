@@ -89,9 +89,6 @@ component {
 
 		var template = prc.record.template ?: "";
 		var objectName = prc.record.object_name ?: "";
-		if ( !Len( Trim( template ) ) || !dataExportTemplateService.templateExists( template ) ) {
-			template = "default";
-		}
 
 		formData.template_config = SerializeJson( dataExportTemplateService.getSubmittedConfig(
 			  templateId = template
@@ -189,14 +186,8 @@ component {
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
-		var template = prc.record.template ?: "";
-
-		if ( !Len( Trim( template ) ) || !dataExportTemplateService.templateExists( template ) ) {
-			template = "default";
-		}
-
 		return dataExportTemplateService.getSaveExportFormName(
-			  templateId = template
+			  templateId = prc.record.template    ?: ""
 			, objectName = prc.record.object_name ?: ""
 			, baseForm   = "preside-objects.saved_export.admin.edit"
 		);
@@ -212,17 +203,12 @@ component {
 			}
 		}
 
-		var template = args.record.template ?: "";
-		if ( !Len( Trim( template ) ) || !dataExportTemplateService.templateExists( template ) ) {
-			template = "default";
-		}
-
 		args.additionalArgs                 = args.additionalArgs                 ?: {};
 		args.additionalArgs.fields          = args.additionalArgs.fields          ?: {};
 		args.additionalArgs.fields.exporter = args.additionalArgs.fields.exporter ?: {};
 
 		args.additionalArgs.fields.exporter.allowedExporters = dataExportTemplateService.getAllowedExporters(
-			  templateId = template
+			  templateId = ( args.record.template ?: "" )
 			, objectName = rc.filterObject
 		);
 	}

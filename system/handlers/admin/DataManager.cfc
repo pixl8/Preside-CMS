@@ -1369,15 +1369,13 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !isFeatureEnabled( "dataexport" ) ) {
 			event.notFound();
 		}
-		var templateId = rc.exportTemplate ?: "";
-		var args       = {};
-
-		if ( !Len( Trim( templateId ) ) || !dataExportTemplateService.templateExists( templateId ) ) {
-			templateId = "default";
-		}
+		var args = {};
 
 		args.objectName = prc.objectName ?: "";
-		args.configForm = dataExportTemplateService.renderConfigForm( templateId=templateId, objectName=args.objectName );
+		args.configForm = dataExportTemplateService.renderConfigForm(
+			  templateId = ( rc.exportTemplate ?: "" )
+			, objectName = args.objectName
+		);
 
 		event.setView( view="/admin/datamanager/dataExportConfigModal", layout="adminModalDialog", args=args );
 	}
@@ -1421,9 +1419,6 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery        = rc.searchQuery       ?: ""
 		};
 
-		if ( !Len( Trim( formData.exportTemplate ) ) || !dataExportTemplateService.templateExists( formData.exportTemplate ) ) {
-			formData.exportTemplate = "default";
-		}
 		StructAppend( formData, dataExportTemplateService.getSubmittedConfig(
 			  templateId = formData.exportTemplate
 			, objectName = formData.object
