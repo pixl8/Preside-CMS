@@ -28,8 +28,8 @@ component {
 		, required string objectName
 	) {
 		var formName              = _getConfigFormName( argumentCollection=arguments );
-		var allowedExporters      = _getAllowedExporters( argumentCollection=arguments );
-		var defaultExporter       = _getDefaultExporter( argumentCollection=arguments, allowedExporters=allowedExporters );
+		var allowedExporters      = getAllowedExporters( argumentCollection=arguments );
+		var defaultExporter       = getDefaultExporter( argumentCollection=arguments, allowedExporters=allowedExporters );
 		var defaultExportFilename = _getDefaultFileName( argumentCollection=arguments );
 		var renderFormArgs        = {
 			  formName       = formName
@@ -52,6 +52,29 @@ component {
 		}
 
 		return {};
+	}
+
+	public string function renderSaveExportForm(
+		  required string templateId
+		, required string objectName
+	) {
+		var formName              = getSaveExportFormName( argumentCollection=arguments );
+		var allowedExporters      = getAllowedExporters( argumentCollection=arguments );
+		var defaultExporter       = getDefaultExporter( argumentCollection=arguments, allowedExporters=allowedExporters );
+		var defaultExportFilename = _getDefaultFileName( argumentCollection=arguments );
+		var renderFormArgs        = {
+			  formName       = formName
+			, context        = "admin"
+			, formId         = "save-export-config-form"
+			, savedData      = { filename=defaultExportFilename, exporter=defaultExporter }
+			, additionalArgs = { fields={ exporter = { allowedExporters=allowedExporters } } }
+		};
+
+		if ( templateMethodExists( arguments.templateId, "preRenderSaveExportForm" ) ) {
+			runTemplateMethod( arguments.templateId, "preRenderSaveExportForm", { objectName=arguments.objectName, renderFormArgs=renderFormArgs } );
+		}
+
+		return _getFormsService().renderForm( argumentCollection=renderFormArgs );
 	}
 
 	public struct function getExportMeta(
@@ -152,6 +175,49 @@ component {
 		);
 	}
 
+	public string function getSaveExportFormName( templateId, objectName, baseForm="dataExport.saveExportConfiguration.base" ) {
+		var formName  = arguments.baseForm;
+		var mergeWith = "";
+
+		if ( templateMethodExists( arguments.templateId, "getSaveExportFormName" ) ) {
+			formName = runTemplateMethod( arguments.templateId, "getSaveExportFormName", { objectName=arguments.objectName, baseFormName=formName } );
+		} else if ( _getFormsService().formExists( "dataExportTemplate.#arguments.templateId#.save" ) ) {
+			mergeWith = "dataExportTemplate.#arguments.templateId#.save";
+		}
+
+		if ( Len( Trim( mergeWith ) ) ) {
+			formName = _getFormsService().getMergedFormName( formName, mergeWith );
+		}
+
+		return formName;
+	}
+
+	public string function getAllowedExporters( templateId, objectName ) {
+		if ( templateMethodExists( arguments.templateId, "getAllowedExporters" ) ) {
+			var exporters = runTemplateMethod( arguments.templateId, "getAllowedExporters", { objectName=arguments.objectName } );
+			if ( IsArray( exporters ) ) {
+				return ArrayToList( exporters );
+			}
+
+			return exporters;
+		}
+
+		return "";
+
+	}
+
+	public string function getDefaultExporter( templateId, objectName, allowedExporters ) {
+		if ( ListLen( Trim( arguments.allowedExporters ) )==1 ) {
+			return arguments.allowedExporters;
+		}
+
+		if ( templateMethodExists( arguments.templateId, "getDefaultExporter" ) ) {
+			return runTemplateMethod( arguments.templateId, "getDefaultExporter", { objectName=arguments.objectName } );
+		}
+
+		return $getColdbox().getSetting( name="dataExport.defaultExporter" , defaultValue="" );
+	}
+
 // PRIVATE HELPERS
 	private array function _readTemplates() {
 		var handlers = $getColdbox().listHandlers( thatStartWith="dataExportTemplates." );
@@ -175,8 +241,8 @@ component {
 		if ( templateMethodExists( arguments.templateId, "getConfigFormName" ) ) {
 			formName = runTemplateMethod( arguments.templateId, "getConfigFormName", { objectName=arguments.objectName, baseFormName=formName } );
 
-		} else if ( _getFormsService().formExists( "dataExportTemplate.#arguments.templateId#" ) ) {
-			mergeWith = "dataExportTemplate.#arguments.templateId#";
+		} else if ( _getFormsService().formExists( "dataExportTemplate.#arguments.templateId#.config" ) ) {
+			mergeWith = "dataExportTemplate.#arguments.templateId#.config";
 		}
 
 		if ( Len( Trim( mergeWith ) ) ) {
@@ -184,32 +250,6 @@ component {
 		}
 
 		return formName;
-	}
-
-	private string function _getAllowedExporters( templateId, objectName ) {
-		if ( templateMethodExists( arguments.templateId, "getAllowedExporters" ) ) {
-			var exporters = runTemplateMethod( arguments.templateId, "getAllowedExporters", { objectName=arguments.objectName } );
-			if ( IsArray( exporters ) ) {
-				return ArrayToList( exporters );
-			}
-
-			return exporters;
-		}
-
-		return "";
-
-	}
-
-	private string function _getDefaultExporter( templateId, objectName, allowedExporters ) {
-		if ( ListLen( Trim( arguments.allowedExporters ) )==1 ) {
-			return arguments.allowedExporters;
-		}
-
-		if ( templateMethodExists( arguments.templateId, "getDefaultExporter" ) ) {
-			return runTemplateMethod( arguments.templateId, "getDefaultExporter", { objectName=arguments.objectName } );
-		}
-
-		return $getColdbox().getSetting( name="dataExport.defaultExporter" , defaultValue="" );
 	}
 
 	private string function _getDefaultFileName( templateId, objectName ) {

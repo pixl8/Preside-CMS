@@ -1409,6 +1409,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var formData = {
 			  exporter           = rc.exporter          ?: ""
+			, exportTemplate     = rc.exportTemplate          ?: ""
 			, exportFields       = rc.exportFields      ?: ""
 			, fieldnames         = rc.fieldnames        ?: ""
 			, exportFilterString = rc.exportFilterString ?: ""
@@ -1419,6 +1420,14 @@ component extends="preside.system.base.AdminHandler" {
 			, savedFilters       = rc.savedFilters      ?: ""
 			, searchQuery        = rc.searchQuery       ?: ""
 		};
+
+		if ( !Len( Trim( formData.exportTemplate ) ) || !dataExportTemplateService.templateExists( formData.exportTemplate ) ) {
+			formData.exportTemplate = "default";
+		}
+		StructAppend( formData, dataExportTemplateService.getSubmittedConfig(
+			  templateId = formData.exportTemplate
+			, objectName = formData.object
+		) );
 
 
 		if ( isEmpty( formData.exporter ) or isEmpty( formData.object ) ) {
