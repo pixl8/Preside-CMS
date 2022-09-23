@@ -27,6 +27,8 @@ component extends="preside.system.base.adminHandler" {
 		prc.pageIcon  = "save";
 		prc.pageTitle = translateResource( uri="cms:savedexport.saveexport.title" );
 
+		rc.fields = rc.exportFields ?: ""; // backward compat fix
+
 		if ( !isEmpty( rc.object ?: "" ) ) {
 			var i18nBase = presideObjectService.getResourceBundleUriRoot( rc.object );
 			prc.pageSubtitle = translateResource( uri="cms:savedexport.saveexport.subtitle",  data=[ translateResource( uri=i18nBase & "title.singular", defaultValue="" ) ] );
@@ -61,7 +63,7 @@ component extends="preside.system.base.adminHandler" {
 			, file_name       = formData.filename           ?: ""
 			, object_name     = formData.object             ?: ""
 			, filter_string   = formData.exportFilterString ?: ""
-			, fields          = formData.exportFields       ?: ""
+			, fields          = formData.fields             ?: ""
 			, exporter        = formData.exporter           ?: ""
 			, order_by        = formData.orderBy            ?: ""
 			, search_query    = formData.searchQuery        ?: ""

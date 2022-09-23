@@ -8,7 +8,7 @@ a data export with the default template
 <form>
 	<tab id="filters">
 		<fieldset id="fields" sortorder="10">
-			<field name="exportFields" control="dataExportPanelPicker" required="true" sortorder="10" />
+			<field binding="saved_export.fields" control="dataExportPanelPicker" required="true" sortorder="10" />
 		</fieldset>
 	</tab>
 </form>
