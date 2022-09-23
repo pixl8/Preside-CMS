@@ -1442,6 +1442,8 @@ component extends="preside.system.base.AdminHandler" {
 				, id           = recordId
 				, selectFields = [
 					  "file_name"
+					, "template"
+					, "template_config"
 					, "object_name"
 					, "fields"
 					, "exporter"
@@ -1455,6 +1457,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( savedExportDetail.recordcount ) {
 				rc.exporter           = savedExportDetail.exporter;
+				rc.exportTemplate     = savedExportDetail.template;
 				rc.object             = savedExportDetail.object_name;
 				rc.exportFields       = savedExportDetail.fields;
 				rc.fileName           = savedExportDetail.file_name;
@@ -1463,6 +1466,10 @@ component extends="preside.system.base.AdminHandler" {
 				rc.savedFilters       = savedExportDetail.saved_filter;
 				rc.orderBy            = savedExportDetail.order_by;
 				rc.searchQuery        = savedExportDetail.search_query;
+
+				if ( IsJson( savedExportDetail.template_config ) ) {
+					StructAppend( rc, DeSerializeJson( savedExportDetail.template_config ) );
+				}
 
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
