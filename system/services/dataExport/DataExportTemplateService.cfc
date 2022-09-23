@@ -23,6 +23,24 @@ component {
 		return ArrayFindNoCase( _getTemplates(), arguments.templateId );
 	}
 
+	/**
+	 * Fired after app load to auto make an enum
+	 * out of configured templates for i18n, etc.
+	 *
+	 */
+	public void function setupTemplatesEnum() {
+		var settings = $getColdbox().getSettingStructure();
+
+		settings.enum.dataExportTemplate = settings.enum.dataExportTemplate ?: [];
+
+		ArrayAppend( settings.enum.dataExportTemplate, "default" );
+		for( var template in _getTemplates() ) {
+			if ( !ArrayFindNoCase( settings.enum.dataExportTemplate, template ) ) {
+				ArrayAppend( settings.enum.dataExportTemplate, template );
+			}
+		}
+	}
+
 	public string function renderConfigForm(
 		  required string templateId
 		, required string objectName

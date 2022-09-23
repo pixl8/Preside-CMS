@@ -2,11 +2,11 @@
  * @datamanagerEnabled                 true
  * @dataManagerExportEnabled           false
  * @datamanagerDisallowedOperations    add,clone,batchedit,viewversions
- * @datamanagerGridFields              label,object_name,schedule,created_by
+ * @datamanagerGridFields              label,template,object_name,schedule,created_by
  * @feature                            dataExport
  */
 component extends="preside.system.base.SystemPresideObject" {
-	property name="template"    required=false type="string" dbtype="varchar" maxlength=100 indexes="template" default="default";
+	property name="template"    required=false type="string" dbtype="varchar" maxlength=100 indexes="template" default="default" enum="dataExportTemplate" generator="method:getDefaultTemplate" generate="insert";
 	property name="file_name"   required="true";
 	property name="description"                                              maxlength=2000                                    autofilter=false;
 	property name="object_name" required="true"               control="none" adminRenderer="objectName" renderer="objectName";
@@ -30,4 +30,10 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="running_machine"      type="string"  dbtype="varchar" maxlength=255               control="none" autofilter=false;
 	property name="was_last_run_success" type="boolean" dbtype="boolean"               default=false control="none";
 	property name="last_run_time_taken"  type="numeric" dbtype="int"                                 control="none";
+
+	public string function getDefaultTemplate( required struct data ) {
+		if ( !Len( Trim( arguments.data.template ?: "" ) ) ) {
+			return "default";
+		}
+	}
 }
