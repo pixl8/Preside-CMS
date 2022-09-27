@@ -168,7 +168,7 @@ component {
 			runTemplateMethod( arguments.templateId, "prepareSelectDataArgs", {
 				  objectName     = arguments.objectName
 				, templateConfig = arguments.templateConfig
-				, records        = arguments.selectDataArgs
+				, selectDataArgs = arguments.selectDataArgs
 			} );
 		}
 	}
