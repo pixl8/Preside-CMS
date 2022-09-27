@@ -1,6 +1,7 @@
 component extends="preside.system.base.adminHandler" {
-	property name="presideObjectService" inject="PresideObjectService";
-	property name="loginService"         inject="LoginService";
+	property name="presideObjectService"      inject="presideObjectService";
+	property name="loginService"              inject="loginService";
+	property name="dataExportTemplateService" inject="dataExportTemplateService";
 
 	public void function prehandler( event, rc, prc, args={} ) {
 		super.preHandler( argumentCollection=arguments );
@@ -26,6 +27,8 @@ component extends="preside.system.base.adminHandler" {
 		prc.pageIcon  = "save";
 		prc.pageTitle = translateResource( uri="cms:savedexport.saveexport.title" );
 
+		rc.fields = rc.exportFields ?: ""; // backward compat fix
+
 		if ( !isEmpty( rc.object ?: "" ) ) {
 			var i18nBase = presideObjectService.getResourceBundleUriRoot( rc.object );
 			prc.pageSubtitle = translateResource( uri="cms:savedexport.saveexport.subtitle",  data=[ translateResource( uri=i18nBase & "title.singular", defaultValue="" ) ] );
@@ -35,7 +38,12 @@ component extends="preside.system.base.adminHandler" {
 			}
 
 			rc.filterObject = rc.object;
+			prc.saveExportForm = dataExportTemplateService.renderSaveExportForm(
+				  templateId = rc.exportTemplate ?: ""
+				, objectName = rc.object
+			);
 		}
+
 	}
 
 	public void function saveExportAction( event, rc, prc, args={} ) {
@@ -49,24 +57,27 @@ component extends="preside.system.base.adminHandler" {
 
 		var newSavedExportId = "";
 		var data             =  {
-			  label         = formData.label              ?: ""
-			, description   = formData.description        ?: ""
-			, file_name     = formData.filename           ?: ""
-			, object_name   = formData.object             ?: ""
-			, filter_string = formData.exportFilterString ?: ""
-			, fields        = formData.exportFields       ?: ""
-			, exporter      = formData.exporter           ?: ""
-			, order_by      = formData.orderBy            ?: ""
-			, search_query  = formData.searchQuery        ?: ""
-			, created_by    = loginService.getLoggedInUserId()
-			, recipients    = formData.recipients         ?: ""
-			, schedule      = formData.schedule           ?: "disabled"
+			  label           = formData.label              ?: ""
+			, template        = formData.exportTemplate     ?: ""
+			, description     = formData.description        ?: ""
+			, file_name       = formData.filename           ?: ""
+			, object_name     = formData.object             ?: ""
+			, filter_string   = formData.exportFilterString ?: ""
+			, fields          = formData.fields             ?: ""
+			, exporter        = formData.exporter           ?: ""
+			, order_by        = formData.orderBy            ?: ""
+			, search_query    = formData.searchQuery        ?: ""
+			, created_by      = loginService.getLoggedInUserId()
+			, recipients      = formData.recipients         ?: ""
+			, schedule        = formData.schedule           ?: "disabled"
+			, template_config = SerializeJson( dataExportTemplateService.getSubmittedConfig( templateId=( formData.exportTemplate ?: "" ), objectName=( formData.object ?: "" ) ) )
 		};
 
 		if ( isFeatureEnabled( "rulesEngine" ) ) {
 			data.filter       = formData.filterExpressions ?: "";
 			data.saved_filter = formData.savedFilters      ?: "";
 		}
+
 
 		try {
 			newSavedExportId = presideObjectService.insertData(

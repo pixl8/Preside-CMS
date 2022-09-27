@@ -25,6 +25,8 @@ component {
 					, exportFileName     = savedExportDetail.file_name
 					, mimetype           = exporterDetail.mimeType
 					, extraFilters       = []
+					, exportTemplate     = savedExportDetail.template
+					, templateConfig     = IsJson( savedExportDetail.template_config ) ? DeSerializeJson( savedExportDetail.template_config ) : {}
 				};
 
 				try {

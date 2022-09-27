@@ -7,6 +7,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="batchOperationService"            inject="dataManagerBatchOperationService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
+	property name="dataExportTemplateService"        inject="dataExportTemplateService";
 	property name="scheduledExportService"           inject="scheduledExportService";
 	property name="formsService"                     inject="formsService";
 	property name="siteService"                      inject="siteService";
@@ -1368,14 +1369,12 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !isFeatureEnabled( "dataexport" ) ) {
 			event.notFound();
 		}
-		var args   = {};
+		var args = {};
 
-		args.objectName            = prc.objectName ?: "";
-		args.objectTitle           = prc.objectTitle ?: "";
-		args.defaultExporter       = getSetting( name="dataExport.defaultExporter" , defaultValue="" );
-		args.defaultExportFilename = translateresource(
-			  uri  = "cms:dataexport.config.form.field.title.default"
-			, data = [ args.objectTitle, DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn' ) ]
+		args.objectName = prc.objectName ?: "";
+		args.configForm = dataExportTemplateService.renderConfigForm(
+			  templateId = ( rc.exportTemplate ?: "" )
+			, objectName = args.objectName
 		);
 
 		event.setView( view="/admin/datamanager/dataExportConfigModal", layout="adminModalDialog", args=args );
@@ -1408,6 +1407,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var formData = {
 			  exporter           = rc.exporter          ?: ""
+			, exportTemplate     = rc.exportTemplate          ?: ""
 			, exportFields       = rc.exportFields      ?: ""
 			, fieldnames         = rc.fieldnames        ?: ""
 			, exportFilterString = rc.exportFilterString ?: ""
@@ -1418,6 +1418,11 @@ component extends="preside.system.base.AdminHandler" {
 			, savedFilters       = rc.savedFilters      ?: ""
 			, searchQuery        = rc.searchQuery       ?: ""
 		};
+
+		StructAppend( formData, dataExportTemplateService.getSubmittedConfig(
+			  templateId = formData.exportTemplate
+			, objectName = formData.object
+		) );
 
 
 		if ( isEmpty( formData.exporter ) or isEmpty( formData.object ) ) {
@@ -1437,6 +1442,8 @@ component extends="preside.system.base.AdminHandler" {
 				, id           = recordId
 				, selectFields = [
 					  "file_name"
+					, "template"
+					, "template_config"
 					, "object_name"
 					, "fields"
 					, "exporter"
@@ -1450,6 +1457,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( savedExportDetail.recordcount ) {
 				rc.exporter           = savedExportDetail.exporter;
+				rc.exportTemplate     = savedExportDetail.template;
 				rc.object             = savedExportDetail.object_name;
 				rc.exportFields       = savedExportDetail.fields;
 				rc.fileName           = savedExportDetail.file_name;
@@ -1458,6 +1466,10 @@ component extends="preside.system.base.AdminHandler" {
 				rc.savedFilters       = savedExportDetail.saved_filter;
 				rc.orderBy            = savedExportDetail.order_by;
 				rc.searchQuery        = savedExportDetail.search_query;
+
+				if ( IsJson( savedExportDetail.template_config ) ) {
+					StructAppend( rc, DeSerializeJson( savedExportDetail.template_config ) );
+				}
 
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
@@ -3207,6 +3219,7 @@ component extends="preside.system.base.AdminHandler" {
 		  required any    event
 		, required struct rc
 		, required struct prc
+		,          string exportTemplate     = ( rc.exportTemplate     ?: 'default' )
 		,          string exporter           = ( rc.exporter           ?: 'CSV' )
 		,          string objectName         = ( rc.object             ?: '' )
 		,          string exportFields       = ( rc.exportFields       ?: '' )
@@ -3224,7 +3237,8 @@ component extends="preside.system.base.AdminHandler" {
 		var selectFields   = arguments.exportFields.listToArray();
 		var fullFileName   = arguments.fileName & ".#exporterDetail.fileExtension#";
 		var args           = {
-			  exporter           = exporter
+			  exportTemplate     = exportTemplate
+			, exporter           = exporter
 			, objectName         = objectName
 			, selectFields       = selectFields
 			, extraFilters       = arguments.extraFilters
@@ -3234,6 +3248,7 @@ component extends="preside.system.base.AdminHandler" {
 			, exportFileName     = fullFileName
 			, mimetype           = exporterDetail.mimeType
 			, additionalArgs     = arguments.additionalArgs
+			, templateConfig     = dataExportTemplateService.getSubmittedConfig( exportTemplate, objectName )
 		};
 
 		try {

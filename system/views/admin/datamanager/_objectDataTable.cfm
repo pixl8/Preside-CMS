@@ -22,9 +22,10 @@
 	param name="args.datasourceUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
 	param name="args.exportFilterString"          type="string"  default="";
 	param name="args.dataExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
+	param name="args.exportTemplate"              type="string"  default="";
 	param name="args.customExportUrl"             type="string"  default="";
-	param name="args.dataExportConfigUrl"         type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal" );
-	param name="args.saveExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction"      );
+	param name="args.dataExportConfigUrl"         type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal", queryString="exportTemplate=#args.exportTemplate#" );
+	param name="args.saveExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction" );
 	param name="args.objectTitlePlural"           type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 	param name="args.excludeFilterExpressionTags" type="string"  default="";
 	param name="args.noRecordMessage"             type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
@@ -88,13 +89,15 @@
 		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
-				<input name="exportFilterString" value="#htmlEditFormat( args.exportFilterString )#" type="hidden">
+				<input name="exportFilterString" value="#HtmlEditFormat( args.exportFilterString )#" type="hidden">
+				<input name="exportTemplate" value="#HtmlEditFormat( args.exportTemplate )#" type="hidden">
 			</form>
 		</cfif>
 		<cfif allowSaveExport>
 			<form action="#args.saveExportUrl#" method="post" class="hide object-listing-table-save-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
-				<input name="exportFilterString" value="#htmlEditFormat( args.exportFilterString )#" type="hidden">
+				<input name="exportFilterString" value="#HtmlEditFormat( args.exportFilterString )#" type="hidden">
+				<input name="exportTemplate" value="#HtmlEditFormat( args.exportTemplate )#" type="hidden">
 			</form>
 		</cfif>
 		<cfif args.useMultiActions>

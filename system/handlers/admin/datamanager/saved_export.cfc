@@ -1,10 +1,11 @@
 component {
-	property name="presideObjectService"   inject="presideObjectService";
-	property name="scheduledExportService" inject="scheduledExportService";
-	property name="customizationService"   inject="dataManagerCustomizationService";
-	property name="datamanagerService"     inject="datamanagerService";
-	property name="messageBox"             inject="messagebox@cbmessagebox";
-	property name="taskManagerService"     inject="TaskManagerService";
+	property name="presideObjectService"      inject="presideObjectService";
+	property name="scheduledExportService"    inject="scheduledExportService";
+	property name="customizationService"      inject="dataManagerCustomizationService";
+	property name="datamanagerService"        inject="datamanagerService";
+	property name="messageBox"                inject="messagebox@cbmessagebox";
+	property name="taskManagerService"        inject="taskManagerService";
+	property name="dataExportTemplateService" inject="dataExportTemplateService";
 
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var objectName       = "saved_export";
@@ -85,6 +86,14 @@ component {
 				args.validationResult.addError( fieldName="schedule", message=scheduleValidationMessage );
 			}
 		}
+
+		var template = prc.record.template ?: "";
+		var objectName = prc.record.object_name ?: "";
+
+		formData.template_config = SerializeJson( dataExportTemplateService.getSubmittedConfig(
+			  templateId = template
+			, objectName = objectName
+		) );
 	}
 
 	private void function postEditRecordAction( event, rc, prc, args={} ) {
@@ -176,8 +185,32 @@ component {
 		);
 	}
 
+	private string function getEditRecordFormName( event, rc, prc, args={} ) {
+		return dataExportTemplateService.getSaveExportFormName(
+			  templateId = prc.record.template    ?: ""
+			, objectName = prc.record.object_name ?: ""
+			, baseForm   = "preside-objects.saved_export.admin.edit"
+		);
+	}
+
 	private void function preRenderEditRecordForm( event, rc, prc, args={} ) {
 		rc.filterObject = args.record.object_name ?: "";
+
+		if ( IsJson( args.record.template_config ?: "" ) ) {
+			var templateConfig = DeserializeJson( args.record.template_config );
+			if ( IsStruct( templateConfig ) ) {
+				StructAppend( args.record, templateConfig, false );
+			}
+		}
+
+		args.additionalArgs                 = args.additionalArgs                 ?: {};
+		args.additionalArgs.fields          = args.additionalArgs.fields          ?: {};
+		args.additionalArgs.fields.exporter = args.additionalArgs.fields.exporter ?: {};
+
+		args.additionalArgs.fields.exporter.allowedExporters = dataExportTemplateService.getAllowedExporters(
+			  templateId = ( args.record.template ?: "" )
+			, objectName = rc.filterObject
+		);
 	}
 
 // HELPERS
