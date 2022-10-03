@@ -272,18 +272,7 @@ component {
 		transaction {
 			var markedAsRunning = $getPresideObject( "saved_export" ).dataExists( filter = { id=arguments.exportId, is_running=true } );
 
-			if ( markedAsRunning && !exportThreadIsRunning( arguments.taskKey ) ) {
-				var logger = _getLogger( taskKey=arguments.taskKey );
-
-				if ( logger.canError() ) {
-					logger.error( "Task was marked as running but task thread is no longer running." );
-				}
-
-				markTaskAsCompleted(
-					  taskKey   = arguments.taskKey
-					, success   = false
-					, timetaken = -1
-				);
+			if ( markedAsRunning && !exportThreadIsRunning( arguments.exportId ) ) {
 				return false;
 			}
 
