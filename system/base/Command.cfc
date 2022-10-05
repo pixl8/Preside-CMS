@@ -22,7 +22,7 @@ component {
 		return Chr( 10 );
 	}
 
-	public string function newTable(
+	public string function writeTable(
 		  required array header
 		,          array rows = []
 	) {
@@ -62,17 +62,20 @@ component {
 				var cell = arguments.rows[ i ][ j ];
 				var text = "";
 				var type = "";
+				var bold = false;
 
 				if ( IsSimpleValue( cell ) ) {
 					text = cell;
 				} else {
 					text = cell.text ?: "";
 					type = cell.type ?: "";
+					bold = cell.bold ?: false;
 				}
 
 				textTable &= writeText(
 					  text = " " & text & " " & RepeatString( " ", colsWidth[ j ] - Len( text ) )
 					, type = type
+					, bold = bold
 				);
 			}
 
