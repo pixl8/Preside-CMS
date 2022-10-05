@@ -22,6 +22,76 @@ component {
 		return Chr( 10 );
 	}
 
+	public string function writeTable(
+		  required array header
+		,          array rows = []
+	) {
+		var colsCount = ArrayLen( arguments.header );
+		var rowsCount = 0;
+		var colsWidth = [];
+		var textTable = "";
+
+		ArrayPrepend( arguments.rows, arguments.header );
+
+		rowsCount = ArrayLen( arguments.rows );
+
+		for ( var i=1; i<=colsCount; i++ ) {
+			for ( var row in arguments.rows ) {
+				var cell = row[ i ];
+				var text = "";
+
+				if ( IsSimpleValue( cell ) ) {
+					text = cell;
+				} else {
+					text = cell.text ?: "";
+				}
+
+				var colLen = Len( Trim( text ) );
+
+				if ( !ArrayIsDefined( colsWidth, i ) || colLen > colsWidth[ i ] ) {
+					colsWidth[ i ] = colLen;
+				}
+			}
+		}
+
+		var headerText = "";
+		for ( var i=1; i<=rowsCount; i++ ) {
+			var type = arguments.rows[ i ][ colsCount + 1 ] ?: "";
+
+			for ( var j=1; j<=colsCount; j++ ) {
+				var cell = arguments.rows[ i ][ j ];
+				var text = "";
+				var type = "";
+				var bold = false;
+
+				if ( IsSimpleValue( cell ) ) {
+					text = cell;
+				} else {
+					text = cell.text ?: "";
+					type = cell.type ?: "";
+					bold = cell.bold ?: false;
+				}
+
+				textTable &= writeText(
+					  text = " " & text & " " & RepeatString( " ", colsWidth[ j ] - Len( text ) )
+					, type = type
+					, bold = bold
+				);
+			}
+
+			textTable &= newLine();
+
+			if ( i == 1 ) {
+				headerText = textTable;
+				textTable &= writeLine( length=Len( headerText ), character="=" );
+			}
+		}
+
+		textTable &= writeLine( length=Len( headerText ), character="-" );
+
+		return textTable;
+	}
+
 	private string function _styleText(
 		  string  text = ""
 		, string  type = ""
