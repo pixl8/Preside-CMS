@@ -91,6 +91,7 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 		var titles  = "";
 
 		var objectName = args.params[ 2 ] ?: "";
+		var context    = isEmptyString( args.params[ 3 ] ?: "" ) ? "" : "." & args.params[ 3 ] ;
 
 		try {
 			var rows  = [];
@@ -98,9 +99,9 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 
 			for ( var propertyName in props ) {
 				var cols       = [];
-				var uri        = presideObjectService.getResourceBundleUriRoot( objectName=objectName ) & "field.#propertyName#.title";
+				var uri        = presideObjectService.getResourceBundleUriRoot( objectName=objectName ) & "field.#propertyName##context#.title";
 				var translated = i18n.translateResource( uri=uri, defaultValue="" );
-				var type       = isEmptyString( translated ) ? "error" : "";
+				var type       = isEmptyString( translated ) ? "error" : "success";
 
 				ArrayAppend( cols, {
 					  text = propertyName
@@ -116,6 +117,23 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 				} );
 
 				ArrayAppend( rows, cols );
+
+				// var defaultUri        = "cms:preside-objects.default.field.#propertyName#.title";
+				// var defaultTranslated = i18n.translateResource( uri=defaultUri, defaultValue="" );
+
+				// if ( !isEmptyString( defaultTranslated ) ) {
+				// 	cols = ArrayNew();
+
+				// 	ArrayAppend( cols, "" );
+				// 	ArrayAppend( cols, {
+				// 		  text = defaultUri
+				// 	} );
+				// 	ArrayAppend( cols, {
+				// 		  text = defaultTranslated
+				// 	} );
+
+				// 	ArrayAppend( rows, cols );
+				// }
 			}
 
 			message &= writeTable(
@@ -144,7 +162,7 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 					var cols       = [];
 					var uri        = "enum.#enumName#:#enumKey#.label";
 					var translated = i18n.translateResource( uri=uri, defaultValue="" );
-					var type       = isEmptyString( translated ) ? "error" : "";
+					var type       = isEmptyString( translated ) ? "error" : "success";
 
 					ArrayAppend( cols, {
 						  text = enumKey
