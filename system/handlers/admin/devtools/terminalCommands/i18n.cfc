@@ -112,28 +112,28 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 					, type = type
 				} );
 				ArrayAppend( cols, {
-					  text = isEmptyString( translated ) ? "(no value)" : translated
+					  text = isEmptyString( translated ) ? "(No value)" : translated
 					, type = type
 				} );
 
 				ArrayAppend( rows, cols );
 
-				// var defaultUri        = "cms:preside-objects.default.field.#propertyName#.title";
-				// var defaultTranslated = i18n.translateResource( uri=defaultUri, defaultValue="" );
+				var defaultUri        = "cms:preside-objects.default.field.#propertyName#.title";
+				var defaultTranslated = i18n.translateResource( uri=defaultUri, defaultValue="" );
 
-				// if ( !isEmptyString( defaultTranslated ) ) {
-				// 	cols = ArrayNew();
+				if ( !isEmptyString( defaultTranslated ) ) {
+					cols = [];
 
-				// 	ArrayAppend( cols, "" );
-				// 	ArrayAppend( cols, {
-				// 		  text = defaultUri
-				// 	} );
-				// 	ArrayAppend( cols, {
-				// 		  text = defaultTranslated
-				// 	} );
+					ArrayAppend( cols, "" );
+					ArrayAppend( cols, {
+						  text = defaultUri
+					} );
+					ArrayAppend( cols, {
+						  text = defaultTranslated
+					} );
 
-				// 	ArrayAppend( rows, cols );
-				// }
+					ArrayAppend( rows, cols );
+				}
 			}
 
 			message &= writeTable(
@@ -173,7 +173,7 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 						, type = type
 					} );
 					ArrayAppend( cols, {
-						  text = isEmptyString( translated ) ? "(no value)" : translated
+						  text = isEmptyString( translated ) ? "(No value)" : translated
 						, type = type
 					} );
 
