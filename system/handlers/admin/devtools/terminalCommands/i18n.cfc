@@ -4,7 +4,6 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 	property name="i18n"                 inject="i18n";
 	property name="presideObjectService" inject="PresideObjectService";
 	property name="enum"                 inject="coldbox:setting:enum";
-	property name="emailTemplates"       inject="coldbox:setting:email.templates";
 
 	private function index( event, rc, prc ) {
 		var params          = jsonRpc2.getRequestParams();
@@ -41,49 +40,6 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 				}
 			  }
 		);
-	}
-
-	private any function emailList( event, rc, prc, args ) {
-		var message = newLine();
-		var titles  = "";
-
-		var objectName = args.params[ 2 ] ?: "";
-
-		try {
-			var rows  = [];
-			var props = presideObjectService.getObjectProperties( objectName=objectName );
-
-			for ( var propertyName in props ) {
-				var cols       = [];
-				var uri        = presideObjectService.getResourceBundleUriRoot( objectName=objectName ) & "field.#propertyName#.title";
-				var translated = i18n.translateResource( uri=uri, defaultValue="" );
-				var type       = isEmptyString( translated ) ? "error" : "";
-
-				ArrayAppend( cols, {
-					  text = propertyName
-					, type = type
-				} );
-				ArrayAppend( cols, {
-					  text = uri
-					, type = type
-				} );
-				ArrayAppend( cols, {
-					  text = isEmptyString( translated ) ? "(no value)" : translated
-					, type = type
-				} );
-
-				ArrayAppend( rows, cols );
-			}
-
-			message &= writeTable(
-				  header = [ "Property", "URI", "Translation" ]
-				, rows   = rows
-			);
-		} catch ( any e ) {
-			message &= writeText( text=( e.message ?: "" ), type="error", newLine=true );
-		}
-
-		return message;
 	}
 
 	private any function objectList( event, rc, prc, args ) {
