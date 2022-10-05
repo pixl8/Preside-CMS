@@ -29,7 +29,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "_getSessionId", sessionId )
 
-				var actionId = service.recordAction(
+				var mockRc = CreateStub();
+  				service.$( "$getRequestContext", mockRc );
+  				mockRc.$( "getCollection" ).$args( private=true ).$results( {} );
+
+   				var actionId = service.recordAction(
 					  userId     = userId
 					, action     = action
 					, type       = type
@@ -52,6 +56,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockActionDao.$( "insertData" );
 
 				service.$( "_getSessionId", sessionId )
+
+				var mockRc = CreateStub();
+  				service.$( "$getRequestContext", mockRc );
+  				mockRc.$( "getCollection" ).$args( private=true ).$results( {} );
 
 				var actionId = service.recordAction(
 					  action     = action
