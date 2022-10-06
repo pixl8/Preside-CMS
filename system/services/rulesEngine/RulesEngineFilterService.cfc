@@ -157,7 +157,21 @@ component displayName="Rules Engine Filter Service" {
 			, expressionArray = arguments.expressionArray
 		) );
 		args.autoGroupBy = true;
-		args.distinct    = true;
+
+
+		args.distinct = args.distinct ?: false;
+		if ( !args.distinct ) {
+			if ( ArrayLen( args.extraJoins ?: [] )) {
+				args.distinct = true;
+			} else {
+				for ( var extraFilter in args.extraFilters ) {
+					if ( ArrayLen( extraFilter.extraJoins ?: [] ) ) {
+						args.distinct = true;
+						break;
+					}
+				}
+			}
+		}
 
 		args.delete( "expressionArray" );
 
