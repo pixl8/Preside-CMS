@@ -1,6 +1,7 @@
 /**
  * @exportFileExtension ndjson
  * @exportMimeType      application/x-ndjson
+ * @feature             dataExporterNDJSON
  *
  */
 component {
