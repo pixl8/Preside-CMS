@@ -129,7 +129,6 @@ component extends="preside.system.base.AdminHandler" {
 		var formName       = "";
 		var itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
 
-
 		if ( isTrue( itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
 			formName = "formbuilder.item-types.formfieldv2";
 		} else {
@@ -138,7 +137,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var validationResult = validateForm( formName, event.getCollectionForForm( formName ) );
 
-		if ( validationResult.validated() && formBuilderService.isV2Form( formId ) ) {
+		if ( validationResult.validated() && formBuilderService.isV2Form( formId ) && itemTypeConfig.isFormField ) {
 			var formItems = formBuilderService.getFormItems( formId );
 			for ( var item in formItems ) {
 				if ( itemId != item.id && questionId == item.questionId ?: "" ) {
