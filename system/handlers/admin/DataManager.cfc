@@ -2829,14 +2829,14 @@ component extends="preside.system.base.AdminHandler" {
 		var isDraft          = false;
 		var forceVersion     = false;
 		var existingRecord   = presideObjectService.selectData( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled );
+		var errorMessage     = "";
 
 		if ( !existingRecord.recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
-
 			setNextEvent( url=missingUrl );
 		}
 
-		formData.id = id;
+		formData.id      = id;
 		validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ), stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 
 		var args = arguments;
@@ -2851,7 +2851,6 @@ component extends="preside.system.base.AdminHandler" {
 				, args       = args
 			);
 		}
-
 
 		if ( not validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -2876,52 +2875,85 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		if ( presideObjectService.updateData(
-			  id                      = id
-			, objectName              = object
-			, data                    = formData
-			, updateManyToManyRecords = true
-			, isDraft                 = isDraft
-			, forceVersionCreation    = forceVersion
-		) ) {
-			if ( arguments.audit ) {
-				var auditDetail = _getAuditDataFromFormData( formData );
-				auditDetail.objectName = arguments.object;
-				if ( !Len( Trim( arguments.auditAction ) ) ) {
-					if ( arguments.draftsEnabled ) {
-						if ( isDraft ) {
-							arguments.auditAction = "datamanager_save_draft_record";
+		try {
+			if ( presideObjectService.updateData(
+				  id                      = id
+				, objectName              = object
+				, data                    = formData
+				, updateManyToManyRecords = true
+				, isDraft                 = isDraft
+				, forceVersionCreation    = forceVersion
+			) ) {
+				if ( arguments.audit ) {
+					var auditDetail = _getAuditDataFromFormData( formData );
+					auditDetail.objectName = arguments.object;
+					if ( !Len( Trim( arguments.auditAction ) ) ) {
+						if ( arguments.draftsEnabled ) {
+							if ( isDraft ) {
+								arguments.auditAction = "datamanager_save_draft_record";
+							} else {
+								arguments.auditAction = "datamanager_publish_record";
+							}
 						} else {
-							arguments.auditAction = "datamanager_publish_record";
+							arguments.auditAction = "datamanager_edit_record";
 						}
-					} else {
-						arguments.auditAction = "datamanager_edit_record";
 					}
+					event.audit(
+						  action   = arguments.auditAction
+						, type     = arguments.auditType
+						, recordId = id
+						, detail   = auditDetail
+					);
 				}
-				event.audit(
-					  action   = arguments.auditAction
-					, type     = arguments.auditType
-					, recordId = id
-					, detail   = auditDetail
-				);
-			}
 
-			if ( customizationService.objectHasCustomization( object, "postEditRecordAction" ) ) {
-				customizationService.runCustomization(
-					  objectName = object
-					, action     = "postEditRecordAction"
-					, args       = args
-				);
-			}
+				if ( customizationService.objectHasCustomization( object, "postEditRecordAction" ) ) {
+					customizationService.runCustomization(
+						  objectName = object
+						, action     = "postEditRecordAction"
+						, args       = args
+					);
+				}
 
-			if ( redirectOnSuccess ) {
-				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
+				if ( redirectOnSuccess ) {
+					messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
 
-				setNextEvent( url=successUrl );
+					setNextEvent( url=successUrl );
+				}
+			} else {
+				errorMessage = translateResource( uri="cms:datamanager.recordNotUpdated.unknown.error" );
 			}
-		} else {
-			messageBox.error( translateResource( uri="cms:datamanager.recordNotUpdated.unknown.error" ) );
+		} catch ( any e ) {
+			switch ( e.nativeErrorCode ?: 0 ) {
+				case 1452:
+					var fieldName = "";
+					var match = REFind( "FOREIGN KEY \(`(\S+)`\) ", e.message ?: "", 1, true );
+
+					if ( ArrayLen( match.pos ?: [] ) > 1 ) {
+						fieldName = Mid( e.message, match.pos[ 2 ], match.len[ 2 ] );
+
+						if ( StructKeyExists( formData, fieldName ) ) {
+							formData[ fieldName ] = "";
+						}
+
+						validationResult.addError( fieldName=fieldName, message=translateResource( uri="cms:datamanager.recordForeignKeyConstraint.error" ) );
+
+						errorMessage = translateResource( "cms:datamanager.data.validation.error" );
+					}
+					break;
+
+				default:
+					logError( e );
+					errorMessage = translateResource( uri="cms:datamanager.recordNotUpdated.unknown.error" );
+					break;
+			}
+		}
+
+		if ( !isEmptyString( errorMessage ) ) {
+			messageBox.error( errorMessage );
+
 			persist = formData;
+			persist.validationResult = validationResult;
+
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 	}
