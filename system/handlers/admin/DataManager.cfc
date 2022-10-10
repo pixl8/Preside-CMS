@@ -1888,6 +1888,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean isMultilingual  = false
 		,          boolean draftsEnabled   = false
 		,          boolean distinct        = true
+		,          boolean forceDistinct   = false
 		,          boolean includeActions  = true
 		,          array   extraFilters    = []
 		,          array   searchFields
