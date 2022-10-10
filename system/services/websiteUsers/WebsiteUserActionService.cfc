@@ -44,13 +44,21 @@ component displayName="Website user action service" {
 			return "";
 		}
 
+		var event      = $getRequestContext();
+		var prc        = event.getCollection( private=true );
+		var requestUrl = cgi.request_url;
+
+		if ( Len( prc._presideUrlPath ?: "" )) {
+			requestUrl = reReplace( requestUrl, "\/index\.cfm",  prc._presideUrlPath );
+		}
+
 		var data = {
 			  action     = arguments.action
 			, type       = arguments.type
 			, detail     = SerializeJson( arguments.detail )
 			, identifier = arguments.identifier
 			, session_id = _getSessionId()
-			, uri        = cgi.request_url
+			, uri        = requestUrl
 			, user_ip    = cgi.remote_addr
 			, user_agent = cgi.http_user_agent
 			, visitor    = _getWebsiteVisitorService().getVisitorId()
