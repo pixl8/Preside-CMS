@@ -409,6 +409,8 @@ component {
 		,          array   searchFields   = listSearchFields( arguments.objectName )
 		,          boolean treeView       = false
 		,          string  treeViewParent = ""
+		,          boolean distinct       = false
+		,          boolean forceDistinct  = false
 	) {
 
 		var result = { totalRecords = 0, records = "" };
@@ -422,6 +424,21 @@ component {
 		args.delete( "gridFields"   );
 		args.delete( "searchQuery"  );
 		args.delete( "searchFields" );
+
+
+		if ( args.distinct && !args.forceDistinct && $isFeatureEnabled( "useDistinctForDatatables" ) ) {
+			args.distinct = false;
+			for ( var extraFilter in args.extraFilters ) {
+				for ( var extraJoin in extraFilter.extraJoins ?: [] ) {
+					if ( Len( extraJoin.subQuery ?: "" ) ) {
+						args.distinct = true;
+						break;
+					}
+				}
+
+				if ( args.distinct ) { break; }
+			}
+		}
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
 			args.extraFilters.append(
