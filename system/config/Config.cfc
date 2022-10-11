@@ -890,7 +890,7 @@ component {
 			, "devtools.cache"                = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.extension"            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, passwordVisibilityToggle        = { enabled=false, siteTemplates=[ "*" ] }
+			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ] }
 		};
 	}
 
