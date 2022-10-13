@@ -404,17 +404,21 @@ component {
 	}
 
 	private string function _getPaddingColour( required string targetFile, required string paddingColour, numeric paddingColourAlpha=255 ) {
-		var backgroundRgb = "";
+		var backgroundRgb     = "";
+		var currentBackground = trim( _exec( "vips", 'getpoint "#arguments.targetFile#" 0 0' ) );
 
 		if ( arguments.paddingColour == "auto" ) {
-			backgroundRgb = _exec( "vips", 'getpoint "#arguments.targetFile#" 0 0' );
+			backgroundRgb = currentBackground;
 		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.paddingColour ) ) {
-			backgroundRgb = [
+			var backgroundRgbParts = [
 				  inputBaseN( mid( arguments.paddingColour, 1, 2 ), 16 )
 				, inputBaseN( mid( arguments.paddingColour, 3, 2 ), 16 )
 				, inputBaseN( mid( arguments.paddingColour, 5, 2 ), 16 )
-				, arguments.paddingColourAlpha
-			].toList( " " )
+			];
+			if ( ListLen( currentBackground, " " ) == 4 ) {
+				arrayAppend( backgroundRgbParts, arguments.paddingColourAlpha );
+			}
+			backgroundRgb = arrayToList( backgroundRgbParts, " " );
 		}
 
 		if ( len( backgroundRgb ) ) {
