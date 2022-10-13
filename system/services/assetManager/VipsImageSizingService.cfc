@@ -111,10 +111,11 @@ component {
 		  required string  filePath
 		, required numeric width
 		, required numeric height
-		,          string  quality        = "highPerformance"
-		,          string  outputFormat   = ""
-		,          string  paddingColour  = ""
-		,          struct  fileProperties = {}
+		,          string  quality            = "highPerformance"
+		,          string  outputFormat       = ""
+		,          string  paddingColour      = ""
+		,          struct  fileProperties     = {}
+		,          numeric paddingColourAlpha = 255
 	) {
 		var originalFileExt = fileProperties.fileExt ?: "";
 		var isSvg           = originalFileExt == "svg";
@@ -171,7 +172,14 @@ component {
 		}
 
 		if ( len( arguments.paddingColour ) ) {
-			targetFile = _padding( targetFile, arguments.width, arguments.height, vipsQuality, arguments.paddingColour );
+			targetFile = _padding(
+				  targetFile
+				, arguments.width
+				, arguments.height
+				, vipsQuality
+				, arguments.paddingColour
+				, arguments.paddingColourAlpha
+			);
 		}
 
 		FileMove( targetFile, arguments.filePath );
@@ -380,10 +388,11 @@ component {
 		, required numeric height
 		, required string  vipsQuality
 		, required string  paddingColour
+		,          numeric paddingColourAlpha = 255
 	){
 		var newTargetFile = _pathFileNamePrefix( arguments.targetFile, "tn_" );
 		var size          = "#_int( arguments.width )# #_int( arguments.height )#";
-		var background    = _getPaddingColour( arguments.targetFile, arguments.paddingColour );
+		var background    = _getPaddingColour( arguments.targetFile, arguments.paddingColour, arguments.paddingColourAlpha );
 
 		try {
 			_exec( "vips", 'gravity "#arguments.targetFile#" "#newTargetFile#[#arguments.vipsQuality#]" VIPS_COMPASS_DIRECTION_CENTRE #size# #background# --extend VIPS_EXTEND_BACKGROUND' );
@@ -394,7 +403,7 @@ component {
 		return newTargetFile;
 	}
 
-	private string function _getPaddingColour( required string targetFile, required string paddingColour ) {
+	private string function _getPaddingColour( required string targetFile, required string paddingColour, numeric paddingColourAlpha=255 ) {
 		var backgroundRgb = "";
 
 		if ( arguments.paddingColour == "auto" ) {
@@ -404,6 +413,7 @@ component {
 				  inputBaseN( mid( arguments.paddingColour, 1, 2 ), 16 )
 				, inputBaseN( mid( arguments.paddingColour, 3, 2 ), 16 )
 				, inputBaseN( mid( arguments.paddingColour, 5, 2 ), 16 )
+				, arguments.paddingColourAlpha
 			].toList( " " )
 		}
 
