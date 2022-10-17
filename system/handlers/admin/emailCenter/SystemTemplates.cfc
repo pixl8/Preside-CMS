@@ -241,7 +241,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function stats( event, rc, prc ) {
-		var templateId = rc.template ?: "";
+		var templateId = rc.id ?: ( rc.template ?: "" );
 
 		prc.template = emailTemplateService.getTemplate( id=templateId );
 
@@ -293,6 +293,24 @@ component extends="preside.system.base.AdminHandler" {
 				extraFilters = [ { filter={ email_template=templateId } } ]
 			  }
 		);
+	}
+
+	public void function resetAction( event, rc, prc ) {
+		var template = rc.template ?: "";
+
+		if ( !hasCmsPermission( "emailcenter.systemtemplates.publish" ) ) {
+			event.adminAccessDenied();
+		}
+
+		if ( !emailTemplateService.templateExists( template ) ) {
+			event.notFound();
+		}
+
+		systemEmailTemplateService.resetTemplate( template=template );
+
+		messagebox.info( translateResource( "cms:emailcenter.systemTemplates.template.reset.confirmation" ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#template#" ) );
 	}
 
 // VIEWLETS AND HELPERS

@@ -42,7 +42,7 @@
 			};
 
 			this.uberSelect.choice_build = function( item, index ) {
-				var choice, close_link, edit_link,
+				var choice, close_link, edit_link,removeIndex,
 					_this = this;
 
 				choice = $('<li />', {
@@ -62,6 +62,10 @@
 							"class": 'remove-choice-link fa fa-times'
 						});
 						close_link.bind('click.chosen', function(evt) {
+							removeIndex = _this.selected.indexOf(item);
+							if (removeIndex != -1) {
+								_this.selected.splice(removeIndex, 1);
+							}
 							return _this.choice_destroy_link_click(evt);
 						});
 						choice.append( close_link );
@@ -192,7 +196,7 @@
 					}
 				}
 				for( var arg in configuratorArgs ) {
-					dynamicIframeSrc += '&' + arg + '=' + configuratorArgs[ arg ];
+					dynamicIframeSrc += '&' + arg + '=' + encodeURIComponent( configuratorArgs[ arg ] );
 				}
 				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( dynamicIframeSrc, "100%", "100%", callbacks, modalOptions );
 				presideObjectConfigurator.configuratorIframeModal.open();
@@ -266,7 +270,7 @@
 					}
 				}
 				for( var arg in configuratorArgs ) {
-					href += '&' + arg + '=' + configuratorArgs[ arg ];
+					href += '&' + arg + '=' + encodeURIComponent( configuratorArgs[ arg ] );
 				}
 
 				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( href, "100%", "100%", callbacks, modalOptions );

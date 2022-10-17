@@ -7,7 +7,7 @@ component {
 	public string function index( event, rc, prc, args={} ) {
 
 		var targetObject     = args.object        ?: "";
-		var targetIdField    = presideObjectService.getIdField( targetObject );
+		var targetIdField    = args.targetIdField ?:presideObjectService.getIdField( targetObject );
 		var ajax             = args.ajax          ?: true;
 		var savedFilters     = args.objectFilters ?: "";
 		var orderBy          = args.orderBy       ?: datamanagerService.getDefaultSortOrderForObjectPicker( targetObject );
@@ -19,17 +19,19 @@ component {
 		var labelFields      = labelRendererService.getSelectFieldsForLabel( labelRenderer );
 		var useCache         = IsTrue( args.useCache ?: "" );
 
+		args.defaultValue    = _removeInvalidValues( objectName=targetObject, values=args.defaultValue, bypassTenants=bypassTenants );
+
 		if ( IsBoolean( ajax ) && ajax ) {
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#"
+					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&defaultValue=#args.defaultValue#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&q=%QUERY"
+				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&defaultValue=#args.defaultValue#&q=%QUERY"
 			);
 		} else {
 			var filter = {};
@@ -44,7 +46,7 @@ component {
 				}
 			}
 
-			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(
+			var selectArgs = {
 				  objectName    = targetObject
 				, selectFields  = labelFields.append( "#targetObject#.#targetIdField# as id" )
 				, orderBy       = orderBy
@@ -52,6 +54,13 @@ component {
 				, savedFilters  = ListToArray( savedFilters )
 				, bypassTenants = ListToArray( bypassTenants )
 				, useCache      = useCache
+				, defaultValue  = args.defaultValue
+			};
+
+			announceInterception( "preObjectPickerSelectData", selectArgs );
+
+			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(
+				argumentCollection = selectArgs
 			);
 		}
 
@@ -63,5 +72,25 @@ component {
 		}
 
 		return renderView( view="formcontrols/objectPicker/index", args=args );
+	}
+
+	private string function _removeInvalidValues( required string objectName, required string values, string bypassTenants="" ) {
+		if ( !len( arguments.values ?: "" ) ) {
+			return "";
+		}
+
+		var initialValues = listToArray( arguments.values );
+		var validValues   = presideObjectService.selectData(
+			  objectName    = arguments.objectName
+			, filter        = { id=initialValues }
+			, selectFields  = [ "id" ]
+			, bypassTenants = ListToArray( arguments.bypassTenants )
+		).columnData( "id" );
+
+		var cleanedValues = initialValues.filter( function( value ){
+			return validValues.find( value );
+		} );
+
+		return cleanedValues.toList();
 	}
 }

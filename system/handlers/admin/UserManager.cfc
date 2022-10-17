@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="loginService"         inject="loginService";
 	property name="permissionService"    inject="permissionService";
 	property name="messageBox"           inject="messagebox@cbmessagebox";
+	property name="emailService"         inject="EmailService";
 
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -317,6 +318,42 @@ component extends="preside.system.base.AdminHandler" {
 		messageBox.error( translateResource( uri="cms:usermanager.recordNotDeleted.unknown.error" ) );
 		setNextEvent( url=postActionUrl );
 	}
+
+	function resetTwoFactorAuthenticationAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="usermanager.edit" );
+
+		if ( !loginService.isTwoFactorAuthenticationEnabled() ) {
+			setNextEvent( url=event.buildAdminLink( linkto="usermanager.users" ) );
+		}
+
+		var userId = rc.id ?: "";
+
+		if ( !isEmptyString( userId ) ) {
+			loginService.disableTwoFactorAuthenticationForUser( userId=userId );
+
+			event.audit(
+				  action   = "reset_2fa"
+				, type     = "userprofile"
+				, recordId = userId
+			);
+
+			try {
+				emailService.send(
+					  template    = "ResetTwoFactorAuthentication"
+					, recipientId = userId
+				);
+			} catch ( any e ) {
+				logError( e );
+			}
+
+			messageBox.info( translateResource( uri="cms:userManager.reset2fa.success" ) );
+
+			setNextEvent( url=event.buildAdminLink( linkto="usermanager.viewUser", queryString="id=#userId#" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkto="usermanager.users" ) );
+	}
+
 
 // private utility
 	private void function _checkPermissions( required any event, required string key ) output=false {

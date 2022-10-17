@@ -25,6 +25,7 @@ component {
 	 * @emailStyleInliner.inject          emailStyleInliner
 	 * @assetManagerService.inject        assetManagerService
 	 * @emailSettings.inject              coldbox:setting:email
+	 * @templateCache.inject              cachebox:emailTemplateCache
 	 *
 	 */
 	public any function init(
@@ -35,6 +36,7 @@ component {
 		, required any assetManagerService
 		, required any emailStyleInliner
 		, required any emailSettings
+		, required any templateCache
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
@@ -43,6 +45,7 @@ component {
 		_setEmailStyleInliner( arguments.emailStyleInliner );
 		_setAssetManagerService( arguments.assetManagerService );
 		_setEmailSettings( arguments.emailSettings );
+		_setTemplateCache( arguments.templateCache );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -68,47 +71,46 @@ component {
 	public struct function prepareMessage(
 		  required string  template
 		, required struct  args
-		,          string  recipientId    = ""
-		,          array   to             = []
-		,          array   cc             = []
-		,          array   bcc            = []
-		,          struct  parameters     = {}
-		,          array   attachments    = []
-		,          struct  messageHeaders = {}
-		,          boolean isTest         = false
+		,          string  recipientId      = ""
+		,          array   to               = []
+		,          array   cc               = []
+		,          array   bcc              = []
+		,          struct  parameters       = {}
+		,          array   attachments      = []
+		,          struct  messageHeaders   = {}
+		,          boolean isTest           = false
+		,          boolean isPreview        = false
+		,          numeric version          = 0
 	) {
 		$announceInterception( "prePrepareEmailMessage", arguments );
 
-		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.isTest );
+		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=( arguments.isTest || arguments.isPreview ), version=arguments.version );
 		var isSystemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template );
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
 		}
 
-		_getEmailSendingContextService().setContext(
-			  recipientType = messageTemplate.recipient_type ?: ""
-			, recipientId   = arguments.recipientId
-			, templateId    = arguments.template
-			, template      = messageTemplate
-		);
-		try {
-			var params = Duplicate( arguments.parameters );
-			params.append( prepareParameters(
-				  template       = arguments.template
-				, recipientType  = messageTemplate.recipient_type
-				, recipientId    = arguments.recipientId
-				, args           = arguments.args
-				, templateDetail = messageTemplate
-			) );
+		if ( arguments.isPreview ) {
+			enableDomainOverwriteForBuildLink( template=messageTemplate );
+		}
 
+		if ( Len( Trim( arguments.recipientId ) ) ) {
+			_getEmailSendingContextService().setContext(
+				  recipientType = messageTemplate.recipient_type ?: ""
+				, recipientId   = arguments.recipientId
+				, templateId    = arguments.template
+				, template      = messageTemplate
+			);
+		}
+		try {
 			var unsubscribeLink = _getEmailRecipientTypeService().getUnsubscribeLink(
 				  recipientType = messageTemplate.recipient_type
 				, recipientId   = arguments.recipientId
 				, templateId    = arguments.template
 			);
 			var message = {
-				  subject     = replaceParameterTokens( messageTemplate.subject, params, "text" )
+				  subject     = messageTemplate.subject
 				, from        = messageTemplate.from_address
 				, to          = arguments.to
 				, cc          = arguments.cc
@@ -116,57 +118,77 @@ component {
 				, params      = arguments.messageHeaders
 				, attachments = arguments.attachments
 			};
+			var viewOnline = ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online );
 
-			if ( !message.to.len() ) {
-				message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, recipientId=arguments.recipientId ) ];
+			if ( !arguments.isPreview ) {
+				if ( !message.to.len() ) {
+					message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, recipientId=arguments.recipientId ) ];
+				}
+
+				if ( !message.from.len() ) {
+					message.from = $getPresideSetting( "email", "default_from_address" );
+				}
+
+				message.attachments.append( getAttachments( templateId = arguments.template, allowDrafts=arguments.isTest ), true );
+				if ( isSystemTemplate ) {
+					message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
+						  template = arguments.template
+						, args     = arguments.args
+					), true );
+				}
 			}
 
-			if ( !message.from.len() ) {
-				message.from = $getPresideSetting( "email", "default_from_address" );
-			}
-
-			message.attachments.append( getAttachments( arguments.template ), true );
-			if ( isSystemTemplate ) {
-				message.attachments.append( _getSystemEmailTemplateService().prepareAttachments(
-					  template = arguments.template
-					, args     = arguments.args
-				), true );
-			}
-
-			var body = $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" );
-			var plainTextArgs = {
-				  layout        = messageTemplate.layout
-				, emailTemplate = arguments.template
+			message.textBody = _getEmailLayoutService().renderLayout(
+				  layout         = messageTemplate.layout
+				, emailTemplate  = arguments.template
 				, templateDetail = messageTemplate
-				, blueprint     = messageTemplate.email_blueprint
-				, type          = "text"
-				, subject       = message.subject
-				, body          = messageTemplate.text_body
-			};
-			var htmlArgs = {
-				  layout          = messageTemplate.layout
-				, emailTemplate   = arguments.template
-				, templateDetail   = messageTemplate
-				, blueprint       = messageTemplate.email_blueprint
-				, type            = "html"
-				, subject         = message.subject
-				, body            = body
-				, unsubscribeLink = unsubscribeLink
-			};
-			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
+				, blueprint      = messageTemplate.email_blueprint
+				, type           = "text"
+				, subject        = message.subject
+				, body           = messageTemplate.text_body
+				, viewOnlineLink = viewOnline ? "{{viewonline}}" : ""
+			);
 
-			if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
-				htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
-				message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-				message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
+			var preppedHtml = _prepareHtml(
+				  argumentCollection = arguments
+				, message            = message
+				, messageTemplate    = messageTemplate
+				, unsubscribeLink    = unsubscribeLink
+				, viewOnline         = viewOnline
+			);
+			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
+
+			var params = Duplicate( arguments.parameters );
+
+			if ( !arguments.isPreview || Len( arguments.recipientId ) ) {
+				params.append( prepareParameters(
+					  template       = arguments.template
+					, recipientType  = messageTemplate.recipient_type
+					, recipientId    = arguments.recipientId
+					, args           = arguments.args
+					, templateDetail = messageTemplate
+					, styles         = preppedHtml.styles
+					, detectedParams = _detectParams( message.htmlBody & message.textBody & message.subject )
+				) );
+			} else {
+				params.append( getPreviewParameters(
+					  template      = arguments.template
+					, recipientType = messageTemplate.recipient_type
+				) );
 			}
 
-			message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
+			message.subject  = replaceParameterTokens( message.subject , params, "text" );
 			message.textBody = replaceParameterTokens( message.textBody, params, "text" );
+			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html", preppedHtml.styles );
 
-			if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
-				message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
+			if ( Len( Trim( unsubscribeLink ) ) ) {
+				message.htmlBody = replace( message.htmlBody, "{{unsubscribeLink}}", unsubscribeLink );
+			}
+
+			if ( viewOnline ) {
+				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
+				message.htmlBody   = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
+				message.textBody   = replace( message.textBody, "{{viewonline}}", viewOnlineLink );
 			}
 
 			if ( Len( Trim( unsubscribeLink ) ) && !StructKeyExists( message.params, "List-Unsubscribe" ) ) {
@@ -177,10 +199,34 @@ component {
 		} catch( any e ) {
 			rethrow;
 		} finally {
+			if ( arguments.isPreview ) {
+				disableDomainOverwriteForBuildLink();
+			}
 			_getEmailSendingContextService().clearContext();
 		}
 
 		return message;
+	}
+
+	/**
+	 * Method to allow post processing on dynamic email
+	 * content snippets - i.e. inlining css styles into
+	 * generated content.
+	 *
+	 * @autodoc     true
+	 * @html.hint   HTML to process
+	 * @styles.hint Array of styles to apply when using emailStyleInliner feature (previously extracted from emailStyleInliner.readStyles( html ))
+	 *
+	 */
+	public string function renderHtmlSnippet(
+		  required string html
+		,          array  styles = []
+	) {
+		if ( $isFeatureEnabled( "emailStyleInliner" ) && ArrayLen( arguments.styles ) ) {
+			return _getEmailStyleInliner().inlineStyles( arguments.html, arguments.styles );
+		}
+
+		return arguments.html;
 	}
 
 	/**
@@ -199,81 +245,13 @@ component {
 		,          numeric version          = 0
 		,          string  previewRecipient = ""
 	) {
-		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.allowDrafts, version=arguments.version );
-
-		if ( messageTemplate.isEmpty() ) {
-			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
-		}
-
-		if ( Len( Trim( arguments.previewRecipient ) ) ) {
-			_getEmailSendingContextService().setContext(
-				  recipientType = messageTemplate.recipient_type ?: ""
-				, recipientId   = arguments.previewRecipient
-				, templateId    = arguments.template
-				, template      = messageTemplate
-			);
-
-			var params = prepareParameters(
-				  template       = arguments.template
-				, recipientType  = messageTemplate.recipient_type
-				, recipientId    = arguments.previewRecipient
-				, args           = {}
-				, templateDetail = messageTemplate
-			);
-		} else {
-			var params = getPreviewParameters(
-				  template      = arguments.template
-				, recipientType = messageTemplate.recipient_type
-			);
-		}
-
-		enableDomainOverwriteForBuildLink( template=messageTemplate );
-
-		var message       = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
-		var body          = $renderContent( renderer="richeditor", data=messageTemplate.html_body, context="email" );
-		var plainTextArgs = {
-			  layout         = messageTemplate.layout
-			, emailTemplate  = arguments.template
-			, templateDetail = messageTemplate
-			, blueprint      = messageTemplate.email_blueprint
-			, type           = "text"
-			, subject        = message.subject
-			, body           = messageTemplate.text_body
-		};
-		var htmlArgs = {
-			  layout         = messageTemplate.layout
-			, emailTemplate  = arguments.template
-			, templateDetail = messageTemplate
-			, blueprint      = messageTemplate.email_blueprint
-			, type           = "html"
-			, subject        = message.subject
-			, body           = body
-		};
-
-		message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-		message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-		if ( IsBoolean( messageTemplate.view_online ?: "" ) && messageTemplate.view_online ) {
-			htmlArgs.viewOnlineLink = plainTextArgs.viewOnlineLink = getViewOnlineLink( message.htmlBody );
-			message.htmlBody = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
-			message.htmlBody = replaceParameterTokens( message.htmlBody, params, "html" );
-		}
-
-		message.textBody = _getEmailLayoutService().renderLayout( argumentCollection=plainTextArgs );
-		message.textBody = replaceParameterTokens( message.textBody, params, "text" );
-
-		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
-			message.htmlBody = _getEmailStyleInliner().inlineStyles( message.htmlBody );
-		}
-
-		message.htmlBody = _addIFrameBaseLinkTagForPreviewHtml( message.htmlBody );
-
-		if ( Len( Trim( previewRecipient ) ) ) {
-			_getEmailSendingContextService().clearContext();
-		}
-
-		disableDomainOverwriteForBuildLink();
-
-		return message;
+		return prepareMessage(
+			  template    = arguments.template
+			, args        = {}
+			, recipientId = arguments.previewRecipient
+			, isPreview   = true
+			, version     = arguments.version
+		);
 	}
 
 	/**
@@ -388,6 +366,8 @@ component {
 						, detail   = { isSystemEmail = _getSystemEmailTemplateService().templateExists( id ) }
 					);
 
+					_getTemplateCache().clear( "rawhtml" & arguments.id );
+
 					return arguments.id;
 				}
 
@@ -481,8 +461,13 @@ component {
 	 * @autodoc            true
 	 * @custom.hint        Whether or not the templates should be custom (if not, they are system)
 	 * @recipientType.hint The recipient type of the templates
+	 * @allowDrafts.hint   Whether or not to get draft templates
 	 */
-	public query function getTemplates( required boolean custom, string recipientType="" ) {
+	public query function getTemplates(
+		  required boolean custom
+		,          string  recipientType = ""
+		,          boolean allowDrafts   = true
+	) {
 		var filters = [];
 
 		filters.append( { filter={ is_system_email = !arguments.custom } } );
@@ -494,7 +479,10 @@ component {
 			} );
 		}
 
-		return $getPresideObject( "email_template" ).selectData( extraFilters=filters );
+		return $getPresideObject( "email_template" ).selectData(
+			  extraFilters       = filters
+			, allowDraftVersions = arguments.allowDrafts
+		);
 	}
 
 	/**
@@ -548,6 +536,8 @@ component {
 	 * @recipientId    ID of the recipient
 	 * @args           Structure of variables that are being used to send / prepare the email
 	 * @templateDetail Structure the template record
+	 * @styles         Used to do style inlining in any prepared html when feature enabled
+	 * @detectedParams Parameters detected in the content that are required to be swapped out
 	 */
 	public struct function prepareParameters(
 		  required string template
@@ -555,20 +545,37 @@ component {
 		, required string recipientId
 		, required struct args
 		,          struct templateDetail = {}
+		,          array  styles = []
+		,          array  detectedParams
 	) {
+		var anythingToDo = !StructKeyExists( arguments, "detectedParams" ) || ArrayLen( arguments.detectedParams );
+		if ( !anythingToDo ) {
+			return {};
+		}
+
 		var params = _getEmailRecipientTypeService().prepareParameters(
 			  recipientType  = arguments.recipientType
 			, recipientId    = arguments.recipientId
 			, args           = arguments.args
 			, template       = arguments.template
 			, templateDetail = arguments.templateDetail
+			, detectedParams = arguments.detectedParams ?: NullValue()
 		);
 		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
 			params.append( _getSystemEmailTemplateService().prepareParameters(
 				  template       = arguments.template
 				, args           = arguments.args
 				, templateDetail = arguments.templateDetail
+				, detectedParams = arguments.detectedParams ?: NullValue()
 			) );
+		}
+
+		if ( $isFeatureEnabled( "emailStyleInliner" ) && ArrayLen( arguments.styles ) ) {
+			for( var paramName in params ) {
+				if ( IsStruct( params[ paramName ] ) && Len( params[ paramName ].html ?: "" ) ) {
+					params[ paramName ].html = renderHtmlSnippet( params[ paramName ].html, arguments.styles );
+				}
+			}
 		}
 
 		return params;
@@ -728,13 +735,19 @@ component {
 	 * @templateId.hint ID of the template whose attachments you want to get
 	 *
 	 */
-	public array function getAttachments( required string templateId ) {
+	public array function getAttachments(
+		  required string  templateId
+		,          boolean allowDrafts      = false
+		,          boolean fromVersionTable = arguments.allowDrafts
+  	) {
 		var assetManagerService = _getAssetManagerService()
 		var attachments         = [];
 		var assets              = $getPresideObject( "email_template" ).selectData(
-			  id           = arguments.templateId
-			, selectFields = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
-			, orderBy      = "email_template_attachment.sort_order"
+			  id                 = arguments.templateId
+			, selectFields       = [ "attachments.id", "attachments.title", "attachments.asset_type" ]
+			, orderBy            = "email_template_attachment.sort_order"
+			, allowDraftVersions = arguments.allowDrafts
+			, fromversionTable   = arguments.fromVersionTable
 		);
 
 		for ( var asset in assets ) {
@@ -1140,7 +1153,7 @@ component {
 	 * @dateFrom   Optional date from which to fetch link clicking stats
 	 * @dateTo     Optional date to which to fetch link clicking stats
 	 */
-	public array function getLinkClickStats(
+	public struct function getLinkClickStats(
 		  required string templateId
 		,          string dateFrom = ""
 		,          string dateTo   = ""
@@ -1164,22 +1177,31 @@ component {
 			});
 		}
 
-		var clickStats    = [];
+		var clickStats    = StructNew( "ordered" );
 		var rawClickStats = $getPresideObject( "email_template" ).selectData(
 			  id           = arguments.templateId
-			, selectFields = [ "Count( 1 ) as click_count", "send_logs$activities.link", "send_logs$activities.link_title", "send_logs$activities.link_body" ]
+			, selectFields = [ "count( 1 ) as click_count", "send_logs$activities.link", "send_logs$activities.link_title", "send_logs$activities.link_body" ]
 			, extraFilters = extraFilters
 			, autoGroupBy  = true
 			, orderBy      = "click_count desc"
 		);
 
 		for( var link in rawClickStats ) {
-			clickStats.append( {
+			if ( !StructKeyExists( clickStats, link.link_body ) ) {
+				clickStats[ link.link_body ] = {
+					  links      = []
+					, totalCount = 0
+				};
+			}
+
+			ArrayAppend( clickStats[ link.link_body ].links, {
 				  link       = link.link
 				, title      = link.link_title
 				, body       = link.link_body
 				, clickCount = link.click_count
-			} );
+			} )
+
+			clickStats[ link.link_body ].totalCount += link.click_count;
 		}
 
 		return clickStats;
@@ -1362,7 +1384,7 @@ component {
 			} else {
 				try {
 					contentId = dao.insertData( {
-						  content      = arguments.content
+						  content      = ReplaceNoCase( arguments.content, "{{viewonline}}", "", "all" )
 						, content_hash = contentHash
 					} );
 				} catch( any e ) { // i.e. a duplicate record created due to multithreading
@@ -1415,8 +1437,64 @@ component {
 		);
 	}
 
+// PRIVATE HELPERS
 	private string function _addIFrameBaseLinkTagForPreviewHtml( required string html ) {
 		return html.replace( "</head>", '<base target="_parent"></head>' );
+	}
+
+	private struct function _prepareHtml(
+		  message
+		, messageTemplate
+		, unsubscribeLink
+		, template
+		, viewOnline
+	) {
+		var cacheKey = "rawhtml" & arguments.template;
+		var fromCache = _getTemplateCache().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var htmlArgs = {
+			  layout          = arguments.messageTemplate.layout
+			, emailTemplate   = arguments.template
+			, templateDetail  = arguments.messageTemplate
+			, blueprint       = arguments.messageTemplate.email_blueprint
+			, type            = "html"
+			, subject         = arguments.message.subject
+			, body            = arguments.messageTemplate.html_body
+			, unsubscribeLink = Len( Trim( arguments.unsubscribeLink ) ) ? "{{unsubscribeLink}}" : ""
+			, viewOnlineLink  = arguments.viewOnline ? "{{viewonline}}" : ""
+		};
+
+		var html = _getEmailLayoutService().renderLayout( argumentCollection=htmlArgs );
+
+		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
+			var styles = _getEmailStyleInliner().readStyles( html );
+			html = _getEmailStyleInliner().inlineStyles( html, styles );
+		}
+
+		var result = {
+			  html   = html
+			, styles = ( styles ?: [] )
+		};
+
+		_getTemplateCache().set( cacheKey, result );
+
+		return result;
+	}
+
+	private array function _detectParams( required string content ) {
+		var regexPattern = "\$\{([a-zA-Z_\-0-9]+)\}";
+		var rawMatches   = ReMatch( regexPattern, arguments.content );
+		var params = [];
+
+		for( var rawMatch in rawMatches ) {
+			ArrayAppend( params, ReReplace( rawMatch, regexPattern, "\1" ) );
+		}
+
+		return params;
 	}
 
 // GETTERS AND SETTERS
@@ -1467,5 +1545,12 @@ component {
 	}
 	private void function _setEmailSettings( required any emailSettings ) {
 		_emailSettings = arguments.emailSettings;
+	}
+
+	private any function _getTemplateCache() {
+	    return _templateCache;
+	}
+	private void function _setTemplateCache( required any templateCache ) {
+	    _templateCache = arguments.templateCache;
 	}
 }

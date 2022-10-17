@@ -150,6 +150,20 @@ component {
 		return "";
 	}
 
+	private string function buildFlagRecordActionLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.flagRecordAction"
+				, queryString = _queryString( "object=#objectName#&id=#recordId#", args )
+			);
+		}
+
+		return "";
+	}
+
 	private string function buildTranslateRecordLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 
@@ -299,6 +313,15 @@ component {
 
 		return event.buildAdminLink(
 			  linkTo      = "datamanager.getNodesForTreeView"
+			, queryString = _queryString( "object=#objectName#", args )
+		);
+	}
+
+	private string function buildManageFiltersLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkTo      = "datamanager.manageFilters"
 			, queryString = _queryString( "object=#objectName#", args )
 		);
 	}

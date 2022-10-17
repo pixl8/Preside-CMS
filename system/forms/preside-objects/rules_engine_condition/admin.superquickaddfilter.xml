@@ -5,12 +5,24 @@ Rules engine condition: super quick add filter form
 This form is used for creating a new rules engine filter conditions through the filter builder UI
 -->
 <form>
-	<tab id="default">
-		<fieldset id="default" sortorder="10">
-			<field binding="rules_engine_condition.filter_object"  control="hidden"    />
-			<field binding="rules_engine_condition.expressions"    control="hidden"    />
-			<field binding="rules_engine_condition.condition_name" control="textinput" label="preside-objects.rules_engine_condition:field.condition_name.filter.title" />
-			<field binding="rules_engine_condition.is_favourite" />
+	<tab id="default" sortorder="10">
+		<fieldset id="superquickbasic" sortorder="10">
+			<field binding="rules_engine_condition.filter_object"  control="hidden"    sortorder="10" />
+			<field binding="rules_engine_condition.expressions"    control="hidden"    sortorder="20" />
+			<field binding="rules_engine_condition.condition_name" control="textinput" sortorder="30" label="preside-objects.rules_engine_condition:field.condition_name.filter.title" />
+			<field binding="rules_engine_condition.is_favourite"                       sortorder="40" />
+			<field binding="rules_engine_condition.filter_folder"                      sortorder="50" superquickadd="true" filterby="filter_object" filterbyfield="object_name" />
+		</fieldset>
+		<fieldset id="sharing" sortorder="20">
+			<field binding="rules_engine_condition.filter_sharing_scope" control="rulesEngineFilterSharingScope" sortorder="10" defaultValue="global" required="true" />
+		</fieldset>
+		<fieldset id="group-filter" sortorder="30">
+			<field binding="rules_engine_condition.user_groups" sortorder="10" objectFilters="myAdminGroups" />
+			<field binding="rules_engine_condition.allow_group_edit" sortorder="20" />
+		</fieldset>
+		<fieldset id="filterlocking" sortorder="40">
+			<field binding="rules_engine_condition.is_locked" />
+			<field binding="rules_engine_condition.locked_reason" control="textarea" />
 		</fieldset>
 	</tab>
 </form>

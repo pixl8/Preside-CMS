@@ -78,15 +78,19 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function itemConfigDialog( event, rc, prc ) {
-		var clone = rc.clone ?: false;
 		_permissionsCheck( "editform", event );
+
+		var formId = rc.formId ?: "";
+		var clone  = isTrue( rc.clone ?: "" );
 
 		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
 			var item = formBuilderService.getFormItem( rc.itemId );
-			item.configuration.name  = isTrue( clone ) ? "" : ( item.configuration.name  ?: "" );
-			item.configuration.label = isTrue( clone ) ? "" : ( item.configuration.label ?: "" );
+
+			item.configuration.name  = clone ? "" : ( item.configuration.name  ?: "" );
+			item.configuration.label = clone ? "" : ( item.configuration.label ?: "" );
 			if ( item.count() ) {
 				prc.savedData = item.configuration;
+				prc.savedData.question = item.questionId ?: "";
 			}
 		}
 
@@ -105,24 +109,47 @@ component extends="preside.system.base.AdminHandler" {
 		event.includeData( {
 			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateItemConfig" )
 		} );
+
+		if ( IsTrue( prc.itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
+			prc.formName = "formbuilder.item-types.formfieldv2";
+			prc.additionalFormArgs = { fields={ question={
+				placeholder = translateResource( uri="preside-objects.formbuilder_formitem:field.question.placeholder.custom", data=[ prc.itemTypeConfig.title ] )
+			} } };
+		} else {
+			prc.formName = prc.itemTypeConfig.configFormName ?: "";
+		}
 	}
 
 	public void function validateItemConfig( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
 
-		var config = event.getCollectionWithoutSystemVars();
+		var formId         = rc.formId   ?: "";
+		var itemId         = rc.itemId   ?: "";
+		var questionId     = rc.question ?: "";
+		var formName       = "";
+		var itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
 
-		config.delete( "formId"   );
-		config.delete( "itemId"   );
-		config.delete( "itemType" );
 
-		var validationResult = formBuilderService.validateItemConfig(
-			  formId    = rc.formId   ?: ""
-			, itemId    = rc.itemId   ?: ""
-			, itemType  = rc.itemType ?: ""
-			, config    = config
-		);
+		if ( isTrue( itemTypeConfig.isFormField ?: "" ) && formBuilderService.isV2Form( formId ) ) {
+			formName = "formbuilder.item-types.formfieldv2";
+		} else {
+			formName = itemTypeConfig.configFormName ?: "";
+		}
 
+		var validationResult = validateForm( formName, event.getCollectionForForm( formName ) );
+
+		if ( validationResult.validated() && formBuilderService.isV2Form( formId ) ) {
+			var formItems = formBuilderService.getFormItems( formId );
+			for ( var item in formItems ) {
+				if ( itemId != item.id && questionId == item.questionId ?: "" ) {
+					validationResult.addError(
+						  fieldName = "question"
+						, message   = translateResource( uri="preside-objects.formbuilder_formitem:field.question.duplicate.error" )
+					);
+					break;
+				}
+			}
+		}
 		if ( validationResult.validated() ) {
 			event.renderData( data=true, type="json" );
 		} else {
@@ -155,7 +182,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="formbuilder:actions.breadcrumb.title", data=[ prc.form.name ] )
-			, link  = event.buildAdminLink( linkTo="formbuilder.actions", queryStrign="id=" & prc.form.id )
+			, link  = event.buildAdminLink( linkTo="formbuilder.actions", queryString="id=" & prc.form.id )
 		);
 
 
@@ -247,7 +274,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="formbuilder:submissions.breadcrumb.title", data=[ prc.form.name ] )
-			, link  = event.buildAdminLink( linkTo="formbuilder.submissions", queryStrign="id=" & prc.form.id )
+			, link  = event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & prc.form.id )
 		);
 
 	}
@@ -276,7 +303,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="formbuilder:edit.form.breadcrumb.title", data=[ prc.form.name ] )
-			, link  = event.buildAdminLink( linkTo="formbuilder.editform", queryStrign="id=" & prc.form.id )
+			, link  = event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=" & prc.form.id )
 		);
 	}
 
@@ -327,6 +354,72 @@ component extends="preside.system.base.AdminHandler" {
 			, progress    = arguments.progress ?: NullValue()
 		);
 	}
+
+	public void function exportQuestionResponsesConfig( event, rc, prc ) {
+		if ( !isFeatureEnabled( "dataexport" ) ) {
+			event.notFound();
+		}
+		var args   = {};
+
+		args.objectName            = "formbuilder_question_response";
+		args.objectTitle           = "";
+		args.defaultExporter       = getSetting( name="dataExport.defaultExporter" , defaultValue="" );
+
+		event.setView( view="/admin/datamanager/formbuilder_question/dataExportConfigModal", layout="adminModalDialog", args=args );
+	}
+
+	public void function exportQuestionResponses( event, rc, prc ) {
+		var questionId         =  rc.questionId        ?: "";
+		var exportFields       =  rc.exportFields      ?: "id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name";
+		var exporter           =  rc.exporter          ?: "Excel";
+
+		var theQuestion        =      formBuilderService.getQuestion( questionId );
+
+		if ( !theQuestion.recordCount ) {
+			event.adminNotFound();
+		}
+
+		var taskId = createTask(
+			  event             = "admin.formbuilder.exportQuestionResponsesInBackgroundThread"
+			, args              = {
+									  questionId        = questionId
+									, exportFields      = exportFields
+									, exporter          = exporter
+									, filterExpressions = rc.filterExpressions ?: ""
+									, savedFilters      = rc.savedFilters      ?: ""
+								  }
+			, runNow            = true
+			, adminOwner        = event.getAdminUserId()
+			, discardOnComplete = false
+			, title             = "cms:formbuilder.export.task.title"
+			, resultUrl         = event.buildAdminLink( linkto="formbuilder.downloadExport", querystring="taskId={taskId}" )
+			, returnUrl         = event.buildAdminLink( linkto="datamanager.formbuilder.viewRecord", querystring="id=" & questionId )
+		);
+
+		setNextEvent( url=event.buildAdminLink(
+			  linkTo      = "adhoctaskmanager.progress"
+			, queryString = "taskId=" & taskId
+		) );
+	}
+
+	private void function exportQuestionResponsesInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		var questionId   = args.questionId   ?: "";
+		var exportFields = args.exportFields ?: "id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name";
+		var exporter     = args.exporter     ?: "Excel"
+
+		formBuilderService.exportQuestionResponses(
+			  questionId        = questionId
+			, exportFields      = exportFields
+			, exporter          = exporter
+			, filterExpressions = args.filterExpressions
+			, savedFilters      = args.savedFilters
+			, writeToFile       = true
+			, logger            = arguments.logger   ?: NullValue()
+			, progress          = arguments.progress ?: NullValue()
+		);
+	}
+
+
 
 	public void function downloadExport( event, rc, prc ) {
 		var taskId          = rc.taskId ?: "";
@@ -381,12 +474,16 @@ component extends="preside.system.base.AdminHandler" {
 				, successAction    = "formbuilder.manageform"
 				, addAnotherAction = "formbuilder.addform"
 				, viewRecordAction = "formbuilder.manageform"
+				, audit            = true
+				, auditAction      = "formbuilder_add_form"
+				, auditType        = "formbuilder"
 			}
 		);
 	}
 
 	public void function editFormAction( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
+
 		var formId = rc.id ?: "";
 		if ( formBuilderService.isFormLocked( formId ) ) {
 			event.adminAccessDenied();
@@ -400,6 +497,9 @@ component extends="preside.system.base.AdminHandler" {
 				  object           = "formbuilder_form"
 				, errorUrl         = event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=" & formId )
 				, successUrl       = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & formId )
+				, audit            = true
+				, auditAction      = "formbuilder_edit_form"
+				, auditType        = "formbuilder"
 			}
 		);
 	}
@@ -411,11 +511,14 @@ component extends="preside.system.base.AdminHandler" {
 
 		configuration.delete( "formId"   );
 		configuration.delete( "itemType" );
+		configuration.delete( "question" );
+		configuration.delete( "_sid" );
 
 		var newId = formBuilderService.addItem(
 			  formId        = rc.formId   ?: ""
 			, itemType      = rc.itemType ?: ""
 			, configuration = configuration
+			, question      = rc.question ?: ""
 		);
 
 		event.renderData( type="json", data={
@@ -431,10 +534,12 @@ component extends="preside.system.base.AdminHandler" {
 		var itemId        = rc.id ?: "";
 
 		configuration.delete( "id" );
+		configuration.delete( "question" );
 
 		formBuilderService.saveItem(
 			  id            = itemId
 			, configuration = configuration
+			, question      = rc.question ?: ""
 		);
 
 		event.renderData( type="json", data={
@@ -500,26 +605,33 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function deleteSubmissionsAction( event, rc, prc ) {
-		var formId        = rc.formId ?: "";
-		var submissionIds = ListToArray( rc.id ?: "" );
-
 		_permissionsCheck( "deleteSubmissions", event );
+
+		var formId = rc.formId ?: "";
 
 		if ( !Len( Trim( formId ) ) ) {
 			event.adminNotFound();
 		}
 
-		formBuilderService.deleteSubmissions( submissionIds );
+		var formForm = formBuilderService.getForm( id=formId );
 
-		if ( submissionIds.len() == 1 ) {
-			messagebox.info( translateResource( uri="formbuilder:submission.deleted.confirmation" ) );
-		} else {
-			messagebox.info( translateResource( uri="formbuilder:submissions.deleted.confirmation" ) );
-		}
-
-		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & formId ) );
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object        = "formbuilder_formsubmission"
+				, postActionUrl = event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & formId )
+				, audit         = true
+				, auditAction   = "formbuilder_delete_submission"
+				, auditType     = "formbuilder"
+				, auditDetail   = {
+					  formId   = formForm.id   ?: ""
+					, formName = formForm.name ?: ""
+				}
+			}
+		);
 	}
-
 
 	public void function addActionAction( event, rc, prc ) {
 		_permissionsCheck( "editformactions", event );
@@ -597,6 +709,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function listSubmissionsForAjaxDataTable( event, rc, prc ) {
 		var formId                = ( rc.formId ?: "" );
 		var savedFilterExpIdLists = ( structKeyExists( rc, 'sSavedFilterExpressions' ) && Len( Trim( rc.sSavedFilterExpressions ) ) ) ? rc.sSavedFilterExpressions : "";
+		var sFilterExpression     = ( structKeyExists( rc, 'sFilterExpression' ) && Len( Trim( rc.sFilterExpression ) ) ) ? rc.sFilterExpression : "";
 
 		if ( !Len( Trim( formId ) ) ) {
 			event.adminNotFound();
@@ -613,6 +726,7 @@ component extends="preside.system.base.AdminHandler" {
 			, maxRows               = dtHelper.getMaxRows()
 			, orderBy               = dtHelper.getSortOrder()
 			, searchQuery           = dtHelper.getSearchQuery()
+			, sFilterExpression     = sFilterExpression
 			, savedFilterExpIdLists = savedFilterExpIdLists
 		);
 		var records = Duplicate( results.records );
@@ -621,7 +735,15 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( "formbuilder_formsubmission", field, record[ field ], [ "adminDataTable", "admin" ] );
+				records[ field ][ records.currentRow ] = renderField(
+					  object   = "formbuilder_formsubmission"
+					, property = field
+					, data     = record[ field ]
+					, context  = [ "adminDataTable", "admin" ]
+					, editable = false
+					, recordId = record.id
+					, record   = record
+				);
 			}
 
 			if ( useMultiActions ) {
@@ -652,7 +774,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function cloneForm( event, rc, prc, args ) {
-		prc.pageTitle    = translateResource( "formbuilder:cloneForm.page.title" );
+		prc.pageTitle = translateResource( "formbuilder:cloneForm.page.title" );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "formbuilder:cloneForm.page.title" )
@@ -703,23 +825,45 @@ component extends="preside.system.base.AdminHandler" {
 	public void function deleteRecordAction( event, rc, prc ) {
 		_permissionsCheck( "deleteform", event );
 
-		var ids           = rc.id ?: "";
-		var postActionUrl = event.buildAdminLink( linkto="formbuilder" );
-		var messages      = "";
+		var id      = rc.id ?: "";
+		var isBatch = ListLen( id ) > 1;
 
-		if ( listLen(ids) == 1 ) {
-			messages = translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ "Form", renderLabel( "formbuilder_form", ids ) ] ) ;
+		if ( isBatch ) {
+			_deleteForm( argumentCollection=arguments, id=id, isBatch=true );
 		} else {
-			messages = translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ "Forms", listLen(ids) ] );
+			var taskId = createTask(
+				  event             = "admin.FormBuilder.deleteFormInBgThread"
+				, args              = {
+					id = id
+				  }
+				, runNow            = true
+				, adminOwner        = event.getAdminUserId()
+				, discardOnComplete = false
+				, title             = "formbuilder:task.form.delete.title"
+				, returnUrl         = event.buildAdminLink( linkTo="formbuilder" )
+			);
+
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=#taskId#"
+			) );
 		}
-
-		formBuilderService.deleteForms( ids );
-
-		messageBox.info( messages );
-
-		setNextEvent( url=postActionUrl );
 	}
 
+	private void function deleteFormInBgThread( event, rc, prc, args={}, logger, progress ) {
+		var logger      = arguments.logger  ?: NullValue();
+		var canProgress = StructKeyExists( arguments, "progress" );
+
+		logMessage( logger, "info", "Start deleting the form and all its data..." );
+
+		_deleteForm( argumentCollection=arguments, id=args.id ?: "", isBatch=false );
+
+		if ( canProgress ) {
+			arguments.progress.setProgress( 100 );
+		}
+
+		logMessage( logger, "info", "Finished delete." );
+	}
 
 // VIEWLETS
 	private string function formDataTableGridFields( event, rc, prc, args ) {
@@ -727,6 +871,10 @@ component extends="preside.system.base.AdminHandler" {
 		args.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 
 		return renderView( view="/admin/formbuilder/_formGridFields", args=args );
+	}
+
+	private string function questionResponseDataTableGridFields( event, rc, prc, args ) {
+		return renderView( view="/admin/formbuilder/_questionResponseGridFields", args=args );
 	}
 
 	private string function itemTypePicker( event, rc, prc, args ) {
@@ -765,6 +913,17 @@ component extends="preside.system.base.AdminHandler" {
 			  event = formBuilderRenderingService.getItemTypeViewlet( itemType=( args.type.id ?: "" ), context="adminPlaceholder" )
 			, args  = args
 		);
+		args.isV2 = formbuilderService.isV2Form( args.formId ?: "" );
+
+		if ( structIsEmpty( args.type ) ) {
+			args.type = {
+				  id                    = "notfound"
+				, title                 = translateResource( uri="formbuilder.item-types.notfound:description", data=[ args.item_type ?: "" ] )
+				, iconClass             = translateResource( uri="formbuilder.item-types.notfound:iconClass" )
+				, requiresConfiguration = false
+			};
+		}
+
 		return renderView( view="/admin/formbuilder/_workbenchFormItem", args=args );
 	}
 
@@ -787,8 +946,6 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/formbuilder/_workbenchFormAction", args=args );
 	}
 
-
-
 // PRIVATE UTILITY
 	private void function _permissionsCheck( required string key, required any event ) {
 		var permKey   = "formbuilder." & arguments.key;
@@ -797,5 +954,30 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !permitted ) {
 			event.adminAccessDenied();
 		}
+	}
+
+	private void function _deleteForm(
+		  required string  id
+		,          boolean isBatch = false
+	) {
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object            = "formbuilder_form"
+				, postActionUrl     = event.buildAdminLink( linkTo="formbuilder" )
+				, audit             = true
+				, auditAction       = "formbuilder_delete_form"
+				, auditType         = "formbuilder"
+				, batch             = arguments.isBatch
+				, redirectOnSuccess = arguments.isBatch
+				, rc                = {
+					    id          = arguments.id
+					  , forceDelete = true
+				  }
+				, logger = arguments.logger ?: NullValue()
+			}
+		);
 	}
 }

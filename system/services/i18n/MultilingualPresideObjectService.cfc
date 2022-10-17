@@ -248,7 +248,7 @@ component displayName="Multilingual Preside Object Service" {
 	 */
 	public void function addLanguageClauseToTranslationJoins( required array tableJoins, required string language, required struct preparedFilter, boolean fromVersionTable=false ) {
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){
-			if ( ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
+			if ( StructKeyExists( arguments.tableJoins[ i ], "tableAlias" ) && ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
 
 				if ( StructKeyExists( arguments.tableJoins[ i ], "additionalClauses" ) ) {
 					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
@@ -258,7 +258,7 @@ component displayName="Multilingual Preside Object Service" {
 
 				if ( !$getRequestContext().showNonLiveContent() ) {
 					var joinTarget = arguments.joins[ i ].joinToObject ?: "";
-					if ( joinTarget.len() && $getPresideObjectService().objectIsVersioned( joinTarget ) ) {
+					if ( joinTarget.len() && $getPresideObjectService().objectIsVersioned( joinTarget ) && $getPresideObjectService().objectUsesDrafts( joinTarget ) ) {
 						arguments.tableJoins[ i ].additionalClauses &= " and ( #arguments.tableJoins[ i ].tableAlias#._version_is_draft is null or #arguments.tableJoins[ i ].tableAlias#._version_is_draft = '0' )";
 					}
 				}
@@ -283,29 +283,29 @@ component displayName="Multilingual Preside Object Service" {
 	 */
 	public void function addVersioningClausesToTranslationJoins( required struct selectDataArgs ) {
 
-		if ( !selectDataArgs.specificVersion ) {
-			var poService          = $getPresideObjectService();
-			var versionedObject    = selectDataArgs.objectName;
+		if ( selectDataArgs.specificVersion ) {
+			return;
+		}
 
-			if ( !isMultilingual( selectDataArgs.objectName ) ) {
-				if ( poService.isPageType( selectDataArgs.objectName ) && isMultilingual( "page" ) ) {
-					versionedObject = "page";
-				} else {
-					return;
+		var poService = $getPresideObjectService();
+
+		if ( !isMultilingual( selectDataArgs.objectName ) && ( !poService.isPageType( selectDataArgs.objectName ) || !isMultilingual( "page" ) ) ) {
+			return;
+		}
+
+		var allowDraftVersions = IsBoolean( selectDataArgs.allowDraftVersions ?: "" ) && selectDataArgs.allowDraftVersions;
+
+		for( var join in selectDataArgs.joins ) {
+
+			if ( StructKeyExists( join, "tableAlias" ) && join.tableAlias contains "_translations" && join.tableName.reFindNoCase( "^_version" ) ) {
+				var latestCheckField = "_version_is_latest";
+				if ( allowDraftVersions ) {
+					var objectName = poService.getObjectByTable( join.tableName );
+					if ( Len( objectName ) && poService.objectUsesDrafts( objectName ) ) {
+						latestCheckField = "_version_is_latest_draft";
+					}
 				}
-			}
-
-			var versionObjectName  = poService.getVersionObjectName( getTranslationObjectName( versionedObject ) );
-			var tableName          = poService.getObjectAttribute( versionObjectName, "tablename", "" );
-
-
-			for( var i=selectDataArgs.joins.len(); i>0; i-- ) {
-				var join             = selectDataArgs.joins[i];
-				var latestCheckField = IsBoolean( selectDataArgs.allowDraftVersions ?: "" ) && selectDataArgs.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
-
-				if ( join.tableAlias contains "_translations" && join.tableName.reFindNoCase( "^_version" ) ) {
-					join.additionalClauses &= " and #join.tableAlias#.#latestCheckField# = '1'";
-				}
+				join.additionalClauses &= " and #join.tableAlias#.#latestCheckField# = '1'";
 			}
 		}
 	}
@@ -353,18 +353,18 @@ component displayName="Multilingual Preside Object Service" {
 	 */
 	public array function getTranslationStatus( required string objectName, required string recordId ) {
 		var languages         = listLanguages( includeDefault=false );
-		var objectIsVersioned = $getPresideObjectService().objectIsVersioned( arguments.objectName );
-		var selectFields      = objectIsVersioned ? [ "_translation_language", "_version_is_draft", "_version_has_drafts" ] : [ "_translation_language" ];
+		var objectUsesDrafts  = $getPresideObjectService().objectUsesDrafts( arguments.objectName );
+		var selectFields      = objectUsesDrafts ? [ "_translation_language", "_version_is_draft", "_version_has_drafts" ] : [ "_translation_language" ];
 		var dbRecords         = $getPresideObjectService().selectData(
 			  objectName         = _getTranslationObjectPrefix() & objectName
 			, selectFields       = selectFields
 			, filter             = { _translation_source_record = arguments.recordId }
-			, allowDraftVersions = true
+			, allowDraftVersions = objectUsesDrafts
 		);
 		var mappedRecords = {};
 
 		for( var record in dbRecords ){
-			if ( objectIsVersioned ) {
+			if ( objectUsesDrafts ) {
 				mappedrecords[ record._translation_language ] = ( !IsBoolean( record._version_is_draft ) || !record._version_is_draft ) && ( !IsBoolean( record._version_has_drafts ) || !record._version_has_drafts );
 			} else {
 				mappedrecords[ record._translation_language ] = true;

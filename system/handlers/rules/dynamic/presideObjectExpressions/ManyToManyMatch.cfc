@@ -39,44 +39,25 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          boolean _possesses = true
 		,          string  value      = ""
 	){
-		var paramName     = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var defaultPrefix = parentPropertyName.len() ? "#parentPropertyName#$#propertyName#" : propertyName;
-		var prefix        = filterPrefix.len() ? ( filterPrefix & "$#propertyName#" ) : defaultPrefix;
-		var idField       = presideObjectService.getIdField( relatedTo );
-
-		if ( _possesses ) {
-			var filterSql = "#prefix#.#idField# in (:#paramName#)";
-			var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
-
-			return [ { filter=filterSql, filterParams=params } ];
-		}
-
-		var params        = {};
-		var subQueryAlias = paramName;
-		var subQuery      = presideObjectService.selectData(
+		var prefix    = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
+		var hasParent = Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName );
+		var paramName = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
+		var valueFk   = arguments.relationshipIsSource ? arguments.relatedViaTargetFk : arguments.relatedViaSourceFk;
+		var keyFk     = arguments.relationshipIsSource ? arguments.relatedViaSourceFk : arguments.relatedViaTargetFk;
+		var outerPk   = hasParent ? "#arguments.parentObjectName#.#arguments.parentPropertyName#" : "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+		var exists    = arguments._possesses ? "exists" : "not exists";
+		var subquery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedVia
-			, selectFields        = [ "#( relationshipIsSource ? relatedViaSourceFk : relatedViaTargetFk )# as id" ]
-			, forceJoins          = "inner"
+			, selectFields        = [ "1" ]
+			, filter              = obfuscateSqlForPreside( "#keyfk# = #outerPk# and #valuefk# in (:#paramName#)" )
+			, filterParams        = { "#paramName#" = { type="cf_sql_varchar", value=arguments.value, list=true } }
 			, getSqlAndParamsOnly = true
-			, filter              = { "#( relationshipIsSource ? relatedViaTargetFk : relatedViaSourceFk )#" = listToArray( arguments.value ) }
+			, formatSqlParams     = true
 		);
 
-		for( var param in subQuery.params ) {
-			params[ param.name ] = param;
-			params[ param.name ].delete( "name" );
-		}
-
 		return [ {
-			  filter = "#subQueryAlias#.id is null"
-			, filterParams = params
-			, extraJoins = [{
-				  type           = "left"
-				, subQuery       = subQuery.sql
-				, subQueryAlias  = subQueryAlias
-				, subQueryColumn = "id"
-				, joinToTable    = objectName
-				, joinToColumn   = presideObjectService.getIdField( objectName )
-			} ]
+			  filter = obfuscateSqlForPreside( "#exists# (#subquery.sql#)" )
+			, filterParams = subquery.params
 		}];
 	}
 
@@ -88,9 +69,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  parentPropertyName = ""
 	) {
 		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
-		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated  = translateObjectProperty( objectName, propertyName );
 		var possesses            = translateResource(
 			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
 			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )
@@ -112,10 +92,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string parentPropertyName = ""
 	){
 		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
-		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
-
+		var relatedToTranslated  = translateObjectProperty( objectName, propertyName );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );

@@ -6,6 +6,7 @@
  * @autodoc
  */
 component {
+	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
 
 // CONSTRUCTOR
 	/**
@@ -19,6 +20,9 @@ component {
 	 * @spreadsheetLib.inject               spreadsheetLib
 	 * @presideObjectService.inject         presideObjectService
 	 * @rulesEngineFilterService.inject     rulesEngineFilterService
+	 * @rulesEngineWebRequestService.inject rulesEngineWebRequestService
+	 * @csvWriter.inject                    csvWriter
+	 * @sessionStorage.inject               sessionStorage
 	 *
 	 */
 	public any function init(
@@ -32,6 +36,9 @@ component {
 		, required any spreadsheetLib
 		, required any presideObjectService
 		, required any rulesEngineFilterService
+		, required any rulesEngineWebRequestService
+		, required any csvWriter
+		, required any sessionStorage
 	) {
 		_setItemTypesService( arguments.itemTypesService );
 		_setActionsService( arguments.actionsService );
@@ -43,6 +50,9 @@ component {
 		_setSpreadsheetLib( arguments.spreadsheetLib );
 		_setPresideObjectService( arguments.presideObjectService );
 		_setRulesEngineFilterService( arguments.rulesEngineFilterService );
+		_setRulesEngineWebRequestService( arguments.rulesEngineWebRequestService );
+		_setCsvWriter( arguments.csvWriter );
+		_setSessionStorage( arguments.sessionStorage );
 
 		return this;
 	}
@@ -75,16 +85,27 @@ component {
 				  "id"
 				, "item_type"
 				, "configuration"
+				, "form"
+				, "question"
 			  ]
 		);
 
 		for( var item in items ) {
 			if ( !itemTypes.len() || itemTypes.findNoCase( item.item_type ) ) {
-				result.append( {
+				var preparedItem = {
 					  id            = item.id
+					, formId        = item.form
+					, questionId    = item.question
+					, item_type     = item.item_type
 					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 					, configuration = DeSerializeJson( item.configuration )
-				} );
+				};
+
+				if ( Len( item.question ) ) {
+					StructAppend( preparedItem.configuration, _getItemConfigurationForV2Question( item.question ) );
+				}
+
+				ArrayAppend( result, preparedItem );
 			}
 		}
 
@@ -100,29 +121,50 @@ component {
 	 * @id.hint ID of the item you wish to get
 	 */
 	public struct function getFormItem( required string id ) {
-		var result = [];
+		var result = {};
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { id=arguments.id }
 			, selectFields = [
 				  "id"
 				, "item_type"
 				, "configuration"
+				, "question"
+				, "form"
 			  ]
 		);
 
 		for( var item in items ) {
-			return {
+			result = {
 				  id            = item.id
+				, formId        = item.form
+				, questionId    = item.question
+				, item_type     = item.item_type
 				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 				, configuration = DeSerializeJson( item.configuration )
 			};
+
+			if ( Len( item.question ) ) {
+				StructAppend( result.configuration, _getItemConfigurationForV2Question( item.question ) );
+			}
 		}
 
-		return {};
+		return result;
 	}
 
 	/**
-	 * Retuns a form's item that matches the given input name.
+	 * Returns the matching database record for the given question ID
+	 *
+	 * @autodoc
+	 * @id.hint ID of the question you wish to get
+	 *
+	 */
+	public query function getQuestion( required string id ) {
+		return Len( Trim( arguments.id ) ) ? $getPresideObject( "formbuilder_question" ).selectData( id=arguments.id ) : QueryNew('');
+	}
+
+
+	/**
+	 * Returns a form's item that matches the given input name.
 	 *
 	 * @autodoc
 	 * @formId.hint    ID of the form whose item you wish to get
@@ -131,7 +173,9 @@ component {
 	public struct function getItemByInputName( required string formId, required string inputName ) {
 		var items = getFormItems( arguments.formId );
 		for( var item in items ) {
-			if ( item.type.isFormField && ( item.configuration.name ?: "" ) == arguments.inputName ) {
+			var isFormField = item.type.isFormField ?: false;
+
+			if ( isFormField && ( item.configuration.name ?: "" ) == arguments.inputName ) {
 				return item;
 			}
 		}
@@ -151,6 +195,7 @@ component {
 		  required string formId
 		, required string itemType
 		, required struct configuration
+		,          string question = ""
 	) {
 		if ( isFormLocked( formId=arguments.formId ) ) {
 			return "";
@@ -159,12 +204,26 @@ component {
 		var formItemDao   = $getPresideObject( "formbuilder_formitem" );
 		var existingItems = formItemDao.selectData( selectFields=[ "Max( sort_order ) as max_sort_order" ], filter={ form=arguments.formId } );
 
-		return formItemDao.insertData( data={
+		var data = {
 			  form          = arguments.formId
 			, item_type     = arguments.itemType
-			, configuration = SerializeJson( arguments.configuration )
+			, question      = arguments.question
 			, sort_order    = Val( existingItems.max_sort_order ?: "" ) + 1
-		} );
+			, configuration = SerializeJson( arguments.configuration )
+		};
+
+		var itemId = formItemDao.insertData( data=data );
+
+		StructAppend( data, _getFormItemAuditDetail( formItemId=itemId ) );
+
+		$audit(
+			  action   = "formbuilder_add_item"
+			, type     = "formbuilder"
+			, recordId = itemId
+			, detail   = data
+		);
+
+		return itemId;
 	}
 
 	/**
@@ -175,14 +234,32 @@ component {
 	 * @configuration.hint Configuration to save against the item
 	 *
 	 */
-	public any function saveItem( required string id, required struct configuration ) {
-		if ( !arguments.id.len() || isFormLocked( itemId=arguments.id ) ) {
+	public any function saveItem(
+		  required string id
+		, required struct configuration
+		,          string question = ""
+	) {
+		if ( !Len( Trim( arguments.id ) ) || isFormLocked( itemId=arguments.id ) ) {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data={
-			configuration = SerializeJson( arguments.configuration )
-		} );
+		var data = {
+			  configuration = SerializeJson( arguments.configuration )
+			, question      = arguments.question
+		};
+
+		var recordsCount = $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data=data );
+
+		StructAppend( data, _getFormItemAuditDetail( formItemId=arguments.id ) );
+
+		$audit(
+			  action   = "formbuilder_edit_item"
+			, type     = "formbuilder"
+			, recordId = arguments.id
+			, detail   = data
+		);
+
+		return recordsCount;
 	}
 
 	/**
@@ -229,8 +306,23 @@ component {
 	 *
 	 */
 	public boolean function deleteItem( required string id ) {
+		var data = _getFormItemAuditDetail( formItemId=arguments.id );
+
 		if ( Len( Trim( arguments.id ) ) && !isFormLocked( itemId=arguments.id ) ) {
-			return $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+			var recordsCount = $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+
+			if ( recordsCount > 0 ) {
+				$audit(
+					  action   = "formbuilder_delete_item"
+					, type     = "formbuilder"
+					, recordId = arguments.id
+					, detail   = data
+				);
+
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		return false;
@@ -306,10 +398,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { active = true }
+		var data = { active=true };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_activate"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -324,10 +431,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { active = false }
+		var data = { active=false };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_deactivate"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -342,10 +464,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { locked = true }
+		var data = { locked=true };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_lock"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -360,10 +497,25 @@ component {
 			return 0;
 		}
 
-		return $getPresideObject( "formbuilder_form" ).updateData(
-			  id = arguments.id
-			, data = { locked = false }
+		var data = { locked=false };
+
+		var recordsCount = $getPresideObject( "formbuilder_form" ).updateData(
+			  id   = arguments.id
+			, data = data
 		);
+
+		if ( recordsCount > 0 ) {
+			StructAppend( data, _getFormAuditDetail( formId=arguments.id ) );
+
+			$audit(
+				  action   = "formbuilder_unlock"
+				, type     = "formbuilder"
+				, recordId = arguments.id
+				, detail   = data
+			);
+		}
+
+		return recordsCount;
 	}
 
 	/**
@@ -437,6 +589,105 @@ component {
 	}
 
 	/**
+	 * Checks whether access is allowed to the form, based on the form requiring login
+	 * plus an optional access condition. Returns a string
+	 *
+	 * @autodoc
+	 * @formId.hint The ID of the form you wish to check
+	 *
+	 */
+	public struct function checkAccessAllowed( required string formId ) {
+		var formRecord    = getForm( id=arguments.formid );
+		var requiresLogin = IsBoolean( formRecord.require_login ?: "" ) && formRecord.require_login;
+		var hasCondition  = !IsEmpty( formRecord.access_condition ?: "" );
+
+		if ( $isFeatureEnabled( "websiteUsers" ) ) {
+			if ( requiresLogin && !$isWebsiteUserLoggedIn() ) {
+				return {
+					allowed = false
+					, reason  = "login"
+					, content = formRecord.login_required_content ?: ""
+					, message = $translateResource( "formbuilder:ajax.submit.login.required" )
+				};
+			}
+
+			if ( hasCondition && !_getRulesEngineWebRequestService().evaluateCondition( formRecord.access_condition ) ) {
+				return {
+					allowed = false
+					, reason  = "condition"
+					, content = formRecord.access_denied_content ?: ""
+					, message = $translateResource( "formbuilder:ajax.submit.access.denied" )
+				};
+			}
+		}
+
+		return { allowed=true, reason="", content="", message="" };
+	}
+
+	/**
+	 * Returns whether or not a form has fields that identify as being file upload fields,
+	 * to make it easier to handle beahviours and repopulating of forms.
+	 *
+	 * @autodoc
+	 * @formId.hint The ID of the form you wish to check
+	 *
+	 */
+	public boolean function formHasFileUploadFields( required string formId ) {
+		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
+
+		return $getPresideObject( "formbuilder_formitem" ).dataExists(
+			filter = { form=arguments.formId, item_type=fileUploadItemTypes }
+		);
+	}
+
+	/**
+	 * Stores a formbuilder form's submitted values in the user's session temporarily, so
+	 * they can be retrieved when the user has, for instance, logged back in after a timeout.
+	 * File upload fields will be omitted from these stored values.
+	 *
+	 * @autodoc
+	 * @formId.hint     The ID of the form you wish to store values for
+	 * @submission.hint The form value collection that will be stored in the session
+	 *
+	 */
+	public void function setTempStoredSubmission( required string formId, required struct submission ) {
+		var tempStorageKey      = "temp_formbuilder_submission_#formId#";
+		var dataToStore         = Duplicate( arguments.submission );
+		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
+		var fileFields          = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  filter       = { form=arguments.formId, item_type=fileUploadItemTypes }
+			, selectFields = [ "question.field_id" ]
+		).valueArray( "field_id" );
+
+		for( var field in dataToStore ) {
+			if ( ArrayFind( fileFields, field ) ) {
+				StructDelete( dataToStore, field );
+			}
+		}
+
+		_getSessionStorage().setVar( tempStorageKey, dataToStore );
+	}
+
+	/**
+	 * Retrieves a formbuilder form's submitted values from the user's session temporarily
+	 * for repopulation to a form when the user has logged back in after a timeout.
+	 *
+	 * @autodoc
+	 * @formId.hint     The ID of the form you wish to retrieve stored values for
+	 *
+	 */
+	public struct function getTempStoredSubmission( required string formId ) {
+		var tempStorageKey = "temp_formbuilder_submission_#formId#";
+		var submission     =  _getSessionStorage().getVar( tempStorageKey, StructNew() );
+
+
+		_getSessionStorage().deleteVar( tempStorageKey );
+
+
+		return submission;
+	}
+
+	/**
 	 * Renders the given form within a passed layout
 	 * and using any passed custom configuration data.
 	 *
@@ -475,7 +726,7 @@ component {
 			}
 
 			renderedItems.append( renderFormItem(
-				  itemType      = item.type.id
+				  itemType      = item.type.id ?: ""
 				, configuration = config
 			) );
 		}
@@ -511,6 +762,10 @@ component {
 		var renderingService = _getFormBuilderRenderingService();
 		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType, context="input" );
 		var renderedItem     = $renderViewlet( event=itemViewlet, args=arguments.configuration );
+
+		if ( !len( trim( renderedItem ) ) ) {
+			renderedItem = "<div class=""alert alert-notfound"">" & $translateResource( uri="formbuilder.item-types.notfound:title" ) & "</div>";
+		}
 
 		if ( StructKeyExists( arguments.configuration, "layout" ) ) {
 			var layoutArgs    = Duplicate( arguments.configuration );
@@ -559,6 +814,105 @@ component {
 	}
 
 	/**
+	 * Gets responses to v2 forms in a format ready close to that
+	 * of the original v1 raw responses format
+	 *
+	 * @autodoc      true
+	 * @formId       The ID of the form
+	 * @submissionId The ID of the submission that has responses
+	 */
+	public struct function getV2Responses( required string formId, required string submissionId ) {
+		var itemTypes = getFormItems( arguments.formId );
+		var responses = $getPresideObject( "formbuilder_question_response" ).selectData(
+			  filter  = { submission=arguments.submissionId }
+			, orderBy = "question,sort_order"
+		);
+		var responsesByQuestion = {};
+
+		for( var response in responses ) {
+			if ( Len( response.question_subreference ) ) {
+				if ( !IsStruct( responsesByQuestion[ response.question ] ?: "" ) ) {
+					responsesByQuestion[ response.question ] = {};
+				}
+
+				responsesByQuestion[ response.question ][ response.question_subreference ] = response.response;
+			} else {
+				if ( !IsSimpleValue( responsesByQuestion[ response.question ] ?: {} ) ) {
+					responsesByQuestion[ response.question ] = "";
+				}
+				responsesByQuestion[ response.question ] = ListAppend( responsesByQuestion[ response.question ], response.response );
+			}
+		}
+
+		responses = {};
+		for( var item in itemTypes ) {
+			if ( Len( item.questionId ) ) {
+				if ( StructKeyExists( responsesByQuestion, item.questionId ) ) {
+					responses[ item.questionId ] = responsesByQuestion[ item.questionId ];
+				} else {
+					responses[ item.questionId ] = "";
+				}
+
+				if ( !IsSimpleValue( responses[ item.questionId ] ) ) {
+					responses[ item.questionId ] = SerializeJson( responses[ item.questionId ] );
+				}
+			}
+		}
+
+		return responses;
+	}
+
+	/**
+	 * Gets responses to v2 forms in a format ready close to that
+	 * of the original v1 raw responses format
+	 *
+	 * @autodoc      true
+	 * @formId       The ID of the form
+	 * @submissionId The ID of the submission that has responses
+	 */
+	public string function getV2QuestionResponses( required string formId, required string submissionId, required questionId ) {
+
+
+		var responses = $getPresideObject( "formbuilder_question_response" ).selectData(
+			  filter  = { submission=arguments.submissionId, question=arguments.questionId }
+
+		);
+		var responseForQuestion={};
+
+		for( var response in responses ) {
+			if ( Len( response.question_subreference ) ) {
+				responseForQuestion[ response.question_subreference ] = response.response;
+			} else {
+				if ( !IsSimpleValue( responseForQuestion ?: {} ) ) {
+					responseForQuestion = "";
+				}
+				responseForQuestion = ListAppend( responseForQuestion, response.response );
+			}
+		}
+
+		return  SerializeJson( responseForQuestion );
+	}
+
+	public string function renderV2QuestionResponses( required string formId, required string submissionId, required questionId, required itemType ) {
+		var question = $getPresideObject( "formbuilder_question" ).selectData(
+			filter = { id=questionId }
+		);
+		var responseValue = getV2QuestionResponses( formId, submissionId, questionId );
+
+		var viewlet = _getFormBuilderRenderingService().getItemTypeViewlet(
+			  itemType = itemType
+			, context  = "response"
+		);
+		var render = $renderViewlet( event=viewlet, args={
+			  response          = responseValue
+			, itemConfiguration = DeserializeJson( question.item_type_config )
+		} );
+
+		return render;
+	}
+
+
+	/**
 	 * Returns the submission success message saved
 	 * against the form for the given form ID
 	 *
@@ -593,8 +947,9 @@ component {
 		var formItems = getFormItems( id=arguments.formId );
 
 		for( var item in formItems ) {
-			var itemName = item.configuration.name ?: "";
-			if ( item.type.isFormField && Len( Trim( itemName ) ) ) {
+			var itemName    = item.configuration.name ?: "";
+			var isFormField = item.type.isFormField   ?: false;
+			if ( isFormField && Len( Trim( itemName ) ) ) {
 				var itemValue = getItemDataFromRequest(
 					  itemType          = item.type.id
 					, inputName         = itemName
@@ -665,6 +1020,7 @@ component {
 	) {
 		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
 
+		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = getFormItems( arguments.formId );
 		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
@@ -689,17 +1045,34 @@ component {
 		} );
 
 		if ( validationResult.validated() ) {
-			formItems = renderResponsesForSaving( formId=arguments.formId, formData=formData, formItems=formItems );
-			var submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
-				  form           = arguments.formId
-				, submitted_by   = $getWebsiteLoggedInUserId()
-				, submitted_data = SerializeJson( formData )
-				, form_instance  = arguments.instanceId
-				, ip_address     = arguments.ipAddress
-				, user_agent     = arguments.userAgent
-			} );
+			if ( isV2Form( arguments.formid ) ) {
+				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
+					  form           = arguments.formId
+					, submitted_by   = $getWebsiteLoggedInUserId()
+					, form_instance  = arguments.instanceId
+					, ip_address     = arguments.ipAddress
+					, user_agent     = arguments.userAgent
+				} );
+				saveV2Responses( formId=arguments.formId, formData=formData, formItems=formItems, submissionId=submissionId );
+			} else {
+				formData = renderResponsesForSaving( formId=arguments.formId, formData=formData, formItems=formItems );
+				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
+					  form           = arguments.formId
+					, submitted_by   = $getWebsiteLoggedInUserId()
+					, submitted_data = SerializeJson( formData )
+					, form_instance  = arguments.instanceId
+					, ip_address     = arguments.ipAddress
+					, user_agent     = arguments.userAgent
+				} );
+
+			}
 			var submission = getSubmission( submissionId );
 			for( var s in submission ) { submission = s; }
+
+			if( isV2Form( formId=arguments.formId ) ){
+				var v2responses = getV2Responses( formId=arguments.formId, submissionId=submissionId );
+				submission.submitted_data = serializeJSON( v2responses?:{} );
+			}
 
 			_getActionsService().triggerSubmissionActions(
 				  formId         = arguments.formId
@@ -808,6 +1181,15 @@ component {
 				, filterParams = { q = { type="cf_sql_varchar", value="%#arguments.searchQuery#%" } }
 			});
 		}
+		if ( Len( Trim( sFilterExpression ?: "" ) ) ) {
+
+			try {
+				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
+					  objectName = "formbuilder_formsubmission"
+					, expressionArray = DeSerializeJson( sFilterExpression ?: "" )
+				) );
+			} catch( any e ){}
+		}
 
 		if ( Len( Trim( arguments.savedFilterExpIdLists ?: "" ) ) ) {
 			var savedFilters = _getPresideObjectService().selectData(
@@ -839,14 +1221,11 @@ component {
 			]
 		);
 
-		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
-			result.totalRecords = result.records.recordCount;
-		} else {
-			result.totalRecords = submissionsDao.selectData(
-				  selectFields = [ "count( * ) as nRows" ]
-				, filter       = { form = arguments.formId }
-			).nRows;
-		}
+		result.totalRecords = submissionsDao.selectData(
+			  filter          = { form = arguments.formId }
+			, extraFilters    = extraFilters
+			, recordCountOnly = true
+		);
 
 		return result;
 	}
@@ -862,6 +1241,227 @@ component {
 		return $getPresideObject( "formbuilder_formsubmission" ).deleteData(
 			filter = { id = arguments.submissionIds }
 		);
+	}
+
+	/**
+	 * Delete the given submission files.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteSubmissionFiles( required string submissionId ) {
+		var submission    = getSubmission( submissionId=arguments.submissionId );
+		var formId        = submission.form ?: "";
+		var fileItemTypes = _getItemTypesService().getFileUploadItemTypes();
+		var files         = [];
+
+		if ( isV2Form( formId=formId ) ) {
+			var fileFields = $getPresideObject( "formbuilder_question_response" ).selectData(
+				  selectFields = [ "response" ]
+				, filter       = "submission_type = 'formbuilder' and question.item_type in ( :question.item_type ) and submission = :submission"
+				, filterParams = {
+					  "question.item_type" = fileItemTypes
+					, submission           = submissionId
+				  }
+			);
+
+			for ( var fileField in fileFields ) {
+				ArrayAppend( files, fileField.response ?: "" );
+			}
+		} else {
+			if ( !$helpers.isEmptyString( submission.submitted_data ?: "" ) ) {
+				var submissionData = DeserializeJSON( submission.submitted_data );
+
+				var fileFields = $getPresideObject( "formbuilder_formitem" ).selectData(
+					  filter       = "form = :form and item_type in ( :item_type )"
+					, filterParams = {
+						  form     = formId
+						, item_type= fileItemTypes
+					  }
+					, selectFields = [ "configuration" ]
+				);
+
+				for ( var fileField in fileFields ) {
+					var fileFieldConfig = DeserializeJSON( fileFields.configuration ?: "" );
+
+					ArrayAppend( files, submissionData[ fileFieldConfig.name ?: "" ] ?: "" );
+				}
+			}
+		}
+
+		if ( ArrayLen( files ) ) {
+			for ( var file in files ) {
+				if ( !$helpers.isEmptyString( file ) ) {
+					var filePaths = ListToArray( file );
+
+					for ( var filePath in filePaths ) {
+						try {
+							formBuilderStorageProvider.deleteObject( path=filePath, private=formBuilderStorageProvider.objectExists( path=filePath, private=true ) );
+						} catch( any e ) {
+							$raiseError( e );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Delete the given submission question responses.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteSubmissionResponses( required string submissionId ) {
+		var submission = getSubmission( submissionId=arguments.submissionId );
+		var formId     = submission.form ?: "";
+
+		deleteSubmissionFiles( submissionId=submissionId );
+
+		if ( isV2Form( formId=formId ) ) {
+			$getPresideObject( "formbuilder_question_response" ).deleteData(
+				filter = { submission_type="formbuilder", submission_reference=formId, submission=arguments.submissionId }
+			);
+		}
+	}
+
+	/**
+	 * Delete the given form question responses.
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission
+	 *
+	 */
+	public void function deleteFormResponses( required struct filter ) {
+		var submissions = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = arguments.filter
+		);
+
+		for ( var submission in submissions ) {
+			deleteSubmissionResponses( submissionId=submission.id );
+		}
+	}
+
+	/**
+	 * Returns question responses in a result format that is ready
+	 * for display in grid table
+	 *
+	 * @autodoc
+	 * @formid.hint      ID of the question whose responses you wish to get
+	 * @startRow.hint    Start row of recordset (for pagination)
+	 * @maxRows.hint     Max rows to fetch (for pagination)
+	 * @orderBy.hint     Order by field
+	 * @searchQuery.hint Search query with which to filter
+	 *
+	 */
+	public struct function getQuestionResponsesForGridListing(
+		  required string  questionId
+		,          numeric startRow              = 1
+		,          numeric maxRows               = 10
+		,          string  orderBy               = ""
+		,          string  searchQuery           = ""
+		,          string  sFilterExpression     = ""
+		,          string  savedFilterExpIdLists = ""
+	) {
+		var questionResponsesDao = $getPresideObject( "formbuilder_question_response" );
+
+		var result         = { totalRecords=0, records="" };
+		var extraFilters   = [];
+		var sortBy         = ListFirst( arguments.orderBy, " " );
+		var sortOrder      = ListLast( arguments.orderBy, " " );
+
+		switch( sortBy ) {
+			case "submitted_by":
+				sortBy = "submitted_by";
+				break;
+			case "datecreated":
+			case "instanceId":
+			case "submitted_data":
+				break;
+
+			default:
+				sortBy = "datecreated";
+		}
+		switch( sortorder ) {
+			case "asc":
+			case "desc":
+				break;
+			default:
+				sortorder = "asc";
+		}
+
+		if ( Len( Trim( sFilterExpression ?: "" ) ) ) {
+			try {
+				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
+					  objectName = "formbuilder_question_response"
+					, expressionArray = DeSerializeJson( sFilterExpression ?: "" )
+				) );
+			} catch( any e ){
+
+
+			}
+		}
+
+		if ( Len( Trim( arguments.searchQuery ) ) ) {
+			extraFilters.append({
+				  filter       = "submitted_by like :q or formbuilder_question_response.response like :q"
+				, filterParams = { q = { type="cf_sql_varchar", value="%#arguments.searchQuery#%" } }
+			});
+		}
+
+		if ( Len( Trim( arguments.savedFilterExpIdLists ?: "" ) ) ) {
+			var savedFilters = _getPresideObjectService().selectData(
+				  objectName   = "rules_engine_condition"
+				, selectFields = [ "expressions" ]
+				, filter       = { id=ListToArray( arguments.savedFilterExpIdLists ?: "" ) }
+			);
+
+			for( var filter in savedFilters ) {
+				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
+					  objectName      = 'formbuilder_formsubmission'
+					, expressionArray = DeSerializeJson( filter.expressions )
+				) );
+			}
+		}
+
+		result.records = questionResponsesDao.selectData(
+			  filter       = { question = arguments.questionId }
+			, extraFilters = extraFilters
+			, startRow     = arguments.startRow
+			, maxRows      = arguments.maxRows
+			, orderBy      = "#sortby# #sortorder#"
+			, groupBy      = "submission, question"
+			, selectFields = [
+				  "formbuilder_question_response.id"
+				, "formbuilder_question_response.submission"
+				, "formbuilder_question_response.question"
+				, "formbuilder_question_response.response"
+				, "formbuilder_question_response.datecreated"
+				, "formbuilder_question_response.submitted_by"
+				, "formbuilder_question_response.website_user"
+				, "formbuilder_question_response.is_website_user"
+				, "formbuilder_question_response.admin_user"
+				, "formbuilder_question_response.is_admin_user"
+				, "formbuilder_question_response.submission_type"
+				, "formbuilder_question_response.submission_reference"
+				, "submission$form.name as form_name"
+				, "question.item_type"
+			]
+		);
+
+		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
+			result.totalRecords = result.records.recordCount;
+		} else {
+			result.totalRecords = questionResponsesDao.selectData(
+				  selectFields = [ "count( * ) as nRows" ]
+				, filter       = { question = arguments.questionId }
+			).nRows;
+		}
+
+		return result;
 	}
 
 	/**
@@ -882,6 +1482,7 @@ component {
 		,          any     progress
 	) {
 		var formDefinition = getForm( arguments.formId );
+		var isV2           = isV2Form( arguments.formId );
 
 		if ( !formDefinition.recordCount ) {
 			if ( canReportProgress ) {
@@ -941,14 +1542,15 @@ component {
 			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4, "string" );
 
 			if ( itemsToRender.len() ) {
-				var data   = DeSerializeJson( submission.submitted_data );
+				var data = isV2 ? getV2Responses( arguments.formId, submission.id ) : DeSerializeJson( submission.submitted_data );
 				for( item in itemsToRender ) {
+					var itemKey = isV2 ? item.questionId : ( item.configuration.name ?: "" );
 					var viewlet = _getFormBuilderRenderingService().getItemTypeViewlet(
 						  itemType = item.type.id
 						, context  = "responseForExport"
 					);
 					var itemColumns = $renderViewlet( event=viewlet, args={
-						  response          = data[ item.configuration.name ?: "" ] ?: ""
+						  response          = data[ itemKey ] ?: ""
 						, itemConfiguration = item.configuration
 					} );
 					var mappedColumns = itemColumnMap[ item.id ];
@@ -1006,6 +1608,356 @@ component {
 		return workbook;
 	}
 
+	public any function exportQuestionResponses(
+		  required string  questionId
+		, required string  exportFields
+		, required string  exporter
+		,          string  filterExpressions
+		,          string  savedFilters
+		,          boolean writeToFile = false
+		,          any     logger
+		,          any     progress
+	) {
+		if ( exporter=="Excel" ) {
+			return exportQuestionResponsesToExcel( argumentCollection = arguments );
+		} else {
+			return exportQuestionResponsesToCsv( argumentCollection = arguments );
+		}
+
+	}
+
+	/**
+	 * Exports the responses to the given question to an excel spreadsheet. Returns
+	 * a workbook object (see [[spreadsheets]]).
+	 *
+	 * @autodoc     true
+	 * @questionid      ID of the question you wish to produce spreadsheet for
+	 * @writeToFile Whether or not to write output to file. If true, output is written to file and the file path is returned. If false, workbook object is returned.
+	 * @logger      Logger for background task export logging
+	 * @progress    Progress reporter object for background task progress reporting
+	 *
+	 */
+	public any function exportQuestionResponsesToExcel(
+		  required string  questionId
+		, required string  exportFields
+		,          string  filterExpressions
+		,          string  savedFilters
+		,          boolean writeToFile = false
+		,          any     logger
+		,          any     progress
+	) {
+		var questionDefinition = getQuestion( arguments.questionId );
+		var exportFieldList = listToArray( arguments.exportFields );
+
+		if ( !questionDefinition.recordCount ) {
+			if ( canReportProgress ) {
+				throw( type="formbuilder.question.not.found", message="The question with the ID, [#arguments.questionId#], could not be found" );
+			}
+			return;
+		}
+
+		var canLog            = StructKeyExists( arguments, "logger" );
+		var canInfo           = canLog && logger.canInfo();
+		var canReportProgress = StructKeyExists( arguments, "progress" );
+		var renderingService  = _getFormBuilderRenderingService();
+		var spreadsheetLib    = _getSpreadsheetLib();
+		var workbook          = spreadsheetLib.new();
+		var headers           = [];
+
+
+		for ( var field in exportFields ) {
+			headers.append( $translateResource( uri="preside-objects.formbuilder_question_response:field.#field#.title" ) );
+		}
+
+		var itemColumnMap     = {};
+		var itemsToRender     = [];
+		var item_type         = questionDefinition.item_type;
+		var item_type_config  = questionDefinition.item_type_config ?: "{}"
+		if ( !len(item_type_config) ) {
+			item_type_config = "{}";
+		}
+
+		var responses = _getQuestionExportQuery( argumentCollection = arguments );
+
+
+		if ( canInfo ) {
+			logger.info( "Fetched [#NumberFormat( responses.recordcount )#] responses, preparing to export..." );
+		}
+
+		itemColumnMap = renderingService.getItemTypeExportColumns( questionDefinition.item_type, DeserializeJson( item_type_config ) );
+		if ( len(itemColumnMap)==1 && itemColumnMap[1]=="" ) {
+			itemColumnMap[1]="Response";
+		}
+
+		headers.append( itemColumnMap, true );
+
+		spreadsheetLib.renameSheet( workbook, $translateResource( uri="formbuilder:spreadsheet.main.sheet.title", data=[ questionDefinition.field_label ] ), 1 );
+		for( var i=1; i <= headers.len(); i++ ){
+			spreadsheetLib.setCellValue( workbook, headers[i], 1, i, "string" );
+		}
+
+		var row = 1;
+		for( var response in responses ) {
+			var column      = 0;
+			var submittedBy = Len( response.submitted_by ) ? $renderLabel( "website_user", response.submitted_by ) : "";
+			row++;
+
+			if ( ArrayContains( exportFieldList, "id" ) ) {
+				spreadsheetLib.setCellValue( workbook, response.id, row, ++column, "string" );
+			}
+			if ( ArrayContains( exportFieldList, "submission_type" ) ) {
+				spreadsheetLib.setCellValue( workbook, response.submission_type, row, ++column, "string" );
+			}
+			if ( ArrayContains( exportFieldList, "submission_reference" ) ) {
+				spreadsheetLib.setCellValue( workbook, response.submission_reference, row, ++column, "string" );
+			}
+			if ( ArrayContains( exportFieldList, "submitted_by" ) ) {
+				spreadsheetLib.setCellValue( workbook, response.submitted_by, row, ++column, "string" );
+			}
+			if ( ArrayContains( exportFieldList, "datecreated" ) ) {
+				spreadsheetLib.setCellValue( workbook, DateTimeFormat( response.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, ++column, "string" );
+			}
+			if ( ArrayContains( exportFieldList, "is_website_user" ) ) {
+				spreadsheetLib.setCellValue( workbook, response.is_website_user, row, ++column, "string" );
+			}
+			if ( ArrayContains( exportFieldList, "parent_name" ) ) {
+				spreadsheetLib.setCellValue( workbook, response.parent_name, row, ++column, "string" );
+			}
+
+
+
+			var responseValue = getV2QuestionResponses( response.submission_reference, response.submission, questionId );
+
+			var viewlet = _getFormBuilderRenderingService().getItemTypeViewlet(
+				  itemType = item_type
+				, context  = "responseForExport"
+			);
+
+
+			var itemColumns = $renderViewlet( event=viewlet, args={
+				  response          = responseValue
+				, itemConfiguration = DeserializeJson( item_type_config )
+			} );
+
+
+			var mappedColumns = itemColumnMap;
+
+					for( var i=1; i<=mappedColumns.len(); i++ ) {
+						if ( itemColumns.len() >= i ) {
+							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column, "string" );
+						} else {
+							spreadsheetLib.setCellValue( workbook, "", row, ++column );
+						}
+					}
+
+
+			if ( !row mod 100 && ( canInfo || canReportProgress ) ) {
+				if ( canReportProgress ) {
+					if ( progress.isCancelled() ) {
+						abort;
+					}
+					progress.setProgress( ( 100 / submissions.recordCount ) * row );
+				}
+				if ( canInfo ) {
+					logger.info( "Processed [#NumberFormat( row )#] of [#NumberFormat( submissions.recordCount )#] records..." );
+				}
+			}
+		}
+
+		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
+		spreadsheetLib.addFreezePane( workbook, 0, 1 );
+		for( var i=1; i <= headers.len(); i++ ){
+			spreadsheetLib.autoSizeColumn( workbook, i );
+		}
+
+		if ( canReportProgress ) {
+			progress.setProgress( 100 );
+		}
+
+		if ( arguments.writeToFile ) {
+			var tmpFile = getTempDirectory() & "/FormBuilderExport" & CreateUUId() & ".xls";
+			spreadsheetLib.write( workbook, tmpFile, false );
+
+			if ( canReportProgress ) {
+				progress.setResult( {
+					  filePath       = tmpFile
+					, exportFileName = LCase( ReReplace( questionDefinition.field_label, "[\W]", "_", "all" ) ) & "_" & DateTimeFormat( Now(), "yyyymmdd_HHnn" ) & ".xls"
+					, mimetype       = "application/msexcel"
+				} );
+			}
+
+			return tmpFile;
+		}
+		return workbook;
+	}
+
+	/**
+	 * Exports the responses to the given question to an excel spreadsheet. Returns
+	 * a workbook object (see [[spreadsheets]]).
+	 *
+	 * @autodoc     true
+	 * @questionid      ID of the question you wish to produce spreadsheet for
+	 * @writeToFile Whether or not to write output to file. If true, output is written to file and the file path is returned. If false, workbook object is returned.
+	 * @logger      Logger for background task export logging
+	 * @progress    Progress reporter object for background task progress reporting
+	 *
+	 */
+	public any function exportQuestionResponsesToCsv(
+		  required string  questionId
+		, required string  exportFields
+		,          string  filterExpressions
+		,          string  savedFilters
+		,          boolean writeToFile = false
+		,          any     logger
+		,          any     progress
+	) {
+		var questionDefinition = getQuestion( arguments.questionId );
+		var exportFieldList = listToArray( arguments.exportFields );
+
+		if ( !questionDefinition.recordCount ) {
+			if ( canReportProgress ) {
+				throw( type="formbuilder.question.not.found", message="The question with the ID, [#arguments.questionId#], could not be found" );
+			}
+			return;
+		}
+
+		var extraFilters   = [];
+		var canLog            = StructKeyExists( arguments, "logger" );
+		var canInfo           = canLog && logger.canInfo();
+		var canReportProgress = StructKeyExists( arguments, "progress" );
+		var renderingService  = _getFormBuilderRenderingService();
+		var headers           = [];
+
+		var tmpFile = getTempDirectory() & "/FormBuilderExport" & CreateUUId() & ".xls";
+		var writer   = _getCsvWriter().newWriter( tmpFile, "," );
+
+		for ( var field in exportFields ) {
+			headers.append( $translateResource( uri="preside-objects.formbuilder_question_response:field.#field#.title" ) );
+		}
+
+		var itemColumnMap     = {};
+		var itemsToRender     = [];
+		var item_type         = questionDefinition.item_type;
+		var item_type_config  = questionDefinition.item_type_config ?: "{}"
+		if ( !len(item_type_config) ) {
+			item_type_config = "{}";
+		}
+
+		var responses = _getQuestionExportQuery( argumentCollection = arguments );
+
+		if ( canInfo ) {
+			logger.info( "Fetched [#NumberFormat( responses.recordcount )#] responses, preparing to export..." );
+		}
+
+		itemColumnMap = renderingService.getItemTypeExportColumns( questionDefinition.item_type, DeserializeJson( item_type_config ) );
+		if ( len(itemColumnMap)==1 && itemColumnMap[1]=="" ) {
+			itemColumnMap[1]="Response";
+		}
+
+		headers.append( itemColumnMap, true );
+
+
+		try {
+			var row = [];
+
+			for( var i=1; i <= headers.len(); i++ ){
+				row.append( headers[i] );
+			}
+			writer.writeNext( row );
+			writer.flush();
+
+			var rowNumber=1;
+			for( var response in responses ) {
+				row=[];
+				var submittedBy = Len( response.submitted_by ) ? $renderLabel( "website_user", response.submitted_by ) : "";
+
+
+				if ( ArrayContains( exportFieldList, "id" ) ) {
+					row.append( response.id );
+				}
+				if ( ArrayContains( exportFieldList, "submission_type" ) ) {
+					row.append( response.submission_type );
+				}
+				if ( ArrayContains( exportFieldList, "submission_reference" ) ) {
+					row.append( response.submission_reference );
+				}
+				if ( ArrayContains( exportFieldList, "submitted_by" ) ) {
+					row.append( response.submitted_by );
+				}
+				if ( ArrayContains( exportFieldList, "datecreated" ) ) {
+					row.append( DateTimeFormat( response.datecreated, "yyyy-mm-dd HH:nn:ss" ) );
+				}
+				if ( ArrayContains( exportFieldList, "is_website_user" ) ) {
+					row.append( response.is_website_user );
+				}
+				if ( ArrayContains( exportFieldList, "parent_name" ) ) {
+					row.append( response.parent_name );
+				}
+
+				var responseValue = getV2QuestionResponses( response.submission_reference, response.submission, questionId );
+
+				var viewlet = _getFormBuilderRenderingService().getItemTypeViewlet(
+					  itemType = item_type
+					, context  = "responseForExport"
+				);
+
+
+				var itemColumns = $renderViewlet( event=viewlet, args={
+					  response          = responseValue
+					, itemConfiguration = DeserializeJson( item_type_config )
+				} );
+
+
+				var mappedColumns = itemColumnMap;
+
+				for( var i=1; i<=mappedColumns.len(); i++ ) {
+					if ( itemColumns.len() >= i ) {
+						row.append( itemColumns[ i ] );
+					} else {
+						row.append( "" );
+					}
+				}
+				writer.writeNext( row );
+
+				++rowNumber;
+				if ( !rowNumber mod 100 && ( canInfo || canReportProgress ) ) {
+					if ( canReportProgress ) {
+						if ( progress.isCancelled() ) {
+							abort;
+						}
+						progress.setProgress( ( 100 / submissions.recordCount ) * rowNumber );
+					}
+					if ( canInfo ) {
+						logger.info( "Processed [#NumberFormat( rowNumber )#] of [#NumberFormat( submissions.recordCount )#] records..." );
+					}
+				}
+
+				writer.flush();
+			}
+		} catch ( any e ) {
+			rethrow;
+		} finally {
+			writer.close();
+		}
+
+
+		if ( canReportProgress ) {
+			progress.setProgress( 100 );
+		}
+
+
+			if ( canReportProgress ) {
+				progress.setResult( {
+					  filePath       = tmpFile
+					, exportFileName = LCase( ReReplace( questionDefinition.field_label, "[\W]", "_", "all" ) ) & "_" & DateTimeFormat( Now(), "yyyymmdd_HHnn" ) & ".csv"
+					, mimetype       = "application/csv"
+				} );
+			}
+
+			return tmpFile;
+
+	}
+
 	public struct function renderResponsesForSaving( required string formId, required struct formData, required array formItems ) {
 		var rendererService = _getFormBuilderRenderingService();
 		var coldbox         = $getColdbox();
@@ -1033,6 +1985,61 @@ component {
 		return arguments.formData;
 	}
 
+	public void function saveV2Responses(
+		  required string formId
+		, required struct formData
+		, required array  formItems
+		, required string submissionId
+	) {
+		var rendererService = _getFormBuilderRenderingService();
+		var coldbox         = $getColdbox();
+		var responses       = "";
+
+		for( var i=1; i <= arguments.formItems.len(); i++ ) {
+			var formItem    = formItems[i];
+			var itemName    = formItem.configuration.name ?: "";
+			var isFormField = formItem.type.isFormField   ?: false;
+			var dataType = "";
+
+			if ( isFormField && StructKeyExists( arguments.formData, itemName ) ) {
+				var dataTypeViewlet = "formbuilder.item-types.#formItem.type.id#.getQuestionDataType";
+				var rendererViewlet = rendererService.getItemTypeViewlet(
+					  itemType = formItem.type.id
+					, context  = "v2ResponsesForDb"
+				);
+
+				if ( coldbox.viewletExists( rendererViewlet ) ) {
+					responses = $renderViewlet( event=rendererViewlet, args={
+						  response      = arguments.formData[ itemName ]
+						, question      = formItem.questionId
+						, configuration = formItem.configuration
+						, formId        = arguments.formId
+					} );
+				} else {
+					responses = arguments.formData[ itemName ];
+				}
+
+				if ( coldbox.viewletExists( dataTypeViewlet ) ) {
+					dataType = $renderViewlet( event=dataTypeViewlet, args={
+						  question      = formItem.questionId
+						, configuration = formItem.configuration
+					} );
+					if ( !IsSimpleValue( local.dataType ?: {} ) ) {
+						dataType = "";
+					}
+				}
+
+				_saveV2Response(
+					  response             = responses
+					, questionId           = formItem.questionId
+					, formId               = arguments.formId
+					, submissionId         = arguments.submissionId
+					, dataType             = dataType
+				);
+			}
+		}
+	}
+
 	public struct function getFormBuilderSubmissionContextData() {
 		return $getRequestContext().getValue( name="_formBuilderContext", private=true, defaultValue={} );
 	}
@@ -1042,6 +2049,66 @@ component {
 			, value   = { id=arguments.formId, data=arguments.data }
 			, private = true
 		);
+	}
+
+	/**
+	 * Returns whether or not the given form is a "V2" form.
+	 * V2 of the forms data model was introduced in Preside 10.13.0
+	 * and uses a shared set of questions. When the v2 forms feature
+	 * is enabled, all newly created forms will be a "V2" form while old
+	 * forms will remain V1.
+	 *
+	 * @autodoc     true
+	 * @formId.hint The ID of the form to check
+	 */
+	public boolean function isV2Form( required string formid ) {
+		return $isFeatureEnabled( "formbuilder2" ) && $getPresideObject( "formbuilder_form" ).dataExists(
+			  filter = { id=arguments.formId, uses_global_questions=true }
+		);
+	}
+
+	public boolean function updateUsesGlobalQuestions() {
+		try {
+			if ( $isFeatureEnabled( "formbuilder2" ) ) {
+				if ( !$getPresideSetting( category="formbuilder", setting="update_uses_global_questions", default=false ) ) {
+					$systemOutput( "Updating formbuilder2 forms use global questions..." );
+
+					var formBuilderForms = $getPresideObject( "formbuilder_form" ).selectData( selectFields=[ "id" ] );
+
+					for ( var formBuilderForm in formBuilderForms ) {
+						var formBuilderFormItem = $getPresideObject( "formbuilder_formitem" ).selectData(
+							  filter       = "form = :form"
+							, filterParams = { form=formBuilderForm.id }
+							, selectFields = [
+								"sum( case when ( question is null or question = '' ) then 0 else 1 end ) as questions"
+							  ]
+						);
+
+						var usesGlobalQuestions = false;
+						if ( IsNumeric( formBuilderFormItem.questions ?: "" ) ) {
+							usesGlobalQuestions = formBuilderFormItem.questions > 0
+						} else {
+							// Convert empty form i.e. without any form items to v2.
+							usesGlobalQuestions = true;
+						}
+
+						$getPresideObject( "formbuilder_form" ).updateData(
+							  id   = formBuilderForm.id
+							, data = { uses_global_questions=usesGlobalQuestions }
+						);
+					}
+
+					$getSystemConfigurationService().saveSetting( category="formbuilder", setting="update_uses_global_questions", value=true );
+
+					return true;
+				}
+			}
+		} catch ( any e ) {
+			$raiseError( e );
+			$systemOutput( "Failed to Update formbuilder2 forms use global questions." );
+		}
+
+		return false;
 	}
 
 // PRIVATE HELPERS
@@ -1098,7 +2165,7 @@ component {
 		var originalFormItems = getFormItems( id=arguments.basedOnFormId );
 		if( arrayLen( originalFormItems ) ) {
 			for( var formItem in originalFormItems ) {
-				addItem( formId=newFormId, itemType=formItem.type.id, configuration=formItem.configuration );
+				addItem( formId=newFormId, itemType=formItem.type.id, configuration=formItem.configuration, question=( formItem.questionId ?: "" ) );
 			}
 		}
 
@@ -1115,6 +2182,193 @@ component {
 
 	private string function _createIdPrefix() {
 		return "formbuilder_" & LCase( Hash( Now() ) );
+	}
+
+	private struct function _getItemConfigurationForV2Question( required string questionId ) {
+		var question = $getPresideObject( "formbuilder_question" ).selectdata( id=arguments.questionId );
+
+		for( var q in question ) {
+			var config = {
+				  label = ( len( q.full_question_text ) ? q.full_question_text : q.field_label )
+				, name  = q.field_id
+				, help  = q.help_text
+			};
+			try {
+				if ( IsJson( q.item_type_config ) ) {
+					StructAppend( config, DeserializeJson( q.item_type_config ) );
+				}
+			} catch( any e ) {
+				$raiseError( e );
+			}
+
+			return config;
+		}
+
+		return {};
+	}
+
+	private void function _saveV2Response(
+		  required any    response
+		, required string questionId
+		, required string formId
+		, required string submissionId
+		, required string dataType
+		,          string sortOrder = ""
+		,          string questionSubReference = ""
+	) {
+		if ( IsArray( arguments.response ) ) {
+			for( var i=1; i<=ArrayLen( arguments.response ); i++ ) {
+				_saveV2Response(
+					  argumentCollection = arguments
+					, response           = arguments.response[ i ]
+					, sortOrder          = i
+				);
+			}
+			return;
+		}
+
+		if ( IsStruct( arguments.response ) ) {
+			for( var fieldName in arguments.response ) {
+				_saveV2Response(
+					  argumentCollection   = arguments
+					, response             = arguments.response[ fieldName ]
+					, questionSubReference = fieldName
+				);
+			}
+			return;
+		}
+
+		if ( IsSimpleValue( arguments.response ) ) {
+			var responseData = {
+				  question              = arguments.questionId
+				, submission_type       = "formbuilder"
+				, submission_reference  = arguments.formid
+				, question_subreference = arguments.questionSubReference
+				, response              = arguments.response
+				, sort_order            = arguments.sortOrder
+				, submission            = arguments.submissionId
+				, website_user          = $getWebsiteLoggedInUserId()
+				, admin_user            = $getAdminLoggedInUserId()
+				, submitted_by          = _getSubmitterNamePlainText()
+			};
+
+			switch( arguments.dataType ) {
+				case "shorttext":
+				case "date":
+				case "bool":
+				case "int":
+				case "float":
+					responseData[ "#arguments.dataType#_response" ] = arguments.response;
+			}
+
+			$announceInterception( "preSaveFormbuilderQuestionResponse", responseData );
+
+			$getPresideObject( "formbuilder_question_response" ).insertData( responseData );
+		}
+
+	}
+
+	private string function _getSubmitterNamePlainText() {
+		var userId = $getWebsiteLoggedInUserId();
+		if ( Len( Trim( userId ) ) ) {
+			return $renderLabel( "website_user", userId );
+		}
+
+		userId = $getAdminLoggedInUserId();
+		if ( Len( Trim( userId ) ) ) {
+			return $renderLabel( "security_user", userId );
+		}
+
+		return "";
+	}
+
+	private any function _getQuestionExportQuery(
+		  required string  questionId
+		, required string  exportFields
+		,          string  filterExpressions
+		,          string  savedFilters
+	) {
+		var extraFilters = [];
+		if ( Len( Trim( arguments.savedFilters ?: "" ) ) ) {
+			var savedFilters = _getPresideObjectService().selectData(
+				  objectName   = "rules_engine_condition"
+				, selectFields = [ "expressions" ]
+				, filter       = { id=ListToArray( arguments.savedFilters ?: "" ) }
+			);
+
+			for( var filter in savedFilters ) {
+				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
+					  objectName      = 'formbuilder_formsubmission'
+					, expressionArray = DeSerializeJson( filter.expressions )
+				) );
+			}
+		}
+
+		if ( Len( Trim( arguments.filterExpressions ?: "" ) ) ) {
+			try {
+				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
+					  objectName = "formbuilder_question_response"
+					, expressionArray = DeSerializeJson( filterExpressions ?: "" )
+				) );
+			} catch( any e ){
+
+
+			}
+		}
+
+		var questionResponsesDao = $getPresideObject( "formbuilder_question_response" );
+		var responses = questionResponsesDao.selectData(
+			  filter       = { question = arguments.questionId }
+			, orderBy      = "datecreated"
+			, groupBy      = "submission, question"
+			, extraFilters = extraFilters
+			, selectFields = [
+				  "formbuilder_question_response.id"
+				, "formbuilder_question_response.submission"
+				, "formbuilder_question_response.question"
+				, "formbuilder_question_response.response"
+				, "formbuilder_question_response.datecreated"
+				, "formbuilder_question_response.submitted_by"
+				, "lformbuilder_question_response.is_website_user"
+				, "formbuilder_question_response.is_admin_user"
+				, "formbuilder_question_response.submission_type"
+				, "formbuilder_question_response.submission_reference"
+				, "formbuilder_question_response.parent_name"
+			]
+		);
+
+		return responses;
+	}
+
+	private struct function _getFormItemAuditDetail( required string formItemId ) {
+		var formItem = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  id           = arguments.formItemId
+			, selectFields = [
+				  "form"
+				, "question"
+				, "question.field_id"
+				, "question.field_label"
+				, "question.item_type"
+			  ]
+		);
+
+		return {
+			  formId            = formItem.form        ?: ""
+			, formItemType      = formItem.item_type   ?: ""
+			, formItemName      = formItem.field_id    ?: ""
+			, formQuestionId    = formItem.question    ?: ""
+			, formQuestionLabel = formItem.field_label ?: ""
+		};
+	}
+
+	private struct function _getFormAuditDetail( required string formId ) {
+		var formForm = getForm( id=arguments.formId );
+
+		return {
+			  formId     = formForm.id   ?: ""
+			, formName   = formForm.name ?: ""
+			, objectName = "formbuilder_form"
+		};
 	}
 
 // GETTERS AND SETTERS
@@ -1186,5 +2440,26 @@ component {
 	}
 	private void function _setRulesEngineFilterService( required any rulesEngineFilterService ) {
 		_rulesEngineFilterService = arguments.rulesEngineFilterService;
+	}
+
+	private any function _getRulesEngineWebRequestService() {
+		return _rulesEngineWebRequestService;
+	}
+	private void function _setRulesEngineWebRequestService( required any rulesEngineWebRequestService ) {
+		_rulesEngineWebRequestService = arguments.rulesEngineWebRequestService;
+	}
+
+	private any function _getCsvWriter() {
+		return _csvWriter;
+	}
+	private void function _setCsvWriter( required any csvWriter ) {
+		_csvWriter = arguments.csvWriter;
+	}
+
+	private any function _getSessionStorage() {
+		return _sessionStorage;
+	}
+	private void function _setSessionStorage( required any sessionStorage ) {
+		_sessionStorage = arguments.sessionStorage;
 	}
 }

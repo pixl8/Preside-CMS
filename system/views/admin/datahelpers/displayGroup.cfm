@@ -17,7 +17,7 @@
 
 		<div class="widget-body">
 			<div class="widget-main padding-20">
-					<div class="table-responsive">
+				<div class="table-responsive-lg">
  					<table class="table table-condensed table-no-header table-non-clickable table-admin-view-record">
  						<tbody>
 							<cfloop array="#renderedProps#" item="prop" index="i">

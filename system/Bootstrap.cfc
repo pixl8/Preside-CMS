@@ -43,7 +43,6 @@ component {
 	public boolean function onRequestStart( required string targetPage ) {
 		_pingCheck();
 		_maintenanceModeCheck();
-		_readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
 		if ( _reloadRequired() ) {
 			_initEveryEverything();
@@ -186,6 +185,7 @@ component {
 				setting requesttimeout=requestTimeout;
 
 				request._isPresideReloadRequest = true;
+				request._loadingStartTime = GetTickCount();
 				_isReloading( true );
 
 				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." & Chr( 13 ) & Chr( 10 ) );
@@ -203,7 +203,9 @@ component {
 				_announceInterception( "postPresideReload" );
 
 				_isReloading( false );
-				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete" & Chr( 13 ) & Chr( 10 ) );
+
+				var timeTakenInSecs = ( GetTickCount() - request._loadingStartTime ) / 1000;
+				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application start up complete in #NumberFormat( timeTakenInSecs )# seconds" & Chr( 13 ) & Chr( 10 ) );
 			}
 		} catch( any e ) {
 			if ( ( e.lockOperation ?: "" ) == "Timeout" ) {
@@ -375,10 +377,6 @@ component {
 		}
 
 		return "preside.system.config.Config";
-	}
-
-	private void function _readHttpBodyNowBecauseLuceeSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() {
-		request.http = { body = ToString( GetHttpRequestData().content ) };
 	}
 
 	private boolean function _showErrors() {
@@ -695,7 +693,7 @@ component {
 	}
 
 	private string function _getApplicationRoot() {
-		return ExpandPath( "/" );
+		return ReReplace( ExpandPath( "/" ), "/$", "" );
 	}
 
 	private void function _stillReloadingError() {
@@ -770,8 +768,8 @@ component {
 	}
 
 	private string function _getUrl() {
-		var requestData = GetHttpRequestData();
-		var requestUrl  = requestData.headers[ 'X-Original-URL' ] ?: "";
+		var headers    = GetHttpRequestData( false ).headers;
+		var requestUrl = headers[ 'X-Original-URL' ] ?: "";
 
 		if ( !Len( Trim( requestUrl ) ) ) {
 			requestUrl = request[ "javax.servlet.forward.request_uri" ] ?: "";
@@ -784,7 +782,7 @@ component {
 				if( isBoolean( cgi.server_port_secure ) AND cgi.server_port_secure){
 					protocol = "https";
 				} else {
-					protocol = requestData.headers[ "x-forwarded-proto" ] ?: ( requestData.headers[ "x-scheme" ] ?: LCase( ListFirst( cgi.server_protocol, "/" ) ) );
+					protocol = headers[ "x-forwarded-proto" ] ?: ( headers[ "x-scheme" ] ?: LCase( ListFirst( cgi.server_protocol, "/" ) ) );
 				}
 
 				requestUrl = protocol & "://" & cgi.http_host & requestUrl;

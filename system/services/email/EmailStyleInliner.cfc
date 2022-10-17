@@ -3,55 +3,119 @@
  *
  * @singleton      true
  * @autodoc        true
+ * @presideService true
  */
 component {
 	variables._lib   = [];
 	variables._jsoup = "";
 
-	public any function init() {
+	/**
+	 * @styleCache.inject    cachebox:emailStyleInlinerCache
+	 * @templateCache.inject cachebox:emailTemplateCache
+	 */
+	public any function init(
+		  required any styleCache
+		, required any templateCache
+	) {
 		_jsoup = _new( "org.jsoup.Jsoup" );
+
+		_setStyleCache( arguments.styleCache );
+		_setTemplateCache( arguments.templateCache );
 
 		return this;
 	}
 
 	/**
-	 * Recieves an html string and returns the same HTML
+	 * Receives an html string and returns the same HTML
 	 * but with all style definitions that reside in `style` tags
 	 * converted to inline styles suitable for email sending.
 	 *
 	 * @autodoc   true
 	 * @html.hint the original HTML
 	 */
-	public string function inlineStyles( required string html ) {
-		var doc           = _jsoup.parse( arguments.html );
-		var elementStyles = _getElementsWithStylesToApply( doc );
+	public string function inlineStyles( required string html, array styles ) {
+ 		if ( !$helpers.hasTags( arguments.html ) ) {
+			return arguments.html;
+		}
+
+		var cacheKey = "htmlInlineStyles-#Hash( arguments.html )#";
+		var fromCache = _getTemplateCache().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		arguments.html = trim( arguments.html );
+
+		var innerHtmlOnly = !FindNoCase( "</html>", arguments.html );
+
+		// special cases of widget which only consist of a table cell or row without a wrapping table tag
+		// jsoup will remove the TD / TR tags in those cases, therefore adding now and stripping after processing
+		var isHtmlTableCell = innerHtmlOnly && ReFindNoCase( "^<td[^>]*>", arguments.html );
+		var isHtmlTableRow  = innerHtmlOnly && !isHtmlTableCell && ReFindNoCase( "^<tr[^>]*>", arguments.html );
+
+		// add dummy wrapping html table and row tags to make sure jsoup parsing works as expected
+		if ( isHtmlTableCell ) {
+			arguments.html = "<table><tbody><tr id='_emailstyleinliner_wrap'>" & arguments.html & "</tr></tbody></table>";
+		}
+		else if ( isHtmlTableRow ) {
+			arguments.html = "<table><tbody id='_emailstyleinliner_wrap'>" & arguments.html & "</tbody></table>"; // tbody useful here as jsoup adds it anyway
+		}
+
+		var doc = _jsoup.parse( arguments.html );
+
+		if ( !StructKeyExists( arguments, "styles" ) ) {
+			arguments.styles = readStyles( doc );
+		}
+		var elementStyles = _getElementsWithStylesToApply( doc, arguments.styles );
 
 		for( var elementStyle in elementStyles ) {
 			elementStyle.element.attr( "style", elementStyle.style );
 		}
 
-		return doc.toString();
-	}
-
-	private any function _new( required string className ) {
-		return CreateObject( "java", arguments.className, _getLib() );
-	}
-
-	private array function _getLib() {
-		if ( !_lib.len() ) {
-			var libDir = GetDirectoryFromPath( getCurrentTemplatePath() ) & "/lib";
-			_lib = DirectoryList( libDir, false, "path", "*.jar" );
+		var result = "";
+		if ( innerHtmlOnly ) {
+			var selector = ( isHtmlTableCell || isHtmlTableRow ) ? "##_emailstyleinliner_wrap" : "body";
+			result = doc.select( selector );
+			if ( IsArray( local.result ?: "" ) && ArrayLen( result ) ) {
+				result = result[ 1 ].html();
+			} else {
+				result = doc.toString();
+			}
+		} else {
+			result = doc.toString();
 		}
-		return _lib;
+
+		_getTemplateCache().set( cacheKey, result );
+
+		return result;
 	}
 
-	private array function _readStyles( required any doc ) {
+	/**
+	 * Receives an html string or jSoup doc and returns an array
+	 * of style rules found
+	 *
+	 * @autodoc   true
+	 * @doc.hint  the original HTML, or a jSoup doc
+	 */
+	public array function readStyles( required any doc ) {
+		if ( IsSimpleValue( arguments.doc ) ) {
+			arguments.doc = _jsoup.parse( arguments.doc );
+		}
+
 		var styleElements = doc.select( "style" );
+		var cacheKey = "stylescache-" & Hash( styleElements.toString() );
+		var fromCache = _getStyleCache().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
 		var ruleDelims    = "{}";
 		var styles        = [];
 
 		for( var styleElement in styleElements ) {
-			var elementStyleRules = styleElement.getAllElements().get( 0 ).data().replaceAll( "\n", "" ).replaceAll( "\/\*.*?\*\/", "" ).trim();
+			var elementStyleRules = styleElement.getAllElements().get( 0 ).data().replaceAll( "\n", "" ).replaceAll( "\/\*.*?\*\/", "" ).reReplaceNoCase( "\@media.*?\{(.*?\})?\s*?\}", "", "all" ).trim();
 			var tokenizer         = CreateObject( "java", "java.util.StringTokenizer" ).init( elementStyleRules, ruleDelims );
 
 			while( tokenizer.countTokens() > 1 ) {
@@ -59,7 +123,7 @@ component {
 				var style    = tokenizer.nextToken();
 
 				if ( !selector.contains( ":" ) ) { // skip a:hover rules, etc.
-					style = style.reReplace( "[^;]$", ";" );
+					style = style.reReplace( "([^;])$", "\1;" );
 					var rules = style.listToArray( ";" );
 					for( var rule in rules ) {
 						rule = rule.trim();
@@ -76,11 +140,28 @@ component {
 			}
 		}
 
-		return _orderStylesBySelectorPrecedence( styles );
+		styles = _orderStylesBySelectorPrecedence( styles );
+
+		_getStyleCache().set( cacheKey, styles );
+
+		return styles;
 	}
 
-	private array function _getElementsWithStylesToApply( required any doc ) {
-		var styles        = _readStyles( doc );
+// PRIVATE HELPERS
+
+	private any function _new( required string className ) {
+		return CreateObject( "java", arguments.className, _getLib() );
+	}
+
+	private array function _getLib() {
+		if ( !_lib.len() ) {
+			var libDir = GetDirectoryFromPath( getCurrentTemplatePath() ) & "/lib";
+			_lib = DirectoryList( libDir, false, "path", "*.jar" );
+		}
+		return _lib;
+	}
+
+	private array function _getElementsWithStylesToApply( required any doc, required array styles ) {
 		var elems         = [];
 		var elemStyles    = [];
 
@@ -92,22 +173,22 @@ component {
 			}
 
 			for ( var selectedElem in selectedElements ) {
-				var index = elems.find( selectedElem );
+				var index = ArrayFind( elems, selectedElem );
 				if ( !index ) {
-					elems.append( selectedElem );
-					elemStyles.append( StructNew( "linked" ) );
-					index = elems.len();
+					ArrayAppend( elems, selectedElem );
+					ArrayAppend( elemStyles, StructNew( "linked" ) );
+					index = ArrayLen( elems );
 				}
 				var elemStyle = elemStyles[ index ];
 
 
-				if ( !elemStyle.count() ) {
-					var existingInlineStyles = selectedElem.attr( "style" ).listToArray( ";" );
+				if ( !StructCount( elemStyle ) ) {
+					var existingInlineStyles = ListToArray( selectedElem.attr( "style" ), ";" );
 					for( var existingInlineStyle in existingInlineStyles ) {
-						existingInlineStyle = existingInlineStyle.trim();
+						existingInlineStyle = Trim(  existingInlineStyle );
 						if ( existingInlineStyle.len() ) {
-							var prop  = existingInlineStyle.listFirst( ":" ).trim();
-							var value = existingInlineStyle.listRest( ":" ).trim();
+							var prop  = Trim( ListFirst( existingInlineStyle, ":" ) );
+							var value = Trim( ListRest( existingInlineStyle, ":" ) );
 
 							elemStyle[ prop ] = {
 								  value = value
@@ -117,8 +198,8 @@ component {
 					}
 				}
 
-				var prop  = style.rule.listFirst( ":" ).trim();
-				var value = style.rule.listRest( ":" ).trim();
+				var prop  = Trim( ListFirst( style.rule, ":" ) );
+				var value = Trim( ListRest( style.rule, ":" ) );
 
 				if ( !StructKeyExists( elemStyle, prop ) || _compareScores( elemStyle[ prop ].score, style.score ) == 1 ) {
 					elemStyle[ prop ] = {
@@ -133,7 +214,7 @@ component {
 		for( var elem in elemStyles ) {
 			var style = "";
 			for( var prop in elem ) {
-				style = style.listAppend( "#prop#:#elem[ prop ].value#", ";" );
+				style = ListAppend( style, "#prop#:#elem[ prop ].value#", ";" );
 			}
 
 			elems[ index ] = {
@@ -169,21 +250,21 @@ component {
 
 	private array function _scoreStylePrecedence( required string selector, required string rule ) {
 		var score          = [ 0, 0, 0, 0, 0 ];
-		var selectorTokens = selector.listToArray( " >+" );
+		var selectorTokens = ListToArray( selector," >+" );
 
 		for( var selectorToken in selectorTokens ) {
 			selectorToken = Trim( selectorToken );
 
-			if ( selectorToken.reFind( "^##" ) ) {
+			if ( ReFind( "^##", selectorToken ) ) {
 				score[ 3 ]++;
-			} else if ( selectorToken.reFind( "^\." ) ) {
+			} else if ( ReFind( "^\.", selectorToken ) ) {
 				score[ 4 ]++;
 			} else {
 				score[ 5 ]++;
 			}
 		}
 
-		if ( rule.trim().contains( "!important" ) ) {
+		if ( Trim( rule ) contains "!important" ) {
 			score[ 1 ]++;
 		}
 
@@ -192,26 +273,41 @@ component {
 
 
 	private string function _concatenateStyles( required string oldStyles, required string newStyles ) {
-		var concatenated = oldStyles.trim();
+		var concatenated = Trim( oldStyles );
 
 		if ( !concatenated.endsWith( ";" ) ) {
 			concatenated &= ";";
 		}
 
-		concatenated &= newStyles.trim();
+		concatenated &= Trim( newStyles );
 
 		return concatenated;
 	}
 
 	private string function _cleanupStyleWhiteSpace( required string style ) {
-		var cleanedUp = style.trim();
+		var cleanedUp = Trim( style );
 
-		cleanedUp = cleanedUp.reReplace( "\s{2,}", " ", "all" );
-		cleanedUp = cleanedUp.reReplace( "\s:", ":", "all" );
-		cleanedUp = cleanedUp.reReplace( ":\s", ":", "all" );
-		cleanedUp = cleanedUp.reReplace( ";$", "" );
+		cleanedUp = ReReplace( cleanedUp, "\s{2,}", " ", "all" );
+		cleanedUp = ReReplace( cleanedUp, "\s:", ":", "all" );
+		cleanedUp = ReReplace( cleanedUp, ":\s", ":", "all" );
+		cleanedUp = ReReplace( cleanedUp, ";$", "" );
 
 		return cleanedUp;
+	}
+
+// GETTERS AND SETTERS
+	private any function _getStyleCache() {
+	    return _styleCache;
+	}
+	private void function _setStyleCache( required any styleCache ) {
+	    _styleCache = arguments.styleCache;
+	}
+
+	private any function _getTemplateCache() {
+	    return _templateCache;
+	}
+	private void function _setTemplateCache( required any templateCache ) {
+	    _templateCache = arguments.templateCache;
 	}
 
 }

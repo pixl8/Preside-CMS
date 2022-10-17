@@ -34,35 +34,49 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  filterPrefix = ""
 		,          string  value        = ""
 	){
+		var prefix          = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
 		var expressionArray = filterService.getExpressionArrayForSavedFilter( arguments.value );
 		if ( !expressionArray.len() ) {
 			return [];
 		}
 		var idField = presideObjectService.getIdField( arguments.relatedTo );
-		var filter = filterService.prepareFilter(
+		var extraFilter = filterService.prepareFilter(
 			  objectName      = arguments.relatedTo
 			, expressionArray = expressionArray
 		);
-		var subQueryAlias = "manyToOneFilter" & CreateUUId().lCase().replace( "-", "", "all" );
+		var subQueryFilter = obfuscateSqlForPreside( "#arguments.relatedTo#.#idField# = #prefix#.#arguments.propertyName#" );
 		var subQuery = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
-			, selectFields        = [ "#idField# as id" ]
-			, extraFilters        = [ filter ]
+			, selectFields        = [ "1" ]
+			, extraFilters        = [ extraFilter ]
+			, filter              = subQueryFilter
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 		);
 
+		if ( !Len( arguments.parentObjectName ) || arguments.parentObjectName == arguments.objectName ) {
+			return [ {
+				  filter       = obfuscateSqlForPreside( "exists (#subQuery.sql#)" )
+				, filterParams = subQuery.params
+			}];
+		}
+
+		var outerJoin = "#arguments.parentObjectName#.#arguments.parentPropertyName#";
+		var outerIdField = presideObjectService.getIdField( arguments.objectName );
+		var outerSubQuery = presideObjectService.selectData(
+			  objectName          = arguments.objectName
+			, selectFields        = [ "1" ]
+			, filter              = obfuscateSqlForPreside( "#outerJoin#=#arguments.objectName#.#outerIdField#" )
+			, extraFilters        = [ { filter=obfuscateSqlForPreside( "exists (#subQuery.sql#)" ) }]
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
+		var params = subQuery.params;
+		StructAppend( params, outerSubQuery.params );
+
 		return [ {
-			  filter = "1=1"
-			, filterParams = subquery.params
-			, extraJoins = [{
-				  type           = "inner"
-				, subQuery       = subQuery.sql
-				, subQueryAlias  = subQueryAlias
-				, subQueryColumn = "id"
-				, joinToTable    = arguments.objectName
-				, joinToColumn   = arguments.propertyName
-			} ]
+			  filter = obfuscateSqlForPreside( "exists (#outerSubQuery.sql#)" )
+			, filterParams = params
 		}];
 	}
 

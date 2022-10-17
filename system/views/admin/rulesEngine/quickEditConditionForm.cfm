@@ -5,10 +5,17 @@
 	formId      = "addForm-" & CreateUUId();
 	conditionId = rc.id ?: "";
 	isFilter    = Len( Trim( prc.record.filter_object ?: "" ) );
-	formName    = "preside-objects.rules_engine_condition.admin.quickedit" & ( isFilter ? ".filter" : "" );
+	isLocked    = IsTrue( prc.record.is_locked ?: "" );
+	formName    = prc.formName ?: "";
 </cfscript>
 
 <cfoutput>
+	<cfif isLocked>
+		#renderView(
+			  view = "/admin/datamanager/rules_engine_condition/_lockedMessage"
+			, args = { record=prc.record }
+		)#
+	</cfif>
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-edit-form" method="post" action="#args.addRecordAction#">
 		<input name="id" type="hidden" value="#conditionId#">
 

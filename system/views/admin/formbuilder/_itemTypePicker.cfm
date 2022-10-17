@@ -1,4 +1,8 @@
-<cfset itemTypesByCategory = args.itemTypesByCategory ?: [] />
+<cfscript>
+	itemTypesByCategory = args.itemTypesByCategory ?: [];
+	formId              = args.formId              ?: "";
+	itemConfigUrl       = event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype={type}&formId=#formId#' );
+</cfscript>
 
 <cfoutput>
 	<div class="accordion-style2 formbuilder-item-type-picker">
@@ -12,7 +16,7 @@
 							    data-item-template="true"
 							    data-item-type="#type.id#"
 							    data-requires-configuration="#type.requiresConfiguration#"
-							    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype=#type.id#' )#"
+							    data-config-endpoint="#Replace( itemConfigUrl, '{type}', type.id )#"
 							    data-config-title="#translateResource( uri="formbuilder:itemconfig.modal.title", data=[ type.title ] )#">
 
 								<span>

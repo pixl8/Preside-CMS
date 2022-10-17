@@ -34,10 +34,10 @@ component {
 			args.rootTitle = "";
 		}
 
-		args.rootPageId=rootPageId;
+		args.rootPageId = args.rootPageId ?: rootPageId;
 
 		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
-			  rootPage          = rootPageId
+			  rootPage          = args.rootPageId
 			, depth             = args.depth ?: 3
 			, includeInactive   = event.showNonLiveContent()
 			, activeTree        = activeTree
@@ -45,7 +45,7 @@ component {
 			, isSubMenu         = true
 		);
 
-		return renderView( view="/core/navigation/subNavigation", args=args );
+		return renderView( view=( args.view ?: "/core/navigation/subNavigation" ) , args=args );
 	}
 
 	private string function htmlSiteMap( event, rc, prc, args={} ) {

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.formbuilder_question:">
+	<tab id="step1">
+		<fieldset id="step1" sortorder="10">
+			<field binding="formbuilder_question.item_type" sortorder="10" control="formbuilderItemTypePicker" nolabel="true" />
+		</fieldset>
+	</tab>
+</form>

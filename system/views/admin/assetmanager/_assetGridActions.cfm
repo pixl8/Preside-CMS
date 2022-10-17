@@ -16,7 +16,7 @@
 	</cfif>
 
 	<a class="grey" href="##move-assets-form" data-context-key="m" data-asset-id="#args.id#" data-folder-id="#args.asset_folder#" data-toggle="move-assets-dialog" data-dialog-title="#translateResource( uri='cms:assetmanager.move.single.asset.dialog.title', data=[ htmlEditFormat( args.title ) ] )#">
-		<i class="fa fa-fw fa-folder-o"></i></a>
+		<i class="fa fa-fw fa-folder"></i></a>
 
 	<cfif hasDownloadPermission>
 		<a class="green" href="#event.buildLink( assetId=args.id )#" data-context-key="w" title="#translateResource( uri="cms:assetmanager.download.asset.link", data=[ htmlEditFormat( args.title ) ] )#" target="_blank">

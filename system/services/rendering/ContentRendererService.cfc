@@ -38,21 +38,25 @@ component {
 
 // PUBLIC API METHODS
 	public any function render( required string renderer, required any data, any context="default", struct args={} ) {
-		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
-		var r        = "";
-		var rendered = arguments.data;
+		var interceptData = { content=arguments.data, renderer=arguments.renderer, context=arguments.context, args=args };
+		var renderer      = _getRenderer( name=arguments.renderer, context=arguments.context );
+
+		$announceInterception( "preRenderContent", interceptData );
 
 		if ( renderer.isChain() ) {
-			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context, args=arguments.args );
+			for( var r in renderer.getChain() ){
+				interceptData.content = this.render( renderer=r, data=interceptData.content, context=arguments.context, args=arguments.args );
 			}
-
-			return rendered;
 		} else {
 			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
 			viewletArgs.append( arguments.args, false );
-			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
+			interceptData.content = _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
+
+		$announceInterception( "postRenderContent", interceptData );
+
+		return interceptData.content;
+
 	}
 
 	public string function renderLabel(
@@ -60,27 +64,33 @@ component {
 		, required string recordId
 		,          string keyField      = "id"
 		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
-		,          array bypassTenants = []
+		,          array  bypassTenants = []
 	) {
-
+		var labelField           = _getPresideObjectService().getObjectAttribute(  arguments.objectName, "labelfield" );
 		var labelRendererService = _getLabelRendererService();
-		var selectFields = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : [ "${labelfield} as label" ]
-		var record = _getPresideObjectService().selectData(
-			  objectName         = arguments.objectName
-			, filter             = { "#keyField#"=arguments.recordId }
-			, selectFields       = selectFields
-			, allowDraftVersions = $getRequestContext().showNonLiveContent()
-			, bypassTenants     = arguments.bypassTenants
-		);
+		var selectFields         = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : ( Len( labelField ) ? [ "${labelfield} as label" ] : [] );
 
-		if ( Len( Trim( arguments.labelRenderer ) ) ) {
-			for( var r in record ) {
-				return labelRendererService.renderLabel( arguments.labelRenderer, r );
+		if ( ArrayLen( selectFields ) ) {
+			var poService       = _getPresideObjectService();
+			var escapedKeyField = poService.getDbAdapterForObject( arguments.objectName ).escapeEntity( "#arguments.objectName#.#arguments.keyField#" );
+			var record          = poService.selectData(
+				  objectName         = arguments.objectName
+				, filter             = "#escapedKeyField# = :keyField"
+				, filterParams       = { "keyField"={ type="cf_sql_varchar", value=arguments.recordId } }
+				, selectFields       = selectFields
+				, allowDraftVersions = $getRequestContext().showNonLiveContent()
+				, bypassTenants      = arguments.bypassTenants
+			);
+
+			if ( Len( Trim( arguments.labelRenderer ) ) ) {
+				for( var r in record ) {
+					return labelRendererService.renderLabel( arguments.labelRenderer, r );
+				}
 			}
-		}
 
-		if ( record.recordCount ) {
-			return record.label;
+			if ( record.recordCount ) {
+				return record.label;
+			}
 		}
 
 		return arguments.recordId;
@@ -127,6 +137,34 @@ component {
 		}
 
 		return rendered;
+	}
+
+	public string function renderEnum(
+		  required string data
+		,          string enum         = ""
+		,          string objectName   = ""
+		,          string propertyName = ""
+		,          any    context      = "default"
+		,          string recordId     = ""
+		,          string enumRenderer = ""
+	) {
+		if ( !$helpers.isEmptyString( arguments.objectName ) && !$helpers.isEmptyString( arguments.propertyName ) ) {
+			arguments.enumRenderer = $getPresideObjectService().getObjectPropertyAttribute( objectName=arguments.objectName, propertyName=arguments.propertyName, attributeName="enumRenderer", defaultValue="enumLabel" );
+		} else if ( $helpers.isEmptyString( arguments.enumRenderer ) ) {
+			arguments.enumRenderer = "enumLabel";
+		}
+
+		return this.render(
+			  renderer = arguments.enumRenderer
+			, data     = arguments.data
+			, context  = arguments.context
+			, args     = {
+				  enum         = arguments.enum
+				, objectName   = arguments.objectName
+				, propertyName = arguments.propertyName
+				, recordId     = arguments.recordId
+			  }
+		);
 	}
 
 	public string function makeContentEditable(
@@ -260,7 +298,7 @@ component {
 		return fieldAttributes.type ?: "";
 	}
 
-	public string function renderEmbeddedImages( required string richContent, string context="richeditor" ) {
+	public string function renderEmbeddedImages( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedImage   = "";
 		var renderedImage   = "";
 		var renderedContent = arguments.richContent;
@@ -299,6 +337,16 @@ component {
 					_getRenderedAssetCache().set( cacheKey, renderedImage );
 				}
 
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedImage;
+					renderedImage = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
+
 				renderedContent = Replace( renderedContent, embeddedImage.placeholder, renderedImage, "all" );
 			}
 
@@ -307,7 +355,7 @@ component {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor" ) {
+	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedAttachment   = "";
 		var renderedAttachment   = "";
 		var renderedContent = arguments.richContent;
@@ -315,7 +363,7 @@ component {
 		do {
 			embeddedAttachment = _findNextEmbeddedAttachment( renderedContent );
 
-			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) ) {
+			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) && Len( Trim( embeddedAttachment.placeholder ?: "" ) ) ) {
 				var args = Duplicate( embeddedAttachment );
 
 				args.delete( "asset" );
@@ -326,9 +374,17 @@ component {
 					, context = arguments.context
 					, args    = args
 				);
-			}
 
-			if ( Len( Trim( embeddedAttachment.placeholder ?: "" ) ) ) {
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedAttachment;
+					renderedAttachment = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
+
 				renderedContent = Replace( renderedContent, embeddedAttachment.placeholder, renderedAttachment, "all" );
 			}
 
@@ -346,7 +402,7 @@ component {
 		}
 	}
 
-	public string function renderEmbeddedWidgets( required string richContent, string context="" ) {
+	public string function renderEmbeddedWidgets( required string richContent, string context="", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedWidget      = "";
 		var renderedWidget      = "";
 		var renderedContent = arguments.richContent;
@@ -356,10 +412,20 @@ component {
 
 			if ( StructCount( embeddedWidget ) ) {
 				renderedWidget = _getWidgetsService().renderWidget(
-					  widgetId = embeddedWidget.id
-					, configJson     = embeddedWidget.configJson
-					, context        = arguments.context
+					  widgetId   = embeddedWidget.id
+					, configJson = embeddedWidget.configJson
+					, context    = arguments.context
 				);
+
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedWidget;
+					renderedWidget = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
 
 				renderedContent = Replace( renderedContent, embeddedWidget.placeholder, renderedWidget, "all" );
 			}
@@ -369,7 +435,7 @@ component {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedLinks( required string richContent ) {
+	public string function renderEmbeddedLinks( required string richContent, string postProcessor="", struct postProcessorArgs={} ) {
 		var renderedContent = arguments.richContent;
 		var embeddedLink    = "";
 		var renderedLink    = "";
@@ -399,6 +465,15 @@ component {
 			}
 
 			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedLink;
+					renderedLink = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
 				renderedContent = Replace( renderedContent, embeddedLink.placeholder, renderedLink, "all" );
 			}
 

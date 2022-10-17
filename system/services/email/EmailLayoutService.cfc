@@ -9,11 +9,17 @@ component {
 	/**
 	 * @viewletsService.inject viewletsService
 	 * @formsService.inject    formsService
+	 * @templateCache.inject   cachebox:emailTemplateCache
 	 *
 	 */
-	public any function init( required any viewletsService, required any formsService ) {
+	public any function init(
+		  required any viewletsService
+		, required any formsService
+		, required any templateCache
+	) {
 		_setViewletsService( arguments.viewletsService );
 		_setFormsService( arguments.formsService );
+		_setTemplateCache( arguments.templateCache );
 
 		_loadLayoutsFromViewlets();
 
@@ -187,6 +193,8 @@ component {
 			}
 		}
 
+		_getTemplateCache().clearAll();
+
 		return true;
 	}
 
@@ -282,5 +290,12 @@ component {
 	}
 	private void function _setFormsService( required any formsService ) {
 		_formsService = arguments.formsService;
+	}
+
+	private any function _getTemplateCache() {
+	    return _templateCache;
+	}
+	private void function _setTemplateCache( required any templateCache ) {
+	    _templateCache = arguments.templateCache;
 	}
 }

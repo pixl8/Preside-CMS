@@ -207,6 +207,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return includeQs ? currentUrl & "?" & qs : currentUrl;
 	}
 
+	public string function getAdminHomepageUrl( string siteId="" ) {
+		return getModel( "ApplicationsService" ).getAdminHomepageUrl( argumentCollection = arguments );
+	}
+
 	public void function setCurrentPresideUrlPath( required string presideUrlPath ) {
 		getRequestContext().setValue( name="_presideUrlPath", private=true, value=arguments.presideUrlPath );
 	}
@@ -331,6 +335,22 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return currentUrl.left( adminPath.len() ) == adminPath;
 	}
 
+	public string function getApiPath() {
+		var path = getController().getSetting( "rest.path" );
+
+		path = ReReplace( path, "^([^/])", "/\1" );
+		path = ReReplace( path, "([^/])$", "\1/" );
+
+		return path;
+	}
+
+	public boolean function isApiRequest() {
+		var currentUrl = getCurrentUrl();
+		var apiPath    = getApiPath();
+
+		return Left( currentUrl, Len( apiPath ) ) == apiPath;
+	}
+
 	public void function setIsDataManagerRequest() {
 		getRequestContext().setValue(
 			  name    = "_isDataManagerRequest"
@@ -360,6 +380,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		try {
 			return request._showNonLiveContent;
 		} catch( any e ) {
+			// we may get called very early in the request before this has been run.
+			// manually call it to ensure we have all the path info setup for the isAdminRequest() call, below
+			getController().getRoutingService().getCgiElement( "path_info", getRequestContext() );
+
 			if ( this.isAdminRequest() ) {
 				request._showNonLiveContent = true;
 			} else {
@@ -389,7 +413,11 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
 		event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
 
-		content reset=true type="text/html";header statusCode="401";WriteOutput( getModel( "presideRenderer" ).renderLayout() );abort;
+		content reset=true type="text/html";
+		header statusCode="401";
+		WriteOutput( getModel( "presideRenderer" ).renderLayout() );
+		getController().runEvent( event="general.requestEnd", prePostExempt=true )
+		abort;
 	}
 
 	public void function audit( userId=getAdminUserId() ) {
@@ -410,7 +438,16 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public string function getHTTPContent() {
-		return request.http.body ?: ToString( getHTTPRequestData().content );
+		if ( !StructKeyExists( request, "http" ) || !StructKeyExists( request.http, "body" ) ) {
+			request.http.body = ToString( GetHTTPRequestData().content );
+		}
+		return request.http.body;
+	}
+
+	function getHTTPHeader( required header, defaultValue="" ){
+		var headers = getHttpRequestData( false ).headers;
+
+		return headers[ arguments.header ] ?: arguments.defaultValue;
 	}
 
 	public void function initializeDatamanagerPage(
@@ -535,6 +572,13 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			inlineJs[ arguments.group ] = [];
 
 			getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
+
+			if ( Find( "/preside/system/assets/_dynamic/i18nBundle.js", rendered ) ) {
+				var languageCode = instance.i18n.getFWLanguageCode();
+				var cachebuster  = instance.i18n.getI18nJsCachebusterForAdmin();
+
+				rendered = Replace( rendered, "/preside/system/assets/_dynamic/i18nBundle.js", "/preside/system/assets/_dynamic/i18nBundle.#languageCode#.#cachebuster#.js" );
+			}
 		}
 
 		return rendered;
@@ -621,16 +665,15 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			var setting = getPageProperty( propertyName="iframe_restriction", cascading=true );
 			switch( setting ) {
 				case "allow":
-					return; // do not set any header
 				case "sameorigin":
-					arguments.value = "SAMEORIGIN";
+					arguments.value = setting;
 					break;
 				default:
 					arguments.value = "DENY";
 			}
 		}
 
-		this.setHTTPHeader( name="X-Frame-Options", value=arguments.value, overwrite=true );
+		getRequestContext().setValue( name="xframeoptions", value=UCase( arguments.value ), private=true );
 	}
 
 // FRONT END, dealing with current page
@@ -954,7 +997,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 // HTTP Header helpers
 	public string function getClientIp() {
-		var httpHeaders = getHttpRequestData().headers;
+		var httpHeaders = getHttpRequestData( false ).headers;
 		var clientIp    = httpHeaders[ "x-real-ip" ] ?: ( httpHeader[ "x-forwarded-for"] ?: cgi.remote_addr );
 
 		return Trim( ListFirst( clientIp ) );
@@ -992,9 +1035,15 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			return arguments.cache;
 		}
 
+		if ( getModel( "websiteLoginService" ).isLoggedIn() && !getModel( "featureService" ).isFeatureEnabled( "fullPageCachingForLoggedInUsers" ) ) {
+			return false;
+		}
+
 		return getModel( "featureService" ).isFeatureEnabled( "fullPageCaching" )
 		    && !event.valueExists( "fwreinit" )
+		    && !this.isBackgroundThread()
 		    && !this.isAdminRequest()
+		    && !this.isApiRequest()
 		    && !this.isAdminUser()
 		    && event.getHTTPMethod() == "GET"
 		    && !this.getCurrentUrl().reFindNoCase( "^/asset/" )
@@ -1074,6 +1123,14 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return prc._pageCacheTimeout ?: NullValue();
 	}
 
+	public void function setEmailRenderingContext( boolean value=true ) {
+		getRequestContext().setValue( name="_isEmailRenderingContext", value=arguments.value, private=true );
+	}
+
+	public boolean function isEmailRenderingContext() {
+		return getRequestContext().getValue( name="_isEmailRenderingContext", defaultValue=false, private=true );
+	}
+
 // status codes
 	public void function notFound() {
 		announceInterception( "onNotFound" );
@@ -1082,9 +1139,11 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+
 		writeOutput( contentOutput );
+		getController().runEvent( event="general.requestEnd", prePostExempt=true );
 		abort;
 	}
 
@@ -1094,10 +1153,20 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
 		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+
 		writeOutput( contentOutput );
+		getController().runEvent( event="general.requestEnd", prePostExempt=true );
 		abort;
+	}
+
+// Threading
+	public boolean function isBackgroundThread( boolean value ) {
+		if ( structKeyExists( arguments, "value" ) ) {
+			getRequestContext().setValue( name="_isBackgroundThread", value=arguments.value, private=true );
+		}
+		return getRequestContext().getValue( name="_isBackgroundThread", defaultValue=false, private=true );
 	}
 
 // REST framework

@@ -5,7 +5,9 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init() {
+	public any function init( required query dbInfo ) {
+		_setDbInfo( arguments.dbInfo );
+
 		return this;
 	}
 
@@ -213,7 +215,7 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
-	public string function getDeleteSql( 
+	public string function getDeleteSql(
 		  required string tableName
 		, required any    filter
 		,          string tableAlias = ""
@@ -234,7 +236,7 @@ component extends="BaseAdapter" {
 				, joins      = arguments.joins
 			);
 		}
-		
+
 		return sql & getClauseSql(
 			  filter     = arguments.filter
 			, tableAlias = arguments.tableAlias
@@ -301,14 +303,19 @@ component extends="BaseAdapter" {
 			sql &= " having " & arguments.having;
 		}
 
+		sql = applyOrderByAndMaxRowsSql( sql=sql, orderBy=arguments.orderBy, maxRows=arguments.maxRows, startRow=arguments.startRow );
+
+		return sql;
+	}
+
+	public string function applyOrderByAndMaxRowsSql( required string sql, string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
+		var sql = arguments.sql;
 		if ( Len( Trim ( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
 		}
-
 		if ( arguments.maxRows ) {
 			sql &= " limit " & arguments.maxRows & " offset " & arguments.startRow-1;
 		}
-
 		return sql;
 	}
 
@@ -508,6 +515,11 @@ component extends="BaseAdapter" {
 	public string function getDatabaseNameSql() {
 		return "select current_database() as db";
 	}
+
+	public string function getAllTablesSql() {
+		return "select table_name from information_schema.tables where table_type='base table' and table_schema = current_database()";
+	}
+
 
 	public string function getAllForeignKeysSql() {
 		return "select tc.table_name       as table_name

@@ -1,10 +1,15 @@
+<!---
+ * This file exists purely for backward compatibility.
+ * This just proxies the "new" admin menu system (https://presidecms.atlassian.net/browse/PRESIDECMS-2293)
+ * Exists for any systems/extensions that are referencing this file directly
+ *
+--->
 <cfoutput>
-	<cfif hasCmsPermission( "notifications.configure" )>
-		<li>
-			<a href="#event.buildAdminLink( linkTo="notifications.configure" )#">
-				<i class="fa fa-fw fa-bell"></i>
-				#translateResource( uri="cms:notifications.system.menu.title" )#
-			</a>
-		</li>
-	</cfif>
+	#renderViewlet( event="admin.layout.adminMenu", args={
+		  menuItems       = [ "notification" ]
+		, legacyViewBase  = "/deliberately/wrong/"
+		, itemRenderer    = "/admin/layout/topnav/_subitem"
+		, subItemRenderer = "/admin/layout/topnav/_subitem"
+		, itemRendererArgs = { dropdownDirection="left" }
+	} )#
 </cfoutput>

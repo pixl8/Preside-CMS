@@ -52,9 +52,9 @@ component {
 	}
 
 	private any function _getInstance() {
-		return _instance ?: NullValue();
+		return variables._instance ?: NullValue();
 	}
 	private void function _setInstance( required any instance ) {
-		_instance = arguments.instance;
+		variables._instance = arguments.instance;
 	}
 }

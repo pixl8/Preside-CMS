@@ -69,7 +69,7 @@ component singleton=true hint="I do the logic for merging two objects to make on
 		arguments.object1.meta.siteTemplates = arguments.object1.meta.siteTemplates ?: "*";
 		arguments.object2.meta.siteTemplates = arguments.object2.meta.siteTemplates ?: "*";
 
-		if ( arguments.object1.meta.siteTemplates == "*" || arguments.object2.meta.siteTemplates == "*" || !Len( Trim( arguments.object2.meta.siteTemplates  && arguments.object1.meta.siteTemplates ) ) ) {
+		if ( arguments.object1.meta.siteTemplates == "*" || arguments.object2.meta.siteTemplates == "*" || !Len( Trim( arguments.object2.meta.siteTemplates & arguments.object1.meta.siteTemplates ) ) ) {
 			return "*";
 		}
 

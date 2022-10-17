@@ -71,7 +71,6 @@ PresideRichEditor = ( function( $ ){
 				config[customDefaultConfig] = customDefaultConfigs[customDefaultConfig];
 			}
 		}
-
 		pasteFromWordDisallow = config.pasteFromWordDisallow;
 
 		CKEDITOR.on( "instanceReady", function( event ) {
@@ -79,9 +78,9 @@ PresideRichEditor = ( function( $ ){
 
 			if ( pasteFromWordDisallow.length ) {
 				event.editor.on( "afterPasteFromWord", function( event ) {
-					var filter   = event.editor.filter.clone()
-					  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue )
-					  , writer   = new CKEDITOR.htmlParser.basicWriter();
+					var filter   = new CKEDITOR.filter( event.editor, { $1: { elements: CKEDITOR.dtd, attributes: true, styles: true, classes: true } } )
+					  , writer   = new CKEDITOR.htmlParser.basicWriter()
+					  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue );
 
 					pasteFromWordDisallow.forEach( function( item ){
 						filter.disallow( item );
@@ -92,7 +91,107 @@ PresideRichEditor = ( function( $ ){
 					event.data.dataValue = writer.getHtml();
 				} );
 			}
+
+			if ( event.editor.config.disallowedContent && event.editor.config.disallowedContent.length ) {
+				event.editor.on( "paste", function( event ) {
+					var filter   = new CKEDITOR.filter( event.editor, { $1: { elements: CKEDITOR.dtd, attributes: true, styles: true, classes: true } } )
+					  , writer   = new CKEDITOR.htmlParser.basicWriter()
+					  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.data.dataValue );
+
+					filter.disallow( event.editor.config.disallowedContent );
+					filter.applyTo( fragment );
+					fragment.writeHtml( writer );
+					event.data.dataValue = writer.getHtml();
+				} );
+
+				event.editor.on( "mode", function( event ) {
+					if ( event.editor.mode == "wysiwyg" ) {
+						var filter   = new CKEDITOR.filter( event.editor, { $1: { elements: CKEDITOR.dtd, attributes: true, styles: true, classes: true } } )
+						  , writer   = new CKEDITOR.htmlParser.basicWriter()
+						  , fragment = CKEDITOR.htmlParser.fragment.fromHtml( event.editor.getData() );
+
+						filter.disallow( event.editor.config.disallowedContent );
+						filter.applyTo( fragment );
+						fragment.writeHtml( writer );
+						event.editor.setData( writer.getHtml() );
+					}
+				} );
+			}
+
 		} );
+
+
+		CKEDITOR.on( "dialogDefinition", function( event ) {
+			var dialogDefinition = event.data.definition
+			  , $parent          = $( parent.CKEDITOR.document.$ )
+			  , $dialogIframe    = $parent.find( ".cke_dialog_ui_iframe:visible, .bootbox-body > iframe:visible" )
+			  , $parentModal     = $parent.find( ".bootbox.modal:visible" )
+			  , $parentEditor    = $parent.find( ".cke_dialog:visible" )
+			  , nestedInModal    = $parentModal.length
+			  , nestedInEditor   = $parentEditor.length
+			  , originalOnShow   = dialogDefinition.onShow || function(){}
+			  , originalOnHide   = dialogDefinition.onHide || function(){}
+			  , dialogWidth      = $dialogIframe.width()
+			  , dialogHeight     = $dialogIframe.height();
+
+			if ( nestedInEditor ) {
+				dialogDefinition.onShow = function() {
+					dialogWidth  = $dialogIframe.width();
+					dialogHeight = $dialogIframe.height();
+
+					originalOnShow.call( this );
+
+					var iframeId  = this._.contents.iframe && this._.contents.iframe.undefined.domId;
+					if ( !iframeId ) return;
+
+					$parentEditor.addClass( "is-parent-dialog" );
+					$dialogIframe.width( dialogWidth+20 ).height( dialogHeight+106 );
+
+					this.move( 0, 0 );
+					this.resize( dialogWidth, dialogHeight-3 );
+
+					setTimeout( function(){
+						$( "#"+iframeId ).width( dialogWidth-2 ).height( dialogHeight-22 );
+					}, 100 );
+				}
+
+				dialogDefinition.onHide = function() {
+					dialogWidth  = $dialogIframe.width();
+					dialogHeight = $dialogIframe.height();
+
+					originalOnHide.call( this );
+
+					var iframeId  = this._.contents.iframe && this._.contents.iframe.undefined.domId;
+					if ( !iframeId ) return;
+
+					$parentEditor.removeClass( "is-parent-dialog" );
+					$dialogIframe.width( dialogWidth-20 ).height( dialogHeight-106 );
+				}
+			} else if ( nestedInModal ) {
+				dialogDefinition.onShow = function() {
+					dialogWidth  = $dialogIframe.width();
+					dialogHeight = $dialogIframe.height();
+
+					originalOnShow.call( this );
+
+					$parentModal.addClass( "is-parent-dialog" );
+
+					var iframeId  = this._.contents.iframe.undefined.domId;
+
+					this.move( 0, 0 );
+					this.resize( dialogWidth, dialogHeight-17 );
+
+					setTimeout( function(){
+						$( "#"+iframeId ).width( dialogWidth-22 ).height( dialogHeight-36 );
+					}, 100 );
+				}
+
+				dialogDefinition.onHide = function() {
+					$parentModal.removeClass( "is-parent-dialog" );
+				}
+			}
+		} );
+
 
 		this.editor = CKEDITOR.replace( elementToReplace, config );
 

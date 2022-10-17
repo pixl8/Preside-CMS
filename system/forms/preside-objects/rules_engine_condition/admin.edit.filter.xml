@@ -5,7 +5,7 @@ Rules engine condition: edit form
 This form is used for editing a rules engine condition
 -->
 <form>
-	<tab id="default">
+	<tab id="filterdefault" sortorder="10">
 		<fieldset id="default" sortorder="10">
 			<field binding="rules_engine_condition.context"        control="hidden" />
 			<field binding="rules_engine_condition.filter_object"  control="hidden" />
@@ -13,6 +13,25 @@ This form is used for editing a rules engine condition
 			<field binding="rules_engine_condition.expressions"    control="rulesEngineConditionBuilder" label="preside-objects.rules_engine_condition:field.expressions.filter.title">
 				<rule validator="rulesEngineCondition" />
 			</field>
+		</fieldset>
+	</tab>
+	<tab id="sharing" sortorder="20">
+		<fieldset id="favourites" sortorder="10">
+			<field binding="rules_engine_condition.is_favourite"                       sortorder="40" />
+			<field binding="rules_engine_condition.filter_folder"                      sortorder="50" superquickadd="true" filterby="filter_object" filterbyfield="object_name" />
+		</fieldset>
+		<fieldset id="sharing" sortorder="20">
+			<field binding="rules_engine_condition.filter_sharing_scope" control="rulesEngineFilterSharingScope" sortorder="10" defaultValue="global" required="true" />
+		</fieldset>
+		<fieldset id="group-filter" sortorder="30">
+			<field binding="rules_engine_condition.user_groups" sortorder="10" objectFilters="myAdminGroups" />
+			<field binding="rules_engine_condition.allow_group_edit" sortorder="20" />
+		</fieldset>
+	</tab>
+	<tab id="locking" sortorder="20">
+		<fieldset id="locking" sortorder="10">
+			<field binding="rules_engine_condition.is_locked" />
+			<field binding="rules_engine_condition.locked_reason" control="textarea" />
 		</fieldset>
 	</tab>
 </form>

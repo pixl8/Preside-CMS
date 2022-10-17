@@ -2,6 +2,7 @@
 	assetId      = rc.asset                  ?: "";
 	asset        = prc.asset                 ?: StructNew();
 	assetType    = prc.assetType             ?: QueryNew( "" );
+	accept       = prc.accept                ?: assetType.mimeType;
 	versions     = prc.versions              ?: QueryNew( "" );
 	isImageAsset = prc.isImageAsset          ?: false;
 	failedQueue  = prc.latestFailedQueueItem ?: QueryNew( '' );
@@ -74,7 +75,7 @@
 			#renderFormControl(
 				  name    = "file"
 				, type    = "fileupload"
-				, accept  = assetType.mimetype
+				, accept  = accept
 				, context = "admin"
 				, id      = "upload-version-file"
 				, label   = "cms:assetmanager.newversion.form.file.label"

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="default">
+		<fieldset id="default">
+			<field name="condition_name" control="readonly" required="false" />
+			<field binding="rules_engine_condition.expressions" sortorder="15" control="rulesEngineFilterBuilder" label="preside-objects.rules_engine_condition:field.expressions.filter.title" readonly="true" required="false" />
+		</fieldset>
+
+		<fieldset id="definition" deleted="true" />
+	</tab>
+	<tab id="locking" deleted="true"/>
+</form>

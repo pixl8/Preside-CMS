@@ -1,6 +1,7 @@
 component {
 	property name="applicationReloadService"      inject="applicationReloadService";
-	property name="databaseMigrationService"      inject="databaseMigrationService";
+	property name="coreDatabaseMigrationService"  inject="coreDatabaseMigrationService";
+	property name="appDatabaseMigrationService"   inject="appDatabaseMigrationService";
 	property name="applicationsService"           inject="applicationsService";
 	property name="websiteLoginService"           inject="websiteLoginService";
 	property name="adminLoginService"             inject="loginService";
@@ -43,6 +44,11 @@ component {
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
+		_setLocale( argumentCollection = arguments );
+	}
+
+	public void function requestEnd( event, rc, prc ) {
+		_setXFrameOptionsHeader( argumentCollection = arguments );
 	}
 
 	public void function notFound( event, rc, prc ) {
@@ -101,8 +107,9 @@ component {
 			return;
 		}
 
-		var reloadPassword = getSetting( name="reinitPassword", defaultValue="true" );
-		var devSettings    = getSetting( name="developerMode" , defaultValue=false );
+		var reloadPassword      = getSetting( name="reinitPassword",      defaultValue="true" );
+		var devSettings         = getSetting( name="developerMode" ,      defaultValue=false );
+		var disableMajorReloads = getSetting( name="disableMajorReloads", defaultValue=false );
 
 		if ( IsBoolean( devSettings ) ) {
 			devSettings = {
@@ -129,27 +136,31 @@ component {
 		}
 
 		lock type="exclusive" timeout="10" name="#Hash( ExpandPath( '/' ) )#-application-reloads" {
+
+
+			if ( !disableMajorReloads ) {
+				if ( devSettings.dbSync or ( event.valueExists( "fwReinitDbSync" ) and Hash( rc.fwReinitDbSync ) eq reloadPassword ) ) {
+					applicationReloadService.reloadPresideObjects();
+					applicationReloadService.dbSync();
+					anythingReloaded = true;
+				} else if ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
+					applicationReloadService.reloadPresideObjects();
+					anythingReloaded = true;
+				}
+
+				if ( devSettings.reloadPageTypes or ( event.valueExists( "fwReinitPageTypes" ) and Hash( rc.fwReinitPageTypes ) eq reloadPassword ) ) {
+					applicationReloadService.reloadPageTypes();
+					anythingReloaded = true;
+				}
+			}
+
 			if ( devSettings.flushCaches or ( event.valueExists( "fwReinitCaches" ) and Hash( rc.fwReinitCaches ) eq reloadPassword ) ) {
 				applicationReloadService.clearCaches();
 				anythingReloaded = true;
 			}
 
-			if ( devSettings.dbSync or ( event.valueExists( "fwReinitDbSync" ) and Hash( rc.fwReinitDbSync ) eq reloadPassword ) ) {
-				applicationReloadService.reloadPresideObjects();
-				applicationReloadService.dbSync();
-				anythingReloaded = true;
-			} else if ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
-				applicationReloadService.reloadPresideObjects();
-				anythingReloaded = true;
-			}
-
 			if ( devSettings.reloadWidgets or ( event.valueExists( "fwReinitWidgets" ) and Hash( rc.fwReinitWidgets ) eq reloadPassword ) ) {
 				applicationReloadService.reloadWidgets();
-				anythingReloaded = true;
-			}
-
-			if ( devSettings.reloadPageTypes or ( event.valueExists( "fwReinitPageTypes" ) and Hash( rc.fwReinitPageTypes ) eq reloadPassword ) ) {
-				applicationReloadService.reloadPageTypes();
 				anythingReloaded = true;
 			}
 
@@ -193,8 +204,22 @@ component {
 		}
 	}
 
+	private void function _setLocale( event, rc, prc ) {
+		SetLocale( getModel( "i18n" ).getFwLocale() );
+	}
+
 	private void function _performDbMigrations() {
-		databaseMigrationService.migrate();
+		coreDatabaseMigrationService.migrate();
+		appDatabaseMigrationService.doMigrations();
+		createTask(
+			  event             = "general._performAsyncDbMigrations"
+			, runIn             = CreateTimespan( 0, 0, 1, 0 ) // one minute, at least
+			, discardOnComplete = true
+		);
+	}
+
+	private void function _performAsyncDbMigrations() {
+		appDatabaseMigrationService.doMigrations( async=true );
 	}
 
 	private void function _populateDefaultLanguages() {
@@ -270,6 +295,13 @@ component {
 
 			var rules = presideFieldRuleGenerator.generateRulesFromPresideObject( objName );
 			validationEngine.newRuleset( name="PresideObject.#objName#", rules=rules );
+		}
+	}
+
+	private void function _setXFrameOptionsHeader( event, rc, prc ) {
+		var xframeOptions = prc.xframeoptions ?: "DENY";
+		if ( xframeOptions != "ALLOW" ) {
+			event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
 		}
 	}
 }

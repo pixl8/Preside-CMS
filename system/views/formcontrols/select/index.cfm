@@ -4,6 +4,7 @@
 	inputClass              = args.class                   ?: "";
 	placeholder             = args.placeholder             ?: "";
 	defaultValue            = args.defaultValue            ?: "";
+	savedValue              = args.savedValue              ?: "";
 	multiple                = args.multiple                ?: false;
 	sortable                = args.sortable                ?: "";
 	deselectable            = args.deselectable            ?: true;
@@ -23,11 +24,15 @@
 		value = "";
 	}
 
+	if ( !len( value ) ) {
+		value = savedValue;
+	}
+
 	if ( !deselectable ) {
 		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
 	}
 
-	value = HtmlEditFormat( value );
+	value      = htmlEditFormat( value );
 	valueFound = false;
 </cfscript>
 
@@ -48,10 +53,11 @@
 			<option value=""></option>
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
-			<cfset selected   = ListFindNoCase( value, selectValue ) />
-			<cfset valueFound = valueFound || selected />
-			<option value="#HtmlEditFormat( selectValue )#"<cfif selected> selected="selected"</cfif>>
-				#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
+			<cfset selectValue = htmlEditFormat( selectValue ) />
+			<cfset selected    = listFindNoCase( value, selectValue ) />
+			<cfset valueFound  = valueFound || selected />
+			<option value="#selectValue#"<cfif selected> selected="selected"</cfif>>
+				#htmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 			</option>
 		</cfloop>
 		<cfif value.len() && !valueFound && addMissingValues>

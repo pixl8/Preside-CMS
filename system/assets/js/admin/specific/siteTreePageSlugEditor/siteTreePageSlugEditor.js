@@ -6,10 +6,10 @@
 		  , $parentInput   = $editor.parents( "form" ).find( "input[name='parent_page']" )
 		  , parentFetchUrl = $editor.siblings( "input[name='parent_slug_ajax']" ).val();
 
-		$slugPreview.html( $editor.val() );
+		$slugPreview.text( $editor.val() );
 
 		$editor.on( "keyup", function(){
-			$slugPreview.html( $editor.val() );
+			$slugPreview.text( $editor.val() );
 		} );
 
 		if ( $parentInput.length ) {
@@ -17,8 +17,8 @@
 				$.ajax({
 					  url     : parentFetchUrl
 					, method  : "GET"
-					, data    : "parent_page=" + $parentInput.val()
-					, success : function( data ){ $parentPreview.html( data ); }
+					, data    : { parent_page: $parentInput.val(), _sid: cfrequest._sid }
+					, success : function( data ){ $parentPreview.text( data ); }
 				});
 			} );
 		}
