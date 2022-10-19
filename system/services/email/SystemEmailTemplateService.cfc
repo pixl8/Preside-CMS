@@ -5,9 +5,10 @@
  *
  */
 component {
+	property name="emailTemplateService" inject="delayedInjector:emailTemplateService";
 
 	/**
-	 * @configuredTemplates.inject coldbox:setting:email.templates
+	 * @configuredTemplates.inject  coldbox:setting:email.templates
 	 */
 	public any function init( required struct configuredTemplates ) {
 		_setConfiguredTemplates( arguments.configuredTemplates );
@@ -53,6 +54,28 @@ component {
 	 */
 	public boolean function templateExists( required string template ) {
 		return StructKeyExists( _getConfiguredTemplates(), arguments.template );
+	}
+
+	/**
+	 * Reset the provided system email template
+	 *
+	 * @autodoc  true
+	 * @template The ID of the template to reset
+	 *
+	 */
+	public void function resetTemplate( required string template ) {
+		emailTemplateService.saveTemplate(
+			  id       = arguments.template
+			, template = {
+				  name            = $translateResource( uri="email.template.#arguments.template#:title", defaultValue=arguments.template )
+				, layout          = getDefaultLayout( arguments.template )
+				, subject         = getDefaultSubject( arguments.template )
+				, html_body       = getDefaultHtmlBody( arguments.template )
+				, text_body       = getDefaultTextBody( arguments.template )
+				, recipient_type  = getRecipientType( arguments.template )
+				, is_system_email = true
+			}
+		);
 	}
 
 	/**
@@ -318,6 +341,16 @@ component {
 		var templates = _getConfiguredTemplates();
 
 		return templates[ arguments.template ].recipientType ?: "anonymous";
+	}
+
+	public boolean function bodyIsDifferentWithDefault( required string template ) {
+		var templateDetail = emailTemplateService.getTemplate( id=arguments.template );
+		var savedHtml      = templateDetail.html_body ?: "";
+		var savedText      = templateDetail.text_body ?: "";
+		var defaultHtml    = getDefaultHtmlBody( template=arguments.template );
+		var defaultText    = getDefaultTextBody( template=arguments.template );
+
+		return ( savedHtml != defaultHtml ) || ( savedText != defaultText );
 	}
 
 // GETTERS AND SETTERS
