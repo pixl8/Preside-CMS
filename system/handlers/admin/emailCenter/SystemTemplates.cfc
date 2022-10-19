@@ -52,6 +52,27 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function reset( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+		var version    = Val( rc.version ?: "" );
+
+		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, version=version );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		prc.previewCurrent = emailTemplateService.previewTemplate( template=templateId, allowDrafts=true, version=version );
+		prc.previewDefault = emailTemplateService.previewTemplate( template=templateId, allowDrafts=true, version=version, useDefaultContent=true );
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.reset.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.reset.page.subTitle", data=[ prc.template.name ] );
+		prc.cancelLink   = event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & templateId );
+
+		event.addAdminBreadCrumb( title=prc.template.name, link=event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & templateId ) );
+		event.addAdminBreadCrumb( title=translateResource( uri="cms:emailcenter.systemTemplates.reset.breadcrumb.title" ), link="" );
+	}
+
 	public void function edit( event, rc, prc ) {
 		var templateId = rc.template ?: "";
 		var version    = Val( rc.version ?: "" );
@@ -324,5 +345,16 @@ component extends="preside.system.base.AdminHandler" {
 		args.canConfigureLayout = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.systemtemplates.configureLayout" );
 
 		return renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args=args );
+	}
+
+	private string function _templateActions( event, rc, prc, args={} ) {
+		var template = rc.template ?: "";
+		if ( isEmptyString( template ) ) {
+			event.notFound();
+		}
+
+		args.contentHasDiff = systemEmailTemplateService.bodyIsDifferentWithDefault( template=template );
+
+		return renderView( view="/admin/emailcenter/systemtemplates/_templateActions", args=args );
 	}
 }

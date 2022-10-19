@@ -343,6 +343,16 @@ component {
 		return templates[ arguments.template ].recipientType ?: "anonymous";
 	}
 
+	public boolean function bodyIsDifferentWithDefault( required string template ) {
+		var templateDetail = emailTemplateService.getTemplate( id=arguments.template );
+		var savedHtml      = templateDetail.html_body ?: "";
+		var savedText      = templateDetail.text_body ?: "";
+		var defaultHtml    = getDefaultHtmlBody( template=arguments.template );
+		var defaultText    = getDefaultTextBody( template=arguments.template );
+
+		return ( savedHtml != defaultHtml ) || ( savedText != defaultText );
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTemplates() {
 		return _configuredTemplates;

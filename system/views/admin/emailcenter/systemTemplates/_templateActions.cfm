@@ -1,19 +1,19 @@
 <cfscript>
 	template = rc.template ?: "";
 
-	canPublish = hasCmsPermission( "emailcenter.systemtemplates.publish" );
+	canPublish     = hasCmsPermission( "emailcenter.systemtemplates.publish" );
+	contentHasDiff = args.contentHasDiff ?: false;
 
-	if ( canPublish ) {
-		resetLink   = event.buildAdminLink( linkTo="emailcenter.systemTemplates.resetAction", queryString="template=#template#" );
+	if ( canPublish && contentHasDiff ) {
+		resetLink   = event.buildAdminLink( linkTo="emailcenter.systemTemplates.reset", queryString="template=#template#" );
 		resetButton = translateResource( uri="cms:emailcenter.systemTemplates.reset.btn" );
-		resetPrompt = translateResource( uri="cms:emailcenter.systemTemplates.reset.btn.prompt", data=[ prc.template.name ?: "" ] );
 	}
 </cfscript>
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<cfif canPublish>
-			<a class="pull-right btn btn-warning btn-sm inline confirmation-prompt" href="#resetLink#" title="#resetPrompt#">
+		<cfif canPublish && contentHasDiff>
+			<a class="pull-right btn btn-warning btn-sm inline" href="#resetLink#">
 				<i class="fa fa-fw fa-refresh"></i> #resetButton#
 			</a>
 		</cfif>

@@ -1182,17 +1182,19 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service    = _getService();
 				var mockResult = { test=CreateUUId() };
 				var args       = {
-					  template         = CreateUUId()
-					, previewRecipient = CreateUUId()
-					, version          = 34598
+					  template          = CreateUUId()
+					, previewRecipient  = CreateUUId()
+					, version           = 34598
+					, useDefaultContent = false
 				};
 
 				service.$( "prepareMessage" ).$args(
-					  template    = args.template
-					, args        = {}
-					, recipientId = args.previewRecipient
-					, isPreview   = true
-					, version     = args.version
+					  template          = args.template
+					, args              = {}
+					, recipientId       = args.previewRecipient
+					, isPreview         = true
+					, version           = args.version
+					, useDefaultContent = args.useDefaultContent
 				).$results( mockResult );
 
 				expect( service.previewTemplate( argumentCollection=args) ).toBe( mockResult );
