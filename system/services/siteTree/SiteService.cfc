@@ -15,15 +15,17 @@ component displayname="Site service" {
 	 * @sessionStorage.inject        sessionStorage
 	 * @permissionService.inject     permissionService
 	 * @coldbox.inject               coldbox
-	 *
+	 * @defaultSiteProtocol.inject   coldbox:setting:defaultSiteProtocol
+	 * 
 	 */
-	public any function init( required any siteDao, required any siteAliasDomainDao, required any siteRedirectDomainDao, required any sessionStorage, required any permissionService, required any coldbox ) output=false {
+	public any function init( required any siteDao, required any siteAliasDomainDao, required any siteRedirectDomainDao, required any sessionStorage, required any permissionService, required any coldbox, required string defaultSiteProtocol ) output=false {
 		_setSiteDao( arguments.siteDao );
 		_setSiteRedirectDomainDao( arguments.siteRedirectDomainDao );
 		_setSiteAliasDomainDao( arguments.siteAliasDomainDao );
 		_setSessionStorage( arguments.sessionStorage );
 		_setPermissionService( arguments.permissionService );
 		_setColdbox( arguments.coldbox );
+		_setDefaultSiteProtocol( arguments.defaultSiteProtocol );
 
 		if ( $isFeatureEnabled( "sites" ) ) {
 			ensureDefaultSiteExists();
@@ -176,11 +178,11 @@ component displayname="Site service" {
 	 * Ensures that at least one site is registered with the system, called internally
 	 * before checking valid routes
 	 */
-	public void function ensureDefaultSiteExists() output=false autodoc=true {
+	public void function ensureDefaultSiteExists() output=true autodoc=true {
 		transaction {
 			if ( !_getSiteDao().dataExists( useCache=false ) ) {
 				_getSiteDao().insertData( useVersioning = false, data = {
-					  protocol      = "http"
+					  protocol      = _getDefaultSiteProtocol()
 					, domain        = cgi.server_name ?: "127.0.0.1"
 					, path          = "/"
 					, name          = "Default site"
@@ -302,5 +304,13 @@ component displayname="Site service" {
 	}
 	private void function _setSiteRedirectDomainDao( required any siteRedirectDomainDao ) output=false {
 		_siteRedirectDomainDao = arguments.siteRedirectDomainDao;
+	}
+
+	private void function _setDefaultSiteProtocol( required string defaultSiteProtocol ) output=false {
+		_defaultSiteProtocol = arguments.defaultSiteProtocol;
+	}
+
+	private string function _getDefaultSiteProtocol() output=false {
+		return _defaultSiteProtocol;
 	}
 }

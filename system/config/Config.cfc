@@ -754,6 +754,7 @@ component {
 		// admin applications with the 'site' feature disabled
 		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
 		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
+		settings.defaultSiteProtocol = settings.defaultSiteProtocol ?: ( settings.env.DEFAULT_SITE_PROTOCOL ?: _getCurrentProtocol() );
 	}
 
 	private void function __setupAssetManager() {
@@ -1412,5 +1413,39 @@ component {
 		var applicationSettings = getApplicationSettings();
 
 		return IsBoolean( applicationSettings.presideSessionManagement ?: "" ) && applicationSettings.presideSessionManagement;
+	}
+
+	/**
+	 * returns protocol based just like isSSL() in 
+	 * system.externals.coldbox.system.web.context.RequestContext.cfc
+	 */
+	private string function _getCurrentProtocol() {
+		if( isBoolean( cgi.server_port_secure ) && cgi.server_port_secure ){
+			return 'https';
+		}
+		// Add typical proxy headers for SSL
+		if( _getHTTPHeader( "x-forwarded-proto", "http" ) == "https" ){
+			return 'https';
+		}
+		if( _getHTTPHeader( "x-scheme", "http" ) == "https" ){
+			return 'https';
+		}
+		// cgi.https
+		if( cgi.keyExists( "https" ) && cgi.https == "on" ){
+			return 'https';
+		}
+		
+		return 'http';
+	}
+
+	private string function _getHTTPHeader( required header, defaultValue="" ){
+		var headers = getHttpRequestData().headers;
+
+		// ADOBE FIX YOUR ISNULL BS
+		if( headers.keyExists( arguments.header ) ){
+			return headers[ arguments.header ];
+		}
+
+		return arguments.defaultValue;
 	}
 }
