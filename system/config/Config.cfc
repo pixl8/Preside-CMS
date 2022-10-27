@@ -1426,23 +1426,16 @@ component {
 		if( StructKeyExists( cgi, "https" ) && cgi.https == "on" ){
 			return "https";
 		}
-		if( _getHTTPHeader( "x-forwarded-proto", "http" ) == "https" ){
+
+		var headers = getHttpRequestData( false ).headers;
+
+		if( ( headers[ "x-forwarded-proto" ] ?: "" ) == "https" ){
 			return "https";
 		}
-		if( _getHTTPHeader( "x-scheme", "http" ) == "https" ){
+		if( ( headers[ "x-scheme" ] ?: "" ) == "https" ){
 			return "https";
 		}
 
 		return "http";
-	}
-
-	private string function _getHTTPHeader( required header, defaultValue="" ){
-		var headers = getHttpRequestData().headers;
-
-		if( StructKeyExists( arguments.header ) ) {
-			return headers[ arguments.header ];
-		}
-
-		return arguments.defaultValue;
 	}
 }
