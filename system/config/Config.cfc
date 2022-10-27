@@ -1421,28 +1421,25 @@ component {
 	 */
 	private string function _getCurrentProtocol() {
 		if( isBoolean( cgi.server_port_secure ) && cgi.server_port_secure ){
-			return 'https';
+			return "https";
 		}
-		// Add typical proxy headers for SSL
+		if( StructKeyExists( cgi, "https" ) && cgi.https == "on" ){
+			return "https";
+		}
 		if( _getHTTPHeader( "x-forwarded-proto", "http" ) == "https" ){
-			return 'https';
+			return "https";
 		}
 		if( _getHTTPHeader( "x-scheme", "http" ) == "https" ){
-			return 'https';
+			return "https";
 		}
-		// cgi.https
-		if( cgi.keyExists( "https" ) && cgi.https == "on" ){
-			return 'https';
-		}
-		
-		return 'http';
+
+		return "http";
 	}
 
 	private string function _getHTTPHeader( required header, defaultValue="" ){
 		var headers = getHttpRequestData().headers;
 
-		// ADOBE FIX YOUR ISNULL BS
-		if( headers.keyExists( arguments.header ) ){
+		if( StructKeyExists( arguments.header ) ) {
 			return headers[ arguments.header ];
 		}
 
