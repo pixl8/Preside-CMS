@@ -754,6 +754,7 @@ component {
 		// admin applications with the 'site' feature disabled
 		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
 		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
+		settings.defaultSiteProtocol = settings.defaultSiteProtocol ?: ( settings.env.DEFAULT_SITE_PROTOCOL ?: _getCurrentProtocol() );
 	}
 
 	private void function __setupAssetManager() {
@@ -1415,5 +1416,29 @@ component {
 		var applicationSettings = getApplicationSettings();
 
 		return IsBoolean( applicationSettings.presideSessionManagement ?: "" ) && applicationSettings.presideSessionManagement;
+	}
+
+	/**
+	 * returns protocol based just like isSSL() in 
+	 * system.externals.coldbox.system.web.context.RequestContext.cfc
+	 */
+	private string function _getCurrentProtocol() {
+		if( isBoolean( cgi.server_port_secure ) && cgi.server_port_secure ){
+			return "https";
+		}
+		if( StructKeyExists( cgi, "https" ) && cgi.https == "on" ){
+			return "https";
+		}
+
+		var headers = getHttpRequestData( false ).headers;
+
+		if( ( headers[ "x-forwarded-proto" ] ?: "" ) == "https" ){
+			return "https";
+		}
+		if( ( headers[ "x-scheme" ] ?: "" ) == "https" ){
+			return "https";
+		}
+
+		return "http";
 	}
 }

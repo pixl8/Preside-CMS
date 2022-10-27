@@ -93,6 +93,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, sessionStorage        = mockSessionStorage
 			, permissionService     = mockPermissionService
 			, coldbox               = mockColdbox
+			, defaultSiteProtocol   = 'https'
 		);
 	}
 
