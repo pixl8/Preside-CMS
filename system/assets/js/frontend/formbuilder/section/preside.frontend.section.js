@@ -2,7 +2,7 @@
 
 	$( ".formbuilder-section" ).each( function( i ) {
 		var $section  = $( this )
-		  , $formGroups = $section.nextUntil( ".formbuilder-section", ".form-group:not(:last-child)" );
+		  , $formGroups = $section.nextUntil( ".formbuilder-section", ".form-group:not(:last-child, :has(.g-recaptcha))" );
 
 		sectionToggle( $( ".formbuilder-section-heading",  $section ), $formGroups );
 
