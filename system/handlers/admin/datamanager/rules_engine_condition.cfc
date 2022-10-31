@@ -74,12 +74,42 @@ component extends="preside.system.base.AdminHandler" {
 
 
 // LISTING
-	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
-		if ( event.isDataManagerRequest() && event.getCurrentAction() == "manageFilters" ) {
-			return "filterobject=" & ( prc.objectName ?: "" );
+	private string function listingViewlet( event, rc, prc, args={} ) {
+		if ( !isTrue( args.usesTreeView ?: "" ) ) {
+			args.usesTreeView = false;
+		} else {
+			args.treeOnly = true;
 		}
 
-		return "";
+		args.objectName = "rules_engine_condition";
+
+		return renderViewlet( event="admin.datamanager._objectListingViewlet", args=args );
+	}
+
+	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
+		var qs = [];
+
+		if ( event.isDataManagerRequest() && event.getCurrentAction() == "manageFilters" ) {
+			ArrayAppend( qs, "filterobject=" & ( prc.objectName ?: "" ) );
+		}
+
+		if ( isTrue( args.usesTreeView ?: "" ) ) {
+			ArrayAppend( qs, "segmentationFilters=true" );
+		}
+
+		return ArrayToList( qs, "&" );
+	}
+
+	private string function buildGetNodesForTreeViewLink( event, rc, prc, args={} ) {
+		var qs = ListToArray( ( args.queryString ?: "" ), "&" );
+
+		ArrayAppend( qs, "object=rules_engine_condition" );
+		ArrayAppend( qs, "filterObject=#prc.objectName#" );
+
+		return event.buildAdminLink(
+			  linkTo      = "datamanager.getNodesForTreeView"
+			, queryString = ArrayToList( qs, "&" )
+		);
 	}
 
 	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
@@ -88,10 +118,20 @@ component extends="preside.system.base.AdminHandler" {
 		rulesEngineFilterService.getRulesEngineSelectArgsForEdit( args=args );
 
 		var filterObject = rc.filterObject ?: "";
+		if ( event.isDataManagerRequest() && event.getCurrentAction() == "manageFilters" ) {
+			filterObject = prc.objectName ?: "";
+		}
+
 		if ( Len( filterObject ) ) {
 			ArrayAppend( args.extraFilters, { filter = {
 				filter_object = filterObject
 			} } );
+		}
+
+		if ( IsTrue( rc.segmentationFilters ?: "" ) || IsTrue( args.treeView ?: "" ) ) {
+			ArrayAppend( args.extraFilters, { filter={ is_segmentation_filter=true } } );
+		} else {
+			ArrayAppend( args.extraFilters, { filter = "is_segmentation_filter is null or is_segmentation_filter = :is_segmentation_filter", filterParams={ is_segmentation_filter=false } } );
 		}
 	}
 
@@ -99,15 +139,17 @@ component extends="preside.system.base.AdminHandler" {
 		var record          = args.record ?: {};
 		var recordId        = record.id   ?: "";
 		var kind            = record.kind ?: "";
-		var filterObject    = rc.filterObject ?: "";
-		var operationSource = Len( filterObject ) ? "manageObjectFilters" : "rulesEngineManager";
+		var filterObject    = rc.filterObject ?: ( rc.object ?: "" );
+		var treeView        = isTrue( args.treeView ?: ( rc.segmentationFilters ?: "" ) )
+		var operationSource = treeView ? "manageSegmentationFilters" : ( Len( filterObject ) ? "manageObjectFilters" : "rulesEngineManager" );
 		var actions         = [];
+		var canAdd          = true;
 		var canEdit         = true;
 		var canClone        = true;
 		var canDelete       = true;
 
 		if ( kind == "filter" ) {
-			canEdit = canDelete = runEvent(
+			canAdd = canEdit = canDelete = runEvent(
 				  event = "admin.datamanager._checkPermission"
 				, private = true
 				, prepostExempt = true
@@ -125,6 +167,14 @@ component extends="preside.system.base.AdminHandler" {
 			canDelete = hasCmsPermission( "rulesengine.delete" );
 		}
 
+		if ( canAdd && treeView ) {
+			ArrayAppend( actions, {
+				  link       = event.buildAdminLink( linkto="datamanager.addSegmentationFilter", querystring="object=#filterObject#&parent_segmentation_filter=#recordId#" )
+				, icon       = "fa-plus"
+				, contextKey = "a"
+			} );
+		}
+
 		if ( canEdit ) {
 			ArrayAppend( actions, {
 				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="editRecord", operationSource=operationSource )
@@ -135,9 +185,18 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( canClone ) {
 			ArrayAppend( actions, {
-				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="cloneRecord" )
+				  link       = event.buildAdminLink( objectName="rules_engine_condition", recordId=recordId, operation="cloneRecord", operationSource=operationSource  )
 				, icon       = "fa-copy"
 				, contextKey = "c"
+			} );
+		}
+
+		if ( treeView && canEdit ) {
+			ArrayAppend( actions, {
+				  link   = event.buildAdminLink( linkto="datamanager.reCalculateSegmentationFilterAction", queryString="object=#filterObject#&id=#recordId#" )
+				, icon   = "fa-refresh"
+				, class  = "confirmation-prompt"
+				, title  = translateResource( uri="cms:datamanager.managefilters.recalculate.segmentation.filter.link.title" )
 			} );
 		}
 
@@ -192,9 +251,9 @@ component extends="preside.system.base.AdminHandler" {
 // BREADCRUMBS, and navigation
 	private void function objectBreadcrumb( event, rc, prc, args={} ) {
 		var operationSource = event.getAdminOperationSource();
-		var filterObject    = Trim( rc.filterObject ?: "" );
+		var filterObject    = prc.record.filter_object ?: ( rc.filterObject ?: "" );
 
-		if ( operationSource == "manageObjectFilters" && Len( filterObject ) ) {
+		if ( Len( filterObject ) && ( operationSource == "manageObjectFilters" || operationSource == "manageSegmentationFilters" ) ) {
 			customizationService.runCustomization(
 				  objectName     = filterObject
 				, action         = "objectBreadcrumb"
@@ -205,10 +264,17 @@ component extends="preside.system.base.AdminHandler" {
 				}
 			);
 
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
-				, link  = event.buildAdminLink( objectName=filterObject, operation="managefilters" )
-			);
+			if ( operationSource == "manageObjectFilters" ) {
+				event.addAdminBreadCrumb(
+					  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
+					, link  = event.buildAdminLink( objectName=filterObject, operation="managefilters" )
+				);
+			} else {
+				event.addAdminBreadCrumb(
+					  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
+					, link  = event.buildAdminLink( objectName=filterObject, operation="managefilters", queryString="tab=segmentation" )
+				);
+			}
 		} else {
 			event.addAdminBreadCrumb(
 				  title = prc.objectTitlePlural
@@ -219,10 +285,15 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function buildListingLink( event, rc, prc, args={} ) {
 		var operationSource = event.getAdminOperationSource();
-		var filterObject    = Trim( rc.filterObject ?: "" );
+		var filterObject    = prc.record.filter_object ?: ( rc.filterObject ?: "" );
 
-		if ( operationSource == "manageObjectFilters" && Len( filterObject ) ) {
-			return event.buildAdminLink( objectName=filterObject, operation="manageFilters" );
+		if ( Len( filterObject ) ) {
+			if ( operationSource == "manageObjectFilters" ) {
+				return event.buildAdminLink( objectName=filterObject, operation="manageFilters" );
+
+			} else if ( operationSource == "manageSegmentationFilters" ) {
+				return event.buildAdminLink( objectName=filterObject, operation="manageFilters", queryString="tab=segmentation" );
+			}
 		}
 
 		return event.buildAdminLink(
@@ -257,7 +328,11 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function buildCloneRecordLink( event, rc, prc, args={} ) {
-		return event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString="id=#args.recordId#" )
+		var qs = ListToArray( args.queryString ?: "" );
+
+		ArrayAppend( qs, "id=#args.recordId#" );
+
+		return event.buildAdminLink( linkTo="rulesEngine.cloneCondition", queryString=ArrayToList( qs, "&" ) );
 	}
 
 
@@ -287,7 +362,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-// ADDING RECORDS
+// ADDING/EDITING/CLONING RECORDS
 	private void function preRenderAddRecordForm() {
 		var contextId = rc.context ?: "";
 		var contexts  = rulesEngineContextService.listContexts();
@@ -420,6 +495,60 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	private void function postAddRecordAction( event, rc, prc, args={} ) {
+		if ( IsTrue( args.formData.is_segmentation_filter ?: "" ) ) {
+			var newId = args.newId ?: "";
+
+			rulesEngineFilterService.recalculateSegmentationFilterData(
+				  filterId            = newId
+				, recalculateChildren = false
+			);
+		}
+	}
+
+	private void function postEditRecordAction( event, rc, prc, args={} ) {
+		var filterChanged = Trim( args.existingRecord.expressions ?: "" ) != Trim( args.formData.expressions ?: "" );
+
+		if ( filterChanged ) {
+			createTask(
+				  event             = "admin.datamanager.reCalculateSegmentationFilterInBgThread"
+				, runNow            = true
+				, discardOnComplete = true
+				, args              = { id=args.recordId ?: "" }
+			);
+		}
+	}
+
+	private void function postCloneRecordAction( event, rc, prc, args={} ) {
+		if ( IsTrue( args.formData.is_segmentation_filter ?: "" ) ) {
+			var oldId = args.recordId ?: "";
+			var newId      = args.newId ?: "";
+			if ( isTrue( rc.clone_children ?: "" ) ) {
+				var resultUrl = event.buildAdminLink( objectName=args.formData.filter_object, operation="manageFilters", queryString="tab=segmentation" );
+				var taskId = createTask(
+					  event                = "admin.rulesEngine.cloneChildrenInBgThread"
+					, runNow               = true
+					, adminOwner           = event.getAdminUserId()
+					, title                = "cms:datamanager.managefilters.clone.children.task.title"
+					, returnUrl            = resultUrl
+					, resultUrl            = resultUrl
+					, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
+					, args                 = { oldId=oldId, newId=newId }
+				);
+
+				setNextEvent( url=event.buildAdminLink(
+					  linkTo      = "adhoctaskmanager.progress"
+					, queryString = "taskId=" & taskId
+				) );
+			}  else {
+				rulesEngineFilterService.recalculateSegmentationFilterData(
+					  filterId            = newId
+					, recalculateChildren = false
+				);
+			}
+		}
+	}
+
 // EDITING RECORDS
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
 		var formName = "";
@@ -427,7 +556,13 @@ component extends="preside.system.base.AdminHandler" {
 		if ( Len( Trim( prc.record.filter_object ?: "" ) ) ) {
 			rc.filter_object = prc.record.filter_object ?: "";
 			event.include( "/js/admin/specific/saveFilterForm/" );
-			formName = "preside-objects.rules_engine_condition.admin.edit.filter";
+
+			if ( isTrue( prc.record.is_segmentation_filter ?: "" ) ) {
+				formName = "preside-objects.rules_engine_condition.admin.edit.segmentation.filter";
+			} else {
+				formName = "preside-objects.rules_engine_condition.admin.edit.filter";
+			}
+
 		} else {
 			rc.context = prc.record.context ?: "";
 			formName = "preside-objects.rules_engine_condition.admin.edit";
@@ -443,7 +578,17 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
-		if ( IsTrue( args.record.is_locked ?: "" ) ) {
+		if ( isTrue( prc.record.is_segmentation_filter ?: "" ) ) {
+			args.additionalArgs = args.additionalArgs ?: {};
+			args.additionalArgs.fields = args.additionalArgs.fields ?: {};
+			args.additionalArgs.fields.parent_segmentation_filter = args.additionalArgs.fields.parent_segmentation_filter ?: {};
+
+			args.additionalArgs.fields.parent_segmentation_filter.filterObject            = prc.record.filter_object;
+			args.additionalArgs.fields.parent_segmentation_filter.segmentationFiltersOnly = true;
+			args.additionalArgs.fields.parent_segmentation_filter.excludeTree             = prc.recordId;
+		}
+
+		if ( isTrue( args.record.is_locked ?: "" ) ) {
 			args.canUnlock = hasCmsPermission( "rulesengine.unlock" );
 			if ( args.canUnlock ) {
 				args.unlockLink = event.buildAdminLink( linkto="datamanager.rules_engine_condition.unlockAction", queryString="id=#prc.recordId#" );

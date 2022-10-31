@@ -85,13 +85,30 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getFiltersForAjaxSelectControl() {
-		var filterObject  = rc.filterObject ?: "";
+		var filterObject = rc.filterObject ?: "";
+		var extraFilters = [ { filter={ "rules_engine_condition.filter_object" = filterObject } } ];
+
+		if ( isTrue( rc.segmentationFiltersOnly ?: "" ) ) {
+			extraFilters[ 1 ].filter.is_segmentation_filter = true;
+			if ( Len( Trim( rc.excludeTree ?: "" ) ) ) {
+				ArrayAppend( extraFilters, {
+					  filterParams = { exclude={ type="cf_sql_varchar", value=rc.excludeTree } }
+					, filter       = "
+						rules_engine_condition.id != :exclude
+						and ( rules_engine_condition.parent_segmentation_filter is null or rules_engine_condition.parent_segmentation_filter != :exclude )
+						and ( parent_segmentation_filter.parent_segmentation_filter is null or parent_segmentation_filter.parent_segmentation_filter != :exclude )
+						and ( parent_segmentation_filter$parent_segmentation_filter.parent_segmentation_filter is null or parent_segmentation_filter$parent_segmentation_filter.parent_segmentation_filter != :exclude )
+						and ( parent_segmentation_filter$parent_segmentation_filter$parent_segmentation_filter.parent_segmentation_filter is null or parent_segmentation_filter$parent_segmentation_filter$parent_segmentation_filter.parent_segmentation_filter != :exclude )"
+				} )
+			}
+		}
+
 		var records       = dataManagerService.getRecordsForAjaxSelect(
 			  objectName    = "rules_engine_condition"
 			, maxRows       = rc.maxRows ?: 1000
 			, searchQuery   = rc.q       ?: ""
 			, savedFilters  = [ "globalRulesEngineFilters" ]
-			, extraFilters  = [ { filter={ "rules_engine_condition.filter_object" = filterObject } } ]
+			, extraFilters  = extraFilters
 			, ids           = ListToArray( rc.values ?: "" )
 			, labelRenderer = "rules_engine_condition"
 		);
@@ -374,14 +391,8 @@ component extends="preside.system.base.AdminHandler" {
 	public void function cloneCondition( event, rc, prc, args={} ) {
 		_checkPermissions( argumentCollection=arguments, key="clone" );
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="preside-objects.rules_engine_condition:title" )
-			, link  = event.buildAdminLink( objectName="rules_engine_condition" )
-		);
-
 		var id = rc.id ?: "";
-
-		prc.record = rulesEngineConditionService.getConditionRecord( id );
+		event.initializeDatamanagerPage( "rules_engine_condition", id );
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:rulesEngine.condition.not.found.error" ) );
@@ -391,13 +402,36 @@ component extends="preside.system.base.AdminHandler" {
 		rc.context       = prc.record.context;
 		rc.filter_object = prc.record.filter_object;
 
+		prc.formName = "preside-objects.rules_engine_condition.admin.clone";
+
 		if ( Len( Trim( rc.filter_object ) ) ) {
-			prc.pageTitle    = translateResource( uri="cms:rulesEngine.clone.filter.page.title", data=[ prc.record.condition_name ] );
-			prc.pageSubTitle = translateResource( uri="cms:rulesEngine.clone.filter.page.subtitle", data=[ prc.record.condition_name ] );
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:rulesEngine.clone.filter.breadcrumb.title", data=[ prc.record.condition_name ] )
-				, link  = event.buildAdminLink( linkTo="rulesengine.cloneCondition", queryString="id=" & id )
-			);
+			if ( IsTrue( prc.record.is_segmentation_filter ) ) {
+				prc.formName &= ".segmentation.filter";
+				prc.pageTitle    = translateResource( uri="cms:rulesEngine.clone.segmentation.filter.page.title", data=[ prc.record.condition_name ] );
+				prc.pageSubTitle = translateResource( uri="cms:rulesEngine.clone.segmentation.filter.page.subtitle", data=[ prc.record.condition_name ] );
+				event.addAdminBreadCrumb(
+					  title = translateResource( uri="cms:rulesEngine.clone.segmentation.filter.breadcrumb.title", data=[ prc.record.condition_name ] )
+					, link  = event.buildAdminLink( linkTo="rulesengine.cloneCondition", queryString="id=" & id )
+				);
+
+				prc.additionalArgs = {
+					fields = {
+						parent_segmentation_filter = {
+						  	  filterObject            = prc.record.filter_object
+						  	, segmentationFiltersOnly = true
+						  	, excludeTree             = prc.recordId
+						}
+					}
+				};
+			} else {
+				prc.formName &= ".filter";
+				prc.pageTitle    = translateResource( uri="cms:rulesEngine.clone.filter.page.title", data=[ prc.record.condition_name ] );
+				prc.pageSubTitle = translateResource( uri="cms:rulesEngine.clone.filter.page.subtitle", data=[ prc.record.condition_name ] );
+				event.addAdminBreadCrumb(
+					  title = translateResource( uri="cms:rulesEngine.clone.filter.breadcrumb.title", data=[ prc.record.condition_name ] )
+					, link  = event.buildAdminLink( linkTo="rulesengine.cloneCondition", queryString="id=" & id )
+				);
+			}
 
 		} else {
 			prc.pageTitle    = translateResource( uri="cms:rulesEngine.clone.condition.page.title", data=[ prc.record.condition_name ] );
@@ -413,17 +447,22 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="clone" );
 
 		var conditionId = rc.id ?: "";
-		var object      = "rules_engine_condition";
-		var formName    = "preside-objects.#object#.admin.clone";
-		var formData    = event.getCollectionForForm( formName );
+
+		event.initializeDatamanagerPage( "rules_engine_condition", conditionId );
+
+		var object   = "rules_engine_condition";
+		var formName = "preside-objects.rules_engine_condition.admin.clone";
+
+		if ( Len( prc.record.filter_object ) ) {
+			if ( isTrue( prc.record.is_segmentation_filter ) ) {
+				formName &= ".segmentation.filter";
+			} else {
+				formName &= ".filter";
+			}
+		}
 
 		if ( Len( Trim( rc.context ?: "" ) ) ) {
 			rc.filter_object = "";
-		}
-
-		if ( !Len( Trim( prc.objectTitle ?: "" ) ) ) {
-			var objectRootUri = presideObjectService.getResourceBundleUriRoot( object );
-			prc.objectTitle   = translateResource( uri=objectRootUri & "title.singular", defaultValue=object );
 		}
 
 		runEvent(
@@ -439,6 +478,23 @@ component extends="preside.system.base.AdminHandler" {
 				, auditAction   = "clone_rules_engine_condition"
 			}
 		);
+	}
+
+	private boolean function cloneChildrenInBgThread( event, rc, prc, args={}, logger, progress ) {
+		rulesEngineFilterService.cloneFilterChildren(
+			  sourceId = ( args.oldId ?: "" )
+			, targetId = ( args.newId ?: "" )
+			, logger   = arguments.logger   ?: NullValue()
+			, progress = arguments.progress ?: NullValue()
+		);
+
+		rulesEngineFilterService.recalculateSegmentationFilterData(
+			  filterId            = args.newId ?: ""
+			, recalculateChildren = true
+			, logger              = arguments.logger
+		);
+
+		return true;
 	}
 
 	public void function downloadFilterExpressions( event, rc, prc ) {
@@ -468,9 +524,14 @@ component extends="preside.system.base.AdminHandler" {
 	private string function dataGridFavourites( event, rc, prc, args ) {
 		var objectName = args.objectName ?: "";
 
+		if ( rulesEngineFilterService.objectSupportsSegmentationFilters( objectName ) ) {
+			args.segmentationFilters =  rulesEngineFilterService.getSegmentationFiltersForFavourites( objectName );
+		} else {
+			args.segmentationFilters = [];
+		}
 		args.favourites          = rulesEngineFilterService.getFavourites( objectName );
 		args.nonFavouriteFilters = rulesEngineFilterService.getNonFavouriteFilters( objectName );
-		args.noSavedFilters      = ( args.nonFavouriteFilters.recordCount + args.favourites.recordCount ) == 0;
+		args.noSavedFilters      = ( args.nonFavouriteFilters.recordCount + args.favourites.recordCount + ArrayLen( args.segmentationFilters ) ) == 0;
 
 		if ( args.noSavedFilters ) {
 			args.canManageFilters = runEvent(

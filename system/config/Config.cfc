@@ -880,6 +880,7 @@ component {
 			, adhocTaskHeartBeat       = { enabled=true , siteTemplates=[ "*" ] }
 			, taskmanagerHeartBeat     = { enabled=true , siteTemplates=[ "*" ] }
 			, scheduledExportHeartBeat = { enabled=true , siteTemplates=[ "*" ] }
+			, segmentationFiltersHeartbeat = { enabled=true , siteTemplates=[ "*" ] }
 			, assetQueueHeartBeat      = { enabled=true , siteTemplates=[ "*" ] }
 			, assetQueue               = { enabled=false , siteTemplates=[ "*" ] }
 			, queryCachePerObject      = { enabled=false, siteTemplates=[ "*" ] }
@@ -910,6 +911,7 @@ component {
 		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
 		settings.enum.emailSendQueueStatus        = [ "queued", "sending" ];
 		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
+		settings.enum.segmentationFilterTimeUnit  = [ "hour", "day" ];
 		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
 		settings.enum.emailActivityType           = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
