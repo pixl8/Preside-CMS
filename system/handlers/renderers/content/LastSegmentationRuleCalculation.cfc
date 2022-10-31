@@ -7,8 +7,6 @@ component {
 			, prePostExempt  = true
 			, eventArguments = { args=arguments.args }
 		);
-
-		return relativeDate
 	}
 
 }

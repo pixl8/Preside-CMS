@@ -491,7 +491,7 @@ component extends="preside.system.base.AdminHandler" {
 		rulesEngineFilterService.recalculateSegmentationFilterData(
 			  filterId            = args.newId ?: ""
 			, recalculateChildren = true
-			, logger              = arguments.logger
+			, logger              = arguments.logger ?: NullValue()
 		);
 
 		return true;

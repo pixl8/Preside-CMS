@@ -2,7 +2,7 @@
 <!--#!autodoc
 Rules engine filter: add segmentation filter form
 
-This form is used for creating a segmentation filters
+This form is used for creating a segmentation filter
 -->
 <form>
 	<tab id="default" sortorder="10">

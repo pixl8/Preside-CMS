@@ -522,7 +522,7 @@ component extends="preside.system.base.AdminHandler" {
 	private void function postCloneRecordAction( event, rc, prc, args={} ) {
 		if ( IsTrue( args.formData.is_segmentation_filter ?: "" ) ) {
 			var oldId = args.recordId ?: "";
-			var newId      = args.newId ?: "";
+			var newId = args.newId ?: "";
 			if ( isTrue( rc.clone_children ?: "" ) ) {
 				var resultUrl = event.buildAdminLink( objectName=args.formData.filter_object, operation="manageFilters", queryString="tab=segmentation" );
 				var taskId = createTask(

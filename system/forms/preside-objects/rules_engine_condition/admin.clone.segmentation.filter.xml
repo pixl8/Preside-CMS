@@ -2,7 +2,7 @@
 <!--#!autodoc
 Rules engine condition: clone form
 
-This form is used for cloning a rules engine condition
+This form is used for cloning a rules engine segmentation filter
 -->
 <form>
 	<tab id="default">
