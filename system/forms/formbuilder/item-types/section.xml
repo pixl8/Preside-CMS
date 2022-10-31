@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.section:">
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field name="label"          control="textInput"   sortorder="10" required="false" />
+			<field name="is_collapsed"   control="yesNoSwitch" sortorder="20" required="false" />
+		</fieldset>
+	</tab>
+</form>
