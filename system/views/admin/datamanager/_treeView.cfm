@@ -4,10 +4,11 @@
 	objectName     = args.objectName;
 	draftsEnabled  = IsTrue( args.draftsEnabled  ?: "" );
 	isMultilingual = IsTrue( args.isMultilingual ?: "" );
+	treeFetchUrl   = args.treeFetchUrl ?: "";
 
 	event.include( "/js/admin/specific/sitetree/" )
 	     .include( "/css/admin/specific/sitetree/" )
-	     .includeData( { treeFetchUrl=event.buildAdminLink( objectName=objectName, operation="getNodesForTreeView" ) } );
+	     .includeData( { treeFetchUrl=treeFetchUrl } );
 </cfscript>
 <cfoutput>
 	<table class="table table-striped table-hover tree-table">

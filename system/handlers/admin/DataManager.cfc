@@ -1487,6 +1487,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="manageFilters" );
 
+		prc.useSegmentationFilters = rulesEngineFilterService.objectSupportsSegmentationFilters( objectName );
+
 		prc.pageIcon  = "filter";
 		prc.pageTitle = translateResource( uri="cms:datamanager.managefilters.title", data=[ prc.objectTitlePlural ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.managefilters.subtitle", data=[ prc.objectTitlePlural ] );
@@ -1494,6 +1496,97 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
 			, link  = ""
 		);
+	}
+
+	public void function addSegmentationFilter( event, rc, prc ) {
+		var objectName = prc.objectName ?: "";
+		var useSegmentationFilters = rulesEngineFilterService.objectSupportsSegmentationFilters( objectName );
+
+		if ( !useSegmentationFilters ) {
+			event.notFound();
+		}
+
+		_checkPermission( argumentCollection=arguments, key="manageFilters" );
+
+		prc.pageIcon  = "sitemap";
+		prc.pageTitle = translateResource( "cms:datamanager.managefilters.addSegmentationFilter.page.title" );
+		prc.pageSubTitle = translateResource( "cms:datamanager.managefilters.addSegmentationFilter.page.subtitle" );
+
+		prc.formName     = "preside-objects.rules_engine_condition.admin.add.segmentation.filter";
+		prc.submitAction = event.buildAdminLink( linkto="datamanager.addSegmentationFilterAction" );
+		prc.cancelAction = event.buildAdminLink( linkto="datamanager.manageFilters", queryString="object=#objectName#&tab=segmentation")
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
+			, link  = prc.cancelAction
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:datamanager.managefilters.addSegmentationFilter.page.title" )
+			, link  = ""
+		);
+	}
+
+	public void function addSegmentationFilterAction( event, rc, prc ) {
+		var objectName = prc.objectName ?: "";
+		var useSegmentationFilters = rulesEngineFilterService.objectSupportsSegmentationFilters( objectName );
+
+		if ( !useSegmentationFilters ) {
+			event.notFound();
+		}
+
+		_checkPermission( argumentCollection=arguments, key="manageFilters" );
+
+		runEvent(
+			  event          = "admin.DataManager._addRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  formName      = "preside-objects.rules_engine_condition.admin.add.segmentation.filter"
+				, object        = "rules_engine_condition"
+				, audit         = true
+				, errorUrl      = event.buildAdminLink( linkto="datamanager.addSegmentationFilter", queryString="object=#prc.objectName#" )
+				, successUrl    = event.buildAdminLink( linkto="datamanager.manageFilters", queryString="object=#prc.objectName#&tab=segmentation" )
+			  }
+		);
+	}
+
+	public void function recalculateSegmentationFilterAction( event, rc, prc ) {
+		var objectName = prc.objectName ?: "";
+		var recordId   = rc.id ?: "";
+		var useSegmentationFilters = rulesEngineFilterService.objectSupportsSegmentationFilters( objectName );
+
+		if ( !useSegmentationFilters || !Len( Trim( recordId ) ) ) {
+			event.notFound();
+		}
+		_checkPermission( argumentCollection=arguments, key="manageFilters" );
+
+		var resultUrl = event.buildAdminLink( objectName=objectName, operation="manageFilters", queryString="tab=segmentation" );
+		var taskId = createTask(
+			  event                = "admin.datamanager.reCalculateSegmentationFilterInBgThread"
+			, runNow               = true
+			, adminOwner           = event.getAdminUserId()
+			, title                = "cms:datamanager.managefilters.recalculate.segmentation.filter.task.title"
+			, returnUrl            = resultUrl
+			, resultUrl            = resultUrl
+			, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
+			, args                 = { id=recordId }
+		);
+
+		setNextEvent( url=event.buildAdminLink(
+			  linkTo      = "adhoctaskmanager.progress"
+			, queryString = "taskId=" & taskId
+		) );
+	}
+
+	private boolean function reCalculateSegmentationFilterInBgThread( event, rc, prc, args={}, logger, progress ) {
+		rulesEngineFilterService.recalculateSegmentationFilterData(
+			  filterId            = args.id ?: ""
+			, recalculateChildren = true
+			, logger              = arguments.logger   ?: NullValue()
+			, progress            = arguments.progress ?: NullValue()
+		);
+
+		return true;
 	}
 
 // VIEWLETS
@@ -1874,6 +1967,22 @@ component extends="preside.system.base.AdminHandler" {
 		return item;
 	}
 
+	private string function manageSegmentationFilters( event, rc, prc ) {
+		var objectName = prc.objectName ?: "";
+
+		_checkPermission( argumentCollection=arguments, key="manageFilters" );
+
+		var useSegmentationFilters = rulesEngineFilterService.objectSupportsSegmentationFilters( objectName );
+
+		if ( !useSegmentationFilters ) {
+			return "";
+		}
+
+		args.hasAnyFilters = rulesEngineFilterService.hasAnySegmentationFilters( objectName );
+
+		return renderView( view="/admin/datamanager/manageSegmentationFilters", args=args );
+	}
+
 // private events for sharing
 	private void function _getObjectRecordsForAjaxDataTables(
 		  required any     event
@@ -1924,17 +2033,11 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( Len( Trim( rc.sSavedFilterExpressions ?: "" ) ) ) {
-			var savedFilters = presideObjectService.selectData(
-				  objectName   = "rules_engine_condition"
-				, selectFields = [ "expressions" ]
-				, filter       = { id=ListToArray( rc.sSavedFilterExpressions ?: "" ) }
-			);
-
-			for( var filter in savedFilters ) {
+			for( var filterId in ListToArray( rc.sSavedFilterExpressions ) ) {
 				try {
 					getRecordsArgs.extraFilters.append( rulesEngineFilterService.prepareFilter(
-						  objectName      = object
-						, expressionArray = DeSerializeJson( filter.expressions )
+						  objectName = object
+						, filterId   = filterId
 					) );
 				} catch( any e ){}
 			}
@@ -3709,6 +3812,12 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		args.baseViewRecordLink = event.buildAdminLink( objectName=objectName, recordId="{recordId}" );
 
+		args.treeFetchUrl = event.buildAdminLink(
+			  objectName  = objectName
+			, operation   = "getNodesForTreeView"
+			, queryString = "gridFields=#ArrayToList( args.gridFields ?: [] )#"
+		);
+
 		return renderView( view="/admin/datamanager/_treeView", args=args );
 	}
 
@@ -3804,6 +3913,11 @@ component extends="preside.system.base.AdminHandler" {
 
 // private utility methods
 	private array function _getObjectFieldsForGrid( required string objectName ) {
+		var rc = getRequestContext().getCollection();
+		if ( Len( rc.gridFields ?: "" ) ) {
+			return ListToArray( rc.gridFields );
+		}
+
 		return dataManagerService.listGridFields( arguments.objectName );
 	}
 
@@ -3968,6 +4082,7 @@ component extends="preside.system.base.AdminHandler" {
 	private void function _loadCommonVariables( event, action, eventArguments, includeAllFormulaFields=( arguments.action == "viewRecord" ) ) {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
+
 		var e   = "";
 		var onlyCheckForLoginActions = [ "getObjectRecordsForAjaxSelectControl" ];
 		var useAnyWhereActions       = [
@@ -4017,6 +4132,9 @@ component extends="preside.system.base.AdminHandler" {
 				prc.objectName = rc.id ?: "";
 			break;
 			case "addRecordAction":
+			case "addSegmentationFilter":
+			case "addSegmentationFilterAction":
+			case "recalculateSegmentationFilterAction":
 				prc.objectName = rc.object ?: "";
 			break;
 			case "__custom":

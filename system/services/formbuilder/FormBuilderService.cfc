@@ -1192,16 +1192,10 @@ component {
 		}
 
 		if ( Len( Trim( arguments.savedFilterExpIdLists ?: "" ) ) ) {
-			var savedFilters = _getPresideObjectService().selectData(
-				  objectName   = "rules_engine_condition"
-				, selectFields = [ "expressions" ]
-				, filter       = { id=ListToArray( arguments.savedFilterExpIdLists ?: "" ) }
-			);
-
-			for( var filter in savedFilters ) {
+			for( var filterId in ListToArray( arguments.savedFilterExpIdLists ) ) {
 				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
-					  objectName      = 'formbuilder_formsubmission'
-					, expressionArray = DeSerializeJson( filter.expressions )
+					  objectName = 'formbuilder_formsubmission'
+					, filterId   = filterId
 				) );
 			}
 		}
@@ -1413,16 +1407,10 @@ component {
 		}
 
 		if ( Len( Trim( arguments.savedFilterExpIdLists ?: "" ) ) ) {
-			var savedFilters = _getPresideObjectService().selectData(
-				  objectName   = "rules_engine_condition"
-				, selectFields = [ "expressions" ]
-				, filter       = { id=ListToArray( arguments.savedFilterExpIdLists ?: "" ) }
-			);
-
-			for( var filter in savedFilters ) {
+			for( var filterId in ListToArray( arguments.savedFilterExpIdLists ) ) {
 				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
-					  objectName      = 'formbuilder_formsubmission'
-					, expressionArray = DeSerializeJson( filter.expressions )
+					  objectName = 'formbuilder_formsubmission'
+					, filterId   = filterId
 				) );
 			}
 		}
@@ -2290,16 +2278,10 @@ component {
 	) {
 		var extraFilters = [];
 		if ( Len( Trim( arguments.savedFilters ?: "" ) ) ) {
-			var savedFilters = _getPresideObjectService().selectData(
-				  objectName   = "rules_engine_condition"
-				, selectFields = [ "expressions" ]
-				, filter       = { id=ListToArray( arguments.savedFilters ?: "" ) }
-			);
-
-			for( var filter in savedFilters ) {
+			for( var filterId in ListToArray( arguments.savedFilters ) ) {
 				extraFilters.append( _getRulesEngineFilterService().prepareFilter(
-					  objectName      = 'formbuilder_formsubmission'
-					, expressionArray = DeSerializeJson( filter.expressions )
+					  objectName = 'formbuilder_formsubmission'
+					, filterId   = filterId
 				) );
 			}
 		}
