@@ -1275,9 +1275,9 @@ component {
 		} };
 
 		fbSettings.itemTypes.content = { sortorder=40, types={
-			  spacer    = { isFormField=false }
-			, content   = { isFormField=false }
-			, accordion = { isFormField=false }
+			  spacer  = { isFormField=false }
+			, content = { isFormField=false }
+			, section = { isFormField=false }
 		} };
 
 		fbSettings.actions = [
