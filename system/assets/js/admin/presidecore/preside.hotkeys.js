@@ -345,7 +345,7 @@
 			return false;
 		}
 
-		isInFormField = ( $.inArray( $focused.prop('nodeName'), [ 'INPUT','TEXTAREA' ] ) >= 0 && $.inArray( $focused.prop('type').toLowerCase(), [ 'checkbox','radio','submit','button' ] ) === -1 ) || $focused.prop('contenteditable') == true;
+		isInFormField = ( $.inArray( $focused.prop('nodeName'), [ 'INPUT','TEXTAREA' ] ) >= 0 && $.inArray( $focused.prop('type').toLowerCase(), [ 'checkbox','radio','submit','button' ] ) === -1 ) || $focused.prop('contenteditable');
 		if ( isInFormField ) {
 			return true;
 		}
