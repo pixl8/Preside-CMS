@@ -300,6 +300,15 @@
 		</cfscript>
 	</cffunction>
 
+<!--- system email --->
+	<cffunction name="systemEmailBodyIsDiffWithDefault" access="public" returntype="string" output="false">
+		<cfargument name="templateId" type="string" required="true" />
+
+		<cfscript>
+			return getSingleton( "systemEmailTemplateService" ).bodyIsDifferentWithDefault( template=arguments.templateId );
+		</cfscript>
+	</cffunction>
+
 <!--- healthchecks --->
 	<cffunction name="isUp" access="public" returntype="any" output="false">
 		<cfargument name="serviceId" type="string" required="true" />
