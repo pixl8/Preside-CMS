@@ -357,4 +357,14 @@ component extends="preside.system.base.AdminHandler" {
 
 		return renderView( view="/admin/emailcenter/systemtemplates/_templateActions", args=args );
 	}
+
+	private string function _templateListingItem( event, rc, prc, args={} ) {
+		var templateId = args.id ?: "";
+		if ( isEmptyString( templateId ) ) {
+			return "";
+		}
+
+		args.contentHasDiff = systemEmailTemplateService.bodyIsDifferentWithDefault( template=templateId );
+		return renderView( view="/admin/emailcenter/systemtemplates/_templateListingItem", args=args );
+	}
 }

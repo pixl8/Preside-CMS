@@ -20,7 +20,7 @@
 		<div class="col-md-6">
 			<h3 class="lighter">#translateResource( "cms:emailcenter.systemTemplates.reset.existing.content.title" )#</h3>
 
-			<div class="html-preview">
+			<div class="html-preview no-border">
 				<script id="currentHtmlBody" type="text/template">#previewCurrent.htmlBody ?: ""#</script>
 				<iframe class="html-message-iframe" data-src="currentHtmlBody" frameBorder="0" style="overflow:hidden;"></iframe>
 			</div>
@@ -29,7 +29,7 @@
 		<div class="col-md-6">
 			<h3 class=" lighter">#translateResource( "cms:emailcenter.systemTemplates.reset.new.content.title" )#</h3>
 
-			<div class="html-preview">
+			<div class="html-preview no-border">
 				<script id="defaultHtmlBody" type="text/template">#previewDefault.htmlBody ?: ""#</script>
 				<iframe class="html-message-iframe" data-src="defaultHtmlBody" frameBorder="0" style="overflow:hidden;"></iframe>
 			</div>
