@@ -34,10 +34,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	){
-		var paramName = "numericFormulaPropertyCompares" & CreateUUId().lCase().replace( "-", "", "all" );
-		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-		var filterSql = "#propertyName# ${operator} :#paramName#";
-		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
+		var paramName           = "numericFormulaPropertyCompares" & CreateUUId().lCase().replace( "-", "", "all" );
+		var prefix              = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
+		var formulaPropertyName = "#prefix#.#propertyName#";
+		var filterSql           = "#formulaPropertyName# ${operator} :#paramName#";
+		var params              = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
 
 		switch ( _numericOperator ) {
 			case "eq":
@@ -60,7 +61,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			break;
 		}
 
-		return [ { filterParams=params, having=filterSql, propertyName=propertyName } ];
+		return [ { filterParams=params, having=filterSql, propertyName=formulaPropertyName } ];
 	}
 
 	private string function getLabel(
