@@ -1192,7 +1192,7 @@ component extends="preside.system.base.AdminHandler" {
 				if ( field == "title" ) {
 					var type = assetManagerService.getAssetType( name=record.asset_type );
 					if ( ( type.groupName ?: "" ) == "image" ) {
-						records[ field ][ records.currentRow ] = '<span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, trashed=true )#"></span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span>";
+						records[ field ][ records.currentRow ] = '<span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, derivative="assetThumbnail" )#"></span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span>";
 					} else {
 						records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickerIcon" ) & '</span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span>";
 					}
