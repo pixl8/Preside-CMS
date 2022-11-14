@@ -1142,7 +1142,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "asset_type", "datemodified", "datecreated" ];
+		var gridFields = [ "title", "asset_type", "datemodified" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
@@ -1152,7 +1152,7 @@ component extends="preside.system.base.AdminHandler" {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
-					records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> <span class='asset-title'>" & records[ field ][ records.currentRow ] & "</span>";
+					records[ field ][ records.currentRow ] = '<span class="asset-container"><span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> <span class='asset-title'>" & records[ field ][ records.currentRow ] & "</span></span>";
 				}
 			}
 
@@ -1180,7 +1180,7 @@ component extends="preside.system.base.AdminHandler" {
 			, trashed     = true
 		);
 
-		var gridFields = [ "title", "asset_type", "datemodified", "datecreated" ];
+		var gridFields = [ "title", "asset_type", "datemodified" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
@@ -1192,9 +1192,9 @@ component extends="preside.system.base.AdminHandler" {
 				if ( field == "title" ) {
 					var type = assetManagerService.getAssetType( name=record.asset_type );
 					if ( ( type.groupName ?: "" ) == "image" ) {
-						records[ field ][ records.currentRow ] = '<span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, trashed=true )#"></span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span>";
+						records[ field ][ records.currentRow ] = '<span class="asset-container"><span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, trashed=true )#"></span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span></span>";
 					} else {
-						records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickerIcon" ) & '</span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span>";
+						records[ field ][ records.currentRow ] = '<span class="asset-container"><span class="asset-preview">' & renderAsset( assetId=record.id, context="pickerIcon" ) & '</span> <span class="asset-title">' & records[ field ][ records.currentRow ] & "</span></span>";
 					}
 				}
 			}
