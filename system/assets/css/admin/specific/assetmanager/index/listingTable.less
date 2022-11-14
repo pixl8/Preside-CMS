@@ -17,23 +17,30 @@
 					vertical-align : middle;
 
 					.icon-derivative {
-						margin-right     : 0.5em;
-						display          : inline-block;
+						margin-right : 0.5em;
+						display      : inline-block;
+					}
+
+					.asset-container {
+						display        : flex;
+						gap            : 6px;
+						flex-direction : row;
+
+						@media (max-width: 1200px) {
+							flex-direction : column;
+						}
 					}
 
 					.asset-title {
-						display     : inline-block;
-						width       : 80%;
-						height      : 100%;
-						padding-left: 6px;
+						display : inline-block;
+						height  : 100%;
 					}
 
 					.asset-preview {
-						width     : 20%;
-						max-width : 60px;
-						height    : 100%;
-						display   : flex;
-						float     : left ;
+						flex-basis  : 60px;
+						flex-grow   : 0;
+						flex-shrink : 0;
+						max-height  : 32px;
 
 						img {
 							max-width  : 100%;
