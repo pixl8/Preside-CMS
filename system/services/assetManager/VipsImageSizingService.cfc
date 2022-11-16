@@ -111,10 +111,11 @@ component {
 		  required string  filePath
 		, required numeric width
 		, required numeric height
-		,          string  quality        = "highPerformance"
-		,          string  outputFormat   = ""
-		,          string  paddingColour  = ""
-		,          struct  fileProperties = {}
+		,          string  quality            = "highPerformance"
+		,          string  outputFormat       = ""
+		,          string  paddingColour      = ""
+		,          struct  fileProperties     = {}
+		,          numeric paddingColourAlpha = 255
 	) {
 		var originalFileExt = fileProperties.fileExt ?: "";
 		var isSvg           = originalFileExt == "svg";
@@ -171,7 +172,14 @@ component {
 		}
 
 		if ( len( arguments.paddingColour ) ) {
-			targetFile = _padding( targetFile, arguments.width, arguments.height, vipsQuality, arguments.paddingColour );
+			targetFile = _padding(
+				  targetFile         = targetFile
+				, width              = arguments.width
+				, height             = arguments.height
+				, vipsQuality        = vipsQuality
+				, paddingColour      = arguments.paddingColour
+				, paddingColourAlpha = arguments.paddingColourAlpha
+			);
 		}
 
 		FileMove( targetFile, arguments.filePath );
@@ -380,10 +388,15 @@ component {
 		, required numeric height
 		, required string  vipsQuality
 		, required string  paddingColour
+		,          numeric paddingColourAlpha = 255
 	){
 		var newTargetFile = _pathFileNamePrefix( arguments.targetFile, "tn_" );
 		var size          = "#_int( arguments.width )# #_int( arguments.height )#";
-		var background    = _getPaddingColour( arguments.targetFile, arguments.paddingColour );
+		var background    = _getPaddingColour(
+			  targetFile         = arguments.targetFile
+			, paddingColour      = arguments.paddingColour
+			, paddingColourAlpha = arguments.paddingColourAlpha
+		);
 
 		try {
 			_exec( "vips", 'gravity "#arguments.targetFile#" "#newTargetFile#[#arguments.vipsQuality#]" VIPS_COMPASS_DIRECTION_CENTRE #size# #background# --extend VIPS_EXTEND_BACKGROUND' );
@@ -394,17 +407,26 @@ component {
 		return newTargetFile;
 	}
 
-	private string function _getPaddingColour( required string targetFile, required string paddingColour ) {
-		var backgroundRgb = "";
+	private string function _getPaddingColour(
+		  required string  targetFile
+		, required string  paddingColour
+		,          numeric paddingColourAlpha = 255
+	) {
+		var backgroundRgb     = "";
+		var currentBackground = trim( _exec( "vips", 'getpoint "#arguments.targetFile#" 0 0' ) );
 
 		if ( arguments.paddingColour == "auto" ) {
-			backgroundRgb = _exec( "vips", 'getpoint "#arguments.targetFile#" 0 0' );
+			backgroundRgb = currentBackground;
 		} else if ( reFindNoCase( "^[0-9a-f]{6}$", arguments.paddingColour ) ) {
-			backgroundRgb = [
+			var backgroundRgbParts = [
 				  inputBaseN( mid( arguments.paddingColour, 1, 2 ), 16 )
 				, inputBaseN( mid( arguments.paddingColour, 3, 2 ), 16 )
 				, inputBaseN( mid( arguments.paddingColour, 5, 2 ), 16 )
-			].toList( " " )
+			];
+			if ( ListLen( currentBackground, " " ) == 4 ) {
+				arrayAppend( backgroundRgbParts, arguments.paddingColourAlpha );
+			}
+			backgroundRgb = arrayToList( backgroundRgbParts, " " );
 		}
 
 		if ( len( backgroundRgb ) ) {
@@ -454,10 +476,7 @@ component {
 		return _crop( targetFile, imageInfo, rectangle, vipsQuality );
 	}
 
-	private string function _autoRotate(
-		  required string targetFile
-		, required string vipsQuality
-	) {
+	private string function _autoRotate( required string targetFile, required string vipsQuality ) {
 		var newTargetFile = _pathFileNamePrefix( arguments.targetFile, "crop_" ).reReplace( "\.gif$", ".png" );
 		try {
 			_exec( "vips", 'autorot "#targetFile#" """#newTargetFile#[#arguments.vipsQuality#]"""' );

@@ -1022,7 +1022,7 @@ component {
 
 		if ( arguments.cloneChildren ) {
 			var children = _getPObj().selectData(
-				  selectFields  = [ "id" ]
+				  selectFields  = [ "id", "page_type" ]
 				, filter        = { parent_page=arguments.sourcePageId, trashed=false }
 				, bypassTenants = bypassTenants
 				, orderBy       = "sort_order"
@@ -1033,6 +1033,10 @@ component {
 				childPageData.site = newPageData.site;
 			}
 			for( var child in children ) {
+				if ( _getPageTypesService().isSystemPageType( pageTypeId=child.page_type ) ) {
+					continue;
+				}
+
 				clonePage(
 					  sourcePageId   = child.id
 					, newPageData    = childPageData
