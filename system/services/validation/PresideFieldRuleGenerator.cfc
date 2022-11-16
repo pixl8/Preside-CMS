@@ -203,6 +203,11 @@ component output="false" singleton=true {
 			}
 		}
 
+		// foreign key
+		if ( StructKeyExists( field, "relationship" )  && field.relationship != "none" && StructKeyExists( field, "relatedTo"  && field.relatedTo != "none" ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="presideObjectForeignKey", params={ relatedTo=arguments.fieldAttributes.relatedTo } } );
+		}
+
 		// password policies
 		if ( Len( Trim( field.passwordPolicyContext ?: "" ) ) ) {
 			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="meetsPasswordPolicy", params={ passwordPolicyContext = field.passwordPolicyContext } } );
