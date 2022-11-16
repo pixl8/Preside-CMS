@@ -713,9 +713,6 @@ component {
 				}
 			}
 		}
-		if ( ArrayFindNoCase( domainWhitelist, domain ) ) {
-			return true;
-		}
 
 		// is the link in our link table
 		var linkExists =  $getPresideObject( "link" ).dataExists( filter="type = :type and external_address like :external_address", filterParams={
