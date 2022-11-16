@@ -77,7 +77,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, "filter4"
 					, "filter5"
 				];
-				var expectedSql = "( ( filter1 and filter2 ) and ( ( filter3 and #dummyFilters[2][1].having# ) or ( filter4 and filter5 ) ) )";
+				var expectedSql = "( ( filter1 and filter2 ) and #dummyFilters[2][1].having# )";
 				var filterPrefix = CreateUUId();
 				var expectedParams = {
 					  param1 = dummyFilters[1][1].filterParams.param1
@@ -120,8 +120,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, filterPrefix    = filterPrefix
 				);
 
-				expect( result.having ?: "" ).toBe( expectedSql );
-				expect( result.filter ?: "" ).toBe( "" );
+				expect( result.having ?: "" ).toBe( "" );
+				expect( result.filter ?: "" ).toBe( expectedSql );
 				expect( result.filterParams ?: {} ).toBe( expectedParams );
 			} );
 		} );

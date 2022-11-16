@@ -52,6 +52,7 @@ component displayName="Rules Engine Filter Service" {
 		var params     = {};
 		var extraJoins = [];
 		var isHaving   = false;
+		var havingSql  = "";
 		var havingfields = [];
 
 		for( var i=1; i <= expressionArray.len(); i++ ) {
@@ -99,10 +100,10 @@ component displayName="Rules Engine Filter Service" {
 
 						if ( having.len() ) {
 							isHaving = true;
-							if ( rawSql.len() ) {
-								rawSql = "( #rawSql# and #having# )";
+							if ( havingSql.len() ) {
+								havingSql = "( #havingSql# and #having# )";
 							} else {
-								rawSql = having;
+								havingSql = having;
 							}
 						}
 
@@ -131,13 +132,11 @@ component displayName="Rules Engine Filter Service" {
 			sql = "( #sql.trim()# )";
 		}
 
-		var returnValue = { filterParams=params, extraJoins=extraJoins };
+		var returnValue = { filter=Trim( sql ), filterParams=params, extraJoins=extraJoins };
 
 		if ( isHaving ) {
-			returnValue.having        = Trim( sql );
+			returnValue.having        = havingSql;
 			returnValue.havingfields  = havingfields;
-		} else {
-			returnValue.filter = Trim( sql );
 		}
 		return returnValue;
 	}
