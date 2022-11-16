@@ -699,6 +699,24 @@ component {
 			}
 		}
 
+		// Check domain against whitelist
+		var domainWhitelist = _getDomainWhitelist();
+		var domainRegex     = "";
+		for( var whitelistedDomain in domainWhitelist ) {
+			if ( domain == whitelistedDomain ) {
+				return true;
+			}
+			if ( Left( whitelistedDomain, 1 ) == "*" ) {
+				domainRegex = replace( whitelistedDomain, "*", "" ) & "$";
+				if ( reFindNoCase( domainRegex, domain ) ) {
+					return true;
+				}
+			}
+		}
+		if ( ArrayFindNoCase( domainWhitelist, domain ) ) {
+			return true;
+		}
+
 		// is the link in our link table
 		var linkExists =  $getPresideObject( "link" ).dataExists( filter="type = :type and external_address like :external_address", filterParams={
 			  type             = "url"
@@ -806,6 +824,12 @@ component {
 			_lib = DirectoryList( libDir, false, "path", "*.jar" );
 		}
 		return _lib;
+	}
+
+	private array function _getDomainWhitelist() {
+		var whitelist = $getPresideSetting( "email", "link_checking_whitelist" );
+
+		return ListToArray( Trim( whitelist ), " #chr(9)##chr(10)##chr(13)#" );
 	}
 
 // GETTERS AND SETTERS
