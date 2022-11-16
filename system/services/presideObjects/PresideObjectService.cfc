@@ -2370,15 +2370,22 @@ component displayName="Preside Object Service" {
 		var extraFilters = arguments.extraFilters;
 		var selectFields = Duplicate( arguments.selectFields );
 		var props        = getObjectProperties( arguments.objectName );
+		var labelField   = getLabelField( arguments.objectName );
 
 		for ( var filter in extraFilters ) {
 			if( Len( Trim( filter.having ?: "" ) ) ) {
 				var fields = filter.havingfields ?: ListToArray( filter.propertyName ?: "" );
 
 				for ( var field in fields ) {
-					var propertyLen = ListLen( field, "." );
+					var propertyLen   = ListLen( field, "." );
+					var fieldsToCheck = [];
 
 					if ( propertyLen == 1 ) {
+						if ( len( labelField ) && field == labelField ) {
+							arrayAppend( fieldsToCheck, "#arguments.objectName#.${labelfield} as #field#" );
+							arrayAppend( fieldsToCheck, "${labelfield} as #field#" );
+						}
+
 						if( !ArrayFindNoCase( selectFields, field ) ) {
 							field = "#arguments.objectName#.#field#";
 						}
@@ -2405,9 +2412,24 @@ component displayName="Preside Object Service" {
 								continue;
 							}
 						}
+
+						if ( len( labelField ) && relatedObjectName == arguments.objectName && labelField == propertyName ) {
+							arrayAppend( fieldsToCheck, "#prefix#.${labelfield} AS #propertyName#" );
+						}
 					}
 
-					if ( !ArrayFindNoCase( selectFields, field ) ) {
+					arrayAppend( fieldsToCheck, field );
+
+					var appendField = true;
+
+					for ( var fieldToCheck in fieldsToCheck ) {
+						if ( arrayFindNoCase( selectFields, fieldToCheck ) ) {
+							appendField = false;
+							break;
+						}
+					}
+
+					if ( appendField ) {
 						ArrayAppend( selectFields, field );
 					}
 				};

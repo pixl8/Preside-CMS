@@ -32,13 +32,14 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  filterPrefix = ""
 		,          boolean _is = true
 	){
-		var paramName = "booleanFormulaPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
-		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
+		var paramName           = "booleanFormulaPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
+		var prefix              = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
+		var formulaPropertyName = "#prefix#.#propertyName#";
 
 		return [ {
-			  having       = "#propertyName# = :#paramName#"
+			  having       = "#formulaPropertyName# = :#paramName#"
 			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
-			, propertyName = propertyName
+			, propertyName = formulaPropertyName
 		} ];
 	}
 
