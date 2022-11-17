@@ -12,7 +12,7 @@
 </cfscript>
 
 <cfoutput>
-	<meta property="og:title" content="#XmlFormat( local.title )#" />
+	<meta property="og:title" content="#HtmlEditFormat( local.title )#" />
 	<meta property="og:type"  content="#local.ogType#" />
 	<meta property="og:url"   content="#event.getSiteUrl( includeLanguageSlug=false, includePath=false )##HtmlEditFormat( event.getCurrentUrl() )#" />
 	<cfif Len( local.teaser )>
