@@ -28,7 +28,7 @@ This form is used for configuring general email settings
 		</fieldset>
 		<fieldset id="clicktracking" sortorder="60">
 			<field sortorder="10" name="disable_link_checking"   control="yesnoswitch" required="false" default="false" />
-			<field sortorder="20" name="link_checking_whitelist" control="textarea" />
+			<field sortorder="20" name="link_checking_allowlist" control="textarea" />
 		</fieldset>
 	</tab>
 </form>

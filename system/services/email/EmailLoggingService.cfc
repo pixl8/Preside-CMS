@@ -699,15 +699,15 @@ component {
 			}
 		}
 
-		// Check domain against whitelist
-		var domainWhitelist = _getDomainWhitelist();
+		// Check domain against allowed domains setting
+		var allowedDomains = _getDomainAllowlist();
 		var domainRegex     = "";
-		for( var whitelistedDomain in domainWhitelist ) {
-			if ( domain == whitelistedDomain ) {
+		for( var allowedDomain in allowedDomains ) {
+			if ( domain == allowedDomain ) {
 				return true;
 			}
-			if ( Left( whitelistedDomain, 1 ) == "*" ) {
-				domainRegex = replace( whitelistedDomain, "*", "" ) & "$";
+			if ( Left( allowedDomain, 1 ) == "*" ) {
+				domainRegex = replace( allowedDomain, "*", "" ) & "$";
 				if ( reFindNoCase( domainRegex, domain ) ) {
 					return true;
 				}
@@ -823,10 +823,10 @@ component {
 		return _lib;
 	}
 
-	private array function _getDomainWhitelist() {
-		var whitelist = $getPresideSetting( "email", "link_checking_whitelist" );
+	private array function _getDomainAllowlist() {
+		var allowList = $getPresideSetting( "email", "link_checking_allowlist" );
 
-		return ListToArray( Trim( whitelist ), " #chr(9)##chr(10)##chr(13)#" );
+		return ListToArray( Trim( allowList ), " #chr(9)##chr(10)##chr(13)#" );
 	}
 
 // GETTERS AND SETTERS
