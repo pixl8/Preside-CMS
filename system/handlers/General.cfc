@@ -12,8 +12,10 @@ component {
 	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
 	property name="presideSessionReapHeartbeat"   inject="presideSessionReapHeartbeat";
 	property name="scheduledExportHeartBeat"      inject="scheduledExportHeartBeat";
+	property name="segmentationFiltersHeartbeat"  inject="segmentationFiltersHeartbeat";
 	property name="healthcheckService"            inject="healthcheckService";
 	property name="permissionService"             inject="permissionService";
+	property name="dataExportTemplateService"     inject="dataExportTemplateService";
 	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
 	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queue.concurrency";
 	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
@@ -236,6 +238,8 @@ component {
 		if ( Len( Trim( request.DefaultLocaleFromCookie ?: "" ) ) ) {
 			i18n.setFwLocale( request.DefaultLocaleFromCookie );
 		}
+
+		dataExportTemplateService.setupTemplatesEnum();
 	}
 
 	private void function _startHeartbeats() {
@@ -271,6 +275,10 @@ component {
 
 		if ( isFeatureEnabled( "dataExport" ) && isFeatureEnabled( "scheduledExportHeartBeat" ) ) {
 			scheduledExportHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "rulesEngine" ) && isFeatureEnabled( "segmentationFiltersHeartbeat" ) ) {
+			segmentationFiltersHeartbeat.start();
 		}
 
 		cacheboxReapHeartBeat.start();

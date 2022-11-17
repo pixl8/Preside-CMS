@@ -1,0 +1,17 @@
+.formbuilder-section {
+	&-heading {
+		cursor : pointer;
+
+		&:after {
+			content     : "\002B";
+			float       : right;
+			margin-left : 10px;
+		}
+
+		&-active {
+			&:after {
+				content : "\2212";
+			}
+		}
+	}
+}

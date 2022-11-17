@@ -26,6 +26,8 @@ component {
 		var relatedObjectsForAutoGeneration = $getPresideObjectService().getObjectAttribute( arguments.objectName, "autoGenerateFilterExpressionsFor" ).trim();
 		var expressions                     = [];
 
+		ArrayAppend( expressions, _createRecordMatchesFilterExpression( arguments.objectName ) );
+
 		for( var propName in properties ) {
 			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
 		}
@@ -181,6 +183,24 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private struct function _createRecordMatchesFilterExpression( required string objectName ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName="", parentObjectName="", parentPropertyName="" );
+
+		expression.append( {
+			  id                = "presideobject_recordmatchesfilter_#arguments.objectName#"
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.RecordMatchesFilters.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.RecordMatchesFilters.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.RecordMatchesFilters.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.RecordMatchesFilters.getText"
+			, fields            = {
+				  value = { fieldType="filter", object=arguments.objectName, multiple=true, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:recordMatchesFilters.value.default.label" }
+				, _does = { fieldType="boolean", variety="doesDoesNot", default=true, required=false }
+			  }
+		} );
+
+		return expression;
+	}
+
 	private struct function _createIsEmptyExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName ) {
 		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
@@ -600,10 +620,11 @@ component {
 		, required string parentPropertyName
 	){
 		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var commonArgs   = {
-			  propertyName = propertyName
-			, objectName   = objectName
-		};
+		var commonArgs   = { objectName   = objectName };
+
+		if ( propertyName.len() ) {
+			commonArgs.propertyName = propertyName;
+		}
 
 		if ( parentPropertyName.len() ) {
 			commonArgs.parentPropertyName = parentPropertyName;

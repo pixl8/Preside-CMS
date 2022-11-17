@@ -53,8 +53,13 @@
 
 			<label class="block clearfix">
 				<span class="block input-icon input-icon-right">
-					<input type="password" class="form-control" placeholder="#translateResource( 'cms:login.password.placeholder' )#" name="password" />
-					<i class="fa fa-lock"></i>
+					<input type="password" class="form-control" placeholder="#translateResource( 'cms:login.password.placeholder' )#" name="password" id="password" />
+
+					<cfif isFeatureEnabled( "passwordVisibilityToggle" )>
+						<i data-target="##password" class="fa fa-eye toggle-password"></i>
+					<cfelse>
+						<i class="fa fa-lock"></i>
+					</cfif>
 				</span>
 			</label>
 

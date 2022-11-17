@@ -7,21 +7,23 @@ component  {
 			return "";
 		}
 
-		var multiple              = IsTrue( args.multiple ?: "" );
-		var prefetchCacheBuster   = CreateUUId();
-		var contextData           = UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) );
-		var preSavedFilters       = args.preSavedFilters ?: "";
-		var preRulesEngineFilters = args.preRulesEngineFilters ?: "";
+		var multiple                = IsTrue( args.multiple ?: "" );
+		var prefetchCacheBuster     = CreateUUId();
+		var contextData             = UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) );
+		var preSavedFilters         = args.preSavedFilters ?: "";
+		var preRulesEngineFilters   = args.preRulesEngineFilters ?: "";
+		var segmentationFiltersOnly = IsTrue( args.segmentationFiltersOnly ?: "" );
+		var excludeTree             = args.excludeTree ?: "";
 
 		args.object        = "rules_engine_condition";
 		args.labelrenderer = "rules_engine_condition";
 		args.remoteUrl = event.buildAdminLink(
 			  linkTo      = "rulesengine.getFiltersForAjaxSelectControl"
-			, querystring = "filterObject=#filterObject#&q=%QUERY"
+			, querystring = "filterObject=#filterObject#&segmentationFiltersOnly=#segmentationFiltersOnly#&excludeTree=#excludeTree#&q=%QUERY"
 		);
 		args.prefetchUrl = event.buildAdminLink(
 			  linkTo      = "rulesengine.getFiltersForAjaxSelectControl"
-			, querystring = "maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#&filterObject=#filterObject#"
+			, querystring = "maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#&filterObject=#filterObject#&segmentationFiltersOnly=#segmentationFiltersOnly#&excludeTree=#excludeTree#"
 		);
 		args.placeholder = args.placeholder ?: "cms:rulesengine.filterPicker.placeholder"
 

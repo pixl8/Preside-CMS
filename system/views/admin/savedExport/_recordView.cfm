@@ -11,6 +11,10 @@
 	</cfif>
 
 	<dl class="dl-horizontal">
+		<dt>#translateResource( uri=objI18nBase & "field.template.title", defaultValue="" )#</dt>
+		<dd>
+			#renderEnum( record.template, "dataExportTemplate" )#
+		</dd>
 		<cfif !isEmpty( exportSchedule )>
 			<dt>#translateResource( uri=objI18nBase & "recordview.exportschedule.title", defaultValue="" )#</dt>
 			<dd>#( translateResource( uri=objI18nBase & "recordview.exportschedule.text", defaultValue="", data=[ exportSchedule.readable ?: "" ] ) )#</dd>

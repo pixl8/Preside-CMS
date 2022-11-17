@@ -71,16 +71,17 @@ component {
 	public struct function prepareMessage(
 		  required string  template
 		, required struct  args
-		,          string  recipientId      = ""
-		,          array   to               = []
-		,          array   cc               = []
-		,          array   bcc              = []
-		,          struct  parameters       = {}
-		,          array   attachments      = []
-		,          struct  messageHeaders   = {}
-		,          boolean isTest           = false
-		,          boolean isPreview        = false
-		,          numeric version          = 0
+		,          string  recipientId       = ""
+		,          array   to                = []
+		,          array   cc                = []
+		,          array   bcc               = []
+		,          struct  parameters        = {}
+		,          array   attachments       = []
+		,          struct  messageHeaders    = {}
+		,          boolean isTest            = false
+		,          boolean isPreview         = false
+		,          numeric version           = 0
+		,          boolean useDefaultContent = false
 	) {
 		$announceInterception( "prePrepareEmailMessage", arguments );
 
@@ -89,6 +90,11 @@ component {
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
+		}
+
+		if ( arguments.useDefaultContent ) {
+			messageTemplate.html_body = _getSystemEmailTemplateService().getDefaultHtmlBody( template=messageTemplate.id );
+			messageTemplate.text_body = _getSystemEmailTemplateService().getDefaultHtmlBody( template=messageTemplate.id );
 		}
 
 		if ( arguments.isPreview ) {
@@ -241,16 +247,18 @@ component {
 	 */
 	public struct function previewTemplate(
 		  required string  template
-		,          boolean allowDrafts      = false
-		,          numeric version          = 0
-		,          string  previewRecipient = ""
+		,          boolean allowDrafts       = false
+		,          numeric version           = 0
+		,          string  previewRecipient  = ""
+		,          boolean useDefaultContent = false
 	) {
 		return prepareMessage(
-			  template    = arguments.template
-			, args        = {}
-			, recipientId = arguments.previewRecipient
-			, isPreview   = true
-			, version     = arguments.version
+			  template          = arguments.template
+			, args              = {}
+			, recipientId       = arguments.previewRecipient
+			, isPreview         = true
+			, version           = arguments.version
+			, useDefaultContent = arguments.useDefaultContent
 		);
 	}
 
@@ -366,7 +374,7 @@ component {
 						, detail   = { isSystemEmail = _getSystemEmailTemplateService().templateExists( id ) }
 					);
 
-					_getTemplateCache().clear( "rawhtml" & arguments.id );
+					_getTemplateCache().clear( "savedrawhtml" & arguments.id );
 
 					return arguments.id;
 				}
@@ -1449,7 +1457,7 @@ component {
 		, template
 		, viewOnline
 	) {
-		var cacheKey = "rawhtml" & arguments.template;
+		var cacheKey = ( $helpers.isTrue( arguments.useDefaultContent ?: "" ) ? "default" : "saved" ) & "rawhtml" & arguments.template;
 		var fromCache = _getTemplateCache().get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {

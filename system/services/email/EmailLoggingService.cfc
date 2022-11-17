@@ -699,6 +699,21 @@ component {
 			}
 		}
 
+		// Check domain against allowed domains setting
+		var allowedDomains = _getDomainAllowlist();
+		var domainRegex     = "";
+		for( var allowedDomain in allowedDomains ) {
+			if ( domain == allowedDomain ) {
+				return true;
+			}
+			if ( Left( allowedDomain, 1 ) == "*" ) {
+				domainRegex = replace( allowedDomain, "*", "" ) & "$";
+				if ( reFindNoCase( domainRegex, domain ) ) {
+					return true;
+				}
+			}
+		}
+
 		// is the link in our link table
 		var linkExists =  $getPresideObject( "link" ).dataExists( filter="type = :type and external_address like :external_address", filterParams={
 			  type             = "url"
@@ -806,6 +821,12 @@ component {
 			_lib = DirectoryList( libDir, false, "path", "*.jar" );
 		}
 		return _lib;
+	}
+
+	private array function _getDomainAllowlist() {
+		var allowList = $getPresideSetting( "email", "link_checking_allowlist" );
+
+		return ListToArray( Trim( allowList ), " #chr(9)##chr(10)##chr(13)#" );
 	}
 
 // GETTERS AND SETTERS

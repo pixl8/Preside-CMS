@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Data export: save export form base
+
+This form is used as a base for saving data exports.
+-->
 <form i18nBaseUri="cms:dataexport.config.form.">
-	<tab id="basics">
+	<tab id="basics" sortorder="10">
 		<fieldset id="basics" sortorder="10">
 			<field name="label"             control="textinput"             required="true"  sortorder="10" />
 			<field name="filename"          control="textinput"             required="true"  sortorder="20" />
@@ -8,6 +13,7 @@
 			<field name="description"       control="textarea"              required="false" sortorder="40" maxlength="2000" />
 		</fieldset>
 		<fieldset id="hidden" sortorder="30">
+			<field name="exportTemplate"     control="hidden" />
 			<field name="filterExpressions"  control="hidden" />
 			<field name="exportFilterString" control="hidden" />
 			<field name="object"             control="hidden" />
@@ -16,9 +22,6 @@
 		</fieldset>
 	</tab>
 	<tab id="filters" sortorder="20">
-		<fieldset id="fields" sortorder="10">
-			<field name="exportFields" control="dataExportPanelPicker" required="true" sortorder="10" />
-		</fieldset>
 		<fieldset id="filters" sortorder="20">
 			<field name="savedFilters" control="filterPicker" required="false" sortorder="10" multiple="true" />
 		</fieldset>

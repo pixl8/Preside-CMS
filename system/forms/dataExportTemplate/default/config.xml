@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Data export: default template form
+
+Default implementation used in conjunction with the dataExport.exportConfiguration.base form for configuring data exports
+-->
+<form i18nBaseUri="cms:dataexport.config.form.">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="exportFields" control="dataExportPanelPicker" required="true" sortorder="20" />
+		</fieldset>
+	</tab>
+</form>
