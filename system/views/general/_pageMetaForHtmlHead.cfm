@@ -40,15 +40,15 @@
 	<title>#local.title#</title>
 
 	<cfif Len( local.teaser )>
-		<meta name="description" content="#XmlFormat( local.teaser )#" />
+		<meta name="description" content="#HtmlEditFormat( local.teaser )#" />
 	</cfif>
 
 	<cfif Len( local.keywords )>
-		<meta name="keywords" content="#XmlFormat( local.keywords )#" />
+		<meta name="keywords" content="#HtmlEditFormat( local.keywords )#" />
 	</cfif>
 
 	<cfif Len( local.author )>
-		<meta name="author" content="#XmlFormat( local.author )#" />
+		<meta name="author" content="#HtmlEditFormat( local.author )#" />
 	</cfif>
 
 	<meta name="robots" content="#local.robots#" />
