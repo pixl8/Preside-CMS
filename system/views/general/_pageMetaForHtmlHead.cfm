@@ -24,7 +24,7 @@
 	local.title        = Trim( event.getPageProperty( "title"         ) );
 
 	local.title  = Len( local.browserTitle ) ? local.browserTitle : local.title;
-	local.teaser = Len( local.teaser       ) ? local.teaser       : local.description;
+	local.description = Len( local.description ) ? local.description : local.teaser;
 
 	local.titlePrefix = local.site.browser_title_prefix ?: "";
 	local.titleSuffix = local.site.browser_title_suffix ?: "";
@@ -39,8 +39,8 @@
 <cfoutput>
 	<title>#local.title#</title>
 
-	<cfif Len( local.teaser )>
-		<meta name="description" content="#HtmlEditFormat( local.teaser )#" />
+	<cfif Len( local.description )>
+		<meta name="description" content="#HtmlEditFormat( local.description )#" />
 	</cfif>
 
 	<cfif Len( local.keywords )>
