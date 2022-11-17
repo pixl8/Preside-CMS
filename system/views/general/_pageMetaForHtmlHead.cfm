@@ -17,12 +17,14 @@
 		local.author = local.site.author ?: "";
 	}
 
+	local.teaser       = Trim( event.getPageProperty( "teaser" ) );
 	local.description  = Trim( event.getPageProperty( "description" ) );
 	local.keywords     = Trim( event.getPageProperty( "keywords" ) );
 	local.browserTitle = Trim( event.getPageProperty( "browser_title" ) );
 	local.title        = Trim( event.getPageProperty( "title"         ) );
 
 	local.title  = Len( local.browserTitle ) ? local.browserTitle : local.title;
+	local.teaser = Len( local.teaser       ) ? local.teaser       : local.description;
 
 	local.titlePrefix = local.site.browser_title_prefix ?: "";
 	local.titleSuffix = local.site.browser_title_suffix ?: "";
@@ -37,8 +39,8 @@
 <cfoutput>
 	<title>#local.title#</title>
 
-	<cfif Len( local.description )>
-		<meta name="description" content="#XmlFormat( local.description )#" />
+	<cfif Len( local.teaser )>
+		<meta name="description" content="#XmlFormat( local.teaser )#" />
 	</cfif>
 
 	<cfif Len( local.keywords )>
