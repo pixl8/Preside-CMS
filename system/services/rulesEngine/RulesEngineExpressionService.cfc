@@ -405,6 +405,8 @@ component displayName="RulesEngine Expression Service" {
 		, required any    validationResult
 		,          string filterObject = ""
 	) {
+		_lazyLoadDynamicExpressions( argumentCollection=arguments );
+
 		var expression = _getRawExpression( arguments.expressionId, false );
 
 		if ( expression.isEmpty() ) {
