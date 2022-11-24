@@ -26,7 +26,7 @@
 			, defaultValue = timePeriod.type ?: "alltime"
 			, class        = "time-period-type"
 			, pastOnly     = pastOnly
-            , futureOnly   = futureOnly
+			, futureOnly   = futureOnly
 			, layout       = ""
 		)#
 

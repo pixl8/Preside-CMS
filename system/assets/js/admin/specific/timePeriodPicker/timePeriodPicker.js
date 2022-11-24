@@ -46,6 +46,7 @@
 					case "before":
 					case "until":
 					case "after":
+					case "equal":
 						$measureControl.addClass( "hide" );
 						$unitControlContainer.addClass( "hide" );
 						$date1ControlContainer.removeClass( "hide" ).addClass( "block" );
@@ -54,7 +55,9 @@
 					case "recent":
 					case "upcoming":
 					case "futureplus":
+					case "futureequal":
 					case "pastminus":
+					case "pastequal":
 						$measureControl.removeClass( "hide" );
 						$unitControlContainer.removeClass( "hide" );
 						$date1ControlContainer.addClass( "hide" ).removeClass( "block" );
@@ -81,12 +84,15 @@
 					case "before":
 					case "until":
 					case "after":
+					case "equal":
  						val.date1 = $date1Control.val();
 					break;
 					case "recent":
 					case "upcoming":
 					case "futureplus":
+					case "futureequal":
 					case "pastminus":
+					case "pastequal":
 						val.measure = $measureControl.val();
 						val.unit    = getSelectedUnit();
 					break;
@@ -121,8 +127,6 @@
 				var selected = $unitControl.data( "uberSelect" ).getSelected();
 				return selected.length ? selected[0].value : $unitControl.val();
 			};
-
-
 
 			initializePicker();
 		} );

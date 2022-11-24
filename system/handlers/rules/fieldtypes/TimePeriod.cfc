@@ -27,13 +27,16 @@ component {
 			case "before":
 			case "until":
 			case "after":
+			case "equal":
 				type = timePeriod.type;
 				data = [ timePeriod.date1 ?: "" ];
 			break;
 			case "recent":
 			case "upcoming":
 			case "pastminus":
+			case "pastequal":
 			case "futureplus":
+			case "futureequal":
 				type = timePeriod.type;
 				data = [
 					  NumberFormat( Val( timePeriod.measure ?: "" ) )
