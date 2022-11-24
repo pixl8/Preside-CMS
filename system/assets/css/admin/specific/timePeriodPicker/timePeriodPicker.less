@@ -3,13 +3,18 @@
 .presidecms {
 	.time-period-picker-wrapper {
 
-		.time-period-type.chosen-container, .input-icon.block {
+		.time-period-measure-unit-group {
 			margin-bottom : 1em;
+			display       : flex;
+			gap           : 7px;
+
+			.time-period-unit {
+				margin-top : 1px;
+			}
 		}
 
-		.time-period-unit.chosen-container {
-			width       : calc( ~"100% - 191px" ) !important;
-			margin-left : 7px;
+		.time-period-type.chosen-container, .input-icon.block {
+			margin-bottom : 1em;
 		}
 
 	}

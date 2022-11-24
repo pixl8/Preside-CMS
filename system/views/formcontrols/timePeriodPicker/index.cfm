@@ -18,7 +18,7 @@
 
 <cfoutput>
 	<textarea id="#inputId#" name="#inputName#" class="form-control time-period-picker-input" tabindex="#getNextTabIndex()#">#value#</textarea>
-	<div class="time-period-picker-wrapper hide">
+	<div class="time-period-picker-wrapper">
 		#renderFormControl(
 			  name         = ( inputName & "_period_type" )
 			, type         = "timePeriodTypePicker"
@@ -30,24 +30,26 @@
 			, layout       = ""
 		)#
 
-		#renderFormControl(
-			  name         = ( inputName & "_period_measure" )
-			, type         = "spinner"
-			, class        = "time-period-measure"
-			, savedValue   = timePeriod.measure ?: 1
-			, defaultValue = timePeriod.measure ?: 1
-			, layout       = ""
-		)#
+		<div class="time-period-measure-unit-group">
+			#renderFormControl(
+				  name         = ( inputName & "_period_measure" )
+				, type         = "spinner"
+				, class        = "time-period-measure-unit-input time-period-measure form-control"
+				, savedValue   = timePeriod.measure ?: 1
+				, defaultValue = timePeriod.measure ?: 1
+				, layout       = ""
+			)#
 
-		#renderFormControl(
-			  name         = ( inputName & "_period_unit" )
-			, type         = "timePeriodUnitPicker"
-			, class        = "time-period-unit"
-			, isDate       = isDate
-			, savedValue   = timePeriod.unit ?: "d"
-			, defaultValue = timePeriod.unit ?: "d"
-			, layout       = ""
-		)#
+			#renderFormControl(
+				  name         = ( inputName & "_period_unit" )
+				, type         = "timePeriodUnitPicker"
+				, class        = "time-period-measure-unit-input time-period-unit"
+				, isDate       = isDate
+				, savedValue   = timePeriod.unit ?: "d"
+				, defaultValue = timePeriod.unit ?: "d"
+				, layout       = ""
+			)#
+		</div>
 
 		#renderFormControl(
 			  name         = ( inputName & "_period_date1" )
