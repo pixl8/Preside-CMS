@@ -55,11 +55,16 @@
 					case "recent":
 					case "upcoming":
 					case "futureplus":
-					case "futureequal":
 					case "pastminus":
-					case "pastequal":
 						$measureControl.removeClass( "hide" );
 						$unitControlContainer.removeClass( "hide" );
+						$date1ControlContainer.addClass( "hide" ).removeClass( "block" );
+						$date2ControlContainer.addClass( "hide" ).removeClass( "block" );
+					break;
+					case "futureequal":
+					case "pastequal":
+						$measureControl.removeClass( "hide" );
+						$unitControlContainer.addClass( "hide" ).removeClass( "block" );
 						$date1ControlContainer.addClass( "hide" ).removeClass( "block" );
 						$date2ControlContainer.addClass( "hide" ).removeClass( "block" );
 					break;
@@ -90,13 +95,14 @@
 					case "recent":
 					case "upcoming":
 					case "futureplus":
-					case "futureequal":
 					case "pastminus":
-					case "pastequal":
 						val.measure = $measureControl.val();
 						val.unit    = getSelectedUnit();
 					break;
-
+					case "futureequal":
+					case "pastequal":
+						val.measure = $measureControl.val();
+					break;
 					case "future":
 					case "past":
 					case "yesterday":

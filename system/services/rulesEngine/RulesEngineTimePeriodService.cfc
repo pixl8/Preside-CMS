@@ -107,7 +107,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "futureequal":
 				try {
-					var futureDate = DateAdd( ( timePeriod.unit ?: "" ), ( timePeriod.measure ?: "" ), _getCurrentDateTime() );
+					var futureDate = DateAdd( "d", ( timePeriod.measure ?: "" ), _getCurrentDateTime() );
 					var fromDate   = CreateDate( Year( futureDate ), Month( futureDate ), Day( futureDate ) );
 
 					return {
@@ -132,7 +132,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "pastequal":
 				try {
-					var pastDate = DateAdd( ( timePeriod.unit ?: "" ), 0-( timePeriod.measure ?: "" ), _getCurrentDateTime() );
+					var pastDate = DateAdd( "d", 0-( timePeriod.measure ?: "" ), _getCurrentDateTime() );
 					var fromDate = CreateDate( Year( pastDate ), Month( pastDate ), Day( pastDate ) );
 
 					return {

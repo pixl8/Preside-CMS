@@ -34,13 +34,19 @@ component {
 			case "recent":
 			case "upcoming":
 			case "pastminus":
-			case "pastequal":
 			case "futureplus":
-			case "futureequal":
 				type = timePeriod.type;
 				data = [
 					  NumberFormat( Val( timePeriod.measure ?: "" ) )
 					, translateResource( "cms:time.period.unit.#( timePeriod.unit ?: 'd' )#" )
+				];
+			break;
+			case "pastequal":
+			case "futureequal":
+				type = timePeriod.type;
+				data = [
+					  NumberFormat( Val( timePeriod.measure ?: "" ) )
+					, translateResource( "cms:time.period.unit.d" )
 				];
 			break;
 			case "future":
