@@ -27,6 +27,7 @@ component {
 			case "before":
 			case "until":
 			case "after":
+			case "equal":
 				type = timePeriod.type;
 				data = [ timePeriod.date1 ?: "" ];
 			break;
@@ -38,6 +39,14 @@ component {
 				data = [
 					  NumberFormat( Val( timePeriod.measure ?: "" ) )
 					, translateResource( "cms:time.period.unit.#( timePeriod.unit ?: 'd' )#" )
+				];
+			break;
+			case "pastequal":
+			case "futureequal":
+				type = timePeriod.type;
+				data = [
+					  NumberFormat( Val( timePeriod.measure ?: "" ) )
+					, translateResource( "cms:time.period.unit.d" )
 				];
 			break;
 			case "future":
