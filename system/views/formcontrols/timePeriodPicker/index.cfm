@@ -18,7 +18,7 @@
 
 <cfoutput>
 	<textarea id="#inputId#" name="#inputName#" class="form-control time-period-picker-input" tabindex="#getNextTabIndex()#">#value#</textarea>
-	<div class="time-period-picker-wrapper">
+	<div class="time-period-picker-wrapper hide">
 		#renderFormControl(
 			  name         = ( inputName & "_period_type" )
 			, type         = "timePeriodTypePicker"
