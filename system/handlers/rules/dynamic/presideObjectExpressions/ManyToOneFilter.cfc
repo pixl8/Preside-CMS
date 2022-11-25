@@ -35,7 +35,9 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  value        = ""
 	){
 		var prefix          = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
-		var expressionArray = filterService.getExpressionArrayForSavedFilter( arguments.value );
+
+		var relatedToSameObject = ( prefix==relatedTo );
+		var expressionArray     = filterService.getExpressionArrayForSavedFilter( arguments.value );
 		if ( !expressionArray.len() ) {
 			return [];
 		}
@@ -44,19 +46,35 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			  objectName      = arguments.relatedTo
 			, expressionArray = expressionArray
 		);
-		var subQueryFilter = obfuscateSqlForPreside( "#arguments.relatedTo#.#idField# = #prefix#.#arguments.propertyName#" );
+
+		var subQueryFilter = relatedToSameObject ? "" : obfuscateSqlForPreside( "#arguments.relatedTo#.#idField# = #prefix#.#arguments.propertyName#" );
 		var subQuery = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
-			, selectFields        = [ "1" ]
+			, selectFields        = [ "id" ]
 			, extraFilters        = [ extraFilter ]
 			, filter              = subQueryFilter
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 		);
 
+		if ( relatedToSameObject ) {
+			var dbAdapter               = getPresideObject( arguments.objectName ).getDbAdapter();
+			var subQueryAlias           = dbAdapter.escapeEntity( "subquery_#arguments.objectName#" );
+			var idFieldEscaped          = dbAdapter.escapeEntity( idField );
+			var relatedFieldEscapedFull = dbAdapter.escapeEntity( "#prefix#.#arguments.propertyName#" );
+
+			var subQuerySql = obfuscateSqlForPreside( "
+				select #idFieldEscaped#
+				from (#subQuery.sql#) as #subQueryAlias#
+				where #relatedFieldEscapedFull# = #subQueryAlias#.#idField#
+			" );
+		} else {
+			var subQuerySql = subQuery.sql;
+		}
+
 		if ( !Len( arguments.parentObjectName ) || arguments.parentObjectName == arguments.objectName ) {
 			return [ {
-				  filter       = obfuscateSqlForPreside( "exists (#subQuery.sql#)" )
+				  filter       = obfuscateSqlForPreside( "exists (#subQuerySql#)" )
 				, filterParams = subQuery.params
 			}];
 		}
@@ -67,7 +85,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			  objectName          = arguments.objectName
 			, selectFields        = [ "1" ]
 			, filter              = obfuscateSqlForPreside( "#outerJoin#=#arguments.objectName#.#outerIdField#" )
-			, extraFilters        = [ { filter=obfuscateSqlForPreside( "exists (#subQuery.sql#)" ) }]
+			, extraFilters        = [ { filter=obfuscateSqlForPreside( "exists (#subQuerySql#)" ) }]
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 		);
