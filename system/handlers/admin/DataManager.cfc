@@ -3503,10 +3503,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.cancelAction  = args.cancelAction    ?: event.buildAdminLink( objectName=args.objectName );
 		args.cancelLabel   = args.cancelLabel     ?: translateResource( "cms:datamanager.cancel.btn" );
 
-		if ( !Len( Trim( prc.objectTitle ?: "" ) ) ) {
-			prc.objectRootUri = presideObjectService.getResourceBundleUriRoot( args.objectName ?: "" );
-			prc.objectTitle   = translateResource( uri=prc.objectRootUri & "title.singular", defaultValue=args.objectName ?: "" );
-		}
+		var objectTitle = translateObjectName( args.objectName );
 
 		args.actions = [{
 			  type      = "link"
@@ -3525,7 +3522,7 @@ component extends="preside.system.base.AdminHandler" {
 					, iconClass = "fa-save"
 					, name      = "_saveAction"
 					, value     = "savedraft"
-					, label     = args.saveDraftLabel ?: translateResource( uri="cms:datamanager.add.record.draft.btn", data=[ prc.objectTitle ?: "" ] )
+					, label     = args.saveDraftLabel ?: translateResource( uri="cms:datamanager.add.record.draft.btn", data=[ objectTitle ] )
 				});
 			}
 			if ( args.canPublish ) {
@@ -3535,7 +3532,7 @@ component extends="preside.system.base.AdminHandler" {
 					, iconClass = "fa-globe"
 					, name      = "_saveAction"
 					, value     = "publish"
-					, label     = args.publishLabel ?: translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ prc.objectTitle ?: "" ] )
+					, label     = args.publishLabel ?: translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ objectTitle ] )
 				});
 			}
 		} else {
@@ -3545,7 +3542,7 @@ component extends="preside.system.base.AdminHandler" {
 				, iconClass = "fa-save"
 				, name      = "_saveAction"
 				, value     = "publish"
-				, label     = args.addRecordLabel ?: translateResource( uri="cms:datamanager.addrecord.btn", data=[ prc.objectTitle ?: "" ] )
+				, label     = args.addRecordLabel ?: translateResource( uri="cms:datamanager.addrecord.btn", data=[ objectTitle ] )
 			});
 		}
 
