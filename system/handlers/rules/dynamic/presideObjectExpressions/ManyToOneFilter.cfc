@@ -72,7 +72,6 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			var subQuerySql = subQuery.sql;
 		}
 
-
 		if ( !Len( arguments.parentObjectName ) || arguments.parentObjectName == arguments.objectName ) {
 			return [ {
 				  filter       = obfuscateSqlForPreside( "exists (#subQuerySql#)" )
