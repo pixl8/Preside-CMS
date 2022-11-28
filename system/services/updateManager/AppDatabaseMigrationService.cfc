@@ -26,19 +26,6 @@ component {
 
 		$SystemOutput( "Running DB Migration: [#arguments.migration#]..." );
 
-		if ( $getColdbox().handlerExists( "dbmigrations.#arguments.migration#.isEnabled" ) ) {
-			var enabled = $runEvent(
-				  event         = "dbmigrations.#arguments.migration#.isEnabled"
-				, private       = true
-				, prepostExempt = true
-			);
-
-			if ( !enabled ) {
-				$SystemOutput( "Migration disabled" );
-				return;
-			}
-		}
-
 		$runEvent(
 			  event         = "dbmigrations.#arguments.migration#.#actionName#"
 			, private       = true
@@ -73,6 +60,18 @@ component {
 
 		for( var handler in possible ) {
 			if ( cb.handlerExists( handler & "." & actionName ) ) {
+				if ( $getColdbox().handlerExists( handler & ".isEnabled" ) ) {
+					var enabled = $runEvent(
+						  event         = handler & ".isEnabled"
+						, private       = true
+						, prepostExempt = true
+					);
+
+					if ( !enabled ) {
+						continue;
+					}
+				}
+
 				ArrayAppend( installed, ListLast( handler, "." ) );
 			}
 		}
