@@ -60,6 +60,18 @@ component {
 
 		for( var handler in possible ) {
 			if ( cb.handlerExists( handler & "." & actionName ) ) {
+				if ( $getColdbox().handlerExists( handler & ".isEnabled" ) ) {
+					var enabled = $runEvent(
+						  event         = handler & ".isEnabled"
+						, private       = true
+						, prepostExempt = true
+					);
+
+					if ( !enabled ) {
+						continue;
+					}
+				}
+
 				ArrayAppend( installed, ListLast( handler, "." ) );
 			}
 		}
