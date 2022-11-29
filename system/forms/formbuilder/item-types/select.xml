@@ -3,6 +3,7 @@
 	<tab id="default">
 		<fieldset id="default">
 			<field name="multiple"    control="yesnoswitch"             required="false" sortorder="32" />
+			<field name="placeholder" control="textinput"               required="false" sortorder="33" />
 		</fieldset>
 	</tab>
 	<tab id="values">
