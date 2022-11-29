@@ -1,5 +1,5 @@
 ( function( $ ){
-	var $tables = $( "table" )
+	var $tables = $( "table.dataTable" )
 	  , updateTableSizes
 	  , tableNeedsResizing;
 
@@ -25,7 +25,7 @@
 
 
 	updateTableSizes = function() {
-		$tables.filter( ".dataTable" ).each( function(){
+		$tables.each( function(){
 			var $tbl = $( this );
 
 			if ( tableNeedsResizing( $tbl ) ) {
@@ -35,7 +35,7 @@
 
 		} );
 	};
-
-	setInterval( function(){ updateTableSizes(); }, 250 )
+	if ( $tables.length )
+		setInterval( function(){ updateTableSizes(); }, 250 )
 
 } )( presideJQuery );
