@@ -147,7 +147,8 @@ component {
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
 			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} }
+			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.SystemAlertsInterceptor"             , properties={} }
 		];
 
 		variables.interceptorSettings = {
@@ -881,6 +882,7 @@ component {
 			, emailQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ] }
 			, adhocTaskHeartBeat              = { enabled=true , siteTemplates=[ "*" ] }
 			, taskmanagerHeartBeat            = { enabled=true , siteTemplates=[ "*" ] }
+			, systemAlertsHeartBeat           = { enabled=true , siteTemplates=[ "*" ] }
 			, scheduledExportHeartBeat        = { enabled=true , siteTemplates=[ "*" ] }
 			, segmentationFiltersHeartbeat    = { enabled=true , siteTemplates=[ "*" ] }
 			, assetQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ] }
@@ -925,6 +927,7 @@ component {
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
+		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
 	}
 
 	private void function __setupFormValidationProviders() {
@@ -1017,12 +1020,14 @@ component {
 			, healthCheck     = {}
 			, adhocTask       = {}
 			, taskmanager     = {}
+			, systemAlerts    = {}
 			, emailQueue      = {}
 		};
 
 		settings.heartbeats.assetQueue.hostname   = settings.env.ASSETQUEUE_HEARTBEAT_HOSTNAME   ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.adhocTask.hostname    = settings.env.ADHOCTASK_HEARTBEAT_HOSTNAME    ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.taskmanager.hostname  = settings.env.TASKMANAGER_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;
+		settings.heartbeats.systemAlerts.hostname = settings.env.SYSTEMALERTS_HEARTBEAT_HOSTNAME ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.emailQueue.hostname   = settings.env.EMAILQUEUE_HEARTBEAT_HOSTNAME   ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.cacheBoxReap.hostname = settings.env.CACHEBOXREAP_HEARTBEAT_HOSTNAME ?: settings.heartbeats.defaultHostname;
 		settings.heartbeats.healthCheck.hostname  = settings.env.HEALTHCHECK_HEARTBEAT_HOSTNAME  ?: settings.heartbeats.defaultHostname;

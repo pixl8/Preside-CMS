@@ -4,6 +4,7 @@
 	applicationNav    = renderViewlet( event="admin.layout.applicationNav" );
 	sitePicker        = renderViewlet( "admin.sites.sitePicker" );
 	notificationsMenu = renderViewlet( "admin.notifications.notificationNavPromo" );
+	systemAlertsMenu  = renderViewlet( "admin.systemAlerts.systemAlertsMenuItem" );
 	helpAndSupport    = renderView( "/admin/layout/helpAndSupportMenu" );
 </cfscript>
 
@@ -19,6 +20,8 @@
 
 			<div class="navbar-header pull-right" role="navigation">
 				<ul class="nav ace-nav">
+					#systemAlertsMenu#
+
 					<li>#notificationsMenu#</li>
 					<li>#userMenu#</li>
 
