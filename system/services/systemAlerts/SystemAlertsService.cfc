@@ -15,11 +15,11 @@ component {
 		return this;
 	}
 
-// PUBLIC API METHODS
 	public void function setupSystemAlerts() {
 		_discoverSystemAlertTypes();
 	}
 
+// PUBLIC API METHODS
 	public any function runCheck( required string type, string reference="", boolean async=true ) {
 		var checkHandler = "admin.systemAlerts.#arguments.type#.runCheck";
 		var config       = getAlertConfig( arguments.type );
@@ -38,13 +38,11 @@ component {
 			return;
 		}
 
-		var references = [ arguments.reference ];
-		if ( config.isMultiCheck ) {
-			references = $runEvent(
+		var references = config.isMultiCheck ? $runEvent(
 				  event         = "admin.systemAlerts.#arguments.type#.references"
 				, private       = true
 				, prepostExempt = true
-			);
+			) : [ arguments.reference ];
 		}
 
 		for( var ref in references ) {
@@ -401,15 +399,6 @@ component {
 		return cronTabExpression.nextTimeAfter( lastRunJodaTime  ).toDate();
 	}
 
-	private array function _getLib() {
-		return [
-			  "/preside/system/services/taskmanager/lib/cron-parser-2.6-SNAPSHOT.jar"
-			, "/preside/system/services/taskmanager/lib/commons-lang3-3.3.2.jar"
-			, "/preside/system/services/taskmanager/lib/joda-time-2.9.4.jar"
-			, "/preside/system/services/taskmanager/lib/cron-1.0.jar"
-		];
-	}
-
 	private boolean function _crontabExpressionIsValid( required string crontabExpression ) {
 		try {
 			_getCrontabExpressionObject( arguments.cronTabExpression );
@@ -422,11 +411,20 @@ component {
 	}
 
 	private any function _getCrontabExpressionObject( required string expression ) {
-		return CreateObject( "java", "fc.cron.CronExpression", _getLib() ).init( arguments.expression );
+		return CreateObject( "java", "fc.cron.CronExpression", _getSchedulingLib() ).init( arguments.expression );
 	}
 
 	private any function _createJodaTimeObject( required date cfmlDateTime ) {
-		return CreateObject( "java", "org.joda.time.DateTime", _getLib() ).init( cfmlDateTime );
+		return CreateObject( "java", "org.joda.time.DateTime", _getSchedulingLib() ).init( cfmlDateTime );
+	}
+
+	private array function _getSchedulingLib() {
+		return [
+			  "/preside/system/services/taskmanager/lib/cron-parser-2.6-SNAPSHOT.jar"
+			, "/preside/system/services/taskmanager/lib/commons-lang3-3.3.2.jar"
+			, "/preside/system/services/taskmanager/lib/joda-time-2.9.4.jar"
+			, "/preside/system/services/taskmanager/lib/cron-1.0.jar"
+		];
 	}
 
 // GETTERS AND SETTERS
