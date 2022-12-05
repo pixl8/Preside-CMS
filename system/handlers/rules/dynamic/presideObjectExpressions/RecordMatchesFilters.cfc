@@ -13,11 +13,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  value = ""
 		,          boolean _does = true
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
+		var recordId     = payload[ arguments.objectName ].id ?: "";
 
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
+			  objectName   = arguments.objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
