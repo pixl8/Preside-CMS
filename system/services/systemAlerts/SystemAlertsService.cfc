@@ -39,11 +39,10 @@ component {
 		}
 
 		var references = config.isMultiCheck ? $runEvent(
-				  event         = "admin.systemAlerts.#arguments.type#.references"
-				, private       = true
-				, prepostExempt = true
-			) : [ arguments.reference ];
-		}
+			  event         = "admin.systemAlerts.#arguments.type#.references"
+			, private       = true
+			, prepostExempt = true
+		) : [ arguments.reference ];
 
 		for( var ref in references ) {
 			var check = new SystemAlertCheck( type=arguments.type, reference=ref );
