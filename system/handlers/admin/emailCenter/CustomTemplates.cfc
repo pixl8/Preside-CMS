@@ -21,7 +21,6 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-
 		_checkPermissions( event=event, key="navigate" );
 
 		event.addAdminBreadCrumb(
@@ -800,17 +799,17 @@ component extends="preside.system.base.AdminHandler" {
 		var id      = rc.id ?: "";
 		var version = Val( rc.version ?: "" );
 
+		if ( !emailTemplateService.templateExists( id=id ) ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
+		}
+
 		prc.record = prc.template = emailTemplateService.getTemplate(
 			  id               = id
 			, allowDrafts      = arguments.allowDrafts
 			, version          = arguments.allowDrafts ? version : 0
 			, fromVersionTable = arguments.fromVersionTable
 		);
-
-		if ( !prc.record.count() || systemEmailTemplateService.templateExists( id ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
 	}
 
 	private string function _getTestSendFormName( event, rc, prc ) {
