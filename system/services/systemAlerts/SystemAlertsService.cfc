@@ -38,7 +38,8 @@ component {
 			return;
 		}
 
-		var references = config.isMultiCheck ? $runEvent(
+		var checks     = [];
+		var references = config.isMultiCheck && !Len( arguments.reference ) ? $runEvent(
 			  event         = "admin.systemAlerts.#arguments.type#.references"
 			, private       = true
 			, prepostExempt = true
@@ -67,10 +68,10 @@ component {
 				);
 			}
 
-			if ( !config.isMultiCheck ) {
-				return check;
-			}
+			ArrayAppend( checks, check );
 		}
+
+		return ArrayLen( checks )==1 ? checks[ 1 ] : checks;
 	}
 
 	public string function rerunCheck( required string id ) {
