@@ -35,7 +35,9 @@
 			};
 
 			showAndHideFieldsBasedOnPeriodType = function(){
-				switch( getSelectedType() ) {
+				var type = getSelectedType();
+
+				switch( type ) {
 					case "between":
 						$measureControl.addClass( "hide" );
 						$unitControlContainer.addClass( "hide" );
@@ -74,6 +76,12 @@
 						$unitControlContainer.addClass( "hide" );
 						$date1ControlContainer.addClass( "hide" ).removeClass( "block" );
 						$date2ControlContainer.addClass( "hide" ).removeClass( "block" );
+				}
+
+				if ( type == "equal" ) {
+					$builderContainer.find( ".time-period-date1" ).data( "DateTimePicker" ).format( "YYYY-MM-DD" );
+				} else {
+					$builderContainer.find( ".time-period-date1" ).data( "DateTimePicker" ).format( "YYYY-MM-DD HH:mm" );
 				}
 			};
 
