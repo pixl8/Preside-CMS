@@ -34,6 +34,7 @@ component {
 		_setupCatchAllAdminUserGroup();
 		_startHeartbeats();
 		_setupValidators();
+		systemAlertsService.runStartupChecks();
 
 		announceInterception( "onApplicationStart" );
 	}

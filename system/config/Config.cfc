@@ -148,7 +148,6 @@ component {
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
 			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.SystemAlertsInterceptor"             , properties={} }
 		];
 
 		variables.interceptorSettings = {
