@@ -45,6 +45,14 @@ component {
 			, prepostExempt = true
 		) : [ arguments.reference ];
 
+		if ( !isArray( references ?: "" ) ) {
+			var valueError = isNull( references ) ? "null" : "an invalid value";
+			throw(
+			  type    = "SystemAlertsService.references.invalid"
+			, message = "The references() method of system alert type [#arguments.type#] has returned #valueError#. If defined, the method should return an array of reference IDs for use by the runCheck() method."
+			);
+		}
+
 		for( var ref in references ) {
 			var check = new SystemAlertCheck( type=arguments.type, reference=ref );
 			$runEvent(
@@ -221,7 +229,7 @@ component {
 		if ( !_isValidAlertType( arguments.type) ) {
 			try {
 				throw(
-				  	  type    = "SystemAlertsService.alert.type.not.found"
+					  type    = "SystemAlertsService.alert.type.not.found"
 					, message = "The system alert type [#arguments.type#] has not been registered."
 				);
 			}
