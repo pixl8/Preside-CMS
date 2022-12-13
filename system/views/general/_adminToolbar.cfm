@@ -29,7 +29,7 @@
 
 		userMenu          = renderView( "/admin/layout/userMenu" );
 		notificationsMenu = renderViewlet( "admin.notifications.notificationNavPromo" );
-
+		systemAlertsMenu  = renderViewlet( "admin.systemAlerts.systemAlertsMenuItem" );
 
 		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 
@@ -108,6 +108,7 @@
 									&nbsp;
 								</li>
 							</cfif>
+							#systemAlertsMenu#
 							<li>#notificationsMenu#</li>
 							<li>#userMenu#</li>
 						</ul>

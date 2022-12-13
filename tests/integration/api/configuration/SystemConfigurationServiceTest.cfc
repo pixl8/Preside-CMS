@@ -421,13 +421,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[], struct injectedConfig={} ) ouput=false {
-		mockDao            = createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
-		testDirs           = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
-		mockFormsService   = createEmptyMock( "preside.system.services.forms.FormsService" );
-		mockTenancyService = createEmptyMock( "preside.system.services.tenancy.TenancyService" );
-		mockSiteService    = createEmptyMock( "preside.system.services.siteTree.SiteService" );
-		mockCache          = createStub();
-		helpers            = createStub();
+		mockDao                 = createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
+		testDirs                = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
+		mockFormsService        = createEmptyMock( "preside.system.services.forms.FormsService" );
+		mockTenancyService      = createEmptyMock( "preside.system.services.tenancy.TenancyService" );
+		mockSystemAlertsService = createEmptyMock( "preside.system.services.systemAlerts.SystemAlertsService" );
+		mockSiteService         = createEmptyMock( "preside.system.services.siteTree.SiteService" );
+		mockCache               = createStub();
+		helpers                 = createStub();
 
 		mockFormsService.$( "formExists" ).$args( formName="system-config.disabled_feature_settings", checkSiteTemplates=false ).$results( false );
 		mockFormsService.$( "formExists", true );
@@ -436,10 +437,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		mockFormsService.$( "getForm" ).$args( "system-config.mail_settings" ).$results( { tenancy="custom" } );
 		mockFormsService.$( "getForm", {} );
 
-
 		activeSite = CreateUUId();
 		mockSiteService.$( "getActiveSiteId", activeSite );
 		mockTenancyService.$( "getTenantId" ).$args( "site" ).$results( activeSite );
+
+		mockSystemAlertsService.$( "runWatchedSettingsChecks" );
 
 		mockCache.$( "get" );
 		mockCache.$( "set" );
@@ -452,6 +454,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			, formsService            = mockFormsService
 			, siteService             = mockSiteService
 			, tenancyService          = mockTenancyService
+			, systemAlertsService     = mockSystemAlertsService
 			, settingsCache           = mockCache
 		) );
 

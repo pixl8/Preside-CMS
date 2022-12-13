@@ -8,6 +8,7 @@ component {
 	property name="antiSamySettings"              inject="coldbox:setting:antiSamy";
 	property name="antiSamyService"               inject="delayedInjector:antiSamyService";
 	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
+	property name="presideSystemAlertsHeartBeat"  inject="presideSystemAlertsHeartBeat";
 	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
 	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
 	property name="presideSessionReapHeartbeat"   inject="presideSessionReapHeartbeat";
@@ -22,6 +23,7 @@ component {
 	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
 	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
 	property name="validationEngine"              inject="validationEngine";
+	property name="systemAlertsService"           inject="systemAlertsService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -32,6 +34,7 @@ component {
 		_setupCatchAllAdminUserGroup();
 		_startHeartbeats();
 		_setupValidators();
+		systemAlertsService.runStartupChecks();
 
 		announceInterception( "onApplicationStart" );
 	}
@@ -240,6 +243,7 @@ component {
 		}
 
 		dataExportTemplateService.setupTemplatesEnum();
+		systemAlertsService.setupSystemAlerts();
 	}
 
 	private void function _startHeartbeats() {
@@ -261,6 +265,10 @@ component {
 
 		if ( isFeatureEnabled( "taskmanagerHeartBeat" ) ) {
 			presideTaskmanagerHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "systemAlertsHeartBeat" ) ) {
+			presideSystemAlertsHeartBeat.start();
 		}
 
 		if ( isFeatureEnabled( "presideSessionManagement" ) ) {
