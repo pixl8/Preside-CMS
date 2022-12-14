@@ -796,6 +796,7 @@ component extends="testbox.system.BaseSpec" {
 		mockRequestContext  = CreateStub();
 		mockTaskScheduler   = CreateStub();
 		mockSiteService     = CreateStub();
+		mockSysConfigSrvc   = CreateStub();
 		mockLogboxLogger    = CreateStub();
 		mockThreadUtil      = CreateStub();
 		mockExecutor        = CreateStub();
@@ -804,6 +805,7 @@ component extends="testbox.system.BaseSpec" {
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
 			  taskScheduler        = mockTaskScheduler
 			, siteService          = mockSiteService
+			, sysConfigSrvc        = mockSysConfigSrvc
 			, logger               = mockLogBoxLogger
 			, threadUtil           = mockThreadUtil
 			, executor             = mockExecutor
