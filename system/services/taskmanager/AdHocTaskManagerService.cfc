@@ -10,18 +10,21 @@ component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @siteService.inject siteService
-	 * @threadUtil.inject  threadUtil
-	 * @logger.inject      logbox:logger:taskmanager
- 	 * @executor.inject    presideAdhocTaskManagerExecutor
+	 * @siteService.inject   siteService
+	 * @sysConfigSrvc.inject systemConfigurationService
+	 * @threadUtil.inject    threadUtil
+	 * @logger.inject        logbox:logger:taskmanager
+ 	 * @executor.inject      presideAdhocTaskManagerExecutor
 	 */
 	public any function init(
 		  required any siteService
+		, required any sysConfigSrvc
 		, required any logger
 		, required any threadUtil
 		, required any executor
 	) {
 		_setSiteService( arguments.siteService );
+		_setSysConfigSrvc( arguments.sysConfigSrvc );
 		_setLogger( arguments.logger );
 		_setThreadUtil( arguments.threadUtil );
 		_setExecutor( arguments.executor );
@@ -541,6 +544,17 @@ component displayName="Ad-hoc Task Manager Service" {
 			, filterParams = { discard_expiry=Now() }
 		);
 
+		var daysToKeepLogs   = val( _getSysConfigSrvc().getSetting( "taskmanager", "keep_logs_for_days", 7 ) );
+		var oldestDateToKeep = dateAdd( "d", 0-daysToKeepLogs, Now() );
+		var outdatedDeleted  = $getPresideObject( "taskmanager_adhoc_task" ).deleteData(
+			  filter       = "finished_on < :finished_on"
+			, filterParams = { finished_on=oldestDateToKeep }
+		);
+
+		if ( outdatedDeleted ) {
+			tasksDeleted += outdatedDeleted;
+		}
+
 		if ( canInfo ) {
 			if ( tasksDeleted ) {
 				arguments.logger.info( "Deleted [#NumberFormat( tasksDeleted )#] expired tasks." );
@@ -645,6 +659,13 @@ component displayName="Ad-hoc Task Manager Service" {
 	}
 	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
+	}
+
+	private any function _getSysConfigSrvc() {
+		return _sysConfigSrvc;
+	}
+	private void function _setSysConfigSrvc( required any sysConfigSrvc ) {
+		_sysConfigSrvc = arguments.sysConfigSrvc;
 	}
 
 	private any function _getLogger() {
