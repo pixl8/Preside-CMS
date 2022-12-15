@@ -541,6 +541,17 @@ component displayName="Ad-hoc Task Manager Service" {
 			, filterParams = { discard_expiry=Now() }
 		);
 
+		var daysToKeepLogs   = val( $getPresideSetting( "taskmanager", "keep_logs_for_days", 7 ) );
+		var oldestDateToKeep = dateAdd( "d", 0-daysToKeepLogs, Now() );
+		var outdatedDeleted  = $getPresideObject( "taskmanager_adhoc_task" ).deleteData(
+			  filter       = "finished_on < :finished_on"
+			, filterParams = { finished_on=oldestDateToKeep }
+		);
+
+		if ( outdatedDeleted ) {
+			tasksDeleted += outdatedDeleted;
+		}
+
 		if ( canInfo ) {
 			if ( tasksDeleted ) {
 				arguments.logger.info( "Deleted [#NumberFormat( tasksDeleted )#] expired tasks." );
