@@ -5,7 +5,14 @@
  */
 component {
 
-	public any function init() {
+	/**
+	 * @systemEmailTemplateService.inject    SystemEmailTemplateService
+	 */
+	public any function init(
+		required any systemEmailTemplateService
+	) {
+		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
+
 		return;
 	}
 
@@ -41,14 +48,21 @@ component {
 	public array function existingEmailsUsingInvalidDomains( required string validDomains ) {
 		var delims    = ", #Chr( 10 )##Chr( 13 )#";
 		var domains   = ListToArray( Trim( arguments.validDomains ), delims );
-		var addresses = $getPresideObject( "email_template" ).selectData( distinct=true, selectFields=[ "from_address" ] );
+		var addresses = $getPresideObject( "email_template" ).selectData(
+			  distinct     = true
+			, selectFields = [ "id","from_address" ]
+		);
 		var badaddresses = [];
 
 		for( var address in addresses ) {
 			if ( Len( address.from_address) ) {
-				var domain = _getDomainFromEmail( address.from_address );
-				if ( !ArrayFindNoCase( domains, domain ) ) {
-					ArrayAppend( badaddresses, address.from_address );
+				if ( _getSystemEmailTemplateService().templateExists( address.id ) ) {
+					var domain = _getDomainFromEmail( address.from_address );
+					if ( !ArrayFindNoCase( domains, domain ) ) {
+						ArrayAppend( badaddresses, address.from_address );
+					}
+				} else {
+					$getPresideObject( "email_template" ).updateData(  id=address.id, data={ from_address="" } );
 				}
 			}
 		}
@@ -56,8 +70,16 @@ component {
 		return badaddresses;
 	}
 
+	// PRIVATE HELPERs
 	private string function _getDomainFromEmail( required string emailAddress ) {
 		return ReReplace( Trim( arguments.emailAddress ), ".*?@(.*?)>?$", "\1" );
 	}
 
+	// GETTERs & SETTERs
+	private any function _getSystemEmailTemplateService() {
+		return _systemEmailTemplateService;
+	}
+	private void function _setSystemEmailTemplateService( required any systemEmailTemplateService ) {
+		_systemEmailTemplateService = arguments.systemEmailTemplateService;
+	}
 }
