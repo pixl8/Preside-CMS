@@ -10,10 +10,10 @@ component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @siteService.inject   siteService
-	 * @threadUtil.inject    threadUtil
-	 * @logger.inject        logbox:logger:taskmanager
- 	 * @executor.inject      presideAdhocTaskManagerExecutor
+	 * @siteService.inject siteService
+	 * @threadUtil.inject  threadUtil
+	 * @logger.inject      logbox:logger:taskmanager
+ 	 * @executor.inject    presideAdhocTaskManagerExecutor
 	 */
 	public any function init(
 		  required any siteService
