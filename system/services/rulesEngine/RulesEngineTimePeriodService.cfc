@@ -228,7 +228,9 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "nextmonth":
-				var firstOfNextMonth   = CreateDateTime(year(_getCurrentDateTime()), month(_getCurrentDateTime())+1, 1, 0, 0, 0);
+				var nextMonthVal       = month(_getCurrentDateTime()) + 1;
+				    nextMonthVal       = ( nextMonthVal > 12 ) ? 12 : nextMonthVal;
+				var firstOfNextMonth   = CreateDateTime(year(_getCurrentDateTime()), nextMonthVal, 1, 0, 0, 0);
 				var firstOfNext2Months = DateAdd( "m", 1, firstOfNextMonth );
 				var endOfNextMonth     = DateAdd( "d", -1, firstOfNext2Months );
 					endOfNextMonth.setHour( "23" );
