@@ -80,10 +80,13 @@
 
 				var $date1 = $builderContainer.find( ".time-period-date1" );
 				if ( $date1.length ) {
-					if ( type == "equal" ) {
-						$date1.data( "DateTimePicker" ).format( "YYYY-MM-DD" );
-					} else {
-						$date1.data( "DateTimePicker" ).format( "YYYY-MM-DD HH:mm" );
+					var dtPicker = $date1.data( "DateTimePicker" );
+					if ( dtPicker ) {
+						if ( type == "equal" ) {
+							$date1.data( "DateTimePicker" ).format( "YYYY-MM-DD" );
+						} else {
+							$date1.data( "DateTimePicker" ).format( "YYYY-MM-DD HH:mm" );
+						}
 					}
 				}
 			};
