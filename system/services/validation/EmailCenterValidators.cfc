@@ -50,19 +50,20 @@ component {
 		var domains   = ListToArray( Trim( arguments.validDomains ), delims );
 		var addresses = $getPresideObject( "email_template" ).selectData(
 			  distinct     = true
-			, selectFields = [ "id","from_address" ]
+			, filter       = "from_address IS NOT NULL"
+			, selectFields = [ "id","from_address", "is_system_email" ]
 		);
 		var badaddresses = [];
 
 		for( var address in addresses ) {
-			if ( Len( address.from_address) ) {
-				if ( _getSystemEmailTemplateService().templateExists( address.id ) ) {
-					var domain = _getDomainFromEmail( address.from_address );
-					if ( !ArrayFindNoCase( domains, domain ) ) {
-						ArrayAppend( badaddresses, address.from_address );
-					}
-				} else {
+			var domain = _getDomainFromEmail( address.from_address );
+			if ( !ArrayFindNoCase( domains, domain ) ) {
+				if ( isBoolean( address.is_system_email ?: "" ) && address.is_system_email &&
+					!_getSystemEmailTemplateService().templateExists( address.id )
+				) {
 					$getPresideObject( "email_template" ).updateData(  id=address.id, data={ from_address="" } );
+				} else {
+					ArrayAppend( badaddresses, address.from_address );
 				}
 			}
 		}
