@@ -78,10 +78,13 @@
 						$date2ControlContainer.addClass( "hide" ).removeClass( "block" );
 				}
 
-				if ( type == "equal" ) {
-					$builderContainer.find( ".time-period-date1" ).data( "DateTimePicker" ).format( "YYYY-MM-DD" );
-				} else {
-					$builderContainer.find( ".time-period-date1" ).data( "DateTimePicker" ).format( "YYYY-MM-DD HH:mm" );
+				var $date1 = $builderContainer.find( ".time-period-date1" );
+				if ( $date1.length ) {
+					if ( type == "equal" ) {
+						$date1.data( "DateTimePicker" ).format( "YYYY-MM-DD" );
+					} else {
+						$date1.data( "DateTimePicker" ).format( "YYYY-MM-DD HH:mm" );
+					}
 				}
 			};
 
