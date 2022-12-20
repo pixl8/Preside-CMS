@@ -532,7 +532,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $runSystemAlertCheck( required string type, string reference="", boolean async=true ) {
-		return $getSystemAlertsService().clearAlert( argumentCollection=arguments );
+		return $getSystemAlertsService().runcheck( argumentCollection=arguments );
 	}
 
 // PRESIDE FEATURES
