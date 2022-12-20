@@ -1,7 +1,21 @@
-component {
+component extends="preside.system.base.AdminHandler" {
 
-	property name="systemAlertsService" inject="systemAlertsService";
-	property name="messageBox"          inject="messagebox@cbmessagebox";
+	property name="systemAlertsService"   inject="systemAlertsService";
+	property name="messageBox"            inject="messagebox@cbmessagebox";
+	property name="datamanagerService"    inject="datamanagerService";
+	property name="presideObjectService"  inject="presideObjectService";
+
+
+	private void function extraTopRightButtonsForObject( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		args.actions = args.actions ?: [];
+		for( var i=ArrayLen( args.actions ); i>0; i-- ) {
+			if ( ( args.actions[ i ].globalKey ?: "" ) == "p" ) {
+				arrayDeleteAt( args.actions, i );
+			}
+		}
+	}
 
 	private void function extraRecordActionsForGridListing( event, rc, prc, args={} ) {
 		var record     = args.record     ?: {};

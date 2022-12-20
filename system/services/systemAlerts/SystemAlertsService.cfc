@@ -154,6 +154,21 @@ component {
 		return counts;
 	}
 
+	public query function getCriticalAlerts( array ignore=[] ) {
+		var extraFilters = [];
+		if ( ArrayLen( arguments.ignore ) ) {
+			ArrayAppend( extraFilters, {
+				  filter       = "id not in ( :id )"
+				, filterParams = { id=arguments.ignore }
+			} );
+		}
+		return alerts = $getPresideObject( "system_alert" ).selectData(
+			  filter       = { level="critical" }
+			, extraFilters = extraFilters
+			, orderBy      = "datecreated"
+		);
+	}
+
 
 // PRIVATE HELPERS
 	private void function _discoverSystemAlertTypes() {
