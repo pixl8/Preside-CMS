@@ -66,6 +66,10 @@ component {
 		event.setLayout( notFoundLayout );
 		event.setView( view="/core/simpleBodyRenderer" );
 
+		if ( isFeatureEnabled( "fullPageCaching" ) ) {
+			event.cachePage( false );
+		}
+
 		rc.body = renderViewlet( event=notFoundViewlet );
 	}
 
