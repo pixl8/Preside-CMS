@@ -7,7 +7,7 @@
 
 <cfoutput>
 	<li>
-		<a href="#event.buildAdminLink( objectName="system_alert" )#">
+		<a id="systemAlertsNavBarItem" href="#event.buildAdminLink( objectName="system_alert" )#">
 			<i class="fa fa-exclamation-triangle<cfif val( alertCounts.critical ?: "" )> icon-animated-bell</cfif>"></i>
 			<span class="badge">#totalAlerts#</span>
 		</a>
