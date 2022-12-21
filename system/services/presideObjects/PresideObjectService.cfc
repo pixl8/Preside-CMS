@@ -3362,10 +3362,10 @@ component displayName="Preside Object Service" {
 
 		if ( manyToManyObjects.len() ) {
 			for( var join in arguments.joins ){
-				if ( StructKeyExists( manyToManyObjects, join.joinFromObject ) ) {
+				if ( Len( join.joinFromObject ?: "" ) && StructKeyExists( manyToManyObjects, join.joinFromObject ) ) {
 					join.joinFromObject = getVersionObjectName( join.joinFromObject );
 				}
-				if ( StructKeyExists( manyToManyObjects, join.joinToObject ) ) {
+				if ( Len( join.joinToObject ?: "" ) && StructKeyExists( manyToManyObjects, join.joinToObject ) ) {
 					join.tableAlias = join.joinToObject;
 					join.joinToObject = getVersionObjectName( join.joinToObject );
 					join.addVersionClause = true;
