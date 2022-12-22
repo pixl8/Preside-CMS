@@ -22,11 +22,11 @@
 		},
 
 		highlight: function (e) {
-			$(e).closest('.form-group').removeClass('has-info').addClass('has-error');
+			$(e).closest('.form-group').addClass('has-error');
 		},
 
 		success: function (e) {
-			$(e).closest('.form-group').removeClass('has-error').addClass('has-info');
+			$(e).closest('.form-group').removeClass('has-error');
 			$(e).remove();
 		},
 
