@@ -11,6 +11,8 @@ component {
 	private string function siteAlerts( event, rc, prc, args={} ) {
 		args.inMaintenanceMode = maintenanceModeService.isMaintenanceModeActive();
 
+		runEvent( event="admin.systemAlerts.displayCriticalAlerts", private=true, prePostExempt=true );
+
 		return renderView( view="/admin/layout/siteAlerts", args=args );
 	}
 

@@ -35,7 +35,9 @@
 			};
 
 			showAndHideFieldsBasedOnPeriodType = function(){
-				switch( getSelectedType() ) {
+				var type = getSelectedType();
+
+				switch( type ) {
 					case "between":
 						$measureControl.addClass( "hide" );
 						$unitControlContainer.addClass( "hide" );
@@ -46,6 +48,7 @@
 					case "before":
 					case "until":
 					case "after":
+					case "equal":
 						$measureControl.addClass( "hide" );
 						$unitControlContainer.addClass( "hide" );
 						$date1ControlContainer.removeClass( "hide" ).addClass( "block" );
@@ -60,12 +63,31 @@
 						$date1ControlContainer.addClass( "hide" ).removeClass( "block" );
 						$date2ControlContainer.addClass( "hide" ).removeClass( "block" );
 					break;
+					case "futureequal":
+					case "pastequal":
+						$measureControl.removeClass( "hide" );
+						$unitControlContainer.addClass( "hide" ).removeClass( "block" );
+						$date1ControlContainer.addClass( "hide" ).removeClass( "block" );
+						$date2ControlContainer.addClass( "hide" ).removeClass( "block" );
+					break;
 
 					default:
 						$measureControl.addClass( "hide" );
 						$unitControlContainer.addClass( "hide" );
 						$date1ControlContainer.addClass( "hide" ).removeClass( "block" );
 						$date2ControlContainer.addClass( "hide" ).removeClass( "block" );
+				}
+
+				var $date1 = $builderContainer.find( ".time-period-date1" );
+				if ( $date1.length ) {
+					var dtPicker = $date1.data( "DateTimePicker" );
+					if ( dtPicker ) {
+						if ( type == "equal" ) {
+							$date1.data( "DateTimePicker" ).format( "YYYY-MM-DD" );
+						} else {
+							$date1.data( "DateTimePicker" ).format( "YYYY-MM-DD HH:mm" );
+						}
+					}
 				}
 			};
 
@@ -81,6 +103,7 @@
 					case "before":
 					case "until":
 					case "after":
+					case "equal":
  						val.date1 = $date1Control.val();
 					break;
 					case "recent":
@@ -90,7 +113,10 @@
 						val.measure = $measureControl.val();
 						val.unit    = getSelectedUnit();
 					break;
-
+					case "futureequal":
+					case "pastequal":
+						val.measure = $measureControl.val();
+					break;
 					case "future":
 					case "past":
 					case "yesterday":
@@ -121,8 +147,6 @@
 				var selected = $unitControl.data( "uberSelect" ).getSelected();
 				return selected.length ? selected[0].value : $unitControl.val();
 			};
-
-
 
 			initializePicker();
 		} );
