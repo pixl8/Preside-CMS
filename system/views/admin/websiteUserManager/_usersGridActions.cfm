@@ -23,6 +23,8 @@
 			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="websiteUserManager.deleteUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteUserManager.deleteUser.prompt', data=[args.display_name] )#"<cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#batchDeletionConfirmationMatch#"</cfif>>
 				<i class="fa fa-trash-o"></i>
 			</a>
+		<cfelse>
+			<i class="grey fa fa-trash-o"></i>
 		</cfif>
 
 		<cfif hasCmsPermission( "websiteUserManager.edit" )>
