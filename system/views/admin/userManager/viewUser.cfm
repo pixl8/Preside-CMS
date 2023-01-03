@@ -9,6 +9,8 @@
 	canDelete   = hasCmsPermission( "usermanager.delete" ) && userId != event.getAdminUserId();
 	canReset2fa = hasCmsPermission( "usermanager.edit" ) && isTrue( userRecord.two_step_auth_key_in_use ?: "" );
 
+	deletionConfirmationMatch = prc.deletionConfirmationMatch ?: "";
+
 	if ( canEdit ) {
 		editRecordLink  = event.buildAdminLink( linkTo="usermanager.editUser", queryString="id=#userId#" );
 		editRecordTitle = translateResource( "cms:usermanager.editUser.btn" );
@@ -39,7 +41,7 @@
 			</a>
 		</cfif>
 		<cfif canDelete>
-			<a class="pull-right inline confirmation-prompt" href="#deleteRecordLink#" title="#HtmlEditFormat( deleteRecordPrompt )#">
+			<a class="pull-right inline confirmation-prompt" href="#deleteRecordLink#" title="#HtmlEditFormat( deleteRecordPrompt )#"<cfif not isEmptyString( deletionConfirmationMatch )> data-confirmation-match="#deletionConfirmationMatch#"</cfif>>
 				<button class="btn btn-danger btn-sm">
 					<i class="fa fa-trash-o"></i>
 					#deleteRecordTitle#

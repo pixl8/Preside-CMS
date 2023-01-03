@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="permissionService"    inject="permissionService";
 	property name="messageBox"           inject="messagebox@cbmessagebox";
 	property name="emailService"         inject="EmailService";
+	property name="dataManagerService"   inject="DataManagerService";
 
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -157,12 +158,18 @@ component extends="preside.system.base.AdminHandler" {
 	function getUsersForAjaxDataTables( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="usermanager.read" );
 
+		var objectName = "security_user";
+
+		if ( dataManagerService.useTypedConfirmationForBatchDeletion( objectName ) ) {
+			prc.batchDeletionConfirmationMatch = dataManagerService.getBatchDeletionConfirmationMatch( objectName );
+		}
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object          = "security_user"
+				  object          = objectName
 				, gridFields      = "active,login_id,known_as,email_address,last_request_made"
 				, actionsView     = "/admin/usermanager/_usersGridActions"
 				, useMultiActions = false
@@ -215,14 +222,21 @@ component extends="preside.system.base.AdminHandler" {
 	function viewUser( event, rc, prc ) {
 		_checkPermissions( event=event, key="usermanager.read" );
 
+		var objectName = "security_user";
+
 		prc.record = presideObjectService.selectData(
-			  objectName              = "security_user"
+			  objectName              = objectName
 			, filter                  = { id=rc.id ?: "" }
-			, includeAllFormulaFields = true );
+			, includeAllFormulaFields = true
+		);
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:usermanager.userNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.users" ) );
+		}
+
+		if ( dataManagerService.useTypedConfirmationForDeletion( objectName ) ) {
+			prc.deletionConfirmationMatch = dataManagerService.getDeletionConfirmationMatch( objectName, queryRowToStruct( prc.record ) );
 		}
 
 		event.addAdminBreadCrumb(
