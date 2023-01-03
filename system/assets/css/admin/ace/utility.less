@@ -250,20 +250,28 @@
   }
 }
 
+.action-buttons {
+	i {
+		margin : 0 3px;
+		cursor : default;
+	}
 
+	a {
+		margin  : 0 3px;
+		display : inline-block;
+		opacity : 0.85;
+		.transition(~"all 0.1s");
 
+		&:hover {
+			text-decoration : none;
+			opacity         : 1;
+			.transform(~"scale(1.2)");
+		}
 
-.action-buttons a {
-  margin: 0 3px;
-  display: inline-block;
-  opacity: 0.85;
-   .transition(~"all 0.1s");
-
-  &:hover {
-	text-decoration: none;
-	opacity: 1;
-	.transform(~"scale(1.2)");
-  }
+		i {
+			margin : 0;
+		}
+	}
 }
 
 
