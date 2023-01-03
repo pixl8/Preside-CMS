@@ -6,6 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="presideObjectService"            inject="presideObjectService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 	property name="passwordPolicyService"           inject="passwordPolicyService";
+	property name="dataManagerService"              inject="DataManagerService";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -22,11 +23,18 @@ component extends="preside.system.base.AdminHandler" {
 
 	function index( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.navigate" );
+
 		prc.canDelete = hasCmsPermission( "websiteUserManager.delete" );
 	}
 
 	function getUsersForAjaxDataTables( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.read" );
+
+		var objectName = "website_user";
+
+		if ( dataManagerService.useTypedConfirmationForBatchDeletion( objectName ) ) {
+			prc.batchDeletionConfirmationMatch = dataManagerService.getBatchDeletionConfirmationMatch( objectName );
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -86,7 +94,9 @@ component extends="preside.system.base.AdminHandler" {
 	function viewUser( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.read" );
 
-		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
+		var objectName = "website_user";
+
+		prc.record = presideObjectService.selectData( objectName=objectName, filter={ id=rc.id ?: "" } );
 
 		if ( not prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
@@ -94,6 +104,10 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		prc.record = queryRowToStruct( prc.record );
 		prc.record.permissions = websitePermissionService.listUserPermissions( userId = rc.id ?: "" ).toList();
+
+		if ( dataManagerService.useTypedConfirmationForDeletion( objectName ) ) {
+			prc.deletionConfirmationMatch = dataManagerService.getDeletionConfirmationMatch( objectName, prc.record );
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:websiteUserManager.viewUser.page.title", data=[ prc.record.display_name ] )

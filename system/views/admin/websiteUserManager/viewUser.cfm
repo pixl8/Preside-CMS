@@ -9,6 +9,8 @@
 	canDelete      = hasCmsPermission( "websiteUserManager.delete" );
 	canImpersonate = hasCmsPermission( "websiteUserManager.impersonate" );
 
+	deletionConfirmationMatch = prc.deletionConfirmationMatch ?: "";
+
 	if ( canEdit ) {
 		editRecordLink  = event.buildAdminLink( linkTo="websiteUserManager.editUser", queryString="id=#userId#")
 		editRecordTitle = translateResource( "cms:websiteUserManager.editUser.btn" );
@@ -33,7 +35,7 @@
 <cfoutput>
 	<div class="top-right-button-group">
 		<cfif canDelete>
-			<a class="pull-right inline confirmation-prompt" href="#deleteRecordLink#" title="#HtmlEditFormat( deleteRecordPrompt )#">
+			<a class="pull-right inline confirmation-prompt" href="#deleteRecordLink#" title="#HtmlEditFormat( deleteRecordPrompt )#"<cfif not isEmptyString( deletionConfirmationMatch )> data-confirmation-match="#deletionConfirmationMatch#"</cfif>>
 				<button class="btn btn-danger btn-sm">
 					<i class="fa fa-trash-o"></i>
 					#deleteRecordTitle#
