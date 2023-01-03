@@ -1,6 +1,10 @@
 <cfparam name="args.id"       type="string" />
 <cfparam name="args.display_name" type="string" />
 
+<cfscript>
+	batchDeletionConfirmationMatch = prc.batchDeletionConfirmationMatch ?: "";
+</cfscript>
+
 <cfoutput>
 	<div class="action-buttons">
 		<cfif hasCmsPermission( "websiteUserManager.read" )>
@@ -16,7 +20,7 @@
 		</cfif>
 
 		<cfif hasCmsPermission( "websiteUserManager.delete" )>
-			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="websiteUserManager.deleteUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteUserManager.deleteUser.prompt', data=[args.display_name] )#">
+			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="websiteUserManager.deleteUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteUserManager.deleteUser.prompt', data=[args.display_name] )#"<cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#batchDeletionConfirmationMatch#"</cfif>>
 				<i class="fa fa-trash-o"></i>
 			</a>
 		</cfif>
