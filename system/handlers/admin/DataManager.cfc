@@ -1740,7 +1740,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( IsTrue( prc.canDelete ?: "" ) ) {
-			var  useTypedConfirmation = dataManagerService.useTypedConfirmationForDeletion( objectName );
+			var useTypedConfirmation = dataManagerService.useTypedConfirmationForDeletion( objectName );
 			var record = args.record ?: ( prc.record ?: {} );
 			if ( isQuery( record ) ) {
 				record = QueryRowToStruct( record );
