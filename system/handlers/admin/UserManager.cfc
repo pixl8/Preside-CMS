@@ -34,12 +34,18 @@ component extends="preside.system.base.AdminHandler" {
 	function getGroupsForAjaxDataTables( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="groupmanager.read" );
 
+		var objectName = "security_group";
+
+		if ( dataManagerService.useTypedConfirmationForBatchDeletion( objectName ) ) {
+			prc.batchDeletionConfirmationMatch = dataManagerService.getBatchDeletionConfirmationMatch( objectName );
+		}
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object      = "security_group"
+				  object      = objectName
 				, gridFields  = "label,description,is_catch_all"
 				, actionsView = "/admin/usermanager/_groupsGridActions"
 			}
@@ -77,11 +83,17 @@ component extends="preside.system.base.AdminHandler" {
 	function viewGroup( event, rc, prc ) {
 		_checkPermissions( event=event, key="groupmanager.read" );
 
-		prc.record = presideObjectService.selectData( objectName="security_group", filter={ id=rc.id ?: "" } );
+		var objectName = "security_group";
+
+		prc.record = presideObjectService.selectData( objectName=objectName, filter={ id=rc.id ?: "" } );
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:usermanager.groupNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.groups" ) );
+		}
+
+		if ( dataManagerService.useTypedConfirmationForDeletion( objectName ) ) {
+			prc.deletionConfirmationMatch = dataManagerService.getDeletionConfirmationMatch( objectName, queryRowToStruct( prc.record ) );
 		}
 
 		event.addAdminBreadCrumb(

@@ -2,6 +2,10 @@
 <cfparam name="args.label"        type="string" />
 <cfparam name="args.is_catch_all" type="any" />
 
+<cfscript>
+	batchDeletionConfirmationMatch = prc.batchDeletionConfirmationMatch ?: "";
+</cfscript>
+
 <cfoutput>
 	<div class="action-buttons">
 		<cfif hasCmsPermission( "groupmanager.read" )>
@@ -22,7 +26,7 @@
 					<i class="fa fa-trash-o bigger-130"></i>
 				</a>
 			<cfelse>
-				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="usermanager.deleteGroupAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteGroup.prompt', data=[args.label] )#">
+				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="usermanager.deleteGroupAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteGroup.prompt', data=[args.label] )#"<cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#batchDeletionConfirmationMatch#"</cfif>>
 					<i class="fa fa-trash-o bigger-130"></i>
 				</a>
 			</cfif>
