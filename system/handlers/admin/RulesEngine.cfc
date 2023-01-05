@@ -560,7 +560,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	private void function _checkRuleScope( rc, prc, required string key ) {
 		if ( key == 'edit' ) {
-			var rulesGroup = presideObjectService.selectData( objectName="rules_engine_condition", id=rc.id, selectFields=[ "security_group.id as group_id", "owner" ], forcejoins="left" );
+			var rulesGroup = presideObjectService.selectData( objectName="rules_engine_condition", id=rc.id, selectFields=[ "user_groups.id as group_id", "owner" ], forcejoins="left" );
 
 			if ( rulesGroup.recordCount ) {
 				prc.filterScope = Len( rulesGroup.group_id ) && Len( rulesGroup.owner ) ? "group" : ( Len( rulesGroup.owner ) ? "individual" : "global" );
