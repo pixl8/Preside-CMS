@@ -104,13 +104,19 @@ component displayName="Rules Engine Filter Service" {
 							sql  &= delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
 							delim = " and ";
 
+							var havingField = "";
+
 							if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
-								havingfields.append( rawFilter.propertyName );
+								havingField = rawFilter.propertyName;
 							} else {
 								var firstField = ListFirst( Trim( Replace( Len( having ) ? having : ( isStruct( rawFilter.filter ?: "" ) ? "" : rawFilter.filter ?: "" ), "(", "", "all" ) ), " " );
 								if( ListLen( firstField, "." ) == 2 ) {
-									havingfields.append( firstField );
+									havingField = firstField;
 								}
+							}
+
+							if ( len( havingField ) && !arrayFindNoCase( havingfields, havingField ) ) {
+								arrayAppend( havingfields, havingField );
 							}
 						}
 					}
