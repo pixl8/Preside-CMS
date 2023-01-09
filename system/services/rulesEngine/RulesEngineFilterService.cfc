@@ -122,8 +122,8 @@ component displayName="Rules Engine Filter Service" {
 								}
 							}
 
-							if ( len( havingField ) && !arrayFindNoCase( havingfields, havingField ) ) {
-								arrayAppend( havingfields, havingField );
+							if ( Len( havingField ) && !ArrayFindNoCase( havingfields, havingField ) ) {
+								ArrayAppend( havingfields, havingField );
 							}
 						}
 					}
