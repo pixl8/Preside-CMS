@@ -223,7 +223,6 @@ component {
 		var args = { sendArgs=arguments.sendArgs, settings=settings };
 		$announceInterception( "preSendEmail", args );
 
-
 		if ( arguments.logSend ) {
 			args.sendArgs.messageId = _logMessage( args.sendArgs );
 
@@ -269,7 +268,7 @@ component {
 		}
 
 		if ( arguments.logSend && sent ) {
-			logService.markAsSent( args.sendArgs.messageId );
+			logService.markAsSent( args.sendArgs.messageId, args.sendArgs.template ?: "" );
 			logService.logEmailContent(
 				  template = args.sendArgs.args.template ?: ""
 				, id       = args.sendArgs.messageId
