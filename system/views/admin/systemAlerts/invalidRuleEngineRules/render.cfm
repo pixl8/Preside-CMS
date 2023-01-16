@@ -1,19 +1,13 @@
 <cfscript>
-	invalidRules = args.data.invalidRules ?: [];
+	ruleId = args.reference ?: "";
 </cfscript>
 
 <cfoutput>
-	<cfif arrayLen( invalidRules )>
-		<h3>#translateResource( uri="systemAlerts.invalidRuleEngineRules:render.no.of.invalid.rules", data=[ arrayLen( invalidRules ) ] )#</h3>
+	<cfif len( ruleId )>
+		<p>#translateResource( uri="systemAlerts.invalidRuleEngineRules:render.invalid.condition", data=[ renderLabel( "rules_engine_condition", ruleId ) ] )#</p>
 
-		<ul>
-			<cfloop array="#invalidRules#" item="ruleId">
-				<li>
-					<a href="#event.buildAdminLink( objectName="rules_engine_condition", recordId=ruleId )#">
-						#renderLabel( "rules_engine_condition", ruleId )#
-					</a>
-				</li>
-			</cfloop>
-		</ul>
+		<a class="btn btn-warning" href="#event.buildAdminLink( objectName="rules_engine_condition", recordId=ruleId )#">
+			#translateResource( uri="systemAlerts.invalidRuleEngineRules:render.invalid.condition.fix" )#
+		</a>
 	</cfif>
 </cfoutput>

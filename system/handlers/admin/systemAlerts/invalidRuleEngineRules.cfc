@@ -1,37 +1,30 @@
 component {
 	property name="validationEngine"    inject="ValidationEngine";
 	property name="conditionService"    inject="RulesEngineConditionService";
-	property name="systemAlertsService" inject="SystemAlertsService";
 
 	private void function runCheck( required systemAlertCheck check ) {
-		var invalidRules  = [];
-		var ruleFilter    = {};
-		var existingAlert = systemAlertsService.getAlert( type="invalidRuleEngineRules" );
-
-		if ( arrayLen( existingAlert.data.invalidRules ?: [] ) ) {
-			ruleFilter.id = existingAlert.data.invalidRules;
+		var conditionId = arguments.check.getReference();
+		if ( !Len( conditionId ) ) {
+			return;
 		}
 
-		var allRules = getPresideObject( "rules_engine_condition" ).selectData( filter=ruleFilter, selectFields=[ "id", "context", "filter_object", "expressions" ] );
-
-		for ( var rule in allRules ) {
-			var isRuleValid = conditionService.validateCondition(
-				  condition        = rule.expressions   ?: ""
-				, context          = rule.context       ?: ""
-				, validationResult = validationEngine.newValidationResult()
-				, filterObject     = rule.filter_object ?: ""
-			);
-
-			if ( !isRuleValid ) {
-				arrayAppend( invalidRules, rule.id );
-			}
+		var condition = getPresideObject( "rules_engine_condition" ).selectData(
+			  id           = conditionId
+			, selectFields = [ "id", "context", "filter_object", "expressions" ]
+		);
+		if ( !condition.recordcount ) {
+			return;
 		}
 
-		if ( arrayLen( invalidRules ) ) {
-			check.fail();
-			check.setData( { invalidRules=invalidRules } );
-		} else {
-			check.pass();
+		var isValid = conditionService.validateCondition(
+			  condition        = condition.expressions   ?: ""
+			, context          = condition.context       ?: ""
+			, validationResult = validationEngine.newValidationResult()
+			, filterObject     = condition.filter_object ?: ""
+		);
+
+		if ( !isValid ) {
+			arguments.check.fail();
 		}
 	}
 
@@ -43,6 +36,11 @@ component {
 // CONFIG SETTINGS
 	private boolean function runAtStartup() {
 		return true;
+	}
+
+	private array function references() {
+		var conditions = getPresideObject( "rules_engine_condition" ).selectData( selectFields=[ "id" ] );
+		return valueArray( conditions, "id" );
 	}
 
 	private string function defaultLevel() {

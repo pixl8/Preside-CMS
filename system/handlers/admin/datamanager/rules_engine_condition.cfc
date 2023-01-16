@@ -505,6 +505,8 @@ component extends="preside.system.base.AdminHandler" {
 				, recalculateChildren = false
 			);
 		}
+
+		systemAlertsService.runCheck( type="invalidRuleEngineRules", reference=args.newId ?: "" );
 	}
 
 	private void function postEditRecordAction( event, rc, prc, args={} ) {
@@ -518,7 +520,7 @@ component extends="preside.system.base.AdminHandler" {
 				, args              = { id=args.recordId ?: "" }
 			);
 
-			systemAlertsService.runCheck( type="invalidRuleEngineRules" );
+			systemAlertsService.runCheck( type="invalidRuleEngineRules", reference=args.recordId ?: "" );
 		}
 	}
 
@@ -553,11 +555,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function postDeleteRecordAction( event, rc, prc, args={} ) {
-		systemAlertsService.runCheck( type="invalidRuleEngineRules" );
+		systemAlertsService.runCheck( type="invalidRuleEngineRules", reference=args.records.id ?: "" );
 	}
 
 	private void function postBatchDeleteRecordsAction( event, rc, prc, args={} ) {
-		systemAlertsService.runCheck( type="invalidRuleEngineRules" );
+		for( var record in ( args.records ?: queryNew("") ) ) {
+			systemAlertsService.runCheck( type="invalidRuleEngineRules", reference=record.id ?: "" );
+		}
 	}
 
 // EDITING RECORDS
