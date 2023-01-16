@@ -150,13 +150,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		describe( "markAsSent()", function(){
 			it( "should update the log record by setting sent = true + sent_date to now(ish) and record an activity", function(){
-				var service = _getService();
-				var logId   = CreateUUId();
+				var service    = _getService();
+				var logId      = CreateUUID();
+				var templateId = CreateUUID();
 
 				mockLogDao.$( "updateData", 1 );
 				service.$( "recordActivity" );
+				mockEmailTemplateService.$( "updateLastSentDate" ).$args( templateId=templateId, lastSentDate=nowish ).$results( 1 );
 
-				service.markAsSent( logId );
+				service.markAsSent( logId, templateId );
 
 				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
