@@ -8,7 +8,7 @@ component accessors=true {
 	property name="level"     type="string" default="";
 	property name="data"      type="struct";
 	property name="trigger"   type="string" default="code";
-	property name="lastRun"   type="any";
+	property name="lastRun"   type="any"    default="";
 
 
 	public void function pass() {
