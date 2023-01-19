@@ -60,16 +60,23 @@ component {
 		}
 
 		for( var ref in references ) {
-			var lastRun   = _getLastRun( type=arguments.type, reference=ref );
-			var check     = new SystemAlertCheck( type=arguments.type, reference=ref, trigger=arguments.trigger, lastRun=lastRun );
-			var startTime = getTickcount();
+			var lastRun        = _getLastRun( type=arguments.type, reference=ref );
+			var check          = new SystemAlertCheck( type=arguments.type, reference=ref, trigger=arguments.trigger, lastRun=lastRun );
+			var startTickcount = getTickcount();
+			var startTime      = now();
 			$runEvent(
 				  event          = checkHandler
 				, private        = true
 				, prepostExempt  = true
 				, eventArguments = { check=check }
 			);
-			_logCheck( type=arguments.type, reference=ref, trigger=arguments.trigger, ms=( getTickcount()-startTime ) );
+			_logCheck(
+				  type      = arguments.type
+				, reference = ref
+				, trigger   = arguments.trigger
+				, ms        = ( getTickcount()-startTickcount )
+				, runAt     = startTime
+			);
 
 			if ( check.fails() ) {
 				_raiseAlert(
@@ -351,13 +358,14 @@ component {
 		, required string  reference
 		, required string  trigger
 		, required numeric ms
+		, required date    runAt
 	) {
 		$getPresideObject( "system_alert_log" ).insertData( {
 			  type      = arguments.type
 			, reference = arguments.reference
 			, trigger   = arguments.trigger
 			, ms        = arguments.ms
-			, run_at    = now()
+			, run_at    = arguments.runAt
 		} );
 	}
 
