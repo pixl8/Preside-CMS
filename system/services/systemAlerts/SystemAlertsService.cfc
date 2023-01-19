@@ -20,7 +20,12 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public any function runCheck( required string type, string reference="", boolean async=true ) {
+	public any function runCheck(
+		  required string  type
+		,          string  reference = ""
+		,          boolean async     = true
+		,          string  trigger   = "code"
+	) {
 		var checkHandler = "admin.systemAlerts.#arguments.type#.runCheck";
 		var config       = getAlertConfig( arguments.type );
 
@@ -31,7 +36,7 @@ component {
 		if ( arguments.async ) {
 			$createTask(
 				  event             = "admin.systemAlerts.runCheckInBackgroundThread"
-				, args              = { type=arguments.type, reference=arguments.reference }
+				, args              = { type=arguments.type, reference=arguments.reference, trigger=arguments.trigger }
 				, runNow            = true
 				, discardOnComplete = false
 			);
@@ -40,9 +45,10 @@ component {
 
 		var checks     = [];
 		var references = config.isMultiCheck && !Len( arguments.reference ) ? $runEvent(
-			  event         = "admin.systemAlerts.#arguments.type#.references"
-			, private       = true
-			, prepostExempt = true
+			  event          = "admin.systemAlerts.#arguments.type#.references"
+			, private        = true
+			, prepostExempt  = true
+			, eventArguments = { trigger=arguments.trigger }
 		) : [ arguments.reference ];
 
 		if ( !isArray( references ?: "" ) ) {
@@ -54,13 +60,16 @@ component {
 		}
 
 		for( var ref in references ) {
-			var check = new SystemAlertCheck( type=arguments.type, reference=ref );
+			var lastRun   = _getLastRun( type=arguments.type, reference=ref );
+			var check     = new SystemAlertCheck( type=arguments.type, reference=ref, trigger=arguments.trigger, lastRun=lastRun );
+			var startTime = getTickcount();
 			$runEvent(
 				  event          = checkHandler
 				, private        = true
 				, prepostExempt  = true
 				, eventArguments = { check=check }
 			);
+			_logCheck( type=arguments.type, reference=ref, trigger=arguments.trigger, ms=( getTickcount()-startTime ) );
 
 			if ( check.fails() ) {
 				_raiseAlert(
@@ -87,7 +96,7 @@ component {
 		if ( StructIsEmpty( alert ) ) {
 			return "notfound";
 		}
-		var check = runCheck( type=alert.type, reference=alert.reference, async=false );
+		var check = runCheck( type=alert.type, reference=alert.reference, async=false, trigger="rerun" );
 
 		return check.fails() ? "fails" : "cleared";
 	}
@@ -105,7 +114,7 @@ component {
 
 	public void function runStartupChecks() {
 		for( var type in _getStartupChecks() ) {
-			runCheck( type=type );
+			runCheck( type=type, trigger="startup" );
 		}
 	}
 
@@ -114,7 +123,7 @@ component {
 		var types      = categories[ arguments.category ] ?: [];
 
 		for( var type in types ) {
-			runCheck( type=type );
+			runCheck( type=type, trigger="settings" );
 		}
 	}
 
@@ -337,6 +346,34 @@ component {
 		return ArrayFindNoCase( _getValidAlertLevels(), arguments.level ) ? true : false;
 	}
 
+	private void function _logCheck(
+		  required string  type
+		, required string  reference
+		, required string  trigger
+		, required numeric ms
+	) {
+		$getPresideObject( "system_alert_log" ).insertData( {
+			  type      = arguments.type
+			, reference = arguments.reference
+			, trigger   = arguments.trigger
+			, ms        = arguments.ms
+			, run_at    = now()
+		} );
+	}
+
+	private any function _getLastRun( required string type, required string reference ) {
+		var lastRun = $getPresideObject( "system_alert_log" ).selectData(
+			  filter  = { type=arguments.type, reference=arguments.reference }
+			, orderBy = "run_at desc"
+			, maxRows = 1
+		);
+
+		if ( lastRun.recordCount ) {
+			return lastRun.run_at;
+		}
+		return "";
+	}
+
 // SCHEDULING
 	public void function runScheduledChecks() {
 		var dao       = $getPresideObject( "system_alert_schedule" );
@@ -346,7 +383,7 @@ component {
 			nextCheck = _getNextScheduledCheckToRun();
 
 			if ( !IsNull( nextCheck ) ) {
-				runCheck( nextCheck.type );
+				runCheck( type=nextCheck.type, trigger="schedule" );
 				dao.updateData(
 					  id   = nextCheck.id
 					, data = {

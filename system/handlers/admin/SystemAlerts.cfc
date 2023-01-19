@@ -19,8 +19,9 @@ component extends="preside.system.base.AdminHandler" {
 	private any function runCheckInBackgroundThread( event, rc, prc, args={} ) {
 		var type      = args.type      ?: "";
 		var reference = args.reference ?: "";
+		var trigger   = args.trigger   ?: "code";
 
-		systemAlertsService.runCheck( type=type, reference=reference, async=false );
+		systemAlertsService.runCheck( type=type, reference=reference, async=false, trigger=trigger );
 	}
 
 	private any function displayCriticalAlerts( event, rc, prc, args={} ) {
