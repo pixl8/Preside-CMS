@@ -559,9 +559,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function postBatchDeleteRecordsAction( event, rc, prc, args={} ) {
-		for( var record in ( args.records ?: queryNew("") ) ) {
-			systemAlertsService.runCheck( type="invalidRuleEngineRules" );
-		}
+		systemAlertsService.runCheck( type="invalidRuleEngineRules" );
 	}
 
 // EDITING RECORDS
