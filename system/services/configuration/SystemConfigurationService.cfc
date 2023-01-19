@@ -16,7 +16,6 @@ component displayName="System configuration service" {
 	 * @formsService.inject            delayedInjector:formsService
 	 * @siteService.inject             delayedInjector:siteService
 	 * @tenancyService.inject          delayedInjector:tenancyService
-	 * @systemAlertsService.inject     delayedInjector:systemAlertsService
 	 * @settingsCache.inject           cachebox:PresideSystemSettingsCache
 	 */
 	public any function init(
@@ -26,7 +25,6 @@ component displayName="System configuration service" {
 		, required any    formsService
 		, required any    siteService
 		, required any    tenancyService
-		, required any    systemAlertsService
 		, required any    settingsCache
 	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
@@ -35,7 +33,6 @@ component displayName="System configuration service" {
 		_setFormsService( arguments.formsService );
 		_setSiteService( arguments.siteService );
 		_setTenancyService( arguments.tenancyService );
-		_setSystemAlertsService( arguments.systemAlertsService );
 		_setSettingsCache( arguments.settingsCache );
 		_setLoaded( false );
 
@@ -366,10 +363,6 @@ component displayName="System configuration service" {
 			, async      = false
 		);
 
-		if ( arguments.category != "dynamicform" ) {
-			_getSystemAlertsService().runWatchedSettingsChecks( arguments.category );
-		}
-
 		$announceInterception( "onClearSettingsCache", arguments );
 	}
 
@@ -510,13 +503,6 @@ component displayName="System configuration service" {
 	}
 	private void function _setSettingsCache( required any settingsCache ) {
 	    _settingsCache = arguments.settingsCache;
-	}
-
-	private any function _getSystemAlertsService() {
-	    return _systemAlertsService;
-	}
-	private void function _setSystemAlertsService( required any systemAlertsService ) {
-	    _systemAlertsService = arguments.systemAlertsService;
 	}
 
 	private any function _getTenancyService() {

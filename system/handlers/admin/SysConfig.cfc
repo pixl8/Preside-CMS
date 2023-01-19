@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="presideObjectService"       inject="presideObjectService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
 	property name="tenancyConfig"              inject="coldbox:setting:tenancy";
+	property name="systemAlertsService"        inject="systemAlertsService";
 
 
 // LIFECYCLE EVENTS
@@ -153,6 +154,10 @@ component extends="preside.system.base.AdminHandler" {
 				, value    = formData[ setting ]
 				, tenantId = tenantId
 			);
+		}
+
+		if ( arguments.category != "dynamicform" ) {
+			systemAlertsService.runWatchedSettingsChecks( arguments.category );
 		}
 
 		event.audit(
