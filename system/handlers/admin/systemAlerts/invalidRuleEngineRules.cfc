@@ -1,30 +1,45 @@
 component {
 	property name="validationEngine"    inject="ValidationEngine";
 	property name="conditionService"    inject="RulesEngineConditionService";
+	property name="systemAlertsService" inject="SystemAlertsService";
 
 	private void function runCheck( required systemAlertCheck check ) {
-		var conditionId = arguments.check.getReference();
-		if ( !Len( conditionId ) ) {
-			return;
+		var invalidRules  = [];
+		var ruleFilter    = "";
+		var ruleParams    = {};
+		var existingAlert = systemAlertsService.getAlert( type="invalidRuleEngineRules" );
+
+		if ( arrayLen( existingAlert.data.invalidRules ?: [] ) ) {
+			ruleFilter = "id in (:id) OR datecreated >= :datecreated";
+
+			ruleParams.id          = existingAlert.data.invalidRules;
+			ruleParams.datecreated = existingAlert.datecreated;
 		}
 
-		var condition = getPresideObject( "rules_engine_condition" ).selectData(
-			  id           = conditionId
+		var allRules = getPresideObject( "rules_engine_condition" ).selectData(
+			  filter       = ruleFilter
+			, filterParams = ruleParams
 			, selectFields = [ "id", "context", "filter_object", "expressions" ]
 		);
-		if ( !condition.recordcount ) {
-			return;
+
+		for ( var rule in allRules ) {
+			var isRuleValid = conditionService.validateCondition(
+				  condition        = rule.expressions   ?: ""
+				, context          = rule.context       ?: ""
+				, validationResult = validationEngine.newValidationResult()
+				, filterObject     = rule.filter_object ?: ""
+			);
+
+			if ( !isRuleValid ) {
+				arrayAppend( invalidRules, rule.id );
+			}
 		}
 
-		var isValid = conditionService.validateCondition(
-			  condition        = condition.expressions   ?: ""
-			, context          = condition.context       ?: ""
-			, validationResult = validationEngine.newValidationResult()
-			, filterObject     = condition.filter_object ?: ""
-		);
-
-		if ( !isValid ) {
-			arguments.check.fail();
+		if ( arrayLen( invalidRules ) ) {
+			check.fail();
+			check.setData( { invalidRules=invalidRules } );
+		} else {
+			check.pass();
 		}
 	}
 
@@ -36,11 +51,6 @@ component {
 // CONFIG SETTINGS
 	private boolean function runAtStartup() {
 		return true;
-	}
-
-	private array function references() {
-		var conditions = getPresideObject( "rules_engine_condition" ).selectData( selectFields=[ "id" ] );
-		return valueArray( conditions, "id" );
 	}
 
 	private string function defaultLevel() {
