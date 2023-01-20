@@ -17,8 +17,8 @@ component {
 			}
 
 			if ( isDate( check.getLastRun() ) ) {
-				ruleFilter = !isEmptyString( ruleFilter ) ? "#ruleFilter# OR datecreated >= :datecreated" : "datecreated >= :datecreated";
-				ruleParams.datecreated = check.getLastRun();
+				ruleFilter = !isEmptyString( ruleFilter ) ? "#ruleFilter# OR datemodified >= :datemodified" : "datemodified >= :datemodified";
+				ruleParams.datemodified = check.getLastRun();
 			}
 		}
 
