@@ -4,16 +4,22 @@ component {
 	property name="systemAlertsService" inject="SystemAlertsService";
 
 	private void function runCheck( required systemAlertCheck check ) {
-		var invalidRules  = [];
-		var ruleFilter    = "";
-		var ruleParams    = {};
-		var existingAlert = systemAlertsService.getAlert( type="invalidRuleEngineRules" );
+		var invalidRules = [];
+		var ruleFilter   = "";
+		var ruleParams   = {};
 
-		if ( arrayLen( existingAlert.data.invalidRules ?: [] ) ) {
-			ruleFilter = "id in (:id) OR datecreated >= :datecreated";
+		if ( check.getTrigger() != "startup" ) {
+			var existingAlert = systemAlertsService.getAlert( type="invalidRuleEngineRules" );
 
-			ruleParams.id          = existingAlert.data.invalidRules;
-			ruleParams.datecreated = existingAlert.datecreated;
+			if ( arrayLen( existingAlert.data.invalidRules ?: [] ) ) {
+				ruleFilter    = "id in (:id)";
+				ruleParams.id = existingAlert.data.invalidRules;
+			}
+
+			if ( isDate( check.getLastRun() ) ) {
+				ruleFilter = !isEmptyString( ruleFilter ) ? "#ruleFilter# OR datecreated >= :datecreated" : "datecreated >= :datecreated";
+				ruleParams.datecreated = check.getLastRun();
+			}
 		}
 
 		var allRules = getPresideObject( "rules_engine_condition" ).selectData(
@@ -38,8 +44,6 @@ component {
 		if ( arrayLen( invalidRules ) ) {
 			check.fail();
 			check.setData( { invalidRules=invalidRules } );
-		} else {
-			check.pass();
 		}
 	}
 
