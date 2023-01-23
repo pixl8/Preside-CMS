@@ -156,8 +156,8 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
-		if ( arguments.category != "dynamicform" ) {
-			systemAlertsService.runWatchedSettingsChecks( arguments.category );
+		if ( categoryId != "dynamicform" ) {
+			systemAlertsService.runWatchedSettingsChecks( categoryId );
 		}
 
 		event.audit(
