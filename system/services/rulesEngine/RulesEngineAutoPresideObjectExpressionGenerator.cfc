@@ -31,12 +31,28 @@ component {
 		for( var propName in properties ) {
 			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
 		}
-		for( var relatedObjectPath in relatedObjectsForAutoGeneration.listToArray() ) {
-			expressions.append( _createExpressionsForRelatedObjectProperties(
-				  objectName       = arguments.objectName
-				, propertyName     = Trim( relatedObjectPath )
-				, relationshipType = ( properties[ Trim( relatedObjectPath ) ].relationship ?: "" )
-			), true );
+		for( var propertyName in relatedObjectsForAutoGeneration.listToArray() ) {
+			propertyName = Trim( propertyName );
+
+			var relationshipType = properties[ propertyName ].relationship ?: "";
+
+			if ( ArrayFindNoCase( [ "one-to-many", "many-to-one", "many-to-many" ], relationshipType ) ) {
+				expressions.append( _createExpressionsForRelatedObjectProperties(
+					  objectName       = arguments.objectName
+					, propertyName     = propertyName
+					, relationshipType = relationshipType
+				), true );
+			} else {
+				try {
+					throw(
+						  type    = "preside.auto.rules.bad.property"
+						, message = "[#propertyName#] is listed as an @autoGenerateFilterExpressionsFor property on object [#arguments.objectName#]. However, this is either NOT a property on the object, OR it is not a standard *relationship* property. We are therefore not generating any rules for this property. We are not expecting any applications to be implementing this pattern; please raise this with Pixl8 support/development team if you are expecting this to work, thank you."
+					);
+				} catch( any e ) {
+					// allow the logic to continue, but log the error with the system.
+					$raiseError( e );
+				}
+			}
 		}
 
 		return expressions;
@@ -651,41 +667,37 @@ component {
 		, required string propertyName
 		,          string relationshipType = ""
 	) {
-		var poService          = $getPresideObjectService();
-		var propertyChain      = arguments.propertyName.listToArray( "." );
-		var currentObjectName  = arguments.objectName;
-		var parentPropertyName = arguments.propertyName.listChangeDelims( "$", "." );
-		var expressions        = [];
+		var poService   = $getPresideObjectService();
+		var expressions = [];
+		var relatedTo   = poService.getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.propertyName
+			, attributeName = "relatedTo"
+		);
 
-		for( var propName in propertyChain ) {
-			var prop = poService.getObjectProperty( currentObjectName, propName );
-
-			currentObjectName = prop.relatedto ?: "";
-		}
-
-		if ( currentObjectName.len() ) {
-			var properties = $getPresideObjectService().getObjectProperties( currentObjectName );
+		if ( Len( relatedTo ) && poService.objectExists( relatedTo ) ) {
+			var properties = poService.getObjectProperties( relatedTo );
 
 			for( var propName in properties ) {
 				expressions.append( generateExpressionsForProperty(
-					  objectName         = currentObjectName
+					  objectName         = relatedTo
 					, propertyDefinition = properties[ propName ]
 					, parentObjectName   = objectName
-					, parentPropertyName = parentPropertyName
+					, parentPropertyName = arguments.propertyName
 				), true );
 			}
-		}
 
-		// wrap expressions using a handler designed for related property filtering
-		for( var expression in expressions ) {
-			expression.expressionHandlerArgs.originalFilterHandler = expression.filterHandler;
-			expression.expressionHandlerArgs.parentRelationship    = arguments.relationshipType;
+			// wrap expressions using a handler designed for related property filtering
+			for( var expression in expressions ) {
+				expression.expressionHandlerArgs.originalFilterHandler = expression.filterHandler;
+				expression.expressionHandlerArgs.parentRelationship    = arguments.relationshipType;
 
-			expression.filterHandlerArgs.originalFilterHandler     = expression.filterHandler;
-			expression.filterHandlerArgs.parentRelationship        = arguments.relationshipType;
+				expression.filterHandlerArgs.originalFilterHandler     = expression.filterHandler;
+				expression.filterHandlerArgs.parentRelationship        = arguments.relationshipType;
 
-			expression.expressionHandler = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.evaluateExpression";
-			expression.filterHandler     = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.prepareFilters";
+				expression.expressionHandler = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.evaluateExpression";
+				expression.filterHandler     = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.prepareFilters";
+			}
 		}
 
 		return expressions;
