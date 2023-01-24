@@ -32,7 +32,7 @@ component {
 			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
 		}
 		for( var relatedObjectPath in ListToArray( relatedObjectsForAutoGeneration ) ) {
-			ArrayAppend( expressions, _createExpressionsForRelatedObjectProperties( arguments.objectName, relatedObjectPath ), true );
+			ArrayAppend( expressions, _createExpressionsForRelatedObjectProperties( arguments.objectName, Trim( relatedObjectPath ) ), true );
 		}
 
 		return expressions;
