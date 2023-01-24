@@ -9,17 +9,12 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -27,15 +22,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
-		var prefix              = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 		var paramName           = "textFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var formulaPropertyName = "#prefix#.#propertyName#";
+		var formulaPropertyName = "#arguments.objectName#.#propertyName#";
 		var filterSql           = "#formulaPropertyName# ${operator} :#paramName#";
 		var params              = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
 
@@ -76,10 +67,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 

@@ -46,8 +46,6 @@ component {
 		, string  action             = "opened"
 		, boolean _has               = true
 		, struct  _pastTime          = {}
-		, string  parentPropertyName = ""
-		, string  filterPrefix       = ""
 	){
 		var subqueryfilters = "";
 		var params          = {};
@@ -126,7 +124,7 @@ component {
 			, subQuery       = subQuery.sql
 			, subQueryAlias  = subQueryAlias
 			, subQueryColumn = "id"
-			, joinToTable    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : "website_user" )
+			, joinToTable    = "website_user"
 			, joinToColumn   = "id"
 		} ] } ];
 	}
