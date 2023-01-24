@@ -32,7 +32,11 @@ component {
 			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
 		}
 		for( var relatedObjectPath in relatedObjectsForAutoGeneration.listToArray() ) {
-			expressions.append( _createExpressionsForRelatedObjectProperties( arguments.objectName, relatedObjectPath.trim() ), true );
+			expressions.append( _createExpressionsForRelatedObjectProperties(
+				  objectName       = arguments.objectName
+				, propertyName     = Trim( relatedObjectPath )
+				, relationshipType = ( properties[ Trim( relatedObjectPath ) ].relationship ?: "" )
+			), true );
 		}
 
 		return expressions;
@@ -138,12 +142,12 @@ component {
 				}
 				if ( !arguments.parentObjectName.len() ) {
 					if ( IsBoolean( propertyDefinition.autoGenerateFilterExpressions ?: "" ) && propertyDefinition.autoGenerateFilterExpressions ) {
-						expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition.name ), true );
+						expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition.name, "many-to-one" ), true );
 					} else {
 						var uniqueIndexes = ListToArray( propertyDefinition.uniqueIndexes ?: "" );
 						for( var ux in uniqueIndexes ) {
 							if ( ListLen( ux, "|" ) == 1 ) {
-								expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition.name ), true );
+								expressions.append( _createExpressionsForRelatedObjectProperties( objectName, propertyDefinition.name, "many-to-one" ), true );
 								break;
 							}
 						}
@@ -645,6 +649,7 @@ component {
 	private array function _createExpressionsForRelatedObjectProperties(
 		  required string objectName
 		, required string propertyName
+		,          string relationshipType = ""
 	) {
 		var poService          = $getPresideObjectService();
 		var propertyChain      = arguments.propertyName.listToArray( "." );
@@ -669,6 +674,18 @@ component {
 					, parentPropertyName = parentPropertyName
 				), true );
 			}
+		}
+
+		// wrap expressions using a handler designed for related property filtering
+		for( var expression in expressions ) {
+			expression.expressionHandlerArgs.originalFilterHandler = expression.filterHandler;
+			expression.expressionHandlerArgs.parentRelationship    = arguments.relationshipType;
+
+			expression.filterHandlerArgs.originalFilterHandler     = expression.filterHandler;
+			expression.filterHandlerArgs.parentRelationship        = arguments.relationshipType;
+
+			expression.expressionHandler = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.evaluateExpression";
+			expression.filterHandler     = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.prepareFilters";
 		}
 
 		return expressions;
