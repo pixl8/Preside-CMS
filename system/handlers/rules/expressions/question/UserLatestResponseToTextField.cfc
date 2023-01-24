@@ -39,10 +39,8 @@ component {
 	private array function prepareFilters(
 		  required string question
 		, required string value
-		,          string formId             = ""
-		,          string _stringOperator    = "contains"
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          string formId          = ""
+		,          string _stringOperator = "contains"
 	) {
 		return formBuilderFilterService.prepareFilterForUserLatestResponseToTextField( argumentCollection=arguments );
 	}

@@ -11,16 +11,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          string  value = ""
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -29,14 +24,9 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		  required string  objectName
 		, required string  propertyName
 		, required string  relatedTo
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
 		,          string  value        = ""
 	){
-		var prefix          = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
-
-		var relatedToSameObject = ( prefix==relatedTo );
+		var relatedToSameObject = ( arguments.objectName==relatedTo );
 		var expressionArray     = filterService.getExpressionArrayForSavedFilter( arguments.value );
 		if ( !expressionArray.len() ) {
 			return [];
@@ -47,7 +37,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			, expressionArray = expressionArray
 		);
 
-		var subQueryFilter = relatedToSameObject ? "" : obfuscateSqlForPreside( "#arguments.relatedTo#.#idField# = #prefix#.#arguments.propertyName#" );
+		var subQueryFilter = relatedToSameObject ? "" : obfuscateSqlForPreside( "#arguments.relatedTo#.#idField# = #arguments.objectName#.#arguments.propertyName#" );
 		var subQuery = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
 			, selectFields        = [ "id" ]
@@ -61,7 +51,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			var dbAdapter               = getPresideObject( arguments.objectName ).getDbAdapter();
 			var subQueryAlias           = dbAdapter.escapeEntity( "subquery_#arguments.objectName#" );
 			var idFieldEscaped          = dbAdapter.escapeEntity( idField );
-			var relatedFieldEscapedFull = dbAdapter.escapeEntity( "#prefix#.#arguments.propertyName#" );
+			var relatedFieldEscapedFull = dbAdapter.escapeEntity( "#arguments.objectName#.#arguments.propertyName#" );
 
 			var subQuerySql = obfuscateSqlForPreside( "
 				select #idFieldEscaped#
@@ -72,38 +62,18 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			var subQuerySql = subQuery.sql;
 		}
 
-		if ( !Len( arguments.parentObjectName ) || arguments.parentObjectName == arguments.objectName ) {
-			return [ {
-				  filter       = obfuscateSqlForPreside( "exists (#subQuerySql#)" )
-				, filterParams = subQuery.params
-			}];
-		}
-
-		var outerJoin = "#arguments.parentObjectName#.#arguments.parentPropertyName#";
-		var outerIdField = presideObjectService.getIdField( arguments.objectName );
-		var outerSubQuery = presideObjectService.selectData(
-			  objectName          = arguments.objectName
-			, selectFields        = [ "1" ]
-			, filter              = obfuscateSqlForPreside( "#outerJoin#=#arguments.objectName#.#outerIdField#" )
-			, extraFilters        = [ { filter=obfuscateSqlForPreside( "exists (#subQuerySql#)" ) }]
-			, getSqlAndParamsOnly = true
-			, formatSqlParams     = true
-		);
-		var params = subQuery.params;
-		StructAppend( params, outerSubQuery.params );
-
 		return [ {
-			  filter = obfuscateSqlForPreside( "exists (#outerSubQuery.sql#)" )
-			, filterParams = params
+			  filter       = obfuscateSqlForPreside( "exists (#subQuerySql#)" )
+			, filterParams = subQuery.params
 		}];
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		, required string  relatedTo
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		, required string relatedTo
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
@@ -121,8 +91,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		  required string objectName
 		, required string propertyName
 		, required string relatedTo
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	){
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
