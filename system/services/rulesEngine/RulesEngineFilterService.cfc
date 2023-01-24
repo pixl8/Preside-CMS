@@ -30,7 +30,6 @@ component displayName="Rules Engine Filter Service" {
 	 * @objectName.hint      The name of the object that the filter is for
 	 * @filterId.hint        ID of the saved filter (from rules_engine_condition object) to prepare filters for. Not required if using expressionArray
 	 * @expressionArray.hint Configured expression array of the condition to prepare a filter for. Not required if using filterId.
-	 * @filterPrefix.hint    An optional prefix to prepend to any property filters. This is useful when you are traversing the relationship tree and building filters within filters!
 	 *
 	 */
 	public struct function prepareFilter(
@@ -53,7 +52,7 @@ component displayName="Rules Engine Filter Service" {
 			if ( isJoin ) {
 				join = expressionArray[i] == "and" ? "and" : "or";
 			} else if ( IsArray( expressionArray[i] ) ) {
-				var subFilter = prepareFilter( objectName=objectName, expressionArray=expressionArray[i], filterPrefix=arguments.filterPrefix );
+				var subFilter = prepareFilter( objectName=objectName, expressionArray=expressionArray[i] );
 
 				if ( StructKeyExists( subFilter, "having" ) ) {
 					isHaving = true;
@@ -69,7 +68,6 @@ component displayName="Rules Engine Filter Service" {
 					  expressionId     = expressionArray[i].expression ?: ""
 					, configuredFields = expressionArray[i].fields     ?: {}
 					, objectName       = arguments.objectName
-					, filterPrefix     = arguments.filterPrefix
 				);
 
 				if ( rawFilters.len() ) {

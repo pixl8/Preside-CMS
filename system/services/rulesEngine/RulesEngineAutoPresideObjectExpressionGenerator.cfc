@@ -29,8 +29,8 @@ component {
 		for( var propName in properties ) {
 			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
 		}
-		for( var relatedObjectPath in relatedObjectsForAutoGeneration.listToArray() ) {
-			expressions.append( _createExpressionsForRelatedObjectProperties( arguments.objectName, relatedObjectPath.trim() ), true );
+		for( var relatedObjectPath in ListToArray( relatedObjectsForAutoGeneration ) ) {
+			ArrayAppend( expressions, _createExpressionsForRelatedObjectProperties( arguments.objectName, Trim( relatedObjectPath ) ), true );
 		}
 
 		return expressions;
@@ -621,33 +621,61 @@ component {
 		};
 	}
 
+	/**
+	 * In addition to auto expressions being generated per property on an object,
+	 * developers can specify additional relationship properties + property *chains*
+	 * to have a related object's auto generated rules also applied to the source
+	 * object. This logic deals with creating those
+	 */
 	private array function _createExpressionsForRelatedObjectProperties(
 		  required string objectName
-		, required string propertyName
+		, required string relatedObjectPath
 	) {
-		var poService          = $getPresideObjectService();
-		var propertyChain      = arguments.propertyName.listToArray( "." );
-		var currentObjectName  = arguments.objectName;
-		var parentPropertyName = arguments.propertyName.listChangeDelims( "$", "." );
-		var expressions        = [];
+		var poService              = $getPresideObjectService();
+		var currentObjectName      = arguments.objectName;
+		var parentPropertyName     = ListChangeDelims( arguments.relatedObjectPath, "$", "." );
+		var supportedRelationships = [ "many-to-one", "many-to-many", "one-to-many" ];
+		var relationshipHelpers    = [];
+		var expressions            = [];
 
-		for( var propName in propertyChain ) {
-			var prop = poService.getObjectProperty( currentObjectName, propName );
+		for( var propName in ListToArray( arguments.relatedObjectPath, "." ) ) {
+			var prop    = poService.getObjectProperty( currentObjectName, propName );
+			var isValid = Len( prop.relatedTo ?: "" ) && ArrayFindNoCase( supportedRelationships, prop.relationship ?: "" );
 
-			currentObjectName = prop.relatedto ?: "";
+			if ( !isValid ) {
+				return [];
+			}
+
+			ArrayAppend( relationshipHelpers,  _prepareRelatedObjectRelationshipHelpers(
+				  objectName         = prop.relatedTo
+				, parentObjectName   = currentObjectName
+				, parentPropertyName = propName
+				, parentProperty     = prop
+			) );
+
+			currentObjectName = prop.relatedto;
 		}
 
-		if ( currentObjectName.len() ) {
-			var properties = $getPresideObjectService().getObjectProperties( currentObjectName );
+		var properties = $getPresideObjectService().getObjectProperties( currentObjectName );
+		for( var propName in properties ) {
+			expressions.append( generateExpressionsForProperty(
+				  objectName         = currentObjectName
+				, propertyDefinition = properties[ propName ]
+				, parentObjectName   = arguments.objectName
+				, parentPropertyName = parentPropertyName
+			), true );
+		}
 
-			for( var propName in properties ) {
-				expressions.append( generateExpressionsForProperty(
-					  objectName         = currentObjectName
-					, propertyDefinition = properties[ propName ]
-					, parentObjectName   = objectName
-					, parentPropertyName = parentPropertyName
-				), true );
-			}
+		// wrap expressions using a handler designed for related property filtering
+		for( var expression in expressions ) {
+			expression.expressionHandlerArgs.originalFilterHandler = expression.filterHandler;
+			expression.expressionHandlerArgs.relationshipHelpers   = relationshipHelpers;
+
+			expression.filterHandlerArgs.originalFilterHandler = expression.filterHandler;
+			expression.filterHandlerArgs.relationshipHelpers   = relationshipHelpers;
+
+			expression.expressionHandler = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.evaluateExpression";
+			expression.filterHandler     = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.prepareFilters";
 		}
 
 		return expressions;
@@ -670,6 +698,71 @@ component {
 		}
 
 		return defaultVariety;
+	}
+
+	private struct function _prepareRelatedObjectRelationshipHelpers(
+		  required string objectName
+		, required string parentObjectName
+		, required string parentPropertyName
+		, required struct parentProperty
+	) {
+		var helpers = {
+			  objectName = arguments.objectName
+		};
+		switch( arguments.parentProperty.relationship ) {
+			case "many-to-one":
+				helpers.filterArgs = _getOuterJoinForManyToOne( argumentCollection=arguments );
+			break;
+
+			case "one-to-many":
+				helpers.filterArgs = _getOuterJoinForOneToMany( argumentCollection=arguments );
+			break;
+
+			case "many-to-many":
+				helpers.filterArgs = _getFilterJoinsForManyToMany( argumentCollection=arguments );
+			break;
+		}
+
+		return helpers;
+	}
+
+
+	private struct function _getOuterJoinForManyToOne() {
+		var idField    = $getPresideObjectService().getIdField( arguments.objectName );
+		var innerField = "#arguments.objectName#.#idField#";
+		var outerField = "#arguments.parentObjectName#.#arguments.parentPropertyName#";
+
+		return { filter = $helpers.obfuscateSqlForPreside( "#innerField# = #outerField#" ) };
+	}
+
+	private struct function _getOuterJoinForOneToMany() {
+		var relationshipKey = $getPresideObjectService().getObjectPropertyAttribute( objectName=arguments.parentObjectName, propertyName=arguments.parentPropertyName, attributeName="relationshipKey", defaultValue=arguments.parentObjectName );
+		var idField = $getPresideObjectService().getIdField( arguments.parentObjectName );
+		var innerField = "#arguments.objectName#.#relationshipKey#";
+		var outerField = "#arguments.parentObjectName#.#idField#";
+
+		return { filter = $helpers.obfuscateSqlForPreside( "#innerField# = #outerField#" ) };
+	}
+
+	private struct function _getFilterJoinsForManyToMany() {
+		var idField    = $getPresideObjectService().getIdField( arguments.parentObjectName );
+		var outerField = "#arguments.parentObjectName#.#idField#";
+
+		var prop       = $getPresideObjectService().getObjectProperty( objectName=arguments.parentObjectName, propertyName=arguments.parentPropertyName );
+		var relatedVia = prop.relatedVia           ?: "";
+		var outerFk    = "";
+
+		if ( $helpers.isTrue( prop.relationshipIsSource ?: true ) ) {
+			outerFk = prop.relatedViaSourceFk ?: arguments.parentObjectName;
+		} else {
+			outerFk = prop.relatedViaTargetFk ?: arguments.parentObjectName;
+		}
+		var innerField = "#relatedVia#.#outerFk#"
+
+		return {
+			  filter     = "#innerField# = #$helpers.obfuscateSqlForPreside( outerField )#"
+			, forceJoins = "inner"
+		};
 	}
 
 

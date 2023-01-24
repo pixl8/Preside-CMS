@@ -41,9 +41,7 @@ component {
 	private array function prepareFilters(
 		  required string question
 		, required string filetype
-		,          boolean _is               = true
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          boolean _is = true
 	) {
 		return formBuilderFilterService.prepareFilterForSubmissionQuestionFileUploadTypeMatches( argumentCollection=arguments );
 	}

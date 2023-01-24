@@ -44,22 +44,18 @@ component {
 	private array function prepareFilters(
 		  required string  action
 		, required numeric times
-		,          boolean _has               = true
-		,          string  _numericOperator   = "eq"
-		,          struct  _pastTime          = {}
-		,          string  filterPrefix       = ""
-		,          string  parentPropertyName = ""
+		,          boolean _has             = true
+		,          string  _numericOperator = "eq"
+		,          struct  _pastTime        = {}
 	) {
 		return websiteUserActionService.getUserPerformedActionFilter(
-			  action             = ListRest( arguments.action, "." )
-			, type               = ListFirst( arguments.action, "." )
-			, has                = arguments._has
-			, datefrom           = arguments._pastTime.from ?: ""
-			, dateto             = arguments._pastTime.to   ?: ""
-			, qty                = arguments.times
-			, qtyOperator        = arguments._numericOperator
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  action      = ListRest( arguments.action, "." )
+			, type        = ListFirst( arguments.action, "." )
+			, has         = arguments._has
+			, datefrom    = arguments._pastTime.from ?: ""
+			, dateto      = arguments._pastTime.to   ?: ""
+			, qty         = arguments.times
+			, qtyOperator = arguments._numericOperator
 		);
 	}
 
