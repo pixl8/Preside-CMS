@@ -658,7 +658,7 @@ component {
 
 		var properties = $getPresideObjectService().getObjectProperties( currentObjectName );
 		for( var propName in properties ) {
-			expressions.append( generateExpressionsForProperty(
+			ArrayAppend( expressions, generateExpressionsForProperty(
 				  objectName         = currentObjectName
 				, propertyDefinition = properties[ propName ]
 				, parentObjectName   = arguments.objectName
