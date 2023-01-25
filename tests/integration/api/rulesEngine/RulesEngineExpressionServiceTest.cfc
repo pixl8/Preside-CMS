@@ -553,7 +553,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
 				var fields       = { _is = false, test=CreateUUId() };
 				var expressionId = "userGroup.user";
-				var eventArgs    = { objectName = objectName, filterPrefix="" };
+				var eventArgs    = { objectName = objectName };
 
 				eventArgs.append( fields );
 
@@ -586,46 +586,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var objectName   = "usergroup";
 				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
 				var fields       = { _is = false, test=CreateUUId() };
-				var eventArgs    = { objectName = objectName, filterPrefix="" };
-
-				eventArgs.append( expressions[ expressionId ].filterHandlerArgs );
-				eventArgs.append( fields );
-
-				mockColdboxController.$( "runEvent" ).$args(
-					  event          = expressions[ expressionId ].filterHandler
-					, private        = true
-					, prepostExempt  = true
-					, eventArguments = eventArgs
-				).$results( dummyFilters );
-
-				service.$( "preProcessConfiguredFields" ).$args( expressionId, fields ).$results( fields );
-
-				expect( service.prepareExpressionFilters(
-					  expressionId     = expressionId
-					, objectName       = objectName
-					, configuredFields = fields
-				) ).toBe( dummyFilters );
-			} );
-
-			it( "should pass through a 'filterPrefix' argument to the handler when supplied to the method", function(){
-				var expressions  = _getDefaultTestExpressions();
-				var service      = _getService( expressions );
-				var expressionId = "userGroup.user";
-				var filterPrefix = CreateUUId();
-
-				expressions[ expressionId ].filterHandlerArgs = {
-					  test = CreateUUId()
-					, tea  = Now()
-				};
-
-				var objectName   = "usergroup";
-				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
-				var fields       = { _is = false, test=CreateUUId() };
 				var eventArgs    = { objectName = objectName };
 
 				eventArgs.append( expressions[ expressionId ].filterHandlerArgs );
 				eventArgs.append( fields );
-				eventArgs.filterPrefix = filterPrefix
 
 				mockColdboxController.$( "runEvent" ).$args(
 					  event          = expressions[ expressionId ].filterHandler
@@ -640,45 +604,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  expressionId     = expressionId
 					, objectName       = objectName
 					, configuredFields = fields
-					, filterPrefix     = filterPrefix
-				) ).toBe( dummyFilters );
-			} );
-
-			it( "should append 'parentPropertyName' to the 'filterPrefix' when present in the filter args", function(){
-				var expressions  = _getDefaultTestExpressions();
-				var service      = _getService( expressions );
-				var expressionId = "userGroup.user";
-				var filterPrefix = CreateUUId();
-
-				expressions[ expressionId ].filterHandlerArgs = {
-					  test               = CreateUUId()
-					, tea                = Now()
-					, parentPropertyName = "test"
-				};
-
-				var objectName   = "usergroup";
-				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
-				var fields       = { _is = false, test=CreateUUId() };
-				var eventArgs    = { objectName = objectName };
-
-				eventArgs.append( expressions[ expressionId ].filterHandlerArgs );
-				eventArgs.append( fields );
-				eventArgs.filterPrefix = filterPrefix & "$test";
-
-				mockColdboxController.$( "runEvent" ).$args(
-					  event          = expressions[ expressionId ].filterHandler
-					, private        = true
-					, prepostExempt  = true
-					, eventArguments = eventArgs
-				).$results( dummyFilters );
-
-				service.$( "preProcessConfiguredFields" ).$args( expressionId, fields ).$results( fields );
-
-				expect( service.prepareExpressionFilters(
-					  expressionId     = expressionId
-					, objectName       = objectName
-					, configuredFields = fields
-					, filterPrefix     = filterPrefix
 				) ).toBe( dummyFilters );
 			} );
 
