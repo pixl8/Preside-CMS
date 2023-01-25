@@ -56,7 +56,7 @@ component {
 
 		return [ {
 			  filter       = filter
-			, filterParams = subQuery.params
+			, filterParams = params
 		}];
 	}
 
