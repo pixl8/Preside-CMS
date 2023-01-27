@@ -384,6 +384,7 @@ component displayName="Data manager batch operation service" {
 			, idField
 			, dbAdapter.getNowFunctionSql()
 		];
+		StructDelete( queueDataArgs, "extraSelectFields" );
 
 		pobjService.insertDataFromSelect(
 			  objectName     = "batch_operation_queue"
