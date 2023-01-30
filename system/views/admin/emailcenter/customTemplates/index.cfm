@@ -21,11 +21,11 @@
 	</div>
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
-		  objectName          = objectName
-		, useMultiActions     = canDelete
-		, datasourceUrl       = event.buildAdminLink( linkTo="emailCenter.customTemplates.getRecordsForAjaxDataTables" )
-		, multiActionUrl      = event.buildAdminLink( linkTo='emailCenter.customTemplates.deleteAction' )
-		, gridFields          = gridFields
-		, draftsEnabled       = true
+		  objectName      = objectName
+		, useMultiActions = canDelete
+		, datasourceUrl   = event.buildAdminLink( linkTo="emailCenter.customTemplates.getRecordsForAjaxDataTables" )
+		, multiActionUrl  = event.buildAdminLink( linkTo='emailCenter.customTemplates.deleteAction' )
+		, gridFields      = gridFields
+		, draftsEnabled   = false
 	} )#
 </cfoutput>
