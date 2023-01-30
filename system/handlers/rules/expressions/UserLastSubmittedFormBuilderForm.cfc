@@ -32,17 +32,13 @@ component {
 	 *
 	 */
 	private array function prepareFilters(
-		  required string  fbform
-		,          struct  _pastTime
-		,          string  filterPrefix
-		,          string  parentPropertyName
+		  required string fbform
+		,          struct _pastTime
 	) {
 		return formBuilderFilterService.prepareFilterForUserSubmittedFormBuilderForm(
-			  formId             = arguments.fbform
-			, from               = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
-			, to                 = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  formId = arguments.fbform
+			, from   = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
+			, to     = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
 		);
 	}
 
