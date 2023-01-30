@@ -13,9 +13,9 @@ component {
 				var sent = emailTemplateService.getSentCount( templateId );
 
 				if ( sent ) {
-					return '<span class="green">#translateResource( uri="cms:emailcenter.table.manual.actual.recipients", data=[ NumberFormat( sent ) ] )#</span>';
+					return '<span class="green">#translateResource( uri="cms:emailcenter.table.sent" )#</span> <em class="light-grey">#translateResource( uri="cms:emailcenter.table.actual.recipients", data=[ NumberFormat( sent ) ] )#</em>';
 				} else {
-					return '<em class="light-grey">#translateResource( uri="cms:emailcenter.table.not.sent" )#</em>';
+					return '<span class="blue">#translateResource( uri="cms:emailcenter.table.not.sent" )#</span>';
 				}
 
 			case "manual":
@@ -25,61 +25,59 @@ component {
 				if ( queued ) {
 					return '<span class="orange">#translateResource( uri="cms:emailcenter.table.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#</span>';
 				} else if ( sent ) {
-					return '<span class="green">#translateResource( uri="cms:emailcenter.table.manual.actual.recipients", data=[ NumberFormat( sent ) ] )#</span>';
+					return '<span class="green">#translateResource( uri="cms:emailcenter.table.sent" )#</span> <em class="light-grey">#translateResource( uri="cms:emailcenter.table.actual.recipients", data=[ NumberFormat( sent ) ] )#</em>';
 				}
 
-				return '<em class="light-grey">#translateResource( uri="cms:emailcenter.table.not.sent" )#</em>';
+				return '<span class="blue">#translateResource( uri="cms:emailcenter.table.not.sent" )#</span>';
 
 			case "scheduled":
 			default:
-				var scheduleType = args.record.schedule_type ?: "";
+				var scheduleType  = args.record.schedule_type  ?: "";
+
+				var queued = emailTemplateService.getQueuedCount( templateId );
+
+				if ( queued ) {
+					return '<span class="orange">#translateResource( uri="cms:emailcenter.table.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#</span>';
+				}
+
+				var sent = emailTemplateService.getSentCount( templateId );
+
+				var formattedDate = "";
 
 				if ( scheduleType == "repeat" ) {
 					var startDate = args.record.schedule_start_date ?: "";
 					var endDate   = args.record.schedule_end_date   ?: "";
-					var unit      = args.record.schedule_unit       ?: "";
-					var measure   = Val( args.record.schedule_measure ?: "" );
 
-					if ( measure > 1 ) {
-						measure &= " ";
-						unit    = translateResource( uri="enum.timeUnit:#unit#.label.plural" );
-					} else {
-						measure = "";
-						unit    = translateResource( uri="enum.timeUnit:#unit#.label.singular" );
+					if ( IsDate( startDate ) ) {
+						formattedDate = DateTimeFormat( startDate, 'EEE, d mmm yyyy HH:nn' ) ;
 					}
 
-					var sent      = emailTemplateService.getSentCount( templateId );
-					var rangeDate = renderContent( renderer="dateTimeRange", data={ dateStarted=startDate, dateEnded=endDate } );
+					if ( IsDate( endDate ) ) {
+						if ( !isEmptyString( formattedDate ) ) {
+							formattedDate &= " #translateResource( uri="cms:emailcenter.table.scheduled.repeat.to" )# ";
+						}
 
-					if ( !isEmptyString( rangeDate ) ) {
-						rangeDate = ", " & rangeDate;
+						formattedDate &= DateTimeFormat( endDate, 'd mmm yyyy HH:nn' );
 					}
 
-					return '<span class="#( sent ? "green" : "blue" )#">Every #measure##unit##rangeDate#</span>';
+					if ( isEmptyString( formattedDate ) ) {
+						formattedDate = translateResource( uri="cms:emailcenter.table.not.sent" );
+					}
 				} else {
-					if ( IsDate( theDate ) ) {
-						var formattedDate = DateTimeFormat( theDate, 'EEE, d mmm yy, HH:nn' );
-
-						if ( Now() < theDate ) {
-							var expectedRecipientCount = emailMassSendingService.getTemplateRecipientCount( templateId );
-
-							return '<span class="blue">#formattedDate#</span> <em class="light-grey">#translateResource( uri="cms:emailcenter.table.estimated.recipients", data=[  NumberFormat( expectedRecipientCount ) ] )#</em>';
-						}
-
-						var sent   = emailTemplateService.getSentCount( templateId );
-						var queued = emailTemplateService.getQueuedCount( templateId );
-
-						if ( queued ) {
-							return '<span class="orange">#translateResource( uri="cms:emailcenter.table.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#</span>';
-						} else if ( sent ) {
-							return '<span class="green">#formattedDate#</span> <em class="light-grey">#translateResource( uri="cms:emailcenter.table.actual.recipients", data=[ NumberFormat( sent ) ] )#</em>';
-						}
-
-						return '<span class="grey">#translateResource( uri="cms:emailcenter.table.send.date.in.past.alert", data=[ formattedDate ] )#</span>';
-					} else {
+					if ( !IsDate( theDate ) ) {
 						return '<em class="red">#translateResource( "cms:emailcenter.table.send.date.not.set" )#</em>';
 					}
+
+					formattedDate = DateTimeFormat( theDate, 'EEE, d mmm yyyy HH:nn' );
 				}
+
+				if ( sent ) {
+					return '<span class="green">#formattedDate#</span> <em class="light-grey">#translateResource( uri="cms:emailcenter.table.actual.recipients", data=[ NumberFormat( sent ) ] )#</em>';
+				}
+
+				var estimatedRecipientCount = emailMassSendingService.getTemplateRecipientCount( templateId );
+
+				return '<span class="blue">#formattedDate#</span> <em class="light-grey">#translateResource( uri="cms:emailcenter.table.estimated.recipients", data=[  NumberFormat( estimatedRecipientCount ) ] )#</em>';
 		}
 	}
 
