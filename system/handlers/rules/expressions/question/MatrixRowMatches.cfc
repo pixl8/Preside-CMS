@@ -42,9 +42,7 @@ component {
 	private array function prepareFilters(
 		  required string  question
 		, required string  value
-		,          boolean _all               = false
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          boolean _all = false
 	) {
 		return formBuilderFilterService.prepareFilterForSubmissionQuestionMatrixRowMatches( argumentCollection=arguments );
 	}

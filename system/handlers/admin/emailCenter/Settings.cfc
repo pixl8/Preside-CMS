@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="systemConfigurationService"  inject="systemConfigurationService";
 	property name="emailCenterValidators"       inject="emailCenterValidators";
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
+	property name="systemAlertsService"         inject="systemAlertsService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
@@ -101,6 +102,8 @@ component extends="preside.system.base.AdminHandler" {
 				, siteId   = siteId
 			);
 		}
+
+		systemAlertsService.runCheck( type="emailCentreSettings" );
 
 		event.audit(
 			  action   = "save_sysconfig_category"

@@ -40,21 +40,17 @@ component {
 	private array function prepareFilters(
 		  required string  fbform
 		, required numeric times
-		,          string  _numericOperator   = "eq"
-		,          boolean _has               = true
-		,          struct  _pastTime          = {}
-		,          string  filterPrefix       = ""
-		,          string  parentPropertyName = ""
+		,          string  _numericOperator = "eq"
+		,          boolean _has             = true
+		,          struct  _pastTime        = {}
 	) {
 		return formBuilderFilterService.prepareFilterForUserSubmittedFormBuilderForm(
-			  formId             = arguments.fbform
-			, has                = arguments._has
-			, qty                = arguments.times
-			, qtyOperator        = arguments._numericOperator
-			, from               = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
-			, to                 = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  formId      = arguments.fbform
+			, has         = arguments._has
+			, qty         = arguments.times
+			, qtyOperator = arguments._numericOperator
+			, from        = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
+			, to          = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
 		);
 	}
 

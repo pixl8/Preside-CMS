@@ -13,18 +13,15 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  value = ""
 		,          boolean _does = true
 	) {
-		var recordId     = payload[ arguments.objectName ].id ?: "";
-
 		return presideObjectService.dataExists(
 			  objectName   = arguments.objectName
-			, id           = recordId
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
 
 	private array function prepareFilters(
 		  required string  objectName
-		,          string  filterPrefix = ""
 		,          string  value = ""
 		,          boolean _does = true
 	){
@@ -67,8 +64,6 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 	private string function getLabel(
 		  required string  objectName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 	) {
 		var objectLabelSingular = translateObjectName( arguments.objectName );
 
@@ -77,8 +72,6 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 	private string function getText(
 		  required string objectName
-		,          string parentObjectName   = ""
-		,          string parentPropertyName = ""
 
 	){
 		var objectLabelSingular = translateObjectName( arguments.objectName );

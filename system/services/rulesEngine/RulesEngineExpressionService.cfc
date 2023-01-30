@@ -323,10 +323,6 @@ component displayName="RulesEngine Expression Service" {
 		eventArgs.append( expression.expressionHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
-		if ( Len( Trim( eventArgs.parentPropertyName ?: "" ) ) ) {
-			eventArgs.filterPrefix = ListAppend( eventArgs.filterPrefix ?: "", eventArgs.parentPropertyName, "$" );
-		}
-
 		var result = $getColdbox().runEvent(
 			  event          = handlerAction
 			, private        = true
@@ -345,13 +341,11 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionId.hint     The ID of the expression whose filters you wish to prepare
 	 * @objectName.hint       The object whose records are to be filtered
 	 * @configuredFields.hint A structure of fields configured for the expression instance whose filter we are preparing
-	 * @filterPrefix.hint     An optional prefix to prepend to any property filters. This is useful when you are traversing the relationship tree and building filters within filters!
 	 */
 	public array function prepareExpressionFilters(
 		  required string expressionId
 		, required string objectName
 		, required struct configuredFields
-		,          string filterPrefix = ""
 	) {
 		_lazyLoadDynamicExpressions( filterObject=arguments.objectName );
 
@@ -366,14 +360,10 @@ component displayName="RulesEngine Expression Service" {
 		}
 
 		var handlerAction = expression.filterHandler ?: "rules.expressions." & arguments.expressionId & ".prepareFilters";
-		var eventArgs     = { objectName=arguments.objectName, filterPrefix=arguments.filterPrefix };
+		var eventArgs     = { objectName=arguments.objectName };
 
 		eventArgs.append( expression.filterHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
-
-		if ( Len( Trim( eventArgs.parentPropertyName ?: "" ) ) ) {
-			eventArgs.filterPrefix = ListAppend( eventArgs.filterPrefix, eventArgs.parentPropertyName, "$" );
-		}
 
 		var result = $getColdbox().runEvent(
 			  event          = handlerAction

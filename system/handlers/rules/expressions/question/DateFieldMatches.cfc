@@ -38,9 +38,7 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string question
-		,          struct _time              = {}
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          struct _time = {}
 	) {
 		return formBuilderFilterService.prepareFilterForSubmissionQuestionResponseDateComparison( argumentCollection=arguments );
 	}
