@@ -32,8 +32,9 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  value      = ""
 	){
 		var paramName = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var valueFk   = arguments.relationshipIsSource ? arguments.relatedViaTargetFk : arguments.relatedViaSourceFk;
-		var keyFk     = arguments.relationshipIsSource ? arguments.relatedViaSourceFk : arguments.relatedViaTargetFk;
+		var isSource  = !IsBoolean( arguments.relationshipIsSource ) || arguments.relationshipIsSource;
+		var valueFk   = isSource ? arguments.relatedViaTargetFk : arguments.relatedViaSourceFk;
+		var keyFk     = isSource ? arguments.relatedViaSourceFk : arguments.relatedViaTargetFk;
 		var outerPk   = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
 		var exists    = arguments._possesses ? "exists" : "not exists";
 		var subquery  = presideObjectService.selectData(
