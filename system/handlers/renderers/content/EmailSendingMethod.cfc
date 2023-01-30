@@ -3,15 +3,17 @@ component {
 	public string function adminDatatable( event, rc, prc, args={} ){
 		var method = args.data ?: "";
 
-		var icon     = translateResource( "enum.emailSendingMethod:#method#.iconClass" );
-		var label    = translateResource( "enum.emailSendingMethod:#method#.shortlabel" );
-		var rendered = '<i class="fa fa-fw #icon#"></i> #label#';
+		var icon  = translateResource( "enum.emailSendingMethod:#method#.iconClass" );
+		var label = translateResource( "enum.emailSendingMethod:#method#.shortlabel" );
 
-		if ( method =="scheduled" && Len( Trim( args.record.schedule_type ?: "" ) ) ) {
-			rendered &= ' <em class="light-grey">(#translateResource( "enum.emailSendingScheduleType:#args.record.schedule_type#.label" )#)</em>'
+		var type = args.record.schedule_type ?: "";
+
+		if ( method == "scheduled" && !isEmptyString( type ) ) {
+			icon  = translateResource( "enum.emailSendingScheduleType:#type#.iconClass" );
+			label = translateResource( "enum.emailSendingScheduleType:#type#.shortlabel" )
 		}
 
-		return rendered;
+		return '<i class="fa fa-fw #icon#"></i> #label#';
 	}
 
 }
