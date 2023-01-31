@@ -365,6 +365,10 @@ component displayName="RulesEngine Expression Service" {
 		eventArgs.append( expression.filterHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
+		// backward compatibility: see https://presidecms.atlassian.net/browse/PRESIDECMS-2453
+		eventArgs.filterPrefix = eventArgs.filterPrefix ?: "";
+		// end backward compatibility
+
 		var result = $getColdbox().runEvent(
 			  event          = handlerAction
 			, private        = true
