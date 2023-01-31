@@ -553,7 +553,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
 				var fields       = { _is = false, test=CreateUUId() };
 				var expressionId = "userGroup.user";
-				var eventArgs    = { objectName = objectName };
+				var eventArgs    = { objectName = objectName, filterPrefix="" };
 
 				eventArgs.append( fields );
 
@@ -586,7 +586,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var objectName   = "usergroup";
 				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
 				var fields       = { _is = false, test=CreateUUId() };
-				var eventArgs    = { objectName = objectName };
+				var eventArgs    = { objectName = objectName, filterPrefix="" };
 
 				eventArgs.append( expressions[ expressionId ].filterHandlerArgs );
 				eventArgs.append( fields );
