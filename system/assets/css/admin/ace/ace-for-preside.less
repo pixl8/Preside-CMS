@@ -79,6 +79,8 @@ body {
   font-size: 14px;
   font-weight: normal;
   color: #8089a0;
+  display: block;
+  margin-top: 10px;
 }
 .ajax-loading-overlay {
   position: absolute;
@@ -11375,6 +11377,7 @@ tr.detail-row > td {
   right: 0;
   background-color: #FFF;
   border-width: 3px;
+  overflow: auto;
   z-index: 1040 !important;
 }
 .widget-box.fullscreen:not([class*="widget-color-"]) {
@@ -14306,6 +14309,7 @@ ul.attachment-list > li {
   position: relative;
   max-width: none;
   border-bottom-width: 0;
+  word-wrap: break-word;
 }
 .timeline-item .widget-body {
   background-color: transparent;
@@ -15002,7 +15006,7 @@ div.dataTables_processing {
   font-size: 13px;
   position: absolute;
   right: 0;
-  top: -7px;
+  top: 0;
 }
 .chosen-container-single .chosen-single abbr:hover:after {
   color: #464646;
@@ -16593,10 +16597,15 @@ img.editable-click:hover {
 .bootstrap-timepicker-widget.timepicker-orient-bottom:after {
   -moz-border-top-colors: #FFF;
 }
+.bootstrap-datetimepicker-widget .timepicker table {
+  width: auto !important;
+  margin: 0 auto !important;
+}
 .bootstrap-datetimepicker-widget [class=btn] {
   border-width: 0 !important;
   background-color: transparent !important;
   color: #7399b8 !important;
+  min-width: 0 !important;
   text-shadow: none !important;
 }
 .bootstrap-datetimepicker-widget [class=btn]:hover {
@@ -19169,6 +19178,9 @@ input.typeahead.scrollable ~ .tt-menu {
 .knob-container {
   direction: ltr;
   text-align: left;
+}
+.no-value {
+  color: #bbbbbb;
 }
 .tags {
   display: inline-block;

@@ -61,7 +61,7 @@ component {
 				, eventArguments = args
 			);
 		} else {
-			return args.label ?: "";
+			return args.label ?: args[ $getPresideObjectService().getLabelField( objectname=args.object )] ?: "";
 		}
 	}
 

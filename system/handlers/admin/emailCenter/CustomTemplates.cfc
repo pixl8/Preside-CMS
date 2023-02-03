@@ -21,7 +21,6 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-
 		_checkPermissions( event=event, key="navigate" );
 
 		event.addAdminBreadCrumb(
@@ -443,7 +442,7 @@ component extends="preside.system.base.AdminHandler" {
 		var filterObject     = emailRecipientTypeService.getFilterObjectForRecipientType( prc.record.recipient_type ?: "" );
 		var anonymousOnly    = !filterObject.len();
 		var validationResult = validateForms();
-		var formData         = event.getCollectionWithoutSystemVars();
+		var formData         = event.getCollectionForForm();
 		    formData.id      = id;
 
 		if ( anonymousOnly ) {
@@ -576,6 +575,11 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
 		var useDistinct = len( rc.sFilterExpression ?: "" ) || len( rc.sSavedFilterExpression ?: "" );
+		var gridFields  = "recipient,subject,datecreated,sent,delivered,failed,opened,click_count";
+
+		if ( !IsFeatureEnabled( "emailDeliveryStats" ) ) {
+			gridFields = Replace( gridFields, ",delivered", "" );
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -583,7 +587,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object      = "email_template_send_log"
-				, gridFields  = "recipient,subject,datecreated,sent,delivered,failed,opened,click_count"
+				, gridFields  = gridFields
 				, actionsView = "admin.emailCenter.logs._logGridActions"
 				, filter      = { "email_template_send_log.email_template" = ( rc.id ?: "" ) }
 				, distinct    = useDistinct
@@ -795,17 +799,17 @@ component extends="preside.system.base.AdminHandler" {
 		var id      = rc.id ?: "";
 		var version = Val( rc.version ?: "" );
 
+		if ( !emailTemplateService.templateExists( id=id ) ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
+		}
+
 		prc.record = prc.template = emailTemplateService.getTemplate(
 			  id               = id
 			, allowDrafts      = arguments.allowDrafts
 			, version          = arguments.allowDrafts ? version : 0
 			, fromVersionTable = arguments.fromVersionTable
 		);
-
-		if ( !prc.record.count() || systemEmailTemplateService.templateExists( id ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
 	}
 
 	private string function _getTestSendFormName( event, rc, prc ) {

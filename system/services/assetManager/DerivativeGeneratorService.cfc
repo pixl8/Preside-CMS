@@ -6,11 +6,13 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @assetManagerService.inject delayedInjector:assetManagerService
+	 * @assetManagerService.inject    delayedInjector:assetManagerService
+	 * @storageProviderService.inject delayedInjector:storageProviderService
 	 *
 	 */
-	public any function init( required any assetManagerService ) {
+	public any function init( required any assetManagerService, required any storageProviderService ) {
 		_setAssetManagerService( arguments.assetManagerService );
+		_setStorageProviderService( arguments.storageProviderService );
 
 		return this;
 	}
@@ -32,11 +34,13 @@ component {
 		var signature           = arguments.derivativeSignature;
 		var config              = arguments.assetTransformationConfig;
 		var configHash          = arguments.assetTransformationConfigHash;
-		var assetBinary         = assetManagerService.getAssetBinary(
-			  id                    = arguments.assetId
-			, versionId             = arguments.versionId
-			, throwOnMissing        = true
-			, placeholderIfTooLarge = true
+		var tmpFile             = getTempFile( getTempDirectory(), "" );
+		var assetBinaryOrPath   = assetManagerService.getAssetBinary(
+			  id                     = arguments.assetId
+			, versionId              = arguments.versionId
+			, throwOnMissing         = true
+			, placeholderIfTooLarge  = true
+			, getFilePathIfSupported = true
 		);
 		var fileProperties      = {
 			  filename    = ListLast( asset.storage_path, "\/" )
@@ -45,54 +49,80 @@ component {
 		};
 		var lastFileExtension = fileProperties.fileExt;
 
+		if ( IsBinary( assetBinaryOrPath ) ) {
+			FileWrite( tmpFile, assetBinaryOrPath );
+		} else {
+			FileCopy( assetBinaryOrPath, tmpFile );
+		}
+
 		if( fileProperties.fileext == 'pdf' ){
+			var result = "";
 			var pdfAttributes = {
 				  action      = "getinfo"
-				, source      = assetBinary
+				, source      = tmpFile
 				, name        = 'result'
 			};
-			try{
+			try {
 				pdf attributeCollection=pdfAttributes;
 			} catch( e ) {
 				if( e.detail == 'Bad user Password' ){
+					_fileDelete( tmpFile );
 					throw( type = "AssetManager.Password error" );
 				}
 			}
 		}
 
-		for( var transformation in transformations ) {
-			var transformationArgs = transformation.args ?: {};
-			transformationArgs.focalPoint = asset.focal_point;
-			transformationArgs.cropHint   = asset.crop_hint;
+		try {
+			for( var transformation in transformations ) {
+				var transformationArgs = transformation.args ?: {};
+				transformationArgs.focalPoint   = asset.focal_point;
+				transformationArgs.cropHint     = asset.crop_hint;
+				transformationArgs.resizeNoCrop = $helpers.isTrue( asset.resize_no_crop );
 
-			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileProperties.fileext ) {
-				assetBinary = _applyAssetTransformation(
-					  assetBinary          = assetBinary
-					, transformationMethod = transformation.method ?: ""
-					, transformationArgs   = transformationArgs
-					, fileProperties       = fileProperties
-				);
+				if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileProperties.fileext ) {
+					_applyAssetTransformation(
+						  filePath             = tmpFile
+						, transformationMethod = transformation.method ?: ""
+						, transformationArgs   = transformationArgs
+						, fileProperties       = fileProperties
+					);
 
-				if( lastFileExtension != fileProperties.fileExt ) {
-					fileProperties.storagePath = ReReplaceNoCase( fileProperties.storagePath, "\.#lastFileExtension#$", ".#fileProperties.fileExt#" );
-					fileProperties.fileName    = ReReplaceNoCase( fileProperties.fileName, "\.#lastFileExtension#$", ".#fileProperties.fileExt#" );
+					if( lastFileExtension != fileProperties.fileExt ) {
+						fileProperties.storagePath = ReReplaceNoCase( fileProperties.storagePath, "\.#lastFileExtension#$", ".#fileProperties.fileExt#" );
+						fileProperties.fileName    = ReReplaceNoCase( fileProperties.fileName, "\.#lastFileExtension#$", ".#fileProperties.fileExt#" );
 
-					lastFileExtension = fileProperties.fileExt;
+						lastFileExtension = fileProperties.fileExt;
+					}
 				}
 			}
-		}
-		var assetType = assetManagerService.getAssetType( filename=fileProperties.storagePath, throwOnMissing=true );
 
-		assetManagerService.getStorageProviderForFolder( asset.asset_folder ).putObject(
-			  object  = assetBinary
-			, path    = fileProperties.storagePath
-			, private = !assetManagerService.isDerivativePubliclyAccessible( arguments.derivativeName ) && assetManagerService.isAssetAccessRestricted( arguments.assetId )
-		);
+			var assetType = assetManagerService.getAssetType( filename=fileProperties.storagePath, throwOnMissing=true );
+			var sp = assetManagerService.getStorageProviderForFolder( asset.asset_folder );
+			if ( _getStorageProviderService().providerSupportsFileSystem( sp ) ) {
+				sp.putObjectFromLocalPath(
+					  localPath = tmpFile
+					, path      = fileProperties.storagePath
+					, private   = !assetManagerService.isDerivativePubliclyAccessible( arguments.derivativeName ) && assetManagerService.isAssetAccessRestricted( arguments.assetId )
+				);
+			} else {
+				sp.putObject(
+					  object  = FileReadBinary( tmpFile )
+					, path    = fileProperties.storagePath
+					, private = !assetManagerService.isDerivativePubliclyAccessible( arguments.derivativeName ) && assetManagerService.isAssetAccessRestricted( arguments.assetId )
+				);
+			}
+		} catch( any e ) {
+			rethrow;
+		} finally {
+			_fileDelete( tmpFile );
+		}
 
 		if ( Len( Trim( arguments.derivativeId ) ) ) {
 			$getPresideObject( "asset_derivative" ).updateData( id=arguments.derivativeId, data={
 				  asset_type    = assetType.typeName
 				, storage_path  = fileProperties.storagePath
+				, width         = fileProperties.width  ?: ""
+				, height        = fileProperties.height ?: ""
 				, config        = config
 				, config_hash   = configHash
 			} );
@@ -105,6 +135,8 @@ component {
 				, asset_version = arguments.versionId
 				, label         = arguments.derivativeName & signature
 				, storage_path  = fileProperties.storagePath
+				, width         = fileProperties.width  ?: ""
+				, height        = fileProperties.height ?: ""
 				, config        = config
 				, config_hash   = configHash
 			} );
@@ -112,8 +144,8 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private binary function _applyAssetTransformation(
-		  required binary assetBinary
+	private void function _applyAssetTransformation(
+		  required string filePath
 		, required string transformationMethod
 		, required struct transformationArgs
 		, required struct fileProperties
@@ -121,10 +153,23 @@ component {
 		var args = Duplicate( arguments.transformationArgs );
 		var coldboxHandler = "assettransformers.#arguments.transformationMethod#";
 
-		args.asset          = arguments.assetBinary;
+		args.asset          = arguments.filePath; // backward compat
+		args.filePath       = arguments.filePath;
 		args.fileProperties = arguments.fileProperties;
 
 		return $runEvent( event=coldboxHandler, private=true, prePostExempt=true, eventArguments={ args=args } );
+	}
+
+	private void function _fileDelete( required string filePath ) {
+		if ( FileExists( arguments.filePath ) ) {
+			try {
+				FileDelete( arguments.filePath );
+			} catch( any e ) {
+				if ( FileExists( arguments.filePath ) ) {
+					rethrow;
+				}
+			}
+		}
 	}
 
 // GETTERS AND SETTERS
@@ -133,6 +178,13 @@ component {
 	}
 	private void function _setAssetManagerService( required any assetManagerService ) {
 	    _assetManagerService = arguments.assetManagerService;
+	}
+
+	private any function _getStorageProviderService() {
+	    return _storageProviderService;
+	}
+	private void function _setStorageProviderService( required any storageProviderService ) {
+	    _storageProviderService = arguments.storageProviderService;
 	}
 
 }

@@ -79,11 +79,20 @@ component {
 		}
 
 		if ( Len( Trim( bypassPassword  ) ) ) {
-			var scopes = [ session, cookie, form, url ];
+			var scopes = [ cookie, form, url ];
+
+			if ( _areLuceeSessionsEnabled() ) {
+				ArrayPrepend( scopes, session );
+			}
 
 			for( var scope in scopes ){
 				if ( StructKeyExists( scope, bypassPassword ) ) {
-					session[ bypassPassword ] = true;
+					if ( _areLuceeSessionsEnabled() ) {
+						session[ bypassPassword ] = true;
+					} else {
+						cookie[ bypassPassword ] = true;
+					}
+
 					return true;
 				}
 			}
@@ -126,9 +135,19 @@ component {
 	}
 
 	private boolean function _areSessionsEnabled() {
-		var appSettings = getApplicationSettings( true );
+		var appSettings              = getApplicationSettings( true );
+		var sessionManagement        = IsBoolean( appSettings.sessionManagement        ?: "" ) && appSettings.sessionManagement;
+		var presideSessionManagement = IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
+		var statelessRequest         = IsBoolean( appSettings.statelessRequest         ?: "" ) && appSettings.statelessRequest;
 
-		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
+		return sessionManagement || ( presideSessionManagement && !statelessRequest );
+	}
+
+	private boolean function _areLuceeSessionsEnabled() {
+		var appSettings       = getApplicationSettings( true );
+		var sessionManagement = IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
+
+		return sessionManagement;
 	}
 
 // getters and setters

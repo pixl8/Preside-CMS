@@ -17,6 +17,7 @@ component displayName="Preside Super Class" {
 	 * @websitePermissionService.inject   delayedInjector:websitePermissionService
 	 * @emailService.inject               delayedInjector:emailService
 	 * @errorLogService.inject            delayedInjector:errorLogService
+	 * @systemAlertsService.inject        delayedInjector:systemAlertsService
 	 * @featureService.inject             delayedInjector:featureService
 	 * @notificationService.inject        delayedInjector:notificationService
 	 * @auditService.inject               delayedInjector:auditService
@@ -42,6 +43,7 @@ component displayName="Preside Super Class" {
 		, required any websitePermissionService
 		, required any emailService
 		, required any errorLogService
+		, required any systemAlertsService
 		, required any featureService
 		, required any notificationService
 		, required any auditService
@@ -65,6 +67,7 @@ component displayName="Preside Super Class" {
 		$websitePermissionService   = arguments.websitePermissionService;
 		$emailService               = arguments.emailService;
 		$errorLogService            = arguments.errorLogService;
+		$systemAlertsService        = arguments.systemAlertsService;
 		$featureService             = arguments.featureService;
 		$notificationService        = arguments.notificationService;
 		$auditService               = arguments.auditService;
@@ -495,6 +498,41 @@ component displayName="Preside Super Class" {
 	 */
 	public any function $raiseError() {
 		return $getErrorLogService().raiseError( argumentCollection=arguments );
+	}
+
+// SYSTEM ALERTS
+	/**
+	 * Returns an instance of the [[api-systemalertsservice]]. This service
+	 * can be used to raise and query system alerts.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * $getSystemAlertsService().getAlert( id );
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $getSystemAlertsService() {
+		return $systemAlertsService;
+	}
+
+	/**
+	 * Proxy to the [[systemalertsservice-runcheck]] method of the [[api-systemalertsservice]].
+	 * Runs an alert check for the specified type and (optional) reference.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * $runSystemAlertCheck( type="emailCentreSettings" );
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $runSystemAlertCheck( required string type, string reference="", boolean async=true ) {
+		return $getSystemAlertsService().runcheck( argumentCollection=arguments );
 	}
 
 // PRESIDE FEATURES
@@ -930,7 +968,7 @@ component displayName="Preside Super Class" {
 	 * @autodoc true
 	 *
 	 */
-	public void function $getHealthcheckService() {
+	public any function $getHealthcheckService() {
 		return $healthcheckService;
 	}
 

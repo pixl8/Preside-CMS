@@ -4,7 +4,13 @@
 <cfparam name="args.configuration" type="struct" />
 
 <cfoutput>
+
+	<cfif Len( Trim( rc.errorMessage ?: "" ) ) >
+		<div class="alert alert-danger">#rc.errorMessage#</div>
+	</cfif>
+
 	<form action="#event.buildLink( linkTo='formbuilder.core.submitAction' )#" id="#args.id#" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="csrfToken" value="#event.getCsrfToken()#">
 		<cfloop collection="#args#" item="argName">
 			<cfif !( [ "id", "validationJs","renderedItems", "context", "layout" ].findNoCase( argName ) ) && IsSimpleValue( args[ argName ] )>
 				<input type="hidden" name="#argName#" value="#HtmlEditFormat( args[ argName ] )#">
@@ -30,7 +36,14 @@
 		<cfsavecontent variable="formJs">
 			if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
 				executeWithFormBuilderDependencies( function( $ ){
-					$( '###args.id#' ).validate( #args.validationJs# );
+					$( '###args.id#' ).validate( $.extend( #args.validationJs#, {
+						highlight: function( element, errorClass ) {
+							$( element ).closest( '.form-group' ).addClass( 'has-error' );
+						},
+						unhighlight: function( element, errorClass ) {
+							$( element ).closest( '.form-group' ).removeClass( 'has-error' );
+						}
+					} ) );
 				} );
 			};
 		</cfsavecontent>

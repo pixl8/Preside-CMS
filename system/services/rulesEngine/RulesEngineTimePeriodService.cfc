@@ -54,6 +54,20 @@ component displayName="RulesEngine Time Period Service" {
 					return { from=timePeriod.date1 };
 				}
 			break;
+			case "equal":
+				if ( IsDate( timePeriod.date1 ?: "" ) ) {
+					try {
+						var fromDate = CreateDate( Year( timePeriod.date1 ), Month( timePeriod.date1 ), Day( timePeriod.date1 ) );
+
+						return {
+							  from = fromDate
+							, to   = DateAdd( "s", 86399, fromDate )
+						};
+					} catch( any e ) {
+						return {};
+					}
+				}
+			break;
 			case "recent":
 				try {
 					var fromDate = DateAdd( ( timePeriod.unit ?: "" ), -( timePeriod.measure ?: "" ), _getCurrentDateTime() );
@@ -91,12 +105,40 @@ component displayName="RulesEngine Time Period Service" {
 				}
 			break;
 
+			case "futureequal":
+				try {
+					var futureDate = DateAdd( "d", ( timePeriod.measure ?: "" ), _getCurrentDateTime() );
+					var fromDate   = CreateDate( Year( futureDate ), Month( futureDate ), Day( futureDate ) );
+
+					return {
+						  from = fromDate
+						, to   = DateAdd( "s", 86399, fromDate )
+					};
+				} catch( any e ) {
+					return {};
+				}
+			break;
+
 			case "past":
 			return { to=_getCurrentDateTime() };
 
 			case "pastminus":
 				try {
 					return { to = DateAdd( ( timePeriod.unit ?: "" ), 0-( timePeriod.measure ?: "" ), _getCurrentDateTime() ) };
+				} catch( any e ) {
+					return {};
+				}
+			break;
+
+			case "pastequal":
+				try {
+					var pastDate = DateAdd( "d", 0-( timePeriod.measure ?: "" ), _getCurrentDateTime() );
+					var fromDate = CreateDate( Year( pastDate ), Month( pastDate ), Day( pastDate ) );
+
+					return {
+						  from = fromDate
+						, to   = DateAdd( "s", 86399, fromDate )
+					};
 				} catch( any e ) {
 					return {};
 				}
@@ -228,7 +270,8 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "nextmonth":
-				var firstOfNextMonth   = CreateDateTime(year(_getCurrentDateTime()), month(_getCurrentDateTime())+1, 1, 0, 0, 0);
+				var nextMonthDate      = DateAdd( "m", 1, _getCurrentDateTime() );
+				var firstOfNextMonth   = CreateDateTime(year(nextMonthDate), month(nextMonthDate), 1, 0, 0, 0);
 				var firstOfNext2Months = DateAdd( "m", 1, firstOfNextMonth );
 				var endOfNextMonth     = DateAdd( "d", -1, firstOfNext2Months );
 					endOfNextMonth.setHour( "23" );

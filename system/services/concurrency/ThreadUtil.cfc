@@ -171,7 +171,13 @@ component {
 	 *
 	 */
 	public boolean function isInterrupted() {
-		return ( IsBoolean( request.__softInterrupted ?: "" ) && request.__softInterrupted ) || jvmThread.currentThread().isInterrupted();
+		var isInterrupted = ( IsBoolean( request.__softInterrupted ?: "" ) && request.__softInterrupted ) || jvmThread.currentThread().isInterrupted();
+
+		if ( !isInterrupted ) {
+			isInterrupted = $getAdhocTaskManagerService().isActiveTaskCancelled();
+		}
+
+		return isInterrupted;
 	}
 
 	/**

@@ -8,6 +8,8 @@
 	canEdit   = hasCmsPermission( "groupmanager.edit" );
 	canDelete = hasCmsPermission( "groupmanager.delete" ) && !IsTrue( groupRecord.is_catch_all ?: "" );
 
+	deletionConfirmationMatch = prc.deletionConfirmationMatch ?: "";
+
 	if ( canEdit ) {
 		editRecordLink = event.buildAdminLink( linkTo="usermanager.editGroup", queryString="id=#groupId#" );
 		editRecordTitle = translateResource( "cms:usermanager.editGroup.btn" );
@@ -23,7 +25,7 @@
 <cfoutput>
 	<div class="top-right-button-group">
 		<cfif canDelete>
-			<a class="pull-right inline confirmation-prompt" href="#deleteRecordLink#" title="#HtmlEditFormat( deleteRecordPrompt )#">
+			<a class="pull-right inline confirmation-prompt" href="#deleteRecordLink#" title="#HtmlEditFormat( deleteRecordPrompt )#"<cfif not isEmptyString( deletionConfirmationMatch )> data-confirmation-match="#deletionConfirmationMatch#"</cfif>>
 				<button class="btn btn-danger btn-sm">
 					<i class="fa fa-trash-o"></i>
 					#deleteRecordTitle#

@@ -52,7 +52,7 @@
 				required = 'a[href]';
 
 			if ( CKEDITOR.dialog.isTabEnabled( editor, 'presidelink', 'advanced' ) )
-				allowed = allowed.replace( ']', ',accesskey,charset,dir,id,lang,name,rel,tabindex,title,type]{*}(*)' );
+				allowed = allowed.replace( ']', ',accesskey,charset,dir,id,lang,name,rel,tabindex,title,type,referrerpolicy]{*}(*)' );
 			if ( CKEDITOR.dialog.isTabEnabled( editor, 'presidelink', 'target' ) )
 				allowed = allowed.replace( ']', ',target,onclick]' );
 
@@ -205,7 +205,7 @@
 		emailSubjectRegex = /subject=([^;?:@&=$,\/]*)/,
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
 		emailAntiSpamRegex = /emailantispam=(\d)/,
-		emailVariableRegex = /emailvariable=(\$\{[^\}]+\})/,
+		emailVariableRegex = /(\$\{[^\}]+\})/,
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
 		presideLinkRegex = /^{{link:(.*?):link}}(?:#([^'"]+))?$/,
@@ -433,7 +433,7 @@
 			var href = ( element && ( element.data( 'cke-saved-href' ) || element.getAttribute( 'href' ) ) ) || '',
 				compiledProtectionFunction = editor.plugins.presidelink.compiledProtectionFunction,
 				emailProtection = editor.config.emailProtection,
-				javascriptMatch, emailMatch, anchorMatch, urlMatch, data,
+				javascriptMatch, emailMatch, anchorMatch, emailVariableMatch, urlMatch, data,
 				retval = {};
 
 			if ( ( javascriptMatch = href.match( javascriptProtocolRegex ) ) ) {
@@ -502,15 +502,15 @@
 						retval = {};
 					}
 				}
+				else if ( href && ( emailVariableMatch = href.match( emailVariableRegex ) ) ) {
+					retval.type = 'emailvariable';
+					retval.emailvariable = emailVariableMatch[ 1 ];
+				}
 				// urlRegex matches empty strings, so need to check for href as well.
 				else if ( href && ( urlMatch = href.match( urlRegex ) ) ) {
 					retval.type = 'url';
 					retval.protocol = urlMatch[ 1 ];
 					retval.address = urlMatch[ 2 ];
-				}
-				else if ( href && ( emailVariableMatch = href.match( emailVariableRegex ) ) ) {
-					retval.type = 'emailvariable';
-					retval.emailvariable = emailVariableMatch[ 1 ];
 				}
 
 			}
@@ -518,10 +518,14 @@
 			// Load target and popup settings.
 			if ( element ) {
 				var target = element.getAttribute( 'target' )
-				  , rel    = element.getAttribute( 'rel' );
+				  , rel            = element.getAttribute( 'rel' )
+				  , referrerpolicy = element.getAttribute( 'referrerpolicy' );
 
 				if ( target ) {
 					retval.link_target = target;
+				}
+				if ( referrerpolicy ) {
+					retval.referrer_policy = referrerpolicy;
 				}
 
 				if ( rel == "nofollow" ) {
@@ -660,6 +664,9 @@
 				set.title = data.title;
 			}
 
+			if ( data.referrer_policy && data.referrer_policy.length ) {
+				set.referrerpolicy = data.referrer_policy;
+			}
 			// Browser need the "href" fro copy/paste link to work. (#6641)
 			if ( set[ 'data-cke-saved-href' ] ){
 				set.href = set[ 'data-cke-saved-href' ];

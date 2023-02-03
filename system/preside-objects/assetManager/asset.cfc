@@ -9,7 +9,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="title"             type="string"  dbtype="varchar" maxLength=150     required=true   uniqueindexes="assetfolder|2";
 	property name="file_name"         type="string"  dbtype="varchar" maxLength=150     required=false  indexes="filename";
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true   uniqueindexes="assetpath";
-	property name="asset_url"         type="string"  dbtype="varchar" maxLength=255     required=false  uniqueindexes="asseturl";
+	property name="asset_url"         type="string"  dbtype="varchar" maxLength=1024    required=false;
 	property name="description"       type="string"  dbtype="text"    maxLength=0       required=false;
 	property name="author"            type="string"  dbtype="varchar" maxLength=100     required=false;
 	property name="size"              type="numeric" dbtype="int"                       required=true;
@@ -19,6 +19,8 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="height"            type="numeric" dbtype="int"                       required=false;
 	property name="focal_point"       type="string"  dbtype="varchar" maxLength=15      required=false;
 	property name="crop_hint"         type="string"  dbtype="varchar" maxLength=30      required=false;
+	property name="resize_no_crop"    type="boolean" dbtype="boolean" default=false;
+	property name="alt_text"          type="string"  dbtype="varchar" maxLength=150     required=false;
 	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
 	property name="is_trashed"        type="boolean" dbtype="boolean"                   required=false default=false;

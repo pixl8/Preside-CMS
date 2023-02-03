@@ -20,6 +20,7 @@
 	param name="args.postForm"                type="string"  default="";
 	param name="args.objectName"              type="string"  default=args.object;
 	param name="args.renderedActionButtons"   type="string"  default=renderViewlet( event="admin.datamanager._cloneRecordActionButtons", args=args );
+	param name="args.additionalArgs"          type="struct"  default=StructNew();
 
 	objectTitleSingular = prc.objectTitle ?: "";
 	cloneRecordPrompt   = translateResource( uri="preside-objects.#args.object#:cloneRecord.prompt", defaultValue="" );
@@ -59,6 +60,7 @@
 			, stripPermissionedFields = args.stripPermissionedFields
 			, permissionContext       = args.permissionContext
 			, permissionContextKeys   = args.permissionContextKeys
+			, additionalArgs          = args.additionalArgs
 		)#
 		#args.postForm#
 

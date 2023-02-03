@@ -12,12 +12,15 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="version_number"    type="numeric" dbtype="int"                       required=true  uniqueindexes="assetversion|2";
 
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true  uniqueindexes="assetversionpath";
-	property name="asset_url"         type="string"  dbtype="varchar" maxLength=255     required=false uniqueindexes="assetversionurl";
+	property name="asset_url"         type="string"  dbtype="varchar" maxLength=1024    required=false;
 	property name="size"              type="numeric" dbtype="int"                       required=true;
 	property name="asset_type"        type="string"  dbtype="varchar" maxLength=10      required=true;
 	property name="raw_text_content"  type="string"  dbtype="longtext";
+	property name="width"             type="numeric" dbtype="int"                       required=false;
+	property name="height"            type="numeric" dbtype="int"                       required=false;
 	property name="focal_point"       type="string"  dbtype="varchar" maxLength=15      required=false;
 	property name="crop_hint"         type="string"  dbtype="varchar" maxLength=30      required=false;
+	property name="resize_no_crop"    type="boolean" dbtype="boolean" default=false;
 
 	property name="is_trashed"   type="boolean" dbtype="boolean"               required=false default=false;
 	property name="trashed_path" type="string"  dbtype="varchar" maxLength=255 required=false;

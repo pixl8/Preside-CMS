@@ -5,23 +5,27 @@
 		iDelay = iDelay || 250;
 
 		return this.each( function ( i ) {
-			var $searchBox      = $( 'input', $dt.fnSettings().aanFeatures.f )
-			  , oTimerId        = null
-			  , sPreviousSearch = $searchBox.val();
-
 			$.fn.dataTableExt.iApiIndex = i;
+			var $filterContainer = $dt.fnSettings().aanFeatures.f;
 
-			$searchBox.unbind( 'keyup' ).bind( 'keyup', function() {
-				if ( sPreviousSearch === null || sPreviousSearch != $searchBox.val() ) {
-					sPreviousSearch = $searchBox.val();
+			if ( ( typeof $filterContainer !== "undefined" ) && $filterContainer.length ) {
+				var $searchBox      = $( 'input', $filterContainer )
+				  , oTimerId        = null
+				  , sPreviousSearch = $searchBox.val();
 
-					window.clearTimeout( oTimerId );
-					oTimerId = window.setTimeout( function() {
-						$.fn.dataTableExt.iApiIndex = i;
-						$dt.fnFilter( $searchBox.val() );
-					}, iDelay );
-				}
-			});
+
+				$searchBox.unbind( 'keyup' ).bind( 'keyup', function() {
+					if ( sPreviousSearch === null || sPreviousSearch != $searchBox.val() ) {
+						sPreviousSearch = $searchBox.val();
+
+						window.clearTimeout( oTimerId );
+						oTimerId = window.setTimeout( function() {
+							$.fn.dataTableExt.iApiIndex = i;
+							$dt.fnFilter( $searchBox.val() );
+						}, iDelay );
+					}
+				});
+			}
 		} );
 	};
 } )( presideJQuery );

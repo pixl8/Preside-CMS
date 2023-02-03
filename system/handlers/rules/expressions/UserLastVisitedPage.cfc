@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User has performed some action within the last x days"
+ * Expression handler for "User has visited a page the last x days"
  *
  * @feature websiteUsers
  * @expressionContexts user
@@ -17,10 +17,6 @@ component {
 		  required string  page
 		,          struct  _pastTime
 	) {
-		if ( ListLen( action, "." ) != 2 ) {
-			return false;
-		}
-
 		var lastPerformedDate = websiteUserActionService.getLastPerformedDate(
 			  type        = "request"
 			, action      = "pagevisit"
@@ -47,19 +43,15 @@ component {
 	 *
 	 */
 	private array function prepareFilters(
-		  required string  page
-		,          struct  _pastTime
-		,          string  filterPrefix
-		,          string  parentPropertyName
+		  required string page
+		,          struct _pastTime
 	) {
 		return websiteUserActionService.getUserLastPerformedActionFilter(
-			  action             = "pagevisit"
-			, type               = "request"
-			, datefrom           = arguments._pastTime.from ?: ""
-			, dateto             = arguments._pastTime.to   ?: ""
-			, identifier         = arguments.page
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  action     = "pagevisit"
+			, type       = "request"
+			, datefrom   = arguments._pastTime.from ?: ""
+			, dateto     = arguments._pastTime.to   ?: ""
+			, identifier = arguments.page
 		);
 	}
 

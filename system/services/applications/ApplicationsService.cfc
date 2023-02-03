@@ -71,6 +71,59 @@ component {
 		return apps[ arguments.applicationId ].defaultEvent ?: "";
 	}
 
+	public string function getDefaultUrl( string applicationId=getDefaultApplication(), string siteId="" ) {
+		var defaultUrl = getAdminHomepageUrl( argumentCollection = arguments );
+
+		if ( !$helpers.isEmptyString( defaultUrl ) ) {
+			return defaultUrl;
+		}
+
+		return $getRequestContext().buildLink( linkTo=getDefaultEvent( applicationId ) );
+	}
+
+	public string function getAdminHomepageUrl( string siteId="") {
+		var userId       = $getAdminLoggedInUserId();
+		var siteHomepage = $getPresideObject( "security_user_site" ).selectData(
+			  filter = {
+			  	  user = userId
+			  }
+			, filterParams = {
+				site = arguments.siteId
+			}
+			, selectFields = [ "homepage_url" , "site" ]
+			, orderby = " case when site=:site then 0 else 1 end, datemodified desc "
+		);
+
+		if ( siteHomepage.recordCount && siteHomepage.site!=arguments.siteId ) {
+			return reReplaceNoCase( siteHomepage.homepage_url ?: "", "_sid=[^&]+&?", "" );
+		}
+
+		return siteHomepage.homepage_url ?: "";
+	}
+
+	public void function setAdminHomepageUrl( required string siteId, required string homepageUrl ) {
+		var userId  = $getAdminLoggedInUserId();
+		var updated = $getPresideObject( "security_user_site" ).updateData(
+			  filter = {
+				  user = userId
+				, site = arguments.siteId
+			  }
+			, data = {
+				homepage_url = arguments.homepageUrl
+			}
+		);
+
+		if ( updated==0 ) {
+			$getPresideObject( "security_user_site" ).insertData(
+				data = {
+					  user         = userId
+					, site         = arguments.siteId
+					, homepage_url = arguments.homepageUrl
+				}
+			);
+		}
+	}
+
 	/**
 	 * Returns the configured (or calculated by convention)
 	 * layout for the given application.
@@ -107,8 +160,11 @@ component {
 			return a.patternAccuracy < b.patternAccuracy ? 1 : -1;
 		} );
 
-
-		return matches[ 1 ].id;
+		if ( ArrayLen( matches ) ) {
+			return matches[ 1 ].id;
+		} else {
+			$getRequestContext().adminAccessDenied();
+		}
 	}
 
 // PRIVATE HELPERS

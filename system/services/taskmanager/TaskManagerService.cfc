@@ -258,6 +258,7 @@ component displayName="Task Manager Service" {
 
 		try {
 			$getRequestContext().setUseQueryCache( false );
+			$getRequestContext().isBackgroundThread( true );
 			_setActiveSite();
 			success = _getController().runEvent(
 				  event          = task.event

@@ -27,6 +27,7 @@ component {
 			try {
 				rules.append( {
 					  fieldName       = rule.fieldName
+					, fieldLabel      = rule.fieldLabel      ?: ""
 					, validator       = rule.validator
 					, params          = rule.params          ?: {}
 					, message         = rule.message         ?: ""

@@ -62,7 +62,13 @@
 
 		map( "formBuilderStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="rootDirectory"   , value=settings.uploads_directory & "/formbuilder" )
-			.initArg( name="privateDirectory", value=settings.uploads_directory & "/formbuilder" )
+			.initArg( name="privateDirectory", value=settings.uploads_directory & "/formbuilder/private" )
+			.initArg( name="trashDirectory"  , value=settings.uploads_directory & "/.trash" )
+			.initArg( name="rootUrl"         , value="" );
+
+		map( "ScheduledExportStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
+			.initArg( name="rootDirectory"   , value=settings.uploads_directory & "/scheduled-export" )
+			.initArg( name="privateDirectory", value=settings.uploads_directory & "/scheduled-export" )
 			.initArg( name="trashDirectory"  , value=settings.uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"         , value="" );
 

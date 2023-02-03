@@ -1,6 +1,6 @@
 component {
 
-	private any function index( event, rc, prc, fieldName="", preProcessorArgs={} ) output=false {
+	private any function index( event, rc, prc, fieldName="", preProcessorArgs={}, readBinary=true ) {
 		var tempFile     = GetTempDirectory() & "/" & createUUID();
 		var uploadResult = "";
 
@@ -28,12 +28,18 @@ component {
 			throw( message="Failed to upload file." );
 		}
 
-		return {
+		var returnInfo = {
 			  fileName     = uploadResult.clientFile
 			, size         = uploadResult.fileSize
-			, binary       = FileReadBinary( uploadResult.serverDirectory & "/" & uploadResult.serverFile )
+			, path         = uploadResult.serverDirectory & "/" & uploadResult.serverFile
 			, tempFileInfo = uploadResult
 		};
+
+		if ( arguments.readBinary && IsTrue( arguments.preProcessorArgs.preProcessBinary ?: true ) ) {
+			returnInfo.binary = FileReadBinary( returnInfo.path );
+		}
+
+		return returnInfo;
 	}
 
 }

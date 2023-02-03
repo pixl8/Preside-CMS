@@ -18,7 +18,7 @@ This form is used for editing links through the link picker form control
 		</fieldset>
 
 		<fieldset id="url" sortorder="30">
-			<field sortorder="10" binding="link.external_protocol" control="select" values="http://,https://,ftp://,news://" addMissingValues="true" />
+			<field sortorder="10" binding="link.external_protocol" control="select" values="http://,https://,ftp://,news://,tel://" addMissingValues="true" />
 			<field sortorder="20" binding="link.external_address"  control="textinput" />
 		</fieldset>
 
@@ -30,7 +30,12 @@ This form is used for editing links through the link picker form control
 		</fieldset>
 
 		<fieldset id="asset" sortorder="50">
-			<field sortorder="10" binding="link.asset" />
+			<field sortorder="10" binding="link.asset"    />
+			<field sortorder="20" binding="link.download" />
+		</fieldset>
+
+		<fieldset id="anchor" sortorder="60">
+			<field sortorder="10" binding="link.page_anchor" />
 		</fieldset>
 	</tab>
 
@@ -41,6 +46,7 @@ This form is used for editing links through the link picker form control
 			<field sortorder="30" binding="link.image" />
 			<field sortorder="40" binding="link.target" control="select" values="_self,_blank,_parent,_top" labels="preside-objects.link:targets.self,preside-objects.link:targets.blank,preside-objects.link:targets.parent,preside-objects.link:targets.top" />
 			<field sortorder="50" binding="link.nofollow" />
+			<field sortorder="60" binding="link.referrer_policy" />
 		</fieldset>
 	</tab>
 </form>

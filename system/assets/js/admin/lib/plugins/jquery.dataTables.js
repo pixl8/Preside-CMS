@@ -2178,8 +2178,15 @@
 			oSettings.bFiltered = true;
 			$(oSettings.oInstance).trigger('filter', oSettings);
 
+			/* Do not reset _iDisplayStart until after the filters have been populated the first time and after initComplete (including the callback) so that search paging works if filters are disabled */
+			if ( oSettings.bFiltersPopulated && oSettings._bInitCompletePostCallback ) {
+				oSettings._iDisplayStart = 0;
+			}
+			if ( _fnFiltersPopulatedCallback( oSettings ) ) {
+				oSettings.bFiltersPopulated = true;
+			}
+
 			/* Redraw the table */
-			oSettings._iDisplayStart = 0;
 			_fnCalculateEnd( oSettings );
 			_fnDraw( oSettings );
 
@@ -2693,6 +2700,7 @@
 		{
 			oSettings._bInitComplete = true;
 			_fnCallbackFire( oSettings, 'aoInitComplete', 'init', [oSettings, json] );
+			oSettings._bInitCompletePostCallback = true;
 		}
 
 
@@ -4411,6 +4419,13 @@
 			oSettings.fnStateSave.call( oSettings.oInstance, oSettings, oState );
 		}
 
+		/* Check if filters have been populated */
+		function _fnFiltersPopulatedCallback( oSettings ) {
+			if ( typeof oSettings.fnFiltersPopulatedCallback != "undefined" ) {
+				return oSettings.fnFiltersPopulatedCallback( oSettings.oInstance, oSettings );
+			}
+			return true;
+		}
 
 		/**
 		 * Attempt to load a saved table state from a cookie
@@ -5232,6 +5247,10 @@
 		 */
 		this.fnAdjustColumnSizing = function ( bRedraw )
 		{
+			if ( $( this ).is( ":hidden" ) ) {
+				return;
+			}
+
 			var oSettings = _fnSettingsFromNode(this[DataTable.ext.iApiIndex]);
 			_fnAdjustColumnSizing( oSettings );
 
@@ -5547,6 +5566,10 @@
 		 */
 		this.fnDraw = function( bComplete )
 		{
+			if ( $( this ).is( ":hidden" ) ) {
+				return;
+			}
+
 			var oSettings = _fnSettingsFromNode( this[DataTable.ext.iApiIndex] );
 			if ( bComplete === false )
 			{
@@ -6492,7 +6515,8 @@
 			_fnMap( oSettings, oInit, "fnStateLoad" );
 			_fnMap( oSettings, oInit, "fnStateSave" );
 			_fnMap( oSettings.oLanguage, oInit, "fnInfoCallback" );
-
+			_fnMap( oSettings, oInit, "fnStateLoad" );
+			_fnMap( oSettings, oInit, "fnFiltersPopulatedCallback" );
 			/* Callback functions which are array driven */
 			_fnCallbackReg( oSettings, 'aoDrawCallback',       oInit.fnDrawCallback,      'user' );
 			_fnCallbackReg( oSettings, 'aoServerParams',       oInit.fnServerParams,      'user' );

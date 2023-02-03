@@ -27,13 +27,13 @@
 							, name        : "#translateResource( 'cms:emailcenter.stats.chart.sent' )#"
 							, mode        : 'lines+markers'
 							, line        : {color: 'orange'}
-						},{
+						}<cfif IsFeatureEnabled( "emailDeliveryStats" )>,{
 							  x           : #SerializeJson( interactionStats.dates )#
 							, y           : #SerializeJson( interactionStats.delivered )#
 							, name        : "#translateResource( 'cms:emailcenter.stats.chart.delivered' )#"
 							, mode        : 'lines+markers'
 							, line        : {color: 'blue'}
-						},{
+						}</cfif>,{
 							  x           : #SerializeJson( interactionStats.dates )#
 							, y           : #SerializeJson( interactionStats.opened )#
 							, name        : "#translateResource( 'cms:emailcenter.stats.chart.opened' )#"

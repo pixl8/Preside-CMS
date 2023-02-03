@@ -56,8 +56,8 @@ component {
 						, useLastAccessTimeouts          = false
 						, reapFrequency                  = 5
 						, evictionPolicy                 = "LFU"
-						, evictCount                     = 100
-						, maxObjects                     = 500
+						, evictCount                     = 200
+						, maxObjects                     = 2000
 						, objectStore                    = "ConcurrentStore"
 					}
 				},
@@ -88,7 +88,7 @@ component {
 						, evictCount                     = 500
 						, maxObjects                     = 2000
 						, objectStore                    = "DiskStore"
-						, directoryPath                  = getTempDirectory() & "/" & "fullpagecache"
+						, directoryPath                  = ExpandPath( "/uploads/.cache/fullpagecache" )
 						, autoExpandPath                 = false
 					}
 				},
@@ -132,6 +132,34 @@ component {
 						, evictionPolicy                 = "LFU"
 						, evictCount                     = 2000
 						, maxObjects                     = 10000
+						, objectStore                    = "ConcurrentStore"
+					}
+				},
+
+				emailStyleInlinerCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 120
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 20
+						, maxObjects                     = 100
+						, objectStore                    = "ConcurrentStore"
+					}
+				},
+
+				emailTemplateCache = {
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
+					, properties = {
+						  objectDefaultTimeout           = 120
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 120
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 20
+						, maxObjects                     = 2000
 						, objectStore                    = "ConcurrentStore"
 					}
 				}

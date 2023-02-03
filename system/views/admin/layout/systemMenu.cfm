@@ -1,13 +1,14 @@
-<cfset configItems = getSetting( "adminConfigurationMenuItems" ) />
+<cfscript>
+	settingsMenu = renderViewlet( event="admin.layout.adminMenu", args={
+		  menuItems       = getSetting( "adminConfigurationMenuItems" )
+		, legacyViewBase  = "/admin/layout/configurationMenu/"
+		, itemRenderer    = "/admin/layout/topnav/_subitem"
+		, subItemRenderer = "/admin/layout/topnav/_subitem"
+		, itemRendererArgs = { dropdownDirection="left" }
+	} );
+</cfscript>
 
 <cfoutput>
-	<cfsavecontent variable="settingsMenu">
-		<cfloop array="#configItems#" item="item" index="i">
-			#renderView( view="admin/layout/configurationMenu/#item#" )#
-		</cfloop>
-	</cfsavecontent>
-
-
 	<cfif Len( Trim( settingsMenu ) )>
 		<a data-toggle="dropdown" href="##" class="dropdown-toggle">
 			<i class="fa fa-cogs"></i>

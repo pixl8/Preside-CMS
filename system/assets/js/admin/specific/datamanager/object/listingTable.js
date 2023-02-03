@@ -15,33 +15,56 @@
 			  , setupCheckboxBehaviour
 			  , setupTableRowFocusBehaviour
 			  , setupFilters
+			  , updateFilterFolderCount
 			  , setupDataExport
 			  , setupQuickSaveFilterIframeModal
 			  , prePopulateFilter
-			  , showFilters
-			  , showSimpleSearch
+			  , toggleAdvancedFilter
 			  , dtSettings
 			  , getFavourites
 			  , setFavourites
-			  , object              = tableSettings.objectName      || cfrequest.objectName     || ""
-			  , datasourceUrl       = tableSettings.datasourceUrl   || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
-			  , isMultilingual      = tableSettings.isMultilingual  || cfrequest.isMultilingual || false
-			  , draftsEnabled       = tableSettings.draftsEnabled   || cfrequest.draftsEnabled  || false
-			  , object              = tableSettings.objectName      || cfrequest.objectName     || ""
-			  , objectTitle         = tableSettings.objectTitle     || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" )
-			  , allowSearch         = tableSettings.allowSearch     || cfrequest.allowSearch
-			  , allowFilter         = tableSettings.allowFilter     || cfrequest.allowFilter
-			  , allowDataExport     = tableSettings.allowDataExport || cfrequest.allowDataExport
-			  , noRecordMessage     = tableSettings.noRecordMessage || i18n.translateResource( "cms:datatables.emptyTable" )
-			  , favouritesUrl       = tableSettings.favouritesUrl   || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
-			  , compact             = tableSettings.compact         || cfrequest.compact
-			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
-			  , noActions           = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
-			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
-			  , $filterDiv          = $( '#' + tableId + '-filter' )
-			  , $favouritesDiv      = $( '#' + tableId + '-favourites' )
+			  , updateSelectAllOptionRecordCount
+			  , activateSelectAllOption
+			  , deactivateSelectAllOption
+			  , object                   = tableSettings.objectName               || cfrequest.objectName     || ""
+			  , datasourceUrl            = tableSettings.datasourceUrl            || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
+			  , isMultilingual           = tableSettings.isMultilingual           || cfrequest.isMultilingual || false
+			  , draftsEnabled            = tableSettings.draftsEnabled            || cfrequest.draftsEnabled  || false
+			  , object                   = tableSettings.objectName               || cfrequest.objectName     || ""
+			  , objectTitle              = tableSettings.objectTitle              || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" )
+			  , allowSearch              = tableSettings.allowSearch              || cfrequest.allowSearch
+			  , allowFilter              = tableSettings.allowFilter              || cfrequest.allowFilter
+			  , allowDataExport          = tableSettings.allowDataExport          || cfrequest.allowDataExport
+			  , allowSaveExport          = tableSettings.allowSaveExport          || cfrequest.allowSaveExport
+			  , noRecordMessage          = tableSettings.noRecordMessage          || i18n.translateResource( "cms:datatables.emptyTable" )
+			  , noRecordTableHide        = tableSettings.noRecordTableHide        || false
+			  , noRecordTableHideMessage = tableSettings.noRecordTableHideMessage || i18n.translateResource( "cms:preside-objects.default.field.no_value.title" )
+			  , favouritesUrl            = tableSettings.favouritesUrl            || cfrequest.favouritesUrl || buildAjaxLink( "rulesEngine.ajaxDataGridFavourites", { objectName : object } )
+			  , compact                  = tableSettings.compact                  || cfrequest.compact
+			  , defaultPageLength        = cfrequest.defaultPageLength            || 10
+			  , paginationOptions        = cfrequest.paginationOptions            || [ 5, 10, 25, 50, 100 ]
+			  , clickableRows            = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
+			  , noActions                = typeof tableSettings.noActions       === "undefined" ? ( typeof cfrequest.noActions       === "undefined" ? false: cfrequest.noActions       ) : tableSettings.noActions
+			  , useMultiActions          = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
+			  , $filterDiv               = $( '#' + tableId + '-filter' )
+			  , $favouritesDiv           = $( '#' + tableId + '-favourites' )
+			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
-			  , lastAjaxResult;
+			  , lastAjaxResult
+			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
+			  , filtersPopulated=false
+			  , hasPreFilters=false;
+
+			if ( allowFilter ) {
+				filterSettings = $( ".object-listing-table-filter" ).data();
+				if ( filterSettings !== null ) {
+					allowUseFilter    = filterSettings.allowUseFilter    || false;
+					allowManageFilter = filterSettings.allowManageFilter || false;
+					if ( allowManageFilter ) {
+						manageFiltersLink = filterSettings.manageFiltersLink || "";
+					}
+				}
+			}
 
 			setupDatatable = function(){
 				var $tableHeaders        = $listingTable.find( 'thead > tr > th')
@@ -92,7 +115,7 @@
 						sClass    : "text-right",
 						bSortable : false,
 						mData     : "_options",
-						sWidth    : "12em"
+						sWidth    : "13em"
 					} );
 				}
 				$header = $( $tableHeaders.get( $tableHeaders.length-1 ) );
@@ -114,23 +137,25 @@
 				}
 
 				if ( allowFilter ) {
-					sDom = "<'well'fr<'clearfix'>><'dataTables_pagination top clearfix'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
+					sDom = "<'well well-sm'fr<'clearfix'>><'dataTables_pagination top clearfix'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
 				} else if ( compact ) {
 					sDom = "frt<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				} else {
-					sDom = "fr<'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
+					sDom = "fr<'dataTables_pagination top clearfix'<'pull-left'i><'pull-left'l><'pull-right'p>><'datatable-container't><'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 				}
 
 				datatable = $listingTable.dataTable( {
 					aoColumns     : colConfig,
 					aaSorting     : defaultSort,
+					aoColumnDefs  : [ { "bSortable": false, "aTargets": [ 'no-sorting' ] } ],
 					bServerSide   : true,
 					bProcessing   : true,
 					bStateSave    : true,
 					bFilter       : allowSearch,
 					iDeferLoading : 0,
 					bAutoWidth    : false,
-					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
+					iDisplayLength: parseInt( defaultPageLength ),
+					aLengthMenu   : paginationOptions,
 					sDom          : sDom,
 					sAjaxSource   : datasourceUrl,
 					fnRowCallback : function( row ){
@@ -172,7 +197,9 @@
 							setupDataExport( settings );
 						}
 
-						this.fnDraw();
+						if ( !hasPreFilters ) {
+							this.fnDraw();
+						}
 					},
 					oLanguage : {
 						oAria : {
@@ -209,6 +236,9 @@
 							}
 						}
 					},
+					fnFiltersPopulatedCallback: function() {
+						return allowFilter ? filtersPopulated : true;
+					},
 					fnCookieCallback: function( sName, oData, sExpires, sPath ) {
 						if ( allowFilter ) {
 							oData.oFilter = {
@@ -223,8 +253,9 @@
 					fnPreDrawCallback : function() {
 						$( ".datatable-container" ).presideLoadingSheen( true );
 					},
-					fnDrawCallback : function() {
+					fnDrawCallback : function( dt ) {
 						$( ".datatable-container" ).presideLoadingSheen( false );
+						updateSelectAllOptionRecordCount( dt.fnFormatNumber( dt._iRecordsTotal ) );
 					},
 					fnFooterCallback: function ( nRow, aaData, iStart, iEnd, aiDisplay ) {
 						if ( $( nRow ).length ) {
@@ -239,6 +270,26 @@
 
 				$listingTable.on( "xhr", function( event, settings, json ){
 					lastAjaxResult = json;
+
+					if ( noRecordTableHide ) {
+						var searchQuery = "";
+
+						if ( allowSearch ) {
+							searchQuery = $( dtSettings.aanFeatures.f[0] ).find( "input.data-table-search" ).val();
+						}
+
+						if ( searchQuery.length == 0 ) {
+							var iTotalRecords = json.iTotalRecords || 0;
+
+							if ( iTotalRecords == 0 ) {
+								var $tableContainer = $( "#"+tableId+"-container" );
+
+								$tableContainer.parent().append( noRecordTableHideMessage );
+
+								$tableContainer.hide();
+							}
+						}
+					}
 				} );
 			};
 
@@ -247,16 +298,23 @@
 				  , $multiActionBtns = $listingTable.closest( '.multi-action-form' ).find( ".multi-action-buttons" );
 
 				$selectAllCBox.on( 'click' , function(){
-					var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
+					var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' )
+					  , isChecked  = $selectAllCBox.is( ':checked' );
 
 					$allCBoxes.each( function(){
-						this.checked = $selectAllCBox.is( ':checked' );
+						this.checked = isChecked;
 						if ( this.checked ) {
 							$( this ).closest( 'tr' ).addClass( 'selected' );
 						} else {
 							$( this ).closest( 'tr' ).removeClass( 'selected' );
 						}
 					});
+
+					if ( isChecked ) {
+						activateSelectAllOption();
+					} else {
+						deactivateSelectAllOption();
+					}
 				});
 
 				$multiActionBtns.data( 'hidden', true );
@@ -265,8 +323,10 @@
 
 					if ( anyBoxesTicked == $listingTable.find( "td input:checkbox" ).length ) {
 						$selectAllCBox.prop( 'checked', true );
+						activateSelectAllOption();
 					} else {
 						$selectAllCBox.prop( 'checked', false );
+						deactivateSelectAllOption();
 					}
 
 					enabledContextHotkeys( !anyBoxesTicked );
@@ -293,6 +353,56 @@
 				$form.find( ".multi-action-buttons button" ).click( function( e ){
 					$hiddenActionField.val( $( this ).attr( 'name' ) );
 				} );
+
+				$form.on( "submit", function(){
+					var allRecords = $form.find( "[name=batchAll]:checked" ).length > 0;
+					if ( allRecords ) {
+						var $batchSrcArgs = $( '<input type="hidden" name="batchSrcArgs">' );
+
+						$batchSrcArgs.val( lastAjaxResult.sBatchSource );
+						$form.append( $batchSrcArgs );
+
+						$form.find( "input[name=id]" ).remove();
+					}
+				} );
+			};
+
+			updateSelectAllOptionRecordCount = function( newCount ){
+				var $form = $listingTable.closest( '.multi-action-form' );
+
+				if ( $form.length ) {
+					$form.find( ".batch-update-select-all .matching-record-count" ).each( function(){
+						$( this ).html( newCount );
+					} );
+				}
+			};
+			activateSelectAllOption = function(){
+				var $form = $listingTable.closest( '.multi-action-form' )
+				  , $selectAllContainer;
+
+				if ( $form.length ) {
+					$selectAllContainer = $form.find( ".batch-update-select-all" );
+					if ( $selectAllContainer.length ) {
+						if ( datatable.fnPagingInfo().iTotalPages > 1 && lastAjaxResult.sBatchSource ) {
+							$selectAllContainer.show();
+						} else {
+							deactivateSelectAllOption();
+						}
+					}
+				}
+			};
+			deactivateSelectAllOption = function(){
+				var $form = $listingTable.closest( '.multi-action-form' );
+				var $selectAllContainer;
+
+				if ( $form.length ) {
+					$selectAllContainer = $form.find( ".batch-update-select-all" );
+
+					if ( $selectAllContainer.length ) {
+						$selectAllContainer.find( "input[name='batchAll']" ).prop( "checked", false );
+						$selectAllContainer.hide();
+					}
+				}
 			};
 
 			enabledContextHotkeys = function( enabled ){
@@ -315,11 +425,20 @@
 			setupFilters = function( settings ){
 				// setup DOM
 				var $searchContainer = $( settings.aanFeatures.f[0] )
-				  , $searchTitle     = $( '<h4 class="blue">' + i18n.translateResource( "cms:datatables.simple.search.title" ) + '</h4>' )
-				  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
+				  , filterState, $manageLink, $filterLinksContainer = $( '<div class="pull-right filter-links-container"></div>' );
 
-				$searchContainer.prepend( $searchTitle );
-				$searchContainer.prepend( $filterLink );
+				if ( allowUseFilter ) {
+					$filterLink = $( '<a href="#"><i class="fa fa-fw fa-caret-right"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
+					$filterLinksContainer.append( $filterLink );
+
+					if ( allowManageFilter && manageFiltersLink.length ) {
+						$manageLink = $( '<a href="' + manageFiltersLink + '"><i class="fa fa-fw fa-cogs"></i> ' + i18n.translateResource( "cms:datatables.manage.filters.link" ) + '</a>' );
+						$filterLinksContainer.prepend( $manageLink );
+					}
+
+					$searchContainer.append( $filterLinksContainer );
+				}
+
 				if ( $favouritesDiv.length ) {
 					$searchContainer.append( $favouritesDiv );
 					$favouritesDiv.removeClass( "hide" );
@@ -330,49 +449,75 @@
 
 						$filter.toggleClass( "active" ).find( ":focus" ).blur();
 
+						if ( $filter.parents( ".data-table-favourite-group" ).length ) {
+							e.stopPropagation();
+							updateFilterFolderCount( $filter.closest( ".data-table-favourite-group" ) );
+						}
+
 						datatable.fnDraw();
 					} );
 				}
 				$searchContainer.parent().append( $filterDiv );
 
-				$filterDiv.hide().removeClass( "hide" ).find( ".well" ).removeClass( "well" );
+				$filterDiv.find( ".well" ).removeClass( "well" );
 
 				// toggles between filter mode + basic search mode
-				$filterLink.on( "click", showFilters );
-				$filterDiv.on( "click", ".back-to-basic-search", showSimpleSearch );
-
-				// toggle for showing / hiding filter builder
-				$filterDiv.on( "click", ".quick-filter-toggler", function( e ){
-					e.preventDefault();
-					$( this ).find( ".fa:first" ).toggleClass( "fa-caret-right fa-caret-down" );
-				} );
+				if ( allowUseFilter ) {
+					$filterLink.on( "click", toggleAdvancedFilter );
+				}
 
 				// filter change listener
 				$filterDiv.on( "change", function( e ){
 					datatable.fnDraw();
 
-					$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
+					if ( allowManageFilter ) {
+						$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
+					}
 				} );
 
-				setupQuickSaveFilterIframeModal( $filterDiv );
-
-				if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
-					if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
-						prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
-					} else if ( settings.oLoadedState.oFilter.favourites && settings.oLoadedState.oFilter.favourites.length ) {
-						setFavourites( settings.oLoadedState.oFilter.favourites );
-					}
+				if ( allowManageFilter ) {
+					setupQuickSaveFilterIframeModal( $filterDiv );
 				}
+
+				try {
+					filterState = settings.oLoadedState.oFilter;
+				} catch( e ) {}
+
+				if ( typeof filterState !== "undefined" ) {
+					if ( allowUseFilter && typeof filterState.filter !== "undefined" ) {
+						if ( filterState.filter.length ) {
+							prePopulateFilter( filterState.filter );
+						} else {
+							filtersPopulated = true;
+						}
+					}
+					if ( filterState.favourites && filterState.favourites.length ) {
+						setFavourites( filterState.favourites );
+					}
+				} else {
+					filtersPopulated = true;
+				}
+			};
+
+			updateFilterFolderCount = function( $group ) {
+				var activeCount = $group.find( ".filter.active" ).length
+				  , $titleEl    = $group.find( ".dropdown-toggle:first" )
+				  , $counterEl  = $titleEl.find( ".badge" );
+
+				$counterEl.html( activeCount );
+
+				activeCount ? $group.addClass( "has-selections" ) : $group.removeClass( "has-selections" );
 			};
 
 			setupDataExport = function( settings ){
 				// setup DOM
 				var paginationContainers = settings.aanFeatures.p
-				  , $dataExportContainer = $( ".object-listing-table-export" )
-				  , $configForm          = $( ".object-listing-data-export-config-form" )
-				  , $exportBtn           = $( ".object-listing-data-export-button" )
+				  , $uberContainer       = $( "#"+tableId+"-container" )
+				  , $dataExportContainer = $( ".object-listing-table-export", $uberContainer )
+				  , $configForm          = $( ".object-listing-data-export-config-form", $uberContainer )
+				  , $exportBtn           = $( ".object-listing-data-export-button", $uberContainer )
 				  , iframeSrc            = $exportBtn.attr( "href" )
-				  , i, $container, modalOptions, callbacks, processExport, exportConfigModal, configIframe;
+				  , i, $container, modalOptions, callbacks, processExport, saveExport, exportConfigModal, configIframe;
 
 				for( i=0; i<paginationContainers.length; i++ ) {
 					$container = $( paginationContainers[i] );
@@ -388,11 +533,19 @@
 							, className : "btn-default"
 						},
 						ok : {
-							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:export.btn" )
+							  label     : '<i class="fa fa-download"></i> ' + i18n.translateResource( "cms:downloadnow.btn" )
 							, className : "btn-primary ok-button"
 							, callback  : function(){ return processExport(); }
 						}
 					}
+				}
+
+				if ( allowSaveExport ) {
+					modalOptions.buttons.save = {
+						  label     : '<i class="fa fa-save"></i> ' + i18n.translateResource( "cms:saveforlater.btn" )
+						, className : "btn-success"
+						, callback  : function(){ return saveExport(); }
+					};
 				}
 				callbacks = {
 					onLoad : function( iframe ) {
@@ -401,13 +554,12 @@
 				};
 				processExport = function(){
 					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
-					  , $submissionForm  = $( ".object-listing-table-export-form" )
-					  , $searchContainer = $( dtSettings.aanFeatures.f[0] )
+					  , $submissionForm  = $( ".object-listing-table-export-form", $uberContainer )
 					  , sortColumns      = dtSettings.aaSorting
 					  , allColumns       = dtSettings.aoColumns
 					  , config           = $configForm.serializeObject()
 					  , sortOrder        = []
-					  , favourites, key, $hiddenInput, i;
+					  , favourites, key, $hiddenInput, i, $searchContainer;
 
 					if ( allowFilter ) {
 						config.filterExpressions = $filterDiv.find( "[name=filter]" ).val();
@@ -420,7 +572,10 @@
 						}
 					}
 
-					config.searchQuery = $searchContainer.find( "input.data-table-search" ).val();
+					if ( allowSearch ) {
+						$searchContainer = $( dtSettings.aanFeatures.f[0] );
+						config.searchQuery = $searchContainer.find( "input.data-table-search" ).val();
+					}
 
 					for( key in config ) {
 						$hiddenInput = $submissionForm.find( "[name=" + key + "]" );
@@ -446,10 +601,59 @@
 
 					return true;
 				};
+				saveExport = function(){
+					var $configForm      = $( configIframe.document ).find( ".export-config-form" )
+					  , $submissionForm  = $( ".object-listing-table-save-export-form", $uberContainer )
+					  , sortColumns      = dtSettings.aaSorting
+					  , allColumns       = dtSettings.aoColumns
+					  , config           = $configForm.serializeObject()
+					  , sortOrder        = []
+					  , favourites, key, $hiddenInput, i, $searchContainer;
+
+					if ( allowFilter ) {
+						config.filterExpressions = $filterDiv.find( "[name=filter]" ).val();
+
+						favourites = getFavourites();
+						if ( favourites && favourites.length ) {
+							config.savedFilters = favourites;
+						} else {
+							config.savedFilters = $filterDiv.find( "[name=filters]" ).val();
+						}
+					}
+
+					if ( allowSearch ) {
+						$searchContainer = $( dtSettings.aanFeatures.f[0] );
+						config.searchQuery = $searchContainer.find( "input.data-table-search" ).val();
+					}
+
+					for( key in config ) {
+						$hiddenInput = $submissionForm.find( "[name=" + key + "]" );
+
+						if ( !$hiddenInput.length ) {
+							$hiddenInput = $( '<input type="hidden" name="' + key + '">' );
+							$submissionForm.append( $hiddenInput );
+						}
+
+						$hiddenInput.val( config[ key ] );
+					}
+
+					for( i=0; i<sortColumns.length; i++ ) {
+						sortOrder.push( allColumns[ sortColumns[ i ][ 0 ] ].mData + " " + sortColumns[ i ][ 1 ] );
+					}
+					if ( sortOrder.length ) {
+						$hiddenInput = $( '<input type="hidden" name="orderby">' );
+						$hiddenInput.val( sortOrder.join( "," ) );
+						$submissionForm.append( $hiddenInput );
+					}
+
+					$submissionForm.submit();
+
+					return true;
+				}
 
 				exportConfigModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
 
-				$( ".object-listing-data-export-button" ).on( "click", function(e ){
+				$( ".object-listing-data-export-button", $uberContainer ).on( "click", function(e ){
 					e.preventDefault();
 
 					exportConfigModal.open();
@@ -458,13 +662,20 @@
 				$dataExportContainer.remove();
 			};
 
-			refreshFavourites = function(){
+			refreshFavourites = function( callback ){
 				$.ajax({
 					  url     : favouritesUrl
 					, cache   : false
 					, success : function( resp ) {
 						$favouritesDiv.fadeOut( 200, function(){
-							$favouritesDiv.html( resp ).fadeIn( 200 );
+							$favouritesDiv.html( resp );
+
+							if ( callback !== null ) {
+								callback.call();
+							}
+
+							$favouritesDiv.fadeIn( 200 );
+
 						} )
 					  }
 				});
@@ -494,57 +705,34 @@
 					for( i=0; i<ids.length; i++ ) {
 						$favouritesDiv.find( ".filter[ data-filter-id='" + ids[i] + "' ]" ).addClass( "active" );
 					}
+
+					$favouritesDiv.find( ".data-table-favourite-group" ).each( function(){
+						updateFilterFolderCount( $( this ) );
+					} );
 				}
 			};
 
-			prePopulateFilter = function( filters, filter ) {
-				var loaded = false;
-
-				if ( filters && filters.length ) {
-					var filterArray   = filters.split(",")
-					  , filtersSelect = $filterDiv.find( "[name=filters]" ).data( "uberSelect")
-					  , i;
-
-					for( i=0; i<filterArray.length; i++ ) {
-						if ( filterArray[i].length ) {
-							filtersSelect.select( filterArray[i] )
-						}
-					}
-
-					showFilters();
-				}
-
+			prePopulateFilter = function( filter ) {
 				if ( filter && filter.length ) {
+					hasPreFilters = true;
 					$( document ).on( "conditionBuilderInitialized", function(){
+						filtersPopulated = true;
 						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).load( filter );
 					} );
-					showFilters();
+					toggleAdvancedFilter();
+				} else {
+					filtersPopulated = true;
+					hasPreFilters = false;
 				}
 			}
 
-			showFilters = function( e ){
+			toggleAdvancedFilter = function( e ){
 				e && e.preventDefault();
-				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
-				$searchContainer.fadeOut( 100, function(){
-					$searchContainer.find( "input.data-table-search" ).val( "" );
-					setFavourites( "" );
-					datatable.fnFilter("");
-					$filterDiv.fadeIn( 100 );
-				} );
-			};
 
-			showSimpleSearch = function( e ){
-				e && e.preventDefault();
-				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
-
-				$filterDiv.fadeOut( 100, function(){
-					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
-					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
-					$filterDiv.find( "[name=filters]" ).val("");
-					refreshFavourites();
-					datatable.fnDraw();
-					$searchContainer.fadeIn( 100 );
-				} );
+				if ( allowUseFilter ) {
+					$filterDiv.toggleClass( "hide" );
+					$filterLink.find( "i.fa" ).toggleClass( "fa-caret-right" ).toggleClass( "fa-caret-down" );
+				}
 			};
 
 			setupQuickSaveFilterIframeModal = function( $filterDiv ) {
@@ -597,9 +785,19 @@
 					dummyPresideObjectPicker = {
 						  addRecordToControl  : function( recordId ){
 							$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
-							$filterDiv.find( "[name=filters]" ).data( "uberSelect").select( recordId );
-							$filterDiv.find( ".quick-filter-toggler" ).click();
-							datatable.fnDraw();
+
+							refreshFavourites( function(){
+								var $fav = $favouritesDiv.find( '[data-filter-id="' + recordId + '"]' );
+								if ( $fav.length ) {
+									$fav.addClass( "active" );
+									if ( $fav.parents( ".data-table-favourite-group" ).length ) {
+										updateFilterFolderCount( $fav.closest( ".data-table-favourite-group" ) );
+									}
+								}
+
+								toggleAdvancedFilter();
+								datatable.fnDraw();
+							} );
 						  }
 						, closeQuickAddDialog : function(){
 							iframemodal.close();

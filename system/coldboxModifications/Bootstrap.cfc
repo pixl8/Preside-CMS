@@ -281,6 +281,24 @@ component extends="coldbox.system.Bootstrap" {
 		}
 	}
 
+	/**
+	 * Overriding isFWReinit to fix to prevent reload if disableMajorReloads is true
+	 *
+	 */
+	public boolean function isFWReinit(){
+		if ( structKeyExists( url, "fwreinit" ) or structKeyExists( form, "fwreinit" ) ){
+			var appKey 	= locateAppKey();
+			var disableMajorReloads = application[ appKey ].getSetting( name="disableMajorReloads", defaultValue=false );
+			if ( IsBoolean( disableMajorReloads ) && disableMajorReloads ) {
+				content reset=true;
+				header statuscode="403" statustext="Access denied";
+				abort;
+			}
+		}
+
+		return super.isFWReinit();
+	}
+
 
 	public string function getCOLDBOX_CONFIG_FILE() {
 		return variables.COLDBOX_CONFIG_FILE;
@@ -296,8 +314,11 @@ component extends="coldbox.system.Bootstrap" {
 	}
 
 	private boolean function areSessionsEnabled() {
-		var appSettings = getApplicationSettings();
+		var appSettings              = getApplicationSettings();
+		var sessionManagement        = IsBoolean( appSettings.sessionManagement        ?: "" ) && appSettings.sessionManagement;
+		var presideSessionManagement = IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
+		var statelessRequest         = IsBoolean( appSettings.statelessRequest         ?: "" ) && appSettings.statelessRequest;
 
-		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
+		return sessionManagement || ( presideSessionManagement && !statelessRequest );
 	}
 }

@@ -12,6 +12,7 @@
 
 		return {
 			title: lang.title,
+			resizable: CKEDITOR.DIALOG_RESIZE_NONE,
 			minWidth: 900,
 			minHeight: 500,
 			onShow:function(){

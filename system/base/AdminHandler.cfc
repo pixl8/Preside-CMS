@@ -25,11 +25,12 @@ component {
 			, adminBaseUrl = event.getAdminPath()
 			, siteId       = event.getSiteId()
 		} );
+
 		event.includeData( event.getCollection() );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:home.title" )
-			, link  = event.buildLink( linkTo=applicationsService.getDefaultEvent( activeApplication ) )
+			, link  = applicationsService.getDefaultUrl( applicationId=activeApplication, siteId=event.getSiteId() )
 		);
 	}
 

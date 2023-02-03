@@ -12,17 +12,12 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		, required string  relatedTo
 		, required string  relationshipKey
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          boolean _is   = true
 		,          string  value = ""
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -32,65 +27,38 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		, required string  relatedTo
 		, required string  relationshipKey
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
-		,          boolean _is   = true
-		,          string  value = ""
+		,          boolean _is                = true
+		,          string  value              = ""
 	){
-		var defaultPrefix  = parentPropertyName.len() ? "#parentPropertyName#$#propertyName#" : propertyName;
-		var prefix         = filterPrefix.len() ? ( filterPrefix & "$#propertyName#" ) : defaultPrefix;
-		var paramName      = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var relatedIdField = presideObjectService.getIdField( arguments.relatedTo );
-
-		if ( _is ) {
-			return [ {
-				  filter       = "#prefix#.#relatedIdField# in (:#paramName#)"
-				, filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } }
-			} ];
-		}
-
-		var params        = {};
-		var subQueryAlias = paramName;
-		var subQuery      = presideObjectService.selectData(
+		var paramName = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
+		var valuePk   = presideObjectService.getIdField( arguments.relatedto );
+		var outerPk   = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
+		var exists    = arguments._is ? "exists" : "not exists";
+		var subquery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
-			, selectFields        = [ "#arguments.relatedTo#.#arguments.relationshipKey# as id" ]
-			, forceJoins          = "inner"
+			, selectFields        = [ "1" ]
+			, filter              = obfuscateSqlForPreside( "#arguments.relationshipKey# = #outerPk# and #arguments.relatedTo#.#valuePk# in (:#paramName#)" )
+			, filterParams        = { "#paramName#" = { type="cf_sql_varchar", value=arguments.value, list=true } }
 			, getSqlAndParamsOnly = true
-			, filter              = { "#arguments.relatedTo#.#relatedIdField#" = listToArray( arguments.value ) }
+			, formatSqlParams     = true
 		);
-		for( var param in subQuery.params ) {
-			params[ param.name ] = param;
-			params[ param.name ].delete( "name" );
-		}
-
-		prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 
 		return [ {
-			  filter = "#subQueryAlias#.id is null"
-			, filterParams = params
-			, extraJoins = [{
-				  type           = "left"
-				, subQuery       = subQuery.sql
-				, subQueryAlias  = subQueryAlias
-				, subQueryColumn = "id"
-				, joinToTable    = prefix
-				, joinToColumn   = presideObjectService.getIdField( objectName )
-			} ]
+			  filter = obfuscateSqlForPreside( "#exists# (#subquery.sql#)" )
+			, filterParams = subquery.params
 		}];
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		, required string  relatedTo
-		, required string  relationshipKey
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		, required string relatedTo
+		, required string relationshipKey
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated = translateObjectProperty( objectName, propertyName );
 		var possesses           = translateResource(
 			  uri          = objectBaseUri & "field.#propertyName#.possesses.truthy"
 			, defaultValue = translateResource( "rules.dynamicExpressions:boolean.possesses" )
@@ -109,11 +77,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string propertyName
 		, required string relatedTo
 		, required string relationshipKey
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	){
-		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToTranslated = translateObjectProperty( objectName, propertyName );
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );

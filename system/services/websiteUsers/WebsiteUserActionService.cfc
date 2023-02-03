@@ -40,8 +40,16 @@ component displayName="Website user action service" {
 		,          string identifier = ""
 		,          any    detail     = {}
 	) {
-		if ( _sessionsAreDisabled() || ( !arguments.userId.len() && _anonymousTrackingIsDisabled() ) ) {
+		if ( !_sessionsAreEnabled() || ( !arguments.userId.len() && _anonymousTrackingIsDisabled() ) ) {
 			return "";
+		}
+
+		var event      = $getRequestContext();
+		var prc        = event.getCollection( private=true );
+		var requestUrl = cgi.request_url;
+
+		if ( Len( prc._presideUrlPath ?: "" )) {
+			requestUrl = reReplace( requestUrl, "\/index\.cfm",  prc._presideUrlPath );
 		}
 
 		var data = {
@@ -50,7 +58,7 @@ component displayName="Website user action service" {
 			, detail     = SerializeJson( arguments.detail )
 			, identifier = arguments.identifier
 			, session_id = _getSessionId()
-			, uri        = cgi.request_url
+			, uri        = requestUrl
 			, user_ip    = cgi.remote_addr
 			, user_agent = cgi.http_user_agent
 			, visitor    = _getWebsiteVisitorService().getVisitorId()
@@ -236,8 +244,6 @@ component displayName="Website user action service" {
 		,          boolean allIdentifiers     = false
 		,          numeric qty
 		,          string  qtyOperator        = "gt"
-		,          string  filterPrefix       = ""
-		,          string  parentPropertyName = ""
 	) {
 		if ( arguments.identifiers.len() > 1 && arguments.allIdentifiers ) {
 			var filters = [];
@@ -319,7 +325,7 @@ component displayName="Website user action service" {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "id"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "website_user" )
+			, joinToTable    = "website_user"
 			, joinToColumn   = "id"
 		} ] } ];
 	}
@@ -330,8 +336,6 @@ component displayName="Website user action service" {
 		,          string  dateFrom           = ""
 		,          string  dateTo             = ""
 		,          string  identifier         = ""
-		,          string  filterPrefix       = ""
-		,          string  parentPropertyName = ""
 	) {
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var subqueryFilter = "actions.action = :action#paramSuffix# and actions.type = :type#paramSuffix#";
@@ -370,16 +374,19 @@ component displayName="Website user action service" {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "id"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "website_user" )
+			, joinToTable    = "website_user"
 			, joinToColumn   = "id"
 		} ] } ];
 	}
 
 // PRIVATE HELPERS
-	private boolean function _sessionsAreDisabled() {
-		var applicationSettings = getApplicationSettings( true );
+	private boolean function _sessionsAreEnabled() {
+		var appSettings              = getApplicationSettings( true );
+		var sessionManagement        = IsBoolean( appSettings.sessionManagement        ?: "" ) && appSettings.sessionManagement;
+		var presideSessionManagement = IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
+		var statelessRequest         = IsBoolean( appSettings.statelessRequest         ?: "" ) && appSettings.statelessRequest;
 
-		return !IsBoolean( applicationSettings.sessionManagement ?: "" ) || !applicationSettings.sessionManagement;
+		return sessionManagement || ( presideSessionManagement && !statelessRequest );
 	}
 
 	private string function _getSessionId() {

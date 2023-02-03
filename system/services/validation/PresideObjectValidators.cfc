@@ -43,8 +43,26 @@ component validationProvider=true singleton=true {
 			, filterParams = filterParams
 		);
 	}
-
 	public string function presideObjectUniqueIndex_js() output=false {
+		return "function(){ return true; }";
+	}
+
+	public boolean function presideObjectForeignKey( required string fieldName, struct data={}, required string relatedTo ) validatorMessage="cms:validation.presideObjectForeignKey.default" {
+		var pobjService = _getPresideObjectService();
+		var objectName  = arguments.relatedTo ?: "";
+		var ids         = arguments.value     ?: "";
+
+		if ( Len( Trim( objectName ) ) && Len( Trim( ids ) ) ) {
+			for( id in ListToArray( ids ) ) {
+				if ( !pobjService.dataExists( objectName=objectName , id=id ) ) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+	public string function presideObjectForeignKey_js() output=false {
 		return "function(){ return true; }";
 	}
 

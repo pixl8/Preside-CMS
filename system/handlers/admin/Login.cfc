@@ -198,7 +198,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var passwordPolicy = passwordPolicyService.getPolicy( "cms" );
 		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
-			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
+			prc.policyMessage = renderPasswordPolicyMessage( context="cms" );
 		}
 
 		event.setView( "/admin/login/resetPassword" );
@@ -263,10 +263,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _redirectToDefaultAdminEvent( required any event ) {
-		var defaultLink = event.buildLink(
-			linkTo = applicationsService.getDefaultEvent()
-		);
-
-		setNextEvent( url=defaultLink );
+		setNextEvent( url=applicationsService.getDefaultUrl( siteId=event.getSiteId() ) );
 	}
 }

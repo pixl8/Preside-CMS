@@ -144,6 +144,9 @@ component implements="iRouteHandler" singleton=true {
 			getPageArgs.systemPage = arguments.page;
 		} else {
 			getPageArgs.id = arguments.page;
+			if ( !Len( getPageArgs.site ) ) {
+				getPageArgs.bypassTenants = [ "site" ];
+			}
 		}
 
 		if ( siteTreeService.arePageSlugsMultilingual() ) {

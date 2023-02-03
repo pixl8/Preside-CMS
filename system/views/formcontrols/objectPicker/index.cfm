@@ -136,7 +136,7 @@
 			</cfif>
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>
-			<cfif includePlaceholder>
+			<cfif includePlaceholder and !( IsBoolean( multiple ) && multiple )>
 				<option value="">#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
 			</cfif>
 			<cfloop query="records">

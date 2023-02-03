@@ -1,21 +1,15 @@
-<cfif isFeatureEnabled( "cmsUserManager" )>
-	<cfoutput>
-		<cfif hasCmsPermission( "usermanager.navigate" )>
-			<li>
-				<a href="#event.buildAdminLink( linkTo="usermanager.users" )#">
-					<i class="fa fa-fw fa-user"></i>
-					#translateResource( 'cms:usermanager.users' )#
-				</a>
-			</li>
-		</cfif>
-
-		<cfif hasCmsPermission( "groupmanager.navigate" )>
-			<li>
-				<a href="#event.buildAdminLink( linkTo="usermanager.groups" )#">
-					<i class="fa fa-fw fa-group"></i>
-					#translateResource( 'cms:usermanager.groups' )#
-				</a>
-			</li>
-		</cfif>
-	</cfoutput>
-</cfif>
+<!---
+ * This file exists purely for backward compatibility.
+ * This just proxies the "new" admin menu system (https://presidecms.atlassian.net/browse/PRESIDECMS-2293)
+ * Exists for any systems/extensions that are referencing this file directly
+ *
+--->
+<cfoutput>
+	#renderViewlet( event="admin.layout.adminMenu", args={
+		  menuItems       = [ "userManager" ]
+		, legacyViewBase  = "/deliberately/wrong/"
+		, itemRenderer    = "/admin/layout/topnav/_subitem"
+		, subItemRenderer = "/admin/layout/topnav/_subitem"
+		, itemRendererArgs = { dropdownDirection="left" }
+	} )#
+</cfoutput>

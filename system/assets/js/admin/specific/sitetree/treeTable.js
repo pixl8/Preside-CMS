@@ -13,7 +13,7 @@
 			$childRows.show().each( function(){
 				var $childRow = $( this );
 
-				if ( getChildren( $childRow ).length && $childRow.data( "open" ) ) {
+				if ( getChildren( $childRow ).length && $childRow.data( "open-on-start" ) ) {
 					openChildren( $childRow );
 				}
 			} );
@@ -105,13 +105,17 @@
 
 		toggleRow = function( $row ){
 			var $toggler = $row.find( ".tree-toggler" )
-			  , open     = $row.data( "open" )
-
+			  , open     = $row.data( "open-on-start" )
+			if ( $toggler.context.classList.contains('table') && open ){
+				open=false;
+				$toggler.toggleClass("fa-caret-right");
+				$toggler.toggleClass("fa-caret-down");
+			}
 			$toggler.toggleClass( "fa-caret-right" );
 			$toggler.toggleClass( "fa-caret-down" );
 
 			open ? closeChildren( $row ) : openChildren( $row );
-			$row.data( "open", !open );
+			$row.data( "open-on-start", !open );
 
 		}
 

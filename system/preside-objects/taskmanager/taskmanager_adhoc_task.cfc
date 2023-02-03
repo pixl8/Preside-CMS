@@ -17,16 +17,18 @@ component extends="preside.system.base.SystemPresideObject"  {
 	property name="return_url"     type="string"  dbtype="varchar"  maxlength=255 required=false;
 	property name="log"            type="string"  dbtype="longtext"               required=false;
 
-	property name="status"              type="string"  dbtype="varchar"   maxlength=50  required=false default="pending" enum="adhocTaskStatus";
+	property name="status"              type="string"  dbtype="varchar"   maxlength=50  required=false default="pending" enum="adhocTaskStatus" indexes="status";
 	property name="progress_percentage" type="numeric" dbtype="int"                     required=false default=0;
 
-	property name="discard_on_complete" type="boolean" dbtype="boolean" required=false default=false;
+	property name="discard_on_complete"    type="boolean" dbtype="boolean"  required=false default=false indexes="discardoncomplete";
+	property name="discard_after_interval" type="numeric" dbtype="bigint"   required=false default=0 indexes="discardafterinterval";
+	property name="discard_expiry"         type="date"    dbtype="datetime" required=false indexes="discardexpiry";
 
-	property name="attempt_count"     type="numeric" dbtype="int"      required=false default=0;
-	property name="next_attempt_date" type="date"    dbtype="datetime" required=false;
+	property name="attempt_count"     type="numeric" dbtype="int"      required=false default=0 indexes="attemptcount";
+	property name="next_attempt_date" type="date"    dbtype="datetime" required=false indexes="nextattempt";
 	property name="last_error"        type="string"  dbtype="longtext" required=false;
-	property name="started_on"        type="date"    dbtype="datetime" required=false;
-	property name="finished_on"       type="date"    dbtype="datetime" required=false;
+	property name="started_on"        type="date"    dbtype="datetime" required=false indexes="startedon";
+	property name="finished_on"       type="date"    dbtype="datetime" required=false indexes="finishedon";
 
 	property name="admin_owner" relationship="many-to-one" relatedto="security_user" required=false;
 	property name="web_owner"   relationship="many-to-one" relatedto="website_user"  required=false;

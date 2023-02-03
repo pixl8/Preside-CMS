@@ -523,7 +523,11 @@ component {
 			}
 		}
 
-		return doc.toString();
+		if ( $isFeatureEnabled( "emailStyleInlinerAscii" ) ) {
+			doc.outputSettings().charset( "ASCII" );
+		}
+
+		return doc.html();
 	}
 
 	/**
@@ -634,6 +638,144 @@ component {
 		);
 	}
 
+	/**
+	 * Security check on incoming links for link tracking.
+	 * Block links that are not authorized. This is to prevent malicious
+	 * manipulation of link tracking URLs from damaging
+	 * reputation of the website.
+	 *
+	 * @autodoc
+	 * @link.hint      The link to check
+	 * @messageId.hint The ID of the send log message used to check against the content of the email to send
+	 *
+	 */
+	public boolean function clickLinkIsValid( required string link, required string messageId ) {
+		var poService = $getPresideObjectService();
+		var event     = $getRequestContext();
+
+		// links that just start with a slash, internal website links - no probs
+		if ( ReFindNoCase( "^/", arguments.link ) ) {
+			return true;
+		}
+
+		// otherwise, if they're not valid http resource, no good any way
+		if ( !ReFindNoCase( "^https?://", arguments.link ) ) {
+			return false;
+		}
+
+		if ( $helpers.isTrue( $getPresideSetting( "email", "disable_link_checking" ) ) ) {
+			return true;
+		}
+
+		// is the domain of the link one that we host ourselves? (if so, fine)
+		var linkMinusQs = ListFirst( arguments.link, "?&" );
+		var domain = ReReplace( linkMinusQs, "^https?://([^/]+).*$", "\1" );
+		if ( !Len( domain ) ) {
+			return false;
+		}
+
+		if ( domain == event.getServerName() ) {
+			return true;
+		}
+
+
+		if ( $isFeatureEnabled( "sites" ) ) {
+			var currentSite = event.getSite();
+			if ( domain == ( currentSite.domain ?: "" ) ) {
+				return true;
+			}
+			var siteDomainObjects = [ "site", "site_alias_domain", "site_redirect_domain" ];
+			for( var objName in siteDomainObjects ) {
+				var domainExists = poService.dataExists( objectName=objName, filter={ domain=domain } );
+				if ( domainExists ) {
+					return true;
+				}
+			}
+		} else {
+			var allowedDomains = $getColdbox().getSetting( "allowedDomains" );
+
+			if ( IsArray( allowedDomains ) && ArrayFindNoCase( allowedDomains, domain ) ) {
+				return true;
+			}
+		}
+
+		// Check domain against allowed domains setting
+		var allowedDomains = _getDomainAllowlist();
+		var domainRegex     = "";
+		for( var allowedDomain in allowedDomains ) {
+			if ( domain == allowedDomain ) {
+				return true;
+			}
+			if ( Left( allowedDomain, 1 ) == "*" ) {
+				domainRegex = replace( allowedDomain, "*", "" ) & "$";
+				if ( reFindNoCase( domainRegex, domain ) ) {
+					return true;
+				}
+			}
+		}
+
+		// is the link in our link table
+		var linkExists =  $getPresideObject( "link" ).dataExists( filter="type = :type and external_address like :external_address", filterParams={
+			  type             = "url"
+			, external_address = ReReplace( linkMinusQs, "^https?://", "" ) & "%"
+		} )
+		if ( linkExists ) {
+			return true;
+		}
+
+
+		// is the link included in the email content
+		var versionObjName = poService.getVersionObjectName( "email_template" );
+		var emailTemplate  = poService.selectData(
+			  objectName   = "email_template_send_log"
+			, id           = arguments.messageId
+			, selectFields = [ "email_template.id", "email_template.html_body" ]
+		);
+
+		// layers of depth for encoded links found in nested widgets :o
+		var encodedLinks = [ UrlEncodedFormat( linkMinusQs ) ];
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		ArrayAppend( encodedLinks, UrlEncodedFormat( ArrayLast( encodedLinks ) ) );
+		var contentFilter = { filter = "html_body like :html_body", filterParams={ html_body="%#arguments.link#%" } };
+		for( var i=1; i<=ArrayLen( encodedLinks ); i++  ) {
+			contentFilter.filter &= " or html_body like :html_body_#i#";
+			contentFilter.filterParams[ "html_body_#i#" ] = { type="cf_sql_varchar", value="%#encodedLinks[ i ]#%" };
+		}
+
+		if ( emailTemplate.recordCount ) {
+			if ( Find( linkMinusQs, emailTemplate.html_body ) ) {
+				return true;
+			}
+			for( var encodedLink in encodedLinks ) {
+				if ( Find( encodedLink, emailTemplate.html_body ) ) {
+					return true;
+				}
+			}
+
+			// or any previous versions of the email content?!
+			if ( Len( Trim( versionObjName ) ) ) {
+				return poService.dataExists(
+					  objectName   = versionObjName
+					, id           = emailTemplate.id
+					, extraFilters = [ contentFilter ]
+				);
+			}
+
+			return false;
+		}
+
+		// the email log no longer exists - have we included this link in *any* of
+		// our historical email templates?!
+		var start = GetTickCount();
+		return poService.dataExists(
+			  objectName   = ( Len( versionObjName ) ? versionObjName : "email_template" )
+			, extraFilters = [ contentFilter ]
+		);
+	}
+
 // PRIVATE HELPERS
 	private struct function _getAdditionalDataForRecipientType( required string recipientType, required string recipientId, required struct sendArgs ) {
 		var additional           = {};
@@ -679,6 +821,12 @@ component {
 			_lib = DirectoryList( libDir, false, "path", "*.jar" );
 		}
 		return _lib;
+	}
+
+	private array function _getDomainAllowlist() {
+		var allowList = $getPresideSetting( "email", "link_checking_allowlist" );
+
+		return ListToArray( Trim( allowList ), " #chr(9)##chr(10)##chr(13)#" );
 	}
 
 // GETTERS AND SETTERS

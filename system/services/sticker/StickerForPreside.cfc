@@ -7,10 +7,16 @@ component {
 
 	/**
 	 * @delayedStickerRendererService.inject delayedStickerRendererService
+	 * @delayedViewletRendererService.inject delayedViewletRendererService
 	 *
 	 */
-	public any function init( required any delayedStickerRendererService ) {
+	public any function init(
+		  required any delayedStickerRendererService
+		, required any delayedViewletRendererService
+	) {
 		_setDelayedStickerRendererService( arguments.delayedStickerRendererService );
+		_setDelayedViewletRendererService( arguments.delayedViewletRendererService );
+
 		_initSticker();
 
 		return this;
@@ -24,8 +30,8 @@ component {
 	public any function includeData()    { return _getSticker().includeData   ( argumentCollection=arguments ); }
 	public any function includeUrl()     { return _getSticker().includeUrl    ( argumentCollection=arguments ); }
 
-	public any function renderIncludes( boolean delayed=$isFeatureEnabled( "fullpageCaching" ) ) {
-		if ( delayed ) {
+	public any function renderIncludes( boolean delayed=_getDelayedViewletRendererService().isDelayableContext() ) {
+		if ( arguments.delayed ) {
 			return _getDelayedStickerRendererService().renderDelayedStickerTag( argumentCollection=arguments, memento=_getSticker().getMemento() );
 		} else {
 			return _getSticker().renderIncludes( argumentCollection=arguments );
@@ -75,4 +81,10 @@ component {
 		_sticker = arguments.sticker;
 	}
 
+	private any function _getDelayedViewletRendererService() {
+	    return _delayedViewletRendererService;
+	}
+	private void function _setDelayedViewletRendererService( required any delayedViewletRendererService ) {
+	    _delayedViewletRendererService = arguments.delayedViewletRendererService;
+	}
 }

@@ -1,9 +1,10 @@
-<cfif event.isAdminUser()>
+<cfif event.isAdminUser() and !getModel( "loginService" ).twoFactorAuthenticationRequired( ipAddress=event.getClientIp(), userAgent=event.getUserAgent() )>
 	<cfscript>
 		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
 
+		event.include( "/js/admin/presidecore/" );
+
 		if ( prc.hasCmsPageEditPermissions ) {
-			event.include( "/js/admin/presidecore/" );
 			event.include( "/js/admin/frontend/" );
 			event.includeData({
 				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
@@ -28,7 +29,7 @@
 
 		userMenu          = renderView( "/admin/layout/userMenu" );
 		notificationsMenu = renderViewlet( "admin.notifications.notificationNavPromo" );
-
+		systemAlertsMenu  = renderViewlet( "admin.systemAlerts.systemAlertsMenuItem" );
 
 		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 
@@ -95,8 +96,19 @@
 					<div class="navbar-header pull-right">
 						<ul class="nav ace-nav">
 							<cfif event.isWebUserImpersonated()>
-								<li>&nbsp; <i class="fa fa-fw fa-user-md green"></i> #translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ getLoggedInUserDetails().email_address ]  )#</li>
+								<li>
+									&nbsp;
+									<a class="pr-0 orange" href="#event.buildAdminLink( objectName="website_user", operation="viewRecord", recordId=getLoggedinUserId() )#">
+										<i class="fa fa-fw fa-lg fa-mask orange"></i>
+										#translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ getLoggedInUserDetails().email_address ] )#
+									</a>
+									<a class="p-0" href="#event.buildLink( linkto="login.logout" )#">
+										<i class="fa fa-fw fa-lg fa-times"></i>
+									</a>
+									&nbsp;
+								</li>
 							</cfif>
+							#systemAlertsMenu#
 							<li>#notificationsMenu#</li>
 							<li>#userMenu#</li>
 						</ul>
@@ -104,7 +116,6 @@
 				</div>
 			</div>
 		</div>
-
 
 		#ckEditorJs#
 	</cfoutput>

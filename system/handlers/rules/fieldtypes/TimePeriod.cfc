@@ -27,6 +27,7 @@ component {
 			case "before":
 			case "until":
 			case "after":
+			case "equal":
 				type = timePeriod.type;
 				data = [ timePeriod.date1 ?: "" ];
 			break;
@@ -38,6 +39,14 @@ component {
 				data = [
 					  NumberFormat( Val( timePeriod.measure ?: "" ) )
 					, translateResource( "cms:time.period.unit.#( timePeriod.unit ?: 'd' )#" )
+				];
+			break;
+			case "pastequal":
+			case "futureequal":
+				type = timePeriod.type;
+				data = [
+					  NumberFormat( Val( timePeriod.measure ?: "" ) )
+					, translateResource( "cms:time.period.unit.d" )
 				];
 			break;
 			case "future":
@@ -66,8 +75,9 @@ component {
 		return renderFormControl(
 			  name         = "value"
 			, type         = "timePeriodPicker"
-			, pastOnly     = IsTrue( config.pastOnly ?: "" )
+			, pastOnly     = IsTrue( config.pastOnly   ?: "" )
 			, futureOnly   = IsTrue( config.futureOnly ?: "" )
+			, isDate       = IsTrue( config.isDate     ?: "" )
 			, label        = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label" )
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value

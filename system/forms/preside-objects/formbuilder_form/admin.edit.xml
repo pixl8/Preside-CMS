@@ -15,5 +15,11 @@ This form is used for editing form settings within the form builder system.
 			<field sortorder="60" binding="formbuilder_form.active_from"                                />
 			<field sortorder="70" binding="formbuilder_form.active_to"                                  />
 		</fieldset>
+		<fieldset id="access" sortorder="20" feature="websiteUsers">
+			<field sortorder="10" binding="formbuilder_form.require_login" />
+			<field sortorder="20" binding="formbuilder_form.access_condition" quickadd="true" quickedit="true" feature="rulesengine" />
+			<field sortorder="30" binding="formbuilder_form.login_required_content" />
+			<field sortorder="40" binding="formbuilder_form.access_denied_content" />
+		</fieldset>
 	</tab>
 </form>

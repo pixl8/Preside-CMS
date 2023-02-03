@@ -36,18 +36,25 @@
 	  , isModifierPressed;
 
 	registerHotkeys = function(){
-		$('body').keydown( 'g'      , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleGotoMode( e );   } } )
-		         .keyup  ( '/'      , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { focusInSearchBox( e ); } } )
-		         .keydown( 'esc'    , escapeFeatures )
-		         .keydown( 'comma'  , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
-		         .keydown( 'period' , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
-		         .keydown( 't'      , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { switchUiTabs( e );     } } )
-		         .keydown( 'up'     , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'up'    ) } } )
-		         .keydown( 'down'   , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'down'  ) } } )
-		         .keydown( 'left'   , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'left'  ) } } )
-		         .keydown( 'right'  , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'right' ) } } )
-		         .keypress( function( e ){ if ( e.which === devConsoleToggleKey ){ toggleTerminal(e) } } ) // cannot use jquery hotkeys for ` key mapping due to browser / keyboard inconsistencies
-		         .keydown( genericKeyHandler );
+		$('body')
+				.keydown( 'g'     , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleGotoMode( e );   } } )
+				.keyup  ( '/'     , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { focusInSearchBox( e ); } } )
+				.keydown( 'esc'   , escapeFeatures )
+				.keydown( 'comma' , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
+				.keydown( 'period', function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
+				.keydown( 't'     , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { switchUiTabs( e );     } } )
+				.keydown( 'up'    , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'up'    ); } } )
+				.keydown( 'down'  , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'down'  ); } } )
+				.keydown( 'left'  , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'left'  ); } } )
+				.keydown( 'right' , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'right' ); } } )
+				.keypress( function( e ){
+					if ( e.which === devConsoleToggleKey ){
+						if ( !userIsTyping() || ( userIsTyping() && terminalIsActive() ) ) {
+							toggleTerminal(e) ;
+						}
+					}
+				} ) // cannot use jquery hotkeys for ` key mapping due to browser / keyboard inconsistencies
+				.keydown( genericKeyHandler );
 	};
 
 	isModifierPressed = function( e ) {
@@ -338,7 +345,7 @@
 			return false;
 		}
 
-		isInFormField = $.inArray( $focused.prop('nodeName'), [ 'INPUT','TEXTAREA' ] ) >= 0 && $.inArray( $focused.prop('type').toLowerCase(), [ 'checkbox','radio','submit','button' ] ) === -1;
+		isInFormField = ( $.inArray( $focused.prop('nodeName'), [ 'INPUT','TEXTAREA' ] ) >= 0 && $.inArray( $focused.prop('type').toLowerCase(), [ 'checkbox','radio','submit','button' ] ) === -1 ) || $focused.prop('contenteditable');
 		if ( isInFormField ) {
 			return true;
 		}
