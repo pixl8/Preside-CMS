@@ -10,14 +10,15 @@ component {
 		args.multiple = true;
 
 		var targetIdField = presideObjectService.getIdField( args.object );
+		var sourceId      = args.savedData[ sourceIdField ] ?: ( prc.record[ sourceIdField ] ?: "" );
 
-		if ( Len( Trim( args.savedData[ sourceIdField ] ?: "" ) ) ) {
+		if ( !isEmptyString( sourceId ) ) {
 			var useVersioning = Val( rc.version ?: "" ) && presideObjectService.objectIsVersioned( sourceObject );
 
 			args.savedValue = presideObjectService.selectManyToManyData(
 				  objectName       = sourceObject
 				, propertyName     = args.name
-				, id               = args.savedData[ sourceIdField ]
+				, id               = sourceId
 				, selectFields     = [ "#args.name#.#targetIdField# as id" ]
 				, useCache         = false
 				, fromVersionTable = useVersioning
@@ -27,7 +28,7 @@ component {
 			args.defaultValue = args.savedValue = ValueList( args.savedValue.id );
 		}
 
-
 		return renderFormControl( argumentCollection=args, type="objectPicker", layout="" );
 	}
+
 }
