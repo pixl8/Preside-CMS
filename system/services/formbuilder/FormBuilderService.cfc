@@ -652,13 +652,11 @@ component {
 	 * @submissionId The ID of the submission that has responses
 	 */
 	public string function getV2QuestionResponses( required string formId, required string submissionId, required questionId ) {
-
-
 		var responses = $getPresideObject( "formbuilder_question_response" ).selectData(
 			  filter  = { submission=arguments.submissionId, question=arguments.questionId }
-
 		);
-		var responseForQuestion={};
+
+		var responseForQuestion = {};
 
 		for( var response in responses ) {
 			if ( Len( response.question_subreference ) ) {
@@ -671,7 +669,7 @@ component {
 			}
 		}
 
-		return  SerializeJson( responseForQuestion );
+		return SerializeJson( responseForQuestion );
 	}
 
 	public string function renderV2QuestionResponses( required string formId, required string submissionId, required questionId, required itemType ) {
@@ -1867,6 +1865,10 @@ component {
 		}
 
 		if ( IsSimpleValue( arguments.response ) ) {
+			if ( !$helpers.isEmptyString( arguments.questionSubReference ) ) {
+				arguments.questionSubReference = Hash( Trim( arguments.questionSubReference ) );
+			}
+
 			var responseData = {
 				  question              = arguments.questionId
 				, submission_type       = "formbuilder"
@@ -1893,7 +1895,6 @@ component {
 
 			$getPresideObject( "formbuilder_question_response" ).insertData( responseData );
 		}
-
 	}
 
 	private string function _getSubmitterNamePlainText() {
