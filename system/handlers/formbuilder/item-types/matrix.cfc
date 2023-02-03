@@ -89,7 +89,7 @@ component {
 
 	private struct function renderV2ResponsesForDb( event, rc, prc, args={} ) {
 		var response = {};
-		var qAndAs = _getQuestionsAndAnswers( argumentCollection=arguments );
+		var qAndAs   = _getQuestionsAndAnswers( argumentCollection=arguments );
 
 		for( var qAndA in qAndAs ) {
 			response[ qAndA.question ] = qAndA.answer;
@@ -109,16 +109,21 @@ component {
 		var rows       = ListToArray( Trim( itemConfig.rows ?: "" ), Chr(10) & Chr(13) );
 		var answers    = [];
 
-		for( var question in rows ) {
-			if ( Len( Trim( question ) ) ) {
-				var inputId = "";
-				if ( StructKeyExists( response, question ?: "" ) ) {
+		for( var row in rows ) {
+			if ( Len( Trim( row ) ) ) {
+				var inputId      = "";
+				var question     = row ?: "";
+				var hashQuestion = Hash( Trim( question ) );
+
+				if ( StructKeyExists( response, hashQuestion ) ) {
+					inputId = hashQuestion;
+				} else if ( StructKeyExists( response, question ) ) {
 					inputId = question;
 				} else {
 					inputId = _getQuestionInputId( itemConfig.name ?: "", question );
 				}
 
-				answers.append( {
+				ArrayAppend( answers, {
 					  question = question
 					, answer   = ListChangeDelims( ( response[ inputId ] ?: "" ), ", " )
 				} );
@@ -129,6 +134,7 @@ component {
 	}
 
 	private string function _getQuestionInputId( required string inputName, required string question ) {
-		return LCase( inputName & "-" & ReReplace( question, "\W", "-", "all" ) );
+		return LCase( inputName & "-" & ReReplace( Trim( question ), "\W", "-", "all" ) );
 	}
+
 }
