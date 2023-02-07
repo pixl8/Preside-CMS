@@ -255,6 +255,7 @@
 		<cfargument name="type"      type="string"  required="true" />
 		<cfargument name="reference" type="string"  default="" />
 		<cfargument name="async"     type="boolean" default="true" />
+		<cfargument name="trigger"   type="string"  default="code" />
 
 		<cfreturn getController().getWireBox().getInstance( "systemAlertsService" ).runCheck( argumentCollection=arguments ) />
 	</cffunction>

@@ -8,6 +8,20 @@
 		    || ( $target.hasClass( 'lbl' ) && $target.prev( 'input' ).length )
 	};
 
+	var getSelected = function () {
+		if (window.getSelection) {
+			return window.getSelection().toString();
+		} else if (document.getSelection) {
+			return document.getSelection().toString();
+		} else {
+			var selection = document.selection && document.selection.createRange();
+			if (selection.text) {
+				return selection.text.toString();
+			}
+		}
+		return "";
+	}
+
 	$( "body" ).on( "click", "tr.clickable", function( e ){
 		if ( !linkWasClicked( e.target ) ) {
 			var anyBoxesTicked = $( this ).closest( 'table' ).find( 'tr > td:first-child input:checkbox:checked' ).length;
@@ -19,6 +33,11 @@
 					$rowCheckbox.click();
 					return;
 				}
+			}
+
+			var sel = getSelected();
+			if (sel !== "") {
+				return;
 			}
 
 			var $firstLink = $( this ).find( 'a.row-link:first' );

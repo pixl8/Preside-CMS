@@ -38,7 +38,8 @@
         "cbstorages":"1.3.0+14",
         "cbjavaloader":"1.5.0+35",
         "coldbox":"5.4.0",
-        "cfconcurrent":"2.1.3"
+        "cfconcurrent":"2.1.3",
+        "JSONPrettyPrint":"1.4.1"
     },
     "devDependencies":{
         "testbox":"2.7.0"
@@ -53,7 +54,8 @@
         "cbstorages":"system/modules/cbstorages/",
         "cbjavaloader":"system/modules/cbjavaloader/",
         "coldbox":"system/externals/coldbox/",
-        "cfconcurrent":"system/externals/cfconcurrent/"
+        "cfconcurrent":"system/externals/cfconcurrent/",
+        "JSONPrettyPrint":"system/modules/JSONPrettyPrint/"
     },
     "ignore":[
         ".git/*",

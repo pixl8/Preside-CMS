@@ -13,6 +13,10 @@
 	} else if ( hasDrafts ) {
 		statusText &= " &nbsp; <em class=""light-grey"">#translateResource( "cms:datamanager.datamanager.status.has.drafts" )#</em>";
 	}
+
+	if ( args.noStatusText ?: false ) {
+		statusText = "";
+	}
 </cfscript>
 
 <cfoutput>
