@@ -11,6 +11,9 @@ component {
 			, allowDrafts   = false
 		);
 
+		args.values = [ "" ];
+		args.labels = [ "" ];
+
 		if ( !templates.recordcount ) {
 			if ( !recipientType.len() ) {
 				return '<p class="alert alert-warning">' & translateResource( "cms:emailcenter.no.templates.for.selection" ) & '</p>';
@@ -18,12 +21,9 @@ component {
 				recipientType = emailRecipientTypeService.getRecipientTypeDetails( recipientType );
 				recipientType = recipientType.title ?: "";
 
-				return '<p class="alert alert-warning">' & translateResource( uri="cms:emailcenter.no.templates.for.selection.of.type", data=[ recipientType ] ) & '</p>';
+				return '#renderView( view="formcontrols/select/index", args=args)#<p class="alert alert-warning">' & translateResource( uri="cms:emailcenter.no.templates.for.selection.of.type", data=[ recipientType ] ) & '</p>';
 			}
 		}
-
-		args.values = [ "" ];
-		args.labels = [ "" ];
 
 		for( var template in templates ) {
 			args.values.append( template.id   );
