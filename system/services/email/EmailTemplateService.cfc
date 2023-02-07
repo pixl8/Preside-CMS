@@ -696,6 +696,20 @@ component {
 		return saveTemplate( id=arguments.templateId, template=updatedData, isDraft=( template._version_is_draft ?: false ) );
 	}
 
+/**
+	 * Update the date of last email sent
+	 *
+	 * @autodoc           true
+	 * @templateId.hint   ID of the template to update
+	 * @lastSentDate.hint The date of last sent
+	 */
+	public string function updateLastSentDate(
+		  required string templateId
+		, required string lastSentDate
+	) {
+		return saveTemplate( id=arguments.templateId, template={ last_sent_date=arguments.lastSentDate } );
+	}
+
 	/**
 	 * Returns an array of template IDs of templates
 	 * using a fixed date schedule who are due to send
