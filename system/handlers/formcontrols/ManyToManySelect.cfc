@@ -10,15 +10,14 @@ component {
 		args.multiple = true;
 
 		var targetIdField = presideObjectService.getIdField( args.object );
-		var sourceId      = args.savedData[ sourceIdField ] ?: ( prc.record[ sourceIdField ] ?: "" );
 
-		if ( !isEmptyString( sourceId ) ) {
+		if ( Len( Trim( args.savedData[ sourceIdField ] ?: "" ) ) ) {
 			var useVersioning = Val( rc.version ?: "" ) && presideObjectService.objectIsVersioned( sourceObject );
 
 			args.savedValue = presideObjectService.selectManyToManyData(
 				  objectName       = sourceObject
 				, propertyName     = args.name
-				, id               = sourceId
+				, id               = args.savedData[ sourceIdField ]
 				, selectFields     = [ "#args.name#.#targetIdField# as id" ]
 				, useCache         = false
 				, fromVersionTable = useVersioning
