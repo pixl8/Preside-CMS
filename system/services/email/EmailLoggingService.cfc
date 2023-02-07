@@ -106,17 +106,24 @@ component {
 	/**
 	 * Marks the given email as sent
 	 *
-	 * @autodoc true
-	 * @id.hint ID of the email to mark as sent
+	 * @autodoc         true
+	 * @id.hint         ID of the email to mark as sent
+	 * @templateId.hint ID of the email template
 	 *
 	 */
-	public void function markAsSent( required string id ) {
+	public void function markAsSent(
+		  required string id
+		,          string templateId = ""
+	) {
+		var now     = _getNow();
 		var updated = $getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
 			  sent      = true
-			, sent_date = _getNow()
+			, sent_date = now
 		} );
 
 		if ( updated ) {
+			_getEmailTemplateService().updateLastSentDate( templateId=arguments.templateId, lastSentDate=now );
+
 			recordActivity(
 				  messageId = arguments.id
 				, activity  = "send"

@@ -6,7 +6,7 @@
  * @useDrafts          true
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email template"  {
-	property name="name"                type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename";
+	property name="name"                type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename" renderer="emailName";
 	property name="layout"              type="string"  dbtype="varchar" maxlength=200 required=false;
 	property name="recipient_type"      type="string"  dbtype="varchar" maxlength=200 required=false;
 	property name="subject"             type="string"  dbtype="varchar" maxlength=255 required=true;
@@ -40,6 +40,9 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="schedule_measure"        type="numeric" dbtype="int"                  required=false ignoreChangesForVersioning=true;
 	property name="schedule_sent"           type="boolean" dbtype="boolean"              required=false ignoreChangesForVersioning=true cloneable=false;
 	property name="schedule_next_send_date" type="date"    dbtype="datetime"             required=false ignoreChangesForVersioning=true cloneable=false;
+
+	property name="last_sent_date" type="date" dbtype="datetime" required=false ignoreChangesForVersioning=true cloneable=false renderer="dateTimeRelative";
+	property name="datemodified" renderer="dateTimeRelative";
 
 	property name="send_logs"           relationship="one-to-many" relatedto="email_template_send_log"  relationshipKey="email_template" cloneable=false;
 	property name="queued_emails"       relationship="one-to-many" relatedto="email_mass_send_queue"    relationshipKey="template"       cloneable=false;
