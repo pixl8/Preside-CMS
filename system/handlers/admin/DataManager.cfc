@@ -3613,7 +3613,7 @@ component extends="preside.system.base.AdminHandler" {
 	private string function _cloneRecordForm( event, rc, prc, args={} ) {
 		var objectName      = args.objectName ?: "";
 		var recordId        = args.recordId   ?: "";
-		var cloneableFields = cloningService.listCloneableFields( objectName );
+		var cloneableFields = cloningService.listCloneableFields( objectName=objectName, ignoreIdField=false );
 
 		args.formName = _getDefaultCloneFormName( objectName );
 		args.cloneableData = {};
