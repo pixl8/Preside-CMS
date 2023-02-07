@@ -531,7 +531,7 @@ component displayName="Preside Super Class" {
 	 * @autodoc
 	 *
 	 */
-	public any function $runSystemAlertCheck( required string type, string reference="", boolean async=true ) {
+	public any function $runSystemAlertCheck( required string type, string reference="", boolean async=true, string trigger="code" ) {
 		return $getSystemAlertsService().runcheck( argumentCollection=arguments );
 	}
 
