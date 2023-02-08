@@ -941,7 +941,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "renderResponsesForSaving", formSubmissionData );
 				service.$( "getForm" ).$args( id = formId ).$results( formConfiguration );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
-				service.$( "getSubmission" ).$args( newSubmissionId ).$results( savedSubmission );
+				service.$( "getSubmission" ).$args( submissionId = newSubmissionId ).$results( savedSubmission );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
 					  formItems      = formItems
 					, submissionData = formSubmissionData
@@ -1241,6 +1241,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getPresideObject" ).$args( "formbuilder_formsubmission" ).$results( mockFormSubmissionDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_question" ).$results( mockQuestionDao );
 		service.$( "$recordWebsiteUserAction", "" );
+		service.$( "$createNotification", "" );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
 		service.$( "$getRequestContext", justAStub );
