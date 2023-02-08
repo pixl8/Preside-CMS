@@ -42,6 +42,7 @@ component {
 		__setupDataExport();
 		__setupFullPageCaching();
 		__setupHeartbeatsAndServices();
+		__setupNotifications();
 		__loadConfigurationFromExtensions();
 	}
 
@@ -1034,6 +1035,10 @@ component {
 
 		settings.heartbeats.taskmanager.poolSize  = Val( settings.env.TASKMANAGER_POOL_SIZE  ?: 0 );
 		settings.heartbeats.adhocTask.poolSize    = Val( settings.env.ADHOCTASK_POOL_SIZE    ?: 0 );
+	}
+
+	private void function __setupNotifications() {
+		ArrayAppend( settings.notificationTopics, "FormbuilderSubmissionReceived" );
 	}
 
 	private void function __setupDevConsole() {
