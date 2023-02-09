@@ -1086,13 +1086,15 @@ component {
 				, detail     = submission
 			);
 
-			$createNotification(
-				  topic = "FormbuilderSubmissionReceived"
-				, type  = "info"
-				, data  = {
-					id = submissionId
-				}
-			);
+			if ( $helpers.isTrue( formConfiguration.notification_enabled ?: false ) ) {
+				$createNotification(
+					  topic = "FormbuilderSubmissionReceived"
+					, type  = "info"
+					, data  = {
+						id = submissionId
+					}
+				);
+			}
 
 			$announceInterception( "postFormBuilderFormSubmission", {
 				  formData          = formData
