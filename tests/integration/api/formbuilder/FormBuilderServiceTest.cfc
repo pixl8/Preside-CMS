@@ -1207,6 +1207,7 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockColdbox                      = CreateStub();
 		variables.mockSpreadsheetLib               = CreateStub();
 		variables.justAStub                        = CreateStub();
+		variables.helpers                          = CreateStub();
 		variables.mockActionsService               = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderActionsService" );
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
@@ -1250,6 +1251,11 @@ component extends="testbox.system.BaseSpec"{
 		justAStub.$( "setValue" );
 
 		mockRecaptchaService.$( "validate", true );
+
+		service.$property( propertyName="$helpers", mock=helpers );
+		helpers.$( method="isTrue", callback=function( val ) {
+			return IsBoolean( arguments.val ?: "" ) && arguments.val;
+		} );
 
 		return service;
 	}
