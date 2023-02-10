@@ -27,7 +27,7 @@ component {
 			args.defaultValue = args.savedValue = ValueList( args.savedValue.id );
 		}
 
-
 		return renderFormControl( argumentCollection=args, type="objectPicker", layout="" );
 	}
+
 }
