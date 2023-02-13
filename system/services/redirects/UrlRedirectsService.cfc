@@ -21,7 +21,7 @@ component {
 		var ruleDao = _getRuleDao();
 		var dbAdapter = ruleDao.getDbAdapter();
 		var match = _getRuleDao().selectData(
-			  selectFields = [ "redirect_type", "redirect_to_link" ]
+			  selectFields = [ "redirect_type", "redirect_to_link", "keep_query_string" ]
 			, filter       = "( exact_match_only = '1' and source_url_pattern = :source_url_pattern ) or ( exact_match_only = '0' and :source_url_pattern like #dbAdapter.getConcatenationSql( 'source_url_pattern', "'%'" )# )"
 			, filterParams = { source_url_pattern = arguments.path }
 			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'source_url_pattern' )# desc"
@@ -34,6 +34,12 @@ component {
 			if ( Len( Trim( linkUrl ) ) && linkUrl != arguments.fullUrl ) {
 				var statusCode = ( match.redirect_type == "302" ? 302 : 301 );
 
+				if ( match.keep_query_string == "1" ) {
+					var queryString = request[ "preside.query_string" ] ?: "";
+					if ( len( queryString ) ) {
+						linkUrl &= ( find( "?", linkUrl ) ? "&" : "?" ) & queryString;
+					}
+				}
 				location addtoken=false url=linkUrl statusCode=statusCode;
 			}
 		}
