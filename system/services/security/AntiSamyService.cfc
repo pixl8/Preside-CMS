@@ -42,7 +42,7 @@ component {
 	private any function _getPolicy( required string policy ) {
 		_policies = _policies ?: {};
 
-		if ( !_policies.keyExists( arguments.policy ) ) {
+		if ( !StructKeyExists( _policies, arguments.policy ) ) {
 			var policyFile    = _getPolicyFile( arguments.policy );
 			var policyFactory = CreateObject( "java", "org.owasp.validator.html.Policy", _listJars() );
 

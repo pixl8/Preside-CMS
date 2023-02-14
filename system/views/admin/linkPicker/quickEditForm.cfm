@@ -1,23 +1,19 @@
 <cfscript>
-	record = prc.record ?: {};
-	linkType = record.type ?: "sitetreelink";
+	record    = prc.record    ?: {};
+	linkTypes = prc.linkTypes ?: [];
+	linkType  = record.type   ?: ( linkTypes[ 1 ] ?: "sitetreelink" );
+
+	formId = "link-picker-form";
 
 	validationResult = rc.validationResult ?: "";
 	editRecordAction = event.buildAdminLink( linkTo='datamanager.quickEditRecordAction', queryString="object=link" );
-
-	validLinkTypes = "email,url,sitetreelink";
-	if ( !ListFindNoCase( validLinkTypes, linkType ) ) {
-		linkType = "sitetreelink";
-	}
-
-	formId = "link-picker-form";
 </cfscript>
 
 <cfoutput>
 	<div class="row link-picker">
 		<div class="col-sm-2">
 			<div class="link-type-menu">
-				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ selectedType=linkType, allowedTypes="email,url,sitetreelink,asset" } )#
+				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ selectedType=linkType, allowedTypes=linkTypes } )#
 			</div>
 		</div>
 		<div class="col-sm-10">

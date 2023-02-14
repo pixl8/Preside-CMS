@@ -16,7 +16,11 @@
     "description":"",
     "instructions":"https://docs.preside.org/quickstart.html",
     "changelog":"https://www.preside.org/release-notes.html",
-    "keywords":"CMS,ColdBox,FOSS",
+    "keywords":[
+        "CMS",
+        "ColdBox",
+        "FOSS"
+    ],
     "private":false,
     "projectURL":"https://www.preside.org",
     "license":[
@@ -26,14 +30,15 @@
         }
     ],
     "dependencies":{
-        "sticker":"1.2.2",
-        "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v1.3.0",
-        "presidecmseditor":"github:pixl8/Preside-Editor#4.11.3",
+        "sticker":"1.3.0",
+        "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v2.12.0",
+        "presidecmseditor":"github:pixl8/Preside-Editor#4.17.1",
         "cbi18n":"1.3.1+56",
         "cbmessagebox":"2.2.0+10",
         "cbstorages":"1.3.0+14",
         "cbjavaloader":"1.5.0+35",
-        "coldbox":"5.3.0+837"
+        "coldbox":"5.4.0",
+        "cfconcurrent":"2.1.3"
     },
     "devDependencies":{
         "testbox":"2.7.0"
@@ -41,13 +46,14 @@
     "installPaths":{
         "sticker":"system/externals/sticker/",
         "lucee-spreadsheet":"system/externals/lucee-spreadsheet/",
-        "testbox":"support/tests/testbox/",
+        "testbox":"tests/testbox/",
         "presidecmseditor":"system/assets/ckeditor/",
         "cbi18n":"system/modules/cbi18n/",
         "cbmessagebox":"system/modules/cbmessagebox/",
         "cbstorages":"system/modules/cbstorages/",
         "cbjavaloader":"system/modules/cbjavaloader/",
-        "coldbox":"system/externals/coldbox/"
+        "coldbox":"system/externals/coldbox/",
+        "cfconcurrent":"system/externals/cfconcurrent/"
     },
     "ignore":[
         ".git/*",

@@ -12,11 +12,12 @@
 	event.include( "ckeditor" );
 
 	event.includeData( {
-		  ckeditorConfig           = configFile
-		, ckeditorDefaultToolbar   = ckeditorSettings.defaults.toolbar       ?: ""
-		, ckeditorDefaultWidth     = ckeditorSettings.defaults.width         ?: "auto"
-		, ckeditorDefaultMinHeight = ckeditorSettings.defaults.minHeight     ?: "auto"
-		, ckeditorDefaultMaxHeight = ckeditorSettings.defaults.maxHeight     ?: 300
-		, ckeditorAutoParagraph    = ckeditorSettings.defaults.autoParagraph ?: true
+		  ckeditorConfig                = configFile
+		, ckeditorDefaultToolbar        = ckeditorSettings.defaults.toolbar               ?: ""
+		, ckeditorDefaultWidth          = ckeditorSettings.defaults.width                 ?: "auto"
+		, ckeditorDefaultMinHeight      = ckeditorSettings.defaults.minHeight             ?: "auto"
+		, ckeditorDefaultMaxHeight      = ckeditorSettings.defaults.maxHeight             ?: 300
+		, ckeditorAutoParagraph         = ckeditorSettings.defaults.autoParagraph         ?: true
+		, ckeditorDefaultConfigs        = ckeditorSettings.defaults.defaultConfigs        ?: {}
 	} );
 </cfscript>

@@ -2,8 +2,9 @@
 <form i18nBaseUri="email.layout.default:">
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
-			<field name="signature_html" control="richeditor" widgetCategories="email" />
+			<field name="signature_html" control="richeditor" widgetCategories="email" linkPickerCategory="email" />
 			<field name="signature_text" control="textarea" />
+			<field name="overwrite_domain" feature="emailOverwriteDomain" />
 		</fieldset>
 	</tab>
 </form>

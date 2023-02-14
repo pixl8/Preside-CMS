@@ -86,10 +86,10 @@ component displayName="Preside REST Resource Reader" {
 	 */
 	public boolean function isValidResource( required string cfcPath ) {
 		var tester = function( meta ){
-			if ( arguments.meta.keyExists( "restUri" ) ) {
+			if ( StructKeyExists( arguments.meta, "restUri" ) ) {
 				return true;
 			}
-			if ( arguments.meta.keyExists( "extends" ) ) {
+			if ( StructKeyExists( arguments.meta, "extends" ) ) {
 				return tester( arguments.meta.extends );
 			}
 
@@ -113,11 +113,11 @@ component displayName="Preside REST Resource Reader" {
 		var validatableParameterTypes = [ "string", "date", "numeric", "uuid" ];
 
 		var reader = function( meta ){
-			if ( arguments.meta.keyExists( "extends" ) ) {
+			if ( StructKeyExists( arguments.meta, "extends" ) ) {
 				reader( arguments.meta.extends );
 			}
 
-			if ( arguments.meta.keyExists( "restUri" ) ) {
+			if ( StructKeyExists( arguments.meta, "restUri" ) ) {
 				readMeta.restUri = arguments.meta.restUri;
 			}
 

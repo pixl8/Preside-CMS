@@ -3,29 +3,27 @@ component extends="coldbox.system.cache.store.ConcurrentSoftReferenceStore" impl
 	public any function init( required any cacheProvider ) {
 		var fields = "hits,timeout,lastAccessTimeout,created,LastAccessed,isExpired,isSoftReference";
 
-		instance = {
-			  cacheProvider   = arguments.cacheProvider
-			, storeID         = CreateObject( "java", "java.lang.System" ).identityHashCode( this )
-			, pool            = CreateObject( "java", "java.util.concurrent.ConcurrentHashMap" ).init()
-			, javaCollections = CreateObject( "java", "java.util.Collections" )
-			, softRefKeyMap	  = CreateObject( "java", "java.util.concurrent.ConcurrentHashMap" ).init()
-			, referenceQueue  = CreateObject( "java", "java.lang.ref.ReferenceQueue" ).init()
-			, indexer         = CreateObject( "component", "preside.system.coldboxModifications.cachebox.store.indexers.MetadataIndexer" ).init( fields )
-		};
+		variables.cacheProvider   = arguments.cacheProvider
+		variables.storeID         = CreateObject( "java", "java.lang.System" ).identityHashCode( this )
+		variables.pool            = CreateObject( "java", "java.util.concurrent.ConcurrentHashMap" ).init()
+		variables.javaCollections = CreateObject( "java", "java.util.Collections" )
+		variables.softRefKeyMap	  = CreateObject( "java", "java.util.concurrent.ConcurrentHashMap" ).init()
+		variables.referenceQueue  = CreateObject( "java", "java.lang.ref.ReferenceQueue" ).init()
+		variables.indexer         = CreateObject( "component", "preside.system.coldboxModifications.cachebox.store.indexers.MetadataIndexer" ).init( fields )
 
 		return this;
 	}
 
 	public any function getKeys() {
-		return instance.javaCollections.list( instance.pool.keys() );
+		return variables.javaCollections.list( variables.pool.keys() );
 	}
 
 	public any function getSize() {
-		return instance.pool.size();
+		return variables.pool.size();
 	}
 
 	public any function lookup( required any objectKey ) {
-		var existsInIndex = instance.indexer.objectExists( arguments.objectKey ) && !isExpired( arguments.objectKey );
+		var existsInIndex = variables.indexer.objectExists( arguments.objectKey ) && !isExpired( arguments.objectKey );
 
 		if ( !existsInIndex ) {
 			return false;
@@ -34,7 +32,7 @@ component extends="coldbox.system.cache.store.ConcurrentSoftReferenceStore" impl
 		var fromCache = getQuiet( arguments.objectKey );
 
 		if ( IsNull( local.fromCache ) ) {
-			instance.indexer.clear( arguments.objectKey );
+			variables.indexer.clear( arguments.objectKey );
 			return false;
 		}
 
@@ -45,8 +43,8 @@ component extends="coldbox.system.cache.store.ConcurrentSoftReferenceStore" impl
 		var fromCache = getQuiet( arguments.objectKey );
 
 		if ( !IsNull( local.fromCache ) ) {
-			instance.indexer.setObjectMetadataProperty( arguments.objectKey, "hits", Val( instance.indexer.getObjectMetadataProperty( arguments.objectKey, "hits" ) )+1 );
-			instance.indexer.setObjectMetadataProperty( arguments.objectKey, "LastAccessed", Now() );
+			variables.indexer.setObjectMetadataProperty( arguments.objectKey, "hits", Val( variables.indexer.getObjectMetadataProperty( arguments.objectKey, "hits" ) )+1 );
+			variables.indexer.setObjectMetadataProperty( arguments.objectKey, "LastAccessed", Now() );
 
 			return fromCache;
 		}
@@ -54,7 +52,7 @@ component extends="coldbox.system.cache.store.ConcurrentSoftReferenceStore" impl
 	}
 
 	public any function getQuiet( required any objectKey ) {
-		var fromCache = instance.pool.get( arguments.objectKey );
+		var fromCache = variables.pool.get( arguments.objectKey );
 
 		if ( !IsNull( local.fromCache ) ) {
 			if( IsInstanceOf( fromCache, "java.lang.ref.SoftReference" ) ) {
@@ -66,11 +64,11 @@ component extends="coldbox.system.cache.store.ConcurrentSoftReferenceStore" impl
 	}
 
 	public void function expireObject( required any objectKey ) {
-		instance.indexer.setObjectMetadataProperty( arguments.objectKey, "isExpired", true );
+		variables.indexer.setObjectMetadataProperty( arguments.objectKey, "isExpired", true );
 	}
 
 	public any function isExpired( required any objectKey ) {
-		var isExpired = instance.indexer.getObjectMetadataProperty( arguments.objectKey, "isExpired" );
+		var isExpired = variables.indexer.getObjectMetadataProperty( arguments.objectKey, "isExpired" );
 
 		return IsBoolean( local.isExpired ?: "" ) && isExpired;
 	}
@@ -91,8 +89,8 @@ component extends="coldbox.system.cache.store.ConcurrentSoftReferenceStore" impl
 			target = arguments.object;
 		}
 
-		instance.pool.put( arguments.objectKey, target );
-		instance.indexer.setObjectMetadata( arguments.objectKey, {
+		variables.pool.put( arguments.objectKey, target );
+		variables.indexer.setObjectMetadata( arguments.objectKey, {
 			  hits              = 1
 			, timeout           = arguments.timeout
 			, lastAccessTimeout = arguments.lastAccessTimeout
@@ -104,33 +102,33 @@ component extends="coldbox.system.cache.store.ConcurrentSoftReferenceStore" impl
 	}
 
 	public any function clear( required any objectKey ) {
-		var isSR = instance.indexer.getObjectMetadataProperty( arguments.objectKey, "isSoftReference" );
+		var isSR = variables.indexer.getObjectMetadataProperty( arguments.objectKey, "isSoftReference" );
 
 		if ( IsBoolean( local.isSR ?: "" ) && local.isSR ) {
 			var fromCache = getQuiet( arguments.objectKey );
 			if ( !IsNull( local.fromCache ) ) {
-				instance.softRefKeyMap.remove( fromCache );
+				variables.softRefKeyMap.remove( fromCache );
 			}
 		}
 
-		var removedObj = instance.pool.remove( arguments.objectKey );
-		var removedMeta = instance.indexer.clear( arguments.objectKey );
+		var removedObj = variables.pool.remove( arguments.objectKey );
+		var removedMeta = variables.indexer.clear( arguments.objectKey );
 
 		return !IsNull( local.removedObj ) && !IsNull( local.removedMeta );
 	}
 
 	public any function softRefLookup( required any softRef ) {
-		return instance.softRefKeyMap.containsKey( arguments.softRef );
+		return variables.softRefKeyMap.containsKey( arguments.softRef );
 	}
 
 	public any function getSoftRefKey( required any softRef ) {
-		return instance.softRefKeyMap.get( arguments.softRef );
+		return variables.softRefKeyMap.get( arguments.softRef );
 	}
 
 	private any function createSoftReference( required any objectKey, required any target ) {
 		var softRef = CreateObject( "java", "java.lang.ref.SoftReference" ).init( arguments.target, getReferenceQueue() );
 
-		instance.softRefKeyMap.put( softRef, arguments.objectKey );
+		variables.softRefKeyMap.put( softRef, arguments.objectKey );
 
 		return softRef;
 	}

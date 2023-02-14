@@ -9,11 +9,17 @@ component {
 	/**
 	 * @viewletsService.inject viewletsService
 	 * @formsService.inject    formsService
+	 * @templateCache.inject   cachebox:emailTemplateCache
 	 *
 	 */
-	public any function init( required any viewletsService, required any formsService ) {
+	public any function init(
+		  required any viewletsService
+		, required any formsService
+		, required any templateCache
+	) {
 		_setViewletsService( arguments.viewletsService );
 		_setFormsService( arguments.formsService );
+		_setTemplateCache( arguments.templateCache );
 
 		_loadLayoutsFromViewlets();
 
@@ -101,13 +107,16 @@ component {
 		, required string body
 		,          string unsubscribeLink = ""
 		,          string viewOnlineLink  = ""
+		,          struct templateDetail  = {}
 	) {
+		$announceInterception( "preRenderEmailLayout", arguments );
+
 		var renderType   = arguments.type == "text" ? "text" : "html";
 		var viewletEvent = "email.layout.#arguments.layout#.#renderType#";
 		var viewletArgs  = {};
 
 		for( var key in arguments ) {
-			if ( ![ "layout", "type", "emailTemplate", "blueprint" ].findNoCase( key ) ) {
+			if ( ![ "layout", "type", "emailTemplate", "blueprint", "templateDetail" ].findNoCase( key ) ) {
 				viewletArgs[ key ] = arguments[ key ];
 			}
 		}
@@ -119,8 +128,16 @@ component {
 			, merged        = true
 		);
 		viewletArgs.append( config, false );
+		viewletArgs.append( arguments.templateDetail, false );
 
-		return $renderViewlet( event=viewletEvent, args=viewletArgs );
+		var interceptorArgs = {
+			  rendered = $renderViewlet( event=viewletEvent, args=viewletArgs )
+			, args     = arguments
+		};
+
+		$announceInterception( "postRenderEmailLayout", interceptorArgs );
+
+		return interceptorArgs.rendered;
 	}
 
 	/**
@@ -175,6 +192,8 @@ component {
 				});
 			}
 		}
+
+		_getTemplateCache().clearAll();
 
 		return true;
 	}
@@ -271,5 +290,12 @@ component {
 	}
 	private void function _setFormsService( required any formsService ) {
 		_formsService = arguments.formsService;
+	}
+
+	private any function _getTemplateCache() {
+	    return _templateCache;
+	}
+	private void function _setTemplateCache( required any templateCache ) {
+	    _templateCache = arguments.templateCache;
 	}
 }

@@ -1,5 +1,6 @@
 /**
  * @singleton
+ * @presideService
  *
  */
 component {
@@ -23,7 +24,7 @@ component {
 	public any function getProvider( required string id, struct configuration={}, boolean skipConstructor=false ) {
 		var providers = _getConfiguredProviders();
 
-		if ( providers.keyExists( arguments.id ) ) {
+		if ( StructKeyExists( providers, arguments.id ) ) {
 			return _createObject(
 				  cfcPath         = providers[ arguments.id ].class
 				, constructorArgs = arguments.configuration
@@ -42,6 +43,22 @@ component {
 		var provider = getProvider( id=arguments.id, configuration=arguments.configuration, skipConstructor=true );
 
 		return provider.validate( validationResult=arguments.validationResult, configuration=arguments.configuration );
+	}
+
+	public boolean function providerSupportsFileSystem( required any storageProvider ) {
+		if ( !StructKeyExists( arguments.storageProvider, "__supportsFileSystem" ) ) {
+			var meta = getComponentMetadata( arguments.storageProvider );
+
+			if ( $helpers.isTrue( meta.fileSystemSupport ?: "" ) ) {
+				arguments.storageProvider.__supportsFileSystem = true;
+			} else if ( IsInstanceOf( arguments.storageProvider, "StorageProviderFileSystemSupport" ) ) {
+				arguments.storageProvider.__supportsFileSystem = true;
+			} else {
+				arguments.storageProvider.__supportsFileSystem = false;
+			}
+		}
+
+		return arguments.storageProvider.__supportsFileSystem;
 	}
 
 // PRIVATE HELPERS

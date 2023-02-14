@@ -4,6 +4,7 @@ component extends="coldbox.system.Interceptor" {
 	property name="delayedViewletRendererService" inject="delayedInjector:delayedViewletRendererService";
 	property name="delayedStickerRendererService" inject="delayedInjector:delayedStickerRendererService";
 	property name="loginService"                  inject="delayedInjector:websiteLoginService";
+	property name="websiteUserActionService"      inject="delayedInjector:websiteUserActionService";
 
 // PUBLIC
 	public void function configure() {}
@@ -16,8 +17,26 @@ component extends="coldbox.system.Interceptor" {
 			if ( !IsNull( local.cached ) ) {
 				event.restoreCachedData( cached.data ?: {} );
 				event.checkPageAccess();
+				event.setXFrameOptionsHeader();
+				event.setHTTPHeader( name="X-Cache", value="HIT" );
 				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
 				var contentType      = cached.contentType ?: "";
+				var pageId           = event.getCurrentPageId();
+				var xframeOptions    = prc.xframeoptions ?: "DENY";
+
+				if ( xframeOptions != "ALLOW" ) {
+					event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
+				}
+
+				if ( Len( Trim( pageId ) ) ) {
+					websiteUserActionService.recordAction(
+						  action     = "pagevisit"
+						, type       = "request"
+						, identifier = pageId
+						, userId     = getLoggedInUserId()
+					);
+				}
+
 				content reset=true;
 				if ( len( contentType ) ) {
 					content type=contentType;
@@ -44,6 +63,7 @@ component extends="coldbox.system.Interceptor" {
 				  }
 				, timeout   = event.getPageCacheTimeout()
 			);
+			event.setHTTPHeader( name="X-Cache", value="MISS" );
 		}
 
 		var viewletsRendered          = delayedViewletRendererService.renderDelayedViewlets( content );

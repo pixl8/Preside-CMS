@@ -2,9 +2,9 @@
  * Service that provides logic for dealing with rule engine expressions.
  * See [[rules-engine]] for further details.
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
  */
 component displayName="RulesEngine Expression Service" {
 
@@ -16,7 +16,6 @@ component displayName="RulesEngine Expression Service" {
 	 * @contextService.inject              rulesEngineContextService
 	 * @autoExpressionGenerator.inject     rulesEngineAutoPresideObjectExpressionGenerator
 	 * @expressionDirectories.inject       presidecms:directories:/handlers/rules/expressions
-	 * @rulesEngineExpressionCache.inject  cachebox:rulesEngineExpressionCache
 	 * @i18n.inject                        coldbox:plugin:i18n
 	 *
 	 */
@@ -26,15 +25,14 @@ component displayName="RulesEngine Expression Service" {
 		, required any   contextService
 		, required any   autoExpressionGenerator
 		, required array expressionDirectories
-		, required any   rulesEngineExpressionCache
 		, required any   i18n
 	) {
 		_setFieldTypeService( fieldTypeService );
 		_setContextService( contextService );
 		_setAutoExpressionGenerator( arguments.autoExpressionGenerator );
 		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) );
-		_setRulesEngineExpressionCache( rulesEngineExpressionCache );
 		_setI18n( i18n );
+		_setRulesEngineExpressionCache( {} );
 
 		return this;
 	}
@@ -47,29 +45,69 @@ component displayName="RulesEngine Expression Service" {
 	 * @autodoc           true
 	 * @context.hint      Expression context with which to filter the results
 	 * @filterObject.hint Filter expressions by those that can be used as a filter for this object (ID)
+	 * @excludeTags.hint  Expressions with any of these tags (comma-separated list) will be ignored
 	 */
-	public array function listExpressions( string context="", string filterObject="" ) {
+	public array function listExpressions(
+		  string context      = ""
+		, string filterObject = ""
+		, string excludeTags  = ""
+		, array  userRoles    = _getAdminUserRoles()
+	) {
+		var cache    = _getRulesEngineExpressionCache();
+		var cachekey = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context & "_" & arguments.excludeTags & "_" & hash( serializeJSON( arguments.userRoles ) );
+
+		if ( StructKeyExists( cache, cacheKey ) ) {
+			return cache[ cacheKey ];
+		}
+
 		_lazyLoadDynamicExpressions( argumentCollection=arguments );
 
-		var allExpressions  = _getExpressions();
-		var list            = [];
-		var filterOnContext = arguments.context.len() > 0;
-		var filterOnObject  = arguments.filterObject.len();
-		var cachekey        = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context;
-		var cachedResult    = _getRulesEngineExpressionCache().get( cacheKey );
+		var allExpressions       = _getExpressions();
+		var list                 = [];
+		var hasExclusions        = len( arguments.excludeTags ) > 0;
+		var filterOnContext      = len( arguments.context ) > 0;
+		var filterOnObject       = arguments.filterObject.len();
+		var expressionsRoleLimit = {};
 
-		if ( !IsNull( local.cachedResult ) ) {
-			return cachedResult;
+		if ( filterOnObject && arrayLen( userRoles ) ) {
+			expressionsRoleLimit = getObjectFieldsExpressionRoleLimits( objectName=arguments.filterObject );
 		}
 
 		for( var expressionId in allExpressions ) {
 			var contexts = allExpressions[ expressionId ].contexts ?: [];
+			var tags     = allExpressions[ expressionId ].tags     ?: [];
 
+			if ( hasExclusions && _findListItemInArray( tags, arguments.excludeTags ) ) {
+				continue;
+			}
 			if ( filterOnContext && !(contexts.findNoCase( "global" ) || contexts.findNoCase( arguments.context ) ) ) {
 				continue;
 			}
 			if ( filterOnObject && !( ( allExpressions[ expressionId ].filterObjects ?: [] ).len() && allExpressions[ expressionId ].filterObjects.findNoCase( arguments.filterObject ) ) ) {
 				continue;
+			}
+
+			if ( len( arguments.filterObject ) ) {
+				var roleLimitKey = arguments.filterObject & "." & listLast( expressionId, "." );
+			} else {
+				var roleLimitKey = listLast( listFirst( expressionId, "." ), "_" ) & "." & listLast( expressionId, "." );
+			}
+
+			if ( filterOnObject && arrayLen( userRoles ) && structKeyExists( expressionsRoleLimit, roleLimitKey ) ) {
+				var expressionHandler    = allExpressions[ expressionId ].expressionHandler ?: "";
+				var expressionIdentifier = ( listLen( expressionHandler, "." ) eq 5 ) ? listGetAt( expressionHandler, 4, "." ) : "";
+				var hasPermission        = false;
+				var propertyRoleLimit    = expressionsRoleLimit[ roleLimitKey ];
+
+				for ( var role in arguments.userRoles ) {
+					if ( structKeyExists( propertyRoleLimit, role ) ) {
+						hasPermission = hasPermission || arrayContainsNoCase( propertyRoleLimit[ role ], expressionIdentifier );
+					}
+				}
+
+				if ( !hasPermission ) {
+					continue;
+				}
 			}
 
 			var getExpressionArgs  = { expressionId = expressionId };
@@ -93,7 +131,8 @@ component displayName="RulesEngine Expression Service" {
 			return aCategory > bCategory ? 1 : -1;
 		} );
 
-		_getRulesEngineExpressionCache().set( cacheKey, list );
+		cache[ cacheKey ] = list;
+
 		return list;
 	}
 
@@ -116,6 +155,8 @@ component displayName="RulesEngine Expression Service" {
 		,          string context    = ""
 		,          string objectName = ""
 	) {
+		_lazyLoadDynamicExpressions( context=arguments.context, filterObject=arguments.objectName );
+
 		var expression      = Duplicate( _getRawExpression( arguments.expressionId ) );
 		var translationArgs = { expressionId = arguments.expressionId };
 
@@ -154,7 +195,9 @@ component displayName="RulesEngine Expression Service" {
 	public string function getExpressionLabel(
 		  required string expressionId
 		,          string context    = ""
+		,          string objectName = ""
 	) {
+		_lazyLoadDynamicExpressions( context=arguments.context, filterObject=arguments.objectName );
 		var expression = _getRawExpression( arguments.expressionId );
 
 		if ( $getColdbox().handlerExists( expression.labelHandler ?: "" ) ) {
@@ -190,7 +233,10 @@ component displayName="RulesEngine Expression Service" {
 	public string function getExpressionText(
 		  required string expressionId
 		,          string context    = ""
+		,          string objectName = ""
 	) {
+		_lazyLoadDynamicExpressions( context=arguments.context, filterObject=arguments.objectName );
+
 		var expression = _getRawExpression( arguments.expressionId );
 
 		if ( $getColdbox().handlerExists( expression.textHandler ?: "" ) ) {
@@ -295,13 +341,11 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionId.hint     The ID of the expression whose filters you wish to prepare
 	 * @objectName.hint       The object whose records are to be filtered
 	 * @configuredFields.hint A structure of fields configured for the expression instance whose filter we are preparing
-	 * @filterPrefix.hint     An optional prefix to prepend to any property filters. This is useful when you are traversing the relationship tree and building filters within filters!
 	 */
 	public array function prepareExpressionFilters(
 		  required string expressionId
 		, required string objectName
 		, required struct configuredFields
-		,          string filterPrefix = ""
 	) {
 		_lazyLoadDynamicExpressions( filterObject=arguments.objectName );
 
@@ -316,14 +360,14 @@ component displayName="RulesEngine Expression Service" {
 		}
 
 		var handlerAction = expression.filterHandler ?: "rules.expressions." & arguments.expressionId & ".prepareFilters";
-		var eventArgs     = { objectName=arguments.objectName, filterPrefix=arguments.filterPrefix };
+		var eventArgs     = { objectName=arguments.objectName };
 
 		eventArgs.append( expression.filterHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
-		if ( Len( Trim( eventArgs.parentPropertyName ?: "" ) ) ) {
-			eventArgs.filterPrefix = ListAppend( eventArgs.filterPrefix, eventArgs.parentPropertyName, "$" );
-		}
+		// backward compatibility: see https://presidecms.atlassian.net/browse/PRESIDECMS-2453
+		eventArgs.filterPrefix = eventArgs.filterPrefix ?: "";
+		// end backward compatibility
 
 		var result = $getColdbox().runEvent(
 			  event          = handlerAction
@@ -355,6 +399,8 @@ component displayName="RulesEngine Expression Service" {
 		, required any    validationResult
 		,          string filterObject = ""
 	) {
+		_lazyLoadDynamicExpressions( argumentCollection=arguments );
+
 		var expression = _getRawExpression( arguments.expressionId, false );
 
 		if ( expression.isEmpty() ) {
@@ -403,11 +449,11 @@ component displayName="RulesEngine Expression Service" {
 		var processed        = {};
 
 		for( var fieldName in configuredFields ) {
-			if ( expressionFields.keyExists( fieldName ) ) {
+			if ( StructKeyExists( expressionFields, fieldName ) ) {
 				configuredFields[ fieldName ] = fieldTypeService.prepareConfiguredFieldData(
 					  fieldType          = expressionFields[ fieldName ].fieldType
 					, fieldConfiguration = expressionFields[ fieldName ]
-					, savedValue         = configuredFields[ fieldName ]
+					, savedValue         = ( configuredFields[ fieldName ] ?: "" )
 				);
 			}
 		}
@@ -436,7 +482,7 @@ component displayName="RulesEngine Expression Service" {
 		var expressions = _getExpressions();
 
 
-		if ( expressions.keyExists( arguments.id ) ) {
+		if ( StructKeyExists( expressions, arguments.id ) ) {
 			expressions[ arguments.id ].contexts.append( arguments.contexts, true );
 			expressions[ arguments.id ].filterObjects.append( arguments.filterObjects, true );
 		} else {
@@ -455,7 +501,7 @@ component displayName="RulesEngine Expression Service" {
 	 */
 	public array function getFilterObjectsForExpression( required string expressionId ) {
 		var expression = _getRawExpression( expressionId, false );
-		return expression.filterObjects ?: [];
+		return Duplicate( expression.filterObjects ?: [] );
 	}
 
 	public string function translateExpressionCategory( required string category ){
@@ -480,11 +526,87 @@ component displayName="RulesEngine Expression Service" {
 		return arguments.category;
 	}
 
+	/**
+	 * Method that returns a file path of a file
+	 * containing json representation of all expressions for the given object
+	 *
+	 */
+	public string function getExpressionsFile( string context="", string filterObject="", string excludeTags="" ) {
+		var fileName = "";
+		var filePath = GetTempDirectory();
+		var locale   = $i18n.getFwLocale();
+		var suffix   = hash( arguments.excludeTags & serializeJSON( _getAdminUserRoles() ) );
+
+		if ( Len( arguments.context ) ) {
+			fileName = "conditionexpressions-#locale#-#arguments.context#-#suffix#.json"
+		} else {
+			fileName = "filterexpressions-#locale#-#arguments.filterObject#-#suffix#.json"
+		}
+		filePath &= fileName;
+
+		variables._generatedExpressionFiles = variables._generatedExpressionFiles ?: {};
+		if ( !StructKeyExists( variables._generatedExpressionFiles, fileName ) || !FileExists( filePath ) ) {
+			var expressions = listExpressions( argumentCollection=arguments );
+			FileWrite( filePath, SerializeJson( expressions ) );
+			variables._generatedExpressionFiles[ fileName ] = true;
+		}
+
+		return filePath;
+	}
+
+	public struct function getObjectFieldsExpressionRoleLimits(
+		  required string objectName
+		,          string structKeyPreffix = ""
+	) {
+		var cache    = _getRulesEngineExpressionCache();
+		var cachekey = "autoExpressionRoleLimits" & "_" & arguments.structKeyPreffix & "_" & arguments.objectName;
+
+		if ( StructKeyExists( cache, cacheKey ) ) {
+			return cache[ cacheKey ];
+		}
+
+		var roleLimit  = {};
+		var properties = $getPresideObjectService().getObjectProperties( arguments.objectName );
+
+		for ( var prop in properties ) {
+			var propertyDefinition = properties[ prop ];
+			var propertyName       = propertyDefinition.name;
+			var roleLimitKey       = "#arguments.structKeyPreffix##arguments.objectName#.#propertyName#";
+
+			if ( len( propertyDefinition.relatedTo ?: "" ) && $helpers.isTrue( propertyDefinition.autoGenerateFilterExpressions ?: "" ) ) {
+				roleLimit[ roleLimitKey ] = roleLimit[ roleLimitKey ] ?: {};
+				structAppend( roleLimit, getObjectFieldsExpressionRoleLimits(
+					  objectName       = propertyDefinition.relatedTo
+					, structKeyPreffix = arguments.objectName & propertyDefinition.relatedTo
+				) );
+			}
+
+			for ( var definition in structKeyArray( propertyDefinition ) ) {
+				if ( reFindNoCase( "^autoFilterExpressions:(.*)", definition ) ) {
+					roleLimit[ roleLimitKey ] = roleLimit[ roleLimitKey ] ?: {};
+					roleLimit[ roleLimitKey ][ replaceNoCase( definition, "autoFilterExpressions:", "" ) ] = listToArray( propertyDefinition[ definition ] );
+				}
+			}
+		}
+
+		cache[ cacheKey ] = roleLimit;
+		return roleLimit;
+	}
+
 // PRIVATE HELPERS
+	private boolean function _findListItemInArray( required array array, required string list ) {
+		for( var listItem in listToArray( arguments.list ) ) {
+			if ( arguments.array.find( listItem ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();
 
-		if ( expressions.keyExists( arguments.expressionId ) ) {
+		if ( StructKeyExists( expressions, arguments.expressionId ) ) {
 			return expressions[ arguments.expressionId ];
 		}
 
@@ -512,7 +634,7 @@ component displayName="RulesEngine Expression Service" {
 		}
 
 		for( var objectName in objects ) {
-			if ( !variables._lazyLoadDone.keyExists( objectName ) ) {
+			if ( !StructKeyExists( variables._lazyLoadDone, objectName ) ) {
 				var expressions = _getAutoExpressionGenerator().getAutoExpressionsForObject( objectName );
 				if ( expressions.len() ) {
 					contextService.addContext( id="presideobject_" & objectName, object=objectName, visible=false );
@@ -523,6 +645,14 @@ component displayName="RulesEngine Expression Service" {
 				variables._lazyLoadDone[ objectName ] = true;
 			}
 		}
+	}
+
+	private array function _getAdminUserRoles( string adminUserId=$getAdminLoginService().getLoggedInUserId() ) {
+		if ( !$getAdminLoginService().isSystemUser() ) {
+			return $getAdminPermissionService().listUserGroupsRoles( userId=arguments.adminUserId );
+		}
+
+		return [];
 	}
 
 // GETTERS AND SETTERS
@@ -547,10 +677,10 @@ component displayName="RulesEngine Expression Service" {
 		_contextService = arguments.contextService;
 	}
 
-	private any function _getRulesEngineExpressionCache() {
+	private struct function _getRulesEngineExpressionCache() {
 		return _rulesEngineExpressionCache;
 	}
-	private void function _setRulesEngineExpressionCache( required any rulesEngineExpressionCache ) {
+	private void function _setRulesEngineExpressionCache( required struct rulesEngineExpressionCache ) {
 		_rulesEngineExpressionCache = arguments.rulesEngineExpressionCache;
 	}
 

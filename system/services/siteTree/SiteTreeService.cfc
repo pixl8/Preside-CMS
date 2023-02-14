@@ -178,7 +178,16 @@ component {
 			args.fromVersionTable = true;
 		}
 
-		return _getPObj().selectData( argumentCollection = args );
+		var result = _getPObj().selectData( argumentCollection = args );
+		if ( !result.recordCount && arguments.allowDrafts ) {
+			args.fromVersionTable = false;
+			args.allowDraftVersions = false;
+			StructDelete( args, "specificVersion" );
+
+			result = _getPObj().selectData( argumentCollection = args );
+		}
+
+		return result;
 	}
 
 	public query function getPagesForAjaxSelect(
@@ -224,7 +233,14 @@ component {
 		}
 
 		return _getPobj().selectData(
-			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
+			  selectFields       = [
+				    "page.id as value"
+				  , "page.title as text"
+				  , "parent_page.title as parent"
+				  , "page._hierarchy_depth as depth"
+				  , "page.page_type"
+				  , "page.active as active"
+			  ]
 			, filter             = filter
 			, extraFilters       = extra
 			, maxRows            = arguments.maxRows
@@ -295,9 +311,10 @@ component {
 			if ( Len( Trim( sourceObject ) ) ) {
 				if ( poService.isManyToManyProperty( sourceObject, arguments.propertyName ) ) {
 					var relatedRecords = poService.selectManyToManyData(
-						  objectName   = sourceObject
-						, propertyName = arguments.propertyName
-						, filter       = ( sourceObject == "page" ? { id = arguments.page.id } : { page = arguments.page.id } )
+						  objectName       = sourceObject
+						, propertyName     = arguments.propertyName
+						, filter           = ( sourceObject == "page" ? { id = arguments.page.id } : { page = arguments.page.id } )
+						, fromVersionTable = $getRequestContext().showNonLiveContent()
 					);
 
 					if ( relatedRecords.recordCount ) {
@@ -411,7 +428,7 @@ component {
 
 		if ( ListLen( args.orderBy, "." ) == 1 ) {
 			var col = ListFirst( args.orderBy, " " );
-			if ( _getPresideObjectService().getObjectProperties( arguments.pageType ).keyExists( col ) ) {
+			if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.pageType ), col ) ) {
 				args.orderBy = "#arguments.pageType#.#args.orderBy#";
 			} else {
 				args.orderBy = "page.#args.orderBy#";
@@ -487,12 +504,12 @@ component {
 		, numeric version           = 0
 		, string  site              = ""
 	) {
-		var loginSvc       = _getLoginService();
 		var homepageArgs   = {
 			  maxRows            = 1
 			, orderBy            = "_hierarchy_sort_order"
 			, selectFields       = arguments.selectFields
 			, allowDraftVersions = arguments.allowDrafts
+			, fromVersionTable   = false
 			, filter             = {
 				  _hierarchy_depth = 0
 				, active           = true
@@ -512,12 +529,19 @@ component {
 		}
 
 		var homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+		if ( !homepage.recordCount && homepageArgs.fromVersionTable ) {
+			homepageArgs.fromVersionTable = false;
+			homepageArgs.allowDraftVersions = false;
+			StructDelete( homepageArgs, "specificVersion" );
+			homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+		}
 
 
 		if ( homepage.recordCount || !arguments.createIfNotExists ) {
 			return homepage;
 		}
 
+		var loginSvc = _getLoginService();
 		homepage = addPage(
 			  title         = "Home"
 			, slug          = ""
@@ -596,7 +620,7 @@ component {
 				};
 
 				for( var field in child ) {
-					if ( !page.keyExists( field ) ) {
+					if ( !StructKeyExists( page, field ) ) {
 						page[ field ] = child[ field ];
 					}
 				}
@@ -621,7 +645,7 @@ component {
 		);
 
 		var isManagedType   = Len( Trim( page.parent_type ) ) && getManagedChildTypesForParentType( page.parent_type ).findNoCase( page.page_type );
-		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_from_sub_navigation ) : ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) );
+		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_children_from_navigation ) : Val( page.exclude_from_navigation );
 		if ( isManagedType || excludedFromNav ) {
 			return [];
 		}
@@ -821,7 +845,7 @@ component {
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
 				, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
-				, isDraft                 = arguments.isDraft
+				, isDraft                 = ( pageDataHasChanged || pageTypeDataHasChanged ) ? arguments.isDraft : false
 			);
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
@@ -832,7 +856,7 @@ component {
 						, versionNumber           = versionNumber
 						, updateManyToManyRecords = true
 						, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
-						, isDraft                 = arguments.isDraft
+						, isDraft                 = ( pageDataHasChanged || pageTypeDataHasChanged ) ? arguments.isDraft : false
 						, useVersioning           = !arguments.skipVersioning
 					);
 				} else {
@@ -998,7 +1022,7 @@ component {
 
 		if ( arguments.cloneChildren ) {
 			var children = _getPObj().selectData(
-				  selectFields  = [ "id" ]
+				  selectFields  = [ "id", "page_type" ]
 				, filter        = { parent_page=arguments.sourcePageId, trashed=false }
 				, bypassTenants = bypassTenants
 				, orderBy       = "sort_order"
@@ -1009,6 +1033,10 @@ component {
 				childPageData.site = newPageData.site;
 			}
 			for( var child in children ) {
+				if ( _getPageTypesService().isSystemPageType( pageTypeId=child.page_type ) ) {
+					continue;
+				}
+
 				clonePage(
 					  sourcePageId   = child.id
 					, newPageData    = childPageData
@@ -1153,7 +1181,7 @@ component {
 	public boolean function userHasPageAccess( required string pageId ) {
 		var restrictionRules = getAccessRestrictionRulesForPage( arguments.pageId );
 
-		if ( [ "none", "partial" ].find( restrictionRules.access_restriction ) ) {
+		if ( [ "none" ].find( restrictionRules.access_restriction ) ) {
 			return true;
 		}
 
@@ -1196,7 +1224,7 @@ component {
 	}
 
 	public array function getDraftChangedFields( required string pageId, string pageType ) {
-		if ( !arguments.keyExists( "pageType" ) ) {
+		if ( !StructKeyExists( arguments, "pageType" ) ) {
 			var page = getPage(
 				  id          = arguments.pageId
 				, getLatest   = true
@@ -1237,7 +1265,7 @@ component {
 			var changedFields = getDraftChangedFields( page.id, page.page_type );
 			var dataToSubmit = {};
 			for( var field in changedFields ) {
-				if ( page.keyExists( field ) ) {
+				if ( StructKeyExists( page, field ) ) {
 					dataToSubmit[ field ] = page[ field ];
 				}
 			}
@@ -1375,7 +1403,22 @@ component {
 			}
 		}
 
+		_unsetPageRestrictFields( data );
+
 		return data;
+	}
+
+	private void function _unsetPageRestrictFields( required struct data ) {
+		var data           = arguments.data;
+		var restrictFields = [ "access_condition", "full_login_required", "grantaccess_to_all_logged_in_users", "exclude_from_navigation_when_restricted" ];
+
+		if( StructKeyExists( data, "access_restriction" ) && data.access_restriction == "none" ) {
+			for ( var field in restrictFields ) {
+				if( StructKeyExists( data, field ) ) {
+					data[ field ] = "";
+				}
+			}
+		}
 	}
 
 	private array function _treeQueryToNestedArray( required query treeQuery, any rootPage ) {
@@ -1416,6 +1459,7 @@ component {
 			, allowDraftVersions = true
 			, filter             = filter
 			, bypassTenants      = bypassTenants
+			, useCache           = false
 		);
 
 		return IsNull( qry.max_id ) ? 1 : Val( qry.max_id ) + 1;
@@ -1494,7 +1538,7 @@ component {
 		var addPageArgs = {
 			  title                   = _getI18nService().translateResource( uri=pageType.getName(), defaultValue=pageType.getid() )
 			, page_type               = pageType.getId()
-			, slug                    = pageType.getId() == "homepage" ? "" : LCase( ReReplace( pageType.getId(), "[\W_]", "-", "all" ) )
+			, slug                    = pageType.getDefaultSystemPageSlug()
 			, active                  = 1
 			, userId                  = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 			, exclude_from_navigation = pageType.getId() != "homepage"
@@ -1564,7 +1608,7 @@ component {
 			props[ fieldObject ] = props[ fieldObject ] ?: _getPresideObjectService().getObjectProperties( fieldObject );
 
 			if ( not StructKeyExists( props[ fieldObject ], field ) ) {
-				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
+				if ( arguments.versiontable && field.reFindNoCase( "^_version_" ) ) {
 					sqlFields[i] = objName & "." & field;
 				} else {
 					sqlFields[i] = "'' as " & field;
@@ -1646,7 +1690,7 @@ component {
 
 	private boolean function _isAutoRedirectEnabled() {
 		var site = $getRequestContext().getSite();
-		return isBoolean( site.auto_redirect ) && site.auto_redirect;
+		return IsBoolean( site.auto_redirect ?: "" ) && site.auto_redirect;
 	}
 
 	private struct function _calculateSortOrderAndHierarchyFields( required string slug, string parent_page="", string site="" ) {
@@ -1663,7 +1707,7 @@ component {
 		data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
 
 		if ( Len( Trim( arguments.parent_page ) ) ) {
-			parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
+			var parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false, bypassTenants=bypassTenants );
 			if ( !parent.recordCount ) {
 				throw(
 					  type    = "SiteTreeService.MissingParent"

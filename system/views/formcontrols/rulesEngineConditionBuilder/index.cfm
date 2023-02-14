@@ -6,7 +6,6 @@
 	placeholder  = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue = args.defaultValue ?: "";
 	maxLength    = Val( args.maxLength ?: 0 );
-	expressions  = args.expressions  ?: [];
 	isFilter     = IsTrue( args.isFilter ?: "" ) ? "true" : "false"; // deliberate stringifying of booleans here
 	showCount    = IsTrue( args.showCount ?: isFilter );
 	object       = args.object ?: "";
@@ -52,26 +51,6 @@
 						</label>
 
 						<ul class="list-unstyled rules-engine-condition-builder-expressions-list form-control">
-							<cfset currentCategory = "" />
-							<cfloop array="#expressions#" item="expression" index="i">
-								<cfif expression.category != currentCategory>
-									<cfif currentCategory.len()>
-											</ul>
-										</li>
-									</cfif>
-									<cfset currentCategory = expression.category />
-									<cfset categoryId = "category-" & LCase( Hash( expression.category ) ) />
-									<li class="category">
-										<a href="##" data-target="###categoryId#" data-toggle="collapse" class="collapsed category-link">
-											<i class="fa fa-fw fa-plus-square-o"></i>
-											#expression.category#
-										</a>
-										<ul id="#categoryId#" class="list-unstyled collapse category-expressions">
-								</cfif>
-								<li class="expression" data-id="#expression.id#">#expression.label#</li>
-							</cfloop>
-								</ul>
-							</li>
 						</ul>
 					</div>
 				</div>

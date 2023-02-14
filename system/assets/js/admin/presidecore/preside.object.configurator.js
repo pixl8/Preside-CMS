@@ -42,7 +42,7 @@
 			};
 
 			this.uberSelect.choice_build = function( item, index ) {
-				var choice, close_link, edit_link,
+				var choice, close_link, edit_link,removeIndex,
 					_this = this;
 
 				choice = $('<li />', {
@@ -62,6 +62,10 @@
 							"class": 'remove-choice-link fa fa-times'
 						});
 						close_link.bind('click.chosen', function(evt) {
+							removeIndex = _this.selected.indexOf(item);
+							if (removeIndex != -1) {
+								_this.selected.splice(removeIndex, 1);
+							}
 							return _this.choice_destroy_link_click(evt);
 						});
 						choice.append( close_link );
@@ -175,17 +179,6 @@
 
 			configuratorArgs[ 'sourceId' ]      = $( '[name=id] ', $form ).filter( ':first' ).val();
 			configuratorArgs[ 'sourceIdField' ] = relationshipKey;
-			for( var i=0; i<fields.length; i++ ) {
-				var targetField = targetFields[ i ]
-				  , $field      = $( '[name=' + fields[ i ] + ']', this.$originalInput.closest( 'form' ) );
-
-				if ( $field.length ) {
-					configuratorArgs[ targetField ] = $field.map( function() { return $( this ).val(); } ).get().join();
-				}
-			}
-			for( var arg in configuratorArgs ) {
-				iframeSrc += '&' + arg + '=' + configuratorArgs[ arg ];
-			}
 
 			this.$configuratorAddButton = $( '<a class="btn btn-default configurator-add-btn" href="#"><i class="fa fa-plus"></i></a>' );
 			if ( this.$originalInput.attr( "tabindex" ) && this.$originalInput.attr( "tabindex" ) != "-1" ) {
@@ -193,7 +186,19 @@
 			}
 
 			this.$configuratorAddButton.on( "click", function( e ) {
-				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
+				var dynamicIframeSrc = iframeSrc;
+				for( var i=0; i<fields.length; i++ ) {
+					var targetField = targetFields[ i ]
+					  , $field      = $( '[name=' + fields[ i ] + ']', presideObjectConfigurator.$originalInput.closest( 'form' ) );
+
+					if ( $field.length ) {
+						configuratorArgs[ targetField ] = $field.map( function() { return $( this ).val(); } ).get().join();
+					}
+				}
+				for( var arg in configuratorArgs ) {
+					dynamicIframeSrc += '&' + arg + '=' + encodeURIComponent( configuratorArgs[ arg ] );
+				}
+				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( dynamicIframeSrc, "100%", "100%", callbacks, modalOptions );
 				presideObjectConfigurator.configuratorIframeModal.open();
 			} );
 
@@ -265,7 +270,7 @@
 					}
 				}
 				for( var arg in configuratorArgs ) {
-					href += '&' + arg + '=' + configuratorArgs[ arg ];
+					href += '&' + arg + '=' + encodeURIComponent( configuratorArgs[ arg ] );
 				}
 
 				presideObjectConfigurator.configuratorIframeModal = new PresideIframeModal( href, "100%", "100%", callbacks, modalOptions );

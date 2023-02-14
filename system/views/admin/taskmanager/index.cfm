@@ -1,7 +1,7 @@
 <cfscript>
-	taskGroups = prc.taskGroups ?: [];
-
-	tasksEnabled = IsTrue( prc.autoRunningEnabled ?: false );
+	taskGroups        = prc.taskGroups      ?: [];
+	activeTaskGroup   = prc.activeTaskGroup ?: 1;
+	tasksEnabled      = IsTrue( prc.autoRunningEnabled ?: false );
 
 	canRunTasks       = hasCmsPermission( "taskmanager.run"          );
 	canToggleActive   = tasksEnabled && hasCmsPermission( "taskmanager.toggleactive" );
@@ -43,8 +43,8 @@
 		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">
 				<cfloop array="#taskGroups#" index="i" item="group">
-					<li<cfif i==1> class="active"</cfif>>
-						<a data-toggle="tab" href="##group-tab-#i#">
+					<li<cfif i==activeTaskGroup> class="active"</cfif>>
+						<a data-toggle="tab" href="##group-tab-#i#" class="task-manager-tab" data-tab-id="#group.slug#">
 							<i class="fa fa-fw #group.iconClass#"></i>
 							#group.title# (#group.stats.total#)
 						</a>
@@ -57,7 +57,7 @@
 
 	<cfloop array="#taskGroups#" index="i" item="group">
 		<cfif taskGroups.len() gt 1>
-			<div id="group-tab-#i#" class="tab-pane<cfif i==1> active</cfif>">
+			<div id="group-tab-#i#" class="tab-pane<cfif i==activeTaskGroup> active</cfif>">
 		</cfif>
 
 		<table class="table table-striped table-hover">
@@ -67,6 +67,7 @@
 					<th>#translateResource( "cms:taskmanager.table.header.schedule" )#</th>
 					<th>#translateResource( "cms:taskmanager.table.header.lastrun" )#</th>
 					<th>#translateResource( "cms:taskmanager.table.header.nextrun" )#</th>
+					<th>#translateResource( "cms:taskmanager.history.table.header.timetaken" )#</th>
 					<cfif showActionsColumn>
 						<th>#translateResource( "cms:taskmanager.table.header.actions" )#</th>
 					</cfif>
@@ -112,6 +113,11 @@
 								</cfif>
 							<cfelse>
 								<em class="grey">#translateResource( "cms:taskmanager.table.task.disabled" )#</em>
+							</cfif>
+						</td>
+						<td>
+							<cfif IsTrue( task.was_last_run_success )>
+								#renderField( object='taskmanager_task_history', property="time_taken" , data=task.last_run_time_taken , context=[ "taskhistory", "admindatatable", "admin" ] )#
 							</cfif>
 						</td>
 						<cfif showActionsColumn>

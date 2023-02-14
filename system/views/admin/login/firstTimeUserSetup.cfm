@@ -39,14 +39,14 @@
 
 							<label class="block clearfix">
 								<span class="block input-icon input-icon-right">
-									<input type="password" class="form-control" placeholder="#translateResource( 'cms:firstTimeUserSetup.password.placeholder' )#" name="password" />
+									<input type="password" class="form-control" placeholder="#translateResource( 'cms:firstTimeUserSetup.password.placeholder' )#" name="password" autocomplete="new-password" />
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>
 
 							<label class="block clearfix">
 								<span class="block input-icon input-icon-right">
-									<input type="password" class="form-control" placeholder="#translateResource( 'cms:firstTimeUserSetup.password.confirmation.placeholder' )#" name="passwordConfirmation" />
+									<input type="password" class="form-control" placeholder="#translateResource( 'cms:firstTimeUserSetup.password.confirmation.placeholder' )#" name="passwordConfirmation" autocomplete="new-password" />
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>

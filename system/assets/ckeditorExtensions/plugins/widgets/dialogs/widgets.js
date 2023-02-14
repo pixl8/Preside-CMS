@@ -16,10 +16,12 @@
 	CKEDITOR.dialog.add( 'widgets', function( editor ) {
 		var lang             = editor.lang.widgets
 		  , widgetCategories = ( editor.config.widgetCategories || "" )
+		  , linkPickerCategory = ( editor.config.linkPickerCategory || "" )
 		  , associatedWidget;
 
 		return {
 			title: lang.title,
+			resizable: CKEDITOR.DIALOG_RESIZE_NONE,
 			minWidth: dialogWidth,
 			minHeight: dialogHeight,
 			onShow:function(){
@@ -37,7 +39,7 @@
 						height : dialogHeight + 'px',
 						setup  : function( widget ) {
 							var params    = {}
-							  , iframeQs  = { widgetCategories : widgetCategories, cacheBuster : Math.random().toString(36).substring(7) }
+							  , iframeQs  = { widgetCategories : widgetCategories, linkPickerCategory : linkPickerCategory, cacheBuster : Math.random().toString(36).substring(7) }
 							  , iframeSrc = buildAdminLink( "widgets", "dialog", iframeQs )
 							  , dlg       = this;
 

@@ -1,7 +1,9 @@
 component validationProvider=true {
 
 	public boolean function required( required string fieldName, any value="", struct data={} ) validatorMessage="cms:validation.required.default" {
-		return arguments.data.keyExists( fieldName ) && !IsEmpty( value );
+		var value = IsSimpleValue( arguments.value ) ? Trim( arguments.value ) : arguments.value;
+
+		return StructKeyExists( arguments.data, fieldName ) && !IsEmpty( value );
 	}
 
 	public boolean function minlength( required string fieldName, string value="", required numeric length, boolean list=false ) validatorMessage="cms:validation.minLength.default" {
@@ -27,7 +29,33 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) gte arguments.min;
+		return Val( Replace( arguments.value, ",", "", "all" ) ) gte arguments.min;
+	}
+
+	public string function min_js() {
+		return "function( value, el, param ) { return this.optional( el ) || value.replaceAll( ',', '' ) >= ( ( typeof( param ) == 'object' ) ? param.param : param ); }";
+	}
+
+	public boolean function lessThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.lessThanField.default" {
+		if ( !IsNumeric( arguments.value ) || !IsNumeric( arguments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return Val( arguments.value ) < Val( arguments.data[ arguments.field ] );
+	}
+	public string function lessThanField_js() {
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || (parseFloat(value) < parseFloat($field.val())); }";
+	}
+
+	public boolean function lessThanOrEqualToField( required string value, required struct data, required string field ) validatorMessage="cms:validation.lessThanOrEqualToField.default" {
+		if ( !IsNumeric( arguments.value ) || !IsNumeric( arguments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return Val( arguments.value ) <= Val( arguments.data[ arguments.field ] );
+	}
+	public string function lessThanOrEqualToField_js() {
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || (parseFloat(value) <= parseFloat($field.val())); }";
 	}
 
 	public boolean function max( required string fieldName, string value="", required numeric max ) validatorMessage="cms:validation.max.default" {
@@ -35,7 +63,33 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) lte arguments.max;
+		return Val( Replace( arguments.value, ",", "", "all" ) ) lte arguments.max;
+	}
+
+	public string function max_js() {
+		return "function( value, el, param ) { return this.optional( el ) || value.replaceAll( ',', '' ) <= ( ( typeof( param ) == 'object' ) ? param.param : param ); }";
+	}
+
+	public boolean function greaterThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.greaterThanField.default" {
+		if ( !IsNumeric( arguments.value ) || !IsNumeric( arguments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return Val( arguments.value ) > Val( arguments.data[ arguments.field ] );
+	}
+	public string function greaterThanField_js() {
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || (parseFloat(value) > parseFloat($field.val())); }";
+	}
+
+	public boolean function greaterThanOrEqualToField( required string value, required struct data, required string field ) validatorMessage="cms:validation.greaterThanOrEqualToField.default" {
+		if ( !IsNumeric( arguments.value ) || !IsNumeric( arguments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return Val( arguments.value ) >= Val( arguments.data[ arguments.field ] );
+	}
+	public string function greaterThanOrEqualToField_js() {
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || (parseFloat(value) >= parseFloat($field.val())); }";
 	}
 
 	public boolean function range( required string fieldName, string value="", required numeric min, required numeric max ) validatorMessage="cms:validation.range.default" {
@@ -43,14 +97,22 @@ component validationProvider=true {
 			return true;
 		}
 
-		return Val( arguments.value ) lte arguments.max and Val( arguments.value ) gte arguments.min;
+		var val = Val( Replace( arguments.value, ",", "", "all" ) );
+
+		return val lte arguments.max and val gte arguments.min;
 	}
+
+	public string function range_js() {
+		return "function( value, el, param ) { var val = value.replaceAll( ',', '' ); return this.optional( el ) || ( val >= ( ( typeof( param[0] ) == 'object' ) ? param.param[0] : param[0] ) && val <= ( ( typeof( param[1] ) == 'object' ) ? param.param[1] : param[1] ) ); }";
+	}
+
+	// 			return this.optional( el ) || ( val >= param[ 0 ] && val <= param[ 1 ] ); }
 
 	public boolean function number( required string value ) validatorMessage="cms:validation.number.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
-		return IsNumeric( arguments.value );
+		return IsNumeric( Replace( arguments.value, ",", "", "all" ) );
 	}
 
 	public boolean function digits( required string value ) validatorMessage="cms:validation.digits.default" {
@@ -60,7 +122,7 @@ component validationProvider=true {
 		return ReFind( "^[0-9]+$", arguments.value );
 	}
 
-	public boolean function date( required string value ) validatorMessage="cms:validation.date.default" {
+	public boolean function date( required string value, string format="YYYY-MM-DD"  ) validatorMessage="cms:validation.date.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
@@ -68,6 +130,22 @@ component validationProvider=true {
 		return IsDate( arguments.value );
 	}
 
+	public boolean function minimumTime( required string value, required string minimumTime ) validatorMessage="cms:validation.minimumTime.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( DateCompare( dateTimeFormat( arguments.value, "HH:nn" ), arguments.minimumTime ) >= 0 );
+	}
+	
+	public boolean function maximumTime( required string value, required string maximumTime ) validatorMessage="cms:validation.maximumTime.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( DateCompare( dateTimeFormat( arguments.value, "HH:nn" ), arguments.maximumTime ) <= 0 );
+	}
+	
 	public boolean function datetime( required string value ) validatorMessage="cms:validation.date.default" {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
@@ -114,11 +192,29 @@ component validationProvider=true {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
 	}
 
-	public boolean function email( required string fieldName, string value="" ) validatorMessage="cms:validation.email.default" {
-		return match( fieldName=arguments.fieldName, value=arguments.value, regex="^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$" );
+	public boolean function email( required string fieldName, string value="", boolean multiple=false ) validatorMessage="cms:validation.email.default" {
+		var emailRegex = "^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$";
+		if ( !arguments.multiple ) {
+			return match( fieldName=arguments.fieldName, value=arguments.value, regex=emailRegex );
+		}
+		for( var email in listToArray( arguments.value, ", " ) ) {
+			if ( !match( fieldName=arguments.fieldName, value=email, regex=emailRegex ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 	public string function email_js() {
-		return "function( value ){ return !value.length || value.match( /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/ ) !== null }";
+		return "function( value, el, params ){
+			if ( !value.length ) return true;
+			var emailRegex = /^[^.\s@]+(?:\.[^.\s@]+)*@(?:[^\s\.@]+\.)+([^\s\.@]{2,})$/;
+			if ( !el.multiple )	return value.match( emailRegex ) !== null;
+			var emails = value.split( /[ ,]+/ );
+			for( var i=0; i<emails.length; i++ ) {
+				if ( emails[ i ].match( emailRegex ) === null ) return false;
+			}
+			return true;
+		}";
 	}
 
 	public boolean function uuid( required string value ) validatorMessage="cms:validation.uuid.default" {
@@ -130,6 +226,9 @@ component validationProvider=true {
 	}
 
 	public boolean function money( required string fieldName, string value="" ) validatorMessage="cms:validation.money.default" {
+		if ( not Len( Trim( arguments.value ) ) ) {
+			return true;
+		}
 		return !arrayIsEmpty(REMatchNoCase("^(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?|\(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?\))$", arguments.value ));
 	}
 	public string function money_js() {
@@ -137,7 +236,7 @@ component validationProvider=true {
 	}
 
 	public boolean function fileSize( required string fieldName, any value={}, required string maxSize ) validatorMessage="cms:validation.fileUpload.default" {
-		if ( !IsStruct( arguments.value ) || !arguments.value.keyExists( "size" ) || !IsNumeric( arguments.value.size ) ) {
+		if ( !IsStruct( arguments.value ) || !StructKeyExists( arguments.value, "size" ) || !IsNumeric( arguments.value.size ) ) {
 			return true;
 		}
 
@@ -182,6 +281,13 @@ component validationProvider=true {
 		}
 
 		return validFiles == filesToCheck.len();
+	}
+
+	public boolean function fileNameSlug( required string fieldName, string value="" ) validatorMessage="cms:validation.fileNameSlug.default" {
+		return match( fieldName=arguments.fieldName, value=arguments.value, regex="^[a-zA-Z0-9\-]+$" );
+	}
+	public string function fileNameSlug_js() {
+		return "function( value ){ return !value.length || value.match( /^[a-zA-Z0-9\-]+$/ ) !== null }";
 	}
 
 	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
@@ -248,5 +354,12 @@ component validationProvider=true {
 	}
 	public string function earlierThanOrSameAsField_js() {
 		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return !value.length || !$field.length || !$field.val().length || value <= $field.val(); }";
+	}
+
+	public boolean function url( required string fieldName, any value="" ) validatorMessage="cms:validation.url.default" {
+		return IsEmpty( arguments.value ) || ReFindNoCase( "^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$", arguments.value );
+	}
+	public string function url_js() validatorMessage="validationExtras:validation.simpleUrl.default" {
+		return "function( value, el, params ){ return !value.length || value.match( /^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$/i ) !== null }";
 	}
 }

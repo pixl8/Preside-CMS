@@ -4,7 +4,7 @@ component output=false {
 
 		// REGISTER ASSETS
 		bundle.addAsset( id="i18n-resource-bundle"        , url="/preside/system/assets/_dynamic/i18nBundle.js" );
-		bundle.addAsset( id="ckeditor"                    , path="/ckeditor/ckeditor.js" );
+		bundle.addAsset( id="ckeditor"                    , url="/preside/system/assets/ckeditor/ckeditor.js?v=4.17.1" );
 		bundle.addAsset( id="/js/admin/lib/jquery/"       , path="/js/admin/lib/jquery-2*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-for-ie/", path="/js/admin/lib/jquery-1*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-ui/"    , path="/js/admin/lib/jquery-ui*.min.js" );
@@ -13,6 +13,10 @@ component output=false {
 		bundle.addAsset( id="/js/admin/lib/plotly/"       , path="/js/admin/lib/plotly*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
 		bundle.addAsset( id="recaptcha-js"                , url="https://www.google.com/recaptcha/api.js" );
+
+		bundle.addAsset( id="highlightjs-css"             , url="/preside/system/assets/ckeditorExtensions/plugins/codesnippet/lib/highlight/styles/preside-atelier-dune.dark.css" );
+		bundle.addAsset( id="highlightjs-js"              , url="/preside/system/assets/ckeditorExtensions/plugins/codesnippet/lib/highlight/highlight.pack.js" );
+		bundle.addAsset( id="highlightjs"                 , path="/js/frontend/hljs/initHighlight.js" );
 
 		bundle.addAssets(
 			  directory   = "/js"
@@ -50,6 +54,7 @@ component output=false {
 		bundle.asset( "/js/admin/specific/assetmanager/editasset/" ).dependsOn( "/js/admin/specific/owlcarousel/" );
 		bundle.asset( "/js/frontend/formbuilder/" ).after( "*jquery*" );
 		bundle.asset( "/js/admin/specific/passwordscore/" ).after( "*jquery*" );
+		bundle.asset( "highlightjs" ).dependsOn( "highlightjs-js" ).dependsOn( "highlightjs-css" );
 	}
 
 }

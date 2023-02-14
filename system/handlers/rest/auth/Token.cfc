@@ -7,7 +7,7 @@ component {
 	property name="authService" inject="presideRestAuthService";
 
 	private string function authenticate() {
-		var headers    = getHTTPRequestData().headers;
+		var headers    = getHTTPRequestData( false ).headers;
 		var authHeader = headers.Authorization ?: "";
 		var token      = "";
 
@@ -28,6 +28,10 @@ component {
 		}
 
 		return "";
+	}
+
+	private string function configure() {
+		setNextEvent( url=event.buildAdminLink( "apiusermanager" ) );
 	}
 
 }

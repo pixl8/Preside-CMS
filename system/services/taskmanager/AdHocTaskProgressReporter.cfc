@@ -56,7 +56,7 @@ component {
 	 * @resultUrl URL to which user will be redirected to on successful completion of task
 	 */
 	public void function setResultUrl( required string resultUrl ) {
-		_getAdhocTaskManagerService().setResult(
+		_getAdhocTaskManagerService().setResultUrl(
 			  resultUrl = arguments.resultUrl
 			, taskId    = _getTaskId()
 		);
@@ -76,6 +76,21 @@ component {
 		var task = _getAdhocTaskManagerService().getTask( _getTaskId() );
 
 		return !task.recordCount || task.status != "running";
+	}
+
+	/**
+	 * Marks a task as failed
+	 *
+	 * @autodoc    true
+	 * @error      Error that prompted task failure
+	 * @forceRetry If true, will ignore retry config and automatically queue for retry
+	 */
+	public void function failTask( struct error={}, boolean forceRetry=false ) {
+		_getAdhocTaskManagerService().failTask(
+			  taskId 			= _getTaskId()
+			, error    		= arguments.error
+			, forceRetry 	= arguments.forceRetry
+		);
 	}
 
 

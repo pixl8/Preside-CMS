@@ -11,9 +11,10 @@
 component {
 
 // Constructor
-	public any function init( required any app, required string configurationDirectory ) {
+	public any function init( required any app, required string appDirectory ) {
 		_setApp( arguments.app );
-		_setConfigurationDirectory( arguments.configurationDirectory );
+		_setAppDirectory( arguments.appDirectory );
+		_setConfigurationDirectory( arguments.appDirectory & "/config" );
 
 		return this;
 	}
@@ -24,23 +25,27 @@ component {
 	 * \n
 	 * 1. Configuration read from [[api-environmentvariablesreader]]
 	 * 2. Configuration pulled from Pixl8's Server Manager product
-	 * 3. Configuration read from local json file /app/config/.injectedConfiguration
+	 * 3. Configuration read from local /app/.env file
+	 * 4. Configuration read from local json file /app/config/.injectedConfiguration
 	 *
 	 * @autodoc
 	 *
 	 */
 	public struct function getConfig() {
-		var config       = {};
-		var envConfig    = new EnvironmentVariablesReader().getConfigFromEnvironmentVariables();
-		var remoteConfig = _fetchConfigFromRemoteServer();
+		var config        = {};
+		var envConfig     = new EnvironmentVariablesReader().getConfigFromEnvironmentVariables();
+		var envFileConfig = _readConfigFromEnvFile();
+		var remoteConfig  = _fetchConfigFromRemoteServer();
 
 		if ( remoteConfig.isEmpty() ) {
-			remoteConfig = _readConfigFromLocalFile();
+			remoteConfig = _readConfigFromInjectedConfigFile();
 		} else {
 			_writeConfigToLocalFile( remoteConfig );
 		}
 
+
 		config.append( envConfig );
+		config.append( envFileConfig );
 		config.append( remoteConfig );
 
 		return config;
@@ -71,21 +76,51 @@ component {
 		return config;
 	}
 
+	private struct function _readConfigFromEnvFile() {
+		try {
+			var envFileContent = FileRead( _getEnvFilePath() );
+		} catch( any e ) {
+			return {};
+		}
+
+		var lines  = ListToArray( envFileContent, Chr(10) & Chr(13) );
+		var key    = "";
+		var value  = "";
+		var config = {};
+
+		for( var line in lines ) {
+			if ( ListLen( line, "=" ) > 1 ) {
+				key = Trim( ListFirst( line, "=" ) );
+				value = Trim( ListRest( line, "=" ) );
+
+				if ( key.len() ) {
+					config[ key ] = value;
+				}
+			}
+		}
+
+		return config;
+	}
+
 	private void function _writeConfigToLocalFile( required struct config ) {
 		try {
-			FileWrite( _getLocalConfigFilePath(), SerializeJson( config ) );
+			FileWrite( _getOldSchoolInjectedConfigFilePath(), SerializeJson( config ) );
 		} catch ( any e ) {}
 	}
 
-	private struct function _readConfigFromLocalFile() {
+	private struct function _readConfigFromInjectedConfigFile() {
 		try {
-			return DeSerializeJson( FileRead( _getLocalConfigFilePath() ) );
+			return DeSerializeJson( FileRead( _getOldSchoolInjectedConfigFilePath() ) );
 		} catch ( any e ) {
 			return {};
 		}
 	}
 
-	private string function _getLocalConfigFilePath() {
+	private string function _getEnvFilePath() {
+		return _getAppDirectory() & "/../.env";
+	}
+
+	private string function _getOldSchoolInjectedConfigFilePath() {
 		return _getConfigurationDirectory() & "/.injectedConfiguration";
 	}
 
@@ -101,6 +136,13 @@ component {
 	}
 	private void function _setApp( required any app ) {
 		_app = arguments.app;
+	}
+
+	private string function _getAppDirectory() {
+	    return _appDirectory;
+	}
+	private void function _setAppDirectory( required string appDirectory ) {
+	    _appDirectory = arguments.appDirectory;
 	}
 
 	private string function _getConfigurationDirectory() {

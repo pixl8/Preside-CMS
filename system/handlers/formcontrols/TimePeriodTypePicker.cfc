@@ -4,14 +4,17 @@ component {
 		var pastOnly   = IsTrue( args.pastOnly   ?: "" );
 		var futureOnly = IsTrue( args.futureOnly ?: "" );
 
-		args.values = [ "alltime", "between" ];
+		args.values = [ "alltime", "between", "equal" ];
 		args.labels = [];
 
 		if ( !futureOnly ) {
-			args.values.append( [ "recent", "since", "before", "past", "pastminus" ], true );
+			args.values.append( [ "recent", "since", "before", "past", "pastminus", "pastequal", "yesterday", "lastweek", "lastmonth" ], true );
 		}
+
+		args.values.append( [ "today", "thisweek", "thismonth" ], true );
+
 		if ( !pastOnly ) {
-			args.values.append( [ "upcoming", "until", "after", "future", "futureplus" ], true );
+			args.values.append( [ "upcoming", "until", "after", "future", "futureplus", "futureequal", "tomorrow", "nextweek", "nextmonth" ], true );
 		}
 
 		for( var value in args.values ){

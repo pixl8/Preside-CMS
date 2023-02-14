@@ -150,6 +150,20 @@ component {
 		return "";
 	}
 
+	private string function buildFlagRecordActionLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+
+		if ( dataManagerService.isOperationAllowed( objectName, "edit" ) ) {
+			return event.buildAdminLink(
+				  linkto      = "datamanager.flagRecordAction"
+				, queryString = _queryString( "object=#objectName#&id=#recordId#", args )
+			);
+		}
+
+		return "";
+	}
+
 	private string function buildTranslateRecordLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 
@@ -197,30 +211,31 @@ component {
 	private string function buildAjaxListingLink( event, rc, prc, args={} ) {
 		var objectName     = args.objectName ?: "";
 		var qs             = "id=#objectName#";
-		var extraQs        = "";
+		var interceptArgs  = { objectName=objectName, extraQs="" };
 		var additionalArgs = [ "useMultiActions", "gridFields", "isMultilingual", "draftsEnabled" ];
 
 		if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForBuildAjaxListingLink" ) ) {
-			extraQs = customizationService.runCustomization(
+			interceptArgs.extraQs = customizationService.runCustomization(
 				  objectName = objectName
 				, action     = "getAdditionalQueryStringForBuildAjaxListingLink"
 				, args       = args
 			);
+			interceptArgs.extraQs = interceptArgs.extraQs ?: "";
 
-			extraQs = extraQs ?: "";
-			extraQs = IsSimpleValue( extraQs ) ? extraQs : "";
+			announceInterception( "postGetExtraQsForBuildAjaxListingLink", interceptArgs );
 
+			interceptArgs.extraQs = IsSimpleValue( interceptArgs.extraQs ) ? interceptArgs.extraQs : "";
 		}
 
 
 		for( var arg in additionalArgs ) {
-			if ( args.keyExists( arg ) ) {
+			if ( StructKeyExists( args, arg ) ) {
 				qs &= "&#arg#=#args[ arg ]#";
 			}
 		}
 
-		if ( Len( Trim( extraQs ) ) ) {
-			qs &= "&#extraQs#";
+		if ( Len( Trim( interceptArgs.extraQs ) ) ) {
+			qs &= "&#interceptArgs.extraQs#";
 		}
 
 		return event.buildAdminLink(
@@ -260,6 +275,20 @@ component {
 		return event.buildAdminLink( linkTo = "datamanager.exportDataAction", queryString=args.queryString ?: "" );
 	}
 
+	private string function buildSaveExportActionLink( event, rc, prc, args={} ) {
+		return event.buildAdminLink( linkTo = "datamanager.saveExportAction", queryString=args.queryString ?: "" );
+	}
+
+	private string function buildSavedExportDownloadLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var recordId   = args.recordId   ?: "";
+
+		return event.buildAdminLink(
+			  linkTo      = "datamanager.savedExportDownload"
+			, queryString = _queryString( "id=#recordId#", args )
+		);
+	}
+
 	private string function buildDataExportConfigModalLink( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 
@@ -284,6 +313,15 @@ component {
 
 		return event.buildAdminLink(
 			  linkTo      = "datamanager.getNodesForTreeView"
+			, queryString = _queryString( "object=#objectName#", args )
+		);
+	}
+
+	private string function buildManageFiltersLink( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		return event.buildAdminLink(
+			  linkTo      = "datamanager.manageFilters"
 			, queryString = _queryString( "object=#objectName#", args )
 		);
 	}

@@ -12,20 +12,23 @@ component displayname="Image Manipulation Service" {
 	/**
      * @nativeImageImplementation.inject nativeImageService
      * @imageMagickImplementation.inject imageMagickService
+     * @libVipsImplementation.inject     vipsImageSizingService
      *
      */
     public any function init(
           required any nativeImageImplementation
         , required any imageMagickImplementation
+        , required any libVipsImplementation
     ) {
         _setNativeImageImplementation( arguments.nativeImageImplementation );
         _setImageMagickImplementation( arguments.imageMagickImplementation );
+        _setLibVipsImplementation( arguments.libVipsImplementation );
 
         return this;
     }
 
 	public string function resize(
-		  required binary  asset
+		  required string  filePath
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
@@ -34,61 +37,73 @@ component displayname="Image Manipulation Service" {
 		,          string  focalPoint          = ""
 		,          string  cropHint            = ""
 		,          string  useCropHint         = false
+		,          string  resizeNoCrop        = false
+		,          struct  fileProperties      = {}
+		,          string  ignoreDimension     = false
 	) {
 		var args = arguments;
 
+		if ( $helpers.isTrue( args.resizeNoCrop ) && args.maintainAspectRatio && val( args.width ) && val( args.height ) ) {
+			args.paddingColour = "auto";
+			return _getImplementation().shrinkToFit( argumentCollection=args );
+		}
+
 		if ( arguments.useCropHint && arguments.cropHint.len() ) {
 			args.cropHintArea = _getCropHintArea(
-				  image    = args.asset
-				, width    = args.width
-				, height   = args.height
-				, cropHint = args.cropHint
+				  image           = args.asset
+				, width           = args.width
+				, height          = args.height
+				, cropHint        = args.cropHint
+				, ignoreDimension = $helpers.isTrue( args.ignoreDimension )
 			);
 		}
 
-       	return _getImplementation().resize( argumentCollection = args);
+       	return _getImplementation().resize( argumentCollection=args );
 	}
 
 	public binary function shrinkToFit(
-		  required binary  asset
+		  required string  filePath
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highPerformance"
+		,          string  quality        = "highPerformance"
+		,          string  paddingColour  = ""
+		,          struct  fileProperties = {}
 	) {
-		return _getImplementation().shrinkToFit( argumentCollection = arguments);
+		return _getImplementation().shrinkToFit( argumentCollection=arguments );
 	}
 
 	public binary function pdfPreview(
-		  required binary asset
+		  required string filePath
 		,          string scale
 		,          string resolution
 		,          string format
 		,          string pages
 		,          string transparent
+		,          struct fileProperties      = {}
+		,         boolean vipsEnabled    = true
 	) {
-		return _getImplementation().pdfPreview( argumentCollection = arguments );
+		return _getImplementation( vipsEnabled=arguments.vipsEnabled ).pdfPreview( argumentCollection=arguments );
 	}
 
-	public struct function getImageInformation( required binary asset ) {
-		return _getImplementation().getImageInformation( argumentCollection = arguments );
+	public struct function getImageInformation( required string asset ) {
+		return JavaImageMetaReader::readMeta( arguments.asset );
 	}
 
 	public boolean function isValidImageFile( required string path ) {
-		var asset = fileReadBinary( arguments.path );
 		try {
-			var imageInfo = getImageInformation( asset );
-		}
-		catch( any e ) {
+			var imageInfo = getImageInformation( arguments.path );
+		} catch( any e ) {
 			return false;
 		}
-		return isStruct( imageInfo ) && imageInfo.keyExists( "height" );
+		return StructKeyExists( imageInfo, "height" );
 	}
 
 	private struct function _getCropHintArea(
-		  required binary  image
+		  required string  image
 		, required numeric width
 		, required numeric height
 		, required string  cropHint
+		,          boolean ignoreDimension=false
 	) {
 		var imageInfo      = getImageInformation( arguments.image );
 		var targetWidth    = arguments.width;
@@ -105,38 +120,40 @@ component displayname="Image Manipulation Service" {
 		var widthRatio     = 0;
 		var heightRatio    = 0;
 
-		if ( cropHintRatio > targetRatio ) {
-			prevCropHeight = cropHeight;
-			cropHeight     = int( cropHeight * ( cropHintRatio / targetRatio ) );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
-		} else if ( cropHintRatio < targetRatio ) {
-			prevCropWidth = cropWidth;
-			cropWidth     = int( cropWidth * ( targetRatio / cropHintRatio ) );
-			cropX         = int( cropX - ( ( cropWidth - prevCropWidth ) / 2 ) );
-		}
+		if ( !arguments.ignoreDimension ) {
+			if ( cropHintRatio > targetRatio ) {
+				prevCropHeight = cropHeight;
+				cropHeight     = int( cropHeight * ( cropHintRatio / targetRatio ) );
+				cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+			} else if ( cropHintRatio < targetRatio ) {
+				prevCropWidth = cropWidth;
+				cropWidth     = int( cropWidth * ( targetRatio / cropHintRatio ) );
+				cropX         = int( cropX - ( ( cropWidth - prevCropWidth ) / 2 ) );
+			}
 
-		if ( targetWidth > cropWidth ) {
-			prevCropWidth  = cropWidth;
-			widthRatio     = targetWidth / cropWidth;
-			cropWidth      = int( cropWidth  * widthRatio );
-			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
-		}
-		if ( targetHeight > cropHeight ) {
-			prevCropHeight = cropHeight;
-			heightRatio    = targetHeight / cropHeight;
-			cropHeight     = int( cropHeight * heightRatio );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
-		}
+			if ( targetWidth > cropWidth ) {
+				prevCropWidth  = cropWidth;
+				widthRatio     = targetWidth / cropWidth;
+				cropWidth      = int( cropWidth  * widthRatio );
+				cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
+			}
+			if ( targetHeight > cropHeight ) {
+				prevCropHeight = cropHeight;
+				heightRatio    = targetHeight / cropHeight;
+				cropHeight     = int( cropHeight * heightRatio );
+				cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+			}
 
 
-		if ( cropWidth > imageInfo.width || cropHeight > imageInfo.height ) {
-			fitRatio       = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
-			prevCropWidth  = cropWidth;
-			prevCropHeight = cropHeight;
-			cropWidth      = int( cropWidth  * fitRatio );
-			cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
-			cropHeight     = int( cropHeight * fitRatio );
-			cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+			if ( cropWidth > imageInfo.width || cropHeight > imageInfo.height ) {
+				var fitRatio   = min( imageInfo.width / cropWidth, imageInfo.height / cropHeight );
+				prevCropWidth  = cropWidth;
+				prevCropHeight = cropHeight;
+				cropWidth      = int( cropWidth  * fitRatio );
+				cropX          = int( cropX - ( ( cropWidth  - prevCropWidth ) / 2 ) );
+				cropHeight     = int( cropHeight * fitRatio );
+				cropY          = int( cropY - ( ( cropHeight - prevCropHeight ) / 2 ) );
+			}
 		}
 
 		cropX = max( cropX, 0 );
@@ -152,9 +169,12 @@ component displayname="Image Manipulation Service" {
 		}
 	}
 
-	private function _getImplementation() {
-	    var useImageMagick = $getPresideSetting( "asset-manager", "use_imagemagick" );
+	private function _getImplementation( boolean vipsEnabled=true ) {
+		if ( arguments.vipsEnabled && _getLibVipsImplementation().enabled() ) {
+			return _getLibVipsImplementation();
+		}
 
+	    var useImageMagick = $getPresideSetting( "asset-manager", "use_imagemagick" );
 	    if ( IsBoolean( useImageMagick ) && useImageMagick ) {
 	        return _getImageMagickImplementation();
 	    }
@@ -175,6 +195,13 @@ component displayname="Image Manipulation Service" {
 	}
 	private void function _setImageMagickImplementation( required any imageMagickImplementation ) {
 		_imageMagickImplementation = arguments.imageMagickImplementation;
+	}
+
+	private any function _getLibVipsImplementation() {
+	    return _libVipsImplementation;
+	}
+	private void function _setLibVipsImplementation( required any libVipsImplementation ) {
+	    _libVipsImplementation = arguments.libVipsImplementation;
 	}
 
 }

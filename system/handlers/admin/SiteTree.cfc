@@ -180,6 +180,12 @@ component extends="preside.system.base.AdminHandler" {
 		prc.mainFormName  = "preside-objects.page.add";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
 
+		if ( _isManagedPage( parentPageId, rc.page_type ) ) {
+			prc.cancelLink = event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#parentPageId#&pageType=#rc.page_type#" );
+		} else {
+			prc.cancelLink = event.buildAdminLink( linkTo="sitetree" );
+		}
+
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.addPage.title" )
@@ -1194,6 +1200,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( pageId.isEmpty() ) {
 			getController().getCachebox().clearAll();
+			announceInterception( "onClearCaches", {} );
 
 			event.audit(
 				  action = "clear_page_cache"
@@ -1207,6 +1214,11 @@ component extends="preside.system.base.AdminHandler" {
 
 			pageCache.clearByKeySnippet( pageUrl );
 			pageCache.clearByKeySnippet( sectionUrl );
+
+			announceInterception( "onClearPageCaches", {
+				  pageUrl    = pageUrl
+				, sectionUrl = sectionUrl
+			} );
 
 			event.audit(
 				  action   = "clear_cache_for_page"
@@ -1296,7 +1308,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId   = arguments.pageId ?: ( rc.id ?: "" );
 		var cacheKey = "pagePermissionContext";
 
-		if ( prc.keyExists( cacheKey ) ) {
+		if ( StructKeyExists( prc, cacheKey ) ) {
 			return prc[ cacheKey ];
 		}
 

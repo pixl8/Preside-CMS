@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form i18nBaseUri="system-config.tracking:">
-	<tab>
-		<fieldset>
-			<field name="allow_anonymous_tracking" control="yesnoswitch" />
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field name="allow_anonymous_tracking" control="yesnoswitch"                                            />
+			<field name="vid_cookie_expiry"        control="spinner"      default="" minValue="1" maxValue="999999" />
 		</fieldset>
 	</tab>
 </form>

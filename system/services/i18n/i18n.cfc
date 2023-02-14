@@ -7,6 +7,10 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	property name="controller"            inject="delayedInjector:coldbox";
 	property name="sessionStorage"        inject="delayedInjector:sessionStorage";
 	property name="adminLanguages"        inject="coldbox:setting:adminLanguages";
+	property name="unknownTranslation"    inject="coldbox:setting:unknownTranslation";
+
+	variables._localeCache = {};
+	variables._jsCache = {};
 
 	public any function init() {
 		super.init( argumentCollection=arguments );
@@ -20,7 +24,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 
 	public string function translateResource(
 		  required string uri
-		,          string defaultValue = variables.controller.getSetting( "UnknownTranslation" )
+		,          string defaultValue = unknownTranslation
 		,          string language     = getFWLanguageCode()
 		,          string country      = getFWCountryCode()
 		,          array  data         = []
@@ -30,13 +34,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			return arguments.uri;
 		}
 
-		var translated = "";
-
-		try {
-			translated = resourceBundleService.getResource( argumentCollection = arguments );
-		} catch ( "ResourceBundleService.MalformedResourceUri" e ) {
-			translated = arguments.defaultValue;
-		}
+		var translated = resourceBundleService.getResource( argumentCollection = arguments );
 
 		if ( ArrayLen( arguments.data ) ) {
 			translated = resourceservice.formatRBString(
@@ -60,41 +58,78 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 		return translateResource( uri=uri, defaultValue=arguments.objectName );
 	}
 
-	public string function translatePropertyName( required string objectName, required string propertyName ) {
-		var baseUri = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
+	public string function translatePropertyName( required string objectName, required string propertyName, string context="" ) {
+		var baseUri          = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
+		var contextTranslate = "";
 
-		return translateResource(
+		if ( !isEmpty( arguments.context ) ) {
+			contextTranslate = translateResource( uri=baseUri & "field.#arguments.propertyName#.#arguments.context#.title", defaultValue="" );
+		}
+
+		return !isEmpty( contextTranslate ) ? contextTranslate : translateResource(
 			  uri          = baseUri & "field.#arguments.propertyName#.title"
 			, defaultValue = translateResource( uri="cms:preside-objects.default.field.#arguments.propertyName#.title", defaultValue=arguments.propertyName )
 		);
 	}
 
-	public string function getI18nJsForAdmin(){
-		var data    = {};
-		var bundles = [ "cms" ];
-		var locale  = getFwLocale();
-		var js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
+	public string function getI18nJsForAdmin( string locale=getFwLocale() ){
+		if ( !Len( variables._jsCache[ arguments.locale ] ?: "" ) ) {
+			var data    = {};
+			var bundles = [ "cms" ];
+			var js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
 
-		for( var widget in widgetsService.getWidgets() ) {
-			ArrayAppend( bundles, "widgets." & widget );
+			for( var widget in widgetsService.getWidgets() ) {
+				ArrayAppend( bundles, "widgets." & widget );
+			}
+			for( var po in presideObjectService.listObjects() ) {
+				ArrayAppend( bundles, "preside-objects." & po );
+			}
+
+			for( var bundle in bundles ) {
+				var json = resourceBundleService.getBundleAsJson(
+					  bundle   = bundle
+					, language = ListFirst( arguments.locale, "-_" )
+					, country  = ListRest( arguments.locale, "-_" )
+				);
+
+				js &= "bundle = #json#; for( el in bundle ) { rb[el] = bundle[el]; }";
+			}
+
+			js &= "return rb; } )();";
+
+			variables._jsCache[ arguments.locale ] = js;
 		}
-		for( var po in presideObjectService.listObjects() ) {
-			ArrayAppend( bundles, "preside-objects." & po );
+
+		return variables._jsCache[ arguments.locale ];
+	}
+
+	public string function getI18nJsCachebusterForAdmin( string locale=getFwLocale() ){
+		if ( !Len( variables._jsCache[ arguments.locale & "buster" ] ?: "" ) ) {
+			var data    = {};
+			var bundles = [ "cms" ];
+			var content = "";
+
+			for( var widget in widgetsService.getWidgets() ) {
+				ArrayAppend( bundles, "widgets." & widget );
+			}
+			for( var po in presideObjectService.listObjects() ) {
+				ArrayAppend( bundles, "preside-objects." & po );
+			}
+
+			for( var bundle in bundles ) {
+				var json = resourceBundleService.getBundleAsJson(
+					  bundle   = bundle
+					, language = ListFirst( arguments.locale, "-_" )
+					, country  = ListRest( arguments.locale, "-_" )
+				);
+
+				content &= "bundle = #json#; for( el in bundle ) { rb[el] = bundle[el]; }";
+			}
+
+			variables._jsCache[ arguments.locale & "buster" ] = Left( LCase( Hash( content ) ), 8 );
 		}
 
-		for( bundle in bundles ) {
-			json = resourceBundleService.getBundleAsJson(
-				  bundle   = bundle
-				, language = ListFirst( locale, "-_" )
-				, country  = ListRest( locale, "-_" )
-			);
-
-			js &= "bundle = #json#; for( el in bundle ) { rb[el] = bundle[el]; }";
-		}
-
-		js &= "return rb; } )();";
-
-		return js;
+		return variables._jsCache[ arguments.locale & "buster" ];
 	}
 
 	public boolean function isValidResourceUri( required string uri ) {
@@ -111,23 +146,42 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			}
 		}
 
+		request._cbfwlocale = arguments.locale;
+		StructDelete( request, "_cbFwLanguageCode" );
+		StructDelete( request, "_cbFwCountryCode"  );
+
 		return super.setFwLocale( argumentCollection=arguments );
 	}
 
 	public any function getFwLocale() {
-		var locale = super.getFwLocale( argumentCollection=arguments );
-		var event = controller.getRequestService().getContext();
+		if ( !StructKeyExists( request, "_cbfwlocale" ) ) {
+			request._cbfwlocale = super.getFwLocale( argumentCollection=arguments );
 
-		if ( event.isAdminRequest() && adminLanguages.len() && !adminLanguages.findNoCase( locale ) ) {
-			if ( adminLanguages.len() == 1 ) {
-				return adminLanguages[ 1 ];
+			var event = controller.getRequestService().getContext();
+
+			if ( event.isAdminRequest() && adminLanguages.len() && !adminLanguages.findNoCase( request._cbfwlocale ) ) {
+				if ( adminLanguages.len() == 1 ) {
+					request._cbfwlocale = adminLanguages[ 1 ];
+				} else {
+					request._cbfwlocale = controller.getSetting( "default_locale" );
+				}
 			}
-
-			return controller.getSetting( "default_locale" );
 		}
 
-		return locale;
+		return request._cbfwlocale;
+	}
 
+	public string function getFWLanguageCode() {
+		if ( !StructKeyExists( request, "_cbFwLanguageCode" ) ) {
+			request._cbFwLanguageCode = super.getFWLanguageCode();
+		}
+		return request._cbFwLanguageCode
+	}
+	public string function getFWCountryCode() {
+		if ( !StructKeyExists( request, "_cbFwCountryCode" ) ) {
+			request._cbFwCountryCode = super.getFWCountryCode();
+		}
+		return request._cbFwCountryCode
 	}
 
 // PRIVATE HEPERS
@@ -143,8 +197,8 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			ArrayAppend( bundles, "preside-objects." & po );
 		}
 
-		for( bundle in bundles ) {
-			json = resourceBundleService.getBundleAsJson(
+		for( var bundle in bundles ) {
+			var json = resourceBundleService.getBundleAsJson(
 				  bundle   = bundle
 				, language = ListFirst( locale, "-_" )
 				, country  = ListRest( locale, "-_" )
@@ -157,12 +211,20 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	}
 
 	private boolean function _isDebugMode() {
-		if ( !request.keyExists( "_i18nDebugMode" ) ) {
+		if ( !StructKeyExists( request, "_i18nDebugMode" ) ) {
 			request._i18nDebugMode = sessionStorage.getVar( "_i18nDebugMode" );
 		}
 
 		request._i18nDebugMode = IsBoolean( request._i18nDebugMode ?: "" ) && request._i18nDebugMode;
 
 		return request._i18nDebugMode;
+	}
+
+	private any function buildLocale( string thisLocale="en_US" ) {
+		if ( !StructKeyExists( variables._localeCache, arguments.thisLocale ) ) {
+			variables._localeCache[ arguments.thisLocale ] = super.buildLocale( argumentCollection=arguments );
+		}
+
+		return variables._localeCache[ arguments.thisLocale ];
 	}
 }

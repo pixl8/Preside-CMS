@@ -1,10 +1,12 @@
 <cfscript>
-	inputName    = args.name         ?: "";
-	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
-	defaultValue = args.defaultValue ?: "";
-	pastOnly     = IsTrue( args.pastOnly   ?: "" );
-	futureOnly   = IsTrue( args.futureOnly ?: "" );
+	inputName      = args.name         ?: "";
+	inputId        = args.id           ?: "";
+	inputClass     = args.class        ?: "";
+	defaultValue   = args.defaultValue ?: "";
+	pastOnly       = IsTrue( args.pastOnly   ?: "" );
+	futureOnly     = IsTrue( args.futureOnly ?: "" );
+	isDate         = IsTrue( args.isDate     ?: "" );
+	datePickerType = isDate ? "datePicker" : "dateTimePicker";
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -24,31 +26,34 @@
 			, defaultValue = timePeriod.type ?: "alltime"
 			, class        = "time-period-type"
 			, pastOnly     = pastOnly
-            , futureOnly   = futureOnly
+			, futureOnly   = futureOnly
 			, layout       = ""
 		)#
 
-		#renderFormControl(
-			  name         = ( inputName & "_period_measure" )
-			, type         = "spinner"
-			, class        = "time-period-measure"
-			, savedValue   = timePeriod.measure ?: 1
-			, defaultValue = timePeriod.measure ?: 1
-			, layout       = ""
-		)#
+		<div class="time-period-measure-unit-group">
+			#renderFormControl(
+				  name         = ( inputName & "_period_measure" )
+				, type         = "spinner"
+				, class        = "time-period-measure-unit-input time-period-measure form-control"
+				, savedValue   = timePeriod.measure ?: 1
+				, defaultValue = timePeriod.measure ?: 1
+				, layout       = ""
+			)#
 
-		#renderFormControl(
-			  name         = ( inputName & "_period_unit" )
-			, type         = "timePeriodUnitPicker"
-			, class        = "time-period-unit"
-			, savedValue   = timePeriod.unit ?: "d"
-			, defaultValue = timePeriod.unit ?: "d"
-			, layout       = ""
-		)#
+			#renderFormControl(
+				  name         = ( inputName & "_period_unit" )
+				, type         = "timePeriodUnitPicker"
+				, class        = "time-period-measure-unit-input time-period-unit"
+				, isDate       = isDate
+				, savedValue   = timePeriod.unit ?: "d"
+				, defaultValue = timePeriod.unit ?: "d"
+				, layout       = ""
+			)#
+		</div>
 
 		#renderFormControl(
 			  name         = ( inputName & "_period_date1" )
-			, type         = "dateTimePicker"
+			, type         = datePickerType
 			, class        = "time-period-date1"
 			, savedValue   = timePeriod.date1 ?: ""
 			, defaultValue = timePeriod.date1 ?: ""
@@ -57,7 +62,7 @@
 
 		#renderFormControl(
 			  name         = ( inputName & "_period_date2" )
-			, type         = "dateTimePicker"
+			, type         = datePickerType
 			, class        = "time-period-date2"
 			, savedValue   = timePeriod.date2 ?: ""
 			, defaultValue = timePeriod.date2 ?: ""

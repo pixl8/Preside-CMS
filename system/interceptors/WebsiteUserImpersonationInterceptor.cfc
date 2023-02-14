@@ -7,7 +7,7 @@ component extends="coldbox.system.Interceptor" {
 
 	public void function prePresideRequestCapture( event, interceptData ) {
 		var rc = arguments.event.getCollection();
-		if ( !rc.keyExists( "impersonate" ) ) {
+		if ( !StructKeyExists( rc, "impersonate" ) ) {
 			return;
 		}
 

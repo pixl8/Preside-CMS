@@ -77,7 +77,8 @@ component singleton=true {
 
 	public boolean function typeIsAllowedBeneathParentType( required string child, required string parent ) {
 		var allowedParentTypes = getPageType( arguments.child ).getAllowedParentTypes();
-		var allowedChildTypes  = getPageType( arguments.parent ).getAllowedChildTypes();
+		var allowedChildTypes  = ListAppend( getPageType( arguments.parent ).getAllowedChildTypes(), getPageType( arguments.parent ).getManagedChildTypes() );
+
 
 		if ( allowedChildTypes == "none" || allowedParentTypes == "none" ) {
 			return false;
@@ -135,7 +136,7 @@ component singleton=true {
 						var layoutFiles = DirectoryList( viewDir, false, "name", "*.cfm" );
 
 						for( var file in layoutFiles ) {
-							if ( !file.startsWith( "_" ) ) {
+							if ( !file.reFind( "^_" ) ) {
 								layouts[ ReReplaceNoCase( file, "\.cfm$", "" ) ] = true;
 							}
 						}
@@ -165,7 +166,7 @@ component singleton=true {
 				var layoutFiles = DirectoryList( viewDir, false, "name", "*.cfm" );
 
 				for( var file in layoutFiles ) {
-					if ( !file.startsWith( "_" ) ) {
+					if ( !file.reFind( "^_" ) ) {
 						layouts[ ReReplaceNoCase( file, "\.cfm$", "" ) ] = true;
 					}
 				}
@@ -186,23 +187,24 @@ component singleton=true {
 		var poService = _getPresideObjectService();
 
 		pageTypes[ arguments.id ] = new PageType(
-			  id                   = arguments.id
-			, name                 = _getConventionsBasePageTypeName( arguments.id )
-			, description          = _getConventionsBasePageTypeDescription( arguments.id )
-			, addForm              = _getConventionsBasePageTypeAddForm( arguments.id )
-			, defaultForm          = _getConventionsBasePageTypeDefaultForm( arguments.id )
-			, editForm             = _getConventionsBasePageTypeEditForm( arguments.id )
-			, cloneForm            = _getConventionsBasePageTypeCloneForm( arguments.id )
-			, presideObject        = _getConventionsBasePageTypePresideObject( arguments.id )
-			, hasHandler           = arguments.hasHandler
-			, layouts              = arguments.layouts
-			, viewlet              = poService.getObjectAttribute( arguments.id, "pageTypeViewlet", _getConventionsBasePageTypeViewlet( arguments.id ) )
-			, allowedChildTypes    = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*"   )
-			, allowedParentTypes   = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*"   )
-			, showInSiteTree       = poService.getObjectAttribute( objectName=arguments.id, attributeName="showInSiteTree"        , defaultValue=true  )
-			, siteTemplates        = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*"   )
-			, isSystemPageType     = poService.getObjectAttribute( objectName=arguments.id, attributeName="isSystemPageType"      , defaultValue=false )
-			, parentSystemPageType = poService.getObjectAttribute( objectName=arguments.id, attributeName="parentSystemPageType"  , defaultValue="homepage" )
+			  id                    = arguments.id
+			, name                  = _getConventionsBasePageTypeName( arguments.id )
+			, description           = _getConventionsBasePageTypeDescription( arguments.id )
+			, addForm               = _getConventionsBasePageTypeAddForm( arguments.id )
+			, defaultForm           = _getConventionsBasePageTypeDefaultForm( arguments.id )
+			, editForm              = _getConventionsBasePageTypeEditForm( arguments.id )
+			, cloneForm             = _getConventionsBasePageTypeCloneForm( arguments.id )
+			, presideObject         = _getConventionsBasePageTypePresideObject( arguments.id )
+			, hasHandler            = arguments.hasHandler
+			, layouts               = arguments.layouts
+			, viewlet               = poService.getObjectAttribute( arguments.id, "pageTypeViewlet", _getConventionsBasePageTypeViewlet( arguments.id ) )
+			, allowedChildTypes     = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*"   )
+			, allowedParentTypes    = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*"   )
+			, showInSiteTree        = poService.getObjectAttribute( objectName=arguments.id, attributeName="showInSiteTree"        , defaultValue=true  )
+			, siteTemplates         = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*"   )
+			, isSystemPageType      = poService.getObjectAttribute( objectName=arguments.id, attributeName="isSystemPageType"      , defaultValue=false )
+			, parentSystemPageType  = poService.getObjectAttribute( objectName=arguments.id, attributeName="parentSystemPageType"  , defaultValue="homepage" )
+			, defaultSystemPageSlug = poService.getObjectAttribute( objectName=arguments.id, attributeName="defaultSystemPageSlug" , defaultValue=""    )
 		);
 	}
 

@@ -22,6 +22,8 @@ component extends="coldbox.system.web.routing.Router" {
 		addRouteHandler( getModel( dsl="delayedInjector:adminRouteHandler" ) );
 		addRouteHandler( getModel( dsl="delayedInjector:assetRouteHandler" ) );
 		addRouteHandler( getModel( dsl="delayedInjector:plainStoredFileRouteHandler" ) );
+		addRouteHandler( getModel( dsl="delayedInjector:rulesEngineConditionsExpressionsJsHandler" ) );
+		addRouteHandler( getModel( dsl="delayedInjector:rulesEngineFilterExpressionsJsHandler" ) );
 		addRouteHandler( getModel( dsl="delayedInjector:staticAssetRouteHandler" ) );
 		addRouteHandler( getModel( dsl="delayedInjector:emailRouteHandler" ) );
 		addRouteHandler( getModel( dsl="delayedInjector:defaultPresideRouteHandler" ) );
@@ -32,9 +34,9 @@ component extends="coldbox.system.web.routing.Router" {
 	}
 
 	function pathInfoProvider( event ) {
-		var requestData = GetHttpRequestData();
-		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: (request[ "javax.servlet.forward.request_uri" ] ?: "") ), '?' );
-		var qs          = "";
+		var headers = GetHttpRequestData( false ).headers;
+		var uri     = ListFirst( ( headers['X-Original-URL'] ?: (request[ "javax.servlet.forward.request_uri" ] ?: "") ), '?' );
+		var qs      = "";
 
 		if ( !Len( Trim( uri ) ) ) {
 			uri = cgi.path_info ?: "";
@@ -44,8 +46,8 @@ component extends="coldbox.system.web.routing.Router" {
 			}
 		}
 
-		if ( ListLen( requestData.headers['X-Original-URL'] ?: "", "?" ) > 1 ) {
-			qs = ListRest( requestData.headers['X-Original-URL'], "?" );
+		if ( ListLen( headers['X-Original-URL'] ?: "", "?" ) > 1 ) {
+			qs = ListRest( headers['X-Original-URL'], "?" );
 		}
 		if ( !Len( Trim( qs ) ) ) {
 			qs = request[ "javax.servlet.forward.query_string" ] ?: ( cgi.query_string ?: "" );
@@ -63,9 +65,9 @@ component extends="coldbox.system.web.routing.Router" {
 
 // overriding getModel() to ensure we always use delayed injector in our Routes.cfm which loads while the interceptors are loading
 	public any function getModel( string name, string dsl, struct initArguments={} ) {
-		if ( arguments.keyExists( "name" ) ) {
+		if ( StructKeyExists( arguments, "name" ) ) {
 			arguments.dsl = "delayedInjector:" & arguments.name;
-		} else if ( arguments.keyExists( "dsl" ) && !arguments.dsl.startsWith( "delayedInjector:" ) && !arguments.dsl.startsWith( "provider:" ) ) {
+		} else if ( StructKeyExists( arguments, "dsl" ) && !arguments.dsl.reFindNoCase( "^delayedInjector:" ) && !arguments.dsl.reFindNoCase( "^provider:" ) ) {
 			arguments.dsl = "delayedInjector:" & arguments.dsl;
 		}
 

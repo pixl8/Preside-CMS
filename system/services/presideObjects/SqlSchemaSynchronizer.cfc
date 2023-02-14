@@ -43,19 +43,26 @@ component {
 		var tableExists        = "";
 		var tableVersionExists = "";
 
-		_ensureValidDbEntityNames( arguments.objects );
 		for( objName in objects ) {
 			obj       = objects[ objName ];
-			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
-			dbVersion.append( obj.sql.table.version );
+
+			if ( !_skipSync( obj.meta ?: {} ) ) {
+				obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
+				dbVersion.append( obj.sql.table.version );
+			}
 		}
 		dbVersion.sort( "text" );
 		dbVersion = Hash( dbVersion.toList() );
 		if ( ( versions.db.db ?: "" ) neq dbVersion ) {
 			for( objName in objects ) {
-				obj                = objects[ objName ];
+				obj = objects[ objName ];
+
+				if ( _skipSync( obj.meta ?: {} ) ) {
+					continue;
+				}
+
 				tableVersionExists = StructKeyExists( versions, "table" ) and StructKeyExists( versions.table, obj.meta.tableName );
-				tableExists        = tableVersionExists or _getTableInfo( tableName=obj.meta.tableName, dsn=obj.meta.dsn ).recordCount;
+				tableExists        = tableVersionExists or _tableExists( tableName=obj.meta.tableName, dsn=obj.meta.dsn );
 
 				if ( not tableExists ) {
 					try {
@@ -75,12 +82,13 @@ component {
 					try {
 						_enableFkChecks( false, obj.meta.dsn, obj.meta.tableName );
 						_updateDbTable(
-							  tableName        = obj.meta.tableName
-							, generatedSql     = obj.sql
-							, dsn              = obj.meta.dsn
-							, indexes          = obj.meta.indexes
-							, columnVersions   = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
-							, objectProperties = obj.meta.properties
+							  tableName          = obj.meta.tableName
+							, generatedSql       = obj.sql
+							, dsn                = obj.meta.dsn
+							, indexes            = obj.meta.indexes
+							, columnVersions     = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
+							, objectProperties   = obj.meta.properties
+							, skipSync           = _skipSync( obj.meta )
 						);
 						_enableFkChecks( true, obj.meta.dsn, obj.meta.tableName );
 					} catch( any e ) {
@@ -158,6 +166,8 @@ component {
 
 	) {
 		var adapter        = _getAdapter( dsn = arguments.dsn );
+		var tableExists    =  _tableExists( tableName=arguments.tableName, dsn=arguments.dsn );
+		var tableColumns   = tableExists ? valueList( _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ).COLUMN_NAME ) : "";
 		var columnSql      = "";
 		var colName        = "";
 		var column         = "";
@@ -169,15 +179,19 @@ component {
 		var index          = "";
 		var fkName         = "";
 		var fk             = "";
+		var field          = "";
 		var sql            = {
 			  columns = {}
 			, indexes = {}
 			, table   = { version="", sql="" }
 		};
 
-		for( colName in ListToArray( arguments.dbFieldList ) ){
-			column = sql.columns[ colName ] = StructNew();
+		for( colName in ListToArray( arguments.dbFieldList ) ) {
 			colMeta = arguments.properties[ colName ];
+			if( listFindNoCase( tableColumns, colName ) && _skipSync( colMeta ) ) {
+				continue;
+			}
+			column = sql.columns[ colName ] = StructNew();
 			args = {
 				  tableName     = arguments.tableName
 				, columnName    = colName
@@ -191,39 +205,62 @@ component {
 			column.definitionSql = adapter.getColumnDefinitionSql( argumentCollection = args );
 			column.alterSql      = adapter.getAlterColumnSql( argumentCollection = args );
 			column.addSql        = adapter.getAddColumnSql( argumentCollection = args );
+			if( _skipSync( colMeta ) || _skipSync( arguments ) ) {
+				// for change version beased upon property dbsync
+				column.version       = Hash( column.definitionSql & " " );
+			} else {
+				column.version       = Hash( column.definitionSql );
+			}
 			column.version       = Hash( column.definitionSql );
 
 			columnSql &= delim & column.definitionSql;
 			delim = ", ";
 		}
 
-
+		colMeta = "";
 		for( indexName in arguments.indexes ){
 			index          = arguments.indexes[ indexName ];
 			validIndexName = adapter.ensureValidIndexName( indexName );
 
-			if ( indexName != validIndexName ) {
-			    arguments.indexes[ validIndexName ] = index;
-			    arguments.indexes.delete( indexName );
-			    indexName = validIndexName;
-			}
+			for( field in listToArray( index.fields, "," ) ) {
+ 				colMeta = arguments.properties[ field ];
+				if( _skipSync( colMeta ) ) {
+					// skip dbsync for this index
+					continue;
+				} else {
+					if ( indexName != validIndexName ) {
+						arguments.indexes[ validIndexName ] = index;
+						arguments.indexes.delete( indexName );
+						indexName = validIndexName;
+					}
 
-			sql.indexes[ indexName ] = {
-				createSql = adapter.getIndexSql(
-					  indexName = indexName
-					, tableName = arguments.tableName
-					, fieldList = index.fields
-					, unique    = index.unique
-				),
-				dropSql = adapter.getDropIndexSql(
-					  indexName = indexName
-					, tableName = arguments.tableName
-				)
-			};
+					sql.indexes[ indexName ] = {
+						createSql = adapter.getIndexSql(
+							  indexName = indexName
+							, tableName = arguments.tableName
+							, fieldList = index.fields
+							, unique    = index.unique
+						),
+						dropSql = adapter.getDropIndexSql(
+							  indexName = indexName
+							, tableName = arguments.tableName
+						),
+						relatedForeignKeys = _getRelatedForeignKeys( arguments.relationships, index.fields )
+					};
+				}
+ 			}
+
 		}
 
+		colMeta = "";
 		for( fkName in arguments.relationships ){
 			fk = arguments.relationships[ fkName ];
+
+			colMeta = arguments.properties[ fk.fk_column ];
+			if( _skipSync( colMeta ) ) {
+				// skip dbsync for this fk
+				continue;
+			}
 
 			sql.relationships[ fkName ] = {
 				createSql = adapter.getForeignKeyConstraintSql(
@@ -243,9 +280,28 @@ component {
 			  tableName = arguments.tableName
 			, columnSql = columnSql
 		);
-		sql.table.version = Hash( sql.table.sql & SerializeJson( arguments.indexes ) & SerializeJson( arguments.relationships ) );
+
+		if( _skipSync( arguments ) ) {
+			// for change version beased upon object dbsync
+			sql.table.version = Hash( sql.table.sql & SerializeJson( arguments.indexes ) & SerializeJson( arguments.relationships ) & " " );
+		} else {
+			sql.table.version = Hash( sql.table.sql & SerializeJson( arguments.indexes ) & SerializeJson( arguments.relationships ) );
+		}
 
 		return sql;
+	}
+
+	private array function _getRelatedForeignKeys( required struct relationships, required string fields ) {
+		var foreignKeys = [];
+		var indexFields = listToArray( arguments.fields );
+
+		for( var fk in arguments.relationships ) {
+			if ( indexFields.find( arguments.relationships[ fk ].fk_column ) ) {
+				foreignKeys.append( fk );
+			}
+		}
+
+		return foreignKeys;
 	}
 
 	private void function _createObjectInDb( required struct generatedSql, required string dsn ) {
@@ -281,12 +337,13 @@ component {
 	}
 
 	private void function _updateDbTable(
-		  required string tableName
-		, required struct generatedSql
-		, required struct indexes
-		, required string dsn
-		, required struct columnVersions
-		, required struct objectProperties
+		  required string  tableName
+		, required struct  generatedSql
+		, required struct  indexes
+		, required string  dsn
+		, required struct  columnVersions
+		, required struct  objectProperties
+		, required boolean skipSync
 
 	) {
 		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
@@ -307,153 +364,159 @@ component {
 		var newName         = "";
 		var colProperties   = {};
 
-		for( column in columnsFromDb ){
-			wasDeDeprecated = false;
-			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
-				columnName = Replace( column.column_name, "__deprecated__", "" );
-				if ( StructKeyExists( colsSql, columnName ) ) {
-					colSql = colsSql[ columnName ];
+		if( !arguments.skipSync ) {
+			for( column in columnsFromDb ){
+				if ( StructKeyExists( arguments.objectProperties, column.column_name ) && _skipSync( arguments.objectProperties[ column.column_name ] ) ) {
+					continue;
+				}
+				wasDeDeprecated = false;
+				if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
+					columnName = Replace( column.column_name, "__deprecated__", "" );
+					if ( StructKeyExists( colsSql, columnName ) ) {
+						colSql = colsSql[ columnName ];
 
-					if ( column.column_name contains "__deprecated__" ) {
+						if ( column.column_name contains "__deprecated__" ) {
 
+							if ( !adapter.supportsRenameInAlterColumnStatement() ) {
+								renameSql = adapter.getRenameColumnSql(
+									  tableName     = arguments.tableName
+									, oldColumnName = column.column_name
+									, newColumnName = columnName
+								);
+
+								_runSql( sql=renameSql, dsn=arguments.dsn );
+							}
+
+							colProperties = objectProperties[ columnName ];
+
+							deDeprecateSql = adapter.getAlterColumnSql(
+								  tableName     = arguments.tableName
+								, columnName    = column.column_name
+								, newName       = columnName
+								, dbType        = colProperties.dbType
+								, nullable      = true // it was deprecated, must be nullable!
+								, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( IsNumeric( colProperties.maxLength ?: "" ) ? colProperties.maxLength : 0 ) : 0
+								, primaryKey    = IsBoolean( colProperties.pk ?: "" ) && colProperties.pk
+								, autoIncrement = colProperties.generator eq "increment"
+							);
+
+							dbColumnNames   = Replace( dbColumnNames, column.column_name, columnName );
+							wasDeDeprecated = true;
+
+							_runSql( sql=deDeprecateSql, dsn=arguments.dsn );
+						}
+
+						if ( !wasDeDeprecated && ( !StructKeyExists( columnVersions, columnName ) || colSql.version != columnVersions[ columnName ] ) ) {
+
+							for( index in indexesFromDb ){
+								if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
+									indexSql = indexesSql[ index ];
+									_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
+								}
+							}
+
+							if ( column.is_foreignkey ){
+								_deleteForeignKeysForColumn(
+									  primaryTableName  = column.referenced_primarykey_table
+									, foreignTableName  = arguments.tableName
+									, foreignColumnName = column.column_name
+									, dsn               = arguments.dsn
+								);
+							}
+							_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
+							_setDatabaseObjectVersion(
+								  entityType   = "column"
+								, parentEntity = arguments.tableName
+								, entityName   = columnName
+								, version      = colSql.version
+								, dsn          = arguments.dsn
+							);
+
+							for( index in indexesFromDb ){
+								if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
+									indexSql = indexesSql[ index ];
+									_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
+								}
+							}
+						}
+					} else if ( !column.column_name contains "__deprecated__" ) {
+						newName = "__deprecated__" & column.column_name;
 						if ( !adapter.supportsRenameInAlterColumnStatement() ) {
 							renameSql = adapter.getRenameColumnSql(
 								  tableName     = arguments.tableName
 								, oldColumnName = column.column_name
-								, newColumnName = columnName
+								, newColumnName = newName
 							);
-
 							_runSql( sql=renameSql, dsn=arguments.dsn );
-						}
 
-						colProperties = objectProperties[ columnName ];
-
-						deDeprecateSql = adapter.getAlterColumnSql(
-							  tableName     = arguments.tableName
-							, columnName    = column.column_name
-							, newName       = columnName
-							, dbType        = colProperties.dbType
-							, nullable      = true // it was deprecated, must be nullable!
-							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( IsNumeric( colProperties.maxLength ?: "" ) ? colProperties.maxLength : 0 ) : 0
-							, primaryKey    = IsBoolean( colProperties.pk ?: "" ) && colProperties.pk
-							, autoIncrement = colProperties.generator eq "increment"
-						);
-
-						dbColumnNames   = Replace( dbColumnNames, column.column_name, columnName );
-						wasDeDeprecated = true;
-
-						_runSql( sql=deDeprecateSql, dsn=arguments.dsn );
-					}
-
-					if ( !wasDeDeprecated && ( !StructKeyExists( columnVersions, columnName ) || colSql.version != columnVersions[ columnName ] ) ) {
-
-						for( index in indexesFromDb ){
-							if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
-								indexSql = indexesSql[ index ];
-								_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
-							}
-						}
-
-						if ( column.is_foreignkey ){
-							_deleteForeignKeysForColumn(
-								  primaryTableName  = column.referenced_primarykey_table
-								, foreignTableName  = arguments.tableName
-								, foreignColumnName = column.column_name
-								, dsn               = arguments.dsn
+							deprecateSql = adapter.getAlterColumnSql(
+								  tableName     = arguments.tableName
+								, columnName    = newName
+								, dbType        = column.type_name
+								, nullable      = true // its deprecated, must be nullable!
+								, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
+								, primaryKey    = column.is_primarykey
+								, autoIncrement = column.is_autoincrement
 							);
+							_runSql( sql=deprecateSql, dsn=arguments.dsn );
+						} else {
+							deprecateSql = adapter.getAlterColumnSql(
+								  tableName     = arguments.tableName
+								, columnName    = column.column_name
+								, newName       = newName
+								, dbType        = column.type_name
+								, nullable      = true // its deprecated, must be nullable!
+								, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
+								, primaryKey    = column.is_primarykey
+								, autoIncrement = column.is_autoincrement
+							);
+							_runSql( sql=deprecateSql, dsn=arguments.dsn );
 						}
-						_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
-						_setDatabaseObjectVersion(
-							  entityType   = "column"
-							, parentEntity = arguments.tableName
-							, entityName   = columnName
-							, version      = colSql.version
-							, dsn          = arguments.dsn
-						);
-
-						for( index in indexesFromDb ){
-							if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
-								indexSql = indexesSql[ index ];
-								_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
-							}
-						}
-					}
-				} else if ( !column.column_name contains "__deprecated__" ) {
-					newName = "__deprecated__" & column.column_name;
-					if ( !adapter.supportsRenameInAlterColumnStatement() ) {
-						renameSql = adapter.getRenameColumnSql(
-							  tableName     = arguments.tableName
-							, oldColumnName = column.column_name
-							, newColumnName = newName
-						);
-						_runSql( sql=renameSql, dsn=arguments.dsn );
-
-						deprecateSql = adapter.getAlterColumnSql(
-							  tableName     = arguments.tableName
-							, columnName    = newName
-							, dbType        = column.type_name
-							, nullable      = true // its deprecated, must be nullable!
-							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
-							, primaryKey    = column.is_primarykey
-							, autoIncrement = column.is_autoincrement
-						);
-						_runSql( sql=deprecateSql, dsn=arguments.dsn );
-					} else {
-						deprecateSql = adapter.getAlterColumnSql(
-							  tableName     = arguments.tableName
-							, columnName    = column.column_name
-							, newName       = newName
-							, dbType        = column.type_name
-							, nullable      = true // its deprecated, must be nullable!
-							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
-							, primaryKey    = column.is_primarykey
-							, autoIncrement = column.is_autoincrement
-						);
-						_runSql( sql=deprecateSql, dsn=arguments.dsn );
 					}
 				}
 			}
-		}
 
-
-		for( column in colsSql ) {
-			if ( !ListFindNoCase( dbColumnNames, column ) ) {
-				colSql = colsSql[ column ];
-				_runSql( sql=colSql.addSql, dsn=arguments.dsn );
-				_setDatabaseObjectVersion(
-					  entityType   = "column"
-					, parentEntity = arguments.tableName
-					, entityName   = column
-					, version      = colSql.version
-					, dsn          = arguments.dsn
-				);
+			for( column in colsSql ) {
+				if ( !ListFindNoCase( dbColumnNames, column ) ) {
+					colSql = colsSql[ column ];
+					_runSql( sql=colSql.addSql, dsn=arguments.dsn );
+					_setDatabaseObjectVersion(
+						  entityType   = "column"
+						, parentEntity = arguments.tableName
+						, entityName   = column
+						, version      = colSql.version
+						, dsn          = arguments.dsn
+					);
+				}
 			}
+
+			for( index in indexesFromDb ){
+				if ( StructKeyExists( arguments.indexes, index ) and SerializeJson( arguments.indexes[index] ) NEQ SerializeJson( indexesFromDb[index] ) ){
+					indexSql = indexesSql[ index ];
+					_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
+					_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
+					_addForeignKeysToRecreate( indexSql.relatedForeignKeys );
+				} else if ( !StructKeyExists( arguments.indexes, index ) && ReFindNoCase( '^[iu]x_', index ) ) {
+					_runSql(
+						  sql = adapter.getDropIndexSql( indexName=index, tableName=arguments.tableName )
+						, dsn = arguments.dsn
+					);
+				}
+			}
+			for( index in indexesSql ){
+				if ( not StructKeyExists( indexesFromDb, index ) ) {
+					_runSql( sql=indexesSql[index].createSql, dsn=arguments.dsn );
+				}
+			}
+
+			_setDatabaseObjectVersion(
+				  entityType = "table"
+				, entityName = arguments.tableName
+				, version    = arguments.generatedSql.table.version
+				, dsn        = arguments.dsn
+			);
 		}
 
-		for( index in indexesFromDb ){
-			if ( StructKeyExists( arguments.indexes, index ) and SerializeJson( arguments.indexes[index] ) NEQ SerializeJson( indexesFromDb[index] ) ){
-				indexSql = indexesSql[ index ];
-				_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
-				_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
-			} else if ( !StructKeyExists( arguments.indexes, index ) && ReFindNoCase( '^[iu]x_', index ) ) {
-				_runSql(
-					  sql = adapter.getDropIndexSql( indexName=index, tableName=arguments.tableName )
-					, dsn = arguments.dsn
-				);
-			}
-		}
-		for( index in indexesSql ){
-			if ( not StructKeyExists( indexesFromDb, index ) ) {
-				_runSql( sql=indexesSql[index].createSql, dsn=arguments.dsn );
-			}
-		}
-
-		_setDatabaseObjectVersion(
-			  entityType = "table"
-			, entityName = arguments.tableName
-			, version    = arguments.generatedSql.table.version
-			, dsn        = arguments.dsn
-		);
 	}
 
 	private void function _deleteForeignKeysForColumn(
@@ -514,6 +577,7 @@ component {
 				dbKey = dbKeys[ dbKeyName ];
 
 				shouldBeDeleted = !StructKeyExists( obj.meta.relationships, dbKeyName ) && ReFindNoCase( "^fk_[0-9a-f]{32}$", dbKeyName );
+				shouldBeDeleted = shouldBeDeleted || _shouldRecreateForeignKey( dbKeyName );
 				if ( shouldBeDeleted ) {
 					deleteSql = adapter.getDropForeignKeySql(
 						  foreignKeyName = dbKeyName
@@ -539,7 +603,7 @@ component {
 			dbKeys = dsnKeys[ obj.meta.dsn ][ obj.meta.tableName ] ?: {};
 
 			for( key in obj.sql.relationships ){
-				if ( !dbKeys.keyExists( key ) ) {
+				if ( !StructKeyExists( dbKeys, key ) || _shouldRecreateForeignKey( key ) ) {
 					transaction {
 						try {
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
@@ -576,6 +640,22 @@ component {
 		}
 	}
 
+	private boolean function _shouldRecreateForeignKey( required string dbKeyName ) {
+		var fksToRecreate = _getForeignKeysToRecreate();
+		return fksToRecreate.find( arguments.dbKeyName );
+	}
+
+	private void function _addForeignKeysToRecreate( required array dbKeyNames ) {
+		var fksToRecreate = _getForeignKeysToRecreate();
+		fksToRecreate.append( arguments.dbKeyNames, true );
+	}
+
+	private array function _getForeignKeysToRecreate() {
+		request._sqlSchemaSynchronizerFkRecreateArray = request._sqlSchemaSynchronizerFkRecreateArray ?: [];
+
+		return request._sqlSchemaSynchronizerFkRecreateArray;
+	}
+
 	private array function _getBuiltSqlScriptArray() {
 		request._sqlSchemaSynchronizerSqlArray = request._sqlSchemaSynchronizerSqlArray ?: [];
 
@@ -604,8 +684,22 @@ component {
 		sqlScripts.append( Duplicate( arguments ) );
 	}
 
-	private query function _getTableInfo() {
-		return _getDbInfoService().getTableInfo( argumentCollection = arguments );
+	private boolean function _tableExists( required string tableName, required string dsn ) {
+		variables._tableCache = variables._tableCache ?: {};
+
+		if ( !StructKeyExists( variables._tableCache, arguments.dsn ) ) {
+			variables._tableCache[ arguments.dsn ] = {};
+
+			var tables = _getSqlRunner().runSql(
+				dsn=arguments.dsn, sql=_getAdapter( arguments.dsn ).getAllTablesSql()
+			);
+
+			for( var table in tables ) {
+				variables._tableCache[ arguments.dsn ][ table.table_name ] = true;
+			}
+		}
+
+		return variables._tableCache[ arguments.dsn ][ arguments.tableName ] ?: false;
 	}
 
 	private query function _getTableColumns() {
@@ -633,7 +727,7 @@ component {
 	}
 
 	private struct function _getAllForeignKeys( required string dsn, boolean cached=false ) {
-		if ( arguments.cached && request.keyExists( "_allForeignKeys.#arguments.dsn#" ) ) {
+		if ( arguments.cached && StructKeyExists( request, "_allForeignKeys.#arguments.dsn#" ) ) {
 			return request[ "_allForeignKeys.#arguments.dsn#" ];
 		}
 
@@ -674,18 +768,6 @@ component {
 		var versionScripts = _getSchemaVersioningService().getSetVersionPlainSql( argumentCollection=arguments );
 		for( var script in versionScripts ){
 			syncScripts.append( script );
-		}
-	}
-
-	private void function _ensureValidDbEntityNames( required struct objects ) {
-		for( var objectName in arguments.objects ) {
-			var objMeta = arguments.objects[ objectName ].meta ?: {};
-			var adapter = _getAdapterFactory().getAdapter( objMeta.dsn ?: "" );
-			var maxTableNameLength = adapter.getTableNameMaxLength();
-
-			if ( Len( objMeta.tableName ?: "" ) > maxTableNameLength ) {
-				objMeta.tableName = Left( objMeta.tableName, maxTableNameLength );
-			}
 		}
 	}
 
@@ -732,5 +814,8 @@ component {
 	}
 	private void function _setAutoRestoreDeprecatedFields( required boolean autoRestoreDeprecatedFields ) {
 		_autoRestoreDeprecatedFields = arguments.autoRestoreDeprecatedFields;
+	}
+	private boolean function _skipSync( required struct meta ) {
+		return IsBoolean( arguments.meta.dbsync ?: "" ) && !arguments.meta.dbsync;
 	}
 }

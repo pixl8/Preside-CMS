@@ -79,7 +79,9 @@ component {
 			}
 		} while( ++processedCount < rateLimit && !$isInterrupted() );
 
-		poService.clearRelatedCaches( "email_mass_send_queue" );
+		if ( processedCount ) {
+			poService.clearRelatedCaches( "email_mass_send_queue" );
+		}
 	}
 
 	/**
@@ -165,7 +167,15 @@ component {
 
 		extraFilters.append( _getDuplicateCheckFilter( recipientObject, arguments.templateId ) );
 
-		return extraFilters;
+		var interceptorArgs = {
+			  extraFilters    = extraFilters
+			, templateId      = arguments.templateId
+			, recipientObject = recipientObject
+			, template        = template
+		};
+		$announceInterception( "onPrepareEmailTemplateRecipientFilters", interceptorArgs );
+
+		return interceptorArgs.extraFilters;
 	}
 
 	/**
@@ -190,6 +200,7 @@ component {
 			, extraFilters    = getTemplateRecipientFilters( arguments.templateId )
 			, recordCountOnly = true
 			, distinct        = true
+			, useCache        = false
 		);
 	}
 
@@ -206,13 +217,23 @@ component {
 		var totalQueued       = 0;
 
 		for( var oneTimeTemplate in oneTimeTemplates ){
-			totalQueued += queueSendout( oneTimeTemplate );
-			templateService.updateScheduledSendFields( templateId=oneTimeTemplate, markAsSent=true );
+			try {
+				totalQueued += queueSendout( oneTimeTemplate );
+				templateService.updateScheduledSendFields( templateId=oneTimeTemplate, markAsSent=true );
+			}
+			catch( any e ) {
+				$raiseError( e );
+			}
 		}
 
 		for( var repeatedTemplate in repeatedTemplates ){
-			totalQueued += queueSendout( repeatedTemplate );
-			templateService.updateScheduledSendFields( templateId=repeatedTemplate );
+			try {
+				totalQueued += queueSendout( repeatedTemplate );
+				templateService.updateScheduledSendFields( templateId=repeatedTemplate );
+			}
+			catch( any e ) {
+				$raiseError( e );
+			}
 		}
 
 		return totalQueued;
@@ -238,10 +259,16 @@ component {
 	 * @autodoc true
 	 */
 	public struct function getNextQueuedEmail() {
-		transaction {
-			var takenByOtherProcess = false;
-			var queueDao            = $getPresideObject( "email_mass_send_queue" );
-			var queuedEmail         = queueDao.selectData(
+		var takenByOtherProcess = false;
+		var attempts            = 0;
+
+		do {
+			// sleep random ms to help with multithreads
+			// not selecting at the same time
+			sleep( randRange( 1, 10 ) );
+
+			var queueDao    = $getPresideObject( "email_mass_send_queue" );
+			var queuedEmail = queueDao.selectData(
 				  selectFields = [ "id", "recipient", "template" ]
 				, filter       = "status is null or status = :status"
 				, filterParams = { status="queued" }
@@ -249,25 +276,22 @@ component {
 				, maxRows      = 1
 			);
 
-			for( var q in queuedEmail ) {
-				var updated = queueDao.updateData(
-					  filter       = "id = :id and ( status is null or status = :status )"
-					, filterParams = { id=q.id, status="queued" }
-					, data         = { status = "sending" }
-				);
+			if ( !queuedEmail.recordCount ) {
+				return {};
+			}
 
-				if ( updated ) {
+			takenByOtherProcess = !queueDao.updateData(
+				  filter       = "id = :id and ( status is null or status = :status )"
+				, filterParams = { id=queuedEmail.id, status="queued" }
+				, data         = { status = "sending" }
+			);
+
+			if ( !takenByOtherProcess ) {
+				for( var q in queuedEmail ) {
 					return q;
 				}
-
-				takenByOtherProcess = true;
-				break;
 			}
-		}
-
-		if ( takenByOtherProcess ) {
-			return getNextQueuedEmail();
-		}
+		} while( takenByOtherProcess && ++attempts<=10 );
 
 		return {};
 	}
@@ -338,7 +362,7 @@ component {
 
 // PRIVATE HELPERS
 	private date function _getLimitDate( required string unit, required numeric measure ) {
-		if ( !_timeUnitToCfMapping.keyExists( arguments.unit ) ) {
+		if ( !StructKeyExists( _timeUnitToCfMapping, arguments.unit ) ) {
 			return '1900-01-01';
 		}
 
@@ -346,19 +370,24 @@ component {
 	}
 
 	private struct function _getDuplicateCheckFilter( required string recipientObject, required string templateId ) {
-		var filter = { filter="already_queued_check.recipient is null", filterParams={ template={ type="cf_sql_varchar", value=templateId } } };
-		var subQuery = $getPresideObject( "email_mass_send_queue" ).selectData(
+		var filter       = { filter="already_queued_check.recipient is null", filterParams={ template={ type="cf_sql_varchar", value=templateId } } };
+		var sqlAndParams = $getPresideObject( "email_mass_send_queue" ).selectData(
 			  selectFields        = [ "recipient", "template" ]
 			, getSqlAndParamsOnly = true
-		).sql;
+		);
+		var recipientIdField = $getPresideObjectService().getIdField( arguments.recipientObject );
+
+		for ( var _param in sqlAndParams.params ) {
+			filter.filterParams[ _param.name ] = _param;
+		}
 
 		filter.extraJoins = [{
 			  type              = "left"
-			, subQuery          = subQuery
+			, subQuery          = sqlAndParams.sql
 			, subQueryAlias     = "already_queued_check"
 			, subQueryColumn    = "recipient"
 			, joinToTable       = arguments.recipientObject
-			, joinToColumn      = "id"
+			, joinToColumn      = recipientIdField
 			, additionalClauses = "template = :template"
 		} ];
 

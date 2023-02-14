@@ -60,7 +60,7 @@ component {
 		, required string  password
 		,          string  timezone                          = ""
 		,          numeric ConnectionLimit                   = -1
-		,          numeric ConnectionTimeout                 = 0
+		,          numeric ConnectionTimeout                 = 1
 		,          numeric metaCacheTimeout                  = 60000
 		,          boolean blob                              = false
 		,          boolean clob                              = false
@@ -91,7 +91,7 @@ component {
 		var custom = {};
 
 		for( var key in arguments ) {
-			if ( key.startsWith( "custom" ) ) {
+			if ( key.reFindNoCase( "^custom" ) ) {
 				custom[ key.reReplace( "^custom", "" ) ] = arguments[ key ];
 			}
 		}

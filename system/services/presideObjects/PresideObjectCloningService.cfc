@@ -77,7 +77,7 @@ component {
 		var cloneableFields = listCloneableFields(objectName=arguments.objectName );
 
 		for( var fieldName in cloneableFields ) {
-			if ( arguments.data.keyExists( fieldName ) ) {
+			if ( StructKeyExists( arguments.data, fieldName ) ) {
 				continue;
 			}
 

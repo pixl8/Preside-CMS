@@ -67,7 +67,7 @@ component displayName="Email Recipient Type Service" {
 	 *
 	 */
 	public boolean function recipientTypeExists( required string recipientType ) {
-		return _getConfiguredRecipientTypes().keyExists( arguments.recipientType );
+		return StructKeyExists( _getConfiguredRecipientTypes(), arguments.recipientType );
 	}
 
 	/**
@@ -123,6 +123,7 @@ component displayName="Email Recipient Type Service" {
 	 * @args.hint           Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to prepare the params. e.g. { userId=idofUserToSendEmailTo }.
 	 * @template.hint       ID of the template being prepared
 	 * @templateDetail.hint Structure with details of the template being prepared
+	 * @detectedParams.hint Array of parameter names that have been detected in the content - providers can use this to restrict the rendering of parameters to only those necessary
 	 */
 	public struct function prepareParameters(
 		  required string recipientType
@@ -130,6 +131,7 @@ component displayName="Email Recipient Type Service" {
 		,          struct args           = {}
 		,          string template       = ""
 		,          struct templateDetail = {}
+		,          array  detectedParams
 	) {
 		var handlerAction = "email.recipientType.#recipientType#.prepareParameters";
 
@@ -143,6 +145,7 @@ component displayName="Email Recipient Type Service" {
 					, recipientId    = arguments.recipientId
 					, template       = arguments.template
 					, templateDetail = arguments.templateDetail
+					, detectedParams = arguments.detectedParams ?: NullValue()
 				  }
 			);
 		}
@@ -195,6 +198,45 @@ component displayName="Email Recipient Type Service" {
 		}
 
 		return "";
+	}
+
+	/**
+	 * Returns and unsubscribe link for the given recipient and template ID
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint The ID of the recipient type whose link we will get
+	 * @recipientId.hint   ID of the recipient of the email
+	 * @templateId.hint    ID of the email template
+	 */
+	public string function getUnsubscribeLink(
+		  required string recipientType
+		, required string recipientId
+		, required string templateId
+	) {
+		var handlerAction = "email.recipientType.#recipientType#.getUnsubscribeLink";
+
+		if ( recipientTypeExists( arguments.recipientType ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, eventArguments = { recipientId=arguments.recipientId, templateId=arguments.templateId }
+				, private        = true
+				, prePostExempt  = true
+			);
+
+		}
+
+		var interceptData = {
+			  templateId    = arguments.templateId
+			, recipientId   = arguments.recipientId
+			, recipientType = arguments.recipientType
+		};
+
+		$announceInterception(
+			  state         = "onGenerateEmailUnsubscribeLink"
+			, interceptData = interceptData
+		);
+
+		return interceptData.unsubscribeLink ?: "";
 	}
 
 	/**

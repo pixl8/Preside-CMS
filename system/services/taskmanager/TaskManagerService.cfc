@@ -19,6 +19,7 @@ component displayName="Task Manager Service" {
 	 * @errorLogService.inject             errorLogService
 	 * @siteService.inject                 siteService
 	 * @threadUtil.inject                  threadUtil
+	 * @executor.inject                    presideTaskManagerExecutor
 	 *
 	 */
 	public any function init(
@@ -31,6 +32,7 @@ component displayName="Task Manager Service" {
 		, required any errorLogService
 		, required any siteService
 		, required any threadUtil
+		, required any executor
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
@@ -41,6 +43,7 @@ component displayName="Task Manager Service" {
 		_setErrorLogService( arguments.errorLogService );
 		_setSiteService( arguments.siteService );
 		_setThreadUtil( arguments.threadUtil );
+		_setExecutor( arguments.executor );
 		_setMachineId();
 
 		_initialiseDb();
@@ -116,7 +119,7 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskExists( required string taskKey ) {
-		return 	_getConfiguredTasks().keyExists( arguments.taskKey );
+		return StructKeyExists( _getConfiguredTasks(), arguments.taskKey );
 	}
 
 	public boolean function tasksAreRunning( string exclusivityGroup="" ) {
@@ -178,12 +181,13 @@ component displayName="Task Manager Service" {
 			, filter       = "enabled = :enabled and is_running = :is_running and next_run < :next_run"
 			, filterParams = { enabled = true, is_running = false, next_run = _getOperationDate() }
 			, orderBy      = "priority desc"
+			, useCache     = false
 		);
 
 		for( var task in nonRunningTasks ) {
 			var exclusivityGroup = taskConfiguration[ task.task_key ].exclusivityGroup ?: "";
 
-			if ( exclusivityGroup == "none" || ( !groupsToRun.keyExists( exclusivityGroup ) && !tasksAreRunning( exclusivityGroup ) ) ) {
+			if ( exclusivityGroup == "none" || ( !StructKeyExists( groupsToRun, exclusivityGroup ) && !tasksAreRunning( exclusivityGroup ) ) ) {
 				runnableTasks.append( task.task_key );
 				groupsToRun[ exclusivityGroup ] = 1;
 			}
@@ -225,14 +229,19 @@ component displayName="Task Manager Service" {
 				markTaskAsRunning( arguments.taskKey, newThreadId );
 			}
 
-			thread name=newThreadId threadId=newThreadId logger=logger args=arguments.args taskKey=arguments.taskKey {
-				runTaskWithinThread(
-					  taskKey  = attributes.taskKey
-					, args     = attributes.args
-					, threadId = attributes.threadId
-					, logger   = attributes.logger
-				)
+			if ( !_getExecutor().isStarted() ) {
+				_getExecutor().start();
 			}
+
+			var executor = _getExecutor().submit( new TaskManagerRunnable(
+				  service  = this
+				, taskKey  = arguments.taskKey
+				, args     = arguments.args
+				, threadId = newThreadId
+				, logger   = logger
+			) );
+
+			markTaskAsStarted( newThreadId, executor );
 		}
 	}
 
@@ -242,31 +251,37 @@ component displayName="Task Manager Service" {
 		, required string threadId
 		, required any    logger
 	) {
-		var task       = getTask( arguments.taskKey );
-		var start      = getTickCount();
-		var success    = false;
-		var tu         = _getThreadUtil();
-
-		tu.setThreadName( "Preside Scheduled Task: #taskKey#" );
-		tu.setThreadRequestDefaults();
-		markTaskAsStarted( arguments.threadId, tu.getCurrentThread() );
+		var task    = getTask( arguments.taskKey );
+		var start   = getTickCount();
+		var success = false;
+		var tu      = _getThreadUtil();
 
 		try {
 			$getRequestContext().setUseQueryCache( false );
+			$getRequestContext().isBackgroundThread( true );
+			_setActiveSite();
 			success = _getController().runEvent(
 				  event          = task.event
 				, private        = true
 				, eventArguments = { logger=arguments.logger, args=arguments.args }
 			);
 		} catch( any e ) {
-			if ( logger.canError() ) {
-				logger.error( "An error occurred running task [#task.name#]. Message: [#e.message#], detail [#e.detail#].", e );
+			if ( e.type contains "interrupt" || e.message contains "intterrupted" || e.detail contains "interrupted" )  {
+				success=false;
+
+				if ( logger.canError() ) {
+					logger.error( "The task [#task.name#] was prematurely interrupted and has been stopped." );
+				}
+			} else {
+				if ( logger.canError() ) {
+					logger.error( "An error occurred running task [#task.name#]. Message: [#e.message#], detail [#e.detail#].", e );
+				}
+
+				_getErrorLogService().raiseError( e );
+
+				success = false;
+				rethrow;
 			}
-
-			_getErrorLogService().raiseError( e );
-
-			success = false;
-			rethrow;
 		} finally {
 			try {
 				markTaskAsCompleted(
@@ -303,7 +318,28 @@ component displayName="Task Manager Service" {
 				var theThread    = runningTasks[ task.running_thread ].thread ?: NullValue();
 
 				if ( !IsNull( theThread ) ) {
-					_getThreadUtil().shutdownThread( theThread=theThread, logger=logger );
+					var attempt = 0;
+					var maxAttempts = 10;
+					var cancelled = false;
+					while( ++attempt <= maxAttempts && !cancelled ) {
+						if ( attempt > 1 ) {
+							$systemOutput( "Waiting to gracefully shutdown thread for [#arguments.taskKey#]." );
+							if ( logger.canWarn() ) { logger.warn( "Waiting to gracefully shutdown task." ); }
+						}
+
+						cancelled = theThread.cancel( true ) && theThread.isCancelled();
+						if ( !cancelled ) {
+							sleep( 100 );
+						}
+					}
+
+					if ( theThread.isCancelled() ) {
+						$systemOutput( "Successfully shutdown scheduled task thread for [#arguments.taskKey#]." );
+						if ( logger.canWarn() ) { logger.warn( "Successfully shutdown scheduled task thread." ); }
+					} else {
+						$systemOutput( "Failed to gracefully shutdown scheduled task thread for [#arguments.taskKey#]." );
+						if ( logger.canWarn() ) { logger.warn( "Failed to gracefully shutdown scheduled task thread." ); }
+					}
 				}
 			} catch( any e ) {
 				if ( logger.canError() ) {
@@ -491,7 +527,7 @@ component displayName="Task Manager Service" {
 		var tasks = getRunnableTasks();
 
 		for( var taskKey in tasks ){
-			_runTaskInNewRequest( taskKey );
+			runTask( taskKey );
 		}
 
 		return { tasksStarted=tasks };
@@ -566,6 +602,7 @@ component displayName="Task Manager Service" {
 
 				grouped.append({
 					  id          = groupId
+					, slug        = $slugify( groupId )
 					, title       = $translateResource( "taskmanager.taskgroups:#groupId#.title", groupId )
 					, description = $translateResource( "taskmanager.taskgroups:#groupId#.description", "" )
 					, stats       = { total=0, success=0, fail=0, running=0, neverRun=0 }
@@ -696,7 +733,6 @@ component displayName="Task Manager Service" {
 	public void function shutdown() {
 		if ( tasksAreRunning() ) {
 			killAllRunningTasks( timeout=1000 );
-
 		}
 	}
 
@@ -748,21 +784,26 @@ component displayName="Task Manager Service" {
 		if ( IsNull( threadRef ) ) {
 			return false;
 		}
-
-		var state = threadRef.getState()
-		return !state.equals( state.TERMINATED );
-	}
-
-	private void function _runTaskInNewRequest( required string taskKey ) {
-		var event         = $getRequestContext();
-		var taskRunnerUrl = event.buildLink( linkto="taskmanager.runtasks.scheduledTask" );
-
-		if ( taskRunnerUrl.reFindNoCase( "^https" ) && !$isFeatureEnabled( "sslInternalHttpCalls" ) ) {
-			taskRunnerUrl = taskRunnerUrl.reReplaceNoCase( "^https", "http" );
+		try {
+			return !threadRef.isDone() && !threadRef.isCancelled();
+		} catch( any e ) {
+			_getErrorLogService().raiseError( e );
 		}
 
-		http url=taskRunnerUrl method="post" timeout=10 throwonerror=true {
-			httpparam name="taskKey" value=arguments.taskKey type="formfield";
+		return false;
+	}
+
+	private void function _setActiveSite(){
+		if ( $isFeatureEnabled( "sites" ) ) {
+			var event       = $getRequestContext();
+			var siteContext = $getPresideSetting( "taskmanager", "site_context" );
+
+			if ( Len( Trim( siteContext ) ) ) {
+				event.setSite( _getSiteService().getSite( siteContext ) );
+				return;
+			}
+
+			event.autoSetSiteByHost();
 		}
 	}
 
@@ -857,6 +898,13 @@ component displayName="Task Manager Service" {
 	}
 	private void function _setThreadUtil( required any threadUtil ) {
 		_threadUtil = arguments.threadUtil;
+	}
+
+	private any function _getExecutor() {
+	    return _executor;
+	}
+	private void function _setExecutor( required any executor ) {
+	    _executor = arguments.executor;
 	}
 
 }

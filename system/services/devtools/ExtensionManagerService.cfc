@@ -6,11 +6,12 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @appMapping.inject coldbox:setting:appMapping
+	 * @appMapping.inject       coldbox:setting:appMapping
+	 * @ignoreExtensions.inject coldbox:setting:legacyExtensionsNowInCore
 	 *
 	 */
-	public any function init( string appMapping="/app" ) {
-		_readExtensions( arguments.appMapping );
+	public any function init( string appMapping="/app", array ignoreExtensions=[] ) {
+		_readExtensions( arguments.appMapping, arguments.ignoreExtensions );
 
 		return this;
 	}
@@ -21,17 +22,23 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private void function _readExtensions( required string appMapping ) {
+	private void function _readExtensions( required string appMapping, required array ignoreExtensions ) {
 		appMapping = "/" & appMapping.reReplace( "^/", "" );
 
-		var appDir              = ExpandPath( appMapping );
-		var legacyExtensionsDir = appDir & "/extensions";
-		var manifestFiles       = DirectoryList( legacyExtensionsDir, true, "path", "manifest.json" );
-		var extensions          = [];
+		var appDir        = ExpandPath( appMapping );
+		var extensionsDir = ListAppend( appDir, "extensions", _getDirDelimiter() );
+		var manifestFiles = DirectoryList( extensionsDir, true, "path", "manifest.json" );
+		var extensions    = [];
 
 		for( var manifestFile in manifestFiles ) {
+			if ( !_isExtensionManifest( manifestFile, extensionsDir ) ) {
+				continue;
+			}
+
 			var extension = _parseManifest( manifestFile, appMapping );
-			extensions.append( extension );
+			if ( !ArrayFindNoCase( arguments.ignoreExtensions, extension.id ) ) {
+				ArrayAppend( extensions, extension );
+			}
 		}
 
 		extensions = _sortExtensions( extensions );
@@ -99,9 +106,8 @@ component {
 						var extC = extensions[ n ];
 
 						if ( extA.dependsOn.findNoCase( extC.id ) ) {
-							var tmp = extC;
-							extensions[ n ] = extA;
-							extensions[ i ] = tmp;
+							arrayDeleteAt(extensions, n);
+							arrayInsertAt(extensions, i, extC);
 							swapped = true;
 							break;
 						}
@@ -116,6 +122,14 @@ component {
 		} while( swapped );
 
 		return extensions;
+	}
+
+	private boolean function _isExtensionManifest( required string manifestPath, required string extensionsDir ) {
+		// path should be {extensionsdir}/{extension-id}/manifest.json
+		// not an extension manifest if deeper nested than that
+		var relativePath = ReReplace( Replace( arguments.manifestPath, arguments.extensionsDir, "" ), "^[\\/]", "" );
+
+		return ListLen( relativePath, "/\" ) == 2;
 	}
 
 // GETTERS AND SETTERS
@@ -133,6 +147,17 @@ component {
 
 	private void function _setExtensions( required array extensions ) {
 		_extensions = arguments.extensions;
+	}
+
+	private string function _getDirDelimiter() {
+		if ( IsNull( variables._dirDelimiter ) ) {
+			_setDirDelimiter( CreateObject( "java", "java.lang.System" ).getProperty( "file.separator" ) );
+		}
+
+		return variables._dirDelimiter;
+	}
+	private void function _setDirDelimiter( required string dirDelimiter ) {
+		variables._dirDelimiter = arguments.dirDelimiter;
 	}
 
 // OLD API NO LONGER SUPPORTED

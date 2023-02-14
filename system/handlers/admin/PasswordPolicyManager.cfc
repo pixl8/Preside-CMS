@@ -53,6 +53,12 @@ component extends="preside.system.base.AdminHandler" {
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = validateForm( formName, formData );
 
+		formData.min_length    = val( formData.min_length    ?: "" );
+		formData.min_numeric   = val( formData.min_numeric   ?: "" );
+		formData.min_strength  = val( formData.min_strength  ?: "" );
+		formData.min_symbols   = val( formData.min_symbols   ?: "" );
+		formData.min_uppercase = val( formData.min_uppercase ?: "" );
+
 		if ( validationResult.validated() ) {
 			passwordPolicyService.savePolicy( argumentCollection=formData, context=context );
 			messagebox.info( translateResource( "cms:passwordpolicymanager.policy.saved.confirmation" ) );

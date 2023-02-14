@@ -7,7 +7,7 @@
 		</fieldset>
 
 		<fieldset id="access" sortorder="20">
-			<field name="apis" sortorder="10" control="restApiPicker" />
+			<field name="apis" sortorder="10" control="restApiPicker" authOnly="true" />
 		</fieldset>
 	</tab>
 </form>

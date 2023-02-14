@@ -33,7 +33,7 @@ component {
 		var cachedResults = _getCachedResults();
 		var cacheKey      = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) & arguments.filter;
 
-		if ( !cachedResults.keyExists( cacheKey ) ) {
+		if ( !StructKeyExists( cachedResults, cacheKey ) ) {
 			var viewlets = Duplicate( _getCoreViewlets() );
 			viewlets.append( _getSiteTemplateViewlets(), true );
 
@@ -126,7 +126,7 @@ component {
 			viewlets.sitetemplates[ siteTemplate ] = viewlets.sitetemplates[ siteTemplate ].keyArray();
 
 			for( var viewlet in viewlets.sitetemplates[ siteTemplate ] ) {
-				if ( viewlets.core.keyExists( viewlet ) ) {
+				if ( StructKeyExists( viewlets.core, viewlet ) ) {
 					viewlets.sitetemplates[ siteTemplate ].delete( viewlet );
 				}
 			}
@@ -152,7 +152,7 @@ component {
 		var readNonLifeCycleFunctions = function( meta ){
 			var functions = arguments.meta.functions ?: [];
 
-			if ( arguments.meta.keyExists( "extends" ) ) {
+			if ( StructKeyExists( arguments.meta, "extends" ) ) {
 				readNonLifeCycleFunctions( arguments.meta.extends );
 			}
 

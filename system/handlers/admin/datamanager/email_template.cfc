@@ -2,6 +2,18 @@ component {
 
 	property name="formsService" inject="formsService";
 
+	private string function preRenderListing( event, rc, prc, args={} ) {
+		if ( isFeatureEnabled( "emailcenter" ) ) {
+			if ( isFeatureEnabled( "customEmailTemplates" ) ) {
+				setNextEvent( url=event.buildAdminLink( linkto="emailcenter.customTemplates" ) );
+			}
+
+			setNextEvent( url=event.buildAdminLink( linkto="emailcenter.systemTemplates" ) );
+		}
+
+		return "";
+	}
+
 	private array function getCloneRecordActionButtons( event, rc, prc, args={} ) {
 		var actions = [{
 			  type      = "link"

@@ -1,5 +1,6 @@
 <cfscript>
 	params = args.params ?: [];
+	event.include( "/css/admin/specific/emailcenter/emailparams/" );
 </cfscript>
 
 <cfoutput>
@@ -15,14 +16,14 @@
 			#translateResource( "cms:emailcenter.variables.description" )#
 		</p>
 
-		<div class="well">
+		<div class="email-params well">
 			<cfloop array="#params#" item="param" index="i">
-				<h5 class="lighter">
-					<code>${#param.id#}</code>
+				<div class="email-param lighter">
+					<span class="email-param-id">${#param.id#}</span>
 					<cfif param.required>
 						<em class="light-grey">(#translateResource( "cms:emailcenter.variables.required" )#)</em>
 					</cfif>
-				</h5>
+				</div>
 				<p class="grey">#param.description#</p>
 				<br>
 			</cfloop>

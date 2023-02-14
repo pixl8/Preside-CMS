@@ -111,7 +111,7 @@ component {
 	public void function shutdownThread( any thethread=getCurrentThread(), numeric interruptWait=10000, any logger ) {
 		var maxAttempts = arguments.interruptWait / 200;
 		var attempt     = 0;
-		var canLog      = arguments.keyExists( "logger" );
+		var canLog      = StructKeyExists( arguments, "logger" );
 		var canWarn     = canLog && logger.canWarn();
 		var canError    = canLog && logger.canError();
 		var threadName  = arguments.theThread.getName();
@@ -156,22 +156,12 @@ component {
 			return;
 		}
 
-		$systemOutput( "The thread [#threadName#], did not gracefully terminate. Forcefully stopping it." );
-		if ( canWarn ) { logger.warn( "Task did not gracefully terminate after #( arguments.interruptWait / 1000 )# seconds. Forcefully stopping it." ); }
-
 		try {
 			theThread.getPageContext().release();
 		} catch( any e ) {}
-		theThread.stop();
-		sleep( 100 );
 
-		if ( isTerminated( arguments.theThread ) ) {
-			$systemOutput( "The thread [#threadName#], has been terminated." );
-			if ( canWarn ) { logger.warn( "Task terminated." ); }
-		} else {
-			$systemOutput( "The thread [#threadName#], failed to terminate!" );
-			if ( canError ) { logger.error( "Task failed to terminate." ); }
-		}
+		$systemOutput( "The thread [#threadName#], failed to gracefully shutdown!" );
+		if ( canError ) { logger.error( "Task failed to gracefully shutdown!" ); }
 	}
 
 	/**
@@ -181,7 +171,13 @@ component {
 	 *
 	 */
 	public boolean function isInterrupted() {
-		return ( IsBoolean( request.__softInterrupted ?: "" ) && request.__softInterrupted ) || jvmThread.isInterrupted();
+		var isInterrupted = ( IsBoolean( request.__softInterrupted ?: "" ) && request.__softInterrupted ) || jvmThread.currentThread().isInterrupted();
+
+		if ( !isInterrupted ) {
+			isInterrupted = $getAdhocTaskManagerService().isActiveTaskCancelled();
+		}
+
+		return isInterrupted;
 	}
 
 	/**

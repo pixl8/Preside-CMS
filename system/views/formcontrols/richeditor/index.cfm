@@ -1,13 +1,15 @@
 <cfscript>
-	inputName     = args.name          ?: "";
-	inputId       = args.id            ?: "";
-	inputClass    = args.class         ?: "";
-	placeholder   = args.placeholder   ?: "";
-	defaultValue  = args.defaultValue  ?: "";
-	extraClasses  = args.extraClasses  ?: "";
-	stylesheets   = args.stylesheets   ?: "";
-	widgetCategories = args.widgetCategories ?: "";
-	maxLength     = Val( args.maxLength ?: 0 );
+	inputName            = args.name               ?: "";
+	inputId              = args.id                 ?: "";
+	inputClass           = args.class              ?: "";
+	placeholder          = args.placeholder        ?: "";
+	defaultValue         = args.defaultValue       ?: "";
+	extraClasses         = args.extraClasses       ?: "";
+	stylesheets          = args.stylesheets        ?: "";
+	widgetCategories     = args.widgetCategories   ?: ( rc.widgetCategories ?: "" );
+	linkPickerCategory   = args.linkPickerCategory ?: ( rc.linkPickerCategory ?: "" );
+	customDefaultConfigs = !StructIsEmpty( args.customDefaultConfigs ?: {} ) ? SerializeJSON( args.customDefaultConfigs ) : ""
+	maxLength            = Val( args.maxLength ?: 0 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -47,8 +49,14 @@
 	          <cfif Val( args.maxHeight ?: "" )>
 	              data-max-height="#Val( args.maxHeight )#"
 	          </cfif>
+	          <cfif Len( Trim( customDefaultConfigs ?: "" ) )>
+	              data-custom-default-configs="#HtmlEditFormat( customDefaultConfigs )#"
+	          </cfif>
 	          <cfif Len( Trim( widgetCategories ) )>
 	              data-widget-categories="#Trim( widgetCategories )#"
+	          </cfif>
+	          <cfif Len( Trim( linkPickerCategory ) )>
+	              data-link-picker-category="#Trim( linkPickerCategory )#"
 	          </cfif>
 
 	>#value#</textarea>

@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="dao"                       inject="presidecms:object:email_blueprint";
+	property name="emailTemplateDao"          inject="presidecms:object:email_template";
 	property name="emailLayoutService"        inject="emailLayoutService";
 	property name="emailRecipientTypeService" inject="emailRecipientTypeService";
 	property name="messageBox"                inject="messagebox@cbmessagebox";
@@ -117,7 +118,6 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		prc.record = dao.selectData(
 			  filter             = { id=id }
 			, fromVersionTable   = true
-			, allowDraftVersions = true
 			, specificVersion    = version
 		);
 
@@ -172,10 +172,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
 		var id = rc.id ?: "";
 
-		prc.record = dao.selectData(
-			  filter             = { id=id }
-			, allowDraftVersions = true
-		);
+		prc.record = dao.selectData( filter={ id=id } );
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:emailcenter.blueprints.record.not.found.error" ) );
@@ -202,10 +199,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
 		var id = rc.blueprint ?: "";
 
-		prc.record = dao.selectData(
-			  filter             = { id=id }
-			, allowDraftVersions = true
-		);
+		prc.record = dao.selectData( filter={ id=id } );
 
 		if ( !prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:emailcenter.blueprints.record.not.found.error" ) );
@@ -227,6 +221,13 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
 	function deleteAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="delete" );
+
+		var bluePrintInUse = emailTemplateDao.dataExists( filter={ email_blueprint=rc.id ?: "" } );
+
+		if ( bluePrintInUse ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.blueprints.prevent.delete.warning" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.Blueprints" ) );
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._deleteRecordAction"
@@ -276,7 +277,10 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 	}
 
 	private string function _gridActions( event, rc, prc, args={} ) {
-		args.id                = args.id ?: "";
+		args.id = args.id ?: "";
+
+		var bluePrintInUse = emailTemplateDao.dataExists( filter = { email_blueprint=args.id } );
+
 		args.deleteRecordLink  = event.buildAdminLink( linkTo="emailCenter.Blueprints.deleteAction"  , queryString="id=" & args.id );
 		args.editRecordLink    = event.buildAdminLink( linkTo="emailCenter.Blueprints.edit"          , queryString="id=" & args.id );
 		args.viewHistoryLink   = event.buildAdminLink( linkTo="emailCenter.Blueprints.versionHistory", queryString="id=" & args.id );
@@ -284,7 +288,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		args.deleteRecordTitle = translateResource( "cms:emailcenter.blueprints.delete.record.link.title" );
 		args.objectName        = "email_blueprint";
 		args.canEdit           = hasCmsPermission( "emailCenter.blueprints.edit"   );
-		args.canDelete         = hasCmsPermission( "emailCenter.blueprints.delete" );
+		args.canDelete         = hasCmsPermission( "emailCenter.blueprints.delete" ) AND !bluePrintInUse;
 		args.canViewHistory    = hasCmsPermission( "emailCenter.blueprints.view"   );
 
 		return renderView( view="/admin/emailCenter/Blueprints/_gridActions", args=args );

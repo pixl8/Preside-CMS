@@ -77,6 +77,7 @@
 	filterBy             = args.filterBy             ?: "";
 	filterByField        = args.filterByField        ?: filterBy;
 	disabledIfUnfiltered = args.disabledIfUnfiltered ?: false;
+	includePlaceholder   = args.includePlaceholder   ?: true;
 </cfscript>
 
 <cfoutput>
@@ -135,7 +136,9 @@
 			</cfif>
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>
-			<option>#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
+			<cfif includePlaceholder and !( IsBoolean( multiple ) && multiple )>
+				<option value="">#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
+			</cfif>
 			<cfloop query="records">
 				<cfset labelArgs=queryRowToStruct( records, records.currentRow ) />
 				<cfset labelArgs.labelRenderer = labelRenderer />

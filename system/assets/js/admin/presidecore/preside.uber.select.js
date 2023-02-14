@@ -24,7 +24,8 @@
 						selected: option.selected,
 						disabled: option.disabled,
 						classes: option.className,
-						style: option.style.cssText
+						style: option.style.cssText,
+						active: option.active
 					});
 				} else {
 					this.parsed.push({
@@ -188,13 +189,19 @@
 			var classes, style;
 
 			option = $.extend( {}, {
-				  disabled          : false
-				, superQuickAdd     : false
-				, classes           : ""
-				, style             : { cssText : "" }
-				, text              : ""
-				, value             : ""
+				  disabled      : false
+				, superQuickAdd : false
+				, classes       : ""
+				, style         : { cssText : "" }
+				, text          : ""
+				, value         : ""
+				, active        : true
+				, inactiveClass : ""
 			}, option );
+
+			if ( option.active === "" ) {
+				option.active = true;
+			}
 
 			if (!this.include_option_in_results(option)) {
 				return '';
@@ -218,10 +225,13 @@
 			if (option.classes !== "") {
 				classes.push(option.classes);
 			}
+			if( !option.active ) {
+				option.inactiveClass  = "inactive";
+			}
 
 			style = option.style.cssText !== "" ? " style=\"" + option.style + "\"" : "";
 			return "<li class=\"" + (classes.join(' ')) + "\"" + style + ">"
-					+ Mustache.render( this.result_template, option ) +
+					+ Mustache.render( this.result_template , option ) +
 					"</li>";
 		};
 
@@ -541,6 +551,9 @@
 
 			if ( typeof this.filter_field !== "undefined" ) {
 				this.filter_field.on('change',function(){
+					$uberSelect.form_field_jq.attr( "data-value", "" );
+					$uberSelect.hidden_field.val( "" );
+					$uberSelect.setup_preselected_value();
 					$uberSelect.setup_filter();
 					$uberSelect.setup_search_engine();
 					$uberSelect.disable_if_unfiltered();
@@ -597,10 +610,14 @@
 			var _this = this;
 
 			this.container.bind('mousedown.chosen', function(evt) {
+				var x = window.scrollX;
+				var y = window.scrollY;
+				window.onscroll = function () { window.scrollTo(x, y); };
 				_this.container_mousedown(evt);
 			});
 			this.container.bind('mouseup.chosen', function(evt) {
 				_this.container_mouseup(evt);
+				window.onscroll = function () { };
 			});
 			this.container.bind('mouseenter.chosen', function(evt) {
 				_this.mouse_enter(evt);
@@ -734,6 +751,7 @@
 		};
 
 		UberSelect.prototype.close_field = function() {
+			window.onscroll = function () { };
 			$(document).unbind("click.chosen", this.click_test_action);
 			this.active_field = false;
 			this.results_hide();
@@ -1245,7 +1263,7 @@
 			if (this.search_field.val() === this.default_text) {
 				return "";
 			} else {
-				return $('<div/>').text($.trim(this.search_field.val())).html();
+				return $('<div/>').html($.trim(this.search_field.val())).text();
 			}
 		};
 
@@ -1393,6 +1411,7 @@
 		};
 
 		UberSelect.prototype.set_selected_order = function(){
+			window.onscroll = function () { };
 			var newVal = [], optionVal, $uberSelect = this;
 			if ( $uberSelect.is_multiple ) {
 				$uberSelect.search_choices.find( "li.search-choice" ).each( function(){
@@ -1434,7 +1453,12 @@
 				}
 			};
 
-			$.ajax( this.options.superQuickAddUrl, {
+			var quickAddUrl = this.options.superQuickAddUrl;
+			if( this.filter && this.filter.length ){
+				quickAddUrl += this.filter;
+			}
+
+			$.ajax( quickAddUrl, {
 				  data    : { value : newValue }
 				, cache   : false
 				, method  : "post"
@@ -1454,11 +1478,11 @@
 				return document.documentMode >= 8;
 			}
 			if (/iP(od|hone)/i.test(window.navigator.userAgent)) {
-				return false;
+				return true;
 			}
 			if (/Android/i.test(window.navigator.userAgent)) {
 				if (/Mobile/i.test(window.navigator.userAgent)) {
-					return false;
+					return true;
 				}
 			}
 			return true;

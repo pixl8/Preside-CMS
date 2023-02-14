@@ -21,7 +21,7 @@ component {
 		var variety    = "isIsNot";
 		var varietyKey = isTrue( value ) ? "truthy" : "falsey";
 
-		if ( _booleanVarietyMappings.keyExists( config.variety ?: "" ) ) {
+		if ( StructKeyExists( _booleanVarietyMappings, config.variety ?: "" ) ) {
 			variety = config.variety;
 		} else if ( Len( Trim( config.variety ?: "" ) ) ) {
 			var translated = translateResource( uri=config.variety & "." & varietyKey, defaultValue="" );

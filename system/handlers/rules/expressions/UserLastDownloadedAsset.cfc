@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User has performed some action within the last x days"
+ * Expression handler for "User has downloaded an asset within the last x days"
  *
  * @feature websiteUsers
  * @expressionContexts user
@@ -17,10 +17,6 @@ component {
 		  required string  asset
 		,          struct  _pastTime
 	) {
-		if ( ListLen( action, "." ) != 2 ) {
-			return false;
-		}
-
 		var lastPerformedDate = websiteUserActionService.getLastPerformedDate(
 			  type        = "asset"
 			, action      = "download"
@@ -47,19 +43,15 @@ component {
 	 *
 	 */
 	private array function prepareFilters(
-		  required string  asset
-		,          struct  _pastTime
-		,          string  filterPrefix
-		,          string  parentPropertyName
+		  required string asset
+		,          struct _pastTime
 	) {
 		return websiteUserActionService.getUserLastPerformedActionFilter(
-			  action             = "download"
-			, type               = "asset"
-			, datefrom           = arguments._pastTime.from ?: ""
-			, dateto             = arguments._pastTime.to   ?: ""
-			, identifier         = arguments.asset
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  action     = "download"
+			, type       = "asset"
+			, datefrom   = arguments._pastTime.from ?: ""
+			, dateto     = arguments._pastTime.to   ?: ""
+			, identifier = arguments.asset
 		);
 	}
 

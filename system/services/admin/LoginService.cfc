@@ -533,7 +533,7 @@ component displayName="Admin login service" {
 			return false;
 		}
 
-		if ( DateDiff( 'd', Now(), tfaLoginRecord.logged_in_date ) <= tfaTrustPeriod ) {
+		if ( DateDiff( 'd', tfaLoginRecord.logged_in_date, Now() ) <= tfaTrustPeriod ) {
 			_getSessionStorage().setVar( name=_getTwoFaSessionKey(), value=true );
 			return true;
 		}
@@ -732,10 +732,8 @@ component displayName="Admin login service" {
 	 * @autodoc
 	 *
 	 */
-	public void function disableTwoFactorAuthenticationForUser() {
-		var userId = getLoggedInUserId();
-
-		if ( userId.len() ) {
+	public void function disableTwoFactorAuthenticationForUser( string userId=getLoggedInUserId() ) {
+		if ( arguments.userId.len() ) {
 			_getUserDao().updateData( id=userId, data={
 				  two_step_auth_enabled     = false
 				, two_step_auth_key         = ""
@@ -976,11 +974,7 @@ component displayName="Admin login service" {
 	}
 
 	private void function _preventSessionFixation() {
-		var appSettings = getApplicationSettings();
-
-		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
-			SessionRotate();
-		}
+		_getSessionStorage().rotate();
 	}
 
 // GETTERS AND SETTERS

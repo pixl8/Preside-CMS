@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Form builder item type: All form fields
+
+This form is used as a core configuration for Form Builder item types that
+are defined as form fields. If the item type provides its own configuration,
+it will be merged with this form definition.
+-->
+<form i18nBaseUri="formbuilder.item-types.formfield:" feature="formbuilder2">
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field binding="formbuilder_formitem.question" required="true"  control="manyToOneSelect"              sortorder="10" quickadd="true" filterby="itemType" filterbyfield="item_type" />
+			<field name="layout"                           required="true"  control="formbuilderFieldLayoutPicker" sortorder="30" />
+			<field name="mandatory"                        required="false" control="yesnoswitch"                  sortorder="40" />
+			<field name="exclude_export"                   required="false" control="yesnoswitch"                  sortorder="50" />
+		</fieldset>
+	</tab>
+</form>

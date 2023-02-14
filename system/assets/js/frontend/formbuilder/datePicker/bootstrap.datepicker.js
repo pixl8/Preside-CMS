@@ -1072,4 +1072,4 @@
 
 	$.fn.datepicker.DPGlobal = DPGlobal;
 
-}( window.presideJQuery );
+}( window.jQuery );

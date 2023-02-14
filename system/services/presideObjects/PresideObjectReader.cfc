@@ -82,10 +82,12 @@ component {
 		meta.propertyNames = meta.propertyNames ?: [];
 		meta.properties    = meta.properties    ?: {};
 
+		_setUseDrafts( meta );
 		_defineIdField( meta );
 		_defineCreatedField( meta );
 		_defineModifiedField( meta );
 		_defineLabelField( meta );
+		_defineFlagField( meta );
 		_addDefaultsToProperties( meta );
 		_mergeSystemPropertyDefaults( meta );
 		_deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( meta );
@@ -119,6 +121,7 @@ component {
 			, tableName   = LCase( sourceObject.tablePrefix & pivotObjectName )
 			, tablePrefix = sourceObject.tablePrefix
 			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
+			, useDrafts   = ( ( sourceObject.useDrafts ?: false ) || ( targetObject.useDrafts ?: false ) )
 			, properties  = {
 				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObjectPk.type, dbtype=sourceObjectPk.dbtype, maxLength=sourceObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
 				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObjectPk.type, dbtype=targetObjectPk.dbtype, maxLength=targetObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
@@ -173,13 +176,19 @@ component {
 		var propName     = "";
 		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
 
+		if ( !ArrayLen( orderedProps ) ) {
+			for( prop in arguments.properties ) {
+				ArrayAppend( orderedProps, prop.name );
+			}
+		}
+
 		param name="arguments.meta.properties"    default=StructNew();
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
 		for( propName in orderedProps ){
 			for( prop in arguments.properties ) {
 				if ( prop.name == propName ) {
-					if ( !arguments.meta.properties.keyExists( prop.name ) ) {
+					if ( !StructKeyExists( arguments.meta.properties, prop.name ) ) {
 						arguments.meta.properties[ prop.name ] = {};
 					}
 
@@ -246,6 +255,9 @@ component {
 		if ( ( arguments.meta.labelField ?: "label" ) == "label" ) {
 			corePropertyNames.append( "label" );
 		}
+		if ( ( arguments.meta.flagField ?: "recordflagged" ) == "recordflagged" ) {
+			corePropertyNames.append( "recordflagged" );
+		}
 
 		for( var propName in arguments.meta.properties ){
 			var prop           = arguments.meta.properties[ propName ];
@@ -268,8 +280,9 @@ component {
 				prop.dbtype = "none";
 			}
 
-			if ( ( prop.formula ?: "" ).len() ) {
+			if ( ( prop.formula ?: "" ).len() || ( prop.relationship ?: "" ) == "select-data-view" ) {
 				prop.dbtype = "none";
+				prop.control = "none";
 			}
 
 			if ( ( ( prop.relationship ?: "" ) == "many-to-one" ) && IsBoolean( createFkIndex ) && createFkIndex ) {
@@ -310,12 +323,14 @@ component {
 		var idField           = arguments.meta.idField           ?: "id";
 		var dateCreatedField  = arguments.meta.dateCreatedField  ?: "datecreated";
 		var dateModifiedField = arguments.meta.dateModifiedField ?: "datemodified";
+		var flagField         = arguments.meta.flagField         ?: "recordflagged";
 
 		var defaults = {
-			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35" , relationship="none", relatedto="none", generator="UUID", generate="insert", required="true", pk="true" }
-			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
-			, datecreated   = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
-			, datemodified  = { type="date"  , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			  id            = { type="string" , dbtype="varchar" , control="none"     , maxLength="35" , relationship="none", relatedto="none", generator="UUID", generate="insert", required="true", pk="true" }
+			, label         = { type="string" , dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", generate="never" , required="true" }
+			, datecreated   = { type="date"   , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datecreated" }
+			, datemodified  = { type="date"   , dbtype="datetime", control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="datemodified" }
+			, flag          = { type="boolean", dbtype="boolean" , control="none"     , maxLength="0"  , relationship="none", relatedto="none", generator="none", generate="never" , required="true", indexes="recordflagged", default="0", renderer="none" }
 		};
 
 		if ( labelField == "label" ) {
@@ -363,6 +378,17 @@ component {
 			}
 		}
 
+		if ( arguments.meta.flagEnabled ) {
+			if ( arguments.meta.propertyNames.find( flagField ) ) {
+				StructAppend( arguments.meta.properties[ flagField ], defaults.flag, false );
+			} else {
+				arguments.meta.properties[ flagField ] = defaults[ "flag" ];
+				ArrayAppend( arguments.meta.propertyNames, flagField );
+			}
+			if ( flagField.len() && flagField != "recordflagged" && !arguments.meta.propertyNames.findNoCase( "recordflagged" ) ) {
+				arguments.meta.properties[ flagField ].aliases = ( arguments.meta.properties[ flagField ].aliases ?: "" ).listAppend( "recordflagged" );
+			}
+		}
 	}
 
 	private void function _deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( required struct meta ) {
@@ -434,6 +460,17 @@ component {
 	}
 
 	private array function _getOrderedPropertiesInAHackyWayBecauseLuceeGivesThemInRandomOrder( required string pathToCfc ) {
+		var propFilePath = arguments.pathToCfc.reReplace( "\.cfc$", "$props.json" );
+
+		if ( FileExists( propFilePath ) ) {
+			try {
+				var props = DeserializeJson( FileRead( propFilePath ) );
+				if ( IsArray( props ) ) {
+					return props;
+				}
+			} catch( any e ) {}
+		}
+
 		var cfcContent      = FileRead( arguments.pathToCfc );
 		var propertyMatches = $reSearch( 'property\s+[^;/>]*name="([a-zA-Z_\$][a-zA-Z0-9_\$]*)"', cfcContent );
 
@@ -503,6 +540,16 @@ component {
 		arguments.objectMeta.noLabel = IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel;
 	}
 
+	private void function _defineFlagField( required struct objectMeta ) {
+		if ( IsBoolean ( arguments.objectMeta.flagEnabled ?: "" ) && arguments.objectMeta.flagEnabled ) {
+			arguments.objectMeta.flagField = arguments.objectMeta.flagField ?: "recordflagged";
+		} else {
+			arguments.objectMeta.flagField = arguments.objectMeta.flagField ?: "";
+		}
+		arguments.objectMeta.flagEnabled = arguments.objectMeta.flagEnabled ?: ( arguments.objectMeta.flagField != "" );
+		arguments.objectMeta.flagEnabled = IsBoolean ( arguments.objectMeta.flagEnabled ?: "" ) && arguments.objectMeta.flagEnabled;
+	}
+
 	private void function _removeObjectsUsedInDisabledFeatures( required struct objects ) {
 		var featureService = _getFeatureService();
 
@@ -522,6 +569,18 @@ component {
 	private void function _ensureAllPropertiesHaveName( required struct properties ) {
 		for( var propName in arguments.properties ) {
 			arguments.properties[ propName ].name = propName;
+		}
+	}
+
+	private void function _setUseDrafts( required struct meta ) {
+		if ( !meta.versioned ) {j
+			meta.useDrafts = false;
+		} else if ( IsBoolean( meta.datamanagerAllowDrafts ?: "" ) && meta.datamanagerAllowDrafts ) {
+			meta.useDrafts = true;
+		} else if ( IsBoolean( meta.isPageType ?: "" ) && meta.isPageType ) {
+			meta.useDrafts = meta.useDrafts ?: true;
+		} else {
+			meta.useDrafts = meta.useDrafts ?: false;
 		}
 	}
 

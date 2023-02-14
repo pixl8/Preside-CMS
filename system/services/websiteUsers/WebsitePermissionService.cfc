@@ -11,12 +11,14 @@ component displayName="Website permissions service" {
 
 // CONSTRUCTOR
 	/**
-	 * @websiteLoginService.inject websiteLoginService
-	 * @cacheProvider.inject       cachebox:WebsitePermissionsCache
-	 * @permissionsConfig.inject   coldbox:setting:websitePermissions
-	 * @benefitsDao.inject         presidecms:object:website_benefit
-	 * @userDao.inject             presidecms:object:website_user
-	 * @appliedPermDao.inject      presidecms:object:website_applied_permission
+	 * @websiteLoginService.inject             websiteLoginService
+	 * @permissionHandlersReader.inject        websitePermissionHandlerReaderService
+	 * @cacheProvider.inject                   cachebox:WebsitePermissionsCache
+	 * @permissionsConfig.inject               coldbox:setting:websitePermissions
+	 * @benefitsDao.inject                     presidecms:object:website_benefit
+	 * @userDao.inject                         presidecms:object:website_user
+	 * @appliedPermDao.inject                  presidecms:object:website_applied_permission
+	 * @permissionHandlerDirectories.inject    presidecms:directories:/handlers/websitePermissions
 	 */
 	public any function init(
 		  required any    websiteLoginService
@@ -25,6 +27,8 @@ component displayName="Website permissions service" {
 		, required any    benefitsDao
 		, required any    userDao
 		, required any    appliedPermDao
+		, required any    permissionHandlersReader
+		, required array  permissionHandlerDirectories
 	) {
 		_setWebsiteLoginService( arguments.websiteLoginService );
 		_setCacheProvider( arguments.cacheProvider );
@@ -33,6 +37,7 @@ component displayName="Website permissions service" {
 		_setAppliedPermDao( arguments.appliedPermDao );
 
 		_denormalizeAndSaveConfiguredPermissions( arguments.permissionsConfig );
+		_setPermissionHandlers( permissionHandlersReader.getPermissionHandlerFromDirectories( arguments.permissionHandlerDirectories ) );
 
 		return this;
 	}
@@ -87,6 +92,23 @@ component displayName="Website permissions service" {
 		,          string  userId              = _getWebsiteLoginService().getLoggedInUserId()
 		,          boolean forceGrantByDefault = false
 	) {
+		var permissionHandlers = _getPermissionHandlers();
+
+		for ( var permHandler in permissionHandlers ) {
+			if ( $getColdbox().handlerExists( permissionHandlers[ permHandler ].handler ) &&
+				 reFindNoCase( permissionHandlers[ permHandler ].keyPattern, arguments.permissionKey )
+			) {
+				var result = $runEvent(
+					  event          = permissionHandlers[ permHandler ].handler
+					, eventArguments = { args=arguments }
+					, private        = true
+					, prePostExempt  = true
+				);
+
+				return $helpers.isTrue( local.result ?: "" );
+			}
+		}
+
 		if ( !Len( Trim( arguments.userId ) ) ) {
 			return false;
 		}
@@ -416,10 +438,14 @@ component displayName="Website permissions service" {
 		, required string context
 		, required array  contextKeys
 	) {
-		var cacheKey           = "Context perms for context: " & arguments.context;
-		var cntext             = arguments.context;
-		var cachedContextPerms = _getCacheProvider().getOrSet( objectKey=cacheKey, produce=function(){
-			var permsToCache = {};
+		var cntext       = arguments.context;
+		var cache        = _getCacheProvider();
+		var cacheKey     = "Context perms for context: " & arguments.context;
+		var contextPerms = cache.get( cacheKey );
+
+		if ( IsNull( local.contextPerms ) ) {
+			contextPerms = {};
+
 			var permsFromDb  = _getAppliedPermDao().selectData(
 				  selectFields = [ "granted", "context_key", "permission_key", "benefit", "user" ]
 				, filter       = "context = :context and ( benefit is not null or user is not null )"
@@ -428,27 +454,27 @@ component displayName="Website permissions service" {
 
 			for( var perm in permsFromDb ){
 				if ( IsNull( perm.benefit ) || !Len( Trim( perm.benefit ) ) ) {
-					permsToCache[ perm.context_key & "_" & perm.permission_key & "_" & perm.user ] = perm.granted;
+					contextPerms[ perm.context_key & "_" & perm.permission_key & "_" & perm.user ] = perm.granted;
 				} else {
-					permsToCache[ perm.context_key & "_" & perm.permission_key & "_" & perm.benefit ] = perm.granted;
+					contextPerms[ perm.context_key & "_" & perm.permission_key & "_" & perm.benefit ] = perm.granted;
 				}
 			}
 
-			return permsToCache;
-		} );
+			cache.set( cacheKey, contextPerms );
+		}
 
 		for( var key in arguments.contextKeys ){
 			// direct user context permission
 			cacheKey = key & "_" & arguments.permissionKey & "_" & arguments.userId;
-			if ( StructKeyExists( cachedContextPerms, cacheKey ) && IsBoolean( cachedContextPerms[ cacheKey ] ) ) {
-				return cachedContextPerms[ cacheKey ];
+			if ( StructKeyExists( contextPerms, cacheKey ) && IsBoolean( contextPerms[ cacheKey ] ) ) {
+				return contextPerms[ cacheKey ];
 			}
 
 			// context permission via user's benefits
 			for( var benefit in listUserBenefits( arguments.userId ) ){
 				cacheKey = key & "_" & arguments.permissionKey & "_" & benefit;
-				if ( StructKeyExists( cachedContextPerms, cacheKey ) && IsBoolean( cachedContextPerms[ cacheKey ] ) ) {
-					return cachedContextPerms[ cacheKey ];
+				if ( StructKeyExists( contextPerms, cacheKey ) && IsBoolean( contextPerms[ cacheKey ] ) ) {
+					return contextPerms[ cacheKey ];
 				}
 			}
 		}
@@ -521,7 +547,7 @@ component displayName="Website permissions service" {
 
 			for( var benefit in allBenefits ){
 				for ( var role in ListToArray( benefit.roles ) ) {
-					if ( rolesWithPerm.keyExists( role ) ) {
+					if ( StructKeyExists( rolesWithPerm, role ) ) {
 						benefits.append( { id=benefit.id, name=benefit.label } );
 						break;
 					}
@@ -550,6 +576,13 @@ component displayName="Website permissions service" {
 	}
 	private void function _setPermissions( required array permissions ) {
 		_permissions = arguments.permissions;
+	}
+
+	private any function _getPermissionHandlers() {
+		return _permissionHandlers;
+	}
+	private void function _setPermissionHandlers( required any permissionHandlers ) {
+		_permissionHandlers = arguments.permissionHandlers;
 	}
 
 	private any function _getWebsiteLoginService() {

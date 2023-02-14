@@ -41,9 +41,10 @@ component {
 		for( var i=1; i<=apis.len(); i++ ) {
 			var apiId = apis[ i ];
 			var api = {
-				  id           = apiId
-				, description  = configWrapper.getSetting( "description", "", apiId )
-				, authProvider = configWrapper.getSetting( "authProvider", "", apiId )
+				  id              = apiId
+				, description     = configWrapper.getSetting( "description", "", apiId )
+				, authProvider    = configWrapper.getSetting( "authProvider", "", apiId )
+				, hideFromManager = configWrapper.getSetting( "hideFromManager", "", apiId )
 			};
 
 			apis[ i ] = api;
@@ -64,11 +65,13 @@ component {
 		_announceInterception( "onRestRequest", { restRequest=restRequest, restResponse=restResponse } );
 
 		if ( !restRequest.getFinished() ) {
-			authenticateRequest(
-				  restRequest    = restRequest
-				, restResponse   = restResponse
-				, requestContext = arguments.requestContext
-			);
+			if ( restRequest.getVerb() != "OPTIONS" ) {
+				authenticateRequest(
+					  restRequest    = restRequest
+					, restResponse   = restResponse
+					, requestContext = arguments.requestContext
+				);
+			}
 
 			if ( !restRequest.getFinished() ) {
 				processRequest(
@@ -88,7 +91,7 @@ component {
 
 	public void function authenticateRequest( required any restRequest, required any restResponse ) {
 		var api          = restRequest.getApi();
-		var authProvider = _getConfigurationWrapper().getSetting( "authProvider", "", api );
+		var authProvider = getAuthenticationProvider( api );
 
 		if ( authProvider.len() ) {
 			_getAuthService().authenticate(
@@ -97,6 +100,10 @@ component {
 				, restResponse = restResponse
 			);
 		}
+	}
+
+	public string function getAuthenticationProvider( required string api ) {
+		return _getConfigurationWrapper().getSetting( "authProvider", "", api );
 	}
 
 	public void function processRequest( required any restRequest, required any restResponse, required any requestContext ) {
@@ -124,7 +131,7 @@ component {
 			return;
 		}
 
-		if ( restRequest.getVerb() == "OPTIONS" && !restRequest.getResource().verbs.keyExists( "OPTIONS" ) ) {
+		if ( restRequest.getVerb() == "OPTIONS" && !StructKeyExists( restRequest.getResource().verbs, "OPTIONS" ) ) {
 			processOptionsRequest(
 				  restRequest    = restRequest
 				, restResponse   = restResponse
@@ -164,7 +171,7 @@ component {
 				return;
 			}
 
-			if ( verb == "HEAD" && !resource.verbs.keyExists( "HEAD" ) ) {
+			if ( verb == "HEAD" && !StructKeyExists( resource.verbs, "HEAD" ) ) {
 				coldboxEvent &= resource.verbs.GET;
 			} else {
 				coldboxEvent &= resource.verbs[ verb ];
@@ -282,7 +289,7 @@ component {
 
 	public string function getApiForUri( required string restPath ) {
 		for( var apiPath in _getApiList() ) {
-			if ( arguments.restPath.startsWith( apiPath ) ) {
+			if ( arguments.restPath.reFindNoCase( "^" & apiPath ) ) {
 				return apiPath;
 			}
 		}
@@ -354,11 +361,12 @@ component {
 		var resourceReader = new PresideRestResourceReader();
 		var apis           = resourceReader.readResourceDirectories( arguments.resourceDirectories );
 
+		_announceInterception( "postReadRestResourceDirectories", { apis=apis } );
 		_setApis( apis );
 	}
 
 	private array function _getApiList() {
-		if ( !variables.keyExists( "_apiList" ) ) {
+		if ( !StructKeyExists( variables, "_apiList" ) ) {
 			_apiList = _getApis().keyArray();
 			_apiList.sort( function( a, b ){
 				return a.len() > b.len() ? -1 : 1;
@@ -370,7 +378,7 @@ component {
 
 	private void function _announceInterception( required string state, struct interceptData={} ) {
 		try {
-			_getInterceptorService().processState( argumentCollection=arguments );
+			$announceInterception( argumentCollection=arguments );
 		} catch( any e ) {
 			$raiseError( e );
 
@@ -384,10 +392,6 @@ component {
 				_announceInterception( "onRestError", arguments.interceptData );
 			}
 		}
-	}
-
-	private any function _getInterceptorService() {
-		return _getController().getInterceptorService();
 	}
 
 	private void function _dealWithEtags( required any restRequest, required any restResponse, required any requestContext ) {
@@ -405,7 +409,7 @@ component {
 	}
 
 	private boolean function _verbCanBeHandledByResource( required string verb, required struct resource ) {
-		if ( resource.verbs.keyExists( verb ) ) {
+		if ( StructKeyExists( resource.verbs, verb ) ) {
 			return true;
 		}
 
@@ -413,7 +417,7 @@ component {
 			return true;
 		}
 
-		if ( verb == "HEAD" && resource.verbs.keyExists( "GET" ) ) {
+		if ( verb == "HEAD" && StructKeyExists( resource.verbs, "GET" ) ) {
 			return true;
 		}
 
@@ -465,7 +469,7 @@ component {
 			for ( var resource in apis[ apiRootPath ] ) {
 				for ( var verb in resource.verbs ) {
 					var rules = [];
-					if ( resource.requiredParameters.keyExists( verb ) ) {
+					if ( StructKeyExists( resource.requiredParameters, verb ) ) {
 						for ( var param in resource.requiredParameters[ verb ] ) {
 							rules.append( {
 								  fieldName = param
@@ -473,7 +477,7 @@ component {
 							} );
 						}
 					}
-					if ( resource.parameterTypes.keyExists( verb ) ) {
+					if ( StructKeyExists( resource.parameterTypes, verb ) ) {
 						for ( var param in resource.parameterTypes[ verb ] ) {
 							var type      = resource.parameterTypes[verb][param];
 							var validator = "";

@@ -63,10 +63,20 @@ component {
 					, prePostExempt = IsBoolean( prePostExempt  ) && prePostExempt
 				);
 
-				renderedViewlet = _getContentRendererService().render(
-					  renderer = "richeditor"
-					, data     = renderedViewlet
-				);
+				if ( !IsNull( local.renderedViewlet ) && IsSimpleValue( renderedViewlet ) ) {
+					renderedViewlet = _getContentRendererService().render(
+						  renderer = "richeditor"
+						, data     = renderedViewlet
+					);
+				} else {
+					renderedViewlet = "";
+
+					try {
+						throw( "The delayed viewlet, [#viewlet#], did not return a string value and Preside has rendered an empty string in its place. Be sure that all your viewlets return a string value.", "preside.bad.delayed.viewlet" );
+					} catch( any e ) {
+						$raiseError( e );
+					}
+				}
 
 				processed = Replace( processed, wholeMatch, renderedViewlet ?: "", "all" );
 			}
@@ -122,34 +132,46 @@ component {
 		var cacheKey  = arguments.viewlet & ":default:" & arguments.defaultValue;
 		var isDelayed = arguments.defaultValue;
 
-		if ( _viewletDelayedLookupCache.keyExists( cacheKey ) ) {
+		if ( StructKeyExists( _viewletDelayedLookupCache, cacheKey ) ) {
 			return _viewletDelayedLookupCache[ cacheKey ];
 		}
 
-		if ( $isFeatureEnabled( "fullPageCaching" ) ) {
-			var coldbox       = $getColdbox();
-			var defaultAction = _getDefaultHandlerAction();
-			var handlerName   = arguments.viewlet;
-			var handlerExists = coldbox.handlerExists( handlerName );
+		var coldbox       = $getColdbox();
+		var defaultAction = _getDefaultHandlerAction();
+		var handlerName   = arguments.viewlet;
+		var handlerExists = coldbox.handlerExists( handlerName );
 
-			if ( !handlerExists ) {
-				handlerName = ListAppend( handlerName, defaultAction, "." );
-				handlerExists = coldbox.handlerExists( handlerName );
+		if ( !handlerExists ) {
+			handlerName = ListAppend( handlerName, defaultAction, "." );
+			handlerExists = coldbox.handlerExists( handlerName );
+		}
+
+		if ( handlerExists ) {
+			var meta = _getHandlerMethodMeta( handlerName );
+
+			if ( IsBoolean( meta.cacheable ?: "" ) ) {
+				isDelayed = !meta.cacheable;
 			}
-
-			if ( handlerExists ) {
-				var meta = _getHandlerMethodMeta( handlerName );
-
-				if ( IsBoolean( meta.cacheable ?: "" ) ) {
-					isDelayed = !meta.cacheable;
-				}
-			}
-		} else {
-			isDelayed = false;
 		}
 
 		_viewletDelayedLookupCache[ cacheKey ] = isDelayed;
 		return isDelayed;
+	}
+
+	/**
+	 * Returns whether or not the current context should allow delayed viewlets
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public boolean function isDelayableContext() {
+		var event = $getRequestContext();
+
+		if ( event.isAdminRequest() || event.isEmailRenderingContext() || event.isBackgroundThread() || event.isApiRequest()  ) {
+			return false;
+		}
+
+		return true;
 	}
 
 // PRIVATE HELPERS
@@ -164,7 +186,7 @@ component {
 			parsed[ key ] = ToString( ToBinary( value ) );
 
 			if ( IsJson( parsed[ key ] ) ) {
-				parsed[ key ] = DeserializeJSON( parsed[ key ] );
+				parsed[ key ] = DeserializeJSON( parsed[ key ], false );
 			}
 		}
 

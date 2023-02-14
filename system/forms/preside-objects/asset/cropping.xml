@@ -8,10 +8,13 @@ administrator, and adds focal point controls.
 <form>
 
 	<tab id="cropping" sortorder="15" title="preside-objects.asset:cropping.tab.title">
-		<fieldset id="focal_point" sortorder="10">
+		<fieldset id="resize_control" sortorder="10">
+			<field sortorder="10" binding="asset.resize_no_crop" />
+		</fieldset>
+		<fieldset id="focal_point" sortorder="20">
 			<field sortorder="10" binding="asset.focal_point" control="focalPointPicker" />
 		</fieldset>
-		<fieldset id="crop_hint" sortorder="20">
+		<fieldset id="crop_hint" sortorder="30">
 			<field sortorder="10" binding="asset.crop_hint"   control="cropHintPicker" />
 		</fieldset>
 	</tab>

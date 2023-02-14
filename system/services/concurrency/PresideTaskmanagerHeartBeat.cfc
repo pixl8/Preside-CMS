@@ -7,15 +7,22 @@
 component extends="AbstractHeartBeat" {
 
 	/**
-	 * @taskmanagerService.inject taskmanagerService
-	 * @threadUtil.inject         threadUtil
+	 * @taskmanagerService.inject          taskmanagerService
+	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
+	 * @hostname.inject                    coldbox:setting:heartbeats.taskmanager.hostname
 	 *
 	 */
-	public function init( required any taskmanagerService, required any threadUtil ){
+	public function init(
+		  required any    taskmanagerService
+		, required any    scheduledThreadpoolExecutor
+		, required string hostname
+	){
 		super.init(
-			  threadName   = "Preside Heartbeat: Scheduled Tasks"
-			, intervalInMs = 1000
-			, threadUtil   = arguments.threadUtil
+			  threadName                  = "Preside Heartbeat: Scheduled Tasks"
+			, intervalInMs                = 1000
+			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
+			, feature                     = "taskmanagerHeartBeat"
+			, hostname                    = arguments.hostname
 		);
 
 		_setTaskmanagerService( arguments.taskmanagerService );
@@ -24,7 +31,7 @@ component extends="AbstractHeartBeat" {
 	}
 
 	// PUBLIC API METHODS
-	public void function run() {
+	public void function $run() {
 		try {
 			var result = _getTaskmanagerService().runScheduledTasks();
 			_getTaskmanagerService().cleanupNoLongerRunningTasks();
@@ -37,26 +44,6 @@ component extends="AbstractHeartBeat" {
 		}
 	}
 
-	public void function startInNewRequest() {
-		var startUrl = _buildInternalLink( linkTo="taskmanager.runtasks.startTaskManagerHeartbeat" );
-
-		thread name=CreateUUId() startUrl=startUrl {
-			var attemptLimit = 10;
-			var attempt      = 1;
-			var success      = false;
-
-			do {
-				try {
-					sleep( 1000 );
-					http method="post" url=startUrl timeout=10 throwonerror=true;
-					success = true;
-				} catch( any e ) {
-					$raiseError( e );
-					$systemOutput( "Failed to start taskmanager heartbeat. Retrying...(attempt #attempt#)");
-				}
-			} while ( !success && ++attempt <= 10 );
-		}
-	}
 
 // GETTERS AND SETTERS
 	private any function _getTaskmanagerService() {

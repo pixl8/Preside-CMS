@@ -6,20 +6,23 @@
 component extends="AbstractHeartBeat" {
 
 	/**
-	 * @emailMassSendingService.inject emailMassSendingService
-	 * @threadUtil.inject              threadUtil
-	 *
+	 * @emailMassSendingService.inject     emailMassSendingService
+	 * @scheduledThreadpoolExecutor.inject presideScheduledThreadpoolExecutor
+	 * @hostname.inject                    coldbox:setting:heartbeats.emailqueue.hostname
 	 */
 	public function init(
 		  required any     emailMassSendingService
-		, required any     threadUtil
+		, required any     scheduledThreadpoolExecutor
+		, required string  hostname
 		,          numeric instanceNumber = 1
 		,          string  threadName     = "Preside Email Queue Processor #arguments.instanceNumber#"
 	){
 		super.init(
-			  threadName   = arguments.threadName
-			, threadUtil   = arguments.threadUtil
-			, intervalInMs = 5000
+			  threadName                  = arguments.threadName
+			, scheduledThreadpoolExecutor = arguments.scheduledThreadpoolExecutor
+			, intervalInMs                = 5000
+			, feature                     = "emailQueueHeartBeat"
+			, hostname                    = arguments.hostname
 		);
 
 		_setInstanceNumber( arguments.instanceNumber );
@@ -29,7 +32,7 @@ component extends="AbstractHeartBeat" {
 	}
 
 	// PUBLIC API METHODS
-	public void function run() {
+	public void function $run() {
 		try {
 			if ( _getInstanceNumber() == 1 ) {
 				_getEmailMassSendingService().autoQueueScheduledSendouts();
@@ -38,29 +41,6 @@ component extends="AbstractHeartBeat" {
 			_getEmailMassSendingService().processQueue();
 		} catch( any e ) {
 			$raiseError( e );
-		}
-	}
-
-	public void function startInNewRequest() {
-		var startUrl = _buildInternalLink( linkTo="taskmanager.runtasks.startEmailQueueHeartbeat" );
-
-		thread name=CreateUUId() startUrl=startUrl {
-			var attemptLimit = 10;
-			var attempt      = 1;
-			var success      = false;
-
-			do {
-				try {
-					sleep( 5000 + ( 100 * _getInstanceNumber() ) );
-					http method="post" url=startUrl timeout=10 throwonerror=true {
-						httpparam type="formfield" name="instanceNumber" value=_getInstanceNumber();
-					}
-					success = true;
-				} catch( any e ) {
-					$raiseError( e );
-					$systemOutput( "Failed to start email queue heartbeat. Retrying...(attempt #attempt#)");
-				}
-			} while ( !success && ++attempt <= 10 );
 		}
 	}
 

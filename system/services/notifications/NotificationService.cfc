@@ -116,14 +116,19 @@ component autodoc=true displayName="Notification Service" {
 	 *
 	 * @userId.hint id of the admin user whose unread notification count we wish to retrieve
 	 */
-	public numeric function getUnreadNotificationCount( required string userId ) autodoc=true {
-		var queryResult = _getConsumerDao().selectData(
-			  selectFields = [ "Count(*) as notification_count" ]
-			, filter       = { security_user = arguments.userId, read = false }
-			, useCache     = false
+	public numeric function getUnreadNotificationCount(
+		  required string userId
+	) autodoc=true {
+		var notificationCount = _getConsumerDao().selectData(
+			  filter          = {
+				  security_user = arguments.userId
+				, read          = false
+			  }
+			, useCache        = false
+			, recordCountOnly = true
 		);
 
-		return Val( queryResult.notification_count ?: "" );
+		return notificationCount;
 	}
 
 	/**
@@ -131,15 +136,37 @@ component autodoc=true displayName="Notification Service" {
 	 *
 	 * @userId.hint  id of the admin user whose unread notifications we wish to retrieve
 	 */
-	public query function getUnreadTopics( required string userId ) autodoc=true {
-		return _getConsumerDao().selectData(
-			  selectFields = [ "admin_notification.topic", "Count(*) as notification_count" ]
-			, filter       = {
-				  "admin_notification_consumer.security_user" = arguments.userId
-				, "admin_notification_consumer.read"          = false
-			  }
+	public query function getUnreadTopics(
+		  required string userId
+		, required numeric maxRows
+	) autodoc=true {
+
+		var unreadTopics = QueryNew( "topic, notification_count", "varchar, integer");
+
+		var notificationTopics =  _getNotificationDao().selectData(
+			  selectFields = [ "admin_notification.topic" ]
 			, groupBy      = "admin_notification.topic"
 		);
+
+		for( notificationTopic in notificationTopics ) {
+			var queryResult =  _getConsumerDao().selectData(
+				  selectFields = [ "admin_notification.topic" ]
+				, filter       = {
+					  "admin_notification_consumer.security_user" = arguments.userId
+					, "admin_notification_consumer.read"          = false
+					, "admin_notification.topic"                  = notificationTopic.topic
+				  }
+				, maxRows      = arguments.maxRows
+			);
+
+			if( queryResult.recordCount() ) {
+				queryAddRow( unreadTopics );
+				querySetCell( unreadTopics, "topic", notificationTopic.topic );
+				querySetCell( unreadTopics, "notification_count", queryResult.recordCount() );
+			}
+		}
+
+		return unreadTopics;
 	}
 
 	/**
@@ -440,8 +467,8 @@ component autodoc=true displayName="Notification Service" {
 	}
 
 	public void function createNotificationConsumers( required string notificationId, required string topic, required struct data ) {
-		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true } );
-		var subscribedToTopic = _getSubscriptionDao().selectData( filter={ topic=arguments.topic } );
+		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true, active=true } );
+		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "security_user", "get_email_notifications" ], filter={ topic=arguments.topic , "security_user.active"=true } );
 		var subscribers = {};
 		var interceptorArgs = Duplicate( arguments );
 
@@ -534,7 +561,7 @@ component autodoc=true displayName="Notification Service" {
 	public boolean function deleteOldNotifications( any logger ) {
 
 		var keepNotificationsFor = Val( $getPresideSetting( "notification", "keep_notifications_for_days", 0 ) );
-		var canLog               = arguments.keyExists( "logger" );
+		var canLog               = StructKeyExists( arguments, "logger" );
 		var canInfo              = canLog && logger.canInfo();
 		var canError             = canLog && logger.canError();
 
@@ -576,7 +603,7 @@ component autodoc=true displayName="Notification Service" {
 		var notificationDirs = _getNotificationDirectories();
 		var notificationIds  = [];
 
-		for( notificationDir in notificationDirs ){
+		for( var notificationDir in notificationDirs ){
 			var notifications           = [];
 			var notificationId          = "";
 			var notificationDir         = notificationDir & "/renderers/notifications/";
@@ -592,7 +619,7 @@ component autodoc=true displayName="Notification Service" {
 			}
 		}
 
-		for( notificationId in notificationIds ){
+		for( var notificationId in notificationIds ){
 			if ( !configuredTopics.findNoCase( notificationId ) ) {
 				configuredTopics.append( notificationId );
 			}

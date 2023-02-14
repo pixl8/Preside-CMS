@@ -6,8 +6,7 @@
  * @expressionCategory website_user
  */
 component {
-
-	property name="websiteUserActionService"   inject="websiteUserActionService";
+	property name="formBuilderFilterService" inject="formBuilderFilterService";
 
 	/**
 	 * @fbform.fieldType   object
@@ -18,29 +17,14 @@ component {
 		  required string  fbform
 		,          struct  _pastTime
 	) {
-		if ( ListLen( action, "." ) != 2 ) {
-			return false;
-		}
-
-		var lastPerformedDate = websiteUserActionService.getLastPerformedDate(
-			  type        = "formbuilder"
-			, action      = "submitform"
-			, userId      = payload.user.id ?: ""
-			, identifiers = [ arguments.fbform ]
+		var userSubmissions = formBuilderFilterService.getUserSubmissionsRecords(
+			  userId = payload.user.id ?: ""
+			, formId = arguments.fbform
+			, from   = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
+			, to     = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
 		);
 
-		if ( !IsDate( lastPerformedDate ) ) {
-			return false;
-		}
-
-		if ( IsDate( _pastTime.from ?: "" ) && lastPerformedDate < _pastTime.from ) {
-			return false;
-		}
-		if ( IsDate( _pastTime.to ?: "" ) && lastPerformedDate > _pastTime.to ) {
-			return false;
-		}
-
-		return true;
+		return booleanFormat( userSubmissions.recordcount );
 	}
 
 	/**
@@ -48,19 +32,13 @@ component {
 	 *
 	 */
 	private array function prepareFilters(
-		  required string  fbform
-		,          struct  _pastTime
-		,          string  filterPrefix
-		,          string  parentPropertyName
+		  required string fbform
+		,          struct _pastTime
 	) {
-		return websiteUserActionService.getUserLastPerformedActionFilter(
-			  action             = "submitform"
-			, type               = "formbuilder"
-			, datefrom           = arguments._pastTime.from ?: ""
-			, dateto             = arguments._pastTime.to   ?: ""
-			, identifier         = arguments.fbform
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+		return formBuilderFilterService.prepareFilterForUserSubmittedFormBuilderForm(
+			  formId = arguments.fbform
+			, from   = isDate( arguments._pastTime.from ?: "" ) ? arguments._pastTime.from : nullValue()
+			, to     = isDate( arguments._pastTime.to   ?: "" ) ? arguments._pastTime.to   : nullValue()
 		);
 	}
 

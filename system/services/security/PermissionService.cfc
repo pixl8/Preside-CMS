@@ -101,23 +101,90 @@ component displayName="Admin permissions service" {
 		,          array  contextKeys   = []
 		,          string userId        = _getLoginService().getLoggedInUserId()
 	) {
+		var cacheKey = "hasPermission-#arguments.userId#-#arguments.permissionKey#-#arguments.context#-#ArrayToList( arguments.contextKeys )#";
+		var fromCache = _getCacheProvider().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var hasPermission = NullValue();
+
 		if ( !Len( Trim( arguments.userId ) ) ) {
-			return false;
-		}
-
-		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
-			return true;
-		}
-
-		if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
+			hasPermission = false;
+		} else if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
+			hasPermission = true;
+		} else if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
 			if ( !IsNull( local.contextPerm ) && IsBoolean( contextPerm ) ) {
-				return contextPerm;
+				hasPermission = contextPerm;
 			}
 		}
 
+		if ( IsNull( local.hasPermission ) ) {
+			hasPermission = ArrayFind( listPermissionKeys( user=arguments.userId ), LCase( arguments.permissionKey ) ) > 0;
+		}
 
-		return listPermissionKeys( user=arguments.userId ).findNoCase( arguments.permissionKey );
+		_getCacheProvider().set( cacheKey, hasPermission )
+
+		return hasPermission;
+	}
+
+	/**
+	 * Returns whether or not the user has permission to the given
+	 * set of keys. Returns a struct with permission keys as keys
+	 * and boolean values for whether user has permission for each
+	 * key.
+	 * \n
+	 * See [[cmspermissioning]] for a full guide to CMS users and permissions.
+	 *
+	 * @autodoc
+	 * @permissionKeys.hint The permission keys as defined in `Config.cfc`
+	 * @context.hint        Optional named context
+	 * @contextKeys.hint    Array of keys for the given context (required if context supplied)
+	 * @userId.hint         ID of the user whose permissions we wish to check
+	 * @userId.docdefault   ID of logged in user
+	 *
+	 */
+	public struct function hasPermissions(
+		  required array  permissionKeys
+		,          string context       = ""
+		,          array  contextKeys   = []
+		,          string userId        = _getLoginService().getLoggedInUserId()
+	) {
+		var result = {};
+		var keysWithoutContext = [];
+		for( var key in arguments.permissionKeys ) {
+			result[ key ] = false;
+		}
+
+		if ( Len( Trim( arguments.userId ) ) ) {
+			if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
+				for( var key in arguments.permissionKeys ) {
+					result[ key ] = true;
+				}
+			} else {
+				if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
+					var contextPerms = _getMultiContextPermissions( argumentCollection=arguments );
+					for( var key in result ) {
+						if ( StructKeyExists( contextPerms, key ) ) {
+							result[ key ] = IsBoolean( local.contextPerms[ key ] ) && local.contextPerms[ key ];
+						} else {
+							keysWithoutContext.append( key );
+						}
+					}
+				}
+
+				if ( keysWithoutContext.len() ) {
+					request._userPermissionKeys = request._userPermissionKeys ?: listPermissionKeys( user=arguments.userId );
+					for( var key in keysWithoutContext ) {
+						local.result[ key ] = ArrayFindNoCase( request._userPermissionKeys, key );
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 
 	/**
@@ -125,23 +192,90 @@ component displayName="Admin permissions service" {
 	 *
 	 * @autodoc
 	 * @userId.hint ID of the user whose groups we wish to get
+	 * @includeCatchAll.hint Whether or not to include the 'catch all' group
 	 *
 	 */
-	public array function listUserGroups( required string userId ) {
+	public array function listUserGroups( required string userId, boolean includeCatchAll=true ) {
+		var catchAllIndex = 0;
 		var groups = _getUserDao().selectManyToManyData(
 			  propertyName = "groups"
 			, id           = arguments.userId
-			, selectFields = [ "groups.id" ]
-		);
-		var catchAllGroups = _getGroupDao().selectData(
-			  selectFields = [ "id" ]
-			, filter       = { is_catch_all=true }
+			, selectFields = [ "groups.id", "is_catch_all" ]
 		);
 
+		for( var i=1; i<=groups.recordCount; i++ ) {
+			if ( IsBoolean( groups.is_catch_all[ i ] ) && groups.is_catch_all[ i ] ) {
+				catchAllIndex = i;
+				break;
+			}
+		}
 		groups = ValueArray( groups.id );
-		groups.append( ValueArray( catchAllGroups.id ), true );
+
+		if ( arguments.includeCatchAll && !catchAllIndex ) {
+			var catchAllGroups = _getGroupDao().selectData(
+				  selectFields = [ "id" ]
+				, filter       = { is_catch_all=true }
+			);
+
+			ArrayAppend( groups, ValueArray( catchAllGroups.id ), true );
+		} else if ( !arguments.includeCatchAll && catchAllIndex ) {
+			ArrayDeleteAt( groups, catchAllIndex );
+		}
 
 		return groups;
+	}
+
+	public array function listUserGroupsRoles( required string userId ) {
+		var cacheKey = "userGroupsRoles-#arguments.userId#";
+		var fromCache = _getCacheProvider().get( cacheKey );
+		if ( !isNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var groupsRoles = [];
+		var userGroups  = listUserGroups( argumentCollection=arguments );
+
+		if ( arrayLen( userGroups ) ) {
+			var rolesQuery = _getGroupDao().selectData(
+				  filter       = { id=userGroups }
+				, selectFields = [ "roles" ]
+			);
+
+			for ( var q in rolesQuery ) {
+				for ( var role in listToArray( q.roles ) ) {
+					groupsRoles.append( role );
+				}
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, groupsRoles );
+
+		return groupsRoles;
+	}
+
+	public boolean function userHasAssignedRoles(
+		  required string userId
+		, required array  roles
+	) {
+		var cacheKey = "userRoles-#arguments.userId#-#hash( serialize( arguments.roles ) )#";
+		var fromCache = _getCacheProvider().get( cacheKey );
+		if ( !isNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var hasPermission = false;
+		var userRoles     = listUserGroupsRoles( userId=arguments.userId );
+
+		for ( var role in arguments.roles ) {
+			if ( arrayContains( userRoles, role ) ) {
+				hasPermission = true;
+				break;
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, hasPermission );
+
+		return hasPermission;
 	}
 
 	public struct function getContextPermissions(
@@ -249,6 +383,18 @@ component displayName="Admin permissions service" {
 		return _getGroupDao().dataExists( id=arguments.groupid, extraFilters=[{ filter={ is_catch_all=true } }] );
 	}
 
+	/**
+	 * Returns whether or not the given permission key exists.
+	 * Useful for dynamic permissions checking where you may
+	 * wish to fall back to another check when the permission
+	 * does not exist.
+	 *
+	 * @permissionKey.hint The permission key you wish to check, e.g. blog.share
+	 */
+	public boolean function permissionExists( required string permissionkey ) {
+		return ArrayFindNoCase( _getPermissions(), arguments.permissionKey );
+	}
+
 // PRIVATE HELPERS
 	private void function _denormalizeAndSaveConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );
@@ -280,16 +426,25 @@ component displayName="Admin permissions service" {
 	}
 
 	private array function _getUserPermissions( required string user ) {
-		var perms = [];
-		var groups = listUserGroups( arguments.user );
+		var cacheKey = "_userPermissionsCache#arguments.user#";
+		var fromCache = _getCacheProvider().get( cacheKey );
 
-		for( var group in groups ){
-			_getGroupPermissions( group ).each( function( perm ){
-				if ( !perms.findNoCase( perm ) ) {
-					perms.append( perm );
-				}
-			} );
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
 		}
+
+		var perms = [];
+
+		for( var group in listUserGroups( arguments.user ) ){
+			var groupPerms = _getGroupPermissions( group );
+			for( var perm in groupPerms ) {
+				if ( !ArrayFind( perms, LCase( perm ) ) ) {
+					ArrayAppend( perms, LCase( perm ) );
+				}
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, perms );
 
 		return perms;
 	}
@@ -335,11 +490,15 @@ component displayName="Admin permissions service" {
 		, required string context
 		, required array  contextKeys
 	) {
-		var args               = arguments;
-		var userGroups         = listUserGroups( arguments.userId );
-		var cacheKey           = "ContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKey & userGroups.toList() );
-		var cachedContextPerms = _getCacheProvider().getOrSet( objectKey=cacheKey, produce=function(){
-			var permsToCache = {};
+		var args         = arguments;
+		var userGroups   = listUserGroups( arguments.userId );
+		var cacheKey     = "ContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKey & userGroups.toList() );
+		var cache        = _getCacheProvider();
+		var contextPerms = cache.get( cacheKey );
+
+		if ( IsNull( local.contextPerms ) ) {
+			contextPerms = {};
+
 			var permsFromDb  = _getContextPermDao().selectData(
 				  selectFields = [ "granted", "context_key" ]
 				, filter       = { context = args.context, permission_key = args.permissionKey, security_group = userGroups }
@@ -348,24 +507,71 @@ component displayName="Admin permissions service" {
 			);
 
 			for( var perm in permsFromDb ){
-				permsToCache[ perm.context_key ] = perm.granted;
+				contextPerms[ perm.context_key ] = perm.granted;
 			}
 
-			return permsToCache;
-		} );
+			cache.set( cacheKey, contextPerms );
+		}
 
 
-		if ( cachedContextPerms.isEmpty() ) {
+		if ( contextPerms.isEmpty() ) {
 			return;
 		}
 
 		for( var key in arguments.contextKeys ){
-			if ( cachedContextPerms.keyExists( key ) ) {
-				return cachedContextPerms[ key ];
+			if ( StructKeyExists( contextPerms, key ) ) {
+				return contextPerms[ key ];
 			}
 		}
 
 		return;
+	}
+
+	private struct function _getMultiContextPermissions(
+		  required string userId
+		, required array  permissionKeys
+		, required string context
+		, required array  contextKeys
+	) {
+		var result       = {};
+		var args         = arguments;
+		var userGroups   = listUserGroups( arguments.userId );
+		var cacheKey     = "MultiContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKeys.toList() & userGroups.toList() );
+		var cache        = _getCacheProvider();
+		var contextPerms = cache.get( cacheKey );
+
+		if ( IsNull( local.contextPerms ) ) {
+			contextPerms = {};
+			var permsFromDb  = _getContextPermDao().selectData(
+				  selectFields = [ "granted", "context_key", "permission_key" ]
+				, filter       = { context = args.context, permission_key = args.permissionKeys, security_group = userGroups }
+				, orderBy      = "context_key, granted"
+				, useCache     = false
+			);
+
+			for( var perm in permsFromDb ){
+				contextPerms[ perm.context_key ] = contextPerms[ perm.context_key ] ?: {};
+				contextPerms[ perm.context_key ][ perm.permission_key ] = perm.granted;
+			}
+
+			cache.set( cacheKey, contextPerms );
+		}
+
+		if ( contextPerms.isEmpty() ) {
+			return result;
+		}
+
+		for( var contextKey in arguments.contextKeys ){
+			if ( StructKeyExists( contextPerms, contextKey ) ) {
+				for( var permKey in contextPerms[ contextKey ] ) {
+					if ( !StructKeyExists( result, permKey ) ) {
+						result[ permKey ] = contextPerms[ contextKey ][ permKey ];
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 
 	private array function _expandPermissions( required struct permissions, string prefix="" ) {
@@ -446,7 +652,7 @@ component displayName="Admin permissions service" {
 
 			for( var group in allGroups ){
 				for ( var role in ListToArray( group.roles ) ) {
-					if ( rolesWithPerm.keyExists( role ) ) {
+					if ( StructKeyExists( rolesWithPerm, role ) ) {
 						groups.append( { id=group.id, name=group.label } );
 						break;
 					}

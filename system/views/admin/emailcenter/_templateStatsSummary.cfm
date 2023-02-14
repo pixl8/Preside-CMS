@@ -21,11 +21,13 @@
 			<span class="fa-lg blue">#sent#</span>
 			<span class="grey">#translateResource( uri="cms:emailcenter.stats.sent" )#</span>
 		</dd>
-		<dd>
-			<i class="fa fa-check green"></i>&nbsp;
-			<span class="fa-lg green">#delivered#</span>
-			<span class="grey">#translateResource( uri="cms:emailcenter.stats.delivered" )#</span>
-		</dd>
+		<cfif isFeatureEnabled( "emailDeliveryStats" )>
+			<dd>
+				<i class="fa fa-check green"></i>&nbsp;
+				<span class="fa-lg green">#delivered#</span>
+				<span class="grey">#translateResource( uri="cms:emailcenter.stats.delivered" )#</span>
+			</dd>
+		</cfif>
 		<dd>
 			<i class="fa fa-envelope green"></i>&nbsp;
 			<span class="fa-lg green">#opened#</span>

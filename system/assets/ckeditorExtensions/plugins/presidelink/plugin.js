@@ -7,7 +7,7 @@
 
 'use strict';
 
-( function() {
+( function( $ ) {
 	CKEDITOR.plugins.add( 'presidelink', {
 		requires: 'dialog,iframedialog,fakeobjects',
 		lang: 'en',
@@ -52,7 +52,7 @@
 				required = 'a[href]';
 
 			if ( CKEDITOR.dialog.isTabEnabled( editor, 'presidelink', 'advanced' ) )
-				allowed = allowed.replace( ']', ',accesskey,charset,dir,id,lang,name,rel,tabindex,title,type]{*}(*)' );
+				allowed = allowed.replace( ']', ',accesskey,charset,dir,id,lang,name,rel,tabindex,title,type,referrerpolicy]{*}(*)' );
 			if ( CKEDITOR.dialog.isTabEnabled( editor, 'presidelink', 'target' ) )
 				allowed = allowed.replace( ']', ',target,onclick]' );
 
@@ -205,10 +205,12 @@
 		emailSubjectRegex = /subject=([^;?:@&=$,\/]*)/,
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
 		emailAntiSpamRegex = /emailantispam=(\d)/,
+		emailVariableRegex = /(\$\{[^\}]+\})/,
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
 		presideLinkRegex = /^{{link:(.*?):link}}(?:#([^'"]+))?$/,
 		presideAssetRegex = /^{{asset:(.*?):asset}}$/,
+		customRegex = /^{{custom:(.*?):custom}}$/,
 		selectableTargets = /^(_(?:self|top|parent|blank))$/,
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
 		functionCallProtectedEmailLinkRegex = /^javascript:([^(]+)\(([^)]+)\)$/,
@@ -431,7 +433,7 @@
 			var href = ( element && ( element.data( 'cke-saved-href' ) || element.getAttribute( 'href' ) ) ) || '',
 				compiledProtectionFunction = editor.plugins.presidelink.compiledProtectionFunction,
 				emailProtection = editor.config.emailProtection,
-				javascriptMatch, emailMatch, anchorMatch, urlMatch,
+				javascriptMatch, emailMatch, anchorMatch, emailVariableMatch, urlMatch, data,
 				retval = {};
 
 			if ( ( javascriptMatch = href.match( javascriptProtocolRegex ) ) ) {
@@ -493,21 +495,37 @@
 					retval.type  = 'asset';
 					retval.asset = urlMatch[ 1 ];
 				}
+				else if ( href && ( urlMatch = href.match( customRegex ) ) ) {
+					try{
+						retval = $.parseJSON( atob( urlMatch[ 1 ] ) );
+					} catch( e ){
+						retval = {};
+					}
+				}
+				else if ( href && ( emailVariableMatch = href.match( emailVariableRegex ) ) ) {
+					retval.type = 'emailvariable';
+					retval.emailvariable = emailVariableMatch[ 1 ];
+				}
 				// urlRegex matches empty strings, so need to check for href as well.
 				else if ( href && ( urlMatch = href.match( urlRegex ) ) ) {
 					retval.type = 'url';
 					retval.protocol = urlMatch[ 1 ];
 					retval.address = urlMatch[ 2 ];
 				}
+
 			}
 
 			// Load target and popup settings.
 			if ( element ) {
 				var target = element.getAttribute( 'target' )
-				  , rel    = element.getAttribute( 'rel' );
+				  , rel            = element.getAttribute( 'rel' )
+				  , referrerpolicy = element.getAttribute( 'referrerpolicy' );
 
 				if ( target ) {
 					retval.link_target = target;
+				}
+				if ( referrerpolicy ) {
+					retval.referrer_policy = referrerpolicy;
 				}
 
 				if ( rel == "nofollow" ) {
@@ -576,6 +594,10 @@
 					set[ 'data-cke-saved-href' ] = '#' + ( data.anchor || '' );
 
 					break;
+				case 'emailvariable':
+					set[ 'data-cke-saved-href' ] = data.emailvariable || '';
+
+					break;
 				case 'email':
 					var address = data.emailaddress
 					  , linkHref;
@@ -624,6 +646,9 @@
 
 					set[ 'data-cke-saved-href' ] = linkHref.join( '' );
 					break;
+
+				default:
+					set[ 'data-cke-saved-href' ] = '{{custom:' + btoa( JSON.stringify( data ) ) + ':custom}}';
 			}
 
 			// Popups and target.
@@ -639,6 +664,9 @@
 				set.title = data.title;
 			}
 
+			if ( data.referrer_policy && data.referrer_policy.length ) {
+				set.referrerpolicy = data.referrer_policy;
+			}
 			// Browser need the "href" fro copy/paste link to work. (#6641)
 			if ( set[ 'data-cke-saved-href' ] ){
 				set.href = set[ 'data-cke-saved-href' ];
@@ -790,4 +818,4 @@
 		 * @member CKEDITOR.config
 		 */
 	} );
-} )();
+} )( presideJQuery );

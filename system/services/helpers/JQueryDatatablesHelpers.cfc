@@ -48,7 +48,7 @@ component {
 
 	public string function getSortOrder() {
 		var event        = $getRequestContext();
-		var nSortingCols = Val( event.getValue( name="iSortingCols", default="0" ) );
+		var nSortingCols = Val( event.getValue( name="iSortingCols", defaultValue="0" ) );
 		var i            = 0;
 		var sortOrder    = "";
 		var sortColIx    = "";

@@ -9,10 +9,16 @@ component extends="coldbox.system.web.Controller" {
 		services.requestService     = new preside.system.coldboxModifications.services.RequestService( this );
 		services.routingService     = new preside.system.coldboxModifications.services.RoutingService( this );
 		variables.wireBox           = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
+		variables.cacheBox          = CreateObject( "preside.system.coldboxModifications.cachebox.CacheFactory" );
 	}
 
 	function getRenderer(){
-		return variables.wireBox.getInstance( "presideRenderer" );
+		try {
+			return variables._renderer;
+		} catch( any e ) {
+			variables._renderer = variables.wireBox.getInstance( "presideRenderer" );
+		}
+		return variables._renderer;
 	}
 
 	public array function listHandlers( string thatStartWith="" ) {
@@ -20,9 +26,11 @@ component extends="coldbox.system.web.Controller" {
 	}
 
 	public boolean function handlerExists( required string event ) {
+		var site     = getRequestContext().getSite();
+		var cacheKey = arguments.event & ( site.template ?: "" );
 		variables._handlerExistsCache = variables._handlerExistsCache ?: {};
-		if ( variables._handlerExistsCache.keyExists( arguments.event ) ) {
-			return variables._handlerExistsCache[ arguments.event ];
+		if ( StructKeyExists( variables._handlerExistsCache, cacheKey ) ) {
+			return variables._handlerExistsCache[ cacheKey ];
 		}
 
 		var handlerSvc = "";
@@ -53,24 +61,30 @@ component extends="coldbox.system.web.Controller" {
 			}
 
 
-		} catch( "HandlerService.EventHandlerNotRegisteredException" e ) {
+		} catch( HandlerService.EventHandlerNotRegisteredException e ) {
+			exists = false;
+		} catch( HandlerService.InvalidEventHandlerException e ) {
 			exists = false;
 		}
 
-		variables._handlerExistsCache[ arguments.event ] = exists;
+
+		variables._handlerExistsCache[ cacheKey ] = exists;
 		return exists;
 	}
 
 	public boolean function viewExists( required string view ) {
+		var site     = getRequestContext().getSite();
+		var cacheKey = arguments.view & ( site.template ?: "" );
+
 		variables._viewExistsCache = variables._viewExistsCache ?: {};
-		if ( variables._viewExistsCache.keyExists( arguments.view ) ) {
-			return variables._viewExistsCache[ arguments.view ];
+		if ( StructKeyExists( variables._viewExistsCache, cacheKey ) ) {
+			return variables._viewExistsCache[ cacheKey ];
 		}
 
 		var targetView = getRenderer().locateView( ListChangeDelims( arguments.view, "/", "." ) );
 		var exists     = Len( Trim( targetView ) ) and FileExists( ExpandPath( targetView & ".cfm" ) );
 
-		variables._viewExistsCache[ arguments.view ] = exists;
+		variables._viewExistsCache[ cacheKey ] = exists;
 
 		return exists;
 	}
@@ -91,7 +105,7 @@ component extends="coldbox.system.web.Controller" {
 		,          string  cacheSuffix            = ""
 		,          string  cacheProvider          = "template"
 	) {
-		if ( arguments.delayed && getRequestContext().cachePage() ) {
+		if ( arguments.delayed && _getDelayedViewletRendererService().isDelayableContext() ) {
 			return _getDelayedViewletRendererService().renderDelayedViewletTag(
 				  event         = arguments.event
 				, args          = arguments.args
@@ -157,7 +171,7 @@ component extends="coldbox.system.web.Controller" {
 	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) {
 		var target = arguments.fwSetting ? variables.coldboxSettings : variables.configSettings;
 
-		if ( target.keyExists( arguments.name ) ) {
+		if ( StructKeyExists( target, arguments.name ) ) {
 			return target[ arguments.name ];
 		}
 
@@ -192,7 +206,7 @@ component extends="coldbox.system.web.Controller" {
 	}
 
 	private any function _getDelayedViewletRendererService() {
-		if ( !variables.keyExists( "_delayedViewletRendererService" ) ) {
+		if ( !StructKeyExists( variables, "_delayedViewletRendererService" ) ) {
 			variables._delayedViewletRendererService = wireBox.getInstance( "delayedViewletRendererService" );
 		}
 
@@ -201,5 +215,18 @@ component extends="coldbox.system.web.Controller" {
 
 	private boolean function _isAdminLoggedIn() {
 		return wireBox.getInstance( "loginService" ).isLoggedIn();
+	}
+
+	private function invoker(
+		  required any     target
+		, required string  method
+		,          struct  argCollection = {}
+		,          boolean private       = false
+	){
+		if ( arguments.private ) {
+			return arguments.target._privateInvoker( method=arguments.method, argCollection=arguments.argCollection );
+		} else {
+			return arguments.target[ arguments.method ]( argumentCollection=arguments.argCollection );
+		}
 	}
 }

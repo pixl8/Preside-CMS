@@ -5,7 +5,10 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init() {
+	public any function init( required query dbInfo, required boolean useVarcharMaxForText ) {
+		_setDbInfo( arguments.dbInfo );
+		_setUseVarcharMaxForText( arguments.useVarcharMaxForText );
+
 		return this;
 	}
 
@@ -36,13 +39,14 @@ component extends="BaseAdapter" {
 				columnDef &= "datetime";
 				break;
 			case "longtext":
-				columnDef &= "text";
+			case "text":
+				arguments.maxLength = 0;
+				columnDef &= _getUseVarcharMaxForText() ? "varchar(max)" : "text";
 				break;
 			case "bigint":
 			case "int":
 			case "float":
 			case "double":
-			case "text":
 				arguments.maxLength = 0;
 				columnDef &= "#arguments.dbType#";
 				break;
@@ -56,7 +60,6 @@ component extends="BaseAdapter" {
 		}
 
 		if ( arguments.maxLength ) {
-
 			columnDef &= "(#arguments.maxLength#)";
 		}
 
@@ -202,13 +205,26 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
-	public string function getDeleteSql( required string tableName, required any filter, string tableAlias="" ) {
+	public string function getDeleteSql(
+		  required string tableName
+		, required any    filter
+		,          string tableAlias = ""
+		,          array  joins      = []
+	) {
 		var sql = "delete "
 
 		if ( Len( Trim( arguments.tableAlias ) ) ) {
 			sql &= "#escapeEntity( arguments.tableAlias )# from #escapeEntity( arguments.tableName )# as #escapeEntity( arguments.tableAlias )#";
 		} else {
 			sql &= "from #escapeEntity( arguments.tableName )#";
+		}
+
+		if ( ArrayLen( arguments.joins ) ) {
+			sql &= getJoinSql(
+				  tableName  = arguments.tableName
+				, tableAlias = arguments.tableAlias
+				, joins      = arguments.joins
+			);
 		}
 
 		return sql & getClauseSql(
@@ -271,14 +287,19 @@ component extends="BaseAdapter" {
 			sql &= " having " & arguments.having;
 		}
 
+		sql = applyOrderByAndMaxRowsSql( sql=sql, orderBy=arguments.orderBy, maxRows=arguments.maxRows, startRow=arguments.startRow );
+
+		return sql;
+	}
+
+	public string function applyOrderByAndMaxRowsSql( required string sql, string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
+		var sql = arguments.sql;
 		if ( Len( Trim ( arguments.orderBy ) )  && !arguments.maxRows ) {
 			sql &= " order by " & arguments.orderBy;
 		}
-
 		if ( arguments.maxRows ) {
 			sql = "select * from ( " & sql & " ) as recordset where _rownumber between #( arguments.startRow )# and #( ( arguments.startRow + arguments.maxRows ) - 1 )#";
 		}
-
 		return sql;
 	}
 
@@ -361,6 +382,10 @@ component extends="BaseAdapter" {
 		return "select db_name() as db";
 	}
 
+	public string function getAllTablesSql() {
+		return "select table_name from information_schema.tables where table_type='base table' and table_catalog = db_name()";
+	}
+
 	public string function getAllForeignKeysSql() {
 		return "select     object_name( f.parent_object_id )                            as table_name
 	                     , col_name( fc.parent_object_id, fc.parent_column_id )         as column_name
@@ -370,5 +395,13 @@ component extends="BaseAdapter" {
 	            from       sys.foreign_keys        as f
 	            inner join sys.foreign_key_columns as fc on f.object_id = fc.constraint_object_id
 	            inner join sys.objects             as o  on o.object_id = fc.referenced_object_id";
+	}
+
+// GETTERS AND SETTERS
+	private boolean function _getUseVarcharMaxForText() {
+		return _useVarcharMaxForText;
+	}
+	private void function _setUseVarcharMaxForText( required boolean useVarcharMaxForText ) {
+		_useVarcharMaxForText = arguments.useVarcharMaxForText;
 	}
 }

@@ -818,11 +818,13 @@
             fillTime = function () {
                 var toggle, newDate, timeComponents = widget.find('.timepicker span[data-time-component]');
 
+                newDate = unset ? date.clone().hours(options.defaultHour).minutes(options.defaultMinutes).seconds(0).milliseconds(0) : date.clone();
+
                 if (!use24Hours) {
                     toggle = widget.find('.timepicker [data-action=togglePeriod]');
-                    newDate = date.clone().add((date.hours() >= 12) ? -12 : 12, 'h');
+                    newDate.add((newDate.hours() >= 12) ? -12 : 12, 'h');
 
-                    toggle.text(date.format('A'));
+                    toggle.text(newDate.format('A'));
 
                     if (isValid(newDate, 'h')) {
                         toggle.removeClass('disabled');
@@ -830,9 +832,9 @@
                         toggle.addClass('disabled');
                     }
                 }
-                timeComponents.filter('[data-time-component=hours]').text(date.format(use24Hours ? 'HH' : 'hh'));
-                timeComponents.filter('[data-time-component=minutes]').text(date.format('mm'));
-                timeComponents.filter('[data-time-component=seconds]').text(date.format('ss'));
+                timeComponents.filter('[data-time-component=hours]').text(newDate.format(use24Hours ? 'HH' : 'hh'));
+                timeComponents.filter('[data-time-component=minutes]').text(newDate.format('mm'));
+                timeComponents.filter('[data-time-component=seconds]').text(newDate.format('ss'));
 
                 fillHours();
                 fillMinutes();
@@ -1797,6 +1799,32 @@
             return picker;
         };
 
+        picker.defaultHour = function (defaultHour) {
+            if (arguments.length === 0) {
+                return options.defaultHour;
+            }
+
+            defaultHour = parseInt(defaultHour, 10);
+            if (isNaN(defaultHour) || defaultHour > 23) {
+                defaultHour = 0;
+            }
+            options.defaultHour = defaultHour;
+            return picker;
+        };
+
+        picker.defaultMinutes = function (defaultMinutes) {
+            if (arguments.length === 0) {
+                return options.defaultMinutes;
+            }
+
+            defaultMinutes = parseInt(defaultMinutes, 10);
+            if (isNaN(defaultMinutes) || defaultMinutes > 59) {
+                defaultMinutes = 0;
+            }
+            options.defaultMinutes = defaultMinutes;
+            return picker;
+        };
+
         picker.locale = function (locale) {
             if (arguments.length === 0) {
                 return options.locale;
@@ -2457,6 +2485,8 @@
         collapse: true,
         locale: moment.locale(),
         defaultDate: false,
+        defaultHour: 0,
+        defaultMinutes: 0,
         disabledDates: false,
         enabledDates: false,
         icons: {

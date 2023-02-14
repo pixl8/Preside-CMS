@@ -6,7 +6,7 @@ component {
 		var staticAssetPath = _translatePath( rc.staticAssetPath ?: "" );
 		var assetFile       = ExpandPath( staticAssetPath );
 
-		if ( rc.staticAssetPath.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" ) ) {
+		if ( rc.staticAssetPath.reFindNoCase( "^/preside/system/assets/_dynamic/i18nBundle\.([a-z\-_])+\.([0-9a-f]+)\.js" ) ) {
 			_serveI18nBundle( argumentCollection = arguments );
 		}
 
@@ -19,7 +19,7 @@ component {
 		_doBrowserEtagLookup( etag );
 
 		header name="cache-control" value="max-age=31536000";
-		header name="etag" value=etag;
+		header name="ETag" value=etag;
 		content file="#assetFile#" type=_getMimeType( assetFile );abort;
 	}
 
@@ -28,7 +28,7 @@ component {
 		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
 		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
 
-		if ( ( !fullPath.startsWith( rootAllowedDirectory ) && !fullPath.startsWith( extensionsDirectory ) ) || fullPath contains ".." ) {
+		if ( ( fullPath.left( rootAllowedDirectory.len() ) != rootAllowedDirectory && fullPath.left( extensionsDirectory.len() ) != extensionsDirectory ) || fullPath contains ".." ) {
 			return false;
 		}
 
@@ -40,7 +40,8 @@ component {
 	}
 
 	private string function _doBrowserEtagLookup( required string etag ) {
-		if ( ( cgi.http_if_none_match ?: "" ) == arguments.etag ) {
+		var headers = getHTTPRequestData( false ).headers;
+		if ( ( headers[ "If-None-Match" ] ?: "" ) == arguments.etag ) {
 			content reset=true;header statuscode=304 statustext="Not Modified";abort;
 		}
 	}
@@ -63,16 +64,21 @@ component {
 	}
 
 	private void function _serveI18nBundle( event, rc, prc ) {
-		var locale = getFwLocale();
-		var js     = i18n.getI18nJsForAdmin();
-		var etag   = Left( LCase( Hash( js ) ), 8 );
+		var locale = ReReplace( rc.staticAssetPath, "^.*\.([a-zA-Z_-]+)\.[a-z0-9]+\.js$", "\1" );
 
+		if ( !Len( locale ) || locale == rc.staticAssetPath ) {
+			locale = getFwLocale();
+		}
+
+		var etag = i18n.getI18nJsCachebusterForAdmin( locale );
 		_doBrowserEtagLookup( etag );
+
+		var js   = i18n.getI18nJsForAdmin( locale );
 
 		setting showdebugoutput=false;
 
 		header name="cache-control" value="max-age=#( 2400 )#"; // cache for 20 min
-		header name="etag" value=etag;
+		header name="ETag" value=etag;
 		content reset=true type="application/javascript";WriteOutput(js);abort;
 	}
 

@@ -127,6 +127,17 @@ component displayName="RulesEngine Condition Service" {
 		return $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
 	}
 
+	/**
+	 * Unlocks a previously locked condition/filter.
+	 *
+	 */
+	public boolean function unlockCondition( required string conditionId ) {
+		return $getPresideObject( "rules_engine_condition" ).updateData(
+			  id = arguments.conditionId
+			, data = { is_locked=false, locked_reason="" }
+		) > 0;
+	}
+
 // VALIDATOR METHODS
 	/**
 	 * Returns an array of objects (names) that
@@ -210,7 +221,7 @@ component displayName="RulesEngine Condition Service" {
 						return false;
 					}
 				} else if ( IsStruct( item ) ) {
-					if ( !item.keyExists( "expression" ) || !item.keyExists( "fields" ) ) {
+					if ( !StructKeyExists( item, "expression" ) || !StructKeyExists( item, "fields" ) ) {
 						return _malformedError( arguments.validationResult );
 					}
 					isValid = _getExpressionService().isExpressionValid(

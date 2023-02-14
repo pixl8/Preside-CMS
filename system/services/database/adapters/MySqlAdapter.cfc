@@ -5,7 +5,10 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init() {
+	public any function init( required query dbInfo ) {
+		_setDbInfo( arguments.dbInfo );
+		_setDbVendor();
+
 		return this;
 	}
 
@@ -130,13 +133,26 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
-	public string function getDeleteSql( required string tableName, required any filter, string tableAlias="" ) {
+	public string function getDeleteSql(
+		  required string tableName
+		, required any    filter
+		,          string tableAlias = ""
+		,          array  joins      = []
+	) {
 		var sql = "delete from "
 
 		if ( Len( Trim( arguments.tableAlias ) ) ) {
 			sql &= "#escapeEntity( arguments.tableAlias )# using #escapeEntity( arguments.tableName )# as #escapeEntity( arguments.tableAlias )#";
 		} else {
 			sql &= "#escapeEntity( arguments.tableName )#";
+		}
+
+		if ( ArrayLen( arguments.joins ) ) {
+			sql &= getJoinSql(
+				  tableName  = arguments.tableName
+				, tableAlias = arguments.tableAlias
+				, joins      = arguments.joins
+			);
 		}
 
 		return sql & getClauseSql(
@@ -191,14 +207,19 @@ component extends="BaseAdapter" {
 			sql &= " having " & arguments.having;
 		}
 
+		sql = applyOrderByAndMaxRowsSql( sql=sql, orderBy=arguments.orderBy, maxRows=arguments.maxRows, startRow=arguments.startRow );
+
+		return sql;
+	}
+
+	public string function applyOrderByAndMaxRowsSql( required string sql, string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
+		var sql = arguments.sql;
 		if ( Len( Trim ( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
 		}
-
 		if ( arguments.maxRows ) {
 			sql &= " limit #arguments.startRow-1#, #arguments.maxRows#";
 		}
-
 		return sql;
 	}
 
@@ -225,6 +246,10 @@ component extends="BaseAdapter" {
 		return "select database() as db";
 	}
 
+	public string function getAllTablesSql() {
+		return "select table_name from information_schema.tables where table_schema = database() and table_type = 'BASE TABLE'";
+	}
+
 	public string function getAllForeignKeysSql() {
 		return "select distinct u.table_name
 		                      , u.column_name
@@ -234,5 +259,22 @@ component extends="BaseAdapter" {
 		        from            information_schema.key_column_usage u
 		        where           u.table_schema = :databasename
 		        and             u.referenced_column_name is not null";
+	}
+
+// PRIVATE METHODS
+	private boolean function _isMySql() {
+		return _dbVendor=="mysql";
+	}
+	private boolean function _isMariaDB() {
+		return _dbVendor=="mariadb";
+	}
+
+	private void function _setDbVendor() {
+		var dbVersion = _getDbInfo().database_version ?: "";
+		if ( findNoCase( "MariaDB", dbVersion ) ) {
+			_dbVendor = "mariadb";
+		} else {
+			_dbVendor = "mysql";
+		}
 	}
 }

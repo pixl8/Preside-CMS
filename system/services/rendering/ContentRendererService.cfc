@@ -9,49 +9,54 @@ component {
 
 	/**
 	 * @coldbox.inject              coldbox
-	 * @cache.inject                cachebox:PresideSystemCache
 	 * @assetRendererService.inject AssetRendererService
 	 * @widgetsService.inject       WidgetsService
 	 * @presideObjectService.inject PresideObjectService
 	 * @labelRendererService.inject labelRendererService
+	 * @renderedAssetCache.inject   cachebox:renderedAssetCache
 	 */
 	public any function init(
 		  required any coldbox
-		, required any cache
 		, required any assetRendererService
 		, required any widgetsService
 		, required any presideObjectService
 		, required any labelRendererService
+		, required any renderedAssetCache
 	) {
 		_setColdbox( arguments.coldbox );
-		_setCache( arguments.cache );
 		_setAssetRendererService( arguments.assetRendererService );
 		_setWidgetsService( arguments.widgetsService );
 		_setPresideObjectService( arguments.presideObjectService );
 		_setLabelRendererService( arguments.labelRendererService );
+		_setRenderedAssetCache( arguments.renderedAssetCache );
 
+		_setCache( {} );
 		_setRenderers( {} );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required any data, any context="default", struct args={} ) {
-		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
-		var r        = "";
-		var rendered = arguments.data;
+	public any function render( required string renderer, required any data, any context="default", struct args={} ) {
+		var interceptData = { content=arguments.data, renderer=arguments.renderer, context=arguments.context, args=args };
+		var renderer      = _getRenderer( name=arguments.renderer, context=arguments.context );
+
+		$announceInterception( "preRenderContent", interceptData );
 
 		if ( renderer.isChain() ) {
-			for( r in renderer.getChain() ){
-				rendered = this.render( renderer=r, data=rendered, context=arguments.context, args=arguments.args );
+			for( var r in renderer.getChain() ){
+				interceptData.content = this.render( renderer=r, data=interceptData.content, context=arguments.context, args=arguments.args );
 			}
-
-			return rendered;
 		} else {
 			var viewletArgs = IsStruct( arguments.data ) ? arguments.data : { data=arguments.data };
 			viewletArgs.append( arguments.args, false );
-			return _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
+			interceptData.content = _getColdbox().renderViewlet( event=renderer.getViewlet(), args=viewletArgs );
 		}
+
+		$announceInterception( "postRenderContent", interceptData );
+
+		return interceptData.content;
+
 	}
 
 	public string function renderLabel(
@@ -59,27 +64,33 @@ component {
 		, required string recordId
 		,          string keyField      = "id"
 		,          string labelRenderer = $getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
-		,          array bypassTenants = []
+		,          array  bypassTenants = []
 	) {
-
+		var labelField           = _getPresideObjectService().getObjectAttribute(  arguments.objectName, "labelfield" );
 		var labelRendererService = _getLabelRendererService();
-		var selectFields = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : [ "${labelfield} as label" ]
-		var record = _getPresideObjectService().selectData(
-			  objectName         = arguments.objectName
-			, filter             = { "#keyField#"=arguments.recordId }
-			, selectFields       = selectFields
-			, allowDraftVersions = $getRequestContext().showNonLiveContent()
-			, bypassTenants     = arguments.bypassTenants
-		);
+		var selectFields         = arguments.labelRenderer.len() ? labelRendererService.getSelectFieldsForLabel( arguments.labelRenderer ) : ( Len( labelField ) ? [ "${labelfield} as label" ] : [] );
 
-		if ( Len( Trim( arguments.labelRenderer ) ) ) {
-			for( var r in record ) {
-				return labelRendererService.renderLabel( arguments.labelRenderer, r );
+		if ( ArrayLen( selectFields ) ) {
+			var poService       = _getPresideObjectService();
+			var escapedKeyField = poService.getDbAdapterForObject( arguments.objectName ).escapeEntity( "#arguments.objectName#.#arguments.keyField#" );
+			var record          = poService.selectData(
+				  objectName         = arguments.objectName
+				, filter             = "#escapedKeyField# = :keyField"
+				, filterParams       = { "keyField"={ type="cf_sql_varchar", value=arguments.recordId } }
+				, selectFields       = selectFields
+				, allowDraftVersions = $getRequestContext().showNonLiveContent()
+				, bypassTenants      = arguments.bypassTenants
+			);
+
+			if ( Len( Trim( arguments.labelRenderer ) ) ) {
+				for( var r in record ) {
+					return labelRendererService.renderLabel( arguments.labelRenderer, r );
+				}
 			}
-		}
 
-		if ( record.recordCount ) {
-			return record.label;
+			if ( record.recordCount ) {
+				return record.label;
+			}
 		}
 
 		return arguments.recordId;
@@ -128,6 +139,34 @@ component {
 		return rendered;
 	}
 
+	public string function renderEnum(
+		  required string data
+		,          string enum         = ""
+		,          string objectName   = ""
+		,          string propertyName = ""
+		,          any    context      = "default"
+		,          string recordId     = ""
+		,          string enumRenderer = ""
+	) {
+		if ( !$helpers.isEmptyString( arguments.objectName ) && !$helpers.isEmptyString( arguments.propertyName ) ) {
+			arguments.enumRenderer = $getPresideObjectService().getObjectPropertyAttribute( objectName=arguments.objectName, propertyName=arguments.propertyName, attributeName="enumRenderer", defaultValue="enumLabel" );
+		} else if ( $helpers.isEmptyString( arguments.enumRenderer ) ) {
+			arguments.enumRenderer = "enumLabel";
+		}
+
+		return this.render(
+			  renderer = arguments.enumRenderer
+			, data     = arguments.data
+			, context  = arguments.context
+			, args     = {
+				  enum         = arguments.enum
+				, objectName   = arguments.objectName
+				, propertyName = arguments.propertyName
+				, recordId     = arguments.recordId
+			  }
+		);
+	}
+
 	public string function makeContentEditable(
 		  required string renderer
 		, required string object
@@ -159,43 +198,40 @@ component {
 	public boolean function rendererExists( required string name, any context="default" ) {
 		var cache     = _getCache();
 		var cacheKey  = "rendererExists: " & arguments.name & " in context: " & SerializeJson( arguments.context );
-		var exists    = cache.get( cacheKey );
-		var contexts  = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
-		if ( !contexts.find( "default" ) ) {
-			contexts.append( "default" );
-		}
+		if ( !StructKeyExists( cache, cacheKey ) ) {
+			var exists   = false;
+			var contexts = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
-		if ( !IsNull( local.exists ) ) {
-			return exists;
-		}
+			if ( !contexts.find( "default" ) ) {
+				contexts.append( "default" );
+			}
 
-		var renderers = _getRenderers();
-		var cbProxy   = _getColdbox();
+			var renderers = _getRenderers();
+			var cbProxy   = _getColdbox();
 
-		exists = false;
-		if ( renderers.keyExists( arguments.name ) ) {
-
-			for( var cx in contexts ) {
-				if ( renderers[ arguments.name ].keyExists( cx ) ) {
-					exists = true;
-					break;
+			if ( StructKeyExists( renderers, arguments.name ) ) {
+				for( var cx in contexts ) {
+					if ( StructKeyExists( renderers[ arguments.name ], cx ) ) {
+						exists = true;
+						break;
+					}
 				}
 			}
-		}
 
-		if ( not exists ) {
-			for( var cx in contexts ) {
-				exists = cbProxy.viewletExists( event=_getConventionBasedViewletName( renderer=arguments.name, context=cx ) );
-				if ( exists ) {
-					break;
+			if ( !exists ) {
+				for( var cx in contexts ) {
+					exists = cbProxy.viewletExists( event=_getConventionBasedViewletName( renderer=arguments.name, context=cx ) );
+					if ( exists ) {
+						break;
+					}
 				}
 			}
+
+			cache[ cacheKey ] = exists;
 		}
 
-		cache.set( cacheKey, exists );
-
-		return exists;
+		return cache[ cacheKey ];
 	}
 
 	public void function registerRenderer( required string name, string context="default", string viewlet="", array chain=[] ) {
@@ -262,7 +298,7 @@ component {
 		return fieldAttributes.type ?: "";
 	}
 
-	public string function renderEmbeddedImages( required string richContent, string context="richeditor" ) {
+	public string function renderEmbeddedImages( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedImage   = "";
 		var renderedImage   = "";
 		var renderedContent = arguments.richContent;
@@ -270,32 +306,47 @@ component {
 		do {
 			embeddedImage = _findNextEmbeddedImage( renderedContent );
 
-			if ( Len( Trim( embeddedImage.asset ?: "" ) ) ) {
-				var args       = Duplicate( embeddedImage );
-				var derivative = args.derivative ?: "";
+			if ( Len( Trim( embeddedImage.asset ?: "" ) ) && Len( Trim( embeddedImage.placeholder ?: "" ) ) ) {
+				var cacheKey = "asset-#embeddedImage.asset#-" & Serialize( embeddedImage );
 
-				args.delete( "asset" );
-				args.delete( "placeholder" );
-				args.delete( "derivative" );
+				renderedImage = _getRenderedAssetCache().get( cacheKey );
 
-				if( Len( Trim( derivative ) ) && derivative NEQ "none" ){
-					args.delete( "width" );
-					args.delete( "height" );
-					args.delete( "quality" );
-					args.delete( "dimensions" );
+				if ( IsNull( renderedImage ) ) {
+					var args       = Duplicate( embeddedImage );
+					var derivative = args.derivative ?: "";
 
-					args.derivative = derivative;
+					args.delete( "asset" );
+					args.delete( "placeholder" );
+					args.delete( "derivative" );
 
+					if( Len( Trim( derivative ) ) && derivative NEQ "none" ){
+						args.delete( "width" );
+						args.delete( "height" );
+						args.delete( "quality" );
+						args.delete( "dimensions" );
+
+						args.derivative = derivative;
+					}
+
+					renderedImage = _getAssetRendererService().renderAsset(
+						  assetId = embeddedImage.asset
+						, context = arguments.context
+						, args    = args
+					);
+
+					_getRenderedAssetCache().set( cacheKey, renderedImage );
 				}
 
-				renderedImage    = _getAssetRendererService().renderAsset(
-					  assetId    = embeddedImage.asset
-					, context    = arguments.context
-					, args       = args
-				);
-			}
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedImage;
+					renderedImage = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
 
-			if ( Len( Trim( embeddedImage.placeholder ?: "" ) ) ) {
 				renderedContent = Replace( renderedContent, embeddedImage.placeholder, renderedImage, "all" );
 			}
 
@@ -304,7 +355,7 @@ component {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor" ) {
+	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedAttachment   = "";
 		var renderedAttachment   = "";
 		var renderedContent = arguments.richContent;
@@ -312,7 +363,7 @@ component {
 		do {
 			embeddedAttachment = _findNextEmbeddedAttachment( renderedContent );
 
-			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) ) {
+			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) && Len( Trim( embeddedAttachment.placeholder ?: "" ) ) ) {
 				var args = Duplicate( embeddedAttachment );
 
 				args.delete( "asset" );
@@ -323,9 +374,17 @@ component {
 					, context = arguments.context
 					, args    = args
 				);
-			}
 
-			if ( Len( Trim( embeddedAttachment.placeholder ?: "" ) ) ) {
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedAttachment;
+					renderedAttachment = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
+
 				renderedContent = Replace( renderedContent, embeddedAttachment.placeholder, renderedAttachment, "all" );
 			}
 
@@ -334,7 +393,16 @@ component {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedWidgets( required string richContent, string context="" ) {
+	public void function renderCodeHighlighterIncludes( required string richContent, string context="richeditor" ) {
+		var renderedContent = arguments.richContent;
+
+		if ( _containsCodeSnippets( content=renderedContent ) ) {
+			$getRequestContext().include( "highlightjs-css" )
+				.include( "highlightjs" );
+		}
+	}
+
+	public string function renderEmbeddedWidgets( required string richContent, string context="", string postProcessor="", struct postProcessorArgs={} ) {
 		var embeddedWidget      = "";
 		var renderedWidget      = "";
 		var renderedContent = arguments.richContent;
@@ -344,10 +412,20 @@ component {
 
 			if ( StructCount( embeddedWidget ) ) {
 				renderedWidget = _getWidgetsService().renderWidget(
-					  widgetId = embeddedWidget.id
-					, configJson     = embeddedWidget.configJson
-					, context        = arguments.context
+					  widgetId   = embeddedWidget.id
+					, configJson = embeddedWidget.configJson
+					, context    = arguments.context
 				);
+
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedWidget;
+					renderedWidget = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
 
 				renderedContent = Replace( renderedContent, embeddedWidget.placeholder, renderedWidget, "all" );
 			}
@@ -357,7 +435,7 @@ component {
 		return renderedContent;
 	}
 
-	public string function renderEmbeddedLinks( required string richContent ) {
+	public string function renderEmbeddedLinks( required string richContent, string postProcessor="", struct postProcessorArgs={} ) {
 		var renderedContent = arguments.richContent;
 		var embeddedLink    = "";
 		var renderedLink    = "";
@@ -371,8 +449,31 @@ component {
 			if ( Len( Trim( embeddedLink.asset ?: "" ) ) ) {
 				renderedLink = _getColdbox().getRequestContext().buildLink( assetId=embeddedLink.asset );
 			}
+			if ( Len( Trim( embeddedLink.custom ?: "" ) ) ) {
+				try {
+					var linkDetails = DeserializeJson( toString( toBinary( embeddedLink.custom ) ) );
+					var linkType    = linkDetails.type ?: "";
+
+					if ( Len( Trim( linkType ) ) ) {
+						try {
+							renderedLink = _getColdbox().renderViewlet( event="admin.linkpicker.#linkType#.getHref", args=linkDetails );
+						} catch( any e ) {}
+					} else {
+						renderedLink = _getColdbox().getRequestContext().buildLink( argumentCollection=linkDetails );
+					}
+				} catch( any e ) {}
+			}
 
 			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
+				if ( Len( Trim( postProcessor ) ) ) {
+					postProcessorArgs.html = renderedLink;
+					renderedLink = $runEvent(
+						  event          = postProcessor
+						, eventArguments = { args=postProcessorArgs }
+						, private        = true
+						, prepostExempt  = true
+					);
+				}
 				renderedContent = Replace( renderedContent, embeddedLink.placeholder, renderedLink, "all" );
 			}
 
@@ -388,9 +489,9 @@ component {
 		var conventionsBasedName = "";
 		var contexts             = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
-		if ( renderers.keyExists( arguments.name ) ) {
+		if ( StructKeyExists( renderers, arguments.name ) ) {
 			for( var cx in contexts ) {
-				if ( renderers[ arguments.name ].keyExists( cx ) && IsValid( "component", renderers[ arguments.name ][ cx ] ) ) {
+				if ( StructKeyExists( renderers[ arguments.name ], cx ) && IsValid( "component", renderers[ arguments.name ][ cx ] ) ) {
 					return renderers[ arguments.name ][ cx ];
 				} else {
 					var renderer =_registerRendererByConvention( arguments.name, cx );
@@ -445,51 +546,43 @@ component {
 	}
 
 	private string function _getRendererForPresideObjectProperty( required string objectName, required string property ) {
-		var cacheKey  = "rendererFor: #arguments.objectName#.#arguments.property#";
-		var cache     = _getCache();
-		var renderer  = cache.get( cacheKey );
-		var poService = _getPresideObjectService();
-		var fieldName = arguments.property;
+		var cache    = _getCache();
+		var cacheKey = "rendererFor: #arguments.objectName#.#arguments.property#";
 
-		if ( !IsNull( local.renderer ) ) {
-			return renderer;
+		if ( !StructKeyExists( cache, cacheKey ) ) {
+			var poService = _getPresideObjectService();
+			var fieldName = arguments.property;
+
+			if ( !poService.fieldExists( arguments.objectName, arguments.property ) && ListFindNoCase( "label,${label}", arguments.property ) ) {
+				fieldName = poService.getObjectAttribute( arguments.objectName, "labelfield", "label" );
+			}
+
+			var field = poService.getObjectProperty(
+				  objectName   = arguments.objectName
+				, propertyName = fieldName
+			);
+
+			cache[ cacheKey ] = getRendererForField( fieldAttributes=field );
 		}
 
-		if ( !poService.fieldExists( arguments.objectName, arguments.property ) && ListFindNoCase( "label,${label}", arguments.property ) ) {
-			fieldName = poService.getObjectAttribute( arguments.objectName, "labelfield", "label" );
-		}
-
-		var field = poService.getObjectProperty(
-			  objectName   = arguments.objectName
-			, propertyName = fieldName
-		);
-		renderer = getRendererForField( fieldAttributes=field );
-
-		cache.set( cacheKey, renderer );
-
-		return renderer;
+		return cache[ cacheKey ];
 	}
 
 	private string function _getControlForPresideObjectProperty( required string objectName, required string property ) {
-		var cacheKey = "controlFor: #arguments.objectName#.#arguments.property#";
 		var cache    = _getCache();
-		var control  = cache.get( cacheKey );
+		var cacheKey = "controlFor: #arguments.objectName#.#arguments.property#";
 
-		if ( !IsNull( local.control ) ) {
-			return control;
+		if ( !StructKeyExists( cache, cacheKey ) ) {
+			var poService = _getPresideObjectService();
+			var field     = poService.getObjectProperty(
+				  objectName   = arguments.objectName
+				, propertyName = arguments.property
+			);
+
+			cache[ cacheKey ] = poService.getDefaultFormControlForPropertyAttributes( argumentCollection = field );
 		}
 
-		var poService = _getPresideObjectService();
-		var field     = poService.getObjectProperty(
-			  objectName   = arguments.objectName
-			, propertyName = arguments.property
-		);
-
-		control = poService.getDefaultFormControlForPropertyAttributes( argumentCollection = field );
-
-		cache.set( cacheKey, control );
-
-		return control;
+		return cache[ cacheKey ];
 	}
 
 	private struct function _findNextEmbeddedImage( required string richContent ) {
@@ -566,7 +659,7 @@ component {
 		// {{asset:assetid:asset}}
 
 
-		var regex = "{{(link|asset):(.*?):(link|asset)}}";
+		var regex = "{{(link|asset|custom):(.*?):(link|asset|custom)}}";
 		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
 		var link  = {};
 		var type  = "";
@@ -579,6 +672,10 @@ component {
 		}
 
 		return link;
+	}
+
+	private boolean function _containsCodeSnippets( required string content ) {
+		return ReFind( '<code class="language-.*"', content );
 	}
 
 
@@ -629,5 +726,12 @@ component {
 	}
 	private void function _setLabelRendererService( required any labelRendererService ) {
 		_labelRendererService = arguments.labelRendererService;
+	}
+
+	private any function _getRenderedAssetCache() {
+	    return _renderedAssetCache;
+	}
+	private void function _setRenderedAssetCache( required any renderedAssetCache ) {
+	    _renderedAssetCache = arguments.renderedAssetCache;
 	}
 }

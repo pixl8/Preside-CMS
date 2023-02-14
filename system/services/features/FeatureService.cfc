@@ -50,7 +50,7 @@ component singleton=true autodoc=true displayName="Feature service" {
 	public boolean function isFeatureDefined( required string feature ) {
 		var features = _getConfiguredFeatures();
 
-		return features.keyExists( arguments.feature );
+		return StructKeyExists( features, arguments.feature );
 	}
 
 	/**

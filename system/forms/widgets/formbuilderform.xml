@@ -7,8 +7,8 @@ allows you to drop configured Form Builder forms into your content.
 -->
 
 <form i18nBaseUri="widgets.formbuilderform:" categories="formbuilder,system,default">
-	<tab>
-		<fieldset>
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
 			<field sortorder="10" name="form"       required="true"  control="objectpicker" object="formbuilder_form" objectFilters="activeFormbuilderForms" />
 			<field sortorder="20" name="layout"     required="false" control="formBuilderFormLayoutPicker" defaultValue="default" />
 			<field sortorder="30" name="instanceid" required="false" control="textinput" />

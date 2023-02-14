@@ -62,7 +62,13 @@
 
 		map( "formBuilderStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="rootDirectory"   , value=settings.uploads_directory & "/formbuilder" )
-			.initArg( name="privateDirectory", value=settings.uploads_directory & "/formbuilder" )
+			.initArg( name="privateDirectory", value=settings.uploads_directory & "/formbuilder/private" )
+			.initArg( name="trashDirectory"  , value=settings.uploads_directory & "/.trash" )
+			.initArg( name="rootUrl"         , value="" );
+
+		map( "ScheduledExportStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
+			.initArg( name="rootDirectory"   , value=settings.uploads_directory & "/scheduled-export" )
+			.initArg( name="privateDirectory", value=settings.uploads_directory & "/scheduled-export" )
 			.initArg( name="trashDirectory"  , value=settings.uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"         , value="" );
 
@@ -74,6 +80,15 @@
 			map( "PresideEmailQueueHeartBeat#i#" )
 			    .asSingleton()
 			    .to( "preside.system.services.concurrency.PresideEmailQueueHeartBeat" )
+			    .initArg( name="instanceNumber", value=i )
+			    .virtualInheritance( "presideSuperClass" );
+		}
+
+		var assetQueueConcurrency = Val( settings.assetmanager.queue.concurrency ?: 1 );
+		for( var i=1; i <= assetQueueConcurrency; i++ ) {
+			map( "AssetQueueHeartbeat#i#" )
+			    .asSingleton()
+			    .to( "preside.system.services.concurrency.AssetQueueHeartbeat" )
 			    .initArg( name="instanceNumber", value=i )
 			    .virtualInheritance( "presideSuperClass" );
 		}
@@ -111,11 +126,11 @@
 	}
 
 	private boolean function _wantsPresideInjection( required struct meta ) {
-		if ( arguments.meta.keyExists( "presideService" ) ) {
+		if ( StructKeyExists( arguments.meta, "presideService" ) ) {
 			return true;
 		}
 
-		if ( arguments.meta.keyExists( "extends" ) && arguments.meta.extends.count() ) {
+		if ( StructKeyExists( arguments.meta, "extends" ) && arguments.meta.extends.count() ) {
 			return _wantsPresideInjection( arguments.meta.extends );
 		}
 

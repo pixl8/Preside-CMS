@@ -13,11 +13,12 @@
 
 <cfoutput>
 	#renderView( view="/admin/datamanager/_editRecordForm", args={
-		  object           = "asset_folder"
-		, id               = rc.folder      ?: ""
-		, record           = prc.record ?: {}
-		, editRecordAction = event.buildAdminLink( linkTo='assetmanager.editFolderAction', queryString='folder=#( rc.folder ? : "" )#' )
-		, cancelAction     = event.buildAdminLink( linkTo='assetmanager.index' )
-		, mergeWithFormName= isRootFolder ? "preside-objects.asset_folder.admin.edit.root" : ""
+		  object            = "asset_folder"
+		, id                = rc.folder  ?: ""
+		, record            = prc.record ?: {}
+		, editRecordAction  = event.buildAdminLink( linkTo='assetmanager.editFolderAction', queryString='folder=#( rc.folder ? : "" )#' )
+		, cancelAction      = event.buildAdminLink( linkTo='assetmanager.index' )
+		, mergeWithFormName = isRootFolder ? "preside-objects.asset_folder.admin.edit.root" : ""
+		, additionalArgs    = { fields = { parent_folder = { excludeDescendants = rc.folder ?: "" } } }
 	} )#
 </cfoutput>

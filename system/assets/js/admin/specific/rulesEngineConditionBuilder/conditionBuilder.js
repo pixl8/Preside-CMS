@@ -1,13 +1,13 @@
 ( function( $ ){
 
-	var defaultExpressionLib         = cfrequest.rulesEngineExpressions           || {}
-	  , defaultRenderFieldEndpoint   = cfrequest.rulesEngineRenderFieldEndpoint   || ""
-	  , defaultEditFieldEndpoint     = cfrequest.rulesEngineEditFieldEndpoint     || ""
-	  , defaultFilterCountEndpoint   = cfrequest.rulesEngineFilterCountEndpoint   || ""
-	  , defaultContextData           = cfrequest.rulesEngineContextData           || {}
-	  , defaultPreSavedFilters       = cfrequest.rulesEnginePreSavedFilters       || ""
-	  , defaultPreRulesEngineFilters = cfrequest.rulesEnginePreRulesEngineFilters || ""
-	  , defaultContext               = cfrequest.rulesEngineContext               || "global";
+	var defaultExpressionEndpoint     = cfrequest.rulesEngineExpressionEndpoint    || ""
+	  , defaultRenderFieldEndpoint    = cfrequest.rulesEngineRenderFieldEndpoint   || ""
+	  , defaultEditFieldEndpoint      = cfrequest.rulesEngineEditFieldEndpoint     || ""
+	  , defaultFilterCountEndpoint    = cfrequest.rulesEngineFilterCountEndpoint   || ""
+	  , defaultContextData            = cfrequest.rulesEngineContextData           || {}
+	  , defaultPreSavedFilters        = cfrequest.rulesEnginePreSavedFilters       || ""
+	  , defaultPreRulesEngineFilters  = cfrequest.rulesEnginePreRulesEngineFilters || ""
+	  , defaultContext                = cfrequest.rulesEngineContext               || "global";
 
 	var RulesEngineCondition = (function() {
 		function RulesEngineCondition(
@@ -330,7 +330,8 @@
 				}
 			};
 
-			iframeUrl += qsDelim + $.param( $.extend( {}, this.contextData, fields, { fieldValue:fieldValue, context:this.context }, fieldDefinition ) );
+
+			iframeUrl += qsDelim + $.param( $.extend( {}, fields, { fieldValue:fieldValue, context:this.context }, fieldDefinition ) );
 			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};
@@ -463,7 +464,14 @@
 					this.persistToHiddenField();
 					this.render();
 				} else {
-					$field.data( "editModal" ).open();
+					$.ajax({
+						  url      : buildAdminLink( "ajaxhelper.temporarilyStoreData" )
+						, method   : "POST"
+						, data     : this.contextData
+						, complete : function(){
+							$field.data( "editModal" ).open();
+						 }
+					});
 				}
 
 			}
@@ -659,12 +667,12 @@
 			  , $conditionPanel   = $builderContainer.find( ".rules-engine-condition-builder-condition-pane" )
 			  , $ruleList         = $builderContainer.find( ".rules-engine-condition-builder-rule-list" )
 			  , $filterCount      = $builderContainer.find( ".rules-engine-condition-builder-filter-count-count" )
-			  , $expressions      = $expressionList.find( "> li > ul > li.expression" )
-			  , $categoryLists    = $expressionList.find( ".category-expressions" )
 			  , tabIndex          = $formControl.attr( "tabindex" )
 			  , savedCondition    = $formControl.val()
 			  , isFilter          = $formControl.data( "isFilter" ) || false
 			  , objectName        = $formControl.data( "objectName" )
+			  , $expressions
+			  , $categoryLists
 			  , $hiddenControl
 			  , condition
 			  , performSearch
@@ -681,7 +689,36 @@
 			  , contextData
 			  , preSavedFilters
 			  , preRulesEngineFilters
-			  , context;
+			  , context
+			  , loadExpressions;
+
+			loadExpressions = function( expressions ){
+				var currentCategory = ""
+				  , expressionCount = expressions.length
+				  , i, expression, $currentCategoryEl, categoryId, $categoryExpression;
+
+				expressions = expressions;
+
+				for( i=0; i<expressionCount; i++ ) {
+					expression = expressions[ i ];
+					if ( expression.category != currentCategory ) {
+						currentCategory = expression.category;
+						categoryId = "category-" + expression.category.toLowerCase().replace( /\W/g, '-' );
+						$currentCategoryEl = $( '<li class="category"></li>' );
+						$categoryExpressions = $( '<ul id="' + categoryId + '" class="list-unstyled collapse category-expressions"></ul>' );
+
+						$currentCategoryEl.append( $( '<a href="#" data-target="#' + categoryId + '" data-toggle="collapse" class="collapsed category-link"><i class="fa fa-fw fa-plus-square-o"></i> ' + expression.category + '</a>' ) );
+						$currentCategoryEl.append( $categoryExpressions );
+
+						$expressionList.append( $currentCategoryEl );
+					}
+
+					$categoryExpressions.append( $( '<li class="expression" data-id="' + expression.id + '">' + expression.label + '</li>' ) );
+				}
+
+				$expressions   = $expressionList.find( "> li > ul > li.expression" )
+				$categoryLists = $expressionList.find( ".category-expressions" )
+			};
 
 			initializeBuilder = function() {
 				var id          = $formControl.attr( "id" )
@@ -690,56 +727,69 @@
 				  , val         = $formControl.val()
 				  , fieldConfig = cfrequest[ "filter-builder-" + id ] || {};
 
-				expressions           = fieldConfig.rulesEngineExpressions           || ( defaultExpressionLib[ id ] || {} );
-				renderFieldEndpoint   = fieldConfig.rulesEngineRenderFieldEndpoint   || defaultRenderFieldEndpoint;
-				editFieldEndpoint     = fieldConfig.rulesEngineEditFieldEndpoint     || defaultEditFieldEndpoint;
-				filterCountEndpoint   = fieldConfig.rulesEngineFilterCountEndpoint   || defaultFilterCountEndpoint;
-				contextData           = fieldConfig.rulesEngineContextData           || defaultContextData;
-				preSavedFilters       = fieldConfig.rulesEnginePreSavedFilters       || defaultPreSavedFilters;
-				preRulesEngineFilters = fieldConfig.rulesEnginePreRulesEngineFilters || defaultPreRulesEngineFilters;
-				context               = fieldConfig.rulesEngineContext               || defaultContext;
+				expressionEndpoint = fieldConfig.rulesEngineExpressionEndpoint || defaultExpressionEndpoint;
 
-				$builderContainer.removeClass( "hide" );
-				$searchInput.on( "keyup", performSearch );
+				if ( expressionEndpoint.length ) {
+					$.ajax({
+						  url      : expressionEndpoint
+						, method   : "GET"
+						, success : function( expressions ){
+							loadExpressions( expressions );
 
-				$hiddenControl = $( '<input type="hidden">' );
-				$hiddenControl.val( val );
-				$hiddenControl.attr( "name", name );
-				$formControl.after( $hiddenControl );
-				$formControl.remove();
-				$hiddenControl.attr( "id", id );
+							renderFieldEndpoint   = fieldConfig.rulesEngineRenderFieldEndpoint   || defaultRenderFieldEndpoint;
+							editFieldEndpoint     = fieldConfig.rulesEngineEditFieldEndpoint     || defaultEditFieldEndpoint;
+							filterCountEndpoint   = fieldConfig.rulesEngineFilterCountEndpoint   || defaultFilterCountEndpoint;
+							contextData           = fieldConfig.rulesEngineContextData           || defaultContextData;
+							preSavedFilters       = fieldConfig.rulesEnginePreSavedFilters       || defaultPreSavedFilters;
+							preRulesEngineFilters = fieldConfig.rulesEnginePreRulesEngineFilters || defaultPreRulesEngineFilters;
+							context               = fieldConfig.rulesEngineContext               || defaultContext;
 
-				condition = new RulesEngineCondition(
-					  $hiddenControl
-					, expressions
-					, $ruleList
-					, isFilter
-					, $filterCount
-					, objectName
-					, renderFieldEndpoint
-					, editFieldEndpoint
-					, filterCountEndpoint
-					, contextData
-					, preSavedFilters
-					, preRulesEngineFilters
-					, context
-				);
+							$builderContainer.removeClass( "hide" ).presideLoadingSheen( false );
+							$searchInput.on( "keyup", performSearch );
 
-				$hiddenControl.data( "conditionBuilder", {
-					clear : function(){
-						$searchInput.val( "" );
-						performSearch();
-						condition.clear();
-					},
-					load : function( value ){
-						condition.loadFromStringValue( value );
-					}
-				} );
-				$hiddenControl.trigger( "conditionBuilderInitialized" );
+							$hiddenControl = $( '<input type="hidden">' );
+							$hiddenControl.val( val );
+							$hiddenControl.attr( "name", name );
+							$formControl.after( $hiddenControl );
+							$formControl.remove();
+							$hiddenControl.attr( "id", id );
 
-				prepareSearchEngine();
-				prepareDragAndDrop();
-				prepareCategoryAccordion();
+							condition = new RulesEngineCondition(
+								  $hiddenControl
+								, expressions
+								, $ruleList
+								, isFilter
+								, $filterCount
+								, objectName
+								, renderFieldEndpoint
+								, editFieldEndpoint
+								, filterCountEndpoint
+								, contextData
+								, preSavedFilters
+								, preRulesEngineFilters
+								, context
+							);
+
+							$hiddenControl.data( "conditionBuilder", {
+								clear : function(){
+									$searchInput.val( "" );
+									performSearch();
+									condition.clear();
+								},
+								load : function( value ){
+									condition.loadFromStringValue( value );
+								}
+							} );
+							$hiddenControl.trigger( "conditionBuilderInitialized" );
+
+							prepareSearchEngine();
+							prepareDragAndDrop();
+							prepareCategoryAccordion();
+						 }
+					});
+				} else {
+					console.log( "Error loading expressions..." );
+				}
 			};
 
 			prepareSearchEngine = function(){
@@ -833,6 +883,8 @@
 
 			};
 
+			$formControl.hide();
+			$builderContainer.removeClass("hide").presideLoadingSheen( true );
 			initializeBuilder();
 		} );
 	};

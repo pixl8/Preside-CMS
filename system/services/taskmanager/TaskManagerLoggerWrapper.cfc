@@ -30,6 +30,8 @@ component displayName="TaskManager Logger Wrapper" {
 			args.extraInfo.taskRunId      = _getTaskRunId();
 			args.extraInfo.taskHistoryDao = _getTaskHistoryDao();
 
+			sleep(1); // cheeky way to have threads get interrupted if they don't have their own safe interruption logic
+
 			return logger[ arguments.methodName ]( argumentCollection=args );
 		}
 

@@ -1,9 +1,11 @@
 <cfscript>
-	assetId      = rc.asset         ?: "";
-	asset        = prc.asset        ?: StructNew();
-	assetType    = prc.assetType    ?: QueryNew( "" );
-	versions     = prc.versions     ?: QueryNew( "" );
-	isImageAsset = prc.isImageAsset ?: false;
+	assetId      = rc.asset                  ?: "";
+	asset        = prc.asset                 ?: StructNew();
+	assetType    = prc.assetType             ?: QueryNew( "" );
+	accept       = prc.accept                ?: assetType.mimeType;
+	versions     = prc.versions              ?: QueryNew( "" );
+	isImageAsset = prc.isImageAsset          ?: false;
+	failedQueue  = prc.latestFailedQueueItem ?: QueryNew( '' );
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -23,6 +25,9 @@
 	canTranslate       = prc.canTranslate      ?:false;
 	assetTranslations  = prc.assetTranslations ?: [];
 	translateUrlBase   = event.buildAdminLink( linkTo="assetManager.translateAssetRecord", queryString="object=asset&id=#assetId#&language=" );
+
+	tooLargeForDerivatives = IsTrue( prc.tooLargeForDerivatives ?: "" );
+	tooLargeMessage        = prc.tooLargeMessage ?: "";
 </cfscript>
 
 <cfoutput>
@@ -52,6 +57,13 @@
 			</a>
 		</cfif>
 
+		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="assetmanager.clearAssetDerivativesAction", queryString="asset=#assetId#")#" title="#translateResource( "cms:assetmanager.clear.derivatives.prompt" )#">
+			<button class="btn btn-info btn-sm">
+				<i class="fa fa-redo"></i>
+				#translateResource( uri="cms:assetmanager.clear.derivatives.btn" )#
+			</button>
+		</a>
+
 		<a class="pull-right inline" data-global-key="a" id="upload-button">
 			<button class="btn btn-success btn-sm">
 				<i class="fa fa-cloud-upload"></i>
@@ -63,13 +75,45 @@
 			#renderFormControl(
 				  name    = "file"
 				, type    = "fileupload"
-				, accept  = assetType.mimetype
+				, accept  = accept
 				, context = "admin"
 				, id      = "upload-version-file"
 				, label   = "cms:assetmanager.newversion.form.file.label"
 			)#
 		</form>
 	</div>
+
+	<cfif failedQueue.recordCount>
+		<div class="alert alert-danger">
+			<p><i class="fa fa-fw fa-exclamation-triangle"></i>
+				#translateResource( "cms:assetmanager.generated.asset.errors" )#
+			</p>
+			<p>
+				<a href="#event.buildAdminLink( linkto="assetmanager.dismissQueueErrorsAction", queryString="id=#assetId#" )#" class="btn btn-warning">
+					<i class="fa fa-fw fa-refresh"></i>
+					#translateResource( "cms:assetmanager.generated.asset.dismiss.errors" )#
+				</a>
+				<a href="##full-error-detail" data-toggle="collapse">
+					<i class="fa fa-fw fa-caret-right"></i>
+					#translateResource( "cms:assetmanager.generated.asset.show.errors" )#
+				</a>
+			</p>
+			<br>
+			<div class="collapse" id="full-error-detail">
+				<div class="well">
+					#renderView( view="/general/_errorDetail", args={ error=DeserializeJson( failedQueue.last_error ) } )#
+				</div>
+			</div>
+		</div>
+	</cfif>
+
+	<cfif tooLargeForDerivatives>
+		<div class="alert alert-danger">
+			<p><i class="fa fa-fw fa-exclamation-triangle"></i>
+				#tooLargeMessage#
+			</p>
+		</div>
+	</cfif>
 
 	<div class="row">
 		<div class="col-sm-12 col-m-6 col-lg-7">

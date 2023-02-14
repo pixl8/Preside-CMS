@@ -1,8 +1,10 @@
 component {
 
 	property name="assetManagerService"          inject="assetManagerService";
+	property name="assetQueueService"            inject="presidecms:dynamicservice:assetQueue";
 	property name="websiteUserActionService"     inject="websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
+	property name="queueMaxWaitAttempts"         inject="coldbox:setting:assetManager.queue.downloadWaitSeconds";
 
 	public function asset( event, rc, prc ) output=false {
 		announceInterception( "preDownloadAsset" );
@@ -14,21 +16,60 @@ component {
 		var derivativeName    = rc.derivativeId ?: "";
 		var isTrashed         = IsTrue( rc.isTrashed ?: "" );
 		var asset             = "";
-		var assetSelectFields = [ "asset.title", "asset.is_trashed" ];
+		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
 		var passwordProtected = false;
 		var config            = assetManagerService.getDerivativeConfig( assetId );
 		var configHash        = assetManagerService.getDerivativeConfigHash( config );
+		var queueEnabled      = isFeatureEnabled( "assetQueue" );
+		var assetPublicUrl    = "";
 
 		try {
 			if ( Len( Trim( derivativeName ) ) ) {
 				arrayAppend( assetSelectFields , "asset_derivative.asset_type" );
-				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, selectFields=assetSelectFields );
+
+				var waitAttempts  = 0;
+				var assetIsQueued = queueEnabled && assetQueueService.isQueued( assetId, derivativeName, versionId, configHash );
+
+				do {
+					asset = assetManagerService.getAssetDerivative(
+						  assetId           = assetId
+						, versionId         = versionId
+						, derivativeName    = derivativeName
+						, configHash        = configHash
+						, selectFields      = assetSelectFields
+						, createIfNotExists = !assetIsQueued
+					);
+
+					if ( !asset.recordCount && assetIsQueued ) {
+						setting requestTimeout=120;
+						sleep( 1000 );
+					} else {
+						break;
+					}
+				} while( ++waitAttempts <= queueMaxWaitAttempts );
+
+				assetPublicUrl = assetManagerService.getDerivativeUrl(
+					  assetId        = assetId
+					, derivativeName = derivativeName
+					, versionId      = versionId
+				);
 			} else if( Len( Trim( versionId ) ) ) {
 				arrayAppend( assetSelectFields , "asset_version.asset_type" );
 				asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
+
+				assetPublicUrl = assetManagerService.getAssetUrl(
+					  id        = assetId
+					, versionId = versionId
+					, trashed   = isTrashed
+				);
 			} else {
 				arrayAppend( assetSelectFields , "asset.asset_type" );
 				asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
+
+				assetPublicUrl = assetManagerService.getAssetUrl(
+					  id      = assetId
+					, trashed = isTrashed
+				);
 			}
 		} catch ( "AssetManager.assetNotFound" e ) {
 			asset = QueryNew('');
@@ -48,16 +89,10 @@ component {
 
 		try {
 			if ( asset.recordCount && ( isTrashed == asset.is_trashed ) ) {
-				var assetBinary = "";
+				var assetFilePathOrBinary = "";
 				var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
 				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, throwOnMissing=true, isTrashed=isTrashed  );
 				_doBrowserEtagLookup( etag );
-
-				if ( Len( Trim( derivativeName ) ) ) {
-					assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash );
-				} else {
-					assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
-				}
 
 				announceInterception( "onDownloadAsset", {
 					  assetId        = assetId
@@ -65,7 +100,7 @@ component {
 					, asset          = asset
 				} );
 
-				var filename = _getFilenameForAsset( asset.title, type.extension );
+				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
 				if ( type.serveAsAttachment ) {
 					websiteUserActionService.recordAction(
 						  action     = "download"
@@ -78,20 +113,51 @@ component {
 					header name="Content-Disposition" value="inline; filename=""#filename#""";
 				}
 
+				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
+					setNextEvent(
+						  url        = assetPublicUrl
+						, statusCode = "302"
+					);
+				}
+
+				if ( Len( Trim( derivativeName ) ) ) {
+					assetFilePathOrBinary = assetManagerService.getAssetDerivativeBinary(
+						  assetId                = assetId
+						, versionId              = versionId
+						, derivativeName         = derivativeName
+						, configHash             = configHash
+						, getFilePathIfSupported = true
+					);
+				} else {
+					assetFilePathOrBinary = assetManagerService.getAssetBinary(
+						  id                     = assetId
+						, versionId              = versionId
+						, isTrashed              = isTrashed
+						, getFilePathIfSupported = true
+					);
+				}
+
 				header name="etag" value=etag;
 				header name="cache-control" value="max-age=31536000";
-				content
-					reset    = true
-					variable = assetBinary
-					type     = type.mimeType;
+
+				if ( IsBinary( assetFilePathOrBinary ) ) {
+					content
+						reset    = true
+						variable = assetFilePathOrBinary
+						type     = type.mimeType;
+				} else {
+					content
+						reset = true
+						file  = assetFilePathOrBinary
+						type  = type.mimeType;
+				}
 				abort;
 			} else if( passwordProtected ){
-				assetBinary = fileReadBinary(event.buildLink( systemStaticAsset = "/images/asset-type-icons/48px/locked-pdf.png" ));
 				header name="Content-Disposition" value="inline; filename=""ProctedPDF""";
 				content
-					reset    = true
-					variable = assetBinary
-					type     = 'png';
+					reset = true
+					file  = ExpandPath( "/preside/system/assets/images/asset-type-icons/48px/locked-pdf.png" )
+					type  = 'image/png';
 				abort;
 			}
 		} catch ( "storageProvider.objectNotFound" e ) {}

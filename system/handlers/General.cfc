@@ -1,17 +1,29 @@
 component {
-	property name="applicationReloadService"    inject="applicationReloadService";
-	property name="databaseMigrationService"    inject="databaseMigrationService";
-	property name="applicationsService"         inject="applicationsService";
-	property name="websiteLoginService"         inject="websiteLoginService";
-	property name="adminLoginService"           inject="loginService";
-	property name="antiSamySettings"            inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"             inject="delayedInjector:antiSamyService";
-	property name="presideTaskmanagerHeartBeat" inject="presideTaskmanagerHeartBeat";
-	property name="presideAdhocTaskHeartBeat"   inject="presideAdhocTaskHeartBeat";
-	property name="healthcheckService"          inject="healthcheckService";
-	property name="permissionService"           inject="permissionService";
-
-	property name="emailQueueConcurrency"       inject="coldbox:setting:email.queueConcurrency";
+	property name="applicationReloadService"      inject="applicationReloadService";
+	property name="coreDatabaseMigrationService"  inject="coreDatabaseMigrationService";
+	property name="appDatabaseMigrationService"   inject="appDatabaseMigrationService";
+	property name="applicationsService"           inject="applicationsService";
+	property name="websiteLoginService"           inject="websiteLoginService";
+	property name="adminLoginService"             inject="loginService";
+	property name="antiSamySettings"              inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"               inject="delayedInjector:antiSamyService";
+	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
+	property name="presideSystemAlertsHeartBeat"  inject="presideSystemAlertsHeartBeat";
+	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
+	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
+	property name="presideSessionReapHeartbeat"   inject="presideSessionReapHeartbeat";
+	property name="scheduledExportHeartBeat"      inject="scheduledExportHeartBeat";
+	property name="segmentationFiltersHeartbeat"  inject="segmentationFiltersHeartbeat";
+	property name="healthcheckService"            inject="healthcheckService";
+	property name="permissionService"             inject="permissionService";
+	property name="dataExportTemplateService"     inject="dataExportTemplateService";
+	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
+	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queue.concurrency";
+	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
+	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
+	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
+	property name="validationEngine"              inject="validationEngine";
+	property name="systemAlertsService"           inject="systemAlertsService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -21,13 +33,15 @@ component {
 		_populateDefaultLanguages();
 		_setupCatchAllAdminUserGroup();
 		_startHeartbeats();
+		_setupValidators();
+		systemAlertsService.runStartupChecks();
 
 		announceInterception( "onApplicationStart" );
 	}
 
 	public void function applicationEnd( event, rc, prc ) {
 		applicationReloadService.gracefulShutdown(
-			force = url.keyExists( "force" )
+			force = StructKeyExists( url, "force" )
 		);
 	}
 
@@ -35,6 +49,11 @@ component {
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
+		_setLocale( argumentCollection = arguments );
+	}
+
+	public void function requestEnd( event, rc, prc ) {
+		_setXFrameOptionsHeader( argumentCollection = arguments );
 	}
 
 	public void function notFound( event, rc, prc ) {
@@ -52,6 +71,10 @@ component {
 		event.setLayout( notFoundLayout );
 		event.setView( view="/core/simpleBodyRenderer" );
 
+		if ( isFeatureEnabled( "fullPageCaching" ) ) {
+			event.cachePage( false );
+		}
+
 		rc.body = renderViewlet( event=notFoundViewlet );
 	}
 
@@ -68,7 +91,10 @@ component {
 // private helpers
 	private void function _xssProtect( event, rc, prc ) {
 		if ( IsTrue( antiSamySettings.enabled ?: "" ) ) {
-			if ( IsFalse( antiSamySettings.bypassForAdministrators ?: "" ) || !event.isAdminUser() ) {
+			var adminBypass = IsTrue( antiSamySettings.bypassForAdministrators ?: "" );
+			var bypass      = adminBypass && ( event.isAdminUser() || event.isAdminRequest() );
+
+			if ( !bypass ) {
 				var policy = antiSamySettings.policy ?: "myspace";
 
 				for( var key in rc ){
@@ -90,8 +116,9 @@ component {
 			return;
 		}
 
-		var reloadPassword = getSetting( name="reinitPassword", defaultValue="true" );
-		var devSettings    = getSetting( name="developerMode" , defaultValue=false );
+		var reloadPassword      = getSetting( name="reinitPassword",      defaultValue="true" );
+		var devSettings         = getSetting( name="developerMode" ,      defaultValue=false );
+		var disableMajorReloads = getSetting( name="disableMajorReloads", defaultValue=false );
 
 		if ( IsBoolean( devSettings ) ) {
 			devSettings = {
@@ -118,27 +145,31 @@ component {
 		}
 
 		lock type="exclusive" timeout="10" name="#Hash( ExpandPath( '/' ) )#-application-reloads" {
+
+
+			if ( !disableMajorReloads ) {
+				if ( devSettings.dbSync or ( event.valueExists( "fwReinitDbSync" ) and Hash( rc.fwReinitDbSync ) eq reloadPassword ) ) {
+					applicationReloadService.reloadPresideObjects();
+					applicationReloadService.dbSync();
+					anythingReloaded = true;
+				} else if ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
+					applicationReloadService.reloadPresideObjects();
+					anythingReloaded = true;
+				}
+
+				if ( devSettings.reloadPageTypes or ( event.valueExists( "fwReinitPageTypes" ) and Hash( rc.fwReinitPageTypes ) eq reloadPassword ) ) {
+					applicationReloadService.reloadPageTypes();
+					anythingReloaded = true;
+				}
+			}
+
 			if ( devSettings.flushCaches or ( event.valueExists( "fwReinitCaches" ) and Hash( rc.fwReinitCaches ) eq reloadPassword ) ) {
 				applicationReloadService.clearCaches();
 				anythingReloaded = true;
 			}
 
-			if ( devSettings.dbSync or ( event.valueExists( "fwReinitDbSync" ) and Hash( rc.fwReinitDbSync ) eq reloadPassword ) ) {
-				applicationReloadService.reloadPresideObjects();
-				applicationReloadService.dbSync();
-				anythingReloaded = true;
-			} else if ( devSettings.reloadPresideObjects or ( event.valueExists( "fwReinitObjects" ) and Hash( rc.fwReinitObjects ) eq reloadPassword ) ) {
-				applicationReloadService.reloadPresideObjects();
-				anythingReloaded = true;
-			}
-
 			if ( devSettings.reloadWidgets or ( event.valueExists( "fwReinitWidgets" ) and Hash( rc.fwReinitWidgets ) eq reloadPassword ) ) {
 				applicationReloadService.reloadWidgets();
-				anythingReloaded = true;
-			}
-
-			if ( devSettings.reloadPageTypes or ( event.valueExists( "fwReinitPageTypes" ) and Hash( rc.fwReinitPageTypes ) eq reloadPassword ) ) {
-				applicationReloadService.reloadPageTypes();
 				anythingReloaded = true;
 			}
 
@@ -182,8 +213,22 @@ component {
 		}
 	}
 
+	private void function _setLocale( event, rc, prc ) {
+		SetLocale( getModel( "i18n" ).getFwLocale() );
+	}
+
 	private void function _performDbMigrations() {
-		databaseMigrationService.migrate();
+		coreDatabaseMigrationService.migrate();
+		appDatabaseMigrationService.doMigrations();
+		createTask(
+			  event             = "general._performAsyncDbMigrations"
+			, runIn             = CreateTimespan( 0, 0, 1, 0 ) // one minute, at least
+			, discardOnComplete = true
+		);
+	}
+
+	private void function _performAsyncDbMigrations() {
+		appDatabaseMigrationService.doMigrations( async=true );
 	}
 
 	private void function _populateDefaultLanguages() {
@@ -200,24 +245,83 @@ component {
 		if ( Len( Trim( request.DefaultLocaleFromCookie ?: "" ) ) ) {
 			i18n.setFwLocale( request.DefaultLocaleFromCookie );
 		}
+
+		dataExportTemplateService.setupTemplatesEnum();
+		systemAlertsService.setupSystemAlerts();
 	}
 
 	private void function _startHeartbeats() {
-		for( var i=1; i<=emailQueueConcurrency; i++ ) {
-			getModel( "PresideEmailQueueHeartBeat#i#" ).startInNewRequest();
+		if ( isFeatureEnabled( "emailQueueHeartBeat" ) ) {
+			for( var i=1; i<=emailQueueConcurrency; i++ ) {
+				getModel( "PresideEmailQueueHeartBeat#i#" ).start();
+			}
 		}
 
 		if ( isFeatureEnabled( "healthchecks" ) ) {
 			for( var serviceId in healthcheckService.listRegisteredServices() ) {
-				getModel( "healthCheckHeartbeat#serviceId#" ).startInNewRequest();
+				getModel( "healthCheckHeartbeat#serviceId#" ).start();
 			}
 		}
 
-		presideAdhocTaskHeartBeat.startInNewRequest();
-		presideTaskmanagerHeartBeat.startInNewRequest();
+		if ( isFeatureEnabled( "adhocTaskHeartBeat" ) ) {
+			presideAdhocTaskHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "taskmanagerHeartBeat" ) ) {
+			presideTaskmanagerHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "systemAlertsHeartBeat" ) ) {
+			presideSystemAlertsHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "presideSessionManagement" ) ) {
+			presideSessionReapHeartbeat.start();
+		}
+
+		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {
+			for( var i=1; i<=assetQueueConcurrency; i++ ) {
+				getModel( "AssetQueueHeartBeat#i#" ).start();
+			}
+		}
+
+		if ( isFeatureEnabled( "dataExport" ) && isFeatureEnabled( "scheduledExportHeartBeat" ) ) {
+			scheduledExportHeartBeat.start();
+		}
+
+		if ( isFeatureEnabled( "rulesEngine" ) && isFeatureEnabled( "segmentationFiltersHeartbeat" ) ) {
+			segmentationFiltersHeartbeat.start();
+		}
+
+		cacheboxReapHeartBeat.start();
 	}
 
 	private void function _setupCatchAllAdminUserGroup() {
 		permissionService.setupCatchAllGroup();
+	}
+
+	private void function _setupValidators() {
+		if ( IsArray( configuredValidationProviders ) ) {
+			for ( var providerName in configuredValidationProviders ) {
+				validationEngine.newProvider( getModel( dsl=providerName ) );
+			}
+		}
+
+		for( var objName in presideObjectService.listObjects( includeGeneratedObjects=true ) ) {
+			var obj = presideObjectService.getObject( objName );
+			if ( not IsSimpleValue( obj ) ) {
+				validationEngine.newProvider( obj );
+			}
+
+			var rules = presideFieldRuleGenerator.generateRulesFromPresideObject( objName );
+			validationEngine.newRuleset( name="PresideObject.#objName#", rules=rules );
+		}
+	}
+
+	private void function _setXFrameOptionsHeader( event, rc, prc ) {
+		var xframeOptions = prc.xframeoptions ?: "DENY";
+		if ( xframeOptions != "ALLOW" ) {
+			event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
+		}
 	}
 }

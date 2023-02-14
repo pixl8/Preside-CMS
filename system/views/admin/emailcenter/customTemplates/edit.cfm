@@ -18,7 +18,7 @@
 		} )#
 
 		<div class="row">
-			<div class="col-md-8 col-lg-7 col-sm-12">
+			<div class="col-md-10 col-lg-9 col-sm-12">
 				#renderView( view="/admin/datamanager/_editRecordForm", args={
 					  object           = "email_template"
 					, id               = rc.id      ?: ""
@@ -32,7 +32,7 @@
 					, additionalArgs   = additionalFormArgs
 				} )#
 			</div>
-			<div class="col-md-4 col-lg-5 col-sm-12">
+			<div class="col-md-2 col-lg-3 col-sm-12">
 				#renderViewlet( event="admin.emailcenter.emailParamsHelper", args={ recipientType = recipientType } )#
 			</div>
 		</div>

@@ -49,22 +49,20 @@
 						<fieldset>
 							<label class="block clearfix">
 								<span class="block input-icon input-icon-right">
-									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.placeholder' )#" name="password" data-password-policy-context="cms" />
+									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.placeholder' )#" name="password" data-password-policy-context="cms" autocomplete="new-password" />
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>
 
 							<label class="block clearfix">
 								<span class="block input-icon input-icon-right">
-									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.confirmation.placeholder' )#" name="passwordConfirmation" />
+									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.confirmation.placeholder' )#" name="passwordConfirmation" autocomplete="new-password" />
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>
 
 							<cfif Len( Trim( policyMessage ) )>
 								<div class="alert alert-info">
-									<h4><i class="fa fa-fw fa-info-circle"></i> #translateResource( "cms:passwordpolicy.title" )#</h4>
-
 									#policyMessage#
 								</div>
 							</cfif>

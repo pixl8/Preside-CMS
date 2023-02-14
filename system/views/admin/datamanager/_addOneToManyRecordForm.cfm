@@ -22,7 +22,7 @@
 		<div class="hr"></div>
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#args.addRecordAction#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#args.addRecordAction#" enctype="multipart/form-data">
 		<input type="hidden" name="parentId"        value="#args.parentId#"        />
 		<input type="hidden" name="relationshipKey" value="#args.relationshipKey#" />
 

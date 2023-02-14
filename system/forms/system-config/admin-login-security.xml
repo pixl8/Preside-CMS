@@ -16,7 +16,7 @@ This form is used for managing settings for two factor authentication, admin 're
 			<field name="tfa_enabled"      control="yesNoSwitch" required="false" />
 			<field name="tfa_app_name"     control="textinput"   required="false" />
 			<field name="tfa_enforced"     control="yesNoSwitch" required="false" />
-			<field name="tfa_trust_period" control="spinner"     required="false" defaultvalue="7" />
+			<field name="tfa_trust_period" control="spinner"     required="false" defaultvalue="7" minValue="0"/>
 		</fieldset>
 	</tab>
 </form>

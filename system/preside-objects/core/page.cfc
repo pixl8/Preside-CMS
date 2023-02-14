@@ -1,9 +1,7 @@
 /**
  * The page object represents the core data that is stored for all pages in the site tree, regardless of page type.
  */
-
-
-component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true {
+component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true useDrafts=true {
 
 <!--- properties --->
 	property name="title"        type="string"  dbtype="varchar"  maxLength="200" required=true control="textinput";
@@ -71,7 +69,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 		q.addParam( value=Now(), cfsqltype="timestamp" );
 
 		for( var field in [ "_hierarchy_lineage", "_hierarchy_slug", "_hierarchy_depth", "_hierarchy_sort_order", "trashed" ] ) {
-			if ( arguments.newData.keyExists( field ) ) {
+			if ( StructKeyExists( arguments.newData, field ) ) {
 				switch( field ) {
 					case "_hierarchy_lineage":
 						sql &= ', _hierarchy_child_selector = #dbAdapter.getConcatenationSql( '?', 'Right( _hierarchy_child_selector, #dbAdapter.getLengthFunctionSql( '_hierarchy_child_selector' )# - ? )')#';

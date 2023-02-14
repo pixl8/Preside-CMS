@@ -11,6 +11,8 @@
 	  , colConfig         = []
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
+	  , defaultPageLength = cfrequest.defaultPageLength || 10
+	  , paginationOptions = cfrequest.paginationOptions || [ 5, 10, 25, 50, 100 ]
 	  , activeFolderTitle = ""
 	  , dataTable, i, nodeClickHandler, presideTreeNav, setupCheckboxBehaviour, enabledContextHotkeys, setupMultiActionButtons;
 
@@ -121,7 +123,7 @@
 	$tree.presideTreeNav( {
 		  onClick      : nodeClickHandler
 		, collapseIcon : "fa-folder-open"
-		, expandIcon   : "fa-folder"
+		, expandIcon   : "fa-folder-plus"
 	} );
 	presideTreeNav = $tree.data( 'presideTreeNav' );
 
@@ -131,13 +133,22 @@
 		mData     : "_checkbox",
 		sWidth    : "5em"
 	} );
-	for( i=1; i < $tableHeaders.length-1; i++ ){
-		colConfig.push( {
-			  mData     : $( $tableHeaders.get(i) ).data( 'field' )
-			, sWidth    : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
-			, bSortable : true
-		} );
-	}
+	colConfig.push( {
+		  mData     : $( $tableHeaders.get(1) ).data( 'field' )
+		, sWidth    : $( $tableHeaders.get(1) ).data( 'width' ) || 'auto'
+		, bSortable : true
+		, sClass    : "asset-name"
+	} );
+	colConfig.push( {
+		  mData     : $( $tableHeaders.get(2) ).data( 'field' )
+		, sWidth    : $( $tableHeaders.get(2) ).data( 'width' ) || 'auto'
+		, bSortable : true
+	} );
+	colConfig.push( {
+		  mData     : $( $tableHeaders.get(3) ).data( 'field' )
+		, sWidth    : $( $tableHeaders.get(3) ).data( 'width' ) || 'auto'
+		, bSortable : true
+	} );
 	colConfig.push( {
 		sClass    : "center",
 		bSortable : false,
@@ -152,12 +163,14 @@
 		fnServerParams: function ( aoData ) {
 	    	aoData.push( { name : "folder", value : activeFolder } );
 		},
-		processing    : true,
-		bStateSave    : true,
-		bPaginate     : true,
-		bLengthChange : true,
-		aaSorting     : [],
-		sDom          : "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
+		processing     : true,
+		bStateSave     : true,
+		bPaginate      : true,
+		bLengthChange  : true,
+		iDisplayLength : parseInt( defaultPageLength ),
+		aLengthMenu    : paginationOptions,
+		aaSorting      : [],
+		sDom           : "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
 		fnRowCallback : function( row ){
 			$row = $( row );
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system

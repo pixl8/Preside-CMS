@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Rules engine filter: add segmentation filter form
+
+This form is used for creating a segmentation filter
+-->
+<form>
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field binding="rules_engine_condition.filter_object" control="hidden" />
+			<field binding="rules_engine_condition.is_segmentation_filter" control="hidden" default="true" />
+			<field binding="rules_engine_condition.parent_segmentation_filter" control="hidden" />
+
+			<field binding="rules_engine_condition.condition_name"                 sortorder="10" control="textinput" label="preside-objects.rules_engine_condition:field.condition_name.filter.title" />
+			<field binding="rules_engine_condition.segmentation_frequency_measure" sortorder="20" layout="formcontrols.layouts.timeUnitAndMeasureField" measure="true" label="preside-objects.rules_engine_condition:field.segmentation_frequency_measure.formtitle" required="true" />
+			<field binding="rules_engine_condition.segmentation_frequency_unit"    sortorder="30" layout="formcontrols.layouts.timeUnitAndMeasureField" unit="true"                                                                                                  required="true" />
+			<field binding="rules_engine_condition.expressions"                    sortorder="40" control="rulesEngineFilterBuilder" label="preside-objects.rules_engine_condition:field.expressions.filter.title">
+				<rule validator="rulesEngineCondition" />
+			</field>
+		</fieldset>
+	</tab>
+	<tab id="locking" sortorder="20">
+		<fieldset id="locking" sortorder="10">
+			<field binding="rules_engine_condition.is_locked" />
+			<field binding="rules_engine_condition.locked_reason" control="textarea" />
+		</fieldset>
+	</tab>
+</form>

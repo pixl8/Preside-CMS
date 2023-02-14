@@ -47,7 +47,7 @@ component  {
 			, "email.tracking.click"
 		];
 
-		return acceptedEvents.findNoCase( linkTo ) && buildArgs.keyExists( "queryString" ) && buildArgs.queryString.findNoCase( "mid=" );
+		return acceptedEvents.findNoCase( linkTo ) && StructKeyExists( buildArgs, "queryString" ) && buildArgs.queryString.findNoCase( "mid=" );
 	}
 
 	public string function build( required struct buildArgs, required any event ) {

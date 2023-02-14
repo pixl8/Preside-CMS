@@ -25,15 +25,12 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string  pagetypes
-		,          boolean _is                = true
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          boolean _is = true
 	) {
 		var paramsuffix = CreateUUId().lCase().replace( "-", "", "all" );
-		var prefix      = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : "page" );
 
 		return [ {
-			  filter       = "#prefix#.page_type #( arguments._is ? 'in' : 'not in' )# (:pagetypes#paramsuffix#)"
+			  filter       = "page.page_type #( arguments._is ? 'in' : 'not in' )# (:pagetypes#paramsuffix#)"
 			, filterParams = { "pagetypes#paramsuffix#"={ type="cf_sql_varchar", list=true, value=arguments.pageTypes } }
 		} ];
 	}

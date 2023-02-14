@@ -12,12 +12,16 @@ component {
 		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
 			var sourceObject = args.sourceObject ?: "";
 
-			if ( presideObjectService.isManyToManyProperty( sourceObject, args.name ) ) {
+			if ( Len( Trim( sourceObject ) ) && presideObjectService.isManyToManyProperty( sourceObject, args.name ) ) {
+				var isDraft = isTrue( args.savedData._version_has_drafts ?: false ) or isTrue( args.savedData._version_is_draft ?: false );
+
 				args.savedValue = presideObjectService.selectManyToManyData(
-					  objectName   = sourceObject
-					, propertyName = args.name
-					, id           = args.savedData.id
-					, selectFields = [ "#args.name#.id" ]
+					  objectName         = sourceObject
+					, propertyName       = args.name
+					, id                 = args.savedData.id
+					, selectFields       = [ "#args.name#.id" ]
+					, allowDraftVersions = isDraft
+					, fromversionTable   = isDraft
 				);
 
 				args.defaultValue = args.savedValue = ValueList( args.savedValue.id );

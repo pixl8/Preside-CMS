@@ -3,7 +3,7 @@
 	<tab id="body">
 		<fieldset id="body" sortorder="10">
 			<field binding="email_template.subject"     control="textinput"   sortorder="10" />
-			<field binding="email_template.html_body"   control="richeditor"  sortorder="30" widgetCategories="email" />
+			<field binding="email_template.html_body"   control="richeditor"  sortorder="30" widgetCategories="email" linkPickerCategory="email" toolbar="email" />
 			<field binding="email_template.text_body"   control="textarea"    sortorder="40" />
 			<field binding="email_template.attachments"                       sortorder="50" sortable="true" />
 		</fieldset>

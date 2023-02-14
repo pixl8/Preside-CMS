@@ -11,16 +11,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          string  value = ""
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -29,29 +24,56 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		  required string  objectName
 		, required string  propertyName
 		, required string  relatedTo
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
 		,          string  value        = ""
 	){
-		var expressionArray = filterService.getExpressionArrayForSavedFilter( arguments.value );
+		var relatedToSameObject = ( arguments.objectName==relatedTo );
+		var expressionArray     = filterService.getExpressionArrayForSavedFilter( arguments.value );
 		if ( !expressionArray.len() ) {
 			return [];
 		}
-
-		return [ filterService.prepareFilter(
+		var idField = presideObjectService.getIdField( arguments.relatedTo );
+		var extraFilter = filterService.prepareFilter(
 			  objectName      = arguments.relatedTo
 			, expressionArray = expressionArray
-			, filterPrefix    = filterPrefix.listAppend( arguments.propertyName, "$" )
-		) ];
+		);
+
+		var subQueryFilter = relatedToSameObject ? "" : obfuscateSqlForPreside( "#arguments.relatedTo#.#idField# = #arguments.objectName#.#arguments.propertyName#" );
+		var subQuery = presideObjectService.selectData(
+			  objectName          = arguments.relatedTo
+			, selectFields        = [ "id" ]
+			, extraFilters        = [ extraFilter ]
+			, filter              = subQueryFilter
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
+
+		if ( relatedToSameObject ) {
+			var dbAdapter               = getPresideObject( arguments.objectName ).getDbAdapter();
+			var subQueryAlias           = dbAdapter.escapeEntity( "subquery_#arguments.objectName#" );
+			var idFieldEscaped          = dbAdapter.escapeEntity( idField );
+			var relatedFieldEscapedFull = dbAdapter.escapeEntity( "#arguments.objectName#.#arguments.propertyName#" );
+
+			var subQuerySql = obfuscateSqlForPreside( "
+				select #idFieldEscaped#
+				from (#subQuery.sql#) as #subQueryAlias#
+				where #relatedFieldEscapedFull# = #subQueryAlias#.#idField#
+			" );
+		} else {
+			var subQuerySql = subQuery.sql;
+		}
+
+		return [ {
+			  filter       = obfuscateSqlForPreside( "exists (#subQuerySql#)" )
+			, filterParams = subQuery.params
+		}];
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		, required string  relatedTo
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		, required string relatedTo
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
@@ -69,8 +91,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		  required string objectName
 		, required string propertyName
 		, required string relatedTo
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	){
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );

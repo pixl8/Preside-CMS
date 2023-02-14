@@ -25,7 +25,6 @@
 	.ace-nav {
 		> li, > li.open {
 			position    : relative;
-			z-index     : 2;
 			border-left : 1px solid @preside-bar-separator-shadow-colour;
 
 			&:after {
@@ -121,6 +120,23 @@
 			list-style   : none !important;
 			margin-left  : 0;
 			padding-left : 0;
+
+			> a.dropdown-menu-anchor {
+				display: flex;
+				align-items: center;
+
+				> i:first-child {
+					margin-right: 5px;
+				}
+
+				.dropdown-menu-title {
+					flex: 1 1 auto;
+				}
+
+				.dropdown-menu-caret {
+					margin-left: 16px;
+				}
+			}
 		}
 
 		&.dropdown-navbar {
@@ -169,17 +185,18 @@
 	}
 
 	.footer {
-		text-align : right;
-		color      : @default-light-font-colour;
-		background : @white url( "../../../images/logos/preside-logo-watermark.png" ) right 20px no-repeat;
-		position   : absolute;
-		bottom     : 0;
-		right      : 0;
-		width      : 100%;
-		height     : 75px;
-		padding    : 20px 50px 10px 0;
-		margin     : 0 10px 0 0;
-		z-index    : 0;
+		text-align      : right;
+		color           : @default-light-font-colour;
+		background      : transparent url( "../../../images/logos/preside-logo-watermark.png" ) right 20px no-repeat;
+		background-size : auto 20px;
+		position        : absolute;
+		bottom          : 0;
+		right           : 0;
+		width           : 100%;
+		height          : 60px;
+		padding         : 20px 25px 10px 0;
+		margin          : 0 20px 0 0;
+		z-index         : 0;
 	}
 
 	.sidebar {
@@ -193,6 +210,25 @@
 	.list-extra-line-height {
 		> li {
 			margin-bottom : 1em;
+		}
+	}
+
+	.system-alert-widget .widget-header h4 {
+		color : white;
+	}
+	.system-alert-widget-critical {
+		.widget-header {
+			background : #d15b47;
+		}
+	}
+	.system-alert-widget-warning {
+		.widget-header {
+			background : #f89406;
+		}
+	}
+	.system-alert-widget-advisory {
+		.widget-header {
+			background : #3a87ad;
 		}
 	}
 }

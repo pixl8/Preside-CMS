@@ -7,7 +7,7 @@ This form is used for adding asset folders in a quick add popover
 <form>
 	<tab id="basic" sortorder="10" title="preside-objects.asset_folder:basic.tab.title">
 		<fieldset id="basic" sortorder="10">
-			<field sortorder="10" binding="asset_folder.parent_folder" control="assetFolderPicker" />
+			<field sortorder="10" binding="asset_folder.parent_folder" control="assetFolderPicker" required="true" />
 			<field sortorder="20" binding="asset_folder.label" />
 		</fieldset>
 	</tab>

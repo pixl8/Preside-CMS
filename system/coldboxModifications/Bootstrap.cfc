@@ -64,7 +64,7 @@ component extends="coldbox.system.Bootstrap" {
 			var eCacheEntry	 = event.getEventCacheableEntry();
 
 			// Verify if event caching item is in selected cache
-			if( eCacheEntry.keyExists( "cachekey" ) ){
+			if( StructKeyExists( eCacheEntry, "cachekey" ) ){
 				// Get cache element.
 				refResults.eventCaching = cacheBox
 					.getCache( eCacheEntry.provider )
@@ -149,13 +149,13 @@ component extends="coldbox.system.Bootstrap" {
 					//****** EVENT CACHING *******/
 					var eCacheEntry = event.getEventCacheableEntry();
 					if(
-						eCacheEntry.keyExists( "cacheKey" ) AND
+						StructKeyExists( eCacheEntry, "cacheKey" ) AND
 						getPageContextResponse().getStatus() neq 500 AND
 						(
 							renderData.isEmpty()
 							OR
 							(
-								renderData.keyExists( "statusCode" ) and
+								StructKeyExists( renderData, "statusCode" ) and
 								renderdata.statusCode neq 500
 							)
 						)
@@ -232,7 +232,7 @@ component extends="coldbox.system.Bootstrap" {
 			}
 
 		} catch( Any e ) {
-			var defaultShowErrorsSetting = IsBoolean( application.injectedConfig.showErrors ?: "" ) && application.injectedConfig.showErrors;
+			var defaultShowErrorsSetting = IsBoolean( application.env.showErrors ?: "" ) && application.env.showErrors;
 			var showErrors               = cbController.getSetting( name="showErrors", defaultValue=defaultShowErrorsSetting );
 
 			if ( !IsBoolean( showErrors ) || !showErrors ) {
@@ -281,6 +281,24 @@ component extends="coldbox.system.Bootstrap" {
 		}
 	}
 
+	/**
+	 * Overriding isFWReinit to fix to prevent reload if disableMajorReloads is true
+	 *
+	 */
+	public boolean function isFWReinit(){
+		if ( structKeyExists( url, "fwreinit" ) or structKeyExists( form, "fwreinit" ) ){
+			var appKey 	= locateAppKey();
+			var disableMajorReloads = application[ appKey ].getSetting( name="disableMajorReloads", defaultValue=false );
+			if ( IsBoolean( disableMajorReloads ) && disableMajorReloads ) {
+				content reset=true;
+				header statuscode="403" statustext="Access denied";
+				abort;
+			}
+		}
+
+		return super.isFWReinit();
+	}
+
 
 	public string function getCOLDBOX_CONFIG_FILE() {
 		return variables.COLDBOX_CONFIG_FILE;
@@ -296,8 +314,11 @@ component extends="coldbox.system.Bootstrap" {
 	}
 
 	private boolean function areSessionsEnabled() {
-		var appSettings = getApplicationSettings();
+		var appSettings              = getApplicationSettings();
+		var sessionManagement        = IsBoolean( appSettings.sessionManagement        ?: "" ) && appSettings.sessionManagement;
+		var presideSessionManagement = IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
+		var statelessRequest         = IsBoolean( appSettings.statelessRequest         ?: "" ) && appSettings.statelessRequest;
 
-		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
+		return sessionManagement || ( presideSessionManagement && !statelessRequest );
 	}
 }

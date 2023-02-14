@@ -5,10 +5,22 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:adhoctaskmanager.breadcrumb.title" )
-			, link  = ""
-		);
+
+		var taskId          = rc.taskId ?: "";
+		var resultUrl       = event.buildAdminLink();
+		var hideBreadCrumbs = isTrue( rc.hideBreadCrumbs ?: "" );
+
+		if ( len( trim( taskId ) ) ) {
+			var task  = adHocTaskManagerService.getTask( taskId );
+			resultUrl = task.return_url.len() ? task.return_url : event.buildAdminLink();
+		}
+		if( !hideBreadCrumbs ){
+			event.addAdminBreadCrumb(
+					title = translateResource( "cms:adhoctaskmanager.breadcrumb.title" )
+				, link  = resultUrl
+			);
+		}
+
 		prc.pageIcon     = "hourglass-2";
 	}
 
@@ -90,7 +102,7 @@ component extends="preside.system.base.AdminHandler" {
 			_checkPermissions( event, "canceltask" );
 		}
 
-		adhocTaskManagerService.discardTask( taskId );
+		adhocTaskManagerService.cancelTask( taskId );
 		setNextEvent( url=resultUrl );
 	}
 

@@ -1,14 +1,16 @@
 component {
 	property name="assetManagerService"        inject="assetManagerService";
 	property name="formBuilderStorageProvider" inject="formBuilderStorageProvider";
+	property name="storageProviderService"     inject="storageProviderService";
 
 	private any function renderResponse( event, rc, prc, args={} ) {
-		var fileName = Listlast( args.response ?: "", '/\' );
+		var fileName = ReReplace( args.response ?: "", "^""(.*?)""$", "\1" );
 
 		if ( Len( Trim( fileName ) ) && fileName != "{}" ) {
 			var downloadLink = event.buildLink(
 				  fileStorageProvider = 'formBuilderStorageProvider'
-				, fileStoragePath     = args.response
+				, fileStoragePath     = fileName
+				, fileStoragePrivate  = formBuilderStorageProvider.objectExists( path=args.response ?: "", private=true )
 			);
 
 			return '<a target="_blank" href="#downloadLink#"><i class="fa fa-fw fa-download blue"></i> #Trim( fileName )#</a>';
@@ -25,6 +27,7 @@ component {
 			return [ event.buildLink(
 				  fileStorageProvider = 'formBuilderStorageProvider'
 				, fileStoragePath     = args.response
+				, fileStoragePrivate  = formBuilderStorageProvider.objectExists( path=args.response ?: "", private=true )
 			) ];
 		}
 
@@ -64,10 +67,11 @@ component {
 		}
 
 		if( Len( Trim( args.accept ?: "" ) ) ){
+			var allowedTypes = ArrayToList( assetManagerService.expandTypeList( listToArray(args.accept) ) );
 			rules.append( {
 				  fieldname = args.name ?: ""
 				, validator = "fileType"
-				, params    = { allowedTypes=args.accept, allowedExtensions=args.accept }
+				, params    = { allowedTypes=allowedTypes, allowedExtensions=allowedTypes }
 			} );
 		}
 
@@ -79,7 +83,7 @@ component {
 			  event          = "preprocessors.fileupload.index"
 			, prePostExempt  = true
 			, private        = true
-			, eventArguments = { fieldName=args.inputName ?: "", preProcessorArgs={} }
+			, eventArguments = { fieldName=args.inputName ?: "", preProcessorArgs={}, readBinary=false }
 		);
 
 		return tmpFileDetails;
@@ -88,17 +92,34 @@ component {
 	private any function renderResponseToPersist( event, rc, prc, args={} ) {
 		var response = args.response ?: "";
 
-		if ( IsBinary( response.binary ?: "" ) ) {
-			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( response.tempFileInfo.clientFile ?: 'uploaded.file' )#";
+		if ( FileExists( response.path ?: "" ) ) {
+			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( Len( response.tempFileInfo.clientFile ?: '' ) ? urlEncode( response.tempFileInfo.clientFile ) : 'uploaded.file' )#";
 
-			formBuilderStorageProvider.putObject(
-				  object = response.binary
-				, path   = savedPath
-			);
+			if ( storageProviderService.providerSupportsFileSystem( formBuilderStorageProvider ) ) {
+				formBuilderStorageProvider.putObjectFromLocalPath(
+					  localPath = response.path
+					, path      = savedPath
+					, private   = true
+				);
+			} else {
+				formBuilderStorageProvider.putObject(
+					  object  = FileReadBinary( response.path )
+					, path    = savedPath
+					, private = true
+				);
+			}
 
 			return savedPath;
 		}
 
 		return SerializeJson( response );
+	}
+
+	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
+		return renderResponseToPersist( argumentCollection=arguments );
+	}
+
+	private string function getQuestionDataType( event, rc, prc, args={} ) {
+		return "text";
 	}
 }

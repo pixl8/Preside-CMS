@@ -46,6 +46,8 @@ component {
 				}
 
 				setNextEvent( url=link.href );
+			} else {
+				event.notFound();
 			}
 		}
 
@@ -56,7 +58,7 @@ component {
 			event.notFound();
 		}
 
-		if ( !isValid( "url", link ) ) {
+		if ( !emailLoggingService.clickLinkIsValid( link, messageId ) ) {
 			event.notFound();
 		}
 

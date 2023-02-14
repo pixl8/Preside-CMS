@@ -34,13 +34,13 @@ component singleton=true displayname="Site Templates service" autodoc=true {
 
 		for( var dir in _getDirectories() ) {
 			var subs = DirectoryList( dir, false, "query" );
-			for( sub in subs ){
+			for( var sub in subs ){
 				if ( sub.type == "Dir" ) {
 					templateIds[ sub.name ] = true;
 				}
 			}
 		}
-		for( templateId in templateIds ) {
+		for( var templateId in templateIds ) {
 			templates.append( new SiteTemplate(
 				  id          = templateId
 				, title       = "site-templates.#templateId#:title"

@@ -117,6 +117,11 @@ component {
 					return "datetime";
 			}
 
+			switch( type ) {
+				case "numeric":
+					return "integer";
+			}
+
 
 			return "plaintext";
 		} );
@@ -356,7 +361,7 @@ component {
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();
 
-		if ( !cache.keyExists( cacheKey ) ) {
+		if ( !StructKeyExists( cache, cacheKey ) ) {
 			cache[ cacheKey ] = generator();
 		}
 

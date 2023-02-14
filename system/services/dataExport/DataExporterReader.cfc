@@ -39,6 +39,10 @@ component {
 				var metaData       = getComponentMetadata( handlerMapping );
 				var exporter       = readExporterFromCfcMetadata( metaData );
 
+				if ( Len( metaData.feature ?: "" ) && !$isFeatureEnabled( metaData.feature ) ) {
+					continue;
+				}
+
 				rawExporters[ exporter.id ] = rawExporters[ exporter.id ] ?: {};
 				rawExporters[ exporter.id ].append( exporter );
 			}

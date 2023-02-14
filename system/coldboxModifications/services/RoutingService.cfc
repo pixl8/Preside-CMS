@@ -21,7 +21,6 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 	public void function onRequestCapture( event, interceptData ) {
 		_announceInterception( "prePresideRequestCapture", interceptData );
-
 		_checkRedirectDomains( argumentCollection=arguments );
 		if ( featureService.isFeatureEnabled( "sites" ) ) {
 			_detectIncomingSite( argumentCollection=arguments );
@@ -40,8 +39,8 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 	public void function onBuildLink( event, interceptData ) {
 		for( var route in _getPresideRoutes() ){
-			if ( route.reverseMatch( buildArgs=interceptData, event=event ) ) {
-				event.setValue( name="_builtLink", value=route.build( buildArgs=interceptData, event=event ), private=true );
+			if ( route.get().reverseMatch( buildArgs=interceptData, event=event ) ) {
+				event.setValue( name="_builtLink", value=route.get().build( buildArgs=interceptData, event=event ), private=true );
 				return;
 			}
 		}
@@ -288,7 +287,7 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	private array function _getPresideRoutes() {
-		if ( !variables.keyExists( "_presideRoutes" ) ) {
+		if ( !StructKeyExists( variables, "_presideRoutes" ) ) {
 			var presideRoutes = controller.getSetting( "presideRoutes" );
 			if ( IsArray( presideRoutes ) && presideRoutes.len() ) {
 				variables._presideRoutes = presideRoutes;
@@ -313,5 +312,70 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 
 	private void function _announceInterception() {
 	    return variables.controller.getInterceptorService().processState( argumentCollection=arguments );
+	}
+
+// COLDBOX patches
+	private function checkForInvalidURL( required route, required script_name, required event ){
+		var handler = "";
+		var action  = "";
+		var newpath = "";
+		var rc      = event.getCollection();
+
+		/**
+		Verify we have uniqueURLs ON, the event var exists, route is empty or index.cfm
+		AND
+		if the incoming event is not the default OR it is the default via the URL.
+		**/
+		if (
+			structKeyExists( rc, variables.eventName )
+			AND
+			( arguments.route EQ "/index.cfm" or arguments.route eq "" )
+			AND
+			(
+		  		rc[ variables.eventName ] NEQ variables.defaultEvent
+		  		OR
+		  		( structKeyExists( url, variables.eventName ) AND rc[ variables.eventName ] EQ variables.defaultEvent )
+			)
+		){
+
+			//  New Pathing Calculations if not the default event. If default, relocate to the domain.
+			if ( rc[ variables.eventName ] != variables.defaultEvent ) {
+				//  Clean for handler & Action
+				if ( StructKeyExists( rc, variables.eventName ) ) {
+					handler = reReplace( rc[ variables.eventName ], "\.[^.]*$", "" );
+					action = ListLast( rc[ variables.eventName ], "." );
+				}
+				//  route a handler
+				if ( len(handler) ) {
+					newpath = "/" & handler;
+				}
+				//  route path with handler + action if not the default event action
+				if ( len(handler) && len(action) ) {
+					newpath = newpath & "/" & action;
+				}
+			}
+
+			// Debugging
+			if( log.canDebug() ){
+				log.debug( "SES Invalid URL detected. Route: #arguments.route#, script_name: #arguments.script_name#" );
+			}
+
+			// Setup Relocation
+			var httpRequestData = getHttpRequestData();
+			var relocationUrl = "#arguments.event.getSESbaseURL()##newpath##serializeURL( httpRequestData.content, arguments.event )#";
+
+			if( httpRequestData.method eq "GET" ){
+				cflocation(
+					url        = relocationUrl,
+					statusCode = 301
+				);
+			} else {
+				cflocation(
+					url        = relocationUrl,
+					statusCode = 303
+				);
+			}
+
+		}
 	}
 }

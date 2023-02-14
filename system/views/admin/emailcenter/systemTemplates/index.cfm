@@ -20,17 +20,7 @@
 				</thead>
 				<tbody>
 					<cfloop array="#templates#" item="template" index="i">
-						<tr class="clickable">
-							<td>#template.title#</td>
-							<td>#template.description#</td>
-							<td>
-								<div class="action-buttons btn-group">
-									<a href="#event.buildAdminLink( linkto="emailcenter.systemtemplates.template", queryString='template=#template.id#' )#" data-context-key="v" title="#HtmlEditFormat( translateResource( uri="cms:datatable.contextmenu.edit" ) )#">
-										<i class="fa fa-pencil"></i>
-									</a>
-								</div>
-							</td>
-						</tr>
+						#renderViewlet( event="admin.emailcenter.systemTemplates._templateListingItem", args=template )#
 					</cfloop>
 				</tbody>
 			</table>

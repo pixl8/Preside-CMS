@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab title="{forms:tab1.title}" description="{forms:tab1.description}">
+		<fieldset>
+			<field name="somefield1" control="testcontrol" required="true" maxLength="50" label="{forms:some.field.label}" hint="{forms.some.field.hint}" autoTrim="false" />
+			<field name="somefield2" control="spinner" step="2" minValue="0" maxValue="10" required="false" label="{forms:some.field2.label}" hint="{forms.some.field2.hint}" />
+		</fieldset>
+	</tab>
+	<tab title="{forms:tab2.title}" description="{forms:tab2.description}">
+		<fieldset title="{test:test.fieldset.title}">
+			<field name="somefield3" control="spinner" step="3" minValue="0" maxValue="10" required="false" label="{forms:some.field3.label}" hint="{forms.some.field3.hint}" autoTrim="false" />
+		</fieldset>
+		<fieldset title="{test:test.fieldset2.title}" description="{test:test.fieldset2.description}">
+			<field name="somefield4" control="spinner" step="5" minValue="0" maxValue="100" required="false" default="10" autoTrim="true">
+				<rule validator="required" servercondition="${somefield3} gt 10" clientcondition="${somefield3}.val() > 10" />
+				<rule validator="sameAs">
+					<param name="field" value="somefield1" />
+				</rule>
+			</field>
+		</fieldset>
+	</tab>
+</form>

@@ -5,9 +5,10 @@
  *
  */
 component {
+	property name="emailTemplateService" inject="delayedInjector:emailTemplateService";
 
 	/**
-	 * @configuredTemplates.inject coldbox:setting:email.templates
+	 * @configuredTemplates.inject  coldbox:setting:email.templates
 	 */
 	public any function init( required struct configuredTemplates ) {
 		_setConfiguredTemplates( arguments.configuredTemplates );
@@ -52,7 +53,29 @@ component {
 	 * @template.hint The ID of the template to check
 	 */
 	public boolean function templateExists( required string template ) {
-		return _getConfiguredTemplates().keyExists( arguments.template );
+		return StructKeyExists( _getConfiguredTemplates(), arguments.template );
+	}
+
+	/**
+	 * Reset the provided system email template
+	 *
+	 * @autodoc  true
+	 * @template The ID of the template to reset
+	 *
+	 */
+	public void function resetTemplate( required string template ) {
+		emailTemplateService.saveTemplate(
+			  id       = arguments.template
+			, template = {
+				  name            = $translateResource( uri="email.template.#arguments.template#:title", defaultValue=arguments.template )
+				, layout          = getDefaultLayout( arguments.template )
+				, subject         = getDefaultSubject( arguments.template )
+				, html_body       = getDefaultHtmlBody( arguments.template )
+				, text_body       = getDefaultTextBody( arguments.template )
+				, recipient_type  = getRecipientType( arguments.template )
+				, is_system_email = true
+			}
+		);
 	}
 
 	/**
@@ -132,19 +155,24 @@ component {
 	 *
 	 * @autodoc             true
 	 * @template.hint       ID of the template whose parameters are to be prepared
-	 * @templateDetail.hint Struct with details of the template whose parameters are to be prepared
 	 * @args.hint           A struct of args that have been passed to the email sending logic that will inform the building of this email
+	 * @templateDetail.hint Struct with details of the template whose parameters are to be prepared
+ 	 * @detectedParams.hint Array of parameter names that have been detected in the content - providers can use this to restrict the rendering of parameters to only those necessary
 	 *
 	 */
 	public struct function prepareParameters(
 		  required string template
 		,          struct args           = {}
 		,          struct templateDetail = {}
+		,          array  detectedParams
 	) {
 		var handlerAction = "email.template.#arguments.template#.prepareParameters";
 		var prepArgs      = arguments.args.copy();
 
 		prepArgs.templateDetail = arguments.templateDetail;
+		if ( StructKeyExists( arguments, "detectedParams" ) ) {
+			prepArgs.detectedParams = arguments.detectedParams;
+		}
 
 		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
@@ -313,6 +341,16 @@ component {
 		var templates = _getConfiguredTemplates();
 
 		return templates[ arguments.template ].recipientType ?: "anonymous";
+	}
+
+	public boolean function bodyIsDifferentWithDefault( required string template ) {
+		var templateDetail = emailTemplateService.getTemplate( id=arguments.template );
+		var savedHtml      = templateDetail.html_body ?: "";
+		var savedText      = templateDetail.text_body ?: "";
+		var defaultHtml    = getDefaultHtmlBody( template=arguments.template );
+		var defaultText    = getDefaultTextBody( template=arguments.template );
+
+		return ( savedHtml != defaultHtml ) || ( savedText != defaultText );
 	}
 
 // GETTERS AND SETTERS

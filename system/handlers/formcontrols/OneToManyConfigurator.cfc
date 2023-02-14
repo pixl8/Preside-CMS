@@ -5,7 +5,8 @@ component {
 	public string function index( event, rc, prc, args={} ) {
 		var targetObject   = args.relatedTo ?: "";
 		var sourceIdField  = presideObjectService.getIdField( args.sourceObject );
-		var hasSortOrder   = presideObjectService.getObjectProperties( targetObject ).keyExists( "sort_order" );
+		var sortOrderField = presideObjectService.getObjectAttribute( targetObject, "datamanagerSortField", "sort_order" );
+		var hasSortOrder   = StructKeyExists( presideObjectService.getObjectProperties( targetObject ), sortOrderField );
 
 		args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
 		args.defaultValue  = args.savedValue = presideObjectService.getOneToManyConfiguratorJsonString(

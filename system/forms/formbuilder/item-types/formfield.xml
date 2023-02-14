@@ -15,9 +15,10 @@ it will be merged with this form definition.
 					<param name="regex" value="^[a-zA-Z][a-zA-Z0-9_]*$" />
 				</rule>
 			</field>
-			<field name="layout"    control="formbuilderFieldLayoutPicker" required="true"  sortorder="30" />
-			<field name="mandatory" control="yesnoswitch"                  required="false" sortorder="40" />
-			<field name="help"      control="textarea"                     required="false" sortorder="50" />
+			<field name="layout"         control="formbuilderFieldLayoutPicker" required="true"  sortorder="30" />
+			<field name="mandatory"      control="yesnoswitch"                  required="false" sortorder="40" />
+			<field name="help"           control="textarea"                     required="false" sortorder="50" />
+			<field name="exclude_export" control="yesnoswitch"                                   sortorder="60" />
 		</fieldset>
 	</tab>
 </form>
