@@ -59,14 +59,17 @@ component {
 					} catch (any e) {}
 				}
 
-				var exportedFile = dataExportService.exportData( argumentCollection=configArgs );
+				var exportResult = dataExportService.exportData( argumentCollection=configArgs );
 
-				if ( !isEmpty( exportedFile ) ) {
+				if ( !isEmpty( exportResult.filePath ?: "" ) ) {
 					var filePath = slugify( "#savedExportDetail.file_name# #dateTimeFormat( now() )#" ) & ".#exporterDetail.fileExtension#";
 
-					exportStorageProvider.putObject( object=fileReadBinary( exportedFile ), path=filePath );
+					exportStorageProvider.putObject( object=fileReadBinary( exportResult.filePath ), path=filePath );
 					scheduledExportService.saveFilePathToHistoryExport( filepath=filePath, historyExportId=historyId );
-					scheduledExportService.sendExportedFileToRecipient( historyExportId=historyId );
+
+					if ( exportResult.numRecords || isFalse( savedExportDetail.omit_empty_exports ?: false ) ) {
+						scheduledExportService.sendExportedFileToRecipient( historyExportId=historyId, numberOfRecords=exportResult.numRecords );
+					}
 
 					return true;
 				}

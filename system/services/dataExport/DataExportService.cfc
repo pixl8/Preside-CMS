@@ -124,14 +124,12 @@ component {
 			, selectDataArgs = selectDataArgs
 		);
 
-		if ( canReportProgress || canLog ) {
-			var totalRecordsToExport = presideObjectService.selectData(
-				  argumentCollection = selectDataArgs
-				, recordCountOnly    = true
-				, maxRows            = 0
-			);
-			var totalPagesToExport = Ceiling( totalRecordsToExport / selectDataArgs.maxRows );
-		}
+		var totalRecordsToExport = presideObjectService.selectData(
+			  argumentCollection = selectDataArgs
+			, recordCountOnly    = true
+			, maxRows            = 0
+		);
+		var totalPagesToExport = Ceiling( totalRecordsToExport / selectDataArgs.maxRows );
 
 		var simpleFormatField = function( required string fieldName, required any value ){
 			if ( StructKeyExists( propertyRendererMap, arguments.fieldName ) && propertyRendererMap[ arguments.fieldName ] != "none" ) {
@@ -311,13 +309,14 @@ component {
 
 		if ( canReportProgress ) {
 			progress.setResult( {
-				  exportFileName = arguments.exportFileName
-				, mimetype       = arguments.mimetype
-				, filePath       = result
+				  exportFileName  = arguments.exportFileName
+				, mimetype        = arguments.mimetype
+				, filePath        = result
+				, numRecords      = totalRecordsToExport
 			} );
 		}
 
-		return result;
+		return { filePath=result, numRecords=totalRecordsToExport };
 	}
 
 	public struct function getDefaultExportFieldsForObject( required string objectName ) {

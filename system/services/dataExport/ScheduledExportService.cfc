@@ -35,7 +35,7 @@ component {
 		}
 	}
 
-	public void function sendExportedFileToRecipient( required string historyExportId ) {
+	public void function sendExportedFileToRecipient( required string historyExportId, numeric numberOfRecords=0 ) {
 		try {
 			var detail          = getHistoryExportDetail( arguments.historyExportId );
 			var scheduledExport = detail.saved_export ?: "";
@@ -55,6 +55,7 @@ component {
 						, args        = {
 							  filepath        = exportFilepath
 							, savedExportName = $renderLabel( "saved_export", scheduledExport )
+							, numberOfRecords = arguments.numberOfRecords
 						}
 					);
 				}
