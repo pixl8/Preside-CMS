@@ -4,7 +4,7 @@
  * @versioned                          false
  * @dataManagerExportEnabled           false
  * @datamanagerDisallowedOperations    read,add,edit,clone
- * @datamanagerGridFields              datecreated,exporter,complete,success,time_taken
+ * @datamanagerGridFields              datecreated,exporter,complete,success,time_taken,num_records
  * @datamanagerDefaultSortOrder        datecreated desc
  * @feature                            dataExport
  */
@@ -20,4 +20,5 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="log"        type="string"  dbtype="longtext"                            renderer="TaskLog"                                          autofilter=false batchEditable=false;
 	property name="time_taken" type="numeric" dbtype="int"                                 renderer="TaskTimeTaken"                                    autofilter=false batchEditable=false;
 	property name="filepath"                                   maxlength=1000                                                                          autofilter=false batchEditable=false;
+	property name="num_records" type="numeric" dbtype="int"             batchEditable=false;
 }

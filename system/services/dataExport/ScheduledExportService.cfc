@@ -35,29 +35,40 @@ component {
 		}
 	}
 
-	public void function sendExportedFileToRecipient( required string historyExportId, numeric numberOfRecords=0 ) {
+	public void function saveNumberOfRecordsToHistoryExport( required numeric numberOfRecords, required string historyExportId ) {
+		try {
+			$getPresideObject( "saved_export_history" ).updateData( id=arguments.historyExportId, data={ num_records=arguments.numberOfRecords } );
+		} catch (any e) {
+			$raiseError(e);
+		}
+	}
+
+	public void function sendExportedFileToRecipient( required string historyExportId, boolean omitEmptyExports=false ) {
 		try {
 			var detail          = getHistoryExportDetail( arguments.historyExportId );
 			var scheduledExport = detail.saved_export ?: "";
 			var exportFilepath  = detail.filepath     ?: ""
 
 			if ( !isEmpty( scheduledExport ) and !isEmpty( exportFilepath ) ) {
-				var recipients = valueArray( $getPresideObject( "saved_export" ).selectManyToManyData(
-					  id           = scheduledExport
-					, propertyName = "recipients"
-					, selectFields = [ "recipients.id" ]
-				), "id" ) ?: [];
+				if ( val( detail.num_records ) || ( arguments.omitEmptyExports == false ) ) {
 
-				for ( var recipient in recipients ) {
-					$sendEmail(
-						  template    = "scheduledExport"
-						, recipientId = recipient
-						, args        = {
-							  filepath        = exportFilepath
-							, savedExportName = $renderLabel( "saved_export", scheduledExport )
-							, numberOfRecords = arguments.numberOfRecords
-						}
-					);
+					var recipients = valueArray( $getPresideObject( "saved_export" ).selectManyToManyData(
+						  id           = scheduledExport
+						, propertyName = "recipients"
+						, selectFields = [ "recipients.id" ]
+					), "id" ) ?: [];
+
+					for ( var recipient in recipients ) {
+						$sendEmail(
+							  template    = "scheduledExport"
+							, recipientId = recipient
+							, args        = {
+								  filepath        = exportFilepath
+								, savedExportName = $renderLabel( "saved_export", scheduledExport )
+								, numberOfRecords = detail.num_records
+							}
+						);
+					}
 				}
 			}
 		} catch (any e) {

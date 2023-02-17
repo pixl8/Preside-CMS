@@ -27,6 +27,7 @@ component {
 					, extraFilters       = []
 					, exportTemplate     = savedExportDetail.template
 					, templateConfig     = IsJson( savedExportDetail.template_config ) ? DeSerializeJson( savedExportDetail.template_config ) : {}
+					, historyExportId    = historyId
 				};
 
 				try {
@@ -59,17 +60,15 @@ component {
 					} catch (any e) {}
 				}
 
-				var exportResult = dataExportService.exportData( argumentCollection=configArgs );
+				var exportedFile = dataExportService.exportData( argumentCollection=configArgs );
 
-				if ( !isEmpty( exportResult.filePath ?: "" ) ) {
+				if ( !isEmpty( exportedFile ) ) {
+
 					var filePath = slugify( "#savedExportDetail.file_name# #dateTimeFormat( now() )#" ) & ".#exporterDetail.fileExtension#";
 
-					exportStorageProvider.putObject( object=fileReadBinary( exportResult.filePath ), path=filePath );
+					exportStorageProvider.putObject( object=fileReadBinary( exportedFile ), path=filePath );
 					scheduledExportService.saveFilePathToHistoryExport( filepath=filePath, historyExportId=historyId );
-
-					if ( exportResult.numRecords || isFalse( savedExportDetail.omit_empty_exports ?: false ) ) {
-						scheduledExportService.sendExportedFileToRecipient( historyExportId=historyId, numberOfRecords=exportResult.numRecords );
-					}
+					scheduledExportService.sendExportedFileToRecipient( historyExportId=historyId, omitEmptyExports=isTrue( savedExportDetail.omit_empty_exports ?: false ) );
 
 					return true;
 				}
