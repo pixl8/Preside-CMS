@@ -162,7 +162,7 @@ component extends="preside.system.base.AdminHandler" {
 		} );
 
 		messageBox.info( translateResource( uri="cms:sysconfig.saved" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#&tenantId=#tenantId#" ) );
 	}
 
 // VIEWLETS
