@@ -189,6 +189,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectTitle = prc.objectTitlePlural ?: "";
 
 		args.actions             = [];
+		args.batchCustomActions  = [];
 		args.batchEditableFields = [];
 
 		if ( objectName == ( prc.objectName ?: "" ) ) {
@@ -201,6 +202,18 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( ArrayLen( args.batchEditableFields ) ) {
 			args.actions.append( renderView( view="/admin/datamanager/_batchEditMultiActionButton", args=args ) );
+		}
+
+		customizationService.runCustomization(
+			  objectName = objectName
+			, action     = "getListingBatchActions"
+			, args       = args
+		);
+
+		announceInterception( "onGetListingBatchActions", args );
+
+		if ( arrayLen( args.batchCustomActions ) ) {
+			arrayAppend( args.actions, renderView( view="/admin/datamanager/_batchCustomMultiActionButton", args=args ) );
 		}
 
 		if ( IsTrue( args.canDelete ?: ( prc.canDelete ?: "" ) ) && IsTrue( args.canBatchDelete ?: ( prc.canBatchDelete ?: "" ) ) ) {
@@ -614,6 +627,14 @@ component extends="preside.system.base.AdminHandler" {
 					, batchSrcArgs       = batchSrcArgs
 				);
 			break;
+			default:
+				if ( getController().viewletExists( "admin.datamanager.#objectName#.#action#BatchAction" ) ) {
+					setNextEvent(
+						  url           = event.buildAdminLink( linkto="datamanager.#objectName#.#action#BatchAction" )
+						, persistStruct = { ids=ids, batchAll=batchAll, batchSrcArgs=batchSrcArgs }
+					);
+				}
+				break;
 		}
 
 		messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
