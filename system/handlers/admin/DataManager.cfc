@@ -189,7 +189,6 @@ component extends="preside.system.base.AdminHandler" {
 		var objectTitle = prc.objectTitlePlural ?: "";
 
 		args.actions             = [];
-		args.batchCustomActions  = [];
 		args.batchEditableFields = [];
 
 		if ( objectName == ( prc.objectName ?: "" ) ) {
@@ -204,7 +203,7 @@ component extends="preside.system.base.AdminHandler" {
 			args.actions.append( renderView( view="/admin/datamanager/_batchEditMultiActionButton", args=args ) );
 		}
 
-		customizationService.runCustomization(
+		args.batchCustomActions = customizationService.runCustomization(
 			  objectName = objectName
 			, action     = "getListingBatchActions"
 			, args       = args
