@@ -171,6 +171,9 @@ component {
 				if ( !arrayContainsNoCase( excludedKeys, "OneToManyHas" ) ) {
 					arrayAppend( expressions, _createOneToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
+				if ( reFind( "^\_translation\_", relatedTo ) ) {
+					arrayAppend( expressions, _createOutdatedTranslationExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
 			break;
 		}
 
@@ -596,6 +599,33 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.OneToManyHas.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.OneToManyHas.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.OneToManyHas.getText"
+		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
+		expression.expressionHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo           = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo             = propertyDefinition.relatedTo;
+		expression.expressionHandlerArgs.relationshipKey = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.filterHandlerArgs.relationshipKey     = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.labelHandlerArgs.relationshipKey      = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.textHandlerArgs.relationshipKey       = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+
+		return expression;
+	}
+
+	private struct function _createOutdatedTranslationExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression       = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
+		var possessesVariety = _getBooleanVariety( arguments.objectName, arguments.propertyDefinition.name, "possesses" );
+
+		expression.append( {
+			  id                = "presideobject_outdatedtranslation_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
+			, fields            = { _possesses={ fieldType="boolean", variety=possessesVariety, required=false, default=true }, value={ fieldType="object", object="multilingual_language", multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:outdatedTranslation.value.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.getText"
 		} );
 
 		expression.fields.value.append( arguments.propertyDefinition, false );
