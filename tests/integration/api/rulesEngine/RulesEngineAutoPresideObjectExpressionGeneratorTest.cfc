@@ -289,11 +289,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( expressions.findNoCase( expectedExpr ) > 0 ).toBe( true );
 			} );
 
-			it( "should NOT return a 'onetomanymatch' expression for the _translations property of a multilingual object", function(){
+			it( "should NOT return 'onetomanymatch' and 'onetomanycount' expressions for the _translations property of a multilingual object", function(){
 				var builder      = _getBuilder();
 				var objectName   = "some_object";
 				_mockContexts( objectName );
-				var propertyDef  = { name="_translations", relationship="one-to-many", relatedTo="_translation_some_object", required=false, excludeAutoExpressions="OneToManyMatch" };
+				var propertyDef  = { name="_translations", relationship="one-to-many", relatedTo="_translation_some_object", required=false, excludeAutoExpressions="OneToManyMatch,OneToManyCount" };
 
 				var expressions = builder.generateExpressionsForProperty(
 					  objectName         = objectName
@@ -304,27 +304,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
    					return expr.id;
 				} );
 
-				var needle = "presideobject_onetomanymatch_#objectName#.#propertyDef.name#";
-				expect( exprIds.find( needle ) > 0 ).toBe( false );
-			} );
+				expect( exprIds.find( "presideobject_onetomanycount_#objectName#.#propertyDef.name#" ) > 0 ).toBe( false );
+				expect( exprIds.find( "presideobject_onetomanymatch_#objectName#.#propertyDef.name#" ) > 0 ).toBe( false );
 
-			it( "should NOT return a 'onetomanycount' expression for the _translations property of a multilingual object", function(){
-				var builder      = _getBuilder();
-				var objectName   = "some_object";
-				_mockContexts( objectName );
-				var propertyDef  = { name="_translations", relationship="one-to-many", relatedTo="_translation_some_object", required=false, excludeAutoExpressions="OneToManyCount" };
-
-				var expressions = builder.generateExpressionsForProperty(
-					  objectName         = objectName
-					, propertyDefinition = propertyDef
-				);
-
-				var exprIds = arrayMap( expressions, function( expr ) {
-   					return expr.id;
-				} );
-
-				var needle = "presideobject_onetomanycount_#objectName#.#propertyDef.name#";
-				expect( exprIds.find( needle ) > 0 ).toBe( false );
 			} );
 		} );
 	}
