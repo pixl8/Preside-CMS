@@ -200,7 +200,7 @@ component displayName="Preside Object Service" {
 		,          array   bypassTenants           = []
 		,          array   ignoreDefaultFilters    = []
 	) autodoc=true {
-		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) ) );
+		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
@@ -459,7 +459,7 @@ component displayName="Preside Object Service" {
 			return interceptorResult.returnValue ?: "";
 		}
 
-		var args               = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
+		var args               = _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) );
 		var obj                = _getObject( args.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var dateCreatedField   = getDateCreatedField( args.objectName );
@@ -1012,7 +1012,7 @@ component displayName="Preside Object Service" {
 			return Val( interceptorResult.returnValue ?: 0 );
 		}
 
-		var args           = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
+		var args           = _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) );
 		var obj            = _getObject( args.objectName ).meta;
 		var adapter        = _getAdapter( obj.dsn );
 		var sql            = "";
@@ -1125,7 +1125,7 @@ component displayName="Preside Object Service" {
 
 		var relatedTo      = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedTo", "" );
 		var obj            = _getObject( relatedTo );
-		var selectDataArgs = Duplicate( arguments );
+		var selectDataArgs = _deepishDuplicate( arguments );
 
 		StructDelete( selectDataArgs, "propertyName" );
 		selectDataArgs.forceJoins = "inner"; // many-to-many joins are not required so "left" by default. Here we absolutely want inner joins.
@@ -3303,7 +3303,7 @@ component displayName="Preside Object Service" {
 
 		compiledFilter = mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
 
-		var args = Duplicate( arguments );
+		var args = _deepishDuplicate( arguments );
 		args.append( {
 			  tableName     = versionTableName
 			, tableAlias    = arguments.objectName
@@ -3967,6 +3967,29 @@ component displayName="Preside Object Service" {
 				caches[ cacheName ].clearAll();
 			}
 		}
+	}
+
+	/**
+	 * throughout this service we need a "deep"
+	 * clone of arguments to be able to work
+	 * with them and change values with the new data.
+	 * However, we never expect objects as arguments
+	 * and do not want to deep clone those objects
+	 * which causes all sorts of memory usage problems.
+	 *
+	 */
+	private any function _deepishDuplicate( args ) {
+		var newArgs = {};
+
+		for( var key in arguments.args ) {
+			if ( IsSimpleValue( arguments.args[ key ] ) || IsObject( arguments.args[ key ] ) ) {
+				newArgs[ key ] = arguments.args[ key ];
+			} else {
+				newArgs[ key ] = Duplicate( arguments.args[ key ] );
+			}
+		}
+
+		return newArgs;
 	}
 
 
