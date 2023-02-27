@@ -79,7 +79,7 @@ component {
 
 		$announceInterception( "preDataExportPrepareData", arguments );
 
-		var selectDataArgs            = Duplicate( arguments );
+		var selectDataArgs            = StructCopy( arguments );
 		var cleanedSelectFields       = [];
 		var presideObjectService      = $getPresideObjectService();
 		var propertyDefinitions       = presideObjectService.getObjectProperties( arguments.objectName );
@@ -93,6 +93,14 @@ component {
 		selectDataArgs.delete( "exportFilterString" );
 		selectDataArgs.delete( "exportTemplate" );
 		selectDataArgs.delete( "templateConfig" );
+		selectDataArgs.delete( "logger" );
+		selectDataArgs.delete( "progress" );
+		for( var key in selectDataArgs ) {
+			if ( IsObject( selectDataArgs[ key ] ) ) {
+				selectDataArgs.delete( key );
+			}
+		}
+
 		selectDataArgs.maxRows      = arguments.exportPagingSize;
 		selectDataArgs.startRow     = 1;
 		selectDataArgs.autoGroupBy  = true;
