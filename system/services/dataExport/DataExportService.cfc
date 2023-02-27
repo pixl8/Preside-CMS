@@ -67,7 +67,7 @@ component {
 
 		$announceInterception( "preDataExportPrepareData", arguments );
 
-		var selectDataArgs       = Duplicate( arguments );
+		var selectDataArgs       = StructCopy( arguments );
 		var cleanedSelectFields  = [];
 		var presideObjectService = $getPresideObjectService();
 		var propertyDefinitions  = presideObjectService.getObjectProperties( arguments.objectName );
