@@ -77,6 +77,14 @@ component {
 		selectDataArgs.delete( "fieldTitles" );
 		selectDataArgs.delete( "exportPagingSize" );
 		selectDataArgs.delete( "exportFilterString" );
+		selectDataArgs.delete( "logger" );
+		selectDataArgs.delete( "progress" );
+		for( var key in selectDataArgs ) {
+			if ( IsObject( selectDataArgs[ key ] ) ) {
+				selectDataArgs.delete( key );
+			}
+		}
+
 		selectDataArgs.maxRows      = arguments.exportPagingSize;
 		selectDataArgs.startRow     = 1;
 		selectDataArgs.autoGroupBy  = true;
