@@ -211,7 +211,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		announceInterception( "onGetListingBatchActions", args );
 
-		if ( arrayLen( args.batchCustomActions ) ) {
+		if ( isArray( args.batchCustomActions ?: "" ) && arrayLen( args.batchCustomActions ) ) {
 			arrayAppend( args.actions, renderView( view="/admin/datamanager/_batchCustomMultiActionButton", args=args ) );
 		}
 
