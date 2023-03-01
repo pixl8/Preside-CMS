@@ -174,7 +174,7 @@
 						<div class="tab-pane" id="tab-html">
 							<div class="html-preview">
 								<script id="htmlBody" type="text/template">#prc.log.html_body#</script>
-								<iframe class="html-message-iframe" data-src="htmlBody" frameBorder="0" style="overflow:hidden;"></iframe>
+								<iframe class="html-message-iframe" data-src="htmlBody" frameBorder="0" style="overflow:hidden;width:100%"></iframe>
 							</div>
 						</div>
 					</cfif>
