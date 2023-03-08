@@ -206,7 +206,8 @@ component output="false" singleton=true {
 		// foreign key
 		if ( StructKeyExists( field, "relationship" )  && field.relationship != "none" && StructKeyExists( field, "relatedTo" ) && field.relatedTo != "none" && !poService.isOneToManyConfiguratorObject( field.relatedTo ) ) {
 			ArrayAppend( rules, {
-				  fieldName = arguments.fieldName, validator="presideObjectForeignKey"
+				  fieldName = arguments.fieldName
+				, validator = "presideObjectForeignKey"
 				, params    = { relatedTo=arguments.fieldAttributes.relatedTo, bypassTenants=arguments.fieldAttributes.bypassTenants ?: "" }
 			} );
 		}
