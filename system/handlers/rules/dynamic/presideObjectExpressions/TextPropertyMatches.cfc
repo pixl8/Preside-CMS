@@ -68,7 +68,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 				}
 			}
 			if ( Len( enumFilterSql ) ) {
-				filterSql = enumFilterSql;
+				filterSql = "( #enumFilterSql# )";
 			}
 		}
 
