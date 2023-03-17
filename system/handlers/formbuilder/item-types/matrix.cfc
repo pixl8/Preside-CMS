@@ -14,7 +14,8 @@ component {
 			  argumentCollection = args
 			, type               = "matrix"
 			, context            = "formbuilder"
-			, id                 = args.id ?: ( args.name ?: "" )
+			, name               = inputName
+			, id                 = args.id ?: inputName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory    ?: "" )
 			, rows               = rows
