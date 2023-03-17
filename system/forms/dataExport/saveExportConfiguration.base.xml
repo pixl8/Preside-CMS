@@ -24,8 +24,6 @@ This form is used as a base for saving data exports.
 	<tab id="filters" sortorder="20">
 		<fieldset id="filters" sortorder="20">
 			<field name="savedFilters" control="filterPicker" required="false" sortorder="10" multiple="true" />
-			<field binding="saved_export.filter"       control="SavedExportFilterBuilder" required="false" sortorder="20" />
-
 		</fieldset>
 	</tab>
 	<tab id="schedule" sortorder="30">

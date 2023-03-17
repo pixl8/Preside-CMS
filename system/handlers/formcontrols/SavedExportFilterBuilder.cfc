@@ -5,8 +5,11 @@ component {
 		args.defaultValue = Len( args.defaultValue ?: "" ) ? args.defaultValue : rc.filterExpressions ?: "";
 
 		return renderFormControl(
-			  name = "filter"
-			, type = "RulesEngineFilterBuilder"
+			  name       = "filter"
+			, type       = "RulesEngineFilterBuilder"
+			, layout     = "formcontrols.layouts.fieldWithNoLabel"
+			, groupClass = ""
+			, showCount  = false
 			, argumentCollection = args
 		);
 

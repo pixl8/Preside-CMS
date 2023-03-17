@@ -10,8 +10,7 @@
 	</tab>
 	<tab id="filters" sortorder="20">
 		<fieldset id="filters" sortorder="20">
-			<field binding="saved_export.saved_filter" control="filterPicker" required="false" sortorder="10" multiple="true" />
-			<field binding="saved_export.filter"       control="SavedExportFilterBuilder" required="false" sortorder="20" />
+			<field binding="saved_export.saved_filter" control="filterPicker"             required="false" sortorder="10" multiple="true" />
 		</fieldset>
 	</tab>
 	<tab id="schedule" sortorder="30">
