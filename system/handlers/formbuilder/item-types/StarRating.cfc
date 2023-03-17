@@ -4,11 +4,14 @@ component {
 		event.include( assetId="/css/frontend/formbuilder/starRating/" );
 		event.include( assetId="/js/frontend/formbuilder/starRating/" );
 
+		var controlName = args.name ?: "";
+
 		return renderFormControl(
 			  argumentCollection = args
 			, type               = "starRating"
 			, context            = "formbuilder"
-			, id                 = args.id ?: ( args.name ?: "" )
+			, name               = controlName
+			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
 		);
