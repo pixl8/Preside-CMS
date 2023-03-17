@@ -38,13 +38,10 @@ component extends="preside.system.base.adminHandler" {
 			}
 
 			rc.filterObject = rc.object;
-
-			var filterExpressions = rc.filterExpressions ?: "";
-
 			prc.saveExportForm = dataExportTemplateService.renderSaveExportForm(
 				  templateId = rc.exportTemplate ?: ""
 				, objectName = rc.object
-				, hasFilter  = Len( filterExpressions )
+				, hasFilter  = Len( rc.filterExpressions ?: "" )
 			);
 		}
 
