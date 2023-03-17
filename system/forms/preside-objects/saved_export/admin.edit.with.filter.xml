@@ -2,7 +2,7 @@
 <form i18nBaseUri="cms:dataexport.config.form.">
 	<tab id="filters" sortorder="20">
 		<fieldset id="filters" sortorder="20">
-			<field binding="saved_export.filter"       control="SavedExportFilterBuilder" required="false" sortorder="20" />
+			<field binding="saved_export.filter" control="SavedExportFilterBuilder" required="false" sortorder="20" />
 		</fieldset>
 	</tab>
 </form>
