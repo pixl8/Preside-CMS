@@ -34,7 +34,8 @@ component {
 	}
 
 	private string function renderInput( event, rc, prc, args={} ) {
-		var accept = "";
+		var accept      = "";
+		var controlName = args.name ?: "";
 
 		if ( Len( Trim( args.accept ?: "" ) ) ) {
 			assetManagerService.expandTypeList( ListToArray( args.accept ) ).each( function( type ){
@@ -46,7 +47,8 @@ component {
 			  argumentCollection = args
 			, type               = "fileupload"
 			, context            = "formbuilder"
-			, id                 = args.id ?: ( args.name ?: "" )
+			, name               = controlName
+			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
 			, accept             = accept
