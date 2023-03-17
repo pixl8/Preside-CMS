@@ -6,6 +6,7 @@ component {
 	property name="messageBox"                inject="messagebox@cbmessagebox";
 	property name="taskManagerService"        inject="taskManagerService";
 	property name="dataExportTemplateService" inject="dataExportTemplateService";
+	property name="formsService"              inject="FormsService";
 
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var objectName       = "saved_export";
@@ -186,11 +187,20 @@ component {
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
-		return dataExportTemplateService.getSaveExportFormName(
+		var formName = dataExportTemplateService.getSaveExportFormName(
 			  templateId = prc.record.template    ?: ""
 			, objectName = prc.record.object_name ?: ""
 			, baseForm   = "preside-objects.saved_export.admin.edit"
 		);
+
+		if ( Len( prc.record.filter ?: "" ) ) {
+			formName = formsService.getMergedFormName(
+				  formName          = formName
+				, mergeWithFormName = "preside-objects.saved_export.admin.edit.with.filter"
+			);
+		}
+
+		return formName;
 	}
 
 	private void function preRenderEditRecordForm( event, rc, prc, args={} ) {
@@ -211,6 +221,8 @@ component {
 			  templateId = ( args.record.template ?: "" )
 			, objectName = rc.filterObject
 		);
+
+		args.additionalArgs.fields.filter.deleted=true;
 	}
 
 // HELPERS
