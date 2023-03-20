@@ -854,7 +854,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public void function preventPageCache() {
-		header name="cache-control" value="no-cache, no-store";
+		header name="cache-control" value="no-store";
 		header name="expires"       value="Fri, 20 Nov 2015 00:00:00 GMT";
 	}
 
