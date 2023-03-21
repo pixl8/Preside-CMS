@@ -41,6 +41,7 @@ component extends="preside.system.base.adminHandler" {
 			prc.saveExportForm = dataExportTemplateService.renderSaveExportForm(
 				  templateId = rc.exportTemplate ?: ""
 				, objectName = rc.object
+				, hasFilter  = Len( rc.filterExpressions ?: "" )
 			);
 		}
 

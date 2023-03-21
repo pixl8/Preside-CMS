@@ -5,7 +5,8 @@ component {
 		var formControlArgs = Duplicate( args );
 
 		formControlArgs.context                 = "formbuilder";
-		formControlArgs.id                      = args.id ?: ( args.name ?: "" );
+		formControlArgs.name                    = args.name ?: "";
+		formControlArgs.id                      = args.id ?: formControlArgs.name;
 		formControlArgs.layout                  = "";
 		formControlArgs.required                = IsTrue( args.mandatory ?: "" );
 		formControlArgs.multiple                = IsTrue( args.multiple  ?: "" );
