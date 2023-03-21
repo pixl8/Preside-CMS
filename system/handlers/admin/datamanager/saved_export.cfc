@@ -221,8 +221,6 @@ component {
 			  templateId = ( args.record.template ?: "" )
 			, objectName = rc.filterObject
 		);
-
-		args.additionalArgs.fields.filter.deleted=true;
 	}
 
 // HELPERS
