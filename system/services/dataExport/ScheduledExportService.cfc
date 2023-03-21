@@ -316,7 +316,7 @@ component {
 	}
 
 	private boolean function _exportIsRunningOnLocalMachine( required any task ){
-		var runningTasks = _getRunningTasks();
+		var runningTasks = _getRunningExports();
 		var threadRef    = runningTasks[ task.running_thread ].thread ?: NullValue();
 
 		if ( IsNull( threadRef ) ) {
