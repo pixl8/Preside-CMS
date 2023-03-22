@@ -235,6 +235,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
 		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailTemplateRecipientFilters");
 		interceptorSettings.customInterceptionPoints.append( "preRenderEmailTemplateSettingsForm"    );
+		interceptorSettings.customInterceptionPoints.append( "preRenderEmailTemplateNotices"         );
+		interceptorSettings.customInterceptionPoints.append( "preRenderEmailTemplateActions"         );
 		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
 		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
 		interceptorSettings.customInterceptionPoints.append( "preDataExportPrepareData"              );
