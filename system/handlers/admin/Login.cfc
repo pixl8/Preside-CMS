@@ -8,7 +8,6 @@ component extends="preside.system.base.AdminHandler" {
 
 
 	public void function preHandler( event, action, eventArguments ) {
-		_cleanCollectionData( argumentCollection=arguments );
 		super.preHandler( argumentCollection = arguments );
 
 		event.cachePage( false );

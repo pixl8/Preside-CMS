@@ -3,8 +3,6 @@ component {
 	property name="loginService"        inject="loginService";
 	property name="sessionStorage"      inject="sessionStorage";
 	property name="messageBox"          inject="messagebox@cbmessagebox";
-	property name="antiSamySettings"    inject="coldbox:setting:antiSamy";
-	property name="antiSamyService"     inject="antiSamyService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		if( event.isStatelessRequest() ){
@@ -76,35 +74,6 @@ component {
 					setNextEvent( url=event.buildAdminLink( "login" ), persistStruct={ postLoginUrl = postLoginUrl } );
 				}
 			}
-		}
-	}
-
-	private any function _cleanData(
-		  required any    data
-		,          string policy = antiSamySettings.policy ?: "preside"
-	) {
-		if ( isSimpleValue( arguments.data ) ) {
-			return antiSamyService.clean( arguments.data, arguments.policy );
-		} else {
-			if ( isStruct( arguments.data ) ) {
-				for ( var key in arguments.data ) {
-					arguments.data[ key ] = _cleanData( arguments.data[ key ], arguments.policy );
-				}
-			} else if ( isArray( arguments.data ) ) {
-				for ( var i = 1; i <= arrayLen( arguments.data ); i++ ) {
-					arguments.data[ i ] = _cleanData( arguments.data[ i ], arguments.policy );
-				}
-			}
-
-			return arguments.data;
-		}
-	}
-
-	private void function _cleanCollectionData( event ) {
-		if ( isTrue( antiSamySettings.enabled ?: "" ) ) {
-			var rcData = structCopy( event.getCollection() );
-
-			event.collectionAppend( _cleanData( data=rcData ), true );
 		}
 	}
 }
