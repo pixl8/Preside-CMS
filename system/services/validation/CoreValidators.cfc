@@ -138,7 +138,7 @@ component validationProvider=true {
 		return arguments.value == ( arguments.data[ field ] ?: "" );
 	}
 	public string function sameAs_js() {
-		return "function( value, el, params ){ var $field = $( this.form ).find( '[name=' + params[0] + ']' ); return $field.length && value == $field.val(); }";
+		return "function( value, el, params ){ var $field = $( el ).closest( 'form' ).find( '[name=' + params[0] + ']' ); return $field.length && value == $field.val(); }";
 	}
 
 	public boolean function slug( required string fieldName, string value="" ) validatorMessage="cms:validation.slug.default" {
