@@ -112,10 +112,16 @@ component {
 			return;
 		}
 
+		if ( this.presideSessionManagement ) {
+			_persistSession();
+			_removeSessionCookies();
+		} else {
+			_invalidateSessionIfNotUsed();
+		}
+		_cleanupCookies();
+
 		if ( _showErrors() ) {
 			throw object=arguments.exception;
-
-
 		} else {
 			_friendlyError( arguments.exception, 500 );
 
