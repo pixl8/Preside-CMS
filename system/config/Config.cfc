@@ -266,6 +266,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForObject"     );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraQsForBuildAjaxListingLink" );
 		interceptorSettings.customInterceptionPoints.append( "postExtraRecordActionsForGridListing"  );
+		interceptorSettings.customInterceptionPoints.append( "onGetListingBatchActions"              );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraListingMultiActions"       );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraAddRecordActionButtons"    );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForAddRecord"  );
