@@ -14,6 +14,7 @@ This form is used for editing form settings within the form builder system.
 			<field sortorder="50" binding="formbuilder_form.description"            control="textarea"  />
 			<field sortorder="60" binding="formbuilder_form.active_from"                                />
 			<field sortorder="70" binding="formbuilder_form.active_to"                                  />
+			<field sortorder="80" binding="formbuilder_form.notification_enabled"                       />
 		</fieldset>
 		<fieldset id="access" sortorder="20" feature="websiteUsers">
 			<field sortorder="10" binding="formbuilder_form.require_login" />

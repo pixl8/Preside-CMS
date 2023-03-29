@@ -42,6 +42,7 @@ component {
 		__setupDataExport();
 		__setupFullPageCaching();
 		__setupHeartbeatsAndServices();
+		__setupNotifications();
 		__loadConfigurationFromExtensions();
 	}
 
@@ -198,6 +199,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                       );
 		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                        );
 		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                        );
+		interceptorSettings.customInterceptionPoints.append( "onLogout"                              );
 		interceptorSettings.customInterceptionPoints.append( "onAdminLoginSuccess"                   );
 		interceptorSettings.customInterceptionPoints.append( "onAdminLoginFailure"                   );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                       );
@@ -235,6 +237,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailSendArguments"           );
 		interceptorSettings.customInterceptionPoints.append( "onPrepareEmailTemplateRecipientFilters");
 		interceptorSettings.customInterceptionPoints.append( "preRenderEmailTemplateSettingsForm"    );
+		interceptorSettings.customInterceptionPoints.append( "preRenderEmailTemplateNotices"         );
+		interceptorSettings.customInterceptionPoints.append( "preRenderEmailTemplateActions"         );
 		interceptorSettings.customInterceptionPoints.append( "preSendEmail"                          );
 		interceptorSettings.customInterceptionPoints.append( "postSendEmail"                         );
 		interceptorSettings.customInterceptionPoints.append( "preDataExportPrepareData"              );
@@ -265,6 +269,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForObject"     );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraQsForBuildAjaxListingLink" );
 		interceptorSettings.customInterceptionPoints.append( "postExtraRecordActionsForGridListing"  );
+		interceptorSettings.customInterceptionPoints.append( "onGetListingBatchActions"              );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraListingMultiActions"       );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraAddRecordActionButtons"    );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForAddRecord"  );
@@ -1034,6 +1039,10 @@ component {
 
 		settings.heartbeats.taskmanager.poolSize  = Val( settings.env.TASKMANAGER_POOL_SIZE  ?: 0 );
 		settings.heartbeats.adhocTask.poolSize    = Val( settings.env.ADHOCTASK_POOL_SIZE    ?: 0 );
+	}
+
+	private void function __setupNotifications() {
+		ArrayAppend( settings.notificationTopics, "FormbuilderSubmissionReceived" );
 	}
 
 	private void function __setupDevConsole() {

@@ -246,16 +246,17 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( dummyObject.meta.properties.keyExists( "_translations" ) ).toBeTrue();
 				expect( dummyObject.meta.properties._translations ).toBe( {
-					  name            = "_translations"
-		 			, relationship    = "one-to-many"
-					, relatedto       = "_translation_myobject"
-					, relationshipKey = "_translation_source_record"
-					, required        = false
-					, uniqueindexes   = ""
-					, indexes         = ""
-					, generator       = "none"
-					, control         = "none"
-					, adminRenderer   = "none"
+					  name                   = "_translations"
+		 			, relationship           = "one-to-many"
+					, relatedto              = "_translation_myobject"
+					, relationshipKey        = "_translation_source_record"
+					, required               = false
+					, uniqueindexes          = ""
+					, indexes                = ""
+					, generator              = "none"
+					, control                = "none"
+					, adminRenderer          = "none"
+					, excludeAutoExpressions = "OneToManyMatch,OneToManyCount"
 				} );
 			} );
 		} );

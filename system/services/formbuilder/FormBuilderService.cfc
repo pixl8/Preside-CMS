@@ -1084,6 +1084,16 @@ component {
 				, detail     = submission
 			);
 
+			if ( $helpers.isTrue( formConfiguration.notification_enabled ?: false ) ) {
+				$createNotification(
+					  topic = "FormbuilderSubmissionReceived"
+					, type  = "info"
+					, data  = {
+						id = submissionId
+					}
+				);
+			}
+
 			$announceInterception( "postFormBuilderFormSubmission", {
 				  formData          = formData
 				, requestData       = arguments.requestData
@@ -1119,12 +1129,22 @@ component {
 	 *
 	 * @autodoc
 	 * @submissionId.hint The ID of the submission you wish to get
+	 * @selectFields.hint Array of field names to select
 	 *
 	 */
-	public query function getSubmission( required string submissionId ) {
-		return $getPresideObject( "formbuilder_formsubmission" ).selectData(
-			filter = { id=submissionId }
-		);
+	public query function getSubmission(
+		  required string submissionId
+		,          array  selectFields = []
+	) {
+		var args = {
+			filter = { id=arguments.submissionId }
+		};
+
+		if ( ArrayLen( arguments.selectFields ) ) {
+			StructAppend( args, { selectFields=arguments.selectFields } );
+		}
+
+		return $getPresideObject( "formbuilder_formsubmission" ).selectData( argumentCollection=args );
 	}
 
 	/**
