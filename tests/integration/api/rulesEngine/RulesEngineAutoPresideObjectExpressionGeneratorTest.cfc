@@ -232,6 +232,82 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				);
 				expect( expressions.findNoCase( expectedExpr ) > 0 ).toBe( true );
 			} );
+
+			it( "should return a configured 'outdatedtranslation' expression for the _translations property of a multilingual object", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_object";
+				var propertyDef  = { name="_translations", relationship="one-to-many", relatedTo="_translation_some_object", required=false };
+				var expectedExpr = {
+					  id                    = "presideobject_outdatedtranslation_#objectName#.#propertyDef.name#"
+					, contexts              = _mockContexts( objectName )
+					, category              = objectName
+					, fields                = { _possesses={ fieldType="boolean", variety="hasDoesNotHave", required=false, default=true }, value={ fieldType="object", object="multilingual_language", multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:outdatedTranslation.value.default.label" } }
+					, filterObjects         = [ objectName ]
+					, expressionHandler = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.evaluateExpression"
+					, filterHandler     = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.prepareFilters"
+					, labelHandler      = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.getLabel"
+					, textHandler       = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.getText"
+					, expressionHandlerArgs = { propertyName=propertyDef.name, objectName=objectName, relatedTo=propertyDef.relatedTo, relationshipKey=objectName }
+					, filterHandlerArgs     = { propertyName=propertyDef.name, objectName=objectName, relatedTo=propertyDef.relatedTo, relationshipKey=objectName }
+					, labelHandlerArgs      = { propertyName=propertyDef.name, objectName=objectName, relatedTo=propertyDef.relatedTo, relationshipKey=objectName }
+					, textHandlerArgs       = { propertyName=propertyDef.name, objectName=objectName, relatedTo=propertyDef.relatedTo, relationshipKey=objectName }
+				};
+				expectedExpr.fields.value.append( propertyDef, false );
+
+				var expressions = builder.generateExpressionsForProperty(
+					  objectName         = objectName
+					, propertyDefinition = propertyDef
+				);
+				expect( expressions.findNoCase( expectedExpr ) > 0 ).toBe( true );
+			} );
+
+			it( "should return a configured 'translationexists' expression for the _translations property of a multilingual object", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_object";
+				var propertyDef  = { name="_translations", relationship="one-to-many", relatedTo="_translation_some_object", required=false };
+				var expectedExpr = {
+					  id                    = "presideobject_translationexists_#objectName#.#propertyDef.name#"
+					, contexts              = _mockContexts( objectName )
+					, category              = objectName
+					, fields                = { _possesses={ fieldType="boolean", variety="hasDoesNotHave", required=false, default=true }, value={ fieldType="object", object="multilingual_language", multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:TranslationExists.value.default.label" }, savedFilter={ fieldType="filter", object=propertyDef.relatedTo, multiple=false, quickadd=true, quickedit=true, required=false, default="", defaultLabel="rules.dynamicExpressions:TranslationExists.savedFilter.default.label" } }
+					, filterObjects         = [ objectName ]
+					, expressionHandler = "rules.dynamic.presideObjectExpressions.TranslationExists.evaluateExpression"
+					, filterHandler     = "rules.dynamic.presideObjectExpressions.TranslationExists.prepareFilters"
+					, labelHandler      = "rules.dynamic.presideObjectExpressions.TranslationExists.getLabel"
+					, textHandler       = "rules.dynamic.presideObjectExpressions.TranslationExists.getText"
+					, expressionHandlerArgs = { propertyName=propertyDef.name, objectName=objectName, relatedTo=propertyDef.relatedTo, relationshipKey=objectName }
+					, filterHandlerArgs     = { propertyName=propertyDef.name, objectName=objectName, relatedTo=propertyDef.relatedTo, relationshipKey=objectName }
+					, labelHandlerArgs      = { propertyName=propertyDef.name, objectName=objectName, relatedTo=propertyDef.relatedTo, relationshipKey=objectName }
+					, textHandlerArgs       = { propertyName=propertyDef.name, objectName=objectName, relatedTo=propertyDef.relatedTo, relationshipKey=objectName }
+				};
+				expectedExpr.fields.value.append( propertyDef, false );
+				var expressions = builder.generateExpressionsForProperty(
+					  objectName         = objectName
+					, propertyDefinition = propertyDef
+				);
+
+				expect( expressions.findNoCase( expectedExpr ) > 0 ).toBe( true );
+			} );
+
+			it( "should NOT return 'onetomanymatch' and 'onetomanycount' expressions for the _translations property of a multilingual object", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_object";
+				_mockContexts( objectName );
+				var propertyDef  = { name="_translations", relationship="one-to-many", relatedTo="_translation_some_object", required=false, excludeAutoExpressions="OneToManyMatch,OneToManyCount" };
+
+				var expressions = builder.generateExpressionsForProperty(
+					  objectName         = objectName
+					, propertyDefinition = propertyDef
+				);
+
+				var exprIds = arrayMap( expressions, function( expr ) {
+   					return expr.id;
+				} );
+
+				expect( exprIds.find( "presideobject_onetomanycount_#objectName#.#propertyDef.name#" ) > 0 ).toBe( false );
+				expect( exprIds.find( "presideobject_onetomanymatch_#objectName#.#propertyDef.name#" ) > 0 ).toBe( false );
+
+			} );
 		} );
 	}
 
@@ -248,6 +324,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		) );
 
 		builder.$( "$getPresideObjectService", mockPresideObjectService );
+		builder.$( "_getBooleanVariety", "hasDoesNotHave" );
 
 		return builder;
 	}
