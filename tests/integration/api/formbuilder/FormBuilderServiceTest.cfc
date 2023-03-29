@@ -941,7 +941,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "renderResponsesForSaving", formSubmissionData );
 				service.$( "getForm" ).$args( id = formId ).$results( formConfiguration );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
-				service.$( "getSubmission" ).$args( newSubmissionId ).$results( savedSubmission );
+				service.$( "getSubmission" ).$args( submissionId = newSubmissionId ).$results( savedSubmission );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
 					  formItems      = formItems
 					, submissionData = formSubmissionData
@@ -1207,6 +1207,7 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockColdbox                      = CreateStub();
 		variables.mockSpreadsheetLib               = CreateStub();
 		variables.justAStub                        = CreateStub();
+		variables.helpers                          = CreateStub();
 		variables.mockActionsService               = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderActionsService" );
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
@@ -1241,6 +1242,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getPresideObject" ).$args( "formbuilder_formsubmission" ).$results( mockFormSubmissionDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_question" ).$results( mockQuestionDao );
 		service.$( "$recordWebsiteUserAction", "" );
+		service.$( "$createNotification", "" );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
 		service.$( "$getRequestContext", justAStub );
@@ -1249,6 +1251,11 @@ component extends="testbox.system.BaseSpec"{
 		justAStub.$( "setValue" );
 
 		mockRecaptchaService.$( "validate", true );
+
+		service.$property( propertyName="$helpers", mock=helpers );
+		helpers.$( method="isTrue", callback=function( val ) {
+			return IsBoolean( arguments.val ?: "" ) && arguments.val;
+		} );
 
 		return service;
 	}
