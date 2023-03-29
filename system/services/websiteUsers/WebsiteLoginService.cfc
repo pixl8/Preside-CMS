@@ -142,6 +142,8 @@ component displayName="Website login service" {
 	public void function logout() autodoc=true {
 		recordLogout();
 
+		$announceInterception( "onLogout" );
+
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
 		_preventSessionFixation();
 
