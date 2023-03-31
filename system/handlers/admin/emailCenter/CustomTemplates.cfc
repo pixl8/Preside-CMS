@@ -459,7 +459,23 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( validationResult.validated() ) {
+			var resaveDraft = isTrue( prc.template._version_has_drafts ?: "" );
+			if ( resaveDraft ) {
+				var draftRecord = emailTemplateService.getTemplate(
+					  id                = id
+					, allowDrafts       = true
+					, fromVersionTable  = true
+					, extraSelectFields = [ "group_concat( attachments.id ) as attachments" ]
+				);
+				for( var key in [ "id", "layout", "_version_has_drafts", "_version_is_draft", "datecreated", "datemodified" ] ) {
+					StructDelete( draftRecord, key );
+				}
+				StructAppend( draftRecord, formData );
+			}
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=( IsTrue( prc.template._version_is_draft ?: false ) ) );
+			if ( resaveDraft ) {
+				emailTemplateService.saveTemplate( id=id, template=draftRecord, isDraft=true );
+			}
 			emailTemplateService.updateScheduledSendFields( templateId=id );
 
 			messagebox.info( translateResource( "cms:emailcenter.customTemplates.settings.saved.confirmation" ) );
