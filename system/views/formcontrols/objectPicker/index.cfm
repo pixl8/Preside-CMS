@@ -143,7 +143,7 @@
 			<cfloop query="records">
 				<cfset labelArgs=queryRowToStruct( records, records.currentRow ) />
 				<cfset labelArgs.labelRenderer=labelRenderer />
-				<cfset label=renderViewlet( event="admin.Labels.render", args=labelArgs ) />
+				<cfset label=EncodeForHtml( renderViewlet( event="admin.Labels.render", args=labelArgs ) ) />
 				<option
 					value="#records.id#"
 					title="#label#"
