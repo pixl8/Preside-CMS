@@ -137,12 +137,21 @@
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>
 			<cfif includePlaceholder and !( IsBoolean( multiple ) && multiple )>
-				<option value="">#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
+				<cfset pleaseselect=EncodeForHTML( translateResource( "cms:option.pleaseselect", "" ) ) />
+				<option value="" title="#pleaseselect#">#pleaseselect#</option>
 			</cfif>
 			<cfloop query="records">
 				<cfset labelArgs=queryRowToStruct( records, records.currentRow ) />
-				<cfset labelArgs.labelRenderer = labelRenderer />
-				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#renderViewlet( event="admin.Labels.render", args=labelArgs )#</option>
+				<cfset labelArgs.labelRenderer=labelRenderer />
+				<cfset label=renderViewlet( event="admin.Labels.render", args=labelArgs ) />
+				<option
+					value="#records.id#"
+					title="#label#"
+					<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif>
+					<cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>
+				>
+					#label#
+				</option>
 			</cfloop>
 		</cfif>
 	</select>
