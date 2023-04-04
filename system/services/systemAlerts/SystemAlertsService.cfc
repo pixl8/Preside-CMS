@@ -38,7 +38,7 @@ component {
 				  event             = "admin.systemAlerts.runCheckInBackgroundThread"
 				, args              = { type=arguments.type, reference=arguments.reference, trigger=arguments.trigger }
 				, runNow            = true
-				, discardOnComplete = false
+				, discardOnComplete = true
 			);
 			return;
 		}
