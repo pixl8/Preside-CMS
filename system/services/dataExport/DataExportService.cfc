@@ -287,12 +287,12 @@ component {
 			}
 		}
 
-		arguments.fieldTitles = templateService.prepareFieldTitles(
+		structAppend( arguments.fieldTitles, templateService.prepareFieldTitles(
 			  templateId     = arguments.exportTemplate
 			, objectName     = arguments.objectName
 			, templateConfig = arguments.templateConfig
 			, selectFields   = cleanedSelectFields
-		);
+		) );
 		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles );
 
 		$announceInterception( "postDataExportPrepareData", arguments );
