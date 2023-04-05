@@ -421,7 +421,7 @@ component extends="testbox.system.BaseSpec" {
 				tm.markTaskAsCompleted( taskKey, true, 36 )
 
 				expect( mockTaskDao.$callLog().updateData.len() ).toBe( 1 );
-				expect( mockTaskDao.$callLog().updateData[1].filter ).toBe( { task_key = taskKey });
+				expect( mockTaskDao.$callLog().updateData[1].filter ).toBe( { task_key = taskKey, is_running=true });
 				expect( mockTaskDao.$callLog().updateData[1].data.is_running ).toBe( false );
 			} );
 
