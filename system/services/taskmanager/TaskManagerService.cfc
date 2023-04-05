@@ -133,10 +133,13 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskIsRunning( required string taskKey ) {
-		transaction {
-			var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
+		var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 
-			if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
+		if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
+			// check again, we could have a timing issue
+			markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true }, useCache=false );
+
+			if ( markedAsRunning ) {
 				var logger = _getLogger( taskKey=arguments.taskKey );
 
 				if ( logger.canError() ) {
@@ -150,9 +153,9 @@ component displayName="Task Manager Service" {
 				);
 				return false;
 			}
-
-			return markedAsRunning;
 		}
+
+		return markedAsRunning;
 	}
 
 	public boolean function taskThreadIsRunning( required string taskKey ) {
