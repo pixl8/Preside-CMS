@@ -4,7 +4,7 @@
  *
  * @labelField name
  * @versioned  false
- *
+ * @useCache   false
  */
 component extends="preside.system.base.SystemPresideObject"  {
 	property name="task_key"   type="string"  dbtype="varchar" maxlength=100 required=true indexes="taskhistory|1,taskkey";
