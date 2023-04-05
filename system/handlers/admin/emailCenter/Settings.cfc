@@ -48,6 +48,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.pageTitle    = translateResource( "cms:emailcenter.settings.page.title"    );
 		prc.pageSubTitle = translateResource( "cms:emailcenter.settings.page.subTitle" );
+
+		event.include( "/js/admin/specific/emailcenter/settings/" );
 	}
 
 	public void function saveGeneralSettingsAction( event, rc, prc ) {
