@@ -133,10 +133,10 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskIsRunning( required string taskKey ) {
-		var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
+		var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true }, useCache=false );
 
 		if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
-			// check again, we could have a timing issue
+			sleep( 1000 );
 			markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true }, useCache=false );
 
 			if ( markedAsRunning ) {
@@ -446,7 +446,7 @@ component displayName="Task Manager Service" {
 		runningTasks.delete( taskRecord.running_thread ?: "", false );
 
 		var updatedRows = _getTaskDao().updateData(
-			  filter = { task_key = arguments.taskKey }
+			  filter = { task_key=arguments.taskKey, is_running=true }
 			, data   = {
 				  is_running           = false
 				, last_ran             = _getOperationDate()
@@ -477,6 +477,7 @@ component displayName="Task Manager Service" {
 			_getTaskHistoryDao().updateData(
 				  id = historyId
 				, data = { complete=true, success=arguments.success, time_taken=arguments.timeTaken }
+				, filter = { complete=false }
 			);
 		}
 	}
