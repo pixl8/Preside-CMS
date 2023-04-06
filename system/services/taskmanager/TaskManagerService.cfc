@@ -133,11 +133,11 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskIsRunning( required string taskKey ) {
-		var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true }, useCache=false );
+		var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 
 		if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
 			sleep( 1000 );
-			markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true }, useCache=false );
+			markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 
 			if ( markedAsRunning ) {
 				var logger = _getLogger( taskKey=arguments.taskKey );
