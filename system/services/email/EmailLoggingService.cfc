@@ -418,7 +418,7 @@ component {
 	}
 
 	/**
-	 * Resends an email. Email is regenerated using the original sendArgs
+	 * Delete expired email content and it's send log
 	 *
 	 */
 	public boolean function deleteExpiredContent( any logger ) {
@@ -435,6 +435,16 @@ component {
 		);
 
 		if ( canInfo ) { logger.info( "Content of [#deleted#] emails deleted." ); }
+
+		var emailSettings = $getPresideCategorySettings( "email" );
+		if ( $helpers.isTrue( emailSettings.remove_view_online_content ?: "" ) && ( val( emailSettings.view_online_content_expiry ?: "" ) > 0 ) ) {
+			var deleted = $getPresideObject( "email_template_view_online_content").deleteData(
+				  filter       = "datecreated <= :datecreated"
+				, filterParams = { datecreated=dateAdd( "d", -val( emailSettings.view_online_content_expiry ), now() ) }
+			);
+
+			if ( canInfo ) { logger.info( "[#deleted#] emails' view online contents deleted." ); }
+		}
 
 		return true;
 	}
