@@ -43,7 +43,7 @@
 			var $firstLink = $( this ).find( 'a.row-link:first' );
 
 			if ( !$firstLink.length ) {
-				$firstLink = $( this ).find( 'a:first' );
+				$firstLink = $( 'a', this ).not( '.formbuilder-response a' ).first();
 			}
 
 			if ( !$firstLink.length ) {
