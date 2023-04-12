@@ -133,10 +133,13 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskIsRunning( required string taskKey ) {
-		transaction {
-			var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
+		var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 
-			if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
+		if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
+			sleep( 1000 );
+			markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
+
+			if ( markedAsRunning ) {
 				var logger = _getLogger( taskKey=arguments.taskKey );
 
 				if ( logger.canError() ) {
@@ -150,9 +153,9 @@ component displayName="Task Manager Service" {
 				);
 				return false;
 			}
-
-			return markedAsRunning;
 		}
+
+		return markedAsRunning;
 	}
 
 	public boolean function taskThreadIsRunning( required string taskKey ) {
@@ -443,7 +446,7 @@ component displayName="Task Manager Service" {
 		runningTasks.delete( taskRecord.running_thread ?: "", false );
 
 		var updatedRows = _getTaskDao().updateData(
-			  filter = { task_key = arguments.taskKey }
+			  filter = { task_key=arguments.taskKey, is_running=true }
 			, data   = {
 				  is_running           = false
 				, last_ran             = _getOperationDate()
@@ -474,6 +477,7 @@ component displayName="Task Manager Service" {
 			_getTaskHistoryDao().updateData(
 				  id = historyId
 				, data = { complete=true, success=arguments.success, time_taken=arguments.timeTaken }
+				, filter = { complete=false }
 			);
 		}
 	}
