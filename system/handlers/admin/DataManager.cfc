@@ -2614,7 +2614,7 @@ component extends="preside.system.base.AdminHandler" {
 			customizationService.runCustomization(
 				  objectName = object
 				, action     = "preQuickAddRecordAction"
-				, args       = {objectName = object,formData: formData}
+				, args       = {objectName = object,formData: formData,validationResult=validationResult}
 			);
 		}
 
