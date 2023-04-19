@@ -3300,12 +3300,12 @@
 			var expected     = [
 				  "`object_1`.`id`"
 				, "`object_1`.`label`"
-				, "`object_1`.`label` as `labelAlias`"
-				, "${labelField} as `labelAlias`"
+				, "`object_1`.`label` as labelAlias"
+				, "${labelField} as labelAlias"
 				, "object_1.label"
-				, "object_1.label as `labelAlias`"
+				, "object_1.label as labelAlias"
 				, "undefined"
-				, "undefined as `undefinedAlias`"
+				, "undefined as undefinedAlias"
 			];
 
 			poService.dbSync();
