@@ -2342,8 +2342,6 @@ component displayName="Preside Object Service" {
 					, dbAdapter    = adapter
 				);
 			}
-
-			fields[i] = _escapeAlias( fields[i], adapter );
 		}
 
 		arguments.selectFields = fields;
@@ -2359,7 +2357,6 @@ component displayName="Preside Object Service" {
 			);
 			arguments.selectFields.append( extraFields, true);
 		}
-
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
@@ -3504,13 +3501,6 @@ component displayName="Preside Object Service" {
 		}
 
 		return true;
-	}
-
-	private string function _escapeAlias(
-		  required string text
-		, required any    dbAdapter
-	) {
-		return REReplaceNoCase( text, '\bas\b\s+(\w+)(?!\s*[`\"\[])', " as #dbAdapter.escapeEntity( "\1" )#" );
 	}
 
 	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter ) {
