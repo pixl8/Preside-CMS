@@ -270,7 +270,9 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		prc.showClicks = IsTrue( prc.template.track_clicks ?: "" );
+		prc.showClicks   = IsTrue( prc.template.track_clicks ?: "" );
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.log.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.log.page.subTitle", data=[ prc.template.name ] );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.stats.breadcrumb.title"  , data=[ prc.template.name ] )
@@ -348,9 +350,9 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _templateActions( event, rc, prc, args={} ) {
-		var template = rc.template ?: "";
+		var template = rc.id ?: ( rc.template ?: "" );
 		if ( isEmptyString( template ) ) {
-			event.notFound();
+			return "";
 		}
 
 		args.contentHasDiff = systemEmailTemplateService.bodyIsDifferentWithDefault( template=template );
