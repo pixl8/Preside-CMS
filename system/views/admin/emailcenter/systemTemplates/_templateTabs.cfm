@@ -4,7 +4,7 @@
 <cfparam name="args.canConfigureLayout" type="boolean" default="false" />
 
 <cfscript>
-	templateId = rc.template ?: "";
+	templateId = rc.id ?: ( rc.template ?: "" );
 	version    = rc.version  ?: "";
 	tabs       = [];
 
