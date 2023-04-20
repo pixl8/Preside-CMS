@@ -3510,7 +3510,7 @@ component displayName="Preside Object Service" {
 		  required string text
 		, required any    dbAdapter
 	) {
-		return REReplaceNoCase( text, '\bas\b\s+(\w+)(?!\s*[`\"\[])', " as #dbAdapter.escapeEntity( "\1" )#" );
+		return REReplaceNoCase( text, '\bas\b\s+(\w+)(?!\s*[`\"\[])', "as #dbAdapter.escapeEntity( "\1" )#" );
 	}
 
 	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter ) {
