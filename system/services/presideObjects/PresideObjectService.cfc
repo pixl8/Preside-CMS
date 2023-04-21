@@ -231,6 +231,7 @@ component displayName="Preside Object Service" {
 
 		args.selectFields   = expandHavingClauses( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
+		_prepareAggregateFormulaFields( args );
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
 			, adapter            = adapter
@@ -2480,6 +2481,10 @@ component displayName="Preside Object Service" {
 				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
 			}
 
+			if ( Left( Trim( formula ), 4 ) == "agg:" ) {
+				formula = formula & "{#Len( prefix ) ? prefix : "-"#}{#propertyName#}";
+			}
+
 			if ( arguments.includeAlias && !alias.len() ) {
 				expanded = formula & " as #dbAdapter.escapeEntity( propertyName )#";
 			} else {
@@ -3250,6 +3255,79 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postPrepareTableJoins", interceptArguments );
 
 		return interceptArguments.tableJoins;
+	}
+
+	private void function _prepareAggregateFormulaFields( required struct selectDataArgs ) {
+		var args           = arguments.selectDataArgs;
+		var selectField    = "";
+		var allowedMethods = [ "count", "sum", "min", "max", "avg" ];
+
+		for( var i=1; i<=ArrayLen( args.selectFields); i++ ) {
+			selectField = args.selectFields[ i ];
+
+			if ( !ReFindNoCase( "^agg:", selectField ) ) {
+				continue;
+			}
+
+			var props            = getObjectProperties( args.objectName );
+			var parts            = ListToArray( ListRest( selectField, ":" ), "{} " );
+			var aggregateMethod  = parts[ 1 ];
+			var suppliedProperty = parts[ 2 ];
+			var prefix           = parts[ 3 ] == "-" ? "" : parts[ 3 ];
+			var propertyName     = parts[ 4 ];
+			var alias            = parts[ 6 ];
+
+			if ( !ArrayFind( allowedMethods, aggregateMethod ) ) {
+				throw( "Aggregate method [ #aggregateMethod# ] is not valid. Method must be one of [ #ArrayToList( allowedMethods, ", " )# ]" );
+			}
+
+			var aggregatedObject        = ListFirst( suppliedProperty, "." );
+			    aggregatedObject        = len( prefix ) ? prefix & "$" & aggregatedObject : aggregatedObject;
+			var aggregatedObjectName    = _resolveObjectNameFromColumnJoinSyntax( args.objectName, aggregatedObject );
+			var aggregatedObjectIdField = listLast( suppliedProperty, "." );
+			var aggregateByProperty     = listFirst( suppliedProperty, "$." );
+
+			var relatedObjectName = "";
+			if ( len( prefix ) ) {
+				var relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( args.objectName, listFirst( prefix, "$" ) );
+				if ( objectExists( relatedObjectName ) ) {
+					props = getObjectProperties( relatedObjectName );
+				}
+			}
+
+			var relationship = props[ aggregateByProperty ].relationship;
+			if ( relationship == "one-to-many" ) {
+				var aggregateByField = props[ aggregateByProperty ].relationshipkey;
+				var aggBySelectField = "#aggregateByProperty#.#aggregateByField#";
+			} else if ( relationship == "many-to-many" ) {
+				var relatedVia         = props[ aggregateByProperty ].relatedVia;
+				var relatedViaSourceFk = props[ aggregateByProperty ].relatedViaSourceFk;
+				var aggBySelectField   = "#relatedVia#.#relatedViaSourceFk#";
+			} else {
+				throw( "Aggregate functions are only permitted on one-to-many or many-to-many relationships" );
+			}
+			if ( len( prefix ) ) {
+				aggBySelectField = prefix & "$" & aggBySelectField;
+			}
+
+			var subQueryAlias = "__agg_#aggregateMethod#__#propertyName#";
+			var subQuery      = selectData(
+				  objectName          = args.objectName
+				, selectFields        = [ "#aggBySelectField# as aggBy", "#aggregateMethod#( #aggregatedObject#.#aggregatedObjectIdField# ) as aggValue" ]
+				, groupBy             = "aggBy"
+				, getSqlAndParamsOnly = true
+			);
+
+			args.selectFields[ i ] = "ifnull( #subQueryAlias#.aggValue, 0 ) as #alias#";
+			ArrayAppend( args.extraJoins, {
+				  subQuery       = subQuery.sql
+				, subQueryAlias  = subQueryAlias
+				, subQueryColumn = "aggBy"
+				, joinToTable    = args.objectName
+				, joinToColumn   = len( prefix ) ? prefix : getIdField( args.objectName )
+				, type           = "left"
+			} );
+		}
 	}
 
 	private struct function _prepareSelectFromVersionTables(
