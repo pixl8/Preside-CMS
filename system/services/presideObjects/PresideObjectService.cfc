@@ -3296,7 +3296,7 @@ component displayName="Preside Object Service" {
 			}
 
 			var relationship = props[ aggregateByProperty ].relationship;
-			if ( relationship == "one-to-many" ) {
+			if ( relationship == "one-to-many" || relationship == "select-data-view" ) {
 				var aggregateByField = props[ aggregateByProperty ].relationshipkey;
 				var aggBySelectField = "#aggregateByProperty#.#aggregateByField#";
 			} else if ( relationship == "many-to-many" ) {
@@ -3304,7 +3304,7 @@ component displayName="Preside Object Service" {
 				var relatedViaSourceFk = props[ aggregateByProperty ].relatedViaSourceFk;
 				var aggBySelectField   = "#relatedVia#.#relatedViaSourceFk#";
 			} else {
-				throw( "Aggregate functions are only permitted on one-to-many or many-to-many relationships" );
+				throw( "Aggregate functions are only permitted on one-to-many, many-to-many and select-data-view relationships" );
 			}
 			if ( len( prefix ) ) {
 				aggBySelectField = prefix & "$" & aggBySelectField;
@@ -3316,7 +3316,11 @@ component displayName="Preside Object Service" {
 				, selectFields        = [ "#aggBySelectField# as aggBy", "#aggregateMethod#( #aggregatedObject#.#aggregatedObjectIdField# ) as aggValue" ]
 				, groupBy             = "aggBy"
 				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
 			);
+
+			args.filterParams = args.filterParams ?: {};
+			StructAppend( args.filterParams, subQuery.params );
 
 			args.selectFields[ i ] = "ifnull( #subQueryAlias#.aggValue, 0 ) as #alias#";
 			ArrayAppend( args.extraJoins, {
