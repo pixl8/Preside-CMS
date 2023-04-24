@@ -2470,6 +2470,8 @@ component displayName="Preside Object Service" {
 		var formula = props[ propertyName ].formula ?: "";
 
 		if ( Len( Trim( formula ) ) ) {
+			formula = _optimiseAggregateFunctions( formula );
+
 			if ( formula.findNoCase( "${prefix}" ) ) {
 				if ( prefix.len() ) {
 					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "${prefix}$\1.", "all" );
@@ -3332,6 +3334,15 @@ component displayName="Preside Object Service" {
 				, type           = "left"
 			} );
 		}
+	}
+
+	private string function _optimiseAggregateFunctions( required string formula ) {
+		var optimised = arguments.formula;
+
+		// Convert count() formula to optimised syntax
+		optimised = ReReplaceNoCase( optimised, "^count\(\s*(distinct\s+)?\$\{prefix\}(.+)\s*\)$", "agg:count{ \2 }" )
+
+		return optimised;
 	}
 
 	private struct function _prepareSelectFromVersionTables(
