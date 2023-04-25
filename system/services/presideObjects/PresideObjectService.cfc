@@ -231,6 +231,7 @@ component displayName="Preside Object Service" {
 
 		args.selectFields   = expandHavingClauses( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
+		_prepareAggregateFormulaFields( args );
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
 			, adapter            = adapter
@@ -2471,6 +2472,8 @@ component displayName="Preside Object Service" {
 		var formula = props[ propertyName ].formula ?: "";
 
 		if ( Len( Trim( formula ) ) ) {
+			formula = _optimiseAggregateFunctions( formula );
+
 			if ( formula.findNoCase( "${prefix}" ) ) {
 				if ( prefix.len() ) {
 					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "${prefix}$\1.", "all" );
@@ -2480,6 +2483,13 @@ component displayName="Preside Object Service" {
 					formula = formula.reReplaceNoCase( "\$\{prefix\}([^\$])" , "#arguments.objectName#.\1", "all" );
 				}
 				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
+			}
+
+			if ( Left( Trim( formula ), 4 ) == "agg:" ) {
+				if ( !includeAlias ) {
+					return Len( alias ) ? alias : dbAdapter.escapeEntity( propertyName );
+				}
+				formula = formula & "{#Len( prefix ) ? prefix : "-"#}{#propertyName#}";
 			}
 
 			if ( arguments.includeAlias && !alias.len() ) {
@@ -3254,6 +3264,80 @@ component displayName="Preside Object Service" {
 		return interceptArguments.tableJoins;
 	}
 
+	private void function _prepareAggregateFormulaFields( required struct selectDataArgs ) {
+		var args           = arguments.selectDataArgs;
+		var selectField    = "";
+		var allowedMethods = [ "count", "sum", "min", "max", "avg" ];
+
+		for( var i=1; i<=ArrayLen( args.selectFields); i++ ) {
+			selectField = args.selectFields[ i ];
+
+			if ( !ReFindNoCase( "^agg:", selectField ) ) {
+				continue;
+			}
+
+			var parts            = ListToArray( ListRest( selectField, ":" ), "{} " );
+			var aggregateMethod  = parts[ 1 ];
+			var suppliedProperty = parts[ 2 ];
+			var prefix           = parts[ 3 ] == "-" ? "" : parts[ 3 ];
+			var propertyName     = parts[ 4 ];
+			var alias            = parts[ 6 ];
+
+			if ( !ArrayFind( allowedMethods, aggregateMethod ) ) {
+				throw( "Aggregate method [ #aggregateMethod# ] is not valid. Method must be one of [ #ArrayToList( allowedMethods, ", " )# ]" );
+			}
+
+			var aggregatedObject    = ListFirst( suppliedProperty, "." );
+			    aggregatedObject    = len( prefix ) ? prefix & "$" & aggregatedObject : aggregatedObject;
+			var aggregatedField     = listLast( suppliedProperty, "." );
+
+			var relatedObjectJoin   = ListDeleteAt( aggregatedObject, ListLen( aggregatedObject, "$" ), "$" );
+			var relatedObjectName   = Len( relatedObjectJoin ) ? _resolveObjectNameFromColumnJoinSyntax( args.objectName, relatedObjectJoin ) : args.objectName;
+			var props               = getObjectProperties( relatedObjectName );
+			var aggregateByProperty = listLast( listFirst( suppliedProperty, "." ), "$" );
+			var relationship        = props[ aggregateByProperty ].relationship;
+
+			if ( !ArrayFind( [ "one-to-many", "many-to-many", "select-data-view" ], relationship ) ) {
+				throw( "Aggregate functions are only permitted on one-to-many, many-to-many and select-data-view relationships" );
+			}
+
+			var joinToTable      = args.objectName;
+			var joinToColumn     = getIdField( args.objectName );
+			var aggBySelectField = "#joinToTable#.#joinToColumn#";
+			var subQuerySuffix   = ListLast( lcase( createUUID() ), "-" );
+			var subQueryAlias    = "__agg_#aggregateMethod#__#propertyName#_#subQuerySuffix#";
+			var subQuery         = selectData(
+				  objectName          = args.objectName
+				, selectFields        = [ "#aggBySelectField# as aggBy", "#aggregateMethod#( #aggregatedObject#.#aggregatedField# ) as aggValue" ]
+				, groupBy             = "aggBy"
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+			);
+
+			args.filterParams = args.filterParams ?: {};
+			StructAppend( args.filterParams, subQuery.params );
+
+			args.selectFields[ i ] = "ifnull( #subQueryAlias#.aggValue, 0 ) as #alias#";
+			ArrayAppend( args.extraJoins, {
+				  subQuery       = subQuery.sql
+				, subQueryAlias  = subQueryAlias
+				, subQueryColumn = "aggBy"
+				, joinToTable    = joinToTable
+				, joinToColumn   = joinToColumn
+				, type           = "left"
+			} );
+		}
+	}
+
+	private string function _optimiseAggregateFunctions( required string formula ) {
+		var optimised = arguments.formula;
+
+		// Convert count() formula to optimised syntax
+		optimised = ReReplaceNoCase( optimised, "^count\(\s*(distinct\s+)?\$\{prefix\}(.+)\s*\)$", "agg:count{ \2 }" )
+
+		return optimised;
+	}
+
 	private struct function _prepareSelectFromVersionTables(
 		  required string  objectName
 		, required string  originalTableName
@@ -3872,7 +3956,7 @@ component displayName="Preside Object Service" {
 
 
 		for( var field in selectFields ) {
-			var isAggregate = field.reFindNoCase( aggregateRegex );
+			var isAggregate = field.reFindNoCase( aggregateRegex ) || field.reFindNoCase( "__agg_.+__.+\.aggValue" );
 			hasAggregateFields = hasAggregateFields || isAggregate;
 
 			if ( !isAggregate ) {
