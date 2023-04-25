@@ -28,12 +28,12 @@ component {
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 
-		_performDbMigrations();
-		_configureVariousServices();
+		_configureVariousServices(); // important for this to happen first
 		_populateDefaultLanguages();
 		_setupCatchAllAdminUserGroup();
 		_startHeartbeats();
 		_setupValidators();
+		_performDbMigrations();
 		systemAlertsService.runStartupChecks();
 
 		announceInterception( "onApplicationStart" );
