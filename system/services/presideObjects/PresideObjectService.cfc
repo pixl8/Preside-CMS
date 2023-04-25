@@ -2484,6 +2484,9 @@ component displayName="Preside Object Service" {
 			}
 
 			if ( Left( Trim( formula ), 4 ) == "agg:" ) {
+				if ( !includeAlias ) {
+					return Len( alias ) ? alias : dbAdapter.escapeEntity( propertyName );
+				}
 				formula = formula & "{#Len( prefix ) ? prefix : "-"#}{#propertyName#}";
 			}
 
@@ -3271,7 +3274,6 @@ component displayName="Preside Object Service" {
 				continue;
 			}
 
-			var props            = getObjectProperties( args.objectName );
 			var parts            = ListToArray( ListRest( selectField, ":" ), "{} " );
 			var aggregateMethod  = parts[ 1 ];
 			var suppliedProperty = parts[ 2 ];
@@ -3283,39 +3285,28 @@ component displayName="Preside Object Service" {
 				throw( "Aggregate method [ #aggregateMethod# ] is not valid. Method must be one of [ #ArrayToList( allowedMethods, ", " )# ]" );
 			}
 
-			var aggregatedObject        = ListFirst( suppliedProperty, "." );
-			    aggregatedObject        = len( prefix ) ? prefix & "$" & aggregatedObject : aggregatedObject;
-			var aggregatedObjectName    = _resolveObjectNameFromColumnJoinSyntax( args.objectName, aggregatedObject );
-			var aggregatedObjectIdField = listLast( suppliedProperty, "." );
-			var aggregateByProperty     = listFirst( suppliedProperty, "$." );
+			var aggregatedObject    = ListFirst( suppliedProperty, "." );
+			    aggregatedObject    = len( prefix ) ? prefix & "$" & aggregatedObject : aggregatedObject;
+			var aggregatedField     = listLast( suppliedProperty, "." );
 
-			var relatedObjectName = "";
-			if ( len( prefix ) ) {
-				var relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( args.objectName, listFirst( prefix, "$" ) );
-				if ( objectExists( relatedObjectName ) ) {
-					props = getObjectProperties( relatedObjectName );
-				}
-			}
+			var relatedObjectJoin   = ListDeleteAt( aggregatedObject, ListLen( aggregatedObject, "$" ), "$" );
+			var relatedObjectName   = Len( relatedObjectJoin ) ? _resolveObjectNameFromColumnJoinSyntax( args.objectName, relatedObjectJoin ) : args.objectName;
+			var props               = getObjectProperties( relatedObjectName );
+			var aggregateByProperty = listLast( listFirst( suppliedProperty, "." ), "$" );
+			var relationship        = props[ aggregateByProperty ].relationship;
 
-			var relationship = props[ aggregateByProperty ].relationship;
-			if ( relationship == "one-to-many" || relationship == "select-data-view" ) {
-				var aggregateByField = props[ aggregateByProperty ].relationshipkey;
-				var aggBySelectField = "#aggregateByProperty#.#aggregateByField#";
-			} else if ( relationship == "many-to-many" ) {
-				var relatedVia         = props[ aggregateByProperty ].relatedVia;
-				var relatedViaSourceFk = props[ aggregateByProperty ].relatedViaSourceFk;
-				var aggBySelectField   = "#relatedVia#.#relatedViaSourceFk#";
-			} else {
+			if ( !ArrayFind( [ "one-to-many", "many-to-many", "select-data-view" ], relationship ) ) {
 				throw( "Aggregate functions are only permitted on one-to-many, many-to-many and select-data-view relationships" );
 			}
-			if ( len( prefix ) ) {
-				aggBySelectField = prefix & "$" & aggBySelectField;
-			}
 
-			var subQueryAlias = "__agg_#aggregateMethod#__#propertyName#";
-			var subQuery      = selectData(
+			var joinToTable      = args.objectName;
+			var joinToColumn     = getIdField( args.objectName );
+			var aggBySelectField = "#joinToTable#.#joinToColumn#";
+			var subQuerySuffix   = ListLast( lcase( createUUID() ), "-" );
+			var subQueryAlias    = "__agg_#aggregateMethod#__#propertyName#_#subQuerySuffix#";
+			var subQuery         = selectData(
 				  objectName          = args.objectName
-				, selectFields        = [ "#aggBySelectField# as aggBy", "#aggregateMethod#( #aggregatedObject#.#aggregatedObjectIdField# ) as aggValue" ]
+				, selectFields        = [ "#aggBySelectField# as aggBy", "#aggregateMethod#( #aggregatedObject#.#aggregatedField# ) as aggValue" ]
 				, groupBy             = "aggBy"
 				, getSqlAndParamsOnly = true
 				, formatSqlParams     = true
@@ -3329,8 +3320,8 @@ component displayName="Preside Object Service" {
 				  subQuery       = subQuery.sql
 				, subQueryAlias  = subQueryAlias
 				, subQueryColumn = "aggBy"
-				, joinToTable    = args.objectName
-				, joinToColumn   = len( prefix ) ? prefix : getIdField( args.objectName )
+				, joinToTable    = joinToTable
+				, joinToColumn   = joinToColumn
 				, type           = "left"
 			} );
 		}
@@ -3956,7 +3947,7 @@ component displayName="Preside Object Service" {
 
 
 		for( var field in selectFields ) {
-			var isAggregate = field.reFindNoCase( aggregateRegex );
+			var isAggregate = field.reFindNoCase( aggregateRegex ) || field.reFindNoCase( "__agg_.+__.+\.aggValue" );
 			hasAggregateFields = hasAggregateFields || isAggregate;
 
 			if ( !isAggregate ) {
