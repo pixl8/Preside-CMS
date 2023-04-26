@@ -27,6 +27,7 @@ component {
 					, extraFilters       = []
 					, exportTemplate     = savedExportDetail.template
 					, templateConfig     = IsJson( savedExportDetail.template_config ) ? DeSerializeJson( savedExportDetail.template_config ) : {}
+					, historyExportId    = historyId
 				};
 
 				try {
@@ -81,7 +82,7 @@ component {
 
 					exportStorageProvider.putObject( object=fileReadBinary( exportedFile ), path=filePath );
 					scheduledExportService.saveFilePathToHistoryExport( filepath=filePath, historyExportId=historyId );
-					scheduledExportService.sendExportedFileToRecipient( historyExportId=historyId );
+					scheduledExportService.sendExportedFileToRecipient( historyExportId=historyId, omitEmptyExports=isTrue( savedExportDetail.omit_empty_exports ?: false ) );
 
 					return true;
 				}

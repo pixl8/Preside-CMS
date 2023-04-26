@@ -15,8 +15,9 @@
 	</tab>
 	<tab id="schedule" sortorder="30">
 		<fieldset id="schedule" sortorder="10">
-			<field binding="saved_export.recipients" sortorder="10" />
-			<field binding="saved_export.schedule"   sortorder="20" defaultValue="disabled" required="false" />
+			<field binding="saved_export.omit_empty_exports" sortorder="10" />
+			<field binding="saved_export.recipients"         sortorder="20" />
+			<field binding="saved_export.schedule"           sortorder="30" defaultValue="disabled" required="false" />
 		</fieldset>
 	</tab>
 </form>

@@ -1,5 +1,5 @@
 component {
-	private struct function prepareParameters( required string filepath, string savedExportName="" ) {
+	private struct function prepareParameters( required string filepath, string savedExportName="", numeric numberOfRecords=0 ) {
 		var downloadLink = event.buildLink(
 			  fileStorageProvider = "ScheduledExportStorageProvider"
 			, fileStoragePath     = "/#arguments.filepath#"
@@ -9,6 +9,7 @@ component {
 			  export_download_link = downloadLink
 			, export_filename      = arguments.filepath
 			, saved_export_name    = arguments.savedExportName
+			, number_of_records    = arguments.numberOfRecords
 		};
 	}
 
@@ -17,6 +18,7 @@ component {
 			  export_download_link = event.getBaseUrl() & "/dummy/exportedFile.csv"
 			, export_filename      = "Active contact export"
 			, saved_export_name    = "Contact Export"
+			, number_of_records    = 42
 		};
 	}
 
