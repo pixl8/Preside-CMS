@@ -240,7 +240,7 @@ component displayName="Preside Object Service" {
 
 		args.adapter     = adapter;
 		args.objMeta     = objMeta;
-		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter );
+		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter, args.filterParams, args.extraJoins );
 		args.groupBy     = _autoPrefixBareProperty( args.objectName, args.groupBy, args.adapter );
 		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
 			args.groupBy = _autoCalculateGroupBy( args.selectFields );
@@ -2484,9 +2484,6 @@ component displayName="Preside Object Service" {
 			}
 
 			if ( Left( Trim( formula ), 4 ) == "agg:" ) {
-				if ( !includeAlias ) {
-					return Len( alias ) ? alias : dbAdapter.escapeEntity( propertyName );
-				}
 				formula = formula & "{#Len( prefix ) ? prefix : "-"#}{#propertyName#}";
 			}
 
@@ -3331,7 +3328,7 @@ component displayName="Preside Object Service" {
 		var optimised = arguments.formula;
 
 		// Convert count() formula to optimised syntax
-		optimised = ReReplaceNoCase( optimised, "^count\(\s*(distinct\s+)?\$\{prefix\}(.+)\s*\)$", "agg:count{ \2 }" )
+		optimised = ReReplaceNoCase( optimised, "^count\(\s*(distinct\s+)?\$\{prefix\}(.+)\s*\)$", "agg:count{ \2 }" );
 
 		return optimised;
 	}
@@ -3587,19 +3584,36 @@ component displayName="Preside Object Service" {
 		return true;
 	}
 
-	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter ) {
-		var items   = arguments.orderBy.listToArray();
-		var rebuilt = [];
+	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins ) {
+		var items         = arguments.orderBy.listToArray();
+		var rebuilt       = [];
+		var aliased       = "";
+		var propertyName  = "";
+		var direction     = "";
+		var aggregateArgs = {};
 
 		for( var item in items ) {
-			var propertyName = expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
-			var direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
-			var aliased      = _autoPrefixBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
+			propertyName = expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
+			direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
 
-			if ( propertyName != aliased ) {
-				item = aliased & direction;
+			if ( left( propertyName, 4 ) == "agg:" ) {
+				aggregateArgs = {
+					  selectFields = [ "#propertyName# as _placeholder" ]
+					, objectName   = arguments.objectName
+					, filterParams = arguments.filterParams
+					, extraJoins   = arguments.extraJoins
+				};
+				_prepareAggregateFormulaFields( aggregateArgs );
+
+				propertyName = ReReplaceNoCase( aggregateArgs.selectFields[ 1 ], " as _placeholder$", "" );
+				item         = propertyName & direction;
 			} else {
-				item = propertyName & direction;
+				aliased = _autoPrefixBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
+				if ( propertyName != aliased ) {
+					item = aliased & direction;
+				} else {
+					item = propertyName & direction;
+				}
 			}
 
 			rebuilt.append( Trim( item ) );
