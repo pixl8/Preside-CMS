@@ -23,6 +23,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="recipients"   relationship="many-to-many" relatedto="security_user";
 	property name="schedule"                                                          required="true" control="cronPicker" autofilter=false;
 
+	property name="omit_empty_exports"   type="boolean" dbtype="boolean"               default=false;
 	property name="last_ran"             type="date"    dbtype="datetime"                            control="none";
 	property name="next_run"             type="date"    dbtype="datetime"                            control="none";
 	property name="is_running"           type="boolean" dbtype="boolean"               default=false control="none";
