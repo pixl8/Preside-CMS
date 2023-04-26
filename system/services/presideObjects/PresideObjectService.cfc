@@ -3609,11 +3609,7 @@ component displayName="Preside Object Service" {
 				item         = propertyName & direction;
 			} else {
 				aliased = _autoPrefixBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
-				if ( propertyName != aliased ) {
-					item = aliased & direction;
-				} else {
-					item = propertyName & direction;
-				}
+				item    = aliased & direction;
 			}
 
 			rebuilt.append( Trim( item ) );
