@@ -9,6 +9,9 @@
 		max-width   : 40em;
 		margin      : 0 auto;
 	}
+	a {
+		color : #ef4036;
+	}
 	h1 {
 		text-align : center;
 		margin-bottom : 2em;
@@ -27,7 +30,9 @@
 </style>
 
 <html>
-
+<head>
+	<title>Preside Test Suite</title>
+</head>
 <body>
 
 	<h1>
