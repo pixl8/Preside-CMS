@@ -2913,7 +2913,7 @@ component displayName="Preside Object Service" {
 			addMatches( field );
 		}
 		for( field in ListToArray( arguments.orderBy ) ){
-			addMatches( ListFirst( field, " " ) );
+			addMatches( field );
 		}
 		if ( isSimpleValue( filter ) ) {
 			addMatches( filter );
