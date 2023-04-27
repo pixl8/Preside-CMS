@@ -17,7 +17,7 @@
 		margin-bottom : 2em;
 	}
 	h1 img {
-		margin-bottom : .5em;
+		margin : 2em 0;
 	}
 	div {
 		border  : 1px solid #999;
