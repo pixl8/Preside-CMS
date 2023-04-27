@@ -8,6 +8,8 @@ component extends="testbox.system.BaseSpec" {
 
 				expect( firstNonEmptyString() ).toBe( "" );
 				expect( firstNonEmptyString( "", "" ) ).toBe( "" );
+				expect( firstNonEmptyString( "", "   ", "one", "two" ) ).toBe( "one" );
+				expect( firstNonEmptyString( "one", "", "two" ) ).toBe( "one" );
 				expect( firstNonEmptyString( "", "one", "two" ) ).toBe( "one" );
 				expect( firstNonEmptyString( "", [ "one" ], "two" ) ).toBe( "two" );
 				expect( firstNonEmptyString( "", [ "one" ], {a="two"} ) ).toBe( "" );
