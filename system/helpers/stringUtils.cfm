@@ -63,3 +63,16 @@
 	<cfargument name="stringValue" type="string" required="true" />
 	<cfreturn !Len( Trim( arguments.stringValue ) ) />
 </cffunction>
+
+<cffunction name="firstNonEmptyString" access="public" returntype="string" output="false">
+	<cfscript>
+		var value = "";
+		for( var i=1 ; i<=arrayLen( arguments ); i++ ){
+			value = arguments[ i ];
+			if ( isSimpleValue( value ) && Len( Trim( value ) ) ) {
+				return value;
+			}
+		}
+		return "";
+	</cfscript>
+</cffunction>
