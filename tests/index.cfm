@@ -1,3 +1,8 @@
+<cfscript>
+	dirs = DirectoryList( path="integration/api", listinfo="name" );
+	ArraySort( dirs, "text" );
+</cfscript>
+
 <h1>Welcome to Preside test suite</h1>
 
 <h3>
@@ -16,3 +21,19 @@
 		<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=integration.api.sitetree.SiteServiceTest">SiteServiceTest</a></li>
 	</ul>
 </p>
+
+<h3>Run tests from chosen directory:</h3>
+
+<form action="runtests.cfm" method="get">
+	<cfoutput>
+		<p>
+			<select name="directory">
+				<option value="">Choose a directory...</option>
+				<cfloop array="#dirs#" index="dir">
+				<option value="#dir#">#dir#</option>
+				</cfloop>
+			</select>
+			<input type="submit" value="Run tests">
+		</p>
+	</cfoutput>
+</form>

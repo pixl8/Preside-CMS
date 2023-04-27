@@ -1,9 +1,10 @@
 <cfscript>
-	reporter = url.reporter ?: "simple";
-	scope    = url.scope    ?: "full";
-	testbox = new testbox.system.TestBox( options={}, reporter=reporter, directory={
+	reporter  = url.reporter  ?: "simple";
+	scope     = url.scope     ?: "full";
+	directory = url.directory ?: "";
+	testbox   = new testbox.system.TestBox( options={}, reporter=reporter, directory={
 		  recurse  = true
-		, mapping  = "integration"
+		, mapping  = Len( directory ) ? "integration.api.#directory#" : "integration"
 		, filter   = function( required path ){
 			if ( scope=="quick" ) {
 				excludes = [
