@@ -68,7 +68,7 @@
 	<cfscript>
 		var value = "";
 		for( var i=1 ; i<=arrayLen( arguments ); i++ ){
-			value = arguments[ i ];
+			value = arguments[ i ] ?: "";
 			if ( isSimpleValue( value ) && Len( Trim( value ) ) ) {
 				return value;
 			}
