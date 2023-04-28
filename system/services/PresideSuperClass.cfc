@@ -29,6 +29,7 @@ component displayName="Preside Super Class" {
 	 * @i18n.inject                       delayedInjector:i18n
 	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
 	 * @healthcheckService.inject         delayedInjector:healthcheckService
+	 * @sqlRunner.inject                  delayedInjector:sqlRunner
 	 * @presideHelperClass.inject         presideHelperClass
 	 *
 	 */
@@ -54,6 +55,7 @@ component displayName="Preside Super Class" {
 		, required any i18n
 		, required any htmlHelper
 		, required any healthcheckService
+		, required any sqlRunner
 		, required any presideHelperClass
 	) {
 		$presideObjectService       = arguments.presideObjectService;
@@ -77,13 +79,14 @@ component displayName="Preside Super Class" {
 		$i18n                       = arguments.i18n;
 		$htmlHelper                 = arguments.htmlHelper;
 		$healthcheckService         = arguments.healthcheckService;
+		$sqlRunner                  = arguments.sqlRunner;
 
 		this.$helpers = arguments.presideHelperClass;
 
 		return this;
 	}
 
-// PRESIDE OBJECTS
+// PRESIDE OBJECTS & DB THINGS
 	/**
 	 * Returns an instance of the [[api-presideobjectservice]]. For example:
      * \n
@@ -114,6 +117,14 @@ component displayName="Preside Super Class" {
 	 */
 	public any function $getPresideObject() {
 		return $presideObjectService.getObject( argumentCollection=arguments );
+	}
+
+	public string function $obfuscateSqlForPreside() {
+		return $sqlRunner.obfuscateSqlForPreside( argumentCollection=arguments );
+	}
+
+	public string function $deObfuscateSql() {
+		return $sqlRunner.deObfuscateSql( argumentCollection=arguments );
 	}
 
 // SYSTEM CONFIG SERVICE
