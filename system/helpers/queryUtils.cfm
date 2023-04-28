@@ -56,7 +56,9 @@
 </cffunction>
 
 <cffunction name="obfuscateSqlForPreside" access="public" returntype="any" output="false">
-	<cfargument name="sql" type="any" required="true" default="" />
+	<cfreturn getSingleton( "sqlRunner" ).obfuscateSqlForPreside( argumentCollection=arguments ) />
+</cffunction>
 
-	<cfreturn "{{base64:#toBase64( arguments.sql )#}}" />
+<cffunction name="deObfuscateSql" access="public" returntype="any" output="false">
+	<cfreturn getSingleton( "sqlRunner" ).deObfuscateSql( argumentCollection=arguments ) />
 </cffunction>

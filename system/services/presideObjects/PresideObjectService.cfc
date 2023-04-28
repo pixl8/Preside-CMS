@@ -2968,7 +2968,7 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _removeDynamicElementsFromForeignObjectsCacheKey( required string cacheKey ) {
-		var staticCacheKey = arguments.cacheKey;
+		var staticCacheKey = _getSqlRunner().deObfuscateSql( arguments.cacheKey );
 
 		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{32}", "", "all" );
 		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}", "", "all" );
