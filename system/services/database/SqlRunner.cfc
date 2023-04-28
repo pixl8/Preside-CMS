@@ -21,7 +21,7 @@ component singleton=true {
 		var params = {};
 		var options = { datasource=arguments.dsn, name="result" };
 
-		arguments.sql = _deObfuscate( arguments.sql );
+		arguments.sql = deObfuscateSql( arguments.sql );
 
 		_getLogger().debug( arguments.sql );
 
@@ -76,6 +76,25 @@ component singleton=true {
 		}
 	}
 
+	public string function obfuscateSqlForPreside( required string sql ) {
+		return "{{base64:#toBase64( arguments.sql )#}}";
+	}
+
+	public string function deObfuscateSql( required string sql ) {
+		var matched = {};
+
+		do {
+			matched = _findNextObfuscation( arguments.sql );
+
+			if ( Len( Trim( matched.pattern ?: "" ) ) && Len( Trim( matched.decoded ?: "" ) ) ) {
+				arguments.sql = Replace( arguments.sql, matched.pattern, matched.decoded, "all" );
+			}
+
+		} while ( StructCount( matched ) );
+
+		return arguments.sql;
+	}
+
 // PRIVATE UTILITY
 	private string function _transformNullClauses( required string sql, required string paramName ) {
 		var hasClause = arguments.sql.reFindNoCase( "\swhere\s" );
@@ -93,20 +112,7 @@ component singleton=true {
 		return preClause & postClause
 	}
 
-	private string function _deObfuscate( required string sql ) {
-		var matched = {};
 
-		do {
-			matched = _findNextObfuscation( arguments.sql );
-
-			if ( Len( Trim( matched.pattern ?: "" ) ) && Len( Trim( matched.decoded ?: "" ) ) ) {
-				arguments.sql = Replace( arguments.sql, matched.pattern, matched.decoded, "all" );
-			}
-
-		} while ( StructCount( matched ) );
-
-		return arguments.sql;
-	}
 
 	private struct function _findNextObfuscation( required string sql ) {
 		var obfsPattern = "{{base64:([A-Za-z0-9\+\/=]+)}}";
