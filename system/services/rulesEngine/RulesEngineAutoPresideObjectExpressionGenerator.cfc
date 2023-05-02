@@ -250,7 +250,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_stringformulamatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_formulamatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.prepareFilters"
@@ -364,7 +364,7 @@ component {
 		var isDate      = dbType=="date";
 
 		expression.append( {
-			  id                = "presideobject_dateformulainrange_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_formulainrange_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _time={ fieldtype="timePeriod", type="alltime", required=false, default="", isDate=isDate } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.DateFormulaPropertyInRange.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.DateFormulaPropertyInRange.prepareFilters"
@@ -394,7 +394,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_numberformulacompares_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_formulacompares_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldtype="number", required=false, default=0 } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.NumericFormulaPropertyCompares.prepareFilters"
