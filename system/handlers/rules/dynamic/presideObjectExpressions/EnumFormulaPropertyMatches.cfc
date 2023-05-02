@@ -26,10 +26,9 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          boolean _is          = true
 		,          string  enumValue    = ""
 	){
-		var paramName           = "enumFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var formulaPropertyName = "#arguments.objectName#.#propertyName#";
-		var filterSql           = "#formulaPropertyName# ${operator} (:#paramName#)";
-		var params              = { "#paramName#" = { value=arguments.enumValue, type="cf_sql_varchar", list=true } };
+		var paramName = "enumFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
+		var filterSql = "#arguments.propertyName# ${operator} (:#paramName#)";
+		var params    = { "#paramName#"={ value=arguments.enumValue, type="cf_sql_varchar", list=true } };
 
 		if ( _is ) {
 			filterSql = filterSql.replace( "${operator}", "in" );
@@ -37,7 +36,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			filterSql = filterSql.replace( "${operator}", "not in" );
 		}
 
-		return [ { filterParams=params, having=filterSql, propertyName=formulaPropertyName } ];
+		return [ { filterParams=params, having=filterSql, propertyName="#arguments.objectName#.#arguments.propertyName#" } ];
 	}
 
 	private string function getLabel(
