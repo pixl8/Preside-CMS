@@ -2342,6 +2342,8 @@ component displayName="Preside Object Service" {
 					, dbAdapter    = adapter
 				);
 			}
+
+			fields[i] = _escapeAlias( fields[i], adapter );
 		}
 
 		arguments.selectFields = fields;
@@ -2968,7 +2970,7 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _removeDynamicElementsFromForeignObjectsCacheKey( required string cacheKey ) {
-		var staticCacheKey = arguments.cacheKey;
+		var staticCacheKey = _getSqlRunner().deObfuscateSql( arguments.cacheKey );
 
 		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{32}", "", "all" );
 		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}", "", "all" );
@@ -3501,6 +3503,13 @@ component displayName="Preside Object Service" {
 		}
 
 		return true;
+	}
+
+	private string function _escapeAlias(
+		  required string text
+		, required any    dbAdapter
+	) {
+		return REReplaceNoCase( text, '\bas\b\s+(\w+)(?!\s*[`\"\[])', "as #dbAdapter.escapeEntity( "\1" )#" );
 	}
 
 	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter ) {
