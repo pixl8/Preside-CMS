@@ -1,6 +1,6 @@
 /**
  * Dynamic expression handler for checking whether or not a preside object
- * enum property's value matches the supplied enum option
+ * enum formula property's value matches the supplied enum option
  *
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
@@ -26,9 +26,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          boolean _is          = true
 		,          string  enumValue    = ""
 	){
-		var paramName = "enumPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql = "#arguments.objectName#.#propertyName# ${operator} (:#paramName#)";
-		var params    = { "#paramName#" = { value=arguments.enumValue, type="cf_sql_varchar", list=true } };
+		var paramName           = "enumFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
+		var formulaPropertyName = "#arguments.objectName#.#propertyName#";
+		var filterSql           = "#formulaPropertyName# ${operator} (:#paramName#)";
+		var params              = { "#paramName#" = { value=arguments.enumValue, type="cf_sql_varchar", list=true } };
 
 		if ( _is ) {
 			filterSql = filterSql.replace( "${operator}", "in" );
@@ -36,7 +37,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			filterSql = filterSql.replace( "${operator}", "not in" );
 		}
 
-		return [ { filter=filterSql, filterParams=params } ];
+		return [ { filterParams=params, having=filterSql, propertyName=formulaPropertyName } ];
 	}
 
 	private string function getLabel(
@@ -49,10 +50,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-			return translateResource( uri="rules.dynamicExpressions:related.enumPropertyMatches.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.enumFormulaPropertyMatches.label", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:enumPropertyMatches.label", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:enumFormulaPropertyMatches.label", data=[ propNameTranslated ] );
 	}
 
 	private string function getText(
@@ -65,10 +66,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		if ( Len( Trim( parentPropertyName ) ) ) {
 			var parentPropNameTranslated = super._getExpressionPrefix( argumentCollection=arguments );
-			return translateResource( uri="rules.dynamicExpressions:related.enumPropertyMatches.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+			return translateResource( uri="rules.dynamicExpressions:related.enumFormulaPropertyMatches.text", data=[ propNameTranslated, parentPropNameTranslated ] );
 		}
 
-		return translateResource( uri="rules.dynamicExpressions:enumPropertyMatches.text", data=[ propNameTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:enumFormulaPropertyMatches.text", data=[ propNameTranslated ] );
 	}
 
 }
