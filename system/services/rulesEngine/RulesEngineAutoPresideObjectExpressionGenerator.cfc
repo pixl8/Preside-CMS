@@ -178,8 +178,14 @@ component {
 			break;
 		}
 
-		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) && !arrayContainsNoCase( excludedKeys, "EnumPropertyMatches" ) ) {
-			arrayAppend( expressions, _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
+		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
+			if ( isFormula ) {
+				if ( !arrayContainsNoCase( excludedKeys, "EnumFormulaPropertyMatches" ) ) {
+					arrayAppend( expressions, _createEnumFormulaMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
+				}
+			} else if ( !arrayContainsNoCase( excludedKeys, "EnumPropertyMatches" ) ) {
+				arrayAppend( expressions, _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
+			}
 		}
 
 
@@ -265,6 +271,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createEnumFormulaMatchesExpression( required string objectName, required string propertyName, required string enum, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_enumFormulaMatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true }, enumValue={ fieldType="enum", enum=arguments.enum, required=false, default="", defaultLabel="rules.dynamicExpressions:enumFormulaPropertyMatches.enumValue.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.getText"
 		} );
 
 		return expression;
