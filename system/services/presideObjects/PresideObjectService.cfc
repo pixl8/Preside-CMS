@@ -3866,9 +3866,9 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _autoCalculateGroupBy( required array selectFields, required string objectName, required any adapter ) {
-		var groupBy                    = [];
-		var hasAggregateFields         = false;
-		var aggregateRegex             = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
+		var groupBy            = [];
+		var hasAggregateFields = false;
+		var aggregateRegex     = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
 
 		for( var field in selectFields ) {
 			var isAggregate = ReFindNoCase( aggregateRegex, field );
