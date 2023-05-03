@@ -2019,6 +2019,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean distinct        = true
 		,          boolean forceDistinct   = false
 		,          boolean includeActions  = true
+		,          boolean forceFullCount  = false
 		,          array   extraFilters    = []
 		,          array   searchFields
 

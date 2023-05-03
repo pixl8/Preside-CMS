@@ -411,10 +411,12 @@ component {
 		,          string  treeViewParent = ""
 		,          boolean distinct       = false
 		,          boolean forceDistinct  = false
+		,          boolean forceFullCount = false
 	) {
 
 		var result = { totalRecords = 0, records = "" };
 		var args   = Duplicate( arguments );
+		var idField = _getPresideObjectService().getIdField( arguments.objectName );
 
 		args.selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled );
 		args.orderBy            = _prepareOrderByForObject( arguments.objectName, arguments.orderBy );
@@ -467,7 +469,7 @@ component {
 				, subQueryAlias  = "childRecords"
 				, subQueryColumn = parentField
 				, joinToTable    = arguments.objectName
-				, joinToColumn   = _getPresideObjectService().getIdField( arguments.objectName )
+				, joinToColumn   = idField
 			} );
 			args.extraFilters.append( { filter={ "#parentField#"=arguments.treeViewParent } } );
 			args.selectFields.append( "Count( childRecords.#parentField# ) as child_count" );
@@ -492,7 +494,16 @@ component {
 		} else if ( dbAdapter.supportsCountOverWindowFunction() ) {
 			result.totalRecords = result.records.recordCount ? result.records._total_recordcount : 0;
 		} else {
-			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0 );
+			args.maxRows  = 0;
+			args.startRow = 1;
+
+			if ( arguments.forceFullCount ) {
+				result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true );
+			} else {
+				args.selectFields = [ "count( distinct #dbAdapter.escapeEntity( "#arguments.objectName#.#idField#" )# ) as _total_recordcount" ];
+				result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args )._total_recordcount;
+			}
+
 		}
 
 		return result;
