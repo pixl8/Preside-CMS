@@ -1,8 +1,9 @@
 component {
 
 // CONSTRUCTOR
-	public any function init( required query dbInfo ) {
+	public any function init( required query dbInfo, required string dsn ) {
 		_setDbInfo( arguments.dbInfo );
+		_setDsn( arguments.dsn );
 
 		return this;
 	}
@@ -524,5 +525,12 @@ component {
 			_dbInfo = row;
 			return;
 		}
+	}
+
+	private string function _getDsn() {
+	    return _dsn;
+	}
+	private void function _setDsn( required string dsn ) {
+	    _dsn = arguments.dsn;
 	}
 }

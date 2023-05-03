@@ -5,8 +5,9 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init( required query dbInfo ) {
-		_setDbInfo( arguments.dbInfo );
+	public any function init() {
+		super.init( argumentCollection=arguments );
+
 		_setDbVendor();
 
 		return this;
@@ -262,7 +263,13 @@ component extends="BaseAdapter" {
 	}
 
 	public boolean function supportsGroupBySingleField() {
-		return true;
+		if ( !StructKeyExists( variables, "_supportsGroupBySingleField" ) ) {
+			var result = QueryExecute( sql="select @@sql_mode as sqlmode", options={ datasource=_getDsn() } );
+
+			variables._supportsGroupBySingleField = !ListFindNoCase( result.sqlmode, "ONLY_FULL_GROUP_BY" );
+		}
+
+		return variables._supportsGroupBySingleField;
 	}
 
 

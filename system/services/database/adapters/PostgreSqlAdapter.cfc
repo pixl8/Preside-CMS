@@ -4,13 +4,6 @@
  */
 component extends="BaseAdapter" {
 
-// CONSTRUCTOR
-	public any function init( required query dbInfo ) {
-		_setDbInfo( arguments.dbInfo );
-
-		return this;
-	}
-
 // PUBLIC API METHODS
 	public string function escapeEntity( required string entityName ) {
 		var escaped = '"#lcase(arguments.entityName)#"';
