@@ -5,8 +5,9 @@
 component extends="BaseAdapter" {
 
 // CONSTRUCTOR
-	public any function init( required query dbInfo, required boolean useVarcharMaxForText ) {
-		_setDbInfo( arguments.dbInfo );
+	public any function init( required boolean useVarcharMaxForText ) {
+		super.init( argumentCollection=arguments );
+
 		_setUseVarcharMaxForText( arguments.useVarcharMaxForText );
 
 		return this;
