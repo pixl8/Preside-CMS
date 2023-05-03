@@ -28,7 +28,7 @@ component {
 			switch( dbInfo.database_productname ) {
 				case "MySql":
 				case "MariaDB":
-					adapters[ arguments.dsn ] = new MySqlAdapter( dbInfo=dbInfo );
+					adapters[ arguments.dsn ] = new MySqlAdapter( dbInfo=dbInfo, dsn=arguments.dsn );
 				break;
 				case "Microsoft SQL Server": {
 
@@ -40,16 +40,16 @@ component {
 
 					// a lot easier offset/limit pagination since version 2012, therefore we use a custom adapter
 					if ( isNumeric( majorVersion ) && majorVersion >= 11 ) {
-						adapters[ arguments.dsn ] = new MsSql2012Adapter( dbInfo=dbInfo, useVarcharMaxForText=_getMsSqlUseVarcharMaxForText() );
+						adapters[ arguments.dsn ] = new MsSql2012Adapter( dbInfo=dbInfo, useVarcharMaxForText=_getMsSqlUseVarcharMaxForText(), dsn=arguments.dsn );
 					}
 					else {
-						adapters[ arguments.dsn ] = new MsSqlAdapter( dbInfo=dbInfo, useVarcharMaxForText=_getMsSqlUseVarcharMaxForText() );
+						adapters[ arguments.dsn ] = new MsSqlAdapter( dbInfo=dbInfo, useVarcharMaxForText=_getMsSqlUseVarcharMaxForText(), dsn=arguments.dsn );
 					}
 
 					break;
 				}
 				case "PostgreSQL":
-					adapters[ arguments.dsn ] = new PostgreSqlAdapter( dbInfo=dbInfo );
+					adapters[ arguments.dsn ] = new PostgreSqlAdapter( dbInfo=dbInfo, dsn=arguments.dsn );
 				break;
 
 
