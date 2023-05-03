@@ -479,6 +479,10 @@ component {
 		return true;
 	}
 
+	public boolean function supportsGroupBySingleField() {
+		return false;
+	}
+
 	public boolean function autoCreatesFkIndexes(){
 		return false;
 	}

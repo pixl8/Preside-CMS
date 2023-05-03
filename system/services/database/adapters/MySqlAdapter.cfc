@@ -261,6 +261,11 @@ component extends="BaseAdapter" {
 		        and             u.referenced_column_name is not null";
 	}
 
+	public boolean function supportsGroupBySingleField() {
+		return true;
+	}
+
+
 // PRIVATE METHODS
 	private boolean function _isMySql() {
 		return _dbVendor=="mysql";

@@ -242,7 +242,7 @@ component displayName="Preside Object Service" {
 		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter );
 		args.groupBy     = _autoPrefixBareProperty( args.objectName, args.groupBy, args.adapter );
 		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
-			args.groupBy = _autoCalculateGroupBy( args.selectFields );
+			args.groupBy = _autoCalculateGroupBy( args.selectFields, args.objectName, args.adapter );
 		}
 
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
@@ -3865,22 +3865,49 @@ component displayName="Preside Object Service" {
 		return dataExists( argumentCollection=arguments, extraFilters=draftCheckFilters );
 	}
 
-	private string function _autoCalculateGroupBy( required array selectFields ) {
-		var groupBy            = "";
-		var hasAggregateFields = false;
-		var aggregateRegex     = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
-
+	private string function _autoCalculateGroupBy( required array selectFields, required string objectName, required any adapter ) {
+		var groupBy                    = [];
+		var hasAggregateFields         = false;
+		var aggregateRegex             = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
 
 		for( var field in selectFields ) {
-			var isAggregate = field.reFindNoCase( aggregateRegex );
-			hasAggregateFields = hasAggregateFields || isAggregate;
+			var isAggregate = ReFindNoCase( aggregateRegex, field );
 
-			if ( !isAggregate ) {
-				groupBy = groupBy.listAppend( field.reReplace( "^(.*?) as .*$", "\1" ) );
+			if ( isAggregate ) {
+				hasAggregateFields = true;
+			} else {
+				ArrayAppend( groupBy, ReReplaceNoCase( field, "^(.*?) as .*$", "\1" ) );
 			}
 		}
 
-		return hasAggregateFields ? groupBy : "";
+		if ( hasAggregateFields ) {
+			if ( arguments.adapter.supportsGroupBySingleField() ) {
+				var idField = getIdField( arguments.objectName );
+				if ( Len( idField ) ) {
+					var escapedField  = adapter.escapeEntity( idField );
+					var escapedObject = adapter.escapeEntity( arguments.objectName );
+
+					idFieldPatterns = [
+						  idField
+						, "#arguments.objectName#.#idField#"
+						, "#escapedField#"
+						, "#escapedObject#.#escapedField#"
+						, "#arguments.objectName#.#escapedField#"
+						, "#escapedObject#.#idField#"
+					];
+
+					for( var field in groupBy ) {
+						if ( ArrayFindNoCase( idFieldPatterns, field ) ) {
+							return field;
+						}
+					}
+				}
+			}
+
+			return ArrayToList( groupBy, ", " );
+		}
+
+		return "";
 	}
 
 	private boolean function _getUseCacheDefault( required string objectName ) {
