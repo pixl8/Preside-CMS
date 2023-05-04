@@ -231,6 +231,9 @@ component displayName="Preside Object Service" {
 
 		args.selectFields   = expandHavingClauses( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
+		if ( args.recordCountOnly ) {
+			args.selectFields = simplifySelectFieldsForRecordCount( argumentCollection=args );
+		}
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
 			, adapter            = adapter
@@ -2362,6 +2365,28 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
+	}
+
+	public array function simplifySelectFieldsForRecordCount(
+		  required string  objectName
+		, required array   selectFields
+		,          string  groupBy     = ""
+		,          boolean autoGroupBy = false
+	) {
+		if ( Len( Trim( arguments.groupBy ) ) ) {
+			return ListToArray( arguments.groupBy, ", " );
+		}
+
+		if ( arguments.autoGroupBy ) {
+			var aggregateRegex = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
+			for( var i=ArrayLen( arguments.selectFields ); i>0; i-- ) {
+				if ( ReFindNoCase( aggregateRegex, arguments.selectFields[ i ] ) ) {
+					ArrayDeleteAt( arguments.selectFields, i );
+				}
+			}
+		}
+
+		return arguments.selectFields;
 	}
 
 	public array function expandHavingClauses(
