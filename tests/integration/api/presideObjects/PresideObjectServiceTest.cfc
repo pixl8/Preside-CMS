@@ -3296,6 +3296,8 @@
 				, "object_1.label as labelAlias"
 				, "undefined"
 				, "undefined as undefinedAlias"
+				, "cast( object_1.label as char ) as charLabelAlias"
+				, " cast( object_1.label as char ) as charLabelAlias "
 			];
 			var expected     = [
 				  "`object_1`.`id`"
@@ -3306,6 +3308,8 @@
 				, "object_1.label as `labelAlias`"
 				, "undefined"
 				, "undefined as `undefinedAlias`"
+				, "cast( object_1.label as char ) as `charLabelAlias`"
+				, "cast( object_1.label as char ) as `charLabelAlias`"
 			];
 
 			poService.dbSync();
