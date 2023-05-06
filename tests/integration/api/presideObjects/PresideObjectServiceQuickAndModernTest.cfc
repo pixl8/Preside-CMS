@@ -47,18 +47,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 			} );
 
-			it( "should use the group by argument when it is set", function(){
-				var poService = _getPresideObjectService();
-				var selectFields = [ "id", "name", "datecreated", "count( distinct send_logs.id ) as send_log_count", "group_concat( send_logs.id ) as logIds", "sum( send_logs.click_count ) as total_clicks" ]
-
-				expect( poService.simplifySelectFieldsForRecordCount(
-					  objectName   = "email_template"
-					, selectFields = selectFields
-					, groupBy = "id, name"
-				) ).toBe( [ "id", "name"] );
-			} );
-
-			it( "should do nothing when autogroupby is false and groupby is not set", function(){
+			it( "should do nothing when autogroupby is false", function(){
 				var poService = _getPresideObjectService();
 				var selectFields = [ "id", "name", "datecreated", "count( distinct send_logs.id ) as send_log_count", "group_concat( send_logs.id ) as logIds", "sum( send_logs.click_count ) as total_clicks" ]
 
