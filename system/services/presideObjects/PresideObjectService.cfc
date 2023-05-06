@@ -2373,11 +2373,7 @@ component displayName="Preside Object Service" {
 		,          string  groupBy     = ""
 		,          boolean autoGroupBy = false
 	) {
-		if ( Len( Trim( arguments.groupBy ) ) ) {
-			return ListToArray( arguments.groupBy, ", " );
-		}
-
-		if ( arguments.autoGroupBy ) {
+		if ( arguments.autoGroupBy && !Len( arguments.groupBy ) ) {
 			var aggregateRegex = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
 			for( var i=ArrayLen( arguments.selectFields ); i>0; i-- ) {
 				if ( ReFindNoCase( aggregateRegex, arguments.selectFields[ i ] ) ) {
