@@ -28,28 +28,33 @@ component {
 
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		var responses  = ListToArray( ReReplace( ( args.response ?: "" ), '^"(.*?)"$', "\1" ) );
-		var itemConfig = args.itemConfiguration    ?: {};
+		var response = args.response ?: "";
 
-		if ( !IsEmpty( itemConfig.datamanagerObject ?: "" ) ) {
-			var objectName = itemConfig.datamanagerObject;
+		if ( isEmptyString( response ) ) {
+			return "";
+		}
 
-			for( var i=1; i<=responses.len(); i++ ) {
-				responses[ i ] = renderLabel( objectName=objectName, recordId=responses[ i ] );
+		var itemConfig = args.itemConfiguration ?: {};
+		var responses  = [];
+
+		if ( !IsEmptyString( itemConfig.datamanagerObject ?: "" ) ) {
+			responses = ListToArray( ReReplace( ( args.response ?: "" ), '^"(.*?)"$', "\1" ) );
+
+			for ( var i=1; i<=ArrayLen( responses ); i++ ) {
+				responses[ i ] = renderLabel( objectName=itemConfig.datamanagerObject, recordId=responses[ i ] );
 			}
 		} else {
-			var labels = ListToArray( itemConfig.labels ?: "", Chr(10) & Chr(13) );
 			var values = ListToArray( itemConfig.values ?: "", Chr(10) & Chr(13) );
+			var labels = ListToArray( itemConfig.labels ?: "", Chr(10) & Chr(13) );
 
-			for( var i=1; i<=responses.len(); i++ ) {
-				var index = values.findNoCase( responses[i] );
-				if ( index && labels.len() >= index ) {
-					responses[ i ] = labels[ index ];
+			for ( var i=1; i<=ArrayLen( values ); i++ ) {
+				if ( Find( values[ i ], response ) ) {
+					ArrayAppend( responses, labels[ i ] ?: values[ i ] );
 				}
 			}
 		}
 
-		return responses.toList( args.delim ?: "<br>" );
+		return ArrayToList( responses, args.delim ?: "<br>" );
 	}
 
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
@@ -58,7 +63,28 @@ component {
 	}
 
 	private array function renderV2ResponsesForDb( event, rc, prc, args={} ) {
-		return ListToArray( args.response ?: "" );
+		var response = args.response ?: "";
+
+		if ( isEmptyString( response ) ) {
+			return [];
+		}
+
+		var itemConfig = args.configuration ?: {};
+		var responses  = [];
+
+		if ( !IsEmptyString( itemConfig.datamanagerObject ?: "" ) ) {
+			responses = ListToArray( response );
+		} else {
+			var values = ListToArray( itemConfig.values ?: "", Chr(10) & Chr(13) );
+
+			for ( var value in values ) {
+				if ( Find( value, response ) ) {
+					ArrayAppend( responses, value );
+				}
+			}
+		}
+
+		return responses;
 	}
 
 	private string function getQuestionDataType( event, rc, prc, args={} ) {
