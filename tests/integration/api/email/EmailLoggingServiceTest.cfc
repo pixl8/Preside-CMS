@@ -577,6 +577,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		mockEmailTemplateService = createEmptyMock( "preside.system.services.email.EmailTemplateService" );
 		mockLogDao               = CreateStub();
 		mockLogActivityDao       = CreateStub();
+		mockHelpers              = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
 			  recipientTypeService = mockRecipientTypeService
@@ -594,6 +595,11 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 
 		nowish  = Now();
 		service.$( "_getNow", nowish );
+
+		service.$property( propertyName="$helpers", mock=mockHelpers );
+		mockHelpers.$( method="isEmptyString", callback=function( val ){
+			return !Len( Trim( arguments.val ) ) ;
+		} );
 
 		return service;
 	}
