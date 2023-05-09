@@ -1,5 +1,5 @@
 <cffunction name="removeEmptyStructKeys" access="public" returntype="struct" output="false">
-	<cfargument name="inputStruct" type="struct" required="true" />
+	<cfargument name="inputStruct" type="struct" required="true" /><cfsilent>
 
 	<cfscript>
 		var result = Duplicate( inputStruct );
@@ -13,4 +13,4 @@
 
 		return result;
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
