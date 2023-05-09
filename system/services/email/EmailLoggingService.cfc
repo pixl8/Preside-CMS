@@ -122,7 +122,9 @@ component {
 		} );
 
 		if ( updated ) {
-			_getEmailTemplateService().updateLastSentDate( templateId=arguments.templateId, lastSentDate=now );
+			if ( !$helpers.isEmptyString( arguments.templateId ) ) {
+				_getEmailTemplateService().updateLastSentDate( templateId=arguments.templateId, lastSentDate=now );
+			}
 
 			recordActivity(
 				  messageId = arguments.id
