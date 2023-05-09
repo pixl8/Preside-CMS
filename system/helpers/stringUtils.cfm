@@ -6,7 +6,7 @@
 	<cfargument name="string"          type="string"  required="true" />
 	<cfargument name="len"             type="numeric" required="true" />
 	<cfargument name="allowWordCutoff" type="boolean" required="false" default="false" />
-	<cfargument name="addTitleSpan"    type="boolean" required="false" default="false" />
+	<cfargument name="addTitleSpan"    type="boolean" required="false" default="false" /><cfsilent>
 
 	<cfscript>
 		var newString = Trim( ReReplace(string, "<[^>]*>", " ", "ALL") );
@@ -34,11 +34,11 @@
 
 		return newString;
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
 
 <cffunction name="fileSizeFormat" access="public" returntype="string" output="false">
 	<cfargument name="fileSizeInBytes" type="numeric" required="true" />
-	<cfargument name="locale"          type="string"  required="false" default="#getController().getWireBox().getInstance( "i18n" ).getfwLocale()#" />
+	<cfargument name="locale"          type="string"  required="false" default="#getController().getWireBox().getInstance( "i18n" ).getfwLocale()#" /><cfsilent>
 
 	<cfscript>
 		var units   = [ "bytes", "KB", "MB", "GB", "TB", "PB" ];
@@ -57,9 +57,9 @@
 		return LSNumberFormat( size, mask, arguments.locale  ) & " " & units[index];
 	</cfscript>
 
-</cffunction>
+</cfsilent></cffunction>
 
 <cffunction name="isEmptyString" access="public" returntype="boolean" output="false">
-	<cfargument name="stringValue" type="string" required="true" />
+	<cfargument name="stringValue" type="string" required="true" /><cfsilent>
 	<cfreturn !Len( Trim( arguments.stringValue ) ) />
-</cffunction>
+</cfsilent></cffunction>
