@@ -1419,9 +1419,7 @@ component {
 	}
 
 	private boolean function _usePresideSessionManagement() {
-		var applicationSettings = getApplicationSettings();
-
-		return IsBoolean( applicationSettings.presideSessionManagement ?: "" ) && applicationSettings.presideSessionManagement;
+		return IsBoolean( request._sessionSettings.presideSessionManagement ?: "" ) && request._sessionSettings.presideSessionManagement;
 	}
 
 	/**
