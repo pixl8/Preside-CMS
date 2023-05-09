@@ -4135,10 +4135,12 @@ component displayName="Preside Object Service" {
 		var newArgs = {};
 
 		for( var key in arguments.args ) {
-			if ( IsSimpleValue( arguments.args[ key ] ) || IsObject( arguments.args[ key ] ) ) {
-				newArgs[ key ] = arguments.args[ key ];
-			} else {
+			if ( IsNull( arguments.args[ key ] ) ){
+				continue;
+			} else if ( IsStruct( arguments.args[ key ] ) || IsArray( arguments.args[ key ] ) ) {
 				newArgs[ key ] = Duplicate( arguments.args[ key ] );
+			} else {
+				newArgs[ key ] = arguments.args[ key ];
 			}
 		}
 

@@ -655,9 +655,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public boolean function isStatelessRequest() {
-		var appSettings = GetApplicationSettings();
-
-		return IsBoolean( appSettings.statelessRequest ?: "" ) && appSettings.statelessRequest;
+		return IsBoolean( request._sessionSettings.statelessRequest ?: "" ) && request._sessionSettings.statelessRequest;
 	}
 
 	public void function setXFrameOptionsHeader( string value ) {
