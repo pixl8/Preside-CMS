@@ -27,7 +27,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, identifier = identifier
 				} ).$results( dbId );
 
-				service.$( "_getSessionId", sessionId )
+				service.$( "_sessionsAreEnabled", true );
+				service.$( "_getSessionId", sessionId );
 
 				var mockRc = CreateStub();
 				service.$( "$getRequestContext", mockRc );
