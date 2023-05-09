@@ -5,8 +5,8 @@ component hint="Interact with and report on system caches" {
 	property name="presideObjectService" inject="presideObjectService";
 
 	private function index( event, rc, prc ) {
-		var params       = jsonRpc2Plugin.getRequestParams();
-		var validOperations = [ "stats", "resetstats" ];
+		var params          = jsonRpc2Plugin.getRequestParams();
+		var validOperations = [ "stats", "resetstats", "clear" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
@@ -15,6 +15,7 @@ component hint="Interact with and report on system caches" {
 			               & "Valid operations:" & Chr(10) & Chr(10)
 			               & "    [[b;white;]stats]      : Displays summary statistics of the Preside caches." & Chr(10)
 			               & "    [[b;white;]resetstats] : Resets hit, miss and other agreggated statistics to zero." & Chr(10)
+			               & "    [[b;white;]clear]      : Clears the spcified cache or caches" & Chr(10)
 		}
 
 		return runEvent( event="admin.devtools.terminalCommands.cache.#params[1]#", private=true, prePostExempt=true );
@@ -137,6 +138,24 @@ component hint="Interact with and report on system caches" {
 		for( var cacheName in cachesToClear ){
 			if ( cachebox.cacheExists( cacheName ) ) {
 				cachebox.getCache( cacheName ).getStats().clearStatistics();
+			}
+		}
+
+		return runEvent( event="admin.devtools.terminalCommands.cache.stats", private=true, prePostExempt=true );
+	}
+
+	private function clear( event, rc, prc ) {
+		var params        = jsonRpc2Plugin.getRequestParams();
+		var cacheNames    = params.commandLineArgs[ 2 ] ?: "";
+		var cachesToClear = ListToArray( Trim( cacheNames ) );
+
+		if ( !ArrayLen( cachesToClear ) ) {
+			return "[[b;white;]You must specify the name of a cache to clear]" & Chr(10);
+		}
+
+		for( var cacheName in cachesToClear ){
+			if ( cachebox.cacheExists( cacheName ) ) {
+				cachebox.getCache( cacheName ).clearAll();
 			}
 		}
 
