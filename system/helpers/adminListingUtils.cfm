@@ -1,5 +1,5 @@
 <cfscript>
-	public string function prepareSourceStringForBatchOperations( required struct selectDataArgs ) output=false {
+	public string function prepareSourceStringForBatchOperations( required struct selectDataArgs ) output=false { silent {
 		arguments.selectDataArgs.delete( "maxRows" );
 		arguments.selectDataArgs.delete( "startRow" );
 
@@ -10,9 +10,9 @@
 		getSingleton( "sessionStorage" ).setVar( hashForValidation, 1 );
 
 		return obfuscated;
-	}
+	} }
 
-	public struct function deserializeSourceStringForBatchOperations( event, rc, prc, listingUrl ) output=false {
+	public struct function deserializeSourceStringForBatchOperations( event, rc, prc, listingUrl ) output=false { silent {
 		var src = rc.batchSrcArgs ?: "";
 
 		if ( len( trim( src ) ) ) {
@@ -28,5 +28,5 @@
 
 		getSingleton( "messagebox@cbmessagebox" ).error( translateResource( "cms:datamanager.norecordsselected.error" ) );
 		setNextEvent( url=arguments.listingUrl );
-	}
+	} }
 </cfscript>
