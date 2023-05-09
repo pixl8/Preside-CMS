@@ -1,6 +1,6 @@
 <cffunction name="rssDateFormat" access="public" returntype="string" output="false">
 	<cfargument name="date"     type="date"   required="true" />
-	<cfargument name="timezone" type="string" required="false" default="GMT" />
+	<cfargument name="timezone" type="string" required="false" default="GMT" /><cfsilent>
 
 	<cfreturn DateFormat( arguments.date, "ddd, dd MMM YYYY " ) & TimeFormat( arguments.date, "HH:mm:ss " ) & arguments.timezone />
-</cffunction>
+</cfsilent></cffunction>
