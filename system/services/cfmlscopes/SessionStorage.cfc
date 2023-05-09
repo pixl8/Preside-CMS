@@ -64,9 +64,7 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 				_deleteSessionRecord( currentSessionId );
 			}
 		} else {
-			var appSettings = getApplicationSettings();
-
-			if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
+			if ( ( request._sessionSettings.sessionType ?: "cfml" ) != "j2ee" ) {
 				SessionRotate();
 			}
 		}
@@ -146,15 +144,11 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 
 // PRIVATE HELPERS
 	private boolean function _areSessionsEnabled() output=false {
-		var appSettings = getApplicationSettings();
-
-		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
+		return IsBoolean( request._sessionSettings.sessionManagement ?: "" ) && request._sessionSettings.sessionManagement;
 	}
 
 	private boolean function _usePresideSessionManagement() output=false {
-		var appSettings = getApplicationSettings();
-
-		return IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
+		return IsBoolean( request._sessionSettings.presideSessionManagement ?: "" ) && request._sessionSettings.presideSessionManagement;
 	}
 
 	private struct function _createStorage() {
@@ -168,8 +162,7 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 	}
 
 	private numeric function _getSessionTimeoutInSeconds() {
-		var appSettings   = getApplicationSettings();
-		var timeout       = appSettings.sessionTimeout ?: CreateTimeSpan( 0, 0, 20, 0 );
+		var timeout       = request._sessionSettings.sessionTimeout ?: CreateTimeSpan( 0, 0, 20, 0 );
 		var secondsInADay = 86400;
 
 		return Round( Val( timeout ) * secondsInADay );
