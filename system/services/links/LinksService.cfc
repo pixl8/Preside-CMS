@@ -1,3 +1,7 @@
+/**
+ * @singleton
+ *
+ */
 component {
 
 // CONSTRUCTOR
