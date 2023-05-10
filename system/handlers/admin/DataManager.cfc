@@ -486,11 +486,17 @@ component extends="preside.system.base.AdminHandler" {
 				, args       = { objectName=objectName, recordId=recordId }
 			);
 		} else {
+			var eventArguments = { audit=true };
+
+			if ( structKeyExists( arguments, "formName" ) ) {
+				eventArguments.formName = arguments.formName;
+			}
+
 			runEvent(
 				  event          = "admin.DataManager._cloneRecordAction"
 				, prePostExempt  = true
 				, private        = true
-				, eventArguments = { audit=true }
+				, eventArguments = eventArguments
 			);
 		}
 	}
