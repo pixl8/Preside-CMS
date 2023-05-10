@@ -17,22 +17,22 @@ component {
 	}
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		return ArrayToList( _renderResponsesForView( argumentCollection=arguments, useLabel=true ), args.delim ?: "<br>" );
+		return ArrayToList( _renderResponses( argumentCollection=arguments, useLabel=true ), args.delim ?: "<br>" );
 	}
 
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
-		return [ ArrayToList( _renderResponsesForView( argumentCollection=arguments, useLabel=true ), ", " ) ];
+		return [ ArrayToList( _renderResponses( argumentCollection=arguments, useLabel=true ), ", " ) ];
 	}
 
 	private array function renderV2ResponsesForDb( event, rc, prc, args={} ) {
-		return _renderResponsesForView( argumentCollection=arguments );
+		return _renderResponses( argumentCollection=arguments );
 	}
 
 	private string function getQuestionDataType( event, rc, prc, args={} ) {
 		return "shorttext";
 	}
 
-	private array function _renderResponsesForView( event, rc, prc, args={}, boolean useLabel=false ) {
+	private array function _renderResponses( event, rc, prc, args={}, boolean useLabel=false ) {
 		var searchResponse = ",#args.response#,";
 
 		if ( isEmptyString( searchResponse ) ) {
