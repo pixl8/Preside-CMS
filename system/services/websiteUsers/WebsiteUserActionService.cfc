@@ -381,10 +381,9 @@ component displayName="Website user action service" {
 
 // PRIVATE HELPERS
 	private boolean function _sessionsAreEnabled() {
-		var appSettings              = getApplicationSettings( true );
-		var sessionManagement        = IsBoolean( appSettings.sessionManagement        ?: "" ) && appSettings.sessionManagement;
-		var presideSessionManagement = IsBoolean( appSettings.presideSessionManagement ?: "" ) && appSettings.presideSessionManagement;
-		var statelessRequest         = IsBoolean( appSettings.statelessRequest         ?: "" ) && appSettings.statelessRequest;
+		var sessionManagement        = IsBoolean( request._sessionSettings.sessionManagement        ?: "" ) && request._sessionSettings.sessionManagement;
+		var presideSessionManagement = IsBoolean( request._sessionSettings.presideSessionManagement ?: "" ) && request._sessionSettings.presideSessionManagement;
+		var statelessRequest         = IsBoolean( request._sessionSettings.statelessRequest         ?: "" ) && request._sessionSettings.statelessRequest;
 
 		return sessionManagement || ( presideSessionManagement && !statelessRequest );
 	}
