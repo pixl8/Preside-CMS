@@ -1,6 +1,6 @@
 <cffunction name="queryRowToStruct" access="public" returntype="struct" output="false">
 	<cfargument name="qry" type="query"   required="true" />
-	<cfargument name="row" type="numeric" required="false" default="1" />
+	<cfargument name="row" type="numeric" required="false" default="1" /><cfsilent>
 
 	<cfscript>
 		var strct = StructNew();
@@ -13,11 +13,11 @@
 
 		return strct;
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
 
 <cffunction name="queryToArray" access="public" returntype="array" output="false">
 	<cfargument name="qry"     type="query"  required="true" />
-	<cfargument name="columns" type="string" required="false" default="#arguments.qry.columnList#" />
+	<cfargument name="columns" type="string" required="false" default="#arguments.qry.columnList#" /><cfsilent>
 
 	<cfscript>
 		var arr    = ArrayNew(1);
@@ -38,11 +38,11 @@
 
 		return arr;
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
 
 <cffunction name="arrayOfStructsToQuery" access="public" returntype="query" output="false">
 	<cfargument name="columnList"     type="string" required="true" />
-	<cfargument name="arrayOfStructs" type="array"  required="true" />
+	<cfargument name="arrayOfStructs" type="array"  required="true" /><cfsilent>
 
 	<cfscript>
 		var q = QueryNew( arguments.columnList );
@@ -53,12 +53,12 @@
 
 		return q;
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
 
-<cffunction name="obfuscateSqlForPreside" access="public" returntype="any" output="false">
+<cffunction name="obfuscateSqlForPreside" access="public" returntype="any" output="false"><cfsilent>
 	<cfreturn getSingleton( "sqlRunner" ).obfuscateSqlForPreside( argumentCollection=arguments ) />
-</cffunction>
+</cfsilent></cffunction>
 
-<cffunction name="deObfuscateSql" access="public" returntype="any" output="false">
+<cffunction name="deObfuscateSql" access="public" returntype="any" output="false"><cfsilent>
 	<cfreturn getSingleton( "sqlRunner" ).deObfuscateSql( argumentCollection=arguments ) />
-</cffunction>
+</cfsilent></cffunction>
