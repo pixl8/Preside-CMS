@@ -1,4 +1,4 @@
-<cffunction name="getAllowableChildPageTypes" access="public" returntype="any" output="false">
+<cffunction name="getAllowableChildPageTypes" access="public" returntype="any" output="false"><cfsilent>
 	<cfscript>
 		var args     = arguments;
 		var cacheKey = "getAllowableChildPageTypes" & SerializeJson( args );
@@ -13,9 +13,9 @@
 			return "";
 		} );
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
 
-<cffunction name="getManagedChildPageTypes" access="public" returntype="any" output="false">
+<cffunction name="getManagedChildPageTypes" access="public" returntype="any" output="false"><cfsilent>
 	<cfscript>
 		var args     = arguments;
 		var cacheKey = "getManagedChildPageTypes" & SerializeJson( args );
@@ -30,9 +30,9 @@
 			return "";
 		} );
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
 
-<cffunction name="isSystemPageType" access="public" returntype="any" output="false">
+<cffunction name="isSystemPageType" access="public" returntype="any" output="false"><cfsilent>
 	<cfscript>
 		var args     = arguments;
 		var cacheKey = "isSystemPageType" & SerializeJson( args );
@@ -43,11 +43,11 @@
 			return pageTypesService.pageTypeExists( argumentCollection=args ) && pageTypesService.isSystemPageType( argumentCollection=args );
 		} );
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
 
 <cffunction name="quickBuildLink" access="public" returntype="any" output="false">
 	<cfargument name="link" type="string" required="true" />
-	<cfargument name="args" type="struct" required="true" />
+	<cfargument name="args" type="struct" required="true" /><cfsilent>
 	<cfscript>
 		var built = Trim( link );
 		for( var key in args ) {
@@ -55,4 +55,4 @@
 		}
 		return built;
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>

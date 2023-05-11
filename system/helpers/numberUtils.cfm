@@ -1,5 +1,5 @@
 <cffunction name="presideStandardNumberFormat" access="public" returntype="string" output="false">
-	<cfargument name="number" type="numeric" required="true" />
+	<cfargument name="number" type="numeric" required="true" /><cfsilent>
 
 	<cfscript>
 		var decimalPlaces = len( listRest( arguments.number, "." ) );
@@ -7,4 +7,4 @@
 	</cfscript>
 
 	<cfreturn lsNumberFormat( arguments.number, numberFormat ) />
-</cffunction>
+</cfsilent></cffunction>

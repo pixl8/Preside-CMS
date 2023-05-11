@@ -2,7 +2,7 @@
 	<cfargument name="objectName"  type="string" required="true" />
 	<cfargument name="savedFilter" type="string" required="true" />
 	<cfargument name="outerTable"  type="string" required="true" />
-	<cfargument name="outerKey"    type="string" required="true" />
+	<cfargument name="outerKey"    type="string" required="true" /><cfsilent>
 
 	<cfscript>
 		var filter         = {};
@@ -24,10 +24,10 @@
 
 		return filter;
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
 
 <cffunction name="rulesEngineNumericOperatorToSqlOperator" access="public" returntype="any" output="false">
-	<cfargument name="operator" type="string" required="true" />
+	<cfargument name="operator" type="string" required="true" /><cfsilent>
 	<cfscript>
 		switch ( arguments.operator ) {
 			case "neq":
@@ -44,4 +44,4 @@
 
 		return "=";
 	</cfscript>
-</cffunction>
+</cfsilent></cffunction>
