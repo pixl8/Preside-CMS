@@ -33,11 +33,11 @@ component {
 	}
 
 	private array function _renderResponses( event, rc, prc, args={}, boolean useLabel=false ) {
-		var searchResponse = ",#args.response#,";
-
-		if ( isEmptyString( searchResponse ) ) {
+		if ( isEmptyString( args.response ?: "" ) ) {
 			return [];
 		}
+
+		var searchResponse = ",#args.response#,";
 
 		var itemConfig     = args.itemConfiguration ?: ( args.configuration ?: {} );
 		var matchResponses = [];
@@ -51,7 +51,7 @@ component {
 
 				ArrayAppend( matchResponses, renderResponse );
 
-				searchResponse = REReplace( Replace( searchResponse, ",#values[ i ]#,", "" ), "^,?(.*?),?$", ",\1," );
+				searchResponse = Replace( searchResponse, ",#values[ i ]#,", "," );
 			}
 		}
 

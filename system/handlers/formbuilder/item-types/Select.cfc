@@ -74,7 +74,7 @@ component {
 
 					ArrayAppend( matchResponses, renderResponse );
 
-					searchResponse = REReplace( Replace( searchResponse, ",#values[ i ]#,", "" ), "^,?(.*?),?$", ",\1," );
+					searchResponse = Replace( searchResponse, ",#values[ i ]#,", "," );
 				}
 			}
 		}
