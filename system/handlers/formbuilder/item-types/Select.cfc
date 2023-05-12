@@ -18,9 +18,10 @@ component {
 			formControlArgs.type   = "objectPicker";
 			formControlArgs.ajax   = false;
 		} else {
-			formControlArgs.type   = "select";
-			formControlArgs.values = ListToArray( args.values, Chr( 10 ) & Chr( 13 ) );
-			formControlArgs.labels = ListToArray( args.Labels, Chr( 10 ) & Chr( 13 ) );
+			formControlArgs.type         = "select";
+			formControlArgs.values       = ListToArray( args.values, Chr( 10 ) & Chr( 13 ) );
+			formControlArgs.labels       = ListToArray( args.Labels, Chr( 10 ) & Chr( 13 ) );
+			formControlArgs.defaultValue = args.defaultvalue ?: "";
 		}
 
 		return renderFormControl( argumentCollection = formControlArgs );
