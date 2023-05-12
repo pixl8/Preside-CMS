@@ -56,10 +56,22 @@
 
 		return LSNumberFormat( size, mask, arguments.locale  ) & " " & units[index];
 	</cfscript>
-
 </cfsilent></cffunction>
 
 <cffunction name="isEmptyString" access="public" returntype="boolean" output="false">
 	<cfargument name="stringValue" type="string" required="true" /><cfsilent>
 	<cfreturn !Len( Trim( arguments.stringValue ) ) />
+</cfsilent></cffunction>
+
+<cffunction name="firstNonEmptyString" access="public" returntype="string" output="false"><cfsilent>
+	<cfscript>
+		var value = "";
+		for( var i=1 ; i<=arrayLen( arguments ); i++ ){
+			value = arguments[ i ] ?: "";
+			if ( isSimpleValue( value ) && Len( Trim( value ) ) ) {
+				return value;
+			}
+		}
+		return "";
+	</cfscript>
 </cfsilent></cffunction>

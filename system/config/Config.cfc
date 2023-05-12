@@ -1339,6 +1339,7 @@ component {
 			  { id="export_download_link", required=true  }
 			, { id="export_filename"     , required=false }
 			, { id="saved_export_name"   , required=false }
+			, { id="number_of_records"   , required=false }
 		] };
 		templates.websiteWelcome = { feature="websiteUsers", recipientType="websiteUser", parameters=[
 			  { id="reset_password_link", required=true }

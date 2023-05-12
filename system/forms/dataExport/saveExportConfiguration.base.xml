@@ -28,8 +28,9 @@ This form is used as a base for saving data exports.
 	</tab>
 	<tab id="schedule" sortorder="30">
 		<fieldset id="schedule" sortorder="10">
-			<field name="recipients"        control="objectPicker"          required="false" sortorder="50" object="security_user" multiple="true" />
-			<field name="schedule"          control="cronPicker"            required="false" sortorder="60" defaultValue="disabled" />
+			<field name="omit_empty_exports" control="yesNoSwitch"                            sortorder="40" />
+			<field name="recipients"         control="objectPicker"          required="false" sortorder="50" object="security_user" multiple="true" />
+			<field name="schedule"           control="cronPicker"            required="false" sortorder="60" defaultValue="disabled" />
 		</fieldset>
 	</tab>
 </form>

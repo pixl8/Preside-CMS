@@ -12,12 +12,14 @@ component {
 	 * @dataExporterReader.inject              dataExporterReader
 	 * @dataExportTemplateService.inject       dataExportTemplateService
 	 * @dataManagerCustomizationService.inject dataManagerCustomizationService
+	 * @scheduledExportService.inject          scheduledExportService
 	 *
 	 */
-	public any function init( required any dataExporterReader, required any dataExportTemplateService, required any dataManagerCustomizationService ) {
+	public any function init( required any dataExporterReader, required any dataExportTemplateService, required any dataManagerCustomizationService, required any scheduledExportService ) {
 		_setExporters( arguments.dataExporterReader.readExportersFromDirectories() );
 		_setDataExportTemplateService( arguments.dataExportTemplateService );
 		_setDataManagerCustomizationService( arguments.dataManagerCustomizationService );
+		_setScheduledExportService( arguments.scheduledExportService );
 		_setupExporterMap();
 
 		return this;
@@ -51,6 +53,7 @@ component {
 		,          string  orderBy            = ""
 		,          string  mimetype           = ""
 		,          struct  templateConfig     = {}
+		,          string  historyExportId    = ""
 		,          any     logger
 		,          any     progress
 	) {
@@ -60,6 +63,7 @@ component {
 		var canLog               = StructKeyExists( arguments, "logger" );
 		var canInfo              = canLog && logger.canInfo();
 		var canReportProgress    = StructKeyExists( arguments, "progress" );
+		var canTrackRecords      = len( arguments.historyExportId );
 		var templateService      = _getDataExportTemplateService();
 
 		if ( !coldboxController.handlerExists( exporterHandler ) ) {
@@ -132,13 +136,17 @@ component {
 			, selectDataArgs = selectDataArgs
 		);
 
-		if ( canReportProgress || canLog ) {
+		if ( canReportProgress || canLog || canTrackRecords ) {
 			var totalRecordsToExport = presideObjectService.selectData(
 				  argumentCollection = selectDataArgs
 				, recordCountOnly    = true
 				, maxRows            = 0
 			);
 			var totalPagesToExport = Ceiling( totalRecordsToExport / selectDataArgs.maxRows );
+
+			if ( canTrackRecords ) {
+				_getScheduledExportService().saveNumberOfRecordsToHistoryExport( totalRecordsToExport, arguments.historyExportId );
+			}
 		}
 
 		var simpleFormatField = function( required string fieldName, required any value ){
@@ -319,9 +327,9 @@ component {
 
 		if ( canReportProgress ) {
 			progress.setResult( {
-				  exportFileName = arguments.exportFileName
-				, mimetype       = arguments.mimetype
-				, filePath       = result
+				  exportFileName  = arguments.exportFileName
+				, mimetype        = arguments.mimetype
+				, filePath        = result
 			} );
 		}
 
@@ -535,6 +543,13 @@ component {
 	}
 	private void function _setDataManagerCustomizationService( required any dataManagerCustomizationService ) {
 		_dataManagerCustomizationService = arguments.dataManagerCustomizationService;
+	}
+
+	private any function _getScheduledExportService() {
+		return _scheduledExportService;
+	}
+	private void function _setScheduledExportService( required any scheduledExportService ) {
+		_scheduledExportService = arguments.scheduledExportService;
 	}
 
 	private struct function _getExporterMap() {

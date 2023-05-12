@@ -58,20 +58,21 @@ component extends="preside.system.base.adminHandler" {
 
 		var newSavedExportId = "";
 		var data             =  {
-			  label           = formData.label              ?: ""
-			, template        = formData.exportTemplate     ?: ""
-			, description     = formData.description        ?: ""
-			, file_name       = formData.filename           ?: ""
-			, object_name     = formData.object             ?: ""
-			, filter_string   = formData.exportFilterString ?: ""
-			, fields          = formData.fields             ?: ""
-			, exporter        = formData.exporter           ?: ""
-			, order_by        = formData.orderBy            ?: ""
-			, search_query    = formData.searchQuery        ?: ""
-			, created_by      = loginService.getLoggedInUserId()
-			, recipients      = formData.recipients         ?: ""
-			, schedule        = formData.schedule           ?: "disabled"
-			, template_config = SerializeJson( dataExportTemplateService.getSubmittedConfig( templateId=( formData.exportTemplate ?: "" ), objectName=( formData.object ?: "" ) ) )
+			  label              = formData.label              ?: ""
+			, template           = formData.exportTemplate     ?: ""
+			, description        = formData.description        ?: ""
+			, file_name          = formData.filename           ?: ""
+			, object_name        = formData.object             ?: ""
+			, filter_string      = formData.exportFilterString ?: ""
+			, fields             = formData.fields             ?: ""
+			, exporter           = formData.exporter           ?: ""
+			, order_by           = formData.orderBy            ?: ""
+			, search_query       = formData.searchQuery        ?: ""
+			, created_by         = loginService.getLoggedInUserId()
+			, recipients         = formData.recipients         ?: ""
+			, omit_empty_exports = formData.omit_empty_exports ?: 0
+			, schedule           = formData.schedule           ?: "disabled"
+			, template_config    = SerializeJson( dataExportTemplateService.getSubmittedConfig( templateId=( formData.exportTemplate ?: "" ), objectName=( formData.object ?: "" ) ) )
 		};
 
 		if ( isFeatureEnabled( "rulesEngine" ) ) {
