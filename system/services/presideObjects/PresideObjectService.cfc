@@ -773,7 +773,7 @@ component displayName="Preside Object Service" {
 			arguments.oldData = selectData(
 				  argumentCollection = arguments
 				, allowDraftVersions = true
-				, fromVersionTable   = arguments.isDraft
+				, fromVersionTable   = arguments.isDraft || arguments.forceVersionCreation
 			);
 			if ( !arguments.oldData.recordCount && arguments.isDraft ) {
 				arguments.oldData = selectData(
