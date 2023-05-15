@@ -25,7 +25,7 @@ component {
 		params.notification_subject = Trim( notificationService.renderNotification( arguments.topic, arguments.data, "emailSubject" ) );
 
 		if ( !params.notification_subject.len() ) {
-			params.notification_subject = "Preside: You have received a notification from the CMS";
+			params.notification_subject = translateResource( "email.template.notification:default.subject" );
 		}
 
 		return params;
@@ -34,8 +34,11 @@ component {
 	private struct function getPreviewParameters() {
 		return {
 			  admin_link           = event.getBaseUrl() & "/dummy/notification/url/"
-			, notification_body    = { text="This is a dummy notification.", html="<p>This is a dummy notification.</p>" }
-			, notification_subject = "Something happened"
+			, notification_body    = {
+				  text = translateResource( "email.template.notification:preview.text" )
+				, html = translateResource( "email.template.notification:preview.html" )
+			}
+			, notification_subject = translateResource( "email.template.notification:preview.subject" )
 		};
 	}
 
