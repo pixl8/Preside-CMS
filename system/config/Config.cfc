@@ -1311,49 +1311,49 @@ component {
 		var recipientTypes   = {};
 		var serviceProviders = {};
 
-		templates.cmsWelcome = { feature="cms", recipientType="adminUser", parameters=[
+		templates.cmsWelcome = { feature="cms", group="presideadmin", recipientType="adminUser", parameters=[
 			  { id="reset_password_link", required=true }
 			, { id="welcome_message", required=true }
 			, "created_by"
 			, "site_url"
 		] };
-		templates.resetCmsPassword = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetCmsPassword = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetCmsPasswordForTokenExpiry = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetCmsPasswordForTokenExpiry = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.formbuilderSubmissionNotification = { feature="formbuilder", recipientType="anonymous", parameters=[
+		templates.formbuilderSubmissionNotification = { feature="formbuilder", group="presideadmin", recipientType="anonymous", parameters=[
 			  { id="admin_link"          , required=true }
 			, { id="submission_preview"  , required=true }
 			, { id="notification_subject", required=false }
 		] };
-		templates.notification = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+		templates.notification = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="admin_link"          , required=true  }
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
 		] };
-		templates.scheduledExport = { feature="dataExport", recipientType="adminUser", saveContent=false, parameters=[
+		templates.scheduledExport = { feature="dataExport", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="export_download_link", required=true  }
 			, { id="export_filename"     , required=false }
 			, { id="saved_export_name"   , required=false }
 			, { id="number_of_records"   , required=false }
 		] };
-		templates.websiteWelcome = { feature="websiteUsers", recipientType="websiteUser", parameters=[
+		templates.websiteWelcome = { feature="websiteUsers", group="websiteusers", recipientType="websiteUser", parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
+		templates.resetWebsitePassword = { feature="websiteUsers", group="websiteusers", recipientType="websiteUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetWebsitePasswordForTokenExpiry = { feature="websiteUsers", recipientType="websiteUser", saveContent=false, parameters=[
+		templates.resetWebsitePasswordForTokenExpiry = { feature="websiteUsers", group="websiteusers", recipientType="websiteUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetTwoFactorAuthentication = { feature="cms", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetTwoFactorAuthentication = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  "site_url"
 			, "site_admin_url"
 		] };

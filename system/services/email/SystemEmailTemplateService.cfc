@@ -26,23 +26,75 @@ component {
 	 *
 	 */
 	public array function listTemplates() {
-		var templateIds = _getConfiguredTemplates().keyArray();
-		var templates   = [];
+		if ( isArray( __templateList ?: "" ) ) {
+			return __templateList;
+		}
+
+		var allTemplates = _getConfiguredTemplates();
+		var templateIds  = StructKeyArray( allTemplates );
+		var templates    = [];
 
 		for( var templateId in templateIds ) {
-			templates.append({
+			ArrayAppend( templates, {
 				  id          = templateId
+				, group       = allTemplates[ templateId ].group ?: "unclassified"
 				, title       = $translateResource( uri="email.template.#templateId#:title"      , defaultValue=templateId )
 				, description = $translateResource( uri="email.template.#templateId#:description", defaultValue=""         )
 			});
 		}
 
-		templates.sort( function( a, b ){
-			return a.title > b.title ? 1 : -1;
+		ArraySort( templates, function( a, b ){
+			return CompareNoCase( a.title, b.title );
 		} );
 
-
+		__templateList = templates;
 		return templates;
+	}
+
+	public array function listTemplatesGrouped() {
+		if ( isArray( __templateListGrouped ?: "" ) ) {
+			return __templateListGrouped;
+		}
+
+		var allTemplates = listTemplates();
+		var grouped      = {};
+		var groups       = [];
+
+		if ( ArrayLen( allTemplates ) ) {
+			grouped.default = allTemplates;
+		}
+
+		for( var template in allTemplates ) {
+			if ( Len( template.group ?: "" ) ) {
+				grouped[ template.group ] = grouped[ template.group ] ?: [];
+				ArrayAppend( grouped[ template.group ], template );
+			}
+		}
+
+		for( var group in grouped ) {
+			ArrayAppend( groups, {
+				  id        = group
+				, label     = $translateResource( uri="email.templateGroups:#group#.label", defaultValue=group )
+				, templates = grouped[ group ]
+			} );
+		}
+
+		ArraySort( groups, function( a, b ){
+			if ( a.id == "default" ) {
+				return -1;
+			} else if ( b.id == "default" ) {
+				return 1;
+			}
+			if ( a.id == "unclassified" ) {
+				return 1;
+			} else if ( b.id == "unclassified" ) {
+				return -1;
+			}
+			return CompareNoCase( a.label, b.label );
+		} );
+
+		__templateListGrouped = groups;
+		return groups;
 	}
 
 	/**
@@ -67,13 +119,14 @@ component {
 		emailTemplateService.saveTemplate(
 			  id       = arguments.template
 			, template = {
-				  name            = $translateResource( uri="email.template.#arguments.template#:title", defaultValue=arguments.template )
-				, layout          = getDefaultLayout( arguments.template )
-				, subject         = getDefaultSubject( arguments.template )
-				, html_body       = getDefaultHtmlBody( arguments.template )
-				, text_body       = getDefaultTextBody( arguments.template )
-				, recipient_type  = getRecipientType( arguments.template )
-				, is_system_email = true
+				  name                      = $translateResource( uri="email.template.#arguments.template#:title", defaultValue=arguments.template )
+				, layout                    = getDefaultLayout( arguments.template )
+				, subject                   = getDefaultSubject( arguments.template )
+				, html_body                 = getDefaultHtmlBody( arguments.template )
+				, text_body                 = getDefaultTextBody( arguments.template )
+				, recipient_type            = getRecipientType( arguments.template )
+				, is_system_email           = true
+				, body_changed_from_default = false
 			}
 		);
 	}
@@ -343,14 +396,64 @@ component {
 		return templates[ arguments.template ].recipientType ?: "anonymous";
 	}
 
-	public boolean function bodyIsDifferentWithDefault( required string template ) {
+
+	public void function applicationStart() {
+		if ( $isFeatureEnabled( "emailcenter" ) ) {
+			$createTask(
+				  event             = "admin.emailCenter.systemTemplates.checkForTemplatesWithNonDefaultBody"
+				, runIn             = CreateTimespan( 0, 0, 1, 30 )
+				, discardOnComplete = true
+			);
+		}
+	}
+
+	public boolean function bodyIsChangedFromDefault( required string template, string htmlBody, string textBody ) {
 		var templateDetail = emailTemplateService.getTemplate( id=arguments.template );
-		var savedHtml      = templateDetail.html_body ?: "";
-		var savedText      = templateDetail.text_body ?: "";
+		var htmlBody       = arguments.htmlBody ?: templateDetail.html_body;
+		var textBody       = arguments.textBody ?: templateDetail.text_body;
 		var defaultHtml    = getDefaultHtmlBody( template=arguments.template );
 		var defaultText    = getDefaultTextBody( template=arguments.template );
 
-		return ( savedHtml != defaultHtml ) || ( savedText != defaultText );
+		return ( _htmlIsDifferent( htmlBody, defaultHtml ) || _textIsDifferent( textBody, defaultText ) );
+	}
+
+	public array function templatesWithNonDefaultBody() {
+		var templates = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = { is_system_email=true, body_changed_from_default=true }
+		);
+
+		return ValueArray( templates.id );
+	}
+
+	public void function checkForTemplatesWithNonDefaultBody() {
+		var dao       = $getPresideObject( "email_template" );
+		var templates = dao.selectData(
+			  filter       = { is_system_email=true }
+			, selectFields = [ "id", "body_changed_from_default", "html_body", "text_body" ]
+		);
+
+		for( var template in templates ) {
+			var bodyChanged = bodyIsChangedFromDefault( template=template.id, htmlBody=template.html_body, textBody=template.text_body );
+			if ( bodyChanged != template.body_changed_from_default ) {
+				dao.updateData( id=template.id, data={ body_changed_from_default=bodyChanged } );
+			}
+		}
+	}
+
+
+// PRIVATE HELPERS
+	private string function _htmlIsDifferent( required string input1, required string input2 ) {
+		return _htmlForComparison( arguments.input1 ) != _htmlForComparison( arguments.input2 );
+	}
+	private string function _textIsDifferent( required string input1, required string input2 ) {
+		return _textForComparison( arguments.input1 ) != _textForComparison( arguments.input2 );
+	}
+	private string function _htmlForComparison( required string text ) {
+		return encodeForHTML( ReReplace( arguments.text, "\s", "", "all" ), true );
+	}
+	private string function _textForComparison( required string text ) {
+		return ReReplace( arguments.text, "\s", "", "all" );
 	}
 
 // GETTERS AND SETTERS
