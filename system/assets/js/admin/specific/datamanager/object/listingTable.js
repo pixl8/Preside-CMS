@@ -158,6 +158,7 @@
 					aLengthMenu   : paginationOptions,
 					sDom          : sDom,
 					sAjaxSource   : datasourceUrl,
+					sServerMethod : "POST",
 					fnRowCallback : function( row ){
 						$row = $( row );
 						$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
