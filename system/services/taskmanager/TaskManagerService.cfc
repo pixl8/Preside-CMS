@@ -365,7 +365,7 @@ component displayName="Task Manager Service" {
 	}
 
 	public void function cleanupNoLongerRunningTasks() {
-		var localTaskThreads          = _getRunningTasks();
+		var localTaskThreadIds        = structKeyArray( _getRunningTasks() );
 		var runningTasksAccordingToDb = _getTaskDao().selectData(
 			  filter = { is_running=true, running_machine=_getMachineId() }
 		);
@@ -380,7 +380,7 @@ component displayName="Task Manager Service" {
 			}
 		}
 
-		for( var threadId in localTaskThreads ) {
+		for( var threadId in localTaskThreadIds ) {
 			var markedAsRunningInDb = _getTaskDao().dataExists(
 				filter = { running_thread=threadId, is_running=true, running_machine=_getMachineId() }
 			);
