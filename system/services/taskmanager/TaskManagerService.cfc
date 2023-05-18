@@ -365,7 +365,8 @@ component displayName="Task Manager Service" {
 	}
 
 	public void function cleanupNoLongerRunningTasks() {
-		var localTaskThreadIds        = structKeyArray( _getRunningTasks() );
+		var localTaskThreads          = _getRunningTasks();
+		var localTaskThreadIds        = StructKeyArray( localTaskThreads );
 		var runningTasksAccordingToDb = _getTaskDao().selectData(
 			  filter = { is_running=true, running_machine=_getMachineId() }
 		);
