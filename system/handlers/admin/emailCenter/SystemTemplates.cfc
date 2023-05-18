@@ -28,7 +28,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "cms:emailcenter.systemTemplates.page.title"    );
 		prc.pageSubTitle = translateResource( "cms:emailcenter.systemTemplates.page.subTitle" );
 
-		prc.templates = systemEmailTemplateService.listTemplates();
+		prc.groupedTemplates = systemEmailTemplateService.listTemplatesGrouped();
+		prc.resettableBody   = systemEmailTemplateService.templatesWithNonDefaultBody();
 	}
 
 	public void function template( event, rc, prc ) {
@@ -135,7 +136,15 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( validationResult.validated() ) {
-			emailTemplateService.saveTemplate( id=templateId, template=formData, isDraft=( saveAction=="savedraft" ) );
+			var isDraft = ( saveAction=="savedraft" );
+			if ( !isDraft ) {
+				formData.body_changed_from_default = systemEmailTemplateService.bodyIsChangedFromDefault(
+					  template = templateId
+					, htmlBody = formData.html_body ?: NullValue()
+					, textBody = formData.text_body ?: NullValue()
+				);
+			}
+			emailTemplateService.saveTemplate( id=templateId, template=formData, isDraft=isDraft );
 
 			messagebox.info( translateResource( "cms:emailcenter.systemTemplates.template.saved.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#templateId#" ) );
@@ -336,6 +345,10 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#template#" ) );
 	}
 
+	public void function checkForTemplatesWithNonDefaultBody( event, rc, prc ) {
+		systemEmailTemplateService.checkForTemplatesWithNonDefaultBody();
+	}
+
 // VIEWLETS AND HELPERS
 	private string function _templateTabs( event, rc, prc, args={} ) {
 		var template     = prc.template ?: {};
@@ -355,18 +368,9 @@ component extends="preside.system.base.AdminHandler" {
 			return "";
 		}
 
-		args.contentHasDiff = systemEmailTemplateService.bodyIsDifferentWithDefault( template=template );
+		args.contentHasDiff = systemEmailTemplateService.bodyIsChangedFromDefault( template=template );
 
 		return renderView( view="/admin/emailcenter/systemtemplates/_templateActions", args=args );
 	}
 
-	private string function _templateListingItem( event, rc, prc, args={} ) {
-		var templateId = args.id ?: "";
-		if ( isEmptyString( templateId ) ) {
-			return "";
-		}
-
-		args.contentHasDiff = systemEmailTemplateService.bodyIsDifferentWithDefault( template=templateId );
-		return renderView( view="/admin/emailcenter/systemtemplates/_templateListingItem", args=args );
-	}
 }

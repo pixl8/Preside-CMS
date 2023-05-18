@@ -5,12 +5,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "listTemplates()", function(){
 			it( "should return an array of templates based on system email templates config (settings.email.templates) decorated with title and description and sorted by title", function(){
 				var service   = _getService();
-				var templates = _getDefaultConfiguredTemplates().keyArray();
+				var templates = _getDefaultConfiguredTemplates();
 				var expected  = [];
 
-				for( var templateId in templates ) {
+				for( var templateId in StructKeyArray( templates ) ) {
 					var template = {
 						  id          = templateId
+						, group       = templates[ templateId ].group ?: "unclassified"
 						, title       = "Template #templateId#"
 						, description = "This is the template: #templateId#"
 					};
@@ -33,9 +34,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templates = _getDefaultConfiguredTemplates();
 				var expected  = [];
 
-				for( var templateId in templates.keyArray() ) {
+				for( var templateId in StructKeyArray( templates ) ) {
 					var template = {
 						  id          = templateId
+						, group       = templates[ templateId ].group ?: "unclassified"
 						, title       = "Template #templateId#"
 						, description = "This is the template: #templateId#"
 					};
@@ -376,10 +378,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getDefaultConfiguredTemplates() {
 		return {
-			  adminResetPassword   = { feature="cms", parameters=[ { id="resetLink", required=true }, "testParam" ] }
-			, adminWelcome         = { feature="cms", layout="blah" }
-			, websiteResetPassword = { feature="websiteUsers", recipientType="websiteUser" }
-			, websiteWelcome       = { feature="websiteUsers", }
+			  adminResetPassword   = { feature="cms", group="presideadmin", parameters=[ { id="resetLink", required=true }, "testParam" ] }
+			, adminWelcome         = { feature="cms", group="presideadmin", layout="blah" }
+			, websiteResetPassword = { feature="websiteUsers", group="websiteuser", recipientType="websiteUser" }
+			, websiteWelcome       = { feature="websiteUsers", group="websiteuser" }
 		};
 	}
 

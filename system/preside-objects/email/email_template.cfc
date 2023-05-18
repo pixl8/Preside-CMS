@@ -18,8 +18,9 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="save_content"        type="boolean" dbtype="boolean"               required=false default=false;
 	property name="save_content_expiry" type="numeric" dbtype="int"                   required=false;
 
-	property name="html_body" type="string" dbtype="longtext";
-	property name="text_body" type="string" dbtype="longtext";
+	property name="html_body"                 type="string"  dbtype="longtext";
+	property name="text_body"                 type="string"  dbtype="longtext";
+	property name="body_changed_from_default" type="boolean" dbtype="boolean" required=false default=false;
 
 	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment";
 
