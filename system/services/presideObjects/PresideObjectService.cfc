@@ -3293,6 +3293,7 @@ component displayName="Preside Object Service" {
 	) {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
+		var usesDrafts           = objectUsesDrafts( arguments.objectName );
 		var versionTableName     = versionObj.tableName;
 		var compiledSelectFields = Duplicate( arguments.selectFields );
 		var compiledFilter       = Duplicate( arguments.filter );
@@ -3313,13 +3314,13 @@ component displayName="Preside Object Service" {
 			versionFilter = "#arguments.objectName#._version_number = :#arguments.objectName#._version_number";
 			params.append( { name="#arguments.objectName#___version_number", value=arguments.specificVersion, type="cf_sql_int" } );
 
-			if ( !arguments.allowDraftVersions && objectUsesDrafts( arguments.objectName ) ) {
+			if ( !arguments.allowDraftVersions && usesDrafts ) {
 				versionFilter &= " and ( #arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft )";
 				params.append( { name="#arguments.objectName#___version_is_draft", value=false, type="cf_sql_bit" } );
 			}
 
 		} else {
-			var latestVersionField = arguments.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
+			var latestVersionField = arguments.allowDraftVersions && usesDrafts ? "_version_is_latest_draft" : "_version_is_latest";
 			versionFilter = "#arguments.objectName#.#latestVersionField# = :#arguments.objectName#.#latestVersionField#";
 			params.append( { name="#arguments.objectName#__#latestVersionField#", value=true, type="cf_sql_boolean" } );
 		}
