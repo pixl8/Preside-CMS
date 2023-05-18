@@ -1,28 +1,15 @@
 component {
 
 	private string function admin( event, rc, prc, args={} ) {
-		args.context = "admin";
-
-		return index( argumentCollection=arguments );
-	}
-
-	private string function index( event, rc, prc, args={} ) {
-		args.context = args.context ?: "";
-
-		args.remoteUrl   = event.buildLink( linkTo="formcontrols.IconPicker.ajaxGetIcons", querystring="q=%QUERY&context=#args.context#" );
-		args.prefetchUrl = event.buildLink( linkTo="formcontrols.IconPicker.ajaxGetIcons", querystring="context=#args.context#" );
+		args.remoteUrl   = event.buildLink( linkTo="formcontrols.IconPicker.ajaxGetIcons", querystring="q=%QUERY" );
+		args.prefetchUrl = event.buildLink( linkTo="formcontrols.IconPicker.ajaxGetIcons" );
 
 		return renderView( view="formcontrols/iconPicker/index", args=args );
 	}
 
 	public void function ajaxGetIcons( event, rc, prc ) {
-		var query = rc.q       ?: "";
-		var context = rc.context ?: "";
-		var data    = [];
-
-		if ( !isEmptyString( context ) ) {
-			context &= ".";
-		}
+		var query = rc.q ?: "";
+		var data  = [];
 
 		var allIcons = getSetting( "formControls.iconPicker.icons" );
 		var icons    = [];
@@ -36,12 +23,10 @@ component {
 		}
 
 		for ( var icon in icons ) {
-			var iconClass = translateResource( uri="formControls.iconPicker:#icon#.#context#iconClass", defaultValue=translateResource( uri="formControls.iconPicker:#icon#.iconClass", defaultValue="" ) );
-
 			ArrayAppend( data, {
-				  text      = translateResource( uri="formControls.iconPicker:#icon#.#context#label", defaultValue=translateResource( uri="formControls.iconPicker:#icon#.label", defaultValue="" ) )
-				, iconClass = iconClass
-				, value     = iconClass
+				  text      = translateResource( uri="formControls.iconPicker:#icon#.label"    , defaultValue=icon )
+				, iconClass = translateResource( uri="formControls.iconPicker:#icon#.iconClass", defaultValue="" )
+				, value     = icon
 			} );
 		}
 
