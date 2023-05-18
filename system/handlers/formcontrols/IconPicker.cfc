@@ -11,8 +11,12 @@ component {
 		var query = rc.q ?: "";
 		var data  = [];
 
-		var allIcons = getSetting( "formControls.iconPicker.icons" );
+		var allIcons = ListToArray( args.icons ?: "" );
 		var icons    = [];
+
+		if ( isEmptyString( args.icons ) ) {
+			allIcons = getSetting( "formControls.iconPicker.icons" );
+		}
 
 		if ( isEmptyString( query ) ) {
 			icons = allIcons;
