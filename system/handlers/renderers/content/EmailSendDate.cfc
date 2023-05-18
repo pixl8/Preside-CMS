@@ -32,15 +32,14 @@ component {
 
 			case "scheduled":
 			default:
-				var scheduleType  = args.record.schedule_type  ?: "";
-
-				var queued = emailTemplateService.getQueuedCount( templateId );
+				var scheduleType = args.record.schedule_type  ?: "";
+				var queued       = emailTemplateService.getQueuedCount( templateId );
+				var sent         = emailTemplateService.getSentCount( templateId );
 
 				if ( queued ) {
 					return '<span class="orange">#translateResource( uri="cms:emailcenter.table.sending.alert", data=[ NumberFormat( queued ), NumberFormat( sent ) ] )#</span>';
 				}
 
-				var sent = emailTemplateService.getSentCount( templateId );
 
 				var formattedDate = "";
 
