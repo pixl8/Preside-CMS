@@ -26,10 +26,6 @@ component {
 	 *
 	 */
 	public array function listTemplates() {
-		if ( isArray( __templateList ?: "" ) ) {
-			return __templateList;
-		}
-
 		var allTemplates = _getConfiguredTemplates();
 		var templateIds  = StructKeyArray( allTemplates );
 		var templates    = [];
@@ -47,15 +43,10 @@ component {
 			return CompareNoCase( a.title, b.title );
 		} );
 
-		__templateList = templates;
 		return templates;
 	}
 
 	public array function listTemplatesGrouped() {
-		if ( isArray( __templateListGrouped ?: "" ) ) {
-			return __templateListGrouped;
-		}
-
 		var allTemplates = listTemplates();
 		var grouped      = {};
 		var groups       = [];
@@ -93,7 +84,6 @@ component {
 			return CompareNoCase( a.label, b.label );
 		} );
 
-		__templateListGrouped = groups;
 		return groups;
 	}
 

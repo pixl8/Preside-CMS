@@ -8,7 +8,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templates = _getDefaultConfiguredTemplates();
 				var expected  = [];
 
-				for( var templateId in templates.keyArray() ) {
+				for( var templateId in StructKeyArray( templates ) ) {
 					var template = {
 						  id          = templateId
 						, group       = templates[ templateId ].group ?: "unclassified"
@@ -34,7 +34,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templates = _getDefaultConfiguredTemplates();
 				var expected  = [];
 
-				for( var templateId in templates.keyArray() ) {
+				for( var templateId in StructKeyArray( templates ) ) {
 					var template = {
 						  id          = templateId
 						, group       = templates[ templateId ].group ?: "unclassified"
