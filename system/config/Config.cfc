@@ -839,6 +839,29 @@ component {
 	private void function __setupFormSettings() {
 		settings.formControls            = {};
 		settings.autoTrimFormSubmissions = { admin=false, frontend=false };
+
+		settings.formControls.iconPicker = {
+			icons = [
+				  "home"
+				, "search"
+				, "envelope"
+				, "heart"
+				, "star"
+				, "user"
+				, "cog"
+				, "trash"
+				, "share"
+				, "print"
+				, "bell"
+				, "check"
+				, "times"
+				, "lock"
+				, "globe"
+				, "cloud"
+				, "calendar"
+				, "camera"
+			]
+		};
 	}
 
 	private void function __setupWidgetsAndSiteTemplates() {
