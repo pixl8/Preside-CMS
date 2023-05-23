@@ -1,5 +1,7 @@
 component {
 
+	property name="fullIconSet" inject="coldbox:setting:formControls.iconPicker.icons";
+
 	private string function admin( event, rc, prc, args={} ) {
 		args.icons = args.icons ?: [];
 
@@ -8,7 +10,7 @@ component {
 		}
 
 		if ( !ArrayLen( args.icons ) ) {
-			args.icons = ListToArray( getSetting( name="formControls.iconPicker.icons", defaultValue="" ) );
+			args.icons = fullIconSet;
 		}
 
 		return renderView( view="formcontrols/iconPicker/index", args=args );
