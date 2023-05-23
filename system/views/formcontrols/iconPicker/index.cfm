@@ -5,10 +5,7 @@
 	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
 
-	remoteUrl   = args.remoteUrl   ?: "";
-	prefetchUrl = args.prefetchUrl ?: "";
-
-	resultTemplate     = selectedTemplate = '<i class="fa {{iconClass}}"></i> {{text}}';
+	resultTemplate     = selectedTemplate = '<i class="fa {{classes}}"></i> {{text}}';
 	resultTemplateId   = "result_template_"   & CreateUUID();
 	selectedTemplateId = "selected_template_" & CreateUUID();
 
@@ -18,6 +15,8 @@
 	}
 
 	value = EncodeForHTML( value );
+
+	icons = args.icons ?: [];
 </cfscript>
 
 <cfoutput>
@@ -29,10 +28,18 @@
 			tabindex="#getNextTabIndex()#"
 			data-placeholder="#placeholder#"
 			data-value="#value#"
-			data-remote-url="#remoteUrl#"
-			data-prefetch-url="#prefetchUrl#"
 			data-result-template="#resultTemplateId#"
 			data-selected-template="#selectedTemplateId#"
 	>
+		<cfloop item="icon" array="#icons#">
+			<cfset selected=ListFindNoCase( value, icon ) />
+			<option
+				value="#icon#"
+				class="fa-#icon#"
+				<cfif selected> selected="selected"</cfif>
+			>
+				#icon#
+			</option>
+		</cfloop>
 	</select>
 </cfoutput>
