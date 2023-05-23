@@ -15,6 +15,7 @@ component {
 			, minValue           = Val( args.minValue ?: "" )
 			, maxValue           = Val( args.maxValue ?: "" )
 			, step               = Val( args.spinnerStep ?: 1 )
+			, defaultValue       = args.defaultvalue ?: ""
 		);
 	}
 
