@@ -24,6 +24,9 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 
 	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment";
 
+	property name="variant_of"  relationship="many-to-one"  relatedto="email_template" required=false;
+	property name="is_variant"  type="boolean" formula="case when ${prefix}variant_of is null then 0 else 1 end";
+
 	property name="email_blueprint"  relationship="many-to-one" relatedTo="email_blueprint";
 	property name="recipient_filter" relationship="many-to-one" relatedto="rules_engine_condition" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
