@@ -4,14 +4,20 @@
 	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
+	savedValue   = args.savedValue   ?: "";
 
 	resultTemplate     = selectedTemplate = '<i class="fa {{classes}}"></i> {{text}}';
 	resultTemplateId   = "result_template_"   & CreateUUID();
 	selectedTemplateId = "selected_template_" & CreateUUID();
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
+
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
+	}
+
+	if ( !Len( value ) ) {
+		value = savedValue;
 	}
 
 	value = EncodeForHTML( value );
@@ -32,7 +38,7 @@
 			data-selected-template="#selectedTemplateId#"
 	>
 		<cfloop item="icon" array="#icons#">
-			<cfset selected=ListFindNoCase( value, icon ) />
+			<cfset selected=ListFind( value, icon ) />
 			<option
 				value="#icon#"
 				class="fa-#icon#"
