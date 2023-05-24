@@ -274,6 +274,10 @@ component extends="preside.system.base.AdminHandler" {
 	public void function addVariant( event, rc, prc ) {
 		var templateId = rc.template ?: "";
 
+		if ( !hasCmsPermission( "emailcenter.systemtemplates.publish" ) ) {
+			event.adminAccessDenied();
+		}
+
 		prc.template = emailTemplateService.getTemplate( id=templateId );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.allowVariants( templateId ) ) {
