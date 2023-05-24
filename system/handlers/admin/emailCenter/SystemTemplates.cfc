@@ -47,10 +47,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.template.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.template.page.subTitle", data=[ prc.template.name ] );
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:emailcenter.systemTemplates.template.breadcrumb.title"  , data=[ prc.template.name ] )
-			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & templateId )
-		);
+		_templateBreadcrumbBase( event, prc.template );
 	}
 
 	public void function reset( event, rc, prc ) {
@@ -70,7 +67,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.reset.page.subTitle", data=[ prc.template.name ] );
 		prc.cancelLink   = event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & templateId );
 
-		event.addAdminBreadCrumb( title=prc.template.name, link=event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & templateId ) );
+		_templateBreadcrumbBase( event, prc.template );
 		event.addAdminBreadCrumb( title=translateResource( uri="cms:emailcenter.systemTemplates.reset.breadcrumb.title" ), link="" );
 	}
 
@@ -98,6 +95,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.edit.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.edit.page.subTitle", data=[ prc.template.name ] );
 
+		_templateBreadcrumbBase( event, prc.template );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.edit.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.edit", queryString="template=" & templateId )
@@ -170,6 +168,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.versionHistory.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.versionHistory.page.subTitle", data=[ prc.template.name ] );
 
+		_templateBreadcrumbBase( event, prc.template );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.versionHistory.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.versionHistory", queryString="template=" & templateId )
@@ -219,6 +218,7 @@ component extends="preside.system.base.AdminHandler" {
 			, formAction = event.buildAdminLink( linkTo='emailcenter.systemTemplates.saveLayoutConfigurationAction' )
 		} );
 
+		_templateBreadcrumbBase( event, prc.template );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.configureLayout.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.configureLayout", queryString="template=" & templateId )
@@ -251,6 +251,86 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function variants( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.allowVariants( templateId ) ) {
+			event.notFound();
+		}
+		prc.pageTitle      = translateResource( uri="cms:emailcenter.systemTemplates.variants.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle   = translateResource( uri="cms:emailcenter.systemTemplates.variants.page.subTitle", data=[ prc.template.name ] );
+		prc.variants       = systemEmailTemplateService.getVariants( templateId );
+		prc.resettableBody = systemEmailTemplateService.templatesWithNonDefaultBody();
+
+		_templateBreadcrumbBase( event, prc.template );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.variants.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.variants", queryString="template=" & templateId )
+		);
+	}
+
+	public void function addVariant( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.allowVariants( templateId ) ) {
+			event.notFound();
+		}
+		prc.formName         = "preside-objects.email_template.system.admin.add.variant";
+		prc.addVariantAction = event.buildAdminLink( linkto="emailcenter.systemtemplates.addVariantAction" );
+		prc.cancelAction     = event.buildAdminLink( linkto="emailcenter.systemtemplates.variants", queryString="template=#templateId#" );
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.addVariant.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.addVariant.page.subtitle", data=[ prc.template.name ] );
+
+		_templateBreadcrumbBase( event, prc.template );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.variants.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.variants", queryString="template=" & templateId )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.addVariant.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.addVariant", queryString="template=" & templateId )
+		);
+	}
+
+	public void function addVariantAction( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		if ( !hasCmsPermission( "emailcenter.systemtemplates.publish" ) ) {
+			event.adminAccessDenied();
+		}
+		if ( !emailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		var formName         = "preside-objects.email_template.system.admin.add.variant";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			var variantId = systemEmailTemplateService.addVariant( variantOf=templateId, name=( formData.name ?: "" ) );
+
+			if ( Len( variantId ) ) {
+				messagebox.info( translateResource( "cms:emailcenter.systemTemplates.variant.create.confirmation" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#variantId#" ) );
+			}
+
+			messagebox.error( translateResource( "cms:emailcenter.systemTemplates.variant.create.failed" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.variants", queryString="template=#variantId#" ) );
+		}
+
+		formData.validationResult = validationResult;
+		messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+		setNextEvent(
+			  url           = event.buildAdminLink( linkTo="emailcenter.systemtemplates.addvariant", queryString="template=#templateId#" )
+			, persistStruct = formData
+		);
+	}
+
 	public void function logs( event, rc, prc ) {
 		var templateId = rc.template ?: "";
 
@@ -264,6 +344,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.log.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.log.page.subTitle", data=[ prc.template.name ] );
 
+		_templateBreadcrumbBase( event, prc.template );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.log.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.logs", queryString="template=" & templateId )
@@ -283,6 +364,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.log.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.log.page.subTitle", data=[ prc.template.name ] );
 
+		_templateBreadcrumbBase( event, prc.template );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.stats.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.stats", queryString="template=" & templateId )
@@ -350,6 +432,26 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 // VIEWLETS AND HELPERS
+	private void function _templateBreadcrumbBase( required event, required struct template ) {
+		var variantOf = arguments.template.variant_of ?: "" ;
+
+		if ( Len( variantOf ) ) {
+			var variantOfName = renderLabel( "email_template", variantOf );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:emailcenter.systemTemplates.template.breadcrumb.title"  , data=[ variantOfName ] )
+				, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & variantOf )
+			);
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:emailcenter.systemTemplates.variants.breadcrumb.title"  , data=[ variantOfName ] )
+				, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.variants", queryString="template=" & variantOf )
+			);
+		}
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.template.breadcrumb.title"  , data=[ arguments.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & arguments.template.id )
+		);
+	}
+
 	private string function _templateTabs( event, rc, prc, args={} ) {
 		var template     = prc.template ?: {};
 		var layout       = emailLayoutService.getLayout( template.layout ?: "" );
@@ -358,6 +460,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.canEdit            = canSaveDraft || canPublish;
 		args.canConfigureLayout = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.systemtemplates.configureLayout" );
+		args.allowVariants      = systemEmailTemplateService.allowVariants( template.id );
 
 		return renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args=args );
 	}
