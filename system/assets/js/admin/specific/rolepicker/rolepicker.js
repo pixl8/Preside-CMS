@@ -22,4 +22,12 @@
 
 		toggleAreaSection( $(this), $(this).hasClass( "collapsed" ) );
 	} );
+
+	$( "div.collapsible-content" ).each(function(index, el) {
+		var $checked = $(this).find("input.ace-switch:checked");
+
+		if ($checked.length > 0) {
+			toggleAreaSection( $( 'a.collapsible-header-link[data-group-id="' + $(this).data( "parentGroupId" ) + '"]' ), true );
+		}
+	});
 })( presideJQuery );
