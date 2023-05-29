@@ -52,6 +52,33 @@ component displayName="Admin permissions service" {
 		return _getRoles().keyArray();
 	}
 
+	public struct function listRolesWithGroup() {
+		var cacheKey  = "admin-roles-with-group";
+		var fromCache = _getCacheProvider().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var grouped = {};
+		var roles   = listRoles();
+
+		for ( var role in roles ) {
+			var roleGroup = $translateResource( uri="roles:#role#.group", defaultValue="" );
+
+			if ( len( trim( roleGroup ) ) ) {
+				grouped[ roleGroup ] = grouped[ roleGroup ] ?: [];
+				arrayAppend( grouped[ roleGroup ], role );
+			} else {
+				grouped[ "__nogroup" ] = grouped[ "__nogroup" ] ?: [];
+				arrayAppend( grouped[ "__nogroup" ], role );
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, grouped );
+		return grouped;
+	}
+
 	/**
 	 * Returns an array of permission keys that apply to the
 	 * given arguments.

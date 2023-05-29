@@ -3,28 +3,53 @@
 	inputId      = args.id           ?: "";
 	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
-	roles        = args.roles        ?: ArrayNew(1);
+	groupedRoles = args.groupedRoles ?: {};
+	groups       = structKeyArray( groupedRoles );
+
+	arraySort( groups, "textnocase" );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
+
+	event.include( "/js/admin/specific/rolepicker/"  )
+	     .include( "/css/admin/specific/rolepicker/" );
 </cfscript>
 
 <cfoutput>
-	<cfloop array="#roles#" index="role">
-		<div class="checkbox role-picker-checkbox">
-			<label>
-				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#role#" type="checkbox"  value="#HtmlEditFormat( role )#"<cfif ListFindNoCase( value, role )> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
-				<span class="lbl">
-					<span class="role-title bigger">
-						#translateResource( uri="roles:#role#.title" )#
-					</span><br />
-					<span class="role-desc">
-						#translateResource( uri="roles:#role#.description" )#
-					</span>
-				</span>
-			</label>
+	<cfloop array="#groups#" index="group">
+		<cfif group neq "__nogroup">
+		<div class="collapsible">
+			<h4 class="collapsible-header">
+				<a href="##" class="collapsible-header-link collapsed" role="button" data-group-id="#group#">
+					#translateResource( uri="roles:roleGroup.#group#.title", defaultValue=ucFirst( group ) )#
+					<i class="collapsible-header-icon fa fa-fw fa-chevron-right"></i>
+				</a>
+			</h4>
+
+			<div class="collapsible-content hide group-#group#">
+		</cfif>
+
+				<cfset roles = groupedRoles[ group ] />
+				<cfloop array="#roles#" index="role">
+					<div class="checkbox role-picker-checkbox">
+						<label>
+							<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#role#" type="checkbox"  value="#HtmlEditFormat( role )#"<cfif ListFindNoCase( value, role )> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
+							<span class="lbl">
+								<span class="role-title bigger">
+									#translateResource( uri="roles:#role#.title" )#
+								</span><br />
+								<span class="role-desc">
+									#translateResource( uri="roles:#role#.description" )#
+								</span>
+							</span>
+						</label>
+					</div>
+				</cfloop>
+		<cfif group neq "__nogroup">
+			</div>
 		</div>
+		</cfif>
 	</cfloop>
 </cfoutput>
