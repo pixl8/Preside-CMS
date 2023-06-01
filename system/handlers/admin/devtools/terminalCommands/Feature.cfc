@@ -19,7 +19,7 @@ component hint="Manage Preside features" extends="preside.system.base.Command" {
 			message &= writeText( "Valid operations:" );
 			message &= newLine();
 
-			message &= writeText( text="    list ", type="info", bold=true );
+			message &= writeText( text="    list [feature\]", type="info", bold=true );
 			message &= writeText( text=": Lists all features." );
 
 			return message;
