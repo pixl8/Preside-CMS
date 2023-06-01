@@ -29,36 +29,43 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  savedFilter        = ""
 		,          numeric value              = 0
 	){
-		var params               = {};
-		var subQueryExtraFilters = [];
-		var propAttributes       = presideObjectService.getObjectProperty( arguments.objectName, arguments.propertyName );
-		var keyFk                = propAttributes.relationshipIsSource ? propAttributes.relatedViaSourceFk : propAttributes.relatedViaTargetFk;
-		var valueFk              = propAttributes.relationshipIsSource ? propAttributes.relatedViaTargetFk : propAttributes.relatedViaSourceFk;
-		var outerPk              = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
+		var params         = {};
+		var propAttributes = presideObjectService.getObjectProperty( arguments.objectName, arguments.propertyName );
+		var keyFk          = propAttributes.relationshipIsSource ? propAttributes.relatedViaSourceFk : propAttributes.relatedViaTargetFk;
+		var valueFk        = propAttributes.relationshipIsSource ? propAttributes.relatedViaTargetFk : propAttributes.relatedViaSourceFk;
+		var outerPk        = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
+		var subQuery       = {};
+		var countOperator  = rulesEngineNumericOperatorToSqlOperator( arguments._numericOperator );
+		var countParam     = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
 
 		if ( Len( Trim( arguments.savedFilter ) ) ) {
-			ArrayAppend( subQueryExtraFilters, getExistsFilterForEntityMatchingFilters(
-				  objectName  = propAttributes.relatedTo
-				, savedFilter = arguments.savedFilter
-				, outerTable  = propAttributes.relatedVia
-				, outerKey    = valueFk
-			) );
+			subquery  = presideObjectService.selectData(
+				  objectName          = propAttributes.relatedTo
+				, selectFields        = [ "1" ]
+				, filter              = obfuscateSqlForPreside( "#propAttributes.relatedVia#.#keyfk# = #outerPk#" )
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+				, having              = "count(#keyfk#) #countOperator# :#countParam#"
+				, extraFilters        = [ filterService.prepareFilter( propAttributes.relatedTo, arguments.savedFilter ) ]
+				, extraJoins          = [ {
+					  type             = "inner"
+					, tableName        = getPresideObject( propAttributes.relatedVia ).getTableName()
+					, tableAlias       = propAttributes.relatedVia
+					, tableColumn      = valueFk
+					, joinToTable      = propAttributes.relatedTo
+					, joinToColumn     = presideObjectService.getIdField( propAttributes.relatedTo )
+				}]
+			);
+		} else {
+			subquery  = presideObjectService.selectData(
+				  objectName          = propAttributes.relatedVia
+				, selectFields        = [ "1" ]
+				, filter              = obfuscateSqlForPreside( "#keyfk# = #outerPk#" )
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+				, having              = "count(#keyfk#) #countOperator# :#countParam#"
+			);
 		}
-		for( var extraFilter in subQueryExtraFilters ) {
-			StructAppend( params, extraFilter.filterParams ?: {} );
-		}
-
-		var countOperator = rulesEngineNumericOperatorToSqlOperator( arguments._numericOperator );
-		var countParam = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
-		var subquery  = presideObjectService.selectData(
-			  objectName          = propAttributes.relatedVia
-			, selectFields        = [ "1" ]
-			, filter              = obfuscateSqlForPreside( "#keyfk# = #outerPk#" )
-			, extraFilters        = subQueryExtraFilters
-			, getSqlAndParamsOnly = true
-			, formatSqlParams     = true
-			, having              = "count(#keyfk#) #countOperator# :#countParam#"
-		);
 
 		params[ countParam ] = { type="cf_sql_integer", value=arguments.value };
 		StructAppend( params, subquery.params );
