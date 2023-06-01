@@ -149,10 +149,12 @@ component displayName="Rules Engine Filter Service" {
 	 * @expressionArray.hint Cofigured expression array of the condition to prepare a filter for
 	 */
 	public any function selectData(
-		  required string objectName
-		, required array  expressionArray
+		  required string  objectName
+		, required array   expressionArray
+		,          boolean distinct      = true
+		,          boolean forceDistinct = false
 	) {
-		var args = Duplicate( arguments );
+		var args = StructCopy( arguments );
 
 		args.extraFilters = args.extraFilters ?: [];
 		args.extraFilters.append( prepareFilter(
@@ -160,7 +162,21 @@ component displayName="Rules Engine Filter Service" {
 			, expressionArray = arguments.expressionArray
 		) );
 		args.autoGroupBy = true;
-		args.distinct    = true;
+
+		if ( args.distinct && !args.forceDistinct ) {
+			args.distinct = false;
+			for ( var extraFilter in args.extraFilters ) {
+				for ( var extraJoin in extraFilter.extraJoins ?: [] ) {
+					if ( Len( extraJoin.subQuery ?: "" ) ) {
+						args.distinct = true;
+						break;
+					}
+				}
+
+				if ( args.distinct ) { break; }
+			}
+		}
+
 
 		args.delete( "expressionArray" );
 
@@ -179,6 +195,12 @@ component displayName="Rules Engine Filter Service" {
 		  required string objectName
 		, required array  expressionArray
 	) {
+		if ( !StructKeyExists( arguments, "selectFields" ) ) {
+			var idField = $getPresideObjectService().getIdField( arguments.objectName );
+			if ( Len( idField ) ) {
+				arguments.selectFields = [ idField ];
+			}
+		}
 		return selectData( argumentCollection=arguments, recordCountOnly=true );
 	}
 
