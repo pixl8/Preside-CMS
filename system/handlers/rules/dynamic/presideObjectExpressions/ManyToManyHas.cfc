@@ -34,27 +34,35 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		var valueFk              = propAttributes.relationshipIsSource ? propAttributes.relatedViaTargetFk : propAttributes.relatedViaSourceFk;
 		var outerPk              = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
 		var exists               = arguments._possesses ? "exists" : "not exists";
+		var subquery             = {};
 
 		if ( Len( Trim( arguments.savedFilter ) ) ) {
-			ArrayAppend( subQueryExtraFilters, getExistsFilterForEntityMatchingFilters(
-				  objectName  = propAttributes.relatedTo
-				, savedFilter = arguments.savedFilter
-				, outerTable  = propAttributes.relatedVia
-				, outerKey    = valueFk
-			) );
+			subquery  = presideObjectService.selectData(
+				  objectName          = propAttributes.relatedTo
+				, selectFields        = [ "1" ]
+				, filter              = obfuscateSqlForPreside( "#propAttributes.relatedVia#.#keyfk# = #outerPk#" )
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+				, extraFilters        = [ filterService.prepareFilter( propAttributes.relatedTo, arguments.savedFilter ) ]
+				, extraJoins          = [ {
+					  type             = "inner"
+					, tableName        = getPresideObject( propAttributes.relatedVia ).getTableName()
+					, tableAlias       = propAttributes.relatedVia
+					, tableColumn      = valueFk
+					, joinToTable      = propAttributes.relatedTo
+					, joinToColumn     = presideObjectService.getIdField( propAttributes.relatedTo )
+				}]
+			);
+		} else {
+			subquery  = presideObjectService.selectData(
+				  objectName          = propAttributes.relatedVia
+				, selectFields        = [ "1" ]
+				, filter              = obfuscateSqlForPreside( "#keyfk# = #outerPk#" )
+				, extraFilters        = subQueryExtraFilters
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+			);
 		}
-		for( var extraFilter in subQueryExtraFilters ) {
-			StructAppend( params, extraFilter.filterParams ?: {} );
-		}
-
-		var subquery  = presideObjectService.selectData(
-			  objectName          = propAttributes.relatedVia
-			, selectFields        = [ "1" ]
-			, filter              = obfuscateSqlForPreside( "#keyfk# = #outerPk#" )
-			, extraFilters        = subQueryExtraFilters
-			, getSqlAndParamsOnly = true
-			, formatSqlParams     = true
-		);
 
 		StructAppend( params, subquery.params );
 
