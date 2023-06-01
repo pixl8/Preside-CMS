@@ -617,6 +617,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockLoginService    = getMockBox().createEmptyMock( "preside.system.services.admin.LoginService" );
+		mockBundleService   = getMockBox().createEmptyMock( "preside.system.services.i18n.ResourceBundleService" );
 		cacheProvider       = _getCachebox( forceNewInstance = true ).getCache( "default" );
 		mockGroupDao        = getMockBox().createEmptyMock( object = _getPresideObjectService().getObject( "security_group"              ) );
 		mockUserDao         = getMockBox().createEmptyMock( object = _getPresideObjectService().getObject( "security_user"               ) );
@@ -626,6 +627,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		return getMockBox().createMock( object=new preside.system.services.security.PermissionService(
 			  loginService         = mockLoginService
+			, bundleService        = mockBundleService
 			, cacheProvider        = cacheProvider
 			, logger               = _getTestLogger()
 			, rolesConfig          = arguments.roles
