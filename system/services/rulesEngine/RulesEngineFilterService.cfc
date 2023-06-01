@@ -160,7 +160,7 @@ component displayName="Rules Engine Filter Service" {
 		,          boolean distinct      = true
 		,          boolean forceDistinct = false
 	) {
-		var args = StructCopy( arguments );
+		var args = Duplicate( arguments );
 
 		args.extraFilters = args.extraFilters ?: [];
 		args.extraFilters.append( prepareFilter(
