@@ -12,6 +12,7 @@ component displayName="Admin permissions service" {
 // CONSTRUCTOR
 	/**
 	 * @loginService.inject       LoginService
+	 * @bundleService.inject      delayedInjector:ResourceBundleService
 	 * @cacheProvider.inject      cachebox:PermissionsCache
 	 * @permissionsConfig.inject  coldbox:setting:adminPermissions
 	 * @rolesConfig.inject        coldbox:setting:adminRoles
@@ -21,6 +22,7 @@ component displayName="Admin permissions service" {
 	 */
 	public any function init(
 		  required any    loginService
+		, required any    bundleService
 		, required any    cacheProvider
 		, required struct permissionsConfig
 		, required struct rolesConfig
@@ -29,6 +31,7 @@ component displayName="Admin permissions service" {
 		, required any    contextPermDao
 	) {
 		_setLoginService( arguments.loginService );
+		_setBundleService( arguments.bundleService );
 		_setCacheProvider( arguments.cacheProvider );
 		_setGroupDao( arguments.groupDao );
 		_setUserDao( arguments.userDao );
@@ -64,7 +67,7 @@ component displayName="Admin permissions service" {
 		var roles   = listRoles();
 
 		for ( var role in roles ) {
-			var roleGroup = $translateResource( uri="roles:#role#.group", defaultValue="" );
+			var roleGroup = _getBundleService().getResource( uri="roles:#role#.group" );
 
 			if ( len( trim( roleGroup ) ) ) {
 				grouped[ roleGroup ] = grouped[ roleGroup ] ?: [];
@@ -710,6 +713,13 @@ component displayName="Admin permissions service" {
 	}
 	private void function _setLoginService( required any loginService ) {
 		_loginService = arguments.loginService;
+	}
+
+	private any function _getBundleService() {
+		return _bundleService;
+	}
+	private void function _setBundleService( required any bundleService ) {
+		_bundleService = arguments.bundleService;
 	}
 
 	private any function _getCacheProvider() {
