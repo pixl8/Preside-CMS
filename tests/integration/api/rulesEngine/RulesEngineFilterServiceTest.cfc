@@ -152,12 +152,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( mockPresideObjectService.$callLog().selectData.len() ).toBe( 1 );
 				expect( mockPresideObjectService.$callLog().selectData[1] ).toBe( {
-					  objectName   = dummyObject
-					, extraFilters = expectedFilters
-					, someArgument = randomArgs.someArgument
-					, anotherArg   = randomArgs.anotherArg
-					, autoGroupBy  = true
-					, distinct     = true
+					  objectName    = dummyObject
+					, extraFilters  = expectedFilters
+					, someArgument  = randomArgs.someArgument
+					, anotherArg    = randomArgs.anotherArg
+					, autoGroupBy   = true
+					, distinct      = false
+					, forceDistinct = false
 				} );
 			} );
 		} );
@@ -178,6 +179,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().selectData[1] ).toBe( {
 					  objectName      = dummyObject
 					, expressionArray = expressionArray
+					, selectFields    = [ "id" ]
 					, recordCountOnly = true
 				} );
 			} );
@@ -200,6 +202,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		service.$( "$getColdbox", mockColdbox );
 		mockPresideObjectService.$( "getDbAdapterForObject" ).$args( dummyObject ).$results( mockDbAdapter );
+		mockPresideObjectService.$( "getIdField", "id" );
 
 		return service;
 	}
