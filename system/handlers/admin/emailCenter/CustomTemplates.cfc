@@ -665,6 +665,7 @@ component extends="preside.system.base.AdminHandler" {
 				, actionsView   = actionsView
 				, draftsEnabled = false
 				, extraFilters  = extraFilters
+				, useCache      = false
 			}
 		);
 	}
