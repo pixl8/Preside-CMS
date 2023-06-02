@@ -106,20 +106,55 @@ component {
 			);
 		}
 
-		var dbAdapter    = $getPresideObjectService().getDbAdapterForObject( "email_mass_send_queue" );
+		var poService    = $getPresideObjectService();
+		var dbAdapter    = poService.getDbAdapterForObject( "email_mass_send_queue" );
 		var nowFunction  = dbAdapter.getNowFunctionSql();
 		var extraFilters = getTemplateRecipientFilters( arguments.templateId );
+		var batchedSets  = [];
+		var records      = "";
+		var page         = 0;
+		var pageSize     = 100;
+		var queuedCount  = 0;
 
-		return $getPresideObject( "email_mass_send_queue" ).insertDataFromSelect(
-			  fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
-			, selectDataArgs = {
+		/**
+		 * We used to do a single insertDataFromSelect() using the dynamic filters
+		 * we prepared. However, for some scenarios, this is impossibly slow
+		 * due to the way in which (insert into select) statements work in dbms's.
+		 *
+		 * Instead, we are batching out the ids of the recipients we want to send
+		 * to and inserting that way. A little less elegent, but will perform well
+		 * in all scenarios.
+		 *
+		 */
+		do {
+			records = poService.selectData(
 				  objectName   = recipientObject
-				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
-				, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
+				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ) ]
 				, extraFilters = extraFilters
 				, distinct     = true
-			  }
-		);
+				, maxRows      = pageSize
+				, startRow     = ( (++page * pageSize) + 1 ) - pageSize
+			);
+
+			if ( records.recordCount ) {
+				ArrayAppend( batchedSets, ValueArray( records.id ) );
+			}
+		} while( records.recordCount );
+
+		for( var batch in batchedSets ) {
+			queuedCount += poService.insertDataFromSelect(
+				  objectName = "email_mass_send_queue"
+				, fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
+				, selectDataArgs = {
+					  objectName   = recipientObject
+					, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
+					, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
+					, extraFilters = [ { filter={ id=batch } } ]
+				  }
+			);
+		}
+
+		return queuedCount;
 	}
 
 	/**
