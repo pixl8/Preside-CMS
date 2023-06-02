@@ -492,7 +492,7 @@ component {
 		} else if ( dbAdapter.supportsCountOverWindowFunction() ) {
 			result.totalRecords = result.records.recordCount ? result.records._total_recordcount : 0;
 		} else {
-			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0, startRow=1 );
+			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, selectFields=[], recordCountOnly=true, maxRows=0, startRow=1 );
 		}
 
 		return result;
