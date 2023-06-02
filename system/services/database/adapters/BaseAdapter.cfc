@@ -504,6 +504,13 @@ component {
 		return "select count(1) as #EscapeEntity( 'record_count' )# from ( #arguments.originalStatement# ) #EscapeEntity( 'original_statement' )#";
 	}
 
+	public string function wrapFieldInCount( required string field, required boolean distinct, required string alias  ) {
+		var fieldMinusAlias  = ReReplaceNoCase( arguments.field, "\s+as\s+.*$", "" );
+		var fieldAndDistinct = arguments.distinct ? "distinct #fieldMinusAlias#" : fieldMinusAlias;
+
+		return "count( #fieldAndDistinct# ) as #escapeEntity( arguments.alias )#";
+	}
+
 	public string function getDatabaseNameSql() {
 		throw( type="preside.dbadapter.missing.method", message="All DB adapters must implement the getDatabaseNameSql method." );
 	}
