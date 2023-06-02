@@ -11,7 +11,7 @@ component hint="Manage Preside extensions" {
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
 		if ( !params.len() || !ArrayFindNoCase( subCommands, params[1] ) ) {
-			if ( deprecatedCommands.findNoCase( params[ 1 ] ) ) {
+			if ( params.len() && deprecatedCommands.findNoCase( params[ 1 ] ) ) {
 				return Chr(10) & "[[b;red;]The '#params[ 1 ]#' sub-command is no longer in use (as of Preside 10.9.0). Extensions are enabled automatically by the system. To disable an extenion, simply remove it from your application." & Chr(10) & Chr(10)
 			}
 			return Chr(10) & "[[b;white;]Usage:] extension sub_command" & Chr(10) & Chr(10)
