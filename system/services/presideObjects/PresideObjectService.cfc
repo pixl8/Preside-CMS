@@ -281,6 +281,15 @@ component displayName="Preside Object Service" {
 				}
 			}
 		} else {
+			var convertedJoins = _convertObjectJoinsToTableJoins( argumentCollection=args );
+			var simpleRecordCount = false;
+			if ( arguments.recordCountOnly && ArrayLen( args.selectFields ) == 1 && !ArrayLen( convertedJoins ) && _canFieldBeCounted( args.selectFields[ 1 ] ) ) {
+				simpleRecordCount = true;
+
+				args.selectFields[ 1 ] = args.adapter.wrapFieldInCount( field=args.selectFields[ 1 ], distinct=args.distinct, alias="record_count" );
+				args.distinct = false;
+			}
+
 			var sql = args.adapter.getSelectSql(
 				  argumentCollection = args
 				, tableName          = args.objMeta.tableName
@@ -288,11 +297,11 @@ component displayName="Preside Object Service" {
 				, selectColumns      = args.selectFields
 				, filter             = args.preparedFilter.filter
 				, having             = args.preparedFilter.having
-				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
+				, joins              = convertedJoins
 				, distinct           = args.distinct
 			);
 
-			if ( arguments.recordCountOnly ) {
+			if ( arguments.recordCountOnly && !simpleRecordCount ) {
 				sql = args.adapter.getCountSql( sql );
 			}
 			if ( arguments.getSqlAndParamsOnly ) {
@@ -2296,6 +2305,7 @@ component displayName="Preside Object Service" {
 		  required string  objectName
 		, required array   selectFields
 		,          array   extraSelectFields       = []
+		,          boolean recordCountOnly         = true
 		,          boolean includeAlias            = true
 		,          boolean includeAllFormulaFields = false
 	) {
@@ -2304,8 +2314,14 @@ component displayName="Preside Object Service" {
 		var obj     = _getObject( arguments.objectName ).meta;
 		var adapter = _getAdapter( obj.dsn ?: "" );
 
-		if ( !fields.len() ) {
-			fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
+		if ( !ArrayLen( fields ) ) {
+			var idField = getIdField( arguments.objectName );
+
+			if ( arguments.recordCountOnly && Len( idField ) ) {
+				fields = [ idField ];
+			} else {
+				fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
+			}
 		}
 
 		for( var i=1; i <=fields.len(); i++ ){
@@ -4146,6 +4162,13 @@ component displayName="Preside Object Service" {
 		}
 
 		return newArgs;
+	}
+
+	private boolean function _canFieldBeCounted( required string field ) {
+		var fieldMinusAlias             = ReReplaceNoCase( arguments.field, "\s+as\s+.*$", "" );
+		var nofunctionBracketsAndSpaces = "^[^\(\)\s]+$";
+
+		return ReFindNoCase( nofunctionBracketsAndSpaces, fieldMinusAlias );
 	}
 
 
