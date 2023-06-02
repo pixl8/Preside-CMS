@@ -134,6 +134,7 @@ component {
 				, distinct     = true
 				, maxRows      = pageSize
 				, startRow     = ( (++page * pageSize) + 1 ) - pageSize
+				, useCache     = false
 			);
 
 			if ( records.recordCount ) {
