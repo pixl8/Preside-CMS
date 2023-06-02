@@ -106,20 +106,55 @@ component {
 			);
 		}
 
-		var dbAdapter    = $getPresideObjectService().getDbAdapterForObject( "email_mass_send_queue" );
+		var poService    = $getPresideObjectService();
+		var dbAdapter    = poService.getDbAdapterForObject( "email_mass_send_queue" );
 		var nowFunction  = dbAdapter.getNowFunctionSql();
 		var extraFilters = getTemplateRecipientFilters( arguments.templateId );
+		var batchedSets  = [];
+		var records      = "";
+		var page         = 0;
+		var pageSize     = 100;
+		var queuedCount  = 0;
 
-		return $getPresideObject( "email_mass_send_queue" ).insertDataFromSelect(
-			  fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
-			, selectDataArgs = {
+		/**
+		 * We used to do a single insertDataFromSelect() using the dynamic filters
+		 * we prepared. However, for some scenarios, this is impossibly slow
+		 * due to the way in which (insert into select) statements work in dbms's.
+		 *
+		 * Instead, we are batching out the ids of the recipients we want to send
+		 * to and inserting that way. A little less elegent, but will perform well
+		 * in all scenarios.
+		 *
+		 */
+		do {
+			records = poService.selectData(
 				  objectName   = recipientObject
-				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
-				, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
+				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ) ]
 				, extraFilters = extraFilters
 				, distinct     = true
-			  }
-		);
+				, maxRows      = pageSize
+				, startRow     = ( (++page * pageSize) + 1 ) - pageSize
+			);
+
+			if ( records.recordCount ) {
+				ArrayAppend( batchedSets, ValueArray( records.id ) );
+			}
+		} while( records.recordCount );
+
+		for( var batch in batchedSets ) {
+			queuedCount += poService.insertDataFromSelect(
+				  objectName = "email_mass_send_queue"
+				, fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
+				, selectDataArgs = {
+					  objectName   = recipientObject
+					, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
+					, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
+					, extraFilters = [ { filter={ id=batch } } ]
+				  }
+			);
+		}
+
+		return queuedCount;
 	}
 
 	/**
@@ -323,40 +358,30 @@ component {
 		}
 
 		var recipientObject  = _getEmailRecipientTypeService().getFilterObjectForRecipientType( arguments.recipientType );
+		var recipientIdField = $getPresideObjectService().getIdField( recipientObject );
 		var dbAdapter        = $getPresideObjectService().getDbAdapterForObject( "email_template_send_log" );
 		var recipientLogFk   = dbAdapter.escapeEntity( _getEmailRecipientTypeService().getRecipientIdLogPropertyForRecipientType( arguments.recipientType ) );
-		var lastSentSubquery = $getPresideObject( "email_template_send_log" ).selectData(
-			  selectFields        = [ "Max( #dbAdapter.escapeEntity( 'sent_date' )# ) as sent_date", "#recipientLogFk# as recipient" ]
-			, groupBy             = recipientLogFk
-			, filter              = { email_template=arguments.templateId }
-			, getSqlAndParamsOnly = true
-		);
-		var filter = {
-			  filter = "send_limit_check.recipient is null"
-			, filterParams = {}
-			, extraJoins = []
-		};
-
-		filter.extraJoins.append({
-			  type           = "left"
-			, subQuery       = lastSentSubquery.sql
-			, subQueryAlias  = "send_limit_check"
-			, subQueryColumn = "recipient"
-			, joinToTable    = recipientObject
-			, joinToColumn   = "id"
-		});
-
-		for( var param in lastSentSubquery.params ) {
-			filter.filterParams[ param.name ] = Duplicate( param );
-			filter.filterParams[ param.name ].delete( "name" );
-		}
+		var outerJoin        = $obfuscateSqlForPreside( "#recipientLogFk# = #recipientObject#.#recipientIdField#" );
+		var filter           = "#outerJoin# and email_template = :email_template";
+		var params           = { email_template=arguments.templateId };
 
 		if ( sendLimit == "limited" ) {
-			filter.filter = "( #filter.filter# or send_limit_check.sent_date < :send_limit_check_date )";
-			filter.filterParams.send_limit_check_date = { type="cf_sql_timestamp", value=_getLimitDate( unit=arguments.unit, measure=Val( arguments.measure ) ) };
+			filter &= " and sent_date > :sent_date";
+			params.sent_date = _getLimitDate( unit=arguments.unit, measure=Val( arguments.measure ) );
 		}
 
-		return [ filter ];
+		var subquery = $getPresideObject( "email_template_send_log" ).selectData(
+			  selectFields        = [ "1" ]
+			, filter              = filter
+			, filterParams        = params
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
+
+		return [{
+			  filter       = $obfuscateSqlForPreside( "not exists (#subquery.sql#)" )
+			, filterParams = subquery.params
+		}];
 	}
 
 
@@ -370,28 +395,20 @@ component {
 	}
 
 	private struct function _getDuplicateCheckFilter( required string recipientObject, required string templateId ) {
-		var filter       = { filter="already_queued_check.recipient is null", filterParams={ template={ type="cf_sql_varchar", value=templateId } } };
-		var sqlAndParams = $getPresideObject( "email_mass_send_queue" ).selectData(
-			  selectFields        = [ "recipient", "template" ]
-			, getSqlAndParamsOnly = true
-		);
 		var recipientIdField = $getPresideObjectService().getIdField( arguments.recipientObject );
+		var outerJoin        = $obfuscateSqlForPreside( "recipient = #arguments.recipientObject#.#recipientIdField#" );
+		var sqlAndParams = $getPresideObject( "email_mass_send_queue" ).selectData(
+			  selectFields        = [ "1" ]
+			, filter              = "#outerJoin# and template = :template"
+			, filterParams        = { template=arguments.templateId }
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
 
-		for ( var _param in sqlAndParams.params ) {
-			filter.filterParams[ _param.name ] = _param;
-		}
-
-		filter.extraJoins = [{
-			  type              = "left"
-			, subQuery          = sqlAndParams.sql
-			, subQueryAlias     = "already_queued_check"
-			, subQueryColumn    = "recipient"
-			, joinToTable       = arguments.recipientObject
-			, joinToColumn      = recipientIdField
-			, additionalClauses = "template = :template"
-		} ];
-
-		return filter;
+		return {
+			  filter = $obfuscateSqlForPreside( "not exists (#sqlAndParams.sql#)" )
+			, filterParams = sqlAndParams.params
+		};
 	}
 
 // GETTERS AND SETTERS
