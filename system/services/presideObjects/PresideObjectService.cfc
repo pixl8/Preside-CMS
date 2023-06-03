@@ -161,8 +161,8 @@ component displayName="Preside Object Service" {
 	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
 	 * @tenantIds.hint               Struct of tenant IDs. Keys of the struct indicate the tenant, values indicate the ID. e.g. `{ site=specificSiteId }`. These values will override the current active tenant for the request.
 	 * @bypassTenants.hint           Array of tenants to bypass. e.g. [ "site" ] to bypass site tenancy. See [[data-tenancy]] for more information on tenancy.
-	 * @returntype.hint              Either query (default),array or struct. Corresponding to https://docs.lucee.org/reference/tags/query.html#attribute-returntype
-	 * @columnKey.hint               When returntype="struct", required to define the column that will be used for struct keys
+	 * @returntype.hint              Either query (default),array,struct,arrayOfValues or singleValue. Array and struct correspond to https://docs.lucee.org/reference/tags/query.html#attribute-returntype. ArrayOfValues return column array of the specified column in columnKey. SingleValue returns first result value of the specified column.
+	 * @columnKey.hint               When returntype="struct", "arrayOfValues" or "singleValue", this field is required to define the column that will be used for struct keys/values/value
 	 * @selectFields.docdefault      []
 	 * @filter.docdefault            {}
 	 * @filterParams.docdefault      {}
@@ -339,6 +339,12 @@ component displayName="Preside Object Service" {
 		}
 
 		_announceInterception( "postSelectObjectData", args );
+
+		if ( arguments.returnType == "arrayOfValues" && IsQuery( args.result ) ) {
+			return QueryColumnData( args.result, arguments.columnKey );
+		} else if ( arguments.returnType == "singleValue" && IsQuery( args.result ) ) {
+			return args.result[ arguments.columnKey ][ 1 ] ?: "";
+		}
 
 		return args.result;
 	}
