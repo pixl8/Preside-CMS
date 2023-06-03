@@ -161,6 +161,8 @@ component displayName="Preside Object Service" {
 	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
 	 * @tenantIds.hint               Struct of tenant IDs. Keys of the struct indicate the tenant, values indicate the ID. e.g. `{ site=specificSiteId }`. These values will override the current active tenant for the request.
 	 * @bypassTenants.hint           Array of tenants to bypass. e.g. [ "site" ] to bypass site tenancy. See [[data-tenancy]] for more information on tenancy.
+	 * @returntype.hint              Either query (default),array or struct. Corresponding to https://docs.lucee.org/reference/tags/query.html#attribute-returntype
+	 * @columnKey.hint               When returntype="struct", required to define the column that will be used for struct keys
 	 * @selectFields.docdefault      []
 	 * @filter.docdefault            {}
 	 * @filterParams.docdefault      {}
@@ -199,6 +201,8 @@ component displayName="Preside Object Service" {
 		,          struct  tenantIds               = {}
 		,          array   bypassTenants           = []
 		,          array   ignoreDefaultFilters    = []
+		,          string  returntype              = "query"
+		,          string  columnKey               = ""
 	) autodoc=true {
 		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
@@ -228,6 +232,11 @@ component displayName="Preside Object Service" {
 
 		var objMeta = _getObject( args.objectName ).meta;
 		var adapter = _getAdapter( objMeta.dsn );
+		var sqlRunnerReturnType = "recordset";
+
+		if ( !arguments.recordCountOnly && ( arguments.returnType == "array" || arguments.returnType == "struct" ) ) {
+			sqlRunnerReturnType = arguments.returnType;
+		}
 
 		args.selectFields   = expandHavingClauses( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
@@ -271,9 +280,11 @@ component displayName="Preside Object Service" {
 				);
 			} else {
 				args.result = _runSql(
-					  sql    = versionTablePrep.sql
-					, dsn    = versionTablePrep.dsn
-					, params = versionTablePrep.params
+					  sql        = versionTablePrep.sql
+					, dsn        = versionTablePrep.dsn
+					, params     = versionTablePrep.params
+					, returntype = sqlRunnerReturnType
+					, columnKey  = args.columnKey
 				);
 
 				if ( arguments.recordCountOnly ) {
@@ -311,7 +322,13 @@ component displayName="Preside Object Service" {
 					, prefix = arguments.sqlAndParamsPrefix
 				);
 			}
-			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
+			args.result = _runSql(
+				  sql        = sql
+				, dsn        = args.objMeta.dsn
+				, params     = args.preparedFilter.params
+				, returntype = sqlRunnerReturnType
+				, columnKey  = args.columnKey
+			);
 			if ( arguments.recordCountOnly ) {
 				args.result = Val( args.result.record_count ?: "" );
 			}
