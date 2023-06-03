@@ -334,17 +334,17 @@ component displayName="Preside Object Service" {
 			}
 		}
 
+		if ( arguments.returnType == "arrayOfValues" && IsQuery( args.result ) ) {
+			args.result = QueryColumnData( args.result, arguments.columnKey );
+		} else if ( arguments.returnType == "singleValue" && IsQuery( args.result ) ) {
+			args.result = args.result[ arguments.columnKey ][ 1 ] ?: "";
+		}
+
 		if ( args.useCache ) {
 			_getDefaultQueryCache( args.objectName ).set( args.cacheKey, args.result );
 		}
 
 		_announceInterception( "postSelectObjectData", args );
-
-		if ( arguments.returnType == "arrayOfValues" && IsQuery( args.result ) ) {
-			return QueryColumnData( args.result, arguments.columnKey );
-		} else if ( arguments.returnType == "singleValue" && IsQuery( args.result ) ) {
-			return args.result[ arguments.columnKey ][ 1 ] ?: "";
-		}
 
 		return args.result;
 	}
