@@ -3863,6 +3863,10 @@ component extends="preside.system.base.AdminHandler" {
 			, maxRows        = 0
 		};
 
+		if ( !Len( parent ) ) {
+			ArrayAppend( getRecordsArgs.gridFields, args.hiddenGridFields ?: [], true );
+		}
+
 		customizationService.runCustomization(
 			  objectName = objectName
 			, action     = "preFetchRecordsForGridListing"
