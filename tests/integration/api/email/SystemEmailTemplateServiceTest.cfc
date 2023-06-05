@@ -30,6 +30,36 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.listTemplates() ).toBe( expected );
 			} );
 
+			it( "should return an array of templates from a specific group if the group arguments is provided", function(){
+				var service       = _getService();
+				var templates     = _getDefaultConfiguredTemplates();
+				var expected      = [];
+				var specificGroup = "presideadmin";
+
+				for( var templateId in StructKeyArray( templates ) ) {
+					var template = {
+						  id            = templateId
+						, group         = templates[ templateId ].group ?: "unclassified"
+						, allowVariants = templates[ templateId ].allowVariants ?: false
+						, title         = "Template #templateId#"
+						, description   = "This is the template: #templateId#"
+					};
+
+					service.$( "$translateResource" ).$args( uri="email.template.#templateId#:title"      , defaultValue=templateId ).$results( template.title );
+					service.$( "$translateResource" ).$args( uri="email.template.#templateId#:description", defaultValue=""         ).$results( template.description );
+
+					if ( template.group==specificGroup ) {
+						expected.append( template );
+					}
+				}
+
+				expected.sort( function( a, b ){
+					return a.title > b.title ? 1 : -1;
+				} );
+
+				expect( service.listTemplates( specificGroup ) ).toBe( expected );
+			} );
+
 			it( "should not list templates who are associated with disabled features", function(){
 				var service   = _getService( enabledFeatures=[ "cms" ], disabledFeatures=[ "websiteUsers" ] );
 				var templates = _getDefaultConfiguredTemplates();

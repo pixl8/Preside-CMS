@@ -26,20 +26,23 @@ component {
 	 * @autodoc
 	 *
 	 */
-	public array function listTemplates() {
+	public array function listTemplates( string group="" ) {
 		var allTemplates = _getConfiguredTemplates();
 		var templateIds  = StructKeyArray( allTemplates );
 		var templates    = [];
 
 		for( var templateId in templateIds ) {
-			var template = allTemplates[ templateId ];
-			ArrayAppend( templates, {
-				  id            = templateId
-				, group         = template.group ?: "unclassified"
-				, allowVariants = $helpers.isTrue( template.allowVariants ?: "" )
-				, title         = $translateResource( uri="email.template.#templateId#:title"      , defaultValue=templateId )
-				, description   = $translateResource( uri="email.template.#templateId#:description", defaultValue=""         )
-			});
+			var template      = allTemplates[ templateId ];
+			var templateGroup = template.group ?: "unclassified";
+			if ( !Len( arguments.group ) || arguments.group==templateGroup ) {
+				ArrayAppend( templates, {
+					  id            = templateId
+					, group         = templateGroup
+					, allowVariants = $helpers.isTrue( template.allowVariants ?: "" )
+					, title         = $translateResource( uri="email.template.#templateId#:title"      , defaultValue=templateId )
+					, description   = $translateResource( uri="email.template.#templateId#:description", defaultValue=""         )
+				});
+			}
 		}
 
 		ArraySort( templates, function( a, b ){
