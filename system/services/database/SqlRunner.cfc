@@ -15,7 +15,8 @@ component singleton=true {
 		  required string sql
 		, required string dsn
 		,          array  params
-		,          string returntype="recordset"
+		,          string returntype = "recordset"
+		,          string columnKey  = ""
 	) output=false {
 		var result = "";
 		var params = {};
@@ -28,6 +29,11 @@ component singleton=true {
 		if ( arguments.returntype == "info" ) {
 			var info = "";
 			options.result = "info";
+		} else if ( arguments.returntype == "array" ) {
+			options.returntype = "array";
+		} else if ( arguments.returntype == "struct" ) {
+			options.returntype = "struct";
+			options.columnKey  = arguments.columnKey;
 		}
 
 		if ( StructKeyExists( arguments, "params" ) ) {
