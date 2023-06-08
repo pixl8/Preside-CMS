@@ -82,7 +82,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return {};
 	}
 
-	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true ) {
+	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true, boolean includeProtocol=true ) {
 		var prc       = getRequestContext().getCollection( private=true );
 		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
@@ -97,7 +97,11 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			domain = cgi.server_name;
 		}
 
-		var siteUrl = protocol & "://" & domain;
+		var siteUrl = domain;
+
+		if ( arguments.includeProtocol ) {
+			siteUrl = protocol & "://" & domain;
+		}
 
 		prc.delete( "_forceDomainLookup" );
 
