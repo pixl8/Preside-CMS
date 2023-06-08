@@ -4,7 +4,7 @@ component {
 		required string resetToken
 	) {
 		return {
-			  site_url            = event.getSite().domain
+			  site_url            = event.getSiteUrl()
 			, reset_password_link = event.buildLink(
 				  page        = "reset_password"
 				, querystring = "token=" & ( arguments.resetToken ?: "" )
@@ -14,8 +14,8 @@ component {
 
 	private struct function getPreviewParameters() {
 		return {
-			  site_url            = event.getSite().domain
-			, reset_password_link = event.getSite().protocol & "://" & event.getSite().domain & "/dummy/reset/passwordlink/"
+			  site_url            = event.getSiteUrl()
+			, reset_password_link = event.getSiteUrl() & "/dummy/reset/passwordlink/"
 		};
 	}
 
