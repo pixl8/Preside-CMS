@@ -8,7 +8,9 @@
  * @datamanagerEnabled          true
  */
 component extends="preside.system.base.SystemPresideObject" {
-	property name="email_template" relationship="many-to-one" relatedto="email_template" required=false indexes="template_sent|1,template_opened|1,template_failed|1,template_delivered|1,template_hard_bounced|1,template_marked_as_spam|1,template_unsubscribed|1,template_click_count|1";
+	property name="email_template"  relationship="many-to-one" relatedto="email_template" required=false indexes="template_sent|1,template_opened|1,template_failed|1,template_delivered|1,template_hard_bounced|1,template_marked_as_spam|1,template_unsubscribed|1,template_click_count|1";
+	property name="layout_override" type="string" dbtype="varchar" maxlength=200 required=false;
+	property name="custom_layout"   type="string" dbtype="varchar" maxlength=200 required=false;
 
 	property name="website_user_recipient"  relationship="many-to-one" relatedto="website_user"  required=false;
 	property name="security_user_recipient" relationship="many-to-one" relatedto="security_user" required=false;

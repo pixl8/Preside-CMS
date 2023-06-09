@@ -82,6 +82,8 @@ component {
 		,          boolean isPreview         = false
 		,          numeric version           = 0
 		,          boolean useDefaultContent = false
+		,          string  layout            = ""
+		,          string  customLayout      = ""
 	) {
 		$announceInterception( "prePrepareEmailMessage", arguments );
 
@@ -145,10 +147,11 @@ component {
 			}
 
 			message.textBody = _getEmailLayoutService().renderLayout(
-				  layout         = messageTemplate.layout
+				  layout         = Len( arguments.layout ) ? arguments.layout : messageTemplate.layout
 				, emailTemplate  = arguments.template
 				, templateDetail = messageTemplate
 				, blueprint      = messageTemplate.email_blueprint
+				, customLayout   = arguments.customLayout
 				, type           = "text"
 				, subject        = message.subject
 				, body           = messageTemplate.text_body
@@ -1481,10 +1484,11 @@ component {
 		}
 
 		var htmlArgs = {
-			  layout          = arguments.messageTemplate.layout
+			  layout          = Len( arguments.layout ) ? arguments.layout : arguments.messageTemplate.layout
 			, emailTemplate   = arguments.template
 			, templateDetail  = arguments.messageTemplate
 			, blueprint       = arguments.messageTemplate.email_blueprint
+			, customLayout    = arguments.customLayout ?: ""
 			, type            = "html"
 			, subject         = arguments.message.subject
 			, body            = arguments.messageTemplate.html_body
