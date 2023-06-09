@@ -3,7 +3,7 @@
 	inputId      = args.id            ?: "";
 	inputClass   = args.class         ?: "";
 	defaultValue = args.defaultValue  ?: "";
-	labels       = args.checkboxLabel ?: "";
+	labels       = translateResource( args.checkboxLabel ?: "", args.checkboxLabel ?: "" );
 	value        = event.getValue( name=inputName, defaultValue=defaultValue );
 	checked      = isTrue( value );
 
