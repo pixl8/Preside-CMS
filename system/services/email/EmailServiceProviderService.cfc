@@ -344,10 +344,10 @@ component {
 		var templateId    = sendArgs.args.template ?: "";
 		var recipientType = "";
 
-		if ( templateId.len() ) {
+		if ( Len( templateId ) ) {
 			var template = _getEmailTemplateService().getTemplate( templateId );
 
-			if ( template.count() ) {
+			if ( StructCount( template ) ) {
 				recipientType = template.recipient_type ?: "";
 			} else {
 				templateId = "";
@@ -355,14 +355,16 @@ component {
 		}
 
 		return _getEmailLoggingService().createEmailLog(
-			  template      = templateId
-			, recipientType = recipientType
-			, recipientId   = sendArgs.recipientId ?: ""
-			, recipient     = ( sendArgs.to[ 1 ]   ?: "" )
-			, sender        = ( sendArgs.from      ?: "" )
-			, subject       = ( sendArgs.subject   ?: "" )
-			, resendOf      = ( sendArgs.resendOf  ?: "" )
-			, sendArgs      = ( sendArgs.args      ?: {} )
+			  template       = templateId
+			, recipientType  = recipientType
+			, recipientId    = sendArgs.recipientId  ?: ""
+			, recipient      = sendArgs.to[ 1 ]      ?: ""
+			, sender         = sendArgs.from         ?: ""
+			, subject        = sendArgs.subject      ?: ""
+			, resendOf       = sendArgs.resendOf     ?: ""
+			, sendArgs       = sendArgs.args         ?: {}
+			, layoutOverride = sendArgs.layout       ?: ""
+			, customLayout   = sendArgs.customLayout ?: ""
 		);
 	}
 

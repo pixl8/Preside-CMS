@@ -283,9 +283,10 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !prc.template.count() || !systemEmailTemplateService.allowVariants( templateId ) ) {
 			event.notFound();
 		}
-		prc.formName         = "preside-objects.email_template.system.admin.add.variant";
-		prc.addVariantAction = event.buildAdminLink( linkto="emailcenter.systemtemplates.addVariantAction" );
-		prc.cancelAction     = event.buildAdminLink( linkto="emailcenter.systemtemplates.variants", queryString="template=#templateId#" );
+		prc.formName           = "preside-objects.email_template.system.admin.add.variant";
+		prc.addVariantAction   = event.buildAdminLink( linkto="emailcenter.systemtemplates.addVariantAction" );
+		prc.cancelAction       = event.buildAdminLink( linkto="emailcenter.systemtemplates.variants", queryString="template=#templateId#" );
+		prc.variantPlaceholder = translateResource( uri="preside-objects.email_template:field.name.placeholder.variant", data=[ prc.template.name ] );
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.addVariant.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.addVariant.page.subtitle", data=[ prc.template.name ] );
@@ -319,11 +320,11 @@ component extends="preside.system.base.AdminHandler" {
 			var variantId = systemEmailTemplateService.addVariant( variantOf=templateId, name=( formData.name ?: "" ) );
 
 			if ( Len( variantId ) ) {
-				messagebox.info( translateResource( "cms:emailcenter.systemTemplates.variant.create.confirmation" ) );
+				messagebox.info( translateResource( "cms:emailcenter.systemTemplates.addVariant.confirmation" ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#variantId#" ) );
 			}
 
-			messagebox.error( translateResource( "cms:emailcenter.systemTemplates.variant.create.failed" ) );
+			messagebox.error( translateResource( "cms:emailcenter.systemTemplates.addVariant.failed" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.variants", queryString="template=#variantId#" ) );
 		}
 

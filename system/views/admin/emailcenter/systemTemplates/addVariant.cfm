@@ -4,6 +4,7 @@
 	addVariantAction   = prc.addVariantAction     ?: "";
 	cancelAction       = prc.cancelAction         ?: "";
 	formId             = "add-system-email-variant";
+	variantPlaceholder = prc.variantPlaceholder   ?: "";
 </cfscript>
 
 <cfsavecontent variable="body">
@@ -18,6 +19,7 @@
 						, context           = "admin"
 						, formId            = formId
 						, validationResult  = rc.validationResult ?: ""
+						, additionalArgs    = { fields={ name={ placeholder=variantPlaceholder } } }
 					)#
 
 					<div class="form-actions row">
