@@ -14,7 +14,7 @@ component extends="preside.system.base.AdminHandler" {
 				configCat = "default";
 			}
 			
-			var defaultTypes = [ "email", "sitetreelink", "url", "asset", "anchor" ];
+			var defaultTypes = [ "sitetreelink", "url", "email", "asset", "anchor" ];
 			switch ( action ) {
 				case "quickAddForm"  :
 				case "quickEditForm" :
