@@ -14,16 +14,15 @@ component extends="preside.system.base.AdminHandler" {
 				configCat = "default";
 			}
 			
-			var linkTypes = linkPickerConfig[ configCat ].types ?: [ "sitetreelink", "url", "email", "asset", "anchor" ];
-
+			var defaultTypes = [ "email", "sitetreelink", "url", "asset", "anchor" ];
 			switch ( action ) {
 				case "quickAddForm"  :
 				case "quickEditForm" :
-					linkTypes = [  "email", "sitetreelink", "url", "asset"  ];
+					defaultTypes = [  "email", "sitetreelink", "url", "asset"  ];
 					break;
 			}
 
-			prc.linkTypes = linkTypes;
+			prc.linkTypes = linkPickerConfig[ configCat ].types ?: defaultTypes;
 		}
 	}
 
