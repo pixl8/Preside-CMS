@@ -64,7 +64,7 @@ component extends="preside.system.base.AdminHandler" {
 		var allowedOps       = datamanagerService.getAllowedOperationsForObject( objectName );
 		var disallowedOps    = presideObjectService.getObjectAttribute( attributeName="datamanagerDisallowedOperations", objectName=objectName );
 		var permissionBase   = customizationService.runCustomization(
-			  objectName    = objectName
+			  objectName    = ""
 			, action        = "getPermissionBaseFromObjectName"
 			, defaultResult = objectName
 			, args          = { objectName=objectName }
