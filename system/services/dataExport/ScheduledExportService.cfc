@@ -77,7 +77,7 @@ component {
 	}
 
 	public struct function getExportDetail( required string exportId ) {
-		var detail = $getPresideObject( "saved_export" ).selectData( id=arguments.exportId );
+		var detail = $getPresideObject( "saved_export" ).selectData( id=arguments.exportId, useCache=false );
 
 		return !isEmpty( detail ) ? queryGetRow( detail, 1 ) : {};
 	}
@@ -145,15 +145,17 @@ component {
 
 		try {
 			lock name=lockName type="exclusive" timeout=1 {
-				var newThreadId = "PresideExportScheduledExport-" & arguments.scheduledExportId & "-" & CreateUUId();
-				var newLogId    = createExportHistoryLog( arguments.scheduledExportId, newThreadId );
+				var newThreadId = "PresideExportScheduledExport-" & arguments.scheduledExportId & "-" & hash( exportDetail.last_ran ?: "" );
 
-				transaction {
-					if ( exportIsRunning( arguments.scheduledExportId ) ) {
-						return;
-					}
+				if ( exportIsRunning( arguments.scheduledExportId ) ) {
+					return;
+				}
 
-					markExportAsRunning( arguments.scheduledExportId, newThreadId );
+				markExportAsRunning( arguments.scheduledExportId, newThreadId );
+
+				var newLogId = createExportHistoryLog( arguments.scheduledExportId, newThreadId );
+				if ( !len( trim( newLogId ) ) ) {
+					return;
 				}
 
 				markExportAsStarted( arguments.scheduledExportId );
@@ -255,7 +257,16 @@ component {
 		  required string exportId
 		, required string threadId
 	) {
-		var exporter = getExportDetail( arguments.exportId ).exporter ?: "";
+		var exporter       = getExportDetail( arguments.exportId ).exporter ?: "";
+		var threadLogExist = $getPresideObject( "saved_export_history" ).dataExists( useCache=false, filter={
+			  saved_export = arguments.exportId
+			, thread_id    = arguments.threadId
+			, exporter     = exporter
+		} );
+
+		if ( threadLogExist ) {
+			return "";
+		}
 
 		return $getPresideObject( "saved_export_history" ).insertData( data={
 			  saved_export = arguments.exportId
@@ -281,15 +292,12 @@ component {
 	}
 
 	public boolean function exportIsRunning( required string exportId ) {
-		transaction {
-			var markedAsRunning = $getPresideObject( "saved_export" ).dataExists( filter = { id=arguments.exportId, is_running=true } );
-
-			if ( markedAsRunning && !exportThreadIsRunning( arguments.exportId ) ) {
-				return false;
-			}
-
-			return markedAsRunning;
+		var markedAsRunning = $getPresideObject( "saved_export" ).dataExists( filter = { id=arguments.exportId, is_running=true } );
+		if ( markedAsRunning && !exportThreadIsRunning( arguments.exportId ) ) {
+			return false;
 		}
+
+		return markedAsRunning;
 	}
 
 	public boolean function exportThreadIsRunning( required string exportId ) {
@@ -302,7 +310,7 @@ component {
 			return false;
 		}
 
-		if ( export.running_machine != _getMachineId() ) {
+		if ( len( trim( export.running_machine ?: "" ) ) ) {
 			return true;
 		}
 
