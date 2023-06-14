@@ -311,7 +311,7 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	private void function _announceInterception() {
-	    return variables.controller.getInterceptorService().processState( argumentCollection=arguments );
+		variables.controller.getInterceptorService().processState( argumentCollection=arguments );
 	}
 
 // COLDBOX patches
