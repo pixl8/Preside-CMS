@@ -284,6 +284,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preGetObjectRecordsForAjaxSelectControlSelect" );
 		interceptorSettings.customInterceptionPoints.append( "preRulesForField"                      );
 		interceptorSettings.customInterceptionPoints.append( "postRulesForField"                     );
+		interceptorSettings.customInterceptionPoints.append( "preRenderDataManagerObjectInfoCard"    );
+		interceptorSettings.customInterceptionPoints.append( "preRenderDataManagerObjectTabs"        );
 	}
 
 	private void function __setupCachebox() {
