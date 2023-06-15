@@ -1276,7 +1276,7 @@ component {
 	 * by template ID
 	 *
 	 * @autodoc         true
-	 * @templateId.hint Optioanl id of the template who's queued emails you wish to clear. If not provided, all queued emails will be cleared
+	 * @templateId.hint Optioanl id of the template whose queued emails you wish to clear. If not provided, all queued emails will be cleared
 	 */
 	public numeric function clearQueue( string templateId="" ) {
 		var filter = {};
