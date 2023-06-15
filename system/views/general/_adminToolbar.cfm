@@ -93,7 +93,7 @@
 							</ul>
 						</div>
 					</cfif>
-					<div class="navbar-header pull-right mobile-trigger">
+					<div class="navbar-header pull-right">
 						<ul class="nav ace-nav">
 							<cfif event.isWebUserImpersonated()>
 								<li>
