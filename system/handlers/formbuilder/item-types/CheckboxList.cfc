@@ -13,6 +13,7 @@ component {
 			, required           = IsTrue( args.mandatory ?: "" )
 			, values             = ListToArray( args.values ?: "", Chr(10) & Chr(13) )
 			, labels             = ListToArray( args.labels ?: "", Chr(10) & Chr(13) )
+			, defaultValue       = ListChangeDelims( args.defaultvalue ?: "", ",", Chr(10) & Chr(13) )
 		);
 	}
 

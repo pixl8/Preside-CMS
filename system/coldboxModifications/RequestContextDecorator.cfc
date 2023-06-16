@@ -428,11 +428,17 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return getModel( "AuditService" ).log( argumentCollection = arguments );
 	}
 
-	public void function addAdminBreadCrumb( required string title, required string link ) {
+	public void function addAdminBreadCrumb( required string title, required string link, numeric position ) {
 		var event  = getRequestContext();
 		var crumbs = event.getValue( name="_adminBreadCrumbs", defaultValue=[], private=true );
+		var crumb  = { title=arguments.title, link=arguments.link };
 
-		ArrayAppend( crumbs, { title=arguments.title, link=arguments.link } );
+		if ( StructKeyExists( arguments, "position" ) ) {
+			var pos = _getBreadcrumbInsertPosition( crumbs, arguments.position );
+			ArrayInsertAt( crumbs, pos, crumb );
+		} else {
+			ArrayAppend( crumbs, crumb );
+		}
 
 		event.setValue( name="_adminBreadCrumbs", value=crumbs, private=true );
 	}
@@ -941,14 +947,20 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return getPageProperty( "permissionContext", [] );
 	}
 
-	public void function addBreadCrumb( required string title, required string link, string menuTitle="" ) {
+	public void function addBreadCrumb( required string title, required string link, string menuTitle="", numeric position ) {
 		var crumbs = getBreadCrumbs();
-
-		ArrayAppend( crumbs, {
+		var crumb  = {
 			  title     = arguments.title
 			, link      = arguments.link
 			, menuTitle = arguments.menuTitle.len() ? arguments.menuTitle : arguments.title
-		} );
+		}
+
+		if ( StructKeyExists( arguments, "position" ) ) {
+			var pos = _getBreadcrumbInsertPosition( crumbs, arguments.position );
+			ArrayInsertAt( crumbs, pos, crumb );
+		} else {
+			ArrayAppend( crumbs, crumb );
+		}
 
 		getRequestContext().setValue( name="_breadCrumbs", value=crumbs, private=true );
 	}
@@ -1212,5 +1224,18 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		}
 
 		return qs;
+	}
+
+	private numeric function _getBreadcrumbInsertPosition( required array crumbs, required numeric position ) {
+		var crumbLen = ArrayLen( arguments.crumbs );
+		var pos      = Int( arguments.position );
+		if ( pos > crumbLen ) {
+			pos = crumbLen + 1;
+		} else if ( pos < 0 ) {
+			pos = crumbLen + pos + 1;
+		}
+		pos = Max( pos, 1 );
+
+		return pos;
 	}
 }

@@ -101,6 +101,7 @@ component {
 		, required string action
 		,          struct args = {}
 		,          string defaultHandler = ""
+		,          any    defaultResult
 	) {
 		var event = "";
 
@@ -121,6 +122,10 @@ component {
 				, prePostExempt  = true
 				, eventArguments = { args=arguments.args }
 			);
+		}
+
+		if ( StructKeyExists( arguments, "defaultResult" ) ) {
+			return arguments.defaultResult;
 		}
 	}
 

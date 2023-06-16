@@ -62,3 +62,24 @@
 <cffunction name="deObfuscateSql" access="public" returntype="any" output="false"><cfsilent>
 	<cfreturn getSingleton( "sqlRunner" ).deObfuscateSql( argumentCollection=arguments ) />
 </cfsilent></cffunction>
+
+<cffunction name="getObjectFieldColumnName" access="public" returntype="any" output="false">
+	<cfargument name="objectName" type="string" required="true" />
+	<cfargument name="fieldName"  type="string" required="true" /><cfsilent>
+
+	<cfscript>
+		var obj     = getSingleton( "presideObjectService" ).getObject( objectName=arguments.objectName );
+		var objCols = valueArray( getSingleton( "dbInfoService" ).getTableColumns( tableName=obj.getTablename(), dsn=obj.getDsn() ), "column_name" );
+
+		if ( arrayFindNoCase( objCols, arguments.fieldName ) ) {
+			return arguments.fieldName;
+		}
+
+		var deprecatedName = "__deprecated__" & arguments.fieldName;
+		if ( arrayFindNoCase( objCols, deprecatedName ) ) {
+			return deprecatedName;
+		}
+
+		return "";
+	</cfscript>
+</cfsilent></cffunction>

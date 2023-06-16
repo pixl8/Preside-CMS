@@ -46,14 +46,18 @@ component {
 		, required string subject
 		,          string resendOf = ""
 		,          struct sendArgs = {}
+		,          string layoutOverride = ""
+		,          string customLayout   = ""
 	) {
 		var data = {
-			  email_template = arguments.template
-			, recipient      = arguments.recipient
-			, sender         = arguments.sender
-			, subject        = arguments.subject
-			, resend_of      = arguments.resendOf
-			, send_args      = SerializeJson( arguments.sendArgs )
+			  email_template  = arguments.template
+			, recipient       = arguments.recipient
+			, sender          = arguments.sender
+			, subject         = arguments.subject
+			, resend_of       = arguments.resendOf
+			, send_args       = SerializeJson( arguments.sendArgs )
+			, layout_override = arguments.layoutOverride
+			, custom_layout   = arguments.customLayout
 		};
 
 		if ( Len( Trim( arguments.recipientType ) ) ) {
@@ -365,6 +369,8 @@ component {
 		    , resendOf              = message.id
 		    , returnLogId           = true
 		    , overwriteTemplateArgs = true
+			, layout                = message.layout_override
+			, customLayout          = message.custom_layout
 		);
 
 		$audit(
@@ -395,12 +401,14 @@ component {
 		var originalArgs           = deserializeJson( message.send_args );
 		var sendArgs               = _getEmailTemplateService().rebuildArgsForResend( template=message.email_template, logId=id, originalArgs=originalArgs );
 		var resentMessageId        = $sendEmail(
-		      template    = message.email_template
-		    , recipientId = message[ recipientIdLogProperty ] ?: ""
-		    , to          = !len( message[ recipientIdLogProperty ] ?: "" ) ? [ message.recipient ] : []
-		    , args        = sendArgs
-		    , resendOf    = message.id
-		    , returnLogId = true
+			  template     = message.email_template
+			, recipientId  = message[ recipientIdLogProperty ] ?: ""
+			, to           = !len( message[ recipientIdLogProperty ] ?: "" ) ? [ message.recipient ] : []
+			, args         = sendArgs
+			, resendOf     = message.id
+			, returnLogId  = true
+			, layout       = message.layout_override
+			, customLayout = message.custom_layout
 		);
 
 		$audit(

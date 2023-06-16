@@ -24,6 +24,7 @@ component {
 	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
 	property name="validationEngine"              inject="validationEngine";
 	property name="systemAlertsService"           inject="systemAlertsService";
+	property name="systemEmailTemplateService"    inject="systemEmailTemplateService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -35,6 +36,7 @@ component {
 		_setupValidators();
 		_performDbMigrations();
 		systemAlertsService.runStartupChecks();
+		systemEmailTemplateService.applicationStart();
 
 		announceInterception( "onApplicationStart" );
 	}
