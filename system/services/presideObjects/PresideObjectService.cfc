@@ -161,7 +161,7 @@ component displayName="Preside Object Service" {
 	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
 	 * @tenantIds.hint               Struct of tenant IDs. Keys of the struct indicate the tenant, values indicate the ID. e.g. `{ site=specificSiteId }`. These values will override the current active tenant for the request.
 	 * @bypassTenants.hint           Array of tenants to bypass. e.g. [ "site" ] to bypass site tenancy. See [[data-tenancy]] for more information on tenancy.
-	 * @returntype.hint              Either query (default),array,struct,arrayOfValues or singleValue. Array and struct correspond to https://docs.lucee.org/reference/tags/query.html#attribute-returntype. ArrayOfValues return column array of the specified column in columnKey. SingleValue returns first result value of the specified column.
+	 * @returntype.hint              Either query (default),array,struct,arrayOfValues,singleRecordStruct or singleValue. Array and struct correspond to https://docs.lucee.org/reference/tags/query.html#attribute-returntype. ArrayOfValues return column array of the specified column in columnKey. SingleRecordStruct returns the first record in the result as a struct. SingleValue returns first result value of the specified column.
 	 * @columnKey.hint               When returntype="struct", "arrayOfValues" or "singleValue", this field is required to define the column that will be used for struct keys/values/value
 	 * @selectFields.docdefault      []
 	 * @filter.docdefault            {}
@@ -234,8 +234,13 @@ component displayName="Preside Object Service" {
 		var adapter = _getAdapter( objMeta.dsn );
 		var sqlRunnerReturnType = "recordset";
 
-		if ( !arguments.recordCountOnly && ( arguments.returnType == "array" || arguments.returnType == "struct" ) ) {
-			sqlRunnerReturnType = arguments.returnType;
+		if ( !arguments.recordCountOnly ) {
+			if ( arguments.returnType == "array" || arguments.returnType == "struct" ) {
+				sqlRunnerReturnType = arguments.returnType;
+			} else if ( arguments.returnType == "singleRecordStruct" ) {
+				args.maxRows = 1;
+				sqlRunnerReturnType = "array";
+			}
 		}
 
 		args.selectFields   = expandHavingClauses( argumentCollection=args );
@@ -338,6 +343,12 @@ component displayName="Preside Object Service" {
 			args.result = QueryColumnData( args.result, arguments.columnKey );
 		} else if ( arguments.returnType == "singleValue" && IsQuery( args.result ) ) {
 			args.result = args.result[ arguments.columnKey ][ 1 ] ?: "";
+		} else if ( arguments.returnType == "singleRecordStruct" ) {
+			if ( IsArray( args.result ) && ArrayLen( args.result ) >= 1 ) {
+				args.result = args.result[ 1 ];
+			} else {
+				args.result = {};
+			}
 		}
 
 		if ( args.useCache ) {
