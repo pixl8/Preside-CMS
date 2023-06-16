@@ -45,7 +45,7 @@ jobs:
         with:
           boxjson_dir: /tests
           test_dir: /tests
-          test_server_json: /tests/server-presidetests.json
+          test_server_json: /tests/server.json
           output_file: /tests/test-results.txt
           verbose: false
         env:
