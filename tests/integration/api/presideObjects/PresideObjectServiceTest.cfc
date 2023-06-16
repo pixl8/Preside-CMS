@@ -3806,6 +3806,56 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test109_selectData_shouldSupportSingleRecordStructReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id", "label" ]
+				, id           = eId[5]
+				, objectName   = "object_e"
+				, returntype   = "singleRecordStruct"
+			);
+
+			super.assertEquals( { id=eId[5], label="label 5" }, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test110_selectData_shouldReturnEmptyStructWhenSingleRecordStructReturnTypeAndNoResults" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id", "label" ]
+				, id           = "nonexistantrecord"
+				, objectName   = "object_e"
+				, returntype   = "singleRecordStruct"
+			);
+
+			super.assertEquals( {}, result );
+		</cfscript>
+	</cffunction>
+
 
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">

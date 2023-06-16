@@ -1,2 +1,2 @@
 #!/bin/bash
-box start serverConfigFile=./server-presidetests.json
+box start serverConfigFile=./server.json
