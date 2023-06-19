@@ -5,17 +5,19 @@
 	defaultValue = args.defaultValue ?: "";
 	permissions  = args.permissions  ?: ArrayNew(1);
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
 	<cfloop array="#permissions#" index="perm">
 		<div class="checkbox role-picker-checkbox">
 			<label>
-				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#perm.id#" type="checkbox" value="#perm.id#"<cfif ListFindNoCase( value, perm.id )> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
+				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#perm.id#" type="checkbox" value="#perm.id#"<cfif ListFindNoCase( value, perm.id )> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# />
 				<span class="lbl">
 					<span class="role-title bigger">#perm.title#</span><br />
 					<span class="role-desc">#perm.description#</span>

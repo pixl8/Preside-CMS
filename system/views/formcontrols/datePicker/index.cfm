@@ -12,7 +12,7 @@
 	language         = event.isAdminRequest() ? getModel( "i18n" ).getFWLanguageCode() : ListFirst( event.getLanguageCode(), "-" );
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 	if ( IsDate( value ) ) {
@@ -27,11 +27,13 @@
 	if ( IsDate( maxDate ) ) {
 		endDate = dateFormat( maxDate ,"yyyy-mm-dd" );
 	}
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
 	<span class="block input-icon input-icon-right">
-		<input name="#inputName#" placeholder="#placeholder#" class="#inputClass# form-control #datePickerClass#" id="#inputId#" type="text" data-relative-to-field="#relativeToField#" data-relative-operator="#relativeOperator#" data-date-format="yyyy-mm-dd" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#"<cfif Len( Trim( startDate ) )> data-start-date="#startDate#"</cfif><cfif Len( Trim( endDate ) )> data-end-date="#endDate#"</cfif> autocomplete="off" data-language="#language#" />
+		<input name="#inputName#" placeholder="#placeholder#" class="#inputClass# form-control #datePickerClass#" id="#inputId#" type="text" data-relative-to-field="#relativeToField#" data-relative-operator="#relativeOperator#" data-date-format="yyyy-mm-dd" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#"<cfif Len( Trim( startDate ) )> data-start-date="#startDate#"</cfif><cfif Len( Trim( endDate ) )> data-end-date="#endDate#"</cfif> autocomplete="off" data-language="#language#" #htmlAttributes# />
 		<i class="fa fa-calendar"></i>
 	</span>
 </cfoutput>

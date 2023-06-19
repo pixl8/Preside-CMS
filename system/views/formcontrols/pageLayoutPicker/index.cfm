@@ -6,14 +6,16 @@
 	defaultValue = args.defaultValue ?: "";
 	layouts      = args.layouts    ?: ArrayNew(1);
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) || value == "" ) {
 		value = "index";
 	}
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
-	<select class="#inputClass# object-picker" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
+	<select class="#inputClass# object-picker" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#" #htmlAttributes#>
 		<option>#translateResource( "cms:option.pleaseselect", "" )#</option>
 		<cfloop array="#layouts#" index="layout">
 			<option value="#layout.value#"<cfif value eq layout.value> selected="selected"</cfif>>#layout.label#</option>

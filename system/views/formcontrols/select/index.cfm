@@ -20,7 +20,7 @@
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
@@ -34,6 +34,8 @@
 
 	value      = htmlEditFormat( value );
 	valueFound = false;
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
@@ -48,6 +50,7 @@
 		<cfif IsBoolean( multiple ) && multiple>
 			multiple="multiple"
 		</cfif>
+		#htmlAttributes#
 	>
 		<cfif includeEmptyOption>
 			<option value=""></option>

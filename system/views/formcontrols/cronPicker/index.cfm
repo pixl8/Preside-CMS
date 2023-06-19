@@ -4,8 +4,8 @@
 	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
@@ -20,10 +20,12 @@
 			args.fieldValue[ fieldKeys[i] ] = savedFieldValue[i];
 		}
 	}
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
-	<input type="hidden" class="cron-picker #inputClass#" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( value )#">
+	<input type="hidden" class="cron-picker #inputClass#" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( value )#" #htmlAttributes# />
 
 	<cfloop array="#options#" item="option">
 		#renderFormControl(

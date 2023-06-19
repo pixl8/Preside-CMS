@@ -23,6 +23,8 @@
 	value = EncodeForHTML( value );
 
 	icons = args.icons ?: [];
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
@@ -36,6 +38,7 @@
 			data-value="#value#"
 			data-result-template="#resultTemplateId#"
 			data-selected-template="#selectedTemplateId#"
+			#htmlAttributes#
 	>
 		<cfloop item="icon" array="#icons#">
 			<cfset selected=ListFind( value, icon ) />

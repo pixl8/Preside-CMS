@@ -8,8 +8,8 @@
 	isDate         = IsTrue( args.isDate     ?: "" );
 	datePickerType = isDate ? "datePicker" : "dateTimePicker";
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 

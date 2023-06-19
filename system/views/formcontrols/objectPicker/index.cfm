@@ -37,7 +37,7 @@
 	selectedTemplateId      = Len( Trim( selectedTemplate ) )            ? "selected_template_" & CreateUUId() : "";
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
@@ -78,6 +78,8 @@
 	filterByField        = args.filterByField        ?: filterBy;
 	disabledIfUnfiltered = args.disabledIfUnfiltered ?: false;
 	includePlaceholder   = args.includePlaceholder   ?: true;
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
@@ -134,6 +136,7 @@
 				data-super-quick-add-url="#superQuickAddUrl#"
 				data-quick-add-text="#superQuickAddText#"
 			</cfif>
+			#htmlAttributes#
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>
 			<cfif includePlaceholder and !( IsBoolean( multiple ) && multiple )>

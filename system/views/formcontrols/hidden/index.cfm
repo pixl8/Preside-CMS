@@ -4,12 +4,14 @@
 	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
-	<input type="hidden" class="#inputClass#" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( value )#">
+	<input type="hidden" class="#inputClass#" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( value )#" #htmlAttributes# />
 </cfoutput>

@@ -11,8 +11,10 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
-	<input type="text" class="#inputClass# auto-slug form-control" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#HtmlEditFormat( value )#" data-based-on="#basedOn#" data-slug-delimiter="#slugDelimiter#" tabindex="#getNextTabIndex()#">
+	<input type="text" class="#inputClass# auto-slug form-control" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#HtmlEditFormat( value )#" data-based-on="#basedOn#" data-slug-delimiter="#slugDelimiter#" tabindex="#getNextTabIndex()#" #htmlAttributes# />
 </cfoutput>

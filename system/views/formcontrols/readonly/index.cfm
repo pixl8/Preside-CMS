@@ -6,6 +6,8 @@
 	if ( len( renderer ) ) {
 		value = renderContent( renderer, value, rendererContext );
 	}
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
-<cfoutput><span class="read-only">#( HTMLEditFormat( value ) )#</span></cfoutput>
+<cfoutput><span class="read-only" #htmlAttributes#>#( HTMLEditFormat( value ) )#</span></cfoutput>

@@ -9,8 +9,8 @@
 	basedOn      = args.basedOn      ?: "label";
 	parentSlug   = args.parentSlug   ?: "";
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
@@ -18,11 +18,13 @@
 
 	event.include( "/js/admin/specific/siteTreePageSlugEditor/"  )
 	     .include( "/css/admin/specific/siteTreePageSlugEditor/" );
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
 	<input type="hidden" name="parent_slug_ajax" value="#event.buildLink( linkTo="formcontrols.SiteTreePageSlugEditor.getParentPage" )#" disabled />
-	<input type="text" id="#inputId#" name="#inputName#" placeholder="#placeholder#" value="#HtmlEditFormat( value )#" class="#inputClass# slug-editor form-control<cfif autoSlug> auto-slug</cfif>" tabindex="#getNextTabIndex()#"<cfif autoSlug> data-based-on="#basedOn#"</cfif>>
+	<input type="text" id="#inputId#" name="#inputName#" placeholder="#placeholder#" value="#HtmlEditFormat( value )#" class="#inputClass# slug-editor form-control<cfif autoSlug> auto-slug</cfif>" tabindex="#getNextTabIndex()#"<cfif autoSlug> data-based-on="#basedOn#"</cfif> #htmlAttributes# />
 	<p class="text-muted page-url-preview">
 		<span class="parent-slug">#parentSlug#</span><span class="page-slug"></span>.html
 	</p>

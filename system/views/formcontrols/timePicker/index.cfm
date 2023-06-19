@@ -20,19 +20,21 @@
 		defaultMinutes = val( listRest( defaultTime, ":" ) );
 	}
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
 	if ( IsDate( value ) ) {
 		value = datetimeFormat( value, "HH:nn" );
 	}
+
+	htmlAttributes = renderForHTMLAttributes( htmlAttributeNames=( args.htmlAttributeNames ?: "" ), htmlAttributeValues=( args.htmlAttributeValues ?: "" ), htmlAttributePrefix=( args.htmlAttributePrefix ?: "data-" ) );
 </cfscript>
 
 <cfoutput>
 	<span class="block input-icon input-icon-right">
-		<input name="#inputName#" placeholder="#placeholder#" class="form-control #timePickerClass#" id="#inputId#" type="text" data-relative-to-field="#relativeToField#" data-relative-operator="#relativeOperator#" data-time-format="" value="#HtmlEditFormat( value )#" autocomplete="off" tabindex="#getNextTabIndex()#" data-default-hour="#defaultHour#" data-default-minutes="#defaultMinutes#" />
+		<input name="#inputName#" placeholder="#placeholder#" class="form-control #timePickerClass#" id="#inputId#" type="text" data-relative-to-field="#relativeToField#" data-relative-operator="#relativeOperator#" data-time-format="" value="#HtmlEditFormat( value )#" autocomplete="off" tabindex="#getNextTabIndex()#" data-default-hour="#defaultHour#" data-default-minutes="#defaultMinutes#" #htmlAttributes# />
 		<i class="fa fa-clock"></i>
 	</span>
 </cfoutput>
