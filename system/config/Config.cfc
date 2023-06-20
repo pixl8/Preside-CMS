@@ -61,13 +61,13 @@ component {
 	}
 
 	private void function __setupMappings() {
-		settings.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
-		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
-		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
+		settings.appMapping    = application.appMapping    = ( request._presideMappings.appMapping ?: "app" ).reReplace( "^/", "" );
+		settings.assetsMapping = application.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
+		settings.logsMapping   = application.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
 
-		settings.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
-		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
-		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
+		settings.appMappingPath    = application.appMappingPath    = Replace( settings.appMapping, "/", ".", "all" );
+		settings.assetsMappingPath = application.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
+		settings.logsMappingPath   = application.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
 	}
 
 	private void function __setupExtensions() {
@@ -80,7 +80,7 @@ component {
 			, "preside-ext-db-perf-enhancements"
 		];
 
-		settings.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
+		settings.activeExtensions = application.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
 			  appMapping       = settings.appMapping
 			, ignoreExtensions = settings.legacyExtensionsNowInCore
 		).listExtensions();
