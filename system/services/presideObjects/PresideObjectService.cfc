@@ -1776,6 +1776,30 @@ component displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Get the datasource for the given object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose DSN you wish to get
+	 */
+	public string function getDsn( required string objectName ) {
+		var obj = _getObject( arguments.objectName );
+
+		return obj.meta.dsn ?: "";
+	}
+
+	/**
+	 * Get the table name for the given object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose table name you wish to get
+	 */
+	public string function getTablename( required string objectName ) {
+		var obj = _getObject( arguments.objectName );
+
+		return obj.meta.tableName ?: arguments.objectname;
+	}
+
+	/**
 	 * Returns the flag field name of the object
 	 *
 	 * @autodoc    true
