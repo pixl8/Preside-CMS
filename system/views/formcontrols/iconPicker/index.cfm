@@ -36,6 +36,7 @@
 			data-value="#value#"
 			data-result-template="#resultTemplateId#"
 			data-selected-template="#selectedTemplateId#"
+			data-display-limit="#ArrayLen( icons )#"
 	>
 		<cfloop item="icon" array="#icons#">
 			<cfset selected=ListFind( value, icon ) />
