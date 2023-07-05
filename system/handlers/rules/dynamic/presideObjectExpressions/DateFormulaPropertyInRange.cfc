@@ -5,7 +5,8 @@
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 
-	property name="presideObjectService" inject="presideObjectService";
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="rulesEngineFilterService" inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
@@ -24,28 +25,29 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		,          struct  _time = {}
 	){
-		var params              = {};
-		var sql                 = "";
-		var delim               = "";
-		var formulaPropertyName = "#arguments.objectName#.#arguments.propertyName#";
+		var suffix  = CreateUUId().lCase().replace( "-", "", "all" )
+		var params  = {};
+		var filter  = "";
+		var delim   = "";
 
 		if ( IsDate( _time.from ?: "" ) ) {
-			var fromParam = "dateFormulaPropertyInRange" & CreateUUId().lCase().replace( "-", "", "all" );
-			sql   = formulaPropertyName & " >= :#fromParam#";
+			var fromParam = "dateFormulaPropertyFrom" & suffix;
+			filter   = "#arguments.propertyName# >= :#fromParam#";
 			params[ fromParam ] = { value=_time.from, type="cf_sql_timestamp" };
 			delim = " and ";
 		}
 		if ( IsDate( _time.to ?: "" ) ) {
-			var toParam = "dateFormulaPropertyInRange" & CreateUUId().lCase().replace( "-", "", "all" );
-			sql   &= delim & formulaPropertyName & " <= :#toParam#";
+			var toParam = "dateFormulaPropertyTo" & suffix;
+			filter   &= delim & "#arguments.propertyName# <= :#toParam#";
 			params[ toParam ] = { value=_time.to, type="cf_sql_timestamp" };
 		}
 
-		if ( Len( Trim( sql ) ) ) {
-			return [ { having=sql, filterParams=params, propertyName=formulaPropertyName } ];
-		}
-
-		return [];
+		return [ rulesEngineFilterService.prepareAutoFormulaFilter(
+			  objectName   = arguments.objectName
+			, propertyName = arguments.propertyName
+			, filter       = filter
+			, filterParams = params
+		) ];
 	}
 
 	private string function getLabel(
