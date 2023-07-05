@@ -42,12 +42,16 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			params[ toParam ] = { value=_time.to, type="cf_sql_timestamp" };
 		}
 
-		return [ rulesEngineFilterService.prepareAutoFormulaFilter(
-			  objectName   = arguments.objectName
-			, propertyName = arguments.propertyName
-			, filter       = filter
-			, filterParams = params
-		) ];
+		if ( Len( filter ) ) {
+			return [ rulesEngineFilterService.prepareAutoFormulaFilter(
+				  objectName   = arguments.objectName
+				, propertyName = arguments.propertyName
+				, filter       = filter
+				, filterParams = params
+			) ];
+		}
+
+		return [];
 	}
 
 	private string function getLabel(
