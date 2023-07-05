@@ -4,7 +4,9 @@
  *
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
-	property name="presideObjectService" inject="presideObjectService";
+
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="rulesEngineFilterService" inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
@@ -25,10 +27,9 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
-		var paramName           = "textFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var formulaPropertyName = "#arguments.objectName#.#propertyName#";
-		var filterSql           = "#formulaPropertyName# ${operator} :#paramName#";
-		var params              = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
+		var paramName = "textFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
+		var filterSql = "#arguments.propertyName# ${operator} :#paramName#";
+		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
 
 		switch ( _stringOperator ) {
 			case "eq":
@@ -63,7 +64,12 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			break;
 		}
 
-		return [ { having=filterSql, filterParams=params, propertyName=formulaPropertyName } ];
+		return [ rulesEngineFilterService.prepareAutoFormulaFilter(
+			  objectName   = arguments.objectName
+			, propertyName = arguments.propertyName
+			, filter       = filterSql
+			, filterParams = params
+		) ];
 	}
 
 	private string function getLabel(
