@@ -549,6 +549,32 @@ component displayName="Rules Engine Filter Service" {
 		return true;
 	}
 
+	public struct function prepareAutoFormulaFilter(
+		  required string objectName
+		, required string propertyName
+		, required string filter
+		, required struct filterParams
+	) {
+		var suffix        = CreateUUId().lCase().replace( "-", "", "all" )
+		var subQueryAlias = "formulaFieldSubquery" & suffix;
+		var idField       = $getPresideObjectService().getIdField( arguments.objectName );
+		var subquery      = $getPresideObjectService().selectData(
+			  objectName          = arguments.objectName
+			, selectFields        = [ idField, arguments.propertyName ]
+			, having              = arguments.filter
+			, filterParams        = arguments.filterParams
+			, autoGroupBy         = true
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
+		var existsSubQuery = "select 1 from (#subQuery.sql#) #subQueryAlias# where #subqueryAlias#.#idField# = #arguments.objectName#.#idField#";
+
+		return {
+			  filter       = "exists (#$obfuscateSqlForPreside( existsSubQuery )#)"
+			, filterParams = subquery.params
+		};
+	}
+
 // PRIVATE HELPERS
 	private struct function _getFilterPermissionFilter() {
 		var adminUserId = $getAdminLoggedInUserId();
