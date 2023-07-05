@@ -5,7 +5,8 @@
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 
-	property name="presideObjectService" inject="presideObjectService";
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="rulesEngineFilterService" inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
@@ -27,16 +28,13 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  enumValue    = ""
 	){
 		var paramName = "enumFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql = "#arguments.propertyName# ${operator} (:#paramName#)";
-		var params    = { "#paramName#"={ value=arguments.enumValue, type="cf_sql_varchar", list=true } };
 
-		if ( _is ) {
-			filterSql = filterSql.replace( "${operator}", "in" );
-		} else {
-			filterSql = filterSql.replace( "${operator}", "not in" );
-		}
-
-		return [ { filterParams=params, having=filterSql, propertyName="#arguments.objectName#.#arguments.propertyName#" } ];
+		return [ rulesEngineFilterService.prepareAutoFormulaFilter(
+			  objectName   = arguments.objectName
+			, propertyName = arguments.propertyName
+			, filter       = "#arguments.propertyName# #( arguments._is ? 'in' : 'not in' )# (:#paramName#)"
+			, filterParams = { "#paramName#"={ value=arguments.enumValue, type="cf_sql_varchar", list=true } }
+		) ];
 	}
 
 	private string function getLabel(
