@@ -209,7 +209,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		var validStatuses  = [ "pending", "requeued" ];
 		var potentialTask  = dao.selectData(
 			  selectFields = [ "id " ]
-			, filter       = "( next_attempt_date < :next_attempt_date or next_attempt_date is null ) and status in (:status)"
+			, filter       = "next_attempt_date < :next_attempt_date and status in (:status)"
 			, filterparams = { next_attempt_date=Now(), status=validStatuses }
 			, maxRows      = 1
 			, orderBy      = "attempt_count,datecreated"
