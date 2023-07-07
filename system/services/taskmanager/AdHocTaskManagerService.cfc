@@ -63,13 +63,22 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          string   resultUrl         = ""
 		,          string   returnUrl         = ""
 	) {
+		var nextAttemptDate = "";
+
+		if ( arguments.runNow ) {
+			var delayInCaseFailsToStart = 30;
+			nextAttemptDate = DateAdd( "s", delayInCaseFailsToStart, _now() );
+		} else if ( arguments.runIn ) {
+			nextAttemptDate = DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() );
+		}
+
 		var taskId = $getPresideObject( "taskmanager_adhoc_task" ).insertData( {
 			  event               = arguments.event
 			, event_args          = SerializeJson( _addRequestStateArgs( arguments.args ) )
 			, admin_owner         = arguments.adminOwner
 			, web_owner           = arguments.webOwner
 			, discard_on_complete = arguments.discardOnComplete
-			, next_attempt_date   = ( arguments.runNow || !Val( arguments.runIn ) ) ? "" : DateAdd( "s", _timespanToSeconds( arguments.runIn ), _now() )
+			, next_attempt_date   = nextAttemptDate
 			, retry_interval      = _serializeRetryInterval( arguments.retryInterval )
 			, title               = arguments.title
 			, title_data          = SerializeJson( arguments.titleData )
@@ -110,7 +119,7 @@ component displayName="Ad-hoc Task Manager Service" {
 				return true;
 			}
 
-			if ( task.status == "running" ) {
+			if ( task.status == "running" || !markTaskAsRunning( taskId=arguments.taskId ) ) {
 				$raiseError( error={
 					  type    = "AdHoTaskManagerService.task.already.running"
 					, message = "Task not run. The task with ID, [#arguments.taskId#], is already running."
@@ -118,8 +127,6 @@ component displayName="Ad-hoc Task Manager Service" {
 
 				return false;
 			}
-
-			markTaskAsRunning( taskId=arguments.taskId );
 
 			var logger   = _getTaskLogger( taskId );
 			var progress = _getTaskProgressReporter( taskId );
@@ -235,10 +242,11 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @autodoc true
 	 * @taskId  ID of the task to mark as running
 	 */
-	public void function markTaskAsRunning( required string taskId ) {
-		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
-			  id   = arguments.taskId
-			, data = {
+	public boolean function markTaskAsRunning( required string taskId ) {
+		return $getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  filter       = "id = :id and status != :status"
+			, filterParams = { id=arguments.taskId, status="running"}
+			, data         = {
 				  status              = "running"
 				, started_on          = _now()
 				, progress_percentage = 0
