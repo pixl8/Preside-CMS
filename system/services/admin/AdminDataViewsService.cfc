@@ -361,11 +361,11 @@ component {
 	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
 		var cache = _getLocalCache();
 
-		if ( !StructKeyExists( cache, cacheKey ) ) {
-			cache[ cacheKey ] = generator();
+		if ( !StructKeyExists( cache, arguments.cacheKey ) ) {
+			cache[ arguments.cacheKey ] = arguments.generator();
 		}
 
-		return cache[ cacheKey ] ?: NullValue();
+		return cache[ arguments.cacheKey ] ?: NullValue();
 	}
 
 
