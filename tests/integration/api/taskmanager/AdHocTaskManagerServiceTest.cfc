@@ -14,7 +14,7 @@ component extends="testbox.system.BaseSpec" {
 				var mockProgress = _mockProgress( service, taskId );
 				var mockLogger   = _mockLogger( service, taskId );
 
-				service.$( "markTaskAsRunning" );
+				service.$( "markTaskAsRunning", true );
 				service.$( "completeTask" );
 				service.$( "failTask" );
 
@@ -43,7 +43,7 @@ component extends="testbox.system.BaseSpec" {
 				var mockProgress = _mockProgress( service, taskId );
 				var mockLogger   = _mockLogger( service, taskId );
 
-				service.$( "markTaskAsRunning" );
+				service.$( "markTaskAsRunning", true );
 				service.$( "completeTask" );
 				service.$( "failTask" );
 				service.$( "_now", nowish );
@@ -69,7 +69,7 @@ component extends="testbox.system.BaseSpec" {
 
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				service.$( "markTaskAsRunning" );
+				service.$( "markTaskAsRunning", true );
 
 				service.runTask( taskId );
 
@@ -92,7 +92,7 @@ component extends="testbox.system.BaseSpec" {
 
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				service.$( "markTaskAsRunning" );
+				service.$( "markTaskAsRunning", true );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 
@@ -119,7 +119,7 @@ component extends="testbox.system.BaseSpec" {
 				service.$( "$raiseError" );
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				service.$( "markTaskAsRunning" );
+				service.$( "markTaskAsRunning", true );
 				mockLogger.$( "error" );
 
 				expect( service.runTask( taskId ) ).toBe( false );
@@ -154,7 +154,7 @@ component extends="testbox.system.BaseSpec" {
 				service.$( "$raiseError" );
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				service.$( "markTaskAsRunning" );
+				service.$( "markTaskAsRunning", true );
 
 				expect( service.runTask( taskId ) ).toBe( false );
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
@@ -179,7 +179,7 @@ component extends="testbox.system.BaseSpec" {
 
 				service.$( "completeTask" );
 				service.$( "failTask" );
-				service.$( "markTaskAsRunning" );
+				service.$( "markTaskAsRunning", true );
 
 				service.runTask( taskId );
 
@@ -232,7 +232,7 @@ component extends="testbox.system.BaseSpec" {
 					, web_owner           = owner
 					, discard_on_complete = true
 					, retry_interval      = "[]"
-					, next_attempt_date   = ""
+					, next_attempt_date   = DateAdd( "s", 30, nowish )
 					, title               = "myresource:export.title"
 					, title_data          = '["test","this"]'
 					, result_url          = "http://www.mysite.com/download/export/"
@@ -402,7 +402,7 @@ component extends="testbox.system.BaseSpec" {
 
 				var log = mockTaskDao.$callLog().updateData;
 				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( { id=taskId, data={
+				expect( log[1] ).toBe( { filter="id = :id and status != :status", filterParams={ id=taskId, status="running" }, data={
 					  status              = "running"
 					, started_on          = nowish
 					, finished_on         = ""
