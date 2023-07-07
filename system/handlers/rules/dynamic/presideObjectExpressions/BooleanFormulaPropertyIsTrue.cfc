@@ -5,7 +5,8 @@
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 
-	property name="presideObjectService" inject="presideObjectService";
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="rulesEngineFilterService" inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
@@ -24,14 +25,14 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		,          boolean _is = true
 	){
-		var paramName           = "booleanFormulaPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
-		var formulaPropertyName = "#arguments.objectName#.#propertyName#";
+		var paramName = "booleanFormulaPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
 
-		return [ {
-			  having       = "#formulaPropertyName# = :#paramName#"
-			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
-			, propertyName = formulaPropertyName
-		} ];
+		return [ rulesEngineFilterService.prepareAutoFormulaFilter(
+			  objectName   = arguments.objectName
+			, propertyName = arguments.propertyName
+			, filter       = "#arguments.propertyName# = :#paramName#"
+			, filterParams = { "#paramName#" ={ type="cf_sql_boolean", value=arguments._is }}
+		) ];
 	}
 
 	private string function getLabel(

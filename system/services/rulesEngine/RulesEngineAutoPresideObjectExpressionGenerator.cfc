@@ -64,6 +64,10 @@ component {
 		var isFormula    = Len( Trim( propertyDefinition.formula ?: "" ) );
 		var excludedKeys = listToArray( propertyDefinition.excludeAutoExpressions ?: "" );
 
+		if ( isFormula && !Len( $getPresideObjectService().getIdField( arguments.objectName ) ) ) {
+			return [];
+		}
+
 		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) && !isFormula ) {
 			switch( propType ) {
 				case "string":
