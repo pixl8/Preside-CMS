@@ -47,8 +47,6 @@ component {
 		_setEmailSettings( arguments.emailSettings );
 		_setTemplateCache( arguments.templateCache );
 
-		_ensureSystemTemplatesHaveDbEntries();
-
 		return this;
 	}
 
@@ -1318,8 +1316,7 @@ component {
 		$getRequestContext().removeOverwriteDomainForBuildLink();
 	}
 
-// PRIVATE HELPERS
-	private void function _ensureSystemTemplatesHaveDbEntries() {
+	public void function ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
 		var systemTemplates    = sysTemplateService.listTemplates();
 		var existingTemplates  = _getExistingSystemTemplates();
@@ -1343,6 +1340,7 @@ component {
 		}
 	}
 
+// PRIVATE HELPERS
 	private struct function _getExistingSystemTemplates() {
 		var templates     = {};
 		var templateQuery = $getPresideObject( "email_template" ).selectData(
