@@ -326,8 +326,11 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		event.include( "/css/admin/specific/datamanager/viewtabs/" );
-		return renderView( view="/admin/datamanager/_tabs", args=args );
+		if ( arrayLen( args.tabs ) ) {
+			event.include( "/css/admin/specific/datamanager/viewtabs/" );
+			return renderView( view="/admin/datamanager/_tabs", args=args );
+		}
+		return "";
 	}
 
 	private string function _infoCardCreated( event, rc, prc, args={} ) {
