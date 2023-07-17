@@ -3,7 +3,7 @@
  * @nolabel                            true
  * @versioned                          false
  * @dataManagerExportEnabled           false
- * @datamanagerDisallowedOperations    read,add,edit,clone
+ * @datamanagerDisallowedOperations    add,edit,clone
  * @datamanagerGridFields              datecreated,exporter,complete,success,time_taken
  * @datamanagerDefaultSortOrder        datecreated desc
  * @feature                            dataExport
