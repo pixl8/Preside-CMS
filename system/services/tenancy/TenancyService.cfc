@@ -198,6 +198,20 @@ component displayName="Tenancy service" {
 			var config        = _getTenancyConfig();
 			var filterHandler = config[ tenant ].getFilterHandler ?: "tenancy.#tenant#.getFilter";
 			var coldbox       = $getColdbox();
+
+			if ( !len( trim( tenantId ) ) ) {
+				var defaultValueHandler = config[ tenant ].getDefaultValueHandler ?: "tenancy.#tenant#.getDefaultValue";
+
+				if ( coldbox.handlerExists( defaultValueHandler ) ) {
+					tenantId = coldbox.runEvent(
+						  event          = defaultValueHandler
+						, private        = true
+						, prePostExempt  = true
+						, eventArguments = { objectName=arguments.objectName, fk=fk }
+					);
+				}
+			}
+
 			var defaultFilter = {
 				  filter={ "#arguments.objectName#.#fk#" = tenantId }
 				, isTenancyFilter               = true
