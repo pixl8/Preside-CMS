@@ -12,7 +12,7 @@ component output=false {
 		bundle.addAsset( id="/js/admin/lib/bootstrap/"    , path="/js/admin/lib/bootstrap*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plotly/"       , path="/js/admin/lib/plotly*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
-		bundle.addAsset( id="recaptcha-js"                , url="https://www.google.com/recaptcha/api.js" );
+		bundle.addAsset( id="recaptcha-js"                , url="https://www.recaptcha.net/recaptcha/api.js" );
 
 		bundle.addAsset( id="highlightjs-css"             , url="/preside/system/assets/ckeditorExtensions/plugins/codesnippet/lib/highlight/styles/preside-atelier-dune.dark.css" );
 		bundle.addAsset( id="highlightjs-js"              , url="/preside/system/assets/ckeditorExtensions/plugins/codesnippet/lib/highlight/highlight.pack.js" );
