@@ -39,6 +39,21 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				expect( result  ).toBe( expected );
 			} );
 
+
+			it( "should pass all capture groups through to the processor", function(){
+				var source  = "Lorem {{test1:value}}";
+				var pattern = "\{\{(.*?):(.*?)\}\}";
+				var groups  = "";
+
+				var result = sut.dynamicFindAndReplace( source=source, regexPattern=pattern, recurse=false, processor=function( captureGroups ){
+					groups = arguments.captureGroups;
+					return "whatever";
+				} );
+
+				expect( result  ).toBe( "Lorem whatever" );
+				expect( groups ).toBe( [ "{{test1:value}}", "test1", "value" ] );
+			} );
+
 			it( "should recurse when asked to", function(){
 				var source = "Lorem {{test1:value}} ipsum dolor {{test2:value2}} sit {{blah:empty}}amet.{{test3:value3}} some other text.";
 				var expected = "Lorem Test 1 Testing is fun Testing is easy (is it?) ipsum dolor Testing is fun Testing is easy (is it?) sit amet.Testing is easy (is it?) some other text.";
@@ -62,18 +77,27 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				expect( result  ).toBe( expected );
 			} );
 
-			it( "should pass all capture groups through to the processor", function(){
-				var source  = "Lorem {{test1:value}}";
+			it( "should prevent endless recursion", function(){
+				var source = "Lorem {{test1:value}} ipsum dolor {{test2:value2}} sit {{blah:empty}}amet.{{test3:value3}} some other text.";
+				var expected = "Lorem Test 1 Testing is fun  ipsum dolor Testing is fun Test 1 Testing is fun  sit amet.Testing is easy (is it?) some other text.";
 				var pattern = "\{\{(.*?):(.*?)\}\}";
-				var groups  = "";
 
-				var result = sut.dynamicFindAndReplace( source=source, regexPattern=pattern, recurse=false, processor=function( captureGroups ){
-					groups = arguments.captureGroups;
-					return "whatever";
+				var result = sut.dynamicFindAndReplace( source=source, regexPattern=pattern, recurse=true, processor=function( captureGroups ){
+					switch( captureGroups[ 2 ] ) {
+						case "test1":
+							return "Test 1 {{test2:whatever}}";
+						break;
+						case "test2":
+							return "Testing is fun {{test1:value}}";
+						break;
+						case "test3":
+							return "Testing is easy (is it?)"
+						break;
+					}
+					return "";
 				} );
 
-				expect( result  ).toBe( "Lorem whatever" );
-				expect( groups ).toBe( [ "{{test1:value}}", "test1", "value" ] );
+				expect( result  ).toBe( expected );
 			} );
 		} );
 	}
