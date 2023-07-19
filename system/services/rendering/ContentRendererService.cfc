@@ -411,7 +411,7 @@ component {
 	}
 
 	public string function renderEmbeddedWidgets( required string richContent, string context="", string postProcessor="", struct postProcessorArgs={} ) {
-		var widgetPattern = "\{\{widget:([a-z\$_][a-z0-9\$_]*):(.*?):widget\}\}";
+		var widgetPattern = "\{\{widget:([a-zA-Z\$_][a-zA-Z0-9\$_]*):(.*?):widget\}\}";
 		var outerargs     = arguments;
 
 		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.richContent, regexPattern=widgetPattern, recurse=true, processor=function( captureGroups ){
