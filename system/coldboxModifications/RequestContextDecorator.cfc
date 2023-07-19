@@ -377,9 +377,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public boolean function showNonLiveContent() {
-		try {
-			return request._showNonLiveContent;
-		} catch( any e ) {
+		if ( !StructKeyExists( request, "_showNonLiveContent" ) ) {
 			// we may get called very early in the request before this has been run.
 			// manually call it to ensure we have all the path info setup for the isAdminRequest() call, below
 			getController().getRoutingService().getCgiElement( "path_info", getRequestContext() );
@@ -389,9 +387,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			} else {
 				request._showNonLiveContent = getModel( "loginService" ).isShowNonLiveEnabled();
 			}
-
-			return request._showNonLiveContent;
 		}
+
+		return request._showNonLiveContent;
 	}
 
 	public struct function getAdminUserDetails() {
