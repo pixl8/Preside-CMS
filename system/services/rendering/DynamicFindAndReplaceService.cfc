@@ -11,7 +11,7 @@ component {
 
 // PUBLIC API METHODS
 	public string function dynamicFindAndReplace( required string source, required string regexPattern, required any processor, required boolean recurse ) {
-		var matcher = _getMatcher( arguments.regexPattern, arguments.source );
+		var matcher     = _getMatcher( arguments.regexPattern, arguments.source );
 		var builder     = [];
 		var simpleCache = {};
 		var sourceLen   = Len( arguments.source );
@@ -39,6 +39,7 @@ component {
 
 			ArrayAppend( builder, simpleCache[ fullText ] );
 		}
+
 		if ( !ArrayLen( builder ) ) {
 			return arguments.source;
 		}
