@@ -357,17 +357,15 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public boolean function showNonLiveContent() {
-		try {
-			return request._showNonLiveContent;
-		} catch( any e ) {
+		if ( !StructKeyExists( request, "_showNonLiveContent" ) ) {
 			if ( this.isAdminRequest() ) {
 				request._showNonLiveContent = true;
 			} else {
 				request._showNonLiveContent = getModel( "loginService" ).isShowNonLiveEnabled();
 			}
-
-			return request._showNonLiveContent;
 		}
+
+		return request._showNonLiveContent;
 	}
 
 	public struct function getAdminUserDetails() {
