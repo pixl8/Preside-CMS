@@ -672,13 +672,13 @@ component {
 				, queue            = [ "view", "clear" ]
 			  }
 			, presideobject          = {
-				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
-				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
-				, page           = [ "read", "add", "edit", "delete", "viewversions" ]
-				, site           = [ "read", "add", "edit", "delete", "viewversions" ]
-				, asset          = [ "read", "add", "edit", "delete", "viewversions" ]
-				, asset_folder   = [ "read", "add", "edit", "delete", "viewversions" ]
-				, link           = [ "read", "add", "edit", "delete", "viewversions" ]
+				  security_user  = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
+				, security_group = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
+				, page           = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
+				, site           = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
+				, asset          = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
+				, asset_folder   = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
+				, link           = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
 			}
 			, assetmanager           = {
 				  general          = [ "navigate" ]
