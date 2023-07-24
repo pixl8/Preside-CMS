@@ -27,6 +27,9 @@ component {
 		var expressions                     = [];
 
 		ArrayAppend( expressions, _createRecordMatchesFilterExpression( arguments.objectName ) );
+		if ( len( $getPresideObjectService().getLabelField( arguments.objectName ) ) ) {
+			ArrayAppend( expressions, _createRecordMatchesIdExpression( arguments.objectName ) );
+		}
 
 		for( var propName in properties ) {
 			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
@@ -210,6 +213,21 @@ component {
 				  value = { fieldType="filter", object=arguments.objectName, multiple=true, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:recordMatchesFilters.value.default.label" }
 				, _does = { fieldType="boolean", variety="doesDoesNot", default=true, required=false }
 			  }
+		} );
+
+		return expression;
+	}
+
+	private struct function _createRecordMatchesIdExpression( required string objectName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName="", parentObjectName="", parentPropertyName="" );
+
+		expression.append( {
+			  id                = "presideobject_recordmatchesid_#arguments.objectName#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=objectName, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:recordMatchesId.value.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.RecordMatchesId.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.RecordMatchesId.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.RecordMatchesId.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.RecordMatchesId.getText"
 		} );
 
 		return expression;
