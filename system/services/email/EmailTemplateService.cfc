@@ -26,6 +26,7 @@ component {
 	 * @assetManagerService.inject        assetManagerService
 	 * @emailSettings.inject              coldbox:setting:email
 	 * @templateCache.inject              cachebox:emailTemplateCache
+	 * @timeSeriesUtils.inject            timeSeriesUtils
 	 *
 	 */
 	public any function init(
@@ -37,6 +38,7 @@ component {
 		, required any emailStyleInliner
 		, required any emailSettings
 		, required any templateCache
+		, required any timeSeriesUtils
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
@@ -46,6 +48,7 @@ component {
 		_setAssetManagerService( arguments.assetManagerService );
 		_setEmailSettings( arguments.emailSettings );
 		_setTemplateCache( arguments.templateCache );
+		_setTimeSeriesUtils( arguments.timeSeriesUtils );
 
 		return this;
 	}
@@ -806,7 +809,6 @@ component {
 		,          string dateTo   = ""
 	) {
 		var extraFilters = [];
-
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
 				  filter = "send_logs.sent_date >= :dateFrom"
@@ -843,6 +845,7 @@ component {
 		  required string templateId
 		,          string dateFrom = ""
 		,          string dateTo   = ""
+		,          numeric timePoints = 1
 	) {
 		var extraFilters = [];
 
@@ -1069,32 +1072,30 @@ component {
 			};
 		}
 
-		var stats = {
-			  sent      = []
-			, delivered = []
-			, failed    = []
-			, opened    = []
-			, clicks    = []
-			, dates     = []
+		var timeSeriesUtils = _getTimeSeriesUtils();
+		var timeResolution  = timeSeriesUtils.calculateTimeResolution( arguments.dateFrom, arguments.dateTo );
+		var dates           = timeSeriesUtils.getExpectedTimes( timeResolution, arguments.dateFrom, arguments.dateTo );
+		var commonArgs      = {
+			  timeResolution    = timeResolution
+			, expectedTimes     = dates
+			, sourceObject      = "email_template_send_log"
+			, startDate         = arguments.dateFrom
+			, endDate           = arguments.dateTo
+			, valuesOnly        = true
+			, aggregateFunction = "count"
 		};
-		if ( IsDate( arguments.dateFrom ) && IsDate( arguments.dateTo ) ) {
-			var timeJumps = Round( DateDiff( "s", arguments.dateFrom, arguments.dateTo ) / arguments.timePoints );
 
-			for( var i=0; i<arguments.timePoints; i++ ) {
-				var snapshot = getStats(
-					  templateId  = templateId
-					, dateFrom    = DateAdd( "s", i*timeJumps    , arguments.dateFrom )
-					, dateTo      = DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom )
-					, uniqueOpens = false
-				);
+		var stats = {
+			  sent      = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="sent_date"                                   , extraFilters=[ { filter={ email_template=arguments.templateId, sent=true      } } ] )
+			, delivered = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="delivered_date"                              , extraFilters=[ { filter={ email_template=arguments.templateId, delivered=true } } ] )
+			, failed    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="failed_date"                                 , extraFilters=[ { filter={ email_template=arguments.templateId, failed=true    } } ] )
+			, opened    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="opened_date"                                 , extraFilters=[ { filter={ email_template=arguments.templateId, opened=true    } } ] )
+			, clicks    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="email_template_send_log_activity.datecreated", extraFilters=[ { filter={ "message.email_template"=arguments.templateId       } } ], sourceObject="email_template_send_log_activity" )
+			, dates     = dates
+		};
 
-				stats.sent.append( snapshot.sent );
-				stats.delivered.append( snapshot.delivered );
-				stats.failed.append( snapshot.failed );
-				stats.opened.append( snapshot.opened );
-				stats.clicks.append( snapshot.clicks );
-				stats.dates.append( DateTimeFormat( DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom ), "yyyy-mm-dd HH:nn" ) );
-			}
+		for( var i=1; i <= ArrayLen( stats.dates ); i++ ) {
+			stats.dates[ i ] = DateTimeFormat( stats.dates[ i ], "yyyy-mm-dd HH:nn" );
 		}
 
 		return stats;
@@ -1578,5 +1579,12 @@ component {
 	}
 	private void function _setTemplateCache( required any templateCache ) {
 	    _templateCache = arguments.templateCache;
+	}
+
+	private any function _getTimeSeriesUtils() {
+	    return _timeSeriesUtils;
+	}
+	private void function _setTimeSeriesUtils( required any timeSeriesUtils ) {
+	    _timeSeriesUtils = arguments.timeSeriesUtils;
 	}
 }

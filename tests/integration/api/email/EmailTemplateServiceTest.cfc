@@ -1646,6 +1646,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockViewOnlineContentDao = createStub();
 		mockRequestContext       = createStub();
 		mockTemplateCache        = createStub();
+		mockTimeSeriesUtils      = createStub();
 		mockEmailSettings        = { defaultContentExpiry=30 };
 
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
@@ -1689,6 +1690,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				, emailStyleInliner          = mockEmailStyleInliner
 				, emailSettings              = mockEmailSettings
 				, templateCache              = mockTemplateCache
+				, timeSeriesUtils            = mockTimeSeriesUtils
 			);
 		}
 
