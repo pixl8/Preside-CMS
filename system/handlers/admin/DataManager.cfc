@@ -2089,6 +2089,19 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		);
 
+		customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "postDecorateRecordsForGridListing"
+			, args           = {
+				  records         = records
+				, objectName      = arguments.object
+				, gridFields      = getRecordsArgs.gridFields
+				, useMultiActions = arguments.useMultiActions
+				, isMultilingual  = arguments.isMultilingual
+				, draftsEnabled   = arguments.draftsEnabled
+			}
+		);
+
 		if ( arguments.includeActions ) {
 			QueryAddColumn( records, "_options" , optionsCol );
 			ArrayAppend( getRecordsArgs.gridFields, "_options" );
@@ -4161,7 +4174,7 @@ component extends="preside.system.base.AdminHandler" {
 			if ( prc.objectIconClass.len() ) {
 				prc.pageIcon = prc.objectIconClass.reReplace( "^fa-", "" );
 			}
-
+systemOutput( prc );
 			if ( Len( Trim( prc.recordId ) ) && ListLen( prc.recordId ) == 1 ) {
 
 				if ( prc.useVersioning ) {

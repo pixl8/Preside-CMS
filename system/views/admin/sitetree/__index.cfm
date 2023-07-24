@@ -1,58 +1,6 @@
 <cfscript>
 	site = event.getSite();
 
-	prc.pageIcon   = "sitemap";
-	prc.pageTitle  = site.name ?: translateResource( "cms:sitetree" );
-	rc.object      = "page";
-	prc.objectName = "page";
-	args.objectName = "page";
-
-	activeTree          = prc.activeTree ?: [];
-	trashCount          = prc.trashCount ?: 0;
-	activeTab           = rc.tab ?: "sitetree";
-</cfscript>
-
-<cfoutput>
-	<div class="tabbable">
-		<ul class="nav nav-tabs">
-			<li<cfif activeTab=="sitetree"> class="active"</cfif>>
-				<a href="##tab-sitetree" data-toggle="tab" >
-					<i class="fa fa-fw fa-sitemap" title="#HtmlEditFormat( prc.pageTitle )#"></i>&nbsp;
-
-					<span class="hidden-xs">
-						#prc.pageTitle#
-					</span>
-				</a>
-			</li>
-			<li<cfif activeTab=="page"> class="active"</cfif>>
-				<a href="##tab-page" data-toggle="tab" >
-					<i class="fa fa-fw fa-page" title="#HtmlEditFormat( "KARTONG" )#"></i>&nbsp;
-
-					<span class="hidden-xs">
-						Seiten-Dingsda
-					</span>
-				</a>
-			</li>
-		</ul>
-		<div class="tab-content">
-			<div class="tab-pane<cfif activeTab=="sitetree"> active</cfif>" id="tab-sitetree">
-				#renderView( view="/admin/sitetree/__index", args=args )#
-			</div>
-			<div class="tab-pane<cfif activeTab=="page"> active</cfif>" id="tab-page">
-
-				<cfset args.objectName = "page"/>
-				<cfset args.object = "page"/>
-
-				#renderViewlet( event="admin.datamanager.object", private=false, object="page", objectName="page", prePostExempt=false, args=args )#
-			</div>
-		</div>
-	</div>
-</cfoutput>
-<!---
-
-<cfscript>
-	site = event.getSite();
-
 	prc.pageIcon  = "sitemap";
 	prc.pageTitle = site.name ?: translateResource( "cms:sitetree" );
 
@@ -109,4 +57,4 @@
 			</div>
 		</div>
 	</cfif>
-</cfoutput> --->
+</cfoutput>

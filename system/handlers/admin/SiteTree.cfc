@@ -58,6 +58,34 @@ component extends="preside.system.base.AdminHandler" {
 		prc.trashCount = siteTreeService.getTrashCount();
 	}
 
+	private void function _siteTree( event, rc, prc ) {
+		if ( ( rc.selected ?: "" ).len() ) {
+			prc.selectedAncestors = sitetreeService.getAncestors( id=rc.selected, selectFields=[ "id" ] );
+			prc.selectedAncestors = prc.selectedAncestors.recordCount ? ValueArray( prc.selectedAncestors.id ) : [];
+			event.includeData( { selectedNode = rc.selected } );
+		}
+		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", maxDepth=0, selectFields=[
+			  "page.id"
+			, "page.parent_page"
+			, "page.title"
+			, "page.slug"
+			, "page.main_image"
+			, "page.active"
+			, "page.page_type"
+			, "page.datecreated"
+			, "page.datemodified"
+			, "page._hierarchy_slug as full_slug"
+			, "page.trashed"
+			, "page.access_restriction"
+			, "page._version_is_draft as is_draft"
+			, "page._version_has_drafts as has_drafts"
+			, "Count( child_pages.id ) as child_count"
+		] );
+
+		prc.trashCount = siteTreeService.getTrashCount();
+		renderView( view="/admin/sitetree/index", args=args );
+	}
+
 	public void function ajaxChildNodes( event, rc, prc ) {
 		var rendered         = "";
 		var parentId         = rc.parentId ?: "";
