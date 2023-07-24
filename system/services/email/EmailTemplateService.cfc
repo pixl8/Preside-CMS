@@ -824,7 +824,7 @@ component {
 		}
 		var result = $getPresideObject( "email_template_send_log" ).selectData(
 			  selectFields = [ "Count( 1 ) as sent_count" ]
-			, filter       = { "email_template"=arguments.templateId, sent=true }
+			, filter       = { email_template=arguments.templateId, sent=true }
 			, extraFilters = extraFilters
 			, useCache     = false
 		);
