@@ -260,7 +260,7 @@ component {
 	}
 
 	public string function getDefaultOperationsForObject( required string objectName ) {
-		var defaults = [ "read", "add", "edit", "batchedit", "delete", "batchdelete" ];
+		var defaults = [ "navigate", "read", "add", "edit", "batchedit", "delete", "batchdelete" ];
 
 		if ( _getPresideObjectService().objectIsVersioned( arguments.objectName ) ) {
 			defaults.append( "viewversions" );
