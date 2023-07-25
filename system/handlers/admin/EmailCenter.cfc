@@ -62,19 +62,11 @@ component extends="preside.system.base.AdminHandler" {
 		args.statsAvailable = IsDate( args.minDate ) && IsDate( args.maxDate );
 
 		if ( args.statsAvailable ) {
-			var timepoints = Round( DateDiff( "h", args.dateFrom, args.dateTo ) );
-
-			if ( timepoints > 20 ) {
-				timepoints = 20;
-			} else if ( timepoints < 5 ) {
-				timepoints = 5;
-			}
-
 			args.interactionStats = emailTemplateService.getStats(
 				  templateId = args.templateId
-				, timePoints = timepoints
 				, dateFrom   = args.dateFrom
 				, dateTo     = args.dateTo
+				, timepoints = 0
 			);
 
 			event.include( "/js/admin/lib/plotly/" );
