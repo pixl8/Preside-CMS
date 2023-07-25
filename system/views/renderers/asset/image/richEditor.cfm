@@ -30,6 +30,7 @@
 
 	renderedWidth  = ListLen( args.dimensions ?: "", "x" ) == 2 && Val( ListFirst( args.dimensions, "x" ) ) ? Val( ListFirst( args.dimensions, "x" ) ) : Val( args.width ?: "" );
 	figureMaxWidth = renderedWidth ? "max-width:#renderedWidth#px;" : "";
+	align = ListFindNoCase( "left,right", args.alignment ?: "" ) ? lCase( args.alignment ) : "";
 </cfscript>
 
 <cfoutput>
@@ -41,7 +42,7 @@
 		<a href="#Trim( args.link )#" target="#( args.link_target ?: '_self' )#"<cfif !hasFigure> style="display:block;#style#"</cfif>>
 	</cfif>
 
-	<img src="#imgSrc#" alt="#altText#"<cfif !hasFigure && !hasLink> style="#style#"</cfif> />
+	<img align="#align#" src="#imgSrc#" alt="#altText#"<cfif !hasFigure && !hasLink> style="#style#"</cfif> />
 
 	<cfif hasLink>
 		</a>
