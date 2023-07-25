@@ -10,13 +10,15 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @defaultHandlerAction.inject   coldbox:fwsetting:eventAction
-	 * @contentRendererService.inject contentRendererService
+	 * @defaultHandlerAction.inject         coldbox:fwsetting:eventAction
+	 * @contentRendererService.inject       contentRendererService
+	 * @dynamicFindAndReplaceService.inject dynamicFindAndReplaceService
 	 *
 	 */
-	public any function init( required string defaultHandlerAction, required any contentRendererService ) {
+	public any function init( required string defaultHandlerAction, required any contentRendererService, required any dynamicFindAndReplaceService ) {
 		_setDefaultHandlerAction( arguments.defaultHandlerAction );
 		_setContentRendererService( arguments.contentRendererService );
+		_setDynamicFindAndReplaceService( arguments.dynamicFindAndReplaceService );
 		return this;
 	}
 
@@ -32,58 +34,27 @@ component {
 	public string function renderDelayedViewlets( required string content ) {
 		var encodedArgsRegex = "[a-zA-Z0-9%=,_\$\s\+\/]*"
 		var dvPattern        = "<!--dv:(.*?)\((#encodedArgsRegex#)\)\(private=(true|false),prePostExempt=(true|false)\)-->";
-		var processed        = arguments.content;
 		var cb               = $getColdbox();
-		var patternFound     = false;
-		var match            = "";
-		var wholeMatch       = "";
-		var viewlet          = "";
-		var privateViewlet   = "";
-		var prePostExempt    = "";
-		var argsString       = "";
-		var renderedViewlet  = "";
+		var rendererSvc      = _getContentRendererService();
 
-		do {
-			match        = ReFind( dvPattern, processed, 1, true );
-			patternFound = ( match.pos[ 1 ] ?: 0 ) > 0;
+		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.content, regexPattern=dvPattern, recurse=true, processor=function( captureGroups ){
+			var renderedViewlet = cb.renderViewlet(
+				  event         = ( arguments.captureGroups[ 2 ] ?: "" )
+				, args          = _parseArgs( Trim( arguments.captureGroups[ 3 ] ?: "" ) )
+				, delayed       = false
+				, private       = IsBoolean( arguments.captureGroups[ 4 ] ?: "" ) && arguments.captureGroups[ 4 ]
+				, prePostExempt = IsBoolean( arguments.captureGroups[ 5 ] ?: "" ) && arguments.captureGroups[ 5 ]
+			);
 
-			if ( patternFound ) {
-				wholeMatch  = Mid( processed, match.pos[ 1 ], match.len[ 1 ] );
-
-				viewlet        = Mid( processed, match.pos[ 2 ], match.len[ 2 ] );
-				argsString     = Mid( processed, match.pos[ 3 ], match.len[ 3 ] );
-				privateViewlet = Mid( processed, match.pos[ 4 ], match.len[ 4 ] );
-				prePostExempt  = Mid( processed, match.pos[ 5 ], match.len[ 5 ] );
-
-				renderedViewlet = cb.renderViewlet(
-					  event         = viewlet
-					, args          = _parseArgs( argsString.trim() )
-					, delayed       = false
-					, private       = IsBoolean( privateViewlet ) && privateViewlet
-					, prePostExempt = IsBoolean( prePostExempt  ) && prePostExempt
+			if ( !IsNull( local.renderedViewlet ) && IsSimpleValue( renderedViewlet ) ) {
+				return rendererSvc.render(
+					  renderer = "richeditor"
+					, data     = renderedViewlet
 				);
-
-				if ( !IsNull( local.renderedViewlet ) && IsSimpleValue( renderedViewlet ) ) {
-					renderedViewlet = _getContentRendererService().render(
-						  renderer = "richeditor"
-						, data     = renderedViewlet
-					);
-				} else {
-					renderedViewlet = "";
-
-					try {
-						throw( "The delayed viewlet, [#viewlet#], did not return a string value and Preside has rendered an empty string in its place. Be sure that all your viewlets return a string value.", "preside.bad.delayed.viewlet" );
-					} catch( any e ) {
-						$raiseError( e );
-					}
-				}
-
-				processed = Replace( processed, wholeMatch, renderedViewlet ?: "", "all" );
 			}
-		} while( patternFound )
 
-
-		return processed;
+			return "";
+		} );
 	}
 
 	/**
@@ -224,5 +195,12 @@ component {
 	}
 	private void function _setContentRendererService( required any contentRendererService ) {
 		_contentRendererService = arguments.contentRendererService;
+	}
+
+	private any function _getDynamicFindAndReplaceService() {
+	    return _dynamicFindAndReplaceService;
+	}
+	private void function _setDynamicFindAndReplaceService( required any dynamicFindAndReplaceService ) {
+	    _dynamicFindAndReplaceService = arguments.dynamicFindAndReplaceService;
 	}
 }

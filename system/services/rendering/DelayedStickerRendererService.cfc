@@ -8,7 +8,13 @@
 component {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @dynamicFindAndReplaceService.inject dynamicFindAndReplaceService
+	 *
+	 */
+	public any function init( required any dynamicFindAndReplaceService ) {
+		_setDynamicFindAndReplaceService( arguments.dynamicFindAndReplaceService );
+
 		return this;
 	}
 
@@ -22,56 +28,34 @@ component {
 	 *
 	 */
 	public string function renderDelayedStickerIncludes( required string content ) {
-		var dsPattern        = "<!--ds:\(type=(js|css),group=([a-zA-Z0-9_-]+)\)\((.+?)\):ds-->";
-		var processed        = arguments.content;
-		var cb               = $getColdbox();
-		var event            = cb.getRequestContext();
-		var patternFound     = false;
-		var match            = "";
-		var wholeMatch       = "";
-		var type             = "";
-		var group            = "";
-		var stickerData      = "";
-		var include          = "";
-		var key              = "";
-		var adhocArgs        = {};
-		var renderedIncludes = "";
+		var dsPattern = "<!--ds:\(type=(js|css),group=([a-zA-Z0-9_-]+)\)\((.+?)\):ds-->";
+		var event     = $getColdbox().getRequestContext();
 
-		do {
-			match        = ReFind( dsPattern, processed, 1, true );
-			patternFound = ( match.pos[ 1 ] ?: 0 ) > 0;
+		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.content, regexPattern=dsPattern, recurse=false, processor=function( captureGroups ){
+			var type        = arguments.captureGroups[ 2 ] ?: "";
+			var group       = arguments.captureGroups[ 3 ] ?: "";
+			var stickerData = arguments.captureGroups[ 4 ] ?: "";
 
-			if ( patternFound ) {
-				wholeMatch  = Mid( processed, match.pos[ 1 ], match.len[ 1 ] );
+			stickerData = DeserializeJSON( stickerData );
 
-				type        = Mid( processed, match.pos[ 2 ], match.len[ 2 ] );
-				group       = Mid( processed, match.pos[ 3 ], match.len[ 3 ] );
-				stickerData = Mid( processed, match.pos[ 4 ], match.len[ 4 ] );
-
-				stickerData = deserializeJSON( stickerData );
-
-				for( include in stickerData.includes ?: [] ) {
-					event.include( assetId=include, group=group );
-				}
-				for( key in stickerData.adhoc ?: {} ) {
-					adhocArgs = {
-						  url   = stickerData.adhoc[ key ].url
-						, type  = stickerData.adhoc[ key ].type
-						, media = stickerData.adhoc[ key ].media
-					};
-					adhocArgs.append( stickerData.adhoc[ key ].extraAttributes );
-					event.includeUrl( argumentCollection=adhocArgs );
-				}
-				if ( !isEmpty( stickerData.data ?: {} ) ) {
-					event.includeData( stickerData.data );
-				}
-
-				renderedIncludes = event.renderIncludes( type=type, group=group, delayed=false );
-				processed        = Replace( processed, wholeMatch, renderedIncludes ?: "", "all" );
+			for( include in stickerData.includes ?: [] ) {
+				event.include( assetId=include, group=group );
 			}
-		} while( patternFound )
+			for( key in stickerData.adhoc ?: {} ) {
+				adhocArgs = {
+					  url   = stickerData.adhoc[ key ].url
+					, type  = stickerData.adhoc[ key ].type
+					, media = stickerData.adhoc[ key ].media
+				};
+				adhocArgs.append( stickerData.adhoc[ key ].extraAttributes );
+				event.includeUrl( argumentCollection=adhocArgs );
+			}
+			if ( !isEmpty( stickerData.data ?: {} ) ) {
+				event.includeData( stickerData.data );
+			}
 
-		return processed;
+			return event.renderIncludes( type=type, group=group, delayed=false );
+		} );
 	}
 
 	/**
@@ -98,4 +82,11 @@ component {
 		return tag;
 	}
 
+// GETTERS & SETTERS
+	private any function _getDynamicFindAndReplaceService() {
+	    return _dynamicFindAndReplaceService;
+	}
+	private void function _setDynamicFindAndReplaceService( required any dynamicFindAndReplaceService ) {
+	    _dynamicFindAndReplaceService = arguments.dynamicFindAndReplaceService;
+	}
 }
