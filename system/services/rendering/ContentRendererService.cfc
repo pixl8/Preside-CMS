@@ -8,12 +8,13 @@ component {
 // CONSTRUCTOR
 
 	/**
-	 * @coldbox.inject              coldbox
-	 * @assetRendererService.inject AssetRendererService
-	 * @widgetsService.inject       WidgetsService
-	 * @presideObjectService.inject PresideObjectService
-	 * @labelRendererService.inject labelRendererService
-	 * @renderedAssetCache.inject   cachebox:renderedAssetCache
+	 * @coldbox.inject                      coldbox
+	 * @assetRendererService.inject         AssetRendererService
+	 * @widgetsService.inject               WidgetsService
+	 * @presideObjectService.inject         PresideObjectService
+	 * @labelRendererService.inject         labelRendererService
+	 * @renderedAssetCache.inject           cachebox:renderedAssetCache
+	 * @dynamicFindAndReplaceService.inject dynamicFindAndReplaceService
 	 */
 	public any function init(
 		  required any coldbox
@@ -22,6 +23,7 @@ component {
 		, required any presideObjectService
 		, required any labelRendererService
 		, required any renderedAssetCache
+		, required any dynamicFindAndReplaceService
 	) {
 		_setColdbox( arguments.coldbox );
 		_setAssetRendererService( arguments.assetRendererService );
@@ -29,6 +31,7 @@ component {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setLabelRendererService( arguments.labelRendererService );
 		_setRenderedAssetCache( arguments.renderedAssetCache );
+		_setDynamicFindAndReplaceService( arguments.dynamicFindAndReplaceService );
 
 		_setCache( {} );
 		_setRenderers( {} );
@@ -299,98 +302,103 @@ component {
 	}
 
 	public string function renderEmbeddedImages( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
-		var embeddedImage   = "";
-		var renderedImage   = "";
-		var renderedContent = arguments.richContent;
+		var imgpattern = "\{\{image:(.*?):image\}\}";
+		var outerargs  = arguments;
 
-		do {
-			embeddedImage = _findNextEmbeddedImage( renderedContent );
+		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.richContent, regexPattern=imgPattern, recurse=false, processor=function( captureGroups ){
+			var img    = { placeholder=arguments.captureGroups[ 1 ] ?: "" };
+			var config = UrlDecode( arguments.captureGroups[ 2 ] ?: "" );
 
-			if ( Len( Trim( embeddedImage.asset ?: "" ) ) && Len( Trim( embeddedImage.placeholder ?: "" ) ) ) {
-				var cacheKey = "asset-#embeddedImage.asset#-" & Serialize( embeddedImage );
+			try {
+				config = DeserializeJson( config );
+				StructAppend( img, config );
+			} catch( any e ){};
 
-				renderedImage = _getRenderedAssetCache().get( cacheKey );
+			if ( Len( Trim( img.asset ?: "" ) ) && Len( Trim( img.placeholder ?: "" ) ) ) {
+				var cacheKey = "asset-#img.asset#-" & Serialize( img );
+				var renderedImage = _getRenderedAssetCache().get( cacheKey );
 
 				if ( IsNull( renderedImage ) ) {
-					var args       = Duplicate( embeddedImage );
+					var args       = StructCopy( img );
 					var derivative = args.derivative ?: "";
 
-					args.delete( "asset" );
-					args.delete( "placeholder" );
-					args.delete( "derivative" );
+					StructDelete( args, "asset" );
+					StructDelete( args, "placeholder" );
+					StructDelete( args, "derivative" );
 
 					if( Len( Trim( derivative ) ) && derivative NEQ "none" ){
-						args.delete( "width" );
-						args.delete( "height" );
-						args.delete( "quality" );
-						args.delete( "dimensions" );
+						StructDelete( args, "width" );
+						StructDelete( args, "height" );
+						StructDelete( args, "quality" );
+						StructDelete( args, "dimensions" );
 
 						args.derivative = derivative;
 					}
 
 					renderedImage = _getAssetRendererService().renderAsset(
-						  assetId = embeddedImage.asset
-						, context = arguments.context
+						  assetId = img.asset
+						, context = outerargs.context
 						, args    = args
 					);
 
 					_getRenderedAssetCache().set( cacheKey, renderedImage );
 				}
 
-				if ( Len( Trim( postProcessor ) ) ) {
-					postProcessorArgs.html = renderedImage;
+				if ( Len( Trim( outerargs.postProcessor ) ) ) {
+					outerargs.postProcessorArgs.html = renderedImage;
 					renderedImage = $runEvent(
-						  event          = postProcessor
-						, eventArguments = { args=postProcessorArgs }
+						  event          = outerargs.postProcessor
+						, eventArguments = { args=outerargs.postProcessorArgs }
 						, private        = true
 						, prepostExempt  = true
 					);
 				}
 
-				renderedContent = Replace( renderedContent, embeddedImage.placeholder, renderedImage, "all" );
+				return renderedImage;
 			}
-
-		} while ( StructCount( embeddedImage ) );
-
-		return renderedContent;
+			return "";
+		} );
 	}
 
 	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
-		var embeddedAttachment   = "";
-		var renderedAttachment   = "";
-		var renderedContent = arguments.richContent;
+		var attachPattern = "\{\{attachment:(.*?):attachment\}\}";
+		var outerargs  = arguments;
 
-		do {
-			embeddedAttachment = _findNextEmbeddedAttachment( renderedContent );
+		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.richContent, regexPattern=attachPattern, recurse=false, processor=function( captureGroups ){
+			var embeddedAttachment = "";
 
-			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) && Len( Trim( embeddedAttachment.placeholder ?: "" ) ) ) {
-				var args = Duplicate( embeddedAttachment );
+			try {
+				embeddedAttachment = DeserializeJson( UrlDecode( arguments.captureGroups[ 2 ] ?: "" ) );
+			} catch ( any e ) {
+				return "";
+			}
 
-				args.delete( "asset" );
-				args.delete( "placeholder" );
+			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) ) {
+				var args = StructCopy( embeddedAttachment );
 
-				renderedAttachment = _getAssetRendererService().renderAsset(
+				StructDelete( args, "asset" );
+
+				var renderedAttachment = _getAssetRendererService().renderAsset(
 					  assetId = embeddedAttachment.asset
-					, context = arguments.context
+					, context = outerargs.context
 					, args    = args
 				);
 
-				if ( Len( Trim( postProcessor ) ) ) {
-					postProcessorArgs.html = renderedAttachment;
+				if ( Len( Trim( outerargs.postProcessor ) ) ) {
+					outerargs.postProcessorArgs.html = renderedAttachment;
 					renderedAttachment = $runEvent(
-						  event          = postProcessor
-						, eventArguments = { args=postProcessorArgs }
+						  event          = outerargs.postProcessor
+						, eventArguments = { args=outerargs.postProcessorArgs }
 						, private        = true
 						, prepostExempt  = true
 					);
 				}
 
-				renderedContent = Replace( renderedContent, embeddedAttachment.placeholder, renderedAttachment, "all" );
+				return renderedAttachment;
 			}
 
-		} while ( StructCount( embeddedAttachment ) );
-
-		return renderedContent;
+			return "";
+		} );
 	}
 
 	public void function renderCodeHighlighterIncludes( required string richContent, string context="richeditor" ) {
@@ -403,83 +411,86 @@ component {
 	}
 
 	public string function renderEmbeddedWidgets( required string richContent, string context="", string postProcessor="", struct postProcessorArgs={} ) {
-		var embeddedWidget      = "";
-		var renderedWidget      = "";
-		var renderedContent = arguments.richContent;
+		var widgetPattern = "\{\{widget:([a-zA-Z\$_][a-zA-Z0-9\$_]*):(.*?):widget\}\}";
+		var outerargs     = arguments;
 
-		do {
-			embeddedWidget = _findNextEmbeddedWidget( renderedContent );
+		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.richContent, regexPattern=widgetPattern, recurse=true, processor=function( captureGroups ){
+			var embeddedWidget = {
+				  id          = arguments.captureGroups[ 2 ] ?: ""
+				, configJson  = arguments.captureGroups[ 3 ] ?: ""
+			};
 
-			if ( StructCount( embeddedWidget ) ) {
-				renderedWidget = _getWidgetsService().renderWidget(
+			if ( Len( embeddedWidget.id ) ) {
+				var renderedWidget = _getWidgetsService().renderWidget(
 					  widgetId   = embeddedWidget.id
 					, configJson = embeddedWidget.configJson
-					, context    = arguments.context
+					, context    = outerargs.context
 				);
 
-				if ( Len( Trim( postProcessor ) ) ) {
-					postProcessorArgs.html = renderedWidget;
+				if ( Len( Trim( outerargs.postProcessor ) ) ) {
+					outerargs.postProcessorArgs.html = renderedWidget;
 					renderedWidget = $runEvent(
-						  event          = postProcessor
-						, eventArguments = { args=postProcessorArgs }
+						  event          = outerargs.postProcessor
+						, eventArguments = { args=outerargs.postProcessorArgs }
 						, private        = true
 						, prepostExempt  = true
 					);
 				}
 
-				renderedContent = Replace( renderedContent, embeddedWidget.placeholder, renderedWidget, "all" );
+				return renderedWidget;
 			}
 
-		} while ( StructCount( embeddedWidget ) );
-
-		return renderedContent;
+			return "";
+		} );
 	}
 
 	public string function renderEmbeddedLinks( required string richContent, string postProcessor="", struct postProcessorArgs={} ) {
-		var renderedContent = arguments.richContent;
-		var embeddedLink    = "";
-		var renderedLink    = "";
+		var linkPattern = "\{\{(link|asset|custom):(.*?):(link|asset|custom)\}\}";
+		var outerargs  = arguments;
 
-		do {
-			embeddedLink = _findNextEmbeddedLink( renderedContent );
+		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.richContent, regexPattern=linkPattern, recurse=false, processor=function( captureGroups ){
+			var renderedLink = "";
+			var linkContent = arguments.captureGroups[ 3 ] ?: "";
+			var type = arguments.captureGroups[ 2 ] ?: "";
+			    type = type == "link" ? "page" : type;
 
-			if ( Len( Trim( embeddedLink.page ?: "" ) ) ) {
-				renderedLink = _getColdbox().getRequestContext().buildLink( page=embeddedLink.page );
-			}
-			if ( Len( Trim( embeddedLink.asset ?: "" ) ) ) {
-				renderedLink = _getColdbox().getRequestContext().buildLink( assetId=embeddedLink.asset );
-			}
-			if ( Len( Trim( embeddedLink.custom ?: "" ) ) ) {
-				try {
-					var linkDetails = DeserializeJson( toString( toBinary( embeddedLink.custom ) ) );
-					var linkType    = linkDetails.type ?: "";
+			switch( type ) {
+				case "page":
+					renderedLink = _getColdbox().getRequestContext().buildLink( page=linkContent );
+				break;
+				case "asset":
+					renderedLink = _getColdbox().getRequestContext().buildLink( assetId=linkContent );
+				break;
+				case "custom":
+					try {
+						var linkDetails = DeserializeJson( toString( toBinary( linkContent ) ) );
+						var linkType    = linkDetails.type ?: "";
 
-					if ( Len( Trim( linkType ) ) ) {
-						try {
-							renderedLink = _getColdbox().renderViewlet( event="admin.linkpicker.#linkType#.getHref", args=linkDetails );
-						} catch( any e ) {}
-					} else {
-						renderedLink = _getColdbox().getRequestContext().buildLink( argumentCollection=linkDetails );
-					}
-				} catch( any e ) {}
-			}
-
-			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
-				if ( Len( Trim( postProcessor ) ) ) {
-					postProcessorArgs.html = renderedLink;
-					renderedLink = $runEvent(
-						  event          = postProcessor
-						, eventArguments = { args=postProcessorArgs }
-						, private        = true
-						, prepostExempt  = true
-					);
-				}
-				renderedContent = Replace( renderedContent, embeddedLink.placeholder, renderedLink, "all" );
+						if ( Len( Trim( linkType ) ) ) {
+							try {
+								renderedLink = _getColdbox().renderViewlet( event="admin.linkpicker.#linkType#.getHref", args=linkDetails );
+							} catch( any e ) {}
+						} else {
+							renderedLink = _getColdbox().getRequestContext().buildLink( argumentCollection=linkDetails );
+						}
+					} catch( any e ) {}
+				break;
+				default:
+					renderedLink = linkContent;
 			}
 
-		} while ( StructCount( embeddedLink ) );
+			if ( Len( Trim( renderedLink ) ) && Len( Trim( outerargs.postProcessor ) ) ) {
+				outerargs.postProcessorArgs.html = renderedLink;
+				renderedLink = $runEvent(
+					  event          = outerargs.postProcessor
+					, eventArguments = { args=outerargs.postProcessorArgs }
+					, private        = true
+					, prepostExempt  = true
+				);
+			}
 
-		return renderedContent;
+			return renderedLink;
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -585,95 +596,6 @@ component {
 		return cache[ cacheKey ];
 	}
 
-	private struct function _findNextEmbeddedImage( required string richContent ) {
-		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
-		// {{image:{asset:"assetId",option:"value",option2:"value"}:image}}
-
-
-		var regex  = "{{image:(.*?):image}}";
-		var match  = ReFindNoCase( regex, arguments.richContent, 1, true );
-		var img    = {};
-		var config = "";
-
-		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
-			img.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
-
-			config = Mid( arguments.richContent, match.pos[2], match.len[2] );
-			config = UrlDecode( config );
-
-			try {
-				config = DeserializeJson( config );
-				StructAppend( img, config );
-			} catch ( any e ) {}
-		}
-
-		return img;
-	}
-
-	private struct function _findNextEmbeddedAttachment( required string richContent ) {
-		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
-		// {{attachment:{asset:"assetId",option:"value",option2:"value"}:attachment}}
-
-
-		var regex      = "{{attachment:(.*?):attachment}}";
-		var match      = ReFindNoCase( regex, arguments.richContent, 1, true );
-		var attachment = {};
-		var config     = "";
-
-		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
-			attachment.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
-
-			config = Mid( arguments.richContent, match.pos[2], match.len[2] );
-			config = UrlDecode( config );
-
-			try {
-				config = DeserializeJson( config );
-				StructAppend( attachment, config );
-			} catch ( any e ) {}
-		}
-
-		return attachment;
-	}
-
-	private struct function _findNextEmbeddedWidget( required string richContent ) {
-		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
-		// {{widget:myWidgetId:{option:"value",option2:"value"}:widget}}
-
-
-		var regex = "{{widget:([a-z\$_][a-z0-9\$_]*):(.*?):widget}}";
-		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
-		var widget    = {};
-
-		if ( ArrayLen( match.len ) eq 3 and match.len[1] and match.len[2] and match.len[3] ) {
-			widget.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
-			widget.id          = Mid( arguments.richContent, match.pos[2], match.len[2] );
-			widget.configJson  = Mid( arguments.richContent, match.pos[3], match.len[3] );
-		}
-
-		return widget;
-	}
-
-	private struct function _findNextEmbeddedLink( required string richContent ) {
-		// The following regex is designed to match the following patterns that would be embedded in rich editor content:
-		// {{link:pageid:link}}
-		// {{asset:assetid:asset}}
-
-
-		var regex = "{{(link|asset|custom):(.*?):(link|asset|custom)}}";
-		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
-		var link  = {};
-		var type  = "";
-
-		if ( ArrayLen( match.len ) eq 4 and match.len[1] and match.len[3] ) {
-			type             = Mid( arguments.richContent, match.pos[2], match.len[2] );
-			type             = type == "link" ? "page" : type;
-			link.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
-			link[ type ]     = Mid( arguments.richContent, match.pos[3], match.len[3] );
-		}
-
-		return link;
-	}
-
 	private boolean function _containsCodeSnippets( required string content ) {
 		return ReFind( '<code class="language-.*"', content );
 	}
@@ -733,5 +655,12 @@ component {
 	}
 	private void function _setRenderedAssetCache( required any renderedAssetCache ) {
 	    _renderedAssetCache = arguments.renderedAssetCache;
+	}
+
+	private any function _getDynamicFindAndReplaceService() {
+	    return _dynamicFindAndReplaceService;
+	}
+	private void function _setDynamicFindAndReplaceService( required any dynamicFindAndReplaceService ) {
+	    _dynamicFindAndReplaceService = arguments.dynamicFindAndReplaceService;
 	}
 }
