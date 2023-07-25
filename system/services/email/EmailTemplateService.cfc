@@ -26,6 +26,7 @@ component {
 	 * @assetManagerService.inject        assetManagerService
 	 * @emailSettings.inject              coldbox:setting:email
 	 * @templateCache.inject              cachebox:emailTemplateCache
+	 * @timeSeriesUtils.inject            timeSeriesUtils
 	 *
 	 */
 	public any function init(
@@ -37,6 +38,7 @@ component {
 		, required any emailStyleInliner
 		, required any emailSettings
 		, required any templateCache
+		, required any timeSeriesUtils
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
@@ -46,6 +48,7 @@ component {
 		_setAssetManagerService( arguments.assetManagerService );
 		_setEmailSettings( arguments.emailSettings );
 		_setTemplateCache( arguments.templateCache );
+		_setTimeSeriesUtils( arguments.timeSeriesUtils );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -784,20 +787,19 @@ component {
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter = "send_logs.sent_date >= :dateFrom"
+				  filter = "sent_date >= :dateFrom"
 				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
 			});
 		}
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
-				  filter       = "send_logs.sent_date <= :dateTo"
+				  filter       = "sent_date <= :dateTo"
 				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
 			});
 		}
-		var result = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "Count( send_logs.id ) as sent_count" ]
-			, filter       = { id=arguments.templateId, "send_logs.sent"=true }
-			, forceJoins   = "inner"
+		var result = $getPresideObject( "email_template_send_log" ).selectData(
+			  selectFields = [ "Count( 1 ) as sent_count" ]
+			, filter       = { email_template=arguments.templateId, sent=true }
 			, extraFilters = extraFilters
 			, useCache     = false
 		);
@@ -823,20 +825,19 @@ component {
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter = "send_logs.delivered_date >= :dateFrom"
+				  filter = "delivered_date >= :dateFrom"
 				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
 			});
 		}
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
-				  filter       = "send_logs.delivered_date <= :dateTo"
+				  filter       = "delivered_date <= :dateTo"
 				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
 			});
 		}
-		var result = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "Count( send_logs.id ) as delivered_count" ]
-			, filter       = { id=arguments.templateId, "send_logs.delivered"=true }
-			, forceJoins   = "inner"
+		var result = $getPresideObject( "email_template_send_log" ).selectData(
+			  selectFields = [ "Count( 1 ) as delivered_count" ]
+			, filter       = { email_template=arguments.templateId, delivered=true }
 			, extraFilters = extraFilters
 			, useCache     = false
 		);
@@ -862,20 +863,19 @@ component {
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter = "send_logs.opened_date >= :dateFrom"
+				  filter = "opened_date >= :dateFrom"
 				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
 			});
 		}
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
-				  filter       = "send_logs.opened_date <= :dateTo"
+				  filter       = "opened_date <= :dateTo"
 				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
 			});
 		}
-		var result = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "Count( send_logs.id ) as opened_count" ]
-			, filter       = { id=arguments.templateId, "send_logs.opened"=true }
-			, forceJoins   = "inner"
+		var result = $getPresideObject( "email_template_send_log" ).selectData(
+			  selectFields = [ "Count( 1 ) as opened_count" ]
+			, filter       = { email_template=arguments.templateId, opened=true }
 			, extraFilters = extraFilters
 		);
 
@@ -900,19 +900,19 @@ component {
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				  filter = "email_template_send_log_activity.datecreated >= :dateFrom"
 				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
 			});
 		}
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
-				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				  filter       = "email_template_send_log_activity.datecreated <= :dateTo"
 				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
 			});
 		}
-		var result = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "Count( send_logs$activities.id ) as opened_count" ]
-			, filter       = { id=arguments.templateId, "send_logs$activities.activity_type"="open" }
+		var result = $getPresideObject( "email_template_send_log_activity" ).selectData(
+			  selectFields = [ "Count( 1 ) as opened_count" ]
+			, filter       = { "message.email_template"=arguments.templateId, activity_type="open" }
 			, forceJoins   = "inner"
 			, extraFilters = extraFilters
 		);
@@ -938,19 +938,19 @@ component {
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				  filter = "email_template_send_log_activity.datecreated >= :dateFrom"
 				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
 			});
 		}
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
-				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				  filter       = "email_template_send_log_activity.datecreated <= :dateTo"
 				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
 			});
 		}
-		var result = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "Count( send_logs$activities.id ) as click_count" ]
-			, filter       = { id=arguments.templateId, "send_logs$activities.activity_type"="click" }
+		var result = $getPresideObject( "email_template_send_log_activity" ).selectData(
+			  selectFields = [ "Count( 1 ) as click_count" ]
+			, filter       = { "message.email_template"=arguments.templateId, activity_type="click" }
 			, forceJoins   = "inner"
 			, extraFilters = extraFilters
 		);
@@ -976,20 +976,19 @@ component {
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter = "send_logs.failed_date >= :dateFrom"
+				  filter = "failed_date >= :dateFrom"
 				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
 			});
 		}
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
-				  filter       = "send_logs.failed_date <= :dateTo"
+				  filter       = "failed_date <= :dateTo"
 				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
 			});
 		}
-		var result = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "Count( send_logs.id ) as failed_count" ]
-			, filter       = { id=arguments.templateId, "send_logs.failed"=true }
-			, forceJoins   = "inner"
+		var result = $getPresideObject( "email_template_send_log" ).selectData(
+			  selectFields = [ "Count( 1 ) as failed_count" ]
+			, filter       = { email_template=arguments.templateId, failed=true }
 			, extraFilters = extraFilters
 		);
 
@@ -1006,10 +1005,9 @@ component {
 	public numeric function getQueuedCount(
 		  required string templateId
 	) {
-		var result = $getPresideObject( "email_template" ).selectData(
-			  selectFields = [ "Count( queued_emails.id ) as queued_count" ]
-			, filter       = { id=arguments.templateId }
-			, forceJoins   = "inner"
+		var result = $getPresideObject( "email_mass_send_queue" ).selectData(
+			  selectFields = [ "Count( 1 ) as queued_count" ]
+			, filter       = { template=arguments.templateId }
 			, useCache     = false
 		);
 
@@ -1044,32 +1042,30 @@ component {
 			};
 		}
 
-		var stats = {
-			  sent      = []
-			, delivered = []
-			, failed    = []
-			, opened    = []
-			, clicks    = []
-			, dates     = []
+		var timeSeriesUtils = _getTimeSeriesUtils();
+		var timeResolution  = timeSeriesUtils.calculateTimeResolution( arguments.dateFrom, arguments.dateTo );
+		var dates           = timeSeriesUtils.getExpectedTimes( timeResolution, arguments.dateFrom, arguments.dateTo );
+		var commonArgs      = {
+			  timeResolution    = timeResolution
+			, expectedTimes     = dates
+			, sourceObject      = "email_template_send_log"
+			, startDate         = arguments.dateFrom
+			, endDate           = arguments.dateTo
+			, valuesOnly        = true
+			, aggregateFunction = "count"
 		};
-		if ( IsDate( arguments.dateFrom ) && IsDate( arguments.dateTo ) ) {
-			var timeJumps = Round( DateDiff( "s", arguments.dateFrom, arguments.dateTo ) / arguments.timePoints );
 
-			for( var i=0; i<arguments.timePoints; i++ ) {
-				var snapshot = getStats(
-					  templateId  = templateId
-					, dateFrom    = DateAdd( "s", i*timeJumps    , arguments.dateFrom )
-					, dateTo      = DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom )
-					, uniqueOpens = false
-				);
+		var stats = {
+			  sent      = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="sent_date"                                   , extraFilters=[ { filter={ email_template=arguments.templateId, sent=true      } } ] )
+			, delivered = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="delivered_date"                              , extraFilters=[ { filter={ email_template=arguments.templateId, delivered=true } } ] )
+			, failed    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="failed_date"                                 , extraFilters=[ { filter={ email_template=arguments.templateId, failed=true    } } ] )
+			, opened    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="opened_date"                                 , extraFilters=[ { filter={ email_template=arguments.templateId, opened=true    } } ] )
+			, clicks    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="email_template_send_log_activity.datecreated", extraFilters=[ { filter={ "message.email_template"=arguments.templateId       } } ], sourceObject="email_template_send_log_activity" )
+			, dates     = dates
+		};
 
-				stats.sent.append( snapshot.sent );
-				stats.delivered.append( snapshot.delivered );
-				stats.failed.append( snapshot.failed );
-				stats.opened.append( snapshot.opened );
-				stats.clicks.append( snapshot.clicks );
-				stats.dates.append( DateTimeFormat( DateAdd( "s", (i+1)*timeJumps, arguments.dateFrom ), "yyyy-mm-dd HH:nn" ) );
-			}
+		for( var i=1; i <= ArrayLen( stats.dates ); i++ ) {
+			stats.dates[ i ] = DateTimeFormat( stats.dates[ i ], "yyyy-mm-dd HH:nn" );
 		}
 
 		return stats;
@@ -1159,28 +1155,28 @@ component {
 		,          string dateTo   = ""
 	) {
 		var extraFilters = [{
-			filter = { "send_logs$activities.activity_type"="click" }
+			filter = { activity_type="click" }
 		}];
 
-		extraFilters.append( { filter="send_logs$activities.link is not null" } );
+		extraFilters.append( { filter="email_template_send_log_activity.link is not null" } );
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter = "send_logs$activities.datecreated >= :dateFrom"
+				  filter = "email_template_send_log_activity.datecreated >= :dateFrom"
 				, filterParams = { dateFrom={ type="cf_sql_timestamp", value=arguments.dateFrom } }
 			});
 		}
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
-				  filter       = "send_logs$activities.datecreated <= :dateTo"
+				  filter       = "email_template_send_log_activity.datecreated <= :dateTo"
 				, filterParams = { dateTo={ type="cf_sql_timestamp", value=arguments.dateTo } }
 			});
 		}
 
 		var clickStats    = StructNew( "ordered" );
-		var rawClickStats = $getPresideObject( "email_template" ).selectData(
-			  id           = arguments.templateId
-			, selectFields = [ "count( 1 ) as click_count", "send_logs$activities.link", "send_logs$activities.link_title", "send_logs$activities.link_body" ]
+		var rawClickStats = $getPresideObject( "email_template_send_log_activity" ).selectData(
+			  filter       = { "message.email_template"=arguments.templateId }
+			, selectFields = [ "count( 1 ) as click_count", "link", "link_title", "link_body" ]
 			, extraFilters = extraFilters
 			, autoGroupBy  = true
 			, orderBy      = "click_count desc"
@@ -1552,5 +1548,12 @@ component {
 	}
 	private void function _setTemplateCache( required any templateCache ) {
 	    _templateCache = arguments.templateCache;
+	}
+
+	private any function _getTimeSeriesUtils() {
+	    return _timeSeriesUtils;
+	}
+	private void function _setTimeSeriesUtils( required any timeSeriesUtils ) {
+	    _timeSeriesUtils = arguments.timeSeriesUtils;
 	}
 }
