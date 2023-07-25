@@ -29,12 +29,19 @@ component {
 		);
 
 		for ( var rule in allRules ) {
-			var isRuleValid = conditionService.validateCondition(
-				  condition        = rule.expressions   ?: ""
-				, context          = rule.context       ?: ""
-				, validationResult = validationEngine.newValidationResult()
-				, filterObject     = rule.filter_object ?: ""
-			);
+			var isRuleValid = true;
+
+			try {
+				isRuleValid = conditionService.validateCondition(
+					  condition        = rule.expressions   ?: ""
+					, context          = rule.context       ?: ""
+					, validationResult = validationEngine.newValidationResult()
+					, filterObject     = rule.filter_object ?: ""
+				);
+			} catch (any e) {
+				isRuleValid = false;
+				logError(e);
+			}
 
 			if ( !isRuleValid ) {
 				arrayAppend( invalidRules, rule.id );
