@@ -7,7 +7,7 @@ component {
 
 // CONSTRUCTOR
 	public any function init() {
-		_setValidationEndpoint( "https://www.google.com/recaptcha/api/siteverify" );
+		_setValidationEndpoint( "https://www.recaptcha.net/recaptcha/api/siteverify" );
 		return this;
 	}
 
