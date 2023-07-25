@@ -6,6 +6,10 @@ component extends="preside.system.base.AdminHandler" {
 
 // VIEWLETS
 	private string function systemAlertsMenuItem( event, rc, prc, args={} ) {
+		if ( !hasCmsPermission( "presideobject.system_alert.navigate" ) ) {
+			return "";
+		}
+
 		args.alertCounts = systemAlertsService.getAlertCounts();
 		args.levels      = systemAlertsService.getAlertLevels();
 
@@ -25,6 +29,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private any function displayCriticalAlerts( event, rc, prc, args={} ) {
+		if ( !hasCmsPermission( "presideobject.system_alert.navigate" ) ) {
+			return "";
+		}
+
 		var alertsShown    = sessionStorage.getVar( name="displayedCriticalAlerts", default=[] );
 		var criticalAlerts = systemAlertsService.getCriticalAlerts( ignore=alertsShown );
 		var alerts         = [];
