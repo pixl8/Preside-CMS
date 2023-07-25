@@ -548,6 +548,7 @@ component {
 			, activeChecks  = { datamanagerObject="link" }
 			, icon          = "fa-link"
 			, title         = "cms:links.navigation.link"
+			, permissionKey = "presideobject.link.read"
 		};
 		settings.adminMenuItems.maintenanceMode = {
 			  permissionKey = "maintenanceMode.configure"
