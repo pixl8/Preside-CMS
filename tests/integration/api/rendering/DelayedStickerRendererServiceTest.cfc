@@ -75,7 +75,9 @@ proident, sunt in #replacements[ tags[2] ]# culpa qui officia deserunt mollit an
 		variables.mockColdbox         = CreateStub();
 		variables.requestContext      = CreateStub();
 
-		var service = CreateMock( object=new preside.system.services.rendering.DelayedStickerRendererService() );
+		var service = CreateMock( object=new preside.system.services.rendering.DelayedStickerRendererService(
+			dynamicFindAndReplaceService = new preside.system.services.rendering.DynamicFindAndReplaceService()
+		) );
 
 		mockColdbox.$( "getRequestContext" ).$results( requestContext );
 		requestContext.$( "include" ).$results( nullValue() );
