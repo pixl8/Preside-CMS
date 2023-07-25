@@ -147,6 +147,7 @@ proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culp
 		var service = CreateMock( object=new preside.system.services.rendering.DelayedViewletRendererService(
 			  defaultHandlerAction = "index"
 			, contentRendererService = mockContentRenderer
+			, dynamicFindAndReplaceService = new preside.system.services.rendering.DynamicFindAndReplaceService()
 		) );
 
 		service.$( "$getColdbox", mockColdbox );
