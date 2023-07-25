@@ -592,6 +592,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailStyleInliner          = mockEmailStyleInliner
 					, emailSettings              = mockEmailSettings
 					, templateCache              = createStub()
+					, timeSeriesUtils            = mockTimeSeriesUtils
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
@@ -647,6 +648,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, emailStyleInliner          = mockEmailStyleInliner
 					, emailSettings              = mockEmailSettings
 					, templateCache              = createStub()
+					, timeSeriesUtils            = mockTimeSeriesUtils
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
