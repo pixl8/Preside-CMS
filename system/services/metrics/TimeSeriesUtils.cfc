@@ -57,15 +57,7 @@ component {
 			, extraFilters = Duplicate( arguments.extraFilters )
 		};
 
-		if ( $helpers.isRelationalAggregateField( aggOver ) ) {
-			var relationalJoin = _getSubqueryJoinForRelationalAggregate( arguments.sourceObject, aggOver );
-			selectDataArgs.extraJoins = [ relationalJoin.join ];
-			StructAppend( selectDataArgs.filterParams, relationalJoin.params );
-			ArrayAppend( selectDataArgs.selectFields, "#arguments.aggregateFunction#( ifnull( _relationalSubquery._value, 0 ) ) as _value" );
-		} else {
-			ArrayAppend( selectDataArgs.selectFields, "#arguments.aggregateFunction#( #aggOver# ) as _value" );
-		}
-
+		ArrayAppend( selectDataArgs.selectFields, "#arguments.aggregateFunction#( #aggOver# ) as _value" );
 		if ( grouped ) {
 			ArrayAppend( selectDataArgs.selectFields, arguments.groupBy & " as _groupval" );
 			selectDataArgs.groupBy &= ", _groupval";
