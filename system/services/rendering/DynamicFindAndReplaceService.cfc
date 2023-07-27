@@ -64,7 +64,7 @@ component {
 		if ( !StructKeyExists( variables._patterns, arguments.pattern ) ) {
 			variables._patterns[ arguments.pattern ] = CreateObject( "java", "java.util.regex.Pattern" ).compile( arguments.pattern );
 		}
-		return variables._patterns[ arguments.pattern ].matcher( arguments.source );
+		return variables._patterns[ arguments.pattern ].matcher( JavaCast( "string", arguments.source ) );
 	}
 
 }
