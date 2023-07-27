@@ -99,6 +99,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 				expect( result  ).toBe( expected );
 			} );
+
+			it( "should not choke on numeric input", function(){
+				var source  = 5
+				var pattern = "\{\{(.*?):(.*?)\}\}";
+				var groups  = "";
+
+				var result = sut.dynamicFindAndReplace( source=source, regexPattern=pattern, recurse=false, processor=function( captureGroups ){
+					return "whatever";
+				} );
+
+				expect( result  ).toBe( "5" );
+			} );
 		} );
 	}
 }
