@@ -56,7 +56,7 @@ component {
 	}
 
 	public struct function readObject( required any object ) {
-		_announceInterception( state="preReadPresideObject", interceptData={ object=object } );
+		_announceInterception( state="preReadPresideObject", interceptData={ arguments.object=object } );
 
 		var meta          = _mergeExtendedObjectMeta( getMetaData( arguments.object ) );
 		var componentName = ListLast( meta.name, "." );
@@ -137,11 +137,11 @@ component {
 		var merged = {};
 		var merger = new Merger();
 
-		for( var objName in unMergedObjects ) {
-			merged[ objName ] = unMergedObjects[ objName ][ 1 ];
+		for( var objName in arguments.unMergedObjects ) {
+			merged[ objName ] = arguments.unMergedObjects[ objName ][ 1 ];
 
-			for( var i=2; i lte unMergedObjects[ objName ].len(); i++ ) {
-				merged[ objName ] = new Merger().mergeObjects( merged[ objName ], unMergedObjects[ objName ][ i ] );
+			for( var i=2; i lte arguments.unMergedObjects[ objName ].len(); i++ ) {
+				merged[ objName ] = new Merger().mergeObjects( merged[ objName ], arguments.unMergedObjects[ objName ][ i ] );
 			}
 
 			finalizeMergedObject( merged[ objName ] );
@@ -154,8 +154,8 @@ component {
 		var prop   = "";
 		var systemAttribs = "extends,accessors,displayname,fullname,hashCode,hint,output,path,persistent,properties,remoteAddress,synchronized";
 
-		if ( StructKeyExists( meta, "extends" ) ) {
-			merged = _mergeExtendedObjectMeta( meta.extends );
+		if ( StructKeyExists( arguments.meta, "extends" ) ) {
+			merged = _mergeExtendedObjectMeta( arguments.meta.extends );
 		}
 
 		for( prop in arguments.meta ) {
@@ -224,7 +224,7 @@ component {
 			prop.delete( "type" );
 		}
 
-		StructAppend( prop, inheritedProperty, false );
+		StructAppend( prop, arguments.inheritedProperty, false );
 
 		return prop;
 	}
@@ -389,8 +389,8 @@ component {
 	}
 
 	private void function _deletePropertiesMarkedForDeletionOrBelongingToDisabledFeatures( required struct meta ) {
-		for( var propertyName in meta.properties ) {
-			var prop              = meta.properties[ propertyName ];
+		for( var propertyName in arguments.meta.properties ) {
+			var prop              = arguments.meta.properties[ propertyName ];
 			var featureService    = _getFeatureService();
 			var markedForDeletion = IsBoolean( prop.deleted ?: "" ) && prop.deleted;
 			var inDisabledFeature = Len( Trim( prop.feature ?: "" ) ) && !featureService.isFeatureEnabled( prop.feature );
@@ -410,9 +410,9 @@ component {
 		var indexName   = "";
 		var fieldPos    = "";
 
-		for ( prop in properties ) {
-			if ( StructKeyExists( properties[prop], "indexes" ) ) {
-				propIndexes = ListToArray( properties[prop].indexes );
+		for ( prop in arguments.properties ) {
+			if ( StructKeyExists( arguments.properties[prop], "indexes" ) ) {
+				propIndexes = ListToArray( arguments.properties[prop].indexes );
 				for( propIndex in propIndexes ) {
 					indexName = "ix_#LCase( arguments.objectName )#_#ListFirst( propIndex, '|' )#";
 					if ( not StructKeyExists( indexes, indexName ) ) {
@@ -422,8 +422,8 @@ component {
 					indexes[ indexName ].fields[ fieldPos ] = prop;
 				}
 			}
-			if ( StructKeyExists( properties[prop], "uniqueindexes" ) ) {
-				propIndexes = ListToArray( properties[prop].uniqueindexes );
+			if ( StructKeyExists( arguments.properties[prop], "uniqueindexes" ) ) {
+				propIndexes = ListToArray( arguments.properties[prop].uniqueindexes );
 				for( propIndex in propIndexes ) {
 					indexName = "ux_#LCase( arguments.objectName )#_#ListFirst( propIndex, '|' )#";
 					if ( not StructKeyExists( indexes, indexName ) ) {
@@ -570,14 +570,14 @@ component {
 	}
 
 	private void function _setUseDrafts( required struct meta ) {
-		if ( !meta.versioned ) {j
-			meta.useDrafts = false;
-		} else if ( IsBoolean( meta.datamanagerAllowDrafts ?: "" ) && meta.datamanagerAllowDrafts ) {
-			meta.useDrafts = true;
-		} else if ( IsBoolean( meta.isPageType ?: "" ) && meta.isPageType ) {
-			meta.useDrafts = meta.useDrafts ?: true;
+		if ( !arguments.meta.versioned ) {j
+			arguments.meta.useDrafts = false;
+		} else if ( IsBoolean( arguments.meta.datamanagerAllowDrafts ?: "" ) && arguments.meta.datamanagerAllowDrafts ) {
+			arguments.meta.useDrafts = true;
+		} else if ( IsBoolean( arguments.meta.isPageType ?: "" ) && arguments.meta.isPageType ) {
+			arguments.meta.useDrafts = arguments.meta.useDrafts ?: true;
 		} else {
-			meta.useDrafts = meta.useDrafts ?: false;
+			arguments.meta.useDrafts = arguments.meta.useDrafts ?: false;
 		}
 	}
 

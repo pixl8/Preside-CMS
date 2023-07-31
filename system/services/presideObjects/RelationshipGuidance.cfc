@@ -161,13 +161,13 @@ component singleton=true {
 		// !!! IMPORTANT TO LOOP THIS WAY (so that auto generated objects for many-to-many relationships can be processed by being pushed on to the array )
 		for( i=1; i lte ArrayLen( objectNames ); i++ ) {
 			objectName = objectNames[ i ];
-			object = objects[ objectName ];
+			object = arguments.objects[ objectName ];
 
 			for( var propertyName in object.meta.properties ) {
 				property = object.meta.properties[ propertyName ];
 
 				if ( property.relationship eq "many-to-many" ) {
-					if ( !StructKeyExists( objects, property.relatedTo ) ) {
+					if ( !StructKeyExists( arguments.objects, property.relatedTo ) ) {
 						throw(
 							  type    = "RelationshipGuidance.BadRelationship"
 							, message = "Object, [#property.relatedTo#], could not be found"
@@ -192,7 +192,7 @@ component singleton=true {
 					if ( !StructKeyExists( objects, property.relatedVia ) ) {
 						var pivotObjArgs = {
 							  sourceObject       = object.meta
-							, targetObject       = objects[ property.relatedTo ].meta
+							, targetObject       = arguments.objects[ property.relatedTo ].meta
 							, pivotObjectName    = property.relatedVia
 							, sourcePropertyName = property.relatedViaSourceFk
 							, targetPropertyName = property.relatedViaTargetFk
@@ -231,7 +231,7 @@ component singleton=true {
 
 				} else if ( property.relationship == "many-to-one" ) {
 
-					if ( not StructKeyExists( objects, property.relatedto ) ) {
+					if ( not StructKeyExists( arguments.objects, property.relatedto ) ) {
 						throw(
 							  type    = "RelationshipGuidance.BadRelationship"
 							, message = "Object, [#property.relatedTo#], could not be found"
@@ -239,7 +239,7 @@ component singleton=true {
 						);
 					}
 
-					var idField = objects[ property.relatedto ].meta.idField ?: "id";
+					var idField = arguments.objects[ property.relatedto ].meta.idField ?: "id";
 
 					if ( !StructKeyExists( property, "onDelete" ) ){
 						property.onDelete = ( property.required ? "error" : "set null" );
@@ -255,7 +255,7 @@ component singleton=true {
 					}
 
 					object.meta.relationships[ keyName ] = {
-						  pk_table  = objects[ property.relatedto ].meta.tableName
+						  pk_table  = arguments.objects[ property.relatedto ].meta.tableName
 						, fk_table  = object.meta.tableName
 						, pk_column = idField
 						, fk_column = propertyName
@@ -291,12 +291,12 @@ component singleton=true {
 						, fk       = propertyName
 						, onUpdate = property.onUpdate
 						, onDelete = property.onDelete
-						, alias    = _calculateOneToManyAlias( property.relatedTo, objects[ property.relatedTo ], objectName, propertyName )
+						, alias    = _calculateOneToManyAlias( property.relatedTo, arguments.objects[ property.relatedTo ], objectName, propertyName )
 					} );
 
-					property.type      = objects[ property.relatedto ].meta.properties[ idField ].type;
-					property.dbType    = objects[ property.relatedto ].meta.properties[ idField ].dbType;
-					property.maxLength = objects[ property.relatedto ].meta.properties[ idField ].maxLength;
+					property.type      = arguments.objects[ property.relatedto ].meta.properties[ idField ].type;
+					property.dbType    = arguments.objects[ property.relatedto ].meta.properties[ idField ].dbType;
+					property.maxLength = arguments.objects[ property.relatedto ].meta.properties[ idField ].maxLength;
 				} else if ( property.relationship == "one-to-many" ) {
 					if ( not StructKeyExists( objects, property.relatedto ) ) {
 						throw(
@@ -340,7 +340,7 @@ component singleton=true {
 
 		for( i=1; i lte ArrayLen( objectNames ); i++ ) {
 			objectName = objectNames[ i ];
-			pkMappings[ objectName ] = objects[ objectName ].meta.idField ?: "id";
+			pkMappings[ objectName ] = arguments.objects[ objectName ].meta.idField ?: "id";
 		}
 
 		_setRelationships( relationships );
@@ -547,8 +547,8 @@ component singleton=true {
 	}
 
 	private string function _calculateOneToManyAlias( required string oneObjectName, required struct oneObject, required string manyObjectName, required string fkName ) {
-		for ( var propertyName in oneObject.meta.properties ) {
-			var property        = oneObject.meta.properties[ propertyName ];
+		for ( var propertyName in arguments.oneObject.meta.properties ) {
+			var property        = arguments.oneObject.meta.properties[ propertyName ];
 			var relationship    = property.relationship    ?: "";
 			var relatedTo       = property.relatedTo       ?: "";
 			var relationshipKey = property.relationshipKey ?: arguments.oneObjectName;
