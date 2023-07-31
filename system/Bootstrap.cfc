@@ -240,9 +240,15 @@ component {
 
 	private void function _clearExistingApplication() {
 		onApplicationEnd( application );
-		application.clear();
-		request.delete( "cb_requestcontext" );
-		SystemCacheClear( "template" );
+
+		StructClear( application );
+		StructDelete( request, "cb_requestcontext" );
+
+		if ( StructKeyExists( getFunctionList(), "inspectTemplates" ) ) {
+			InspectTemplates(); // lucee 5.3.6+
+		} else {
+			SystemCacheClear( "template" );
+		}
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
 			getPageContext().getCFMLFactory().resetPageContext();
