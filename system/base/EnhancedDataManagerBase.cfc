@@ -20,7 +20,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.initializeDatamanagerPage( objectName=objectName, recordId=recordId, includeAllFormulaFields=true );
 
-		var record   = QueryRowToStruct( prc.record ?: QueryNew('') );
+		if ( !isQuery( prc.record ) || !prc.record.recordcount ) {
+			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle ?: objectName  ] ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName ) );
+		}
+
+		var record   = QueryRowToStruct( prc.record );
 		record.datecreated = _getNonVersionDateCreated( objectName, recordId );
 
 		prc.pageTitle = prc.recordLabel ?: "";
