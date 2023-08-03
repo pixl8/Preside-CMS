@@ -748,6 +748,7 @@ component displayName="Preside Object Service" {
 				StructDelete( cleanedData, key );
 			}
 		}
+
 		StructAppend( cleanedData, _addGeneratedValues(
 			  operation  = "update"
 			, objectName = arguments.objectName
@@ -828,7 +829,7 @@ component displayName="Preside Object Service" {
 						arguments.changedData[ record[ idField ] ] = {};
 					}
 					for( var field in changedFields ) {
-						arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+						arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: ( manyToManyData[ field ] ?: "" );
 					}
 				}
 			}
