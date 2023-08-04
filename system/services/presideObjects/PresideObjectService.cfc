@@ -942,7 +942,7 @@ component displayName="Preside Object Service" {
 					, filter       = preparedFilter.filter
 					, filterParams = preparedFilter.filterParams
 				);
-				updatedRecords = ListToArray( updatedRecords.id );
+				updatedRecords = valueArray( updatedRecords.id );
 			}
 
 			for( key in manyToManyData ){
