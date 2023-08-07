@@ -1052,6 +1052,43 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test026_2_updateData_should_calculate_changeddata_when_asked" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+
+			poService.dbSync();
+
+			var a1 = poService.insertData( objectName="obj_a", data={ label="a1" } );
+			poService.insertData( objectName="obj_b", data={ id="b1", label="b1" } );
+			poService.insertData( objectName="obj_b", data={ id="b2", label="b2" } );
+			poService.insertData( objectName="obj_b", data={ id="b3", label="b3" } );
+			poService.insertData( objectName="obj_b", data={ id="b4", label="b4" } );
+
+			var changedData = {};
+			poService.updateData(
+				  objectName              = "obj_a"
+				, id                      = a1
+				, data                    = { lots_of_bees="b1,b2", label="a1 changed" }
+				, updateManyToManyRecords = true
+				, calculateChangedData    = true
+				, changedData             = changedData
+			);
+
+			super.assertEquals( { "#a1#" = { lots_of_bees="b1,b2", label="a1 changed"  } }, changedData );
+
+			changedData = {};
+			poService.updateData(
+				  objectName              = "obj_a"
+				, id                      = a1
+				, data                    = { lots_of_bees="b1,b3", label="a1 changed" }
+				, updateManyToManyRecords = true
+				, calculateChangedData    = true
+				, changedData             = changedData
+			);
+			super.assertEquals( { "#a1#" = { lots_of_bees="b1,b3" } }, changedData );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test027_selectData_shouldSelectAllDataAndAllColumns_whenNoArgumentsSupplied" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );

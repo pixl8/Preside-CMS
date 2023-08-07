@@ -41,7 +41,7 @@ jobs:
           force: true
 
       - name: Run tests
-        uses: pixl8/github-action-box-test@v3
+        uses: pixl8/github-action-box-test@v4
         with:
           boxjson_dir: /tests
           test_dir: /tests
