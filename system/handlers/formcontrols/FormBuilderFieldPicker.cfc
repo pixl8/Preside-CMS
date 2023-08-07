@@ -11,7 +11,13 @@ component {
 		);
 
 		if ( !items.Len() ) {
-			return "";
+			var renderedTypes = [];
+
+			for ( var type in itemTypes ) {
+				arrayAppend( renderedTypes, translateResource( uri="formbuilder.item-types.#type#:title", defaultValue=type ) );
+			}
+
+			return "<p class='alert alert-warning'>" & translateResource( uri="cms:formbuilder.fieldPicker.noAvailableTypes.error", data=[ arrayToList( renderedTypes, ", " ) ] ) & "</p>";
 		}
 
 		args.values = [ "" ];
