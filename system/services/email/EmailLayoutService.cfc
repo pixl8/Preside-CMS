@@ -111,6 +111,7 @@ component {
 	) {
 		$announceInterception( "preRenderEmailLayout", arguments );
 
+		arguments.layout = Len( Trim( arguments.layout ) ) ? arguments.layout : "default";
 		var renderType   = arguments.type == "text" ? "text" : "html";
 		var viewletEvent = "email.layout.#arguments.layout#.#renderType#";
 		var viewletArgs  = {};
