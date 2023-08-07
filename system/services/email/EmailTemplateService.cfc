@@ -198,7 +198,7 @@ component {
 				message.htmlBody = replace( message.htmlBody, "{{unsubscribeLink}}", unsubscribeLink );
 			}
 
-			if ( viewOnline ) {
+			if ( viewOnline && !$helpers.isEmptyString( message.htmlBody ) ) {
 				var viewOnlineLink = getViewOnlineLink( message.htmlBody );
 				message.htmlBody   = replace( message.htmlBody, "{{viewonline}}", viewOnlineLink );
 				message.textBody   = replace( message.textBody, "{{viewonline}}", viewOnlineLink );
