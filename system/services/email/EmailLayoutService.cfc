@@ -113,6 +113,7 @@ component {
 	) {
 		$announceInterception( "preRenderEmailLayout", arguments );
 
+		arguments.layout = Len( Trim( arguments.layout ) ) ? arguments.layout : "default";
 		var renderType   = arguments.type == "text" ? "text" : "html";
 		var viewletEvent = "email.layout.#arguments.layout#.#renderType#";
 		var viewletArgs  = {};
@@ -132,6 +133,10 @@ component {
 		);
 		viewletArgs.append( config, false );
 		viewletArgs.append( arguments.templateDetail, false );
+
+		if ( !Len( Trim( viewletArgs.layout ?: "" ) ) ) {
+			viewletArgs.layout = arguments.layout;
+		}
 
 		var interceptorArgs = {
 			  rendered = $renderViewlet( event=viewletEvent, args=viewletArgs )
