@@ -200,13 +200,6 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:taskmanager.history.breadcrumb", data=[ prc.task.name ] )
 			, link  = event.buildAdminLink( linkTo="taskmanager.history" )
 		);
-
-		prc.history = taskHistoryDao.selectData(
-			  selectFields = [ "id", "datecreated", "success", "time_taken", "complete", "log" ]
-			, orderBy      = "datecreated desc"
-			, filter       = { task_key = task }
-			, maxRows      = 50
-		);
 	}
 
 	public void function viewLog( event, rc, prc ) {
