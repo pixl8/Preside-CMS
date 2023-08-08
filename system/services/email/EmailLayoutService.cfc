@@ -134,10 +134,6 @@ component {
 		viewletArgs.append( config, false );
 		viewletArgs.append( arguments.templateDetail, false );
 
-		if ( !Len( Trim( viewletArgs.layout ?: "" ) ) ) {
-			viewletArgs.layout = arguments.layout;
-		}
-
 		var interceptorArgs = {
 			  rendered = $renderViewlet( event=viewletEvent, args=viewletArgs )
 			, args     = arguments

@@ -104,6 +104,10 @@ component {
 			enableDomainOverwriteForBuildLink( template=messageTemplate );
 		}
 
+		if ( !Len( Trim( messageTemplate.layout ?: "" ) ) ) {
+			messageTemplate.layout = _getSystemEmailTemplateService().getDefaultLayout( template=messageTemplate.id );
+		}
+
 		if ( Len( Trim( arguments.recipientId ) ) ) {
 			_getEmailSendingContextService().setContext(
 				  recipientType = messageTemplate.recipient_type ?: ""
