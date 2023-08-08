@@ -244,6 +244,21 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	private void function preBatchDeleteRecordsAction( event, rc, prc, args={} ) {
+		var records = args.records ?: QueryNew( "" );
+		var logger  = args.logger  ?: NullValue();
+		var index   = 1;
+
+		for ( var record in records ) {
+			if ( formBuilderQuestionService.questionIsInUse( questionId=record.id ) ) {
+				logMessage( logger, "warn", translateResource( uri="preside-objects.formbuilder_question:batchAction.question.in.use.warning", data=[ record.label ] ) );
+
+				QueryDeleteRow( args.records, index );
+			}
+			index++;
+		}
+	}
+
 // helpers
 	private string function _getItemTypeFormAndErrorIfNoItemType( event, rc, prc, args={} ) {
 		var itemType = rc.item_type ?: ( prc.record.item_type ?: "" );
