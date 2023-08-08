@@ -27,6 +27,10 @@
     });
 
     $( 'textarea[class*=autosize]' ).autosize( {append: "\n"} );
+    $( 'a[data-toggle="tab"]' ).on( 'shown.bs.tab', function (e) {
+        $( 'textarea[class*=autosize]' ).trigger( 'autosize.resize' );
+    });
+
     $( 'textarea[class*=limited]' ).each(function() {
         var limit = parseInt($(this).attr('data-maxlength')) || 100;
         $(this).inputlimiter({
