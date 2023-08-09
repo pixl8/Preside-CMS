@@ -1160,7 +1160,7 @@ component displayName="Preside Object Service" {
 	 * @selectFields.hint Array of fields to select
 	 * @orderBy.hint      Plain SQL order by statement
 	 */
-	public query function selectManyToManyData(
+	public any function selectManyToManyData(
 		  required string  objectName
 		, required string  propertyName
 		,          array   selectFields = []
