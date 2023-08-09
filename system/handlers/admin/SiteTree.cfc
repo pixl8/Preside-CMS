@@ -473,7 +473,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		formData = event.getCollectionForForm( formName=formName, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
-		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ) );
+		validationResult = validateForm( formName=formName, formData=formData, stripPermissionedFields=true, permissionContext="page", permissionContextKeys=( prc.pagePermissionContext ?: [] ), bypassTenants=[ "site" ] );
 
 		if ( !validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:sitetree.data.validation.error" ) );
