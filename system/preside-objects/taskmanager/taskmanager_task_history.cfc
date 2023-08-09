@@ -7,6 +7,7 @@
  * @datamanagerEnabled              true
  * @datamanagerDisallowedOperations read,edit,delete,clone
  * @datamanagerGridFields           success,datecreated,time_taken
+ * @datamanagerHiddenGridFields     id
  * @datamanagerDefaultSortOrder     datecreated desc
  */
 component extends="preside.system.base.SystemPresideObject"  {
