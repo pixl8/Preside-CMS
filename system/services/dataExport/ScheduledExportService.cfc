@@ -143,6 +143,7 @@ component {
 
 				var newLogId = createExportHistoryLog( arguments.scheduledExportId, newThreadId );
 				if ( !len( trim( newLogId ) ) ) {
+					markExportAsFailed( exportId=arguments.scheduledExportId );
 					return;
 				}
 
@@ -206,6 +207,26 @@ component {
 		var runningExports = _getRunningExports();
 
 		runningExports[ arguments.threadId ] = { status="started" };
+	}
+
+	public void function markExportAsFailed( required string exportId ) {
+		var runningTasks = _getRunningExports();
+		var exportRecord = getExportDetail( arguments.exportId );
+
+		runningTasks.delete( exportRecord.running_thread ?: "", false );
+
+		$getPresideObject( "saved_export" ).updateData(
+			  id   = arguments.exportId
+			, data = {
+				  is_running           = false
+				, last_ran             = now()
+				, next_run             = ( ( exportRecord.schedule ?: "" ) eq "disabled" ) ? "" : getNextRunDate( exportRecord.schedule ?: "" )
+				, was_last_run_success = false
+				, last_run_time_taken  = ""
+				, running_thread       = ""
+				, running_machine      = ""
+			}
+		);
 	}
 
 	public numeric function markExportAsCompleted(
