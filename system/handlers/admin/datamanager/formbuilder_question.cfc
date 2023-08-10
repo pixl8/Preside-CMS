@@ -253,7 +253,7 @@ component extends="preside.system.base.AdminHandler" {
 			if ( formBuilderQuestionService.questionIsInUse( questionId=question.id ) ) {
 				logMessage( logger, "warn", translateResource( uri="preside-objects.formbuilder_question:batchAction.question.in.use.warning", data=[ question.label ] ) );
 			} else {
-				QueryAddRow( questionsAreNotInUse, [ question ]);
+				QueryAddRow( questionsAreNotInUse, question );
 			}
 		}
 
