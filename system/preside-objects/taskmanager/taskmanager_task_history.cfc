@@ -2,6 +2,7 @@
  * Represents a historical record of a task manager task run.
  * Includes any logging output, time taken and task status.
  *
+ * @noLabel                         true
  * @versioned                       false
  * @useCache                        false
  * @datamanagerEnabled              true
