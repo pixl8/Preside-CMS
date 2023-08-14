@@ -177,6 +177,7 @@ component {
 		var startupChecks             = [];
 		var coldbox                   = $getColdbox();
 		var alertHandlers             = coldbox.listHandlers( thatStartWith="admin.systemAlerts." )
+		var allAvailableTypes         = [];
 
 		for( var handler in alertHandlers ) {
 			var type = ListLast( handler, "." );
@@ -185,6 +186,8 @@ component {
 				_clearAllOfType( type );
 				continue;
 			}
+
+			ArrayAppend( allAvailableTypes, type );
 
 			// Base config
 			var config = {
@@ -214,6 +217,11 @@ component {
 				ArrayAppend( watchedSettingsCategories[ category ], type );
 			}
 		}
+
+		$getPresideObject( "system_alert" ).deleteData(
+			  filter       = "type NOT IN (:type)"
+			, filterParams = { type=allAvailableTypes }
+		);
 
 		_setAlertConfigs( configs );
 		_setStartupChecks( startupChecks );
