@@ -40,6 +40,10 @@ component extends="coldbox.system.Interceptor" {
 		if ( Len( interceptData.objectName ?: "" ) ) {
 			var tenancyData = tenancyService.get().getTenancyFieldsForInsertOrUpdateData( argumentCollection=interceptData );
 			if ( tenancyData.count() ) {
+				var bypassTenants = interceptData.bypassTenants ?: [];
+				for ( var tenant in bypassTenants ) {
+					StructDelete( tenancyData, tenant );
+				}
 				interceptData.data = interceptData.data ?: {};
 				interceptData.data.append( tenancyData );
 			}
