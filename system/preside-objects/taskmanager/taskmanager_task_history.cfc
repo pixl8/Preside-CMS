@@ -2,9 +2,14 @@
  * Represents a historical record of a task manager task run.
  * Includes any logging output, time taken and task status.
  *
- * @labelField name
- * @versioned  false
- * @useCache   false
+ * @noLabel                         true
+ * @versioned                       false
+ * @useCache                        false
+ * @datamanagerEnabled              true
+ * @datamanagerDisallowedOperations read,edit,delete,clone
+ * @datamanagerGridFields           success,datecreated,time_taken
+ * @datamanagerHiddenGridFields     id
+ * @datamanagerDefaultSortOrder     datecreated desc
  */
 component extends="preside.system.base.SystemPresideObject"  {
 	property name="task_key"   type="string"  dbtype="varchar" maxlength=100 required=true indexes="taskhistory|1,taskkey";
