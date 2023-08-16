@@ -849,6 +849,23 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function importForm( event, rc, prc, args ) {
+		prc.pageTitle = translateResource( "formbuilder:importForm.page.title" );
+		prc.pageIcon  = "file-import";
+
+		event.addAdminBreadCrumb(
+			  title = prc.pageTitle
+			, link  = ""
+		);
+	}
+
+	public string function importFormAction( event, rc, prc, args ) {
+		var formId = rc.formId ?: "";
+
+		var formData         = event.getCollectionWithoutSystemVars()
+		var validationResult = validateForms( formData );
+	}
+
 	public string function exportFormAction( event, rc, prc, args ) {
 		var fileName = formBuilderService.generateXmlFileForForm( id=rc.formId ?: "" );
 
