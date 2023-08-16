@@ -56,15 +56,24 @@
 					)#
 				</cfif>
 			</label>
-
-			<label>
-				<a href="#event.buildAdminLink( linkto='formbuilder.exportSubmissions', queryString='formid=' & formId )#" title="#HtmlEditFormat( translateResource( 'formbuilder:excel.download.link' ) )#">
-					<span class="fa-stack fa-lg green">
-						<i class="fa fa-circle fa-stack-2x"></i>
-						<i class="fa fa-cloud-download fa-stack-1x"></i>
-					</span>
-				</a>
-			</label>
 		</div>
+
+		<div class="btn-group pull-right">
+			<button data-toggle="dropdown" class="btn btn-sm btn-default inline">
+				<span class="fa fa-caret-down"></span>
+				Form options
+			</button>
+
+			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+				<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormAction", queryString="formid=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; Export form</a></li>
+			</ul>
+		</div>
+
+		<a class="pull-right inline" href="#event.buildAdminLink( linkto="formbuilder.exportSubmissions", queryString="formid=#formId#" )#">
+			<button class="btn btn-success btn-sm">
+				<i class="fa fa-cloud-download"></i>
+				#translateResource( "formbuilder:excel.download.link" )#
+			</button>
+		</a>
 	</div>
 </cfoutput>

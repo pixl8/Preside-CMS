@@ -2117,6 +2117,38 @@ component {
 		return false;
 	}
 
+	public string function generateXmlFileForForm(
+		  required string id
+	) {
+		var formbuilderForm = getForm( id=id );
+
+		if ( $helpers.isEmptyString( formbuilderForm.name ?: "" ) ) {
+			return "";
+		}
+
+		var fileName = $slugify( formbuilderForm.name ) & "-" & DateTimeFormat( Now(), "yyyymmdd-HHnnss" ) & ".xml";
+
+		var xml = XmlNew();
+
+		xml.XmlRoot = XmlElemNew( xml, "form" );
+
+		var formbuilderFormItems = getFormItems( id=id );
+
+		var fieldsRoot = XmlElemNew( xml, "fields" );
+
+		for ( var formbuilderFormItem in formbuilderFormItems ) {
+			var field = XmlElemNew( xml, "field" );
+			StructAppend( field.xmlAttributes, formbuilderFormItem.configuration ?: {} );
+			ArrayAppend( fieldsRoot.xmlChildren, field );
+		}
+
+		ArrayAppend( xml.form.xmlChildren, fieldsRoot );
+
+		FileWrite( ExpandPath( fileName ), ToString( xml ) );
+
+		return fileName;
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId

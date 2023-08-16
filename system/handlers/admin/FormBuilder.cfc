@@ -849,6 +849,18 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public string function exportFormAction( event, rc, prc, args ) {
+		var fileName = formBuilderService.generateXmlFileForForm( id=rc.formId ?: "" );
+
+		if ( isEmptyString( fileName ) ) {
+			event.notFound();
+		}
+
+		header name="Content-Disposition" value="attachment; filename=""#fileName#""";
+		content reset=true file=fileName deletefile=true type="application/xml";
+		abort;
+	}
+
 	private void function deleteFormInBgThread( event, rc, prc, args={}, logger, progress ) {
 		var logger      = arguments.logger  ?: NullValue();
 		var canProgress = StructKeyExists( arguments, "progress" );
