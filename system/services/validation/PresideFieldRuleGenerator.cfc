@@ -86,8 +86,17 @@ component output="false" singleton=true {
 
 					if ( StructKeyExists( field, "rules" ) ) {
 						for( rule in field.rules ){
-							rule.fieldName  = field.name;
-							rule.fieldLabel = field.label;
+							rule.fieldName        = field.name;
+							rule.fieldLabel       = field.label;
+							rule.paramsFieldLabel = {};
+							if ( !StructIsEmpty( rule.params ?: {} ) && StructKeyExists( rule.params, "field" ) ) {
+								for ( var f in fieldset.fields ) {
+									if ( f.name == rule.params.field ) {
+										StructAppend( rule.paramsFieldLabel, { "#rule.params.field#" =  ( f.label ?: "" ) } );
+										break;
+									} 
+								}
+							}
 							ArrayAppend( rules, rule );
 						}
 					}
