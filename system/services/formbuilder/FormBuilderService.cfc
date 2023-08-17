@@ -2138,7 +2138,20 @@ component {
 
 		for ( var formbuilderFormItem in formbuilderFormItems ) {
 			var field = XmlElemNew( xml, "field" );
-			StructAppend( field.xmlAttributes, formbuilderFormItem.configuration ?: {} );
+
+			StructAppend( field.xmlAttributes, {
+				  id         = formbuilderFormItem.id
+				, formId     = formbuilderFormItem.formId
+				, questionId = formbuilderFormItem.questionId
+				, item_type  = formbuilderFormItem.item_type
+			} );
+
+			var config = XmlElemNew( xml, "config" );
+
+			StructAppend( config.xmlAttributes, formbuilderFormItem.configuration ?: {} );
+
+			ArrayAppend( field.xmlChildren, config );
+
 			ArrayAppend( fieldsRoot.xmlChildren, field );
 		}
 

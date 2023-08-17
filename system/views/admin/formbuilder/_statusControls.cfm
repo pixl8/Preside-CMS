@@ -65,8 +65,8 @@
 			</button>
 
 			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
-				<li><a href="#event.buildAdminLink( linkto="formbuilder.importForm", queryString="formid=#formId#" )#"><i class="fa fa-fw fa-file-import"></i>&nbsp; Import form</a></li>
-				<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormAction", queryString="formid=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; Export form</a></li>
+				<li><a href="#event.buildAdminLink( linkto="formbuilder.importForm", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-import"></i>&nbsp; Import form</a></li>
+				<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormAction", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; Export form</a></li>
 			</ul>
 		</div>
 

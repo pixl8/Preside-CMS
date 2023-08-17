@@ -860,14 +860,43 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public string function importFormAction( event, rc, prc, args ) {
-		var formId = rc.formId ?: "";
+		var formId = rc.id ?: "";
 
 		var formData         = event.getCollectionWithoutSystemVars()
 		var validationResult = validateForms( formData );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+
+			formData.validationResult = validationResult;
+
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importForm", queryString="id=#formId#" ), persistStruct=formData );
+		}
+
+		if ( !IsNull( formData.file.binary ) ) {
+			var xml = XmlParse( CharsetDecode( formData.file.binary, "UTF-8" ) );
+
+			var fields = XmlSearch( xml, "/form/fields/field" );
+
+			for ( var field in fields ) {
+				if ( !IsNUll( field.config ) ) {
+					var fieldAttributes    = field.xmlAttributes ?: {};
+					var fieldConfiguration = field.config.xmlAttributes ?: {};
+
+					if ( !StructIsEmpty( fieldConfiguration ) ) {
+						formBuilderService.addItem( formId=formId, itemType=fieldAttributes.item_type, configuration=fieldConfiguration, question=fieldAttributes.questionId );
+					}
+				}
+			}
+		}
+
+		messagebox.info( translateResource( "formbuilder:importForm.success.message" ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=#formId#" ) );
 	}
 
 	public string function exportFormAction( event, rc, prc, args ) {
-		var fileName = formBuilderService.generateXmlFileForForm( id=rc.formId ?: "" );
+		var fileName = formBuilderService.generateXmlFileForForm( id=rc.id ?: "" );
 
 		if ( isEmptyString( fileName ) ) {
 			event.notFound();

@@ -1,11 +1,11 @@
 <cfscript>
-	formId           = rc.formId           ?: "";
+	id               = rc.id           ?: "";
 	validationResult = rc.validationResult ?: "";
 </cfscript>
 
 <cfoutput>
 	<form id="formbuilder-import-form" class="form-horizontal" method="post" enctype="multipart/form-data" action="#event.buildAdminLink( linkTo='formbuilder.importFormAction' )#">
-		<input type="hidden" name="formId" value="#formId#" />
+		<input type="hidden" name="id" value="#id#" />
 
 		#renderForm(
 			  formName          = "formbuilder.importForm"
