@@ -22,7 +22,7 @@ component {
 	public boolean function recaptcha() {
 		var recaptchaResponse = $getRequestContext().getValue( name="g-recaptcha-response", defaultValue="" );
 
-		if ( $getPresideSetting( "recaptcha", "secret_key" ).isEmpty() ) {
+		if ( isEmptyString( $helpers.recaptchaSecretKey() ) ) {
 			return true;
 		}
 

@@ -1,5 +1,5 @@
 <cfscript>
-	siteKey          = getSystemSetting( 'recaptcha', 'site_key' );
+	siteKey          = recaptchaSiteKey();
 	validationResult = rc.validationResult ?: "";
 	if ( !IsSimpleValue( validationResult ) && validationResult.fieldHasError( "recaptcha" ) ) {
 		errorMessage = translateResource( validationResult.getError( "recaptcha" ) );
@@ -7,7 +7,7 @@
 		errorMessage = "";
 	}
 
-	event.include( "recaptcha-js" );
+	recaptchaIncludeJs();
 </cfscript>
 
 <cfoutput>

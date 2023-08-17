@@ -7,14 +7,14 @@ component {
 
 // CONSTRUCTOR
 	public any function init() {
-		_setValidationEndpoint( "https://www.recaptcha.net/recaptcha/api/siteverify" );
+		_setValidationEndpoint( $helpers.recaptchaValidationEndpoint() );
 		return this;
 	}
 
 // PUBLIC API METHODS
 	public boolean function validate( required string response, string remoteAddress=cgi.remote_address ) {
 		var resp      = "";
-		var secretKey = $getPresideSetting( "recaptcha", "secret_key" );
+		var secretKey = $helpers.recaptchaSecretKey();
 
 		http url=_getValidationEndpoint() method="POST" timeout="10" result="resp" {
 			httpparam type="formfield" name="secret"   value=secretKey;

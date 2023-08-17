@@ -1,7 +1,7 @@
 component {
 
 	private function index( event, rc, prc, args={} ) {
-		args.siteKey = getSystemSetting( "recaptcha", "site_key" );
+		args.siteKey = recaptchaSiteKey();
 
 		if ( args.siteKey.isEmpty() ) {
 			return "";

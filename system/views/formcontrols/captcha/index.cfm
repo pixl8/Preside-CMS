@@ -4,7 +4,7 @@
 	size      = args.size    ?: "normal";
 	tabindex  = getNextTabIndex();
 
-	event.include( "recaptcha-js" );
+	recaptchaIncludeJs();
 </cfscript>
 
 <cfoutput>

@@ -6,7 +6,7 @@ component {
 
 		event.include( assetId="/js/frontend/formbuilder/" );
 		if ( pageCachingEnabled ) {
-			event.include( "recaptcha-js" );
+			recaptchaIncludeJs();
 		}
 
 		return renderViewlet(
