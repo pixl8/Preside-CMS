@@ -294,8 +294,6 @@ component output="false" singleton=true {
 	}
 
 	private struct function _getParamField( required string fieldName, required array fieldsets ) {
-		var field = {};
-
 		for( var fieldset in arguments.fieldsets ){
 			if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
 				continue;
@@ -303,17 +301,12 @@ component output="false" singleton=true {
 
 			for( var f in fieldset.fields ){
 				if ( f.name == arguments.fieldName ) {
-					field = f;
-					break;
+					return f;
 				}
-			}
-
-			if ( !StructIsEmpty( field ) ) {
-				break;
 			}
 		}
 
-		return field;
+		return {};
 	}
 
 // GETTERS AND SETTERS
