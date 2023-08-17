@@ -15,3 +15,7 @@
 <cffunction name="recaptchaSecretKey" access="public" returntype="string" output="false"><cfsilent>
 	<cfreturn getController().renderViewlet( event="admin.recaptchaConfig.secretKey" )>
 </cfsilent></cffunction>
+
+<cffunction name="recaptchaConfigured" access="public" returntype="boolean" output="false"><cfsilent>
+	<cfreturn !isEmptyString( recaptchaSiteKey() )>
+</cfsilent></cffunction>
