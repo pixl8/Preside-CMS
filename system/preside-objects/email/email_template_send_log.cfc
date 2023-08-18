@@ -6,6 +6,7 @@
  * @datamanagerDefaultSortOrder datecreated desc
  * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_link,activity_link_title,activity_link_body,activity_code,activity_reason
  * @datamanagerEnabled          true
+ * @datamanagerSearchFields     email_template,recipient,subject
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="email_template"  relationship="many-to-one" relatedto="email_template" required=false indexes="template,template_created|1";
