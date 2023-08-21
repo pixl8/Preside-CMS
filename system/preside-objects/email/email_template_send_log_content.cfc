@@ -1,10 +1,9 @@
 /**
  * A log of the email content sent through the templating system, used for resending emails
  *
- * @nolabel    true
- * @versioned  false
- * @feature    emailCenterResend
- * @labelField text_body
+ * @nolabel   true
+ * @versioned false
+ * @feature   emailCenterResend
  *
  */
 component extends="preside.system.base.SystemPresideObject" {

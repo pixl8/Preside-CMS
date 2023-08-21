@@ -16,7 +16,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="website_user_recipient"  relationship="many-to-one" relatedto="website_user"  required=false;
 	property name="security_user_recipient" relationship="many-to-one" relatedto="security_user" required=false;
 
-	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false feature="emailCenterResend";
+	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false feature="emailCenterResend" excludeDataExport=true;
 
 	property name="recipient" type="string" dbtype="varchar" maxlength=255 required=true indexes="recipient";
 	property name="sender"    type="string" dbtype="varchar" maxlength=255 required=true indexes="sender";
@@ -56,4 +56,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="activity_code"       formula="activities.code";
 	property name="activity_reason"     formula="activities.reason";
 	property name="activity_date"       formula="activities.datecreated" type="date" dbtype="datetime";
+
+	property name="content_html" formula="content.html_body";
+	property name="content_text" formula="content.text_body";
 }
