@@ -368,9 +368,11 @@ component {
 		var args = "";
 
 		if ( page.recordCount ) {
+			var allowedPageTypes = _getPageTypesService().listSiteTreePageTypes();
+
 			args = {
-				  filter             = "_hierarchy_lineage like :_hierarchy_lineage"
-				, filterParams       = { _hierarchy_lineage = page._hierarchy_child_selector }
+				  filter             = "_hierarchy_lineage like :_hierarchy_lineage and page_type in ( :page_type )"
+				, filterParams       = { _hierarchy_lineage = page._hierarchy_child_selector, page_type = allowedPageTypes }
 				, orderBy            = "_hierarchy_sort_order"
 				, allowDraftVersions = arguments.allowDrafts
 			};
