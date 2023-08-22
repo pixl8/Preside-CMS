@@ -569,6 +569,17 @@ component displayName="Website login service" {
 		return false;
 	}
 
+	public void function setUserSessionById( required string id ) {
+		var user = _getUserDao().selectData(
+			  filter   = { id=id, active=true }
+			, useCache = false
+		);
+
+		if ( user.recordCount ) {
+			_setUserSession( $helpers.queryRowToStruct( user ) );
+		}
+	}
+
 // private helpers
 	private struct function _getUserByLoginId( required string loginId ) {
 		var record = _getUserDao().selectData(

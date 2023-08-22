@@ -146,6 +146,7 @@ component {
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.WebsiteUserInterceptor"              , properties={} },
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
 			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} },
