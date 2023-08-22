@@ -12,23 +12,30 @@
 	}
 </cfscript>
 <cfoutput>
-	<cfswitch expression="#message#">
-		<cfcase value="LOGIN_FAILED">
-			<div class="alert alert-block alert-danger">
-				<p>#translateResource( 'cms:login.failed.error' )#</p>
-			</div>
-		</cfcase>
-		<cfcase value="FIRST_TIME_USER_SETUP">
-			<div class="alert alert-block alert-success">
-				<p>#translateResource( 'cms:login.user.setup.confirmation' )#</p>
-			</div>
-		</cfcase>
-		<cfcase value="PASSWORD_RESET">
-			<div class="alert alert-block alert-success">
-				<p>#translateResource( 'cms:login.password.reset.confirmation' )#</p>
-			</div>
-		</cfcase>
-	</cfswitch>
+	<cfif not isEmptyString( message )>
+		<cfswitch expression="#message#">
+			<cfcase value="LOGIN_FAILED">
+				<div class="alert alert-block alert-danger">
+					<p>#translateResource( 'cms:login.failed.error' )#</p>
+				</div>
+			</cfcase>
+			<cfcase value="FIRST_TIME_USER_SETUP">
+				<div class="alert alert-block alert-success">
+					<p>#translateResource( 'cms:login.user.setup.confirmation' )#</p>
+				</div>
+			</cfcase>
+			<cfcase value="PASSWORD_RESET">
+				<div class="alert alert-block alert-success">
+					<p>#translateResource( 'cms:login.password.reset.confirmation' )#</p>
+				</div>
+			</cfcase>
+			<cfdefaultcase>
+				<div class="alert alert-block alert-danger">
+					<p>#message#</p>
+				</div>
+			</cfdefaultcase>
+		</cfswitch>
+	</cfif>
 
 	<cfif !Len( Trim( message ) ) && loginProviderPosition gt 1>
 		<p class="text-center">
@@ -42,6 +49,7 @@
 	<div class="space-6"></div>
 	<form method="post" action="#event.buildAdminLink( linkto="login.login" )#" data-auto-focus-form="true">
 		<fieldset>
+			<input type="hidden" name="csrfToken" value="#event.getCsrfToken()#">
 			<input type="hidden" name="postLoginUrl" value="#postLoginUrl#" />
 
 			<label class="block clearfix">
