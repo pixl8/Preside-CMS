@@ -803,6 +803,8 @@ component {
 
 	private void function __setupEmailCenter() {
 		settings.email = _getEmailSettings(); // seems silly, but need to keep this for backward compat
+		settings.email.smtp = {};
+		settings.email.smtp.async = IsBoolean( settings.env.SMTP_ASYNC ?: "" ) ? settings.env.SMTP_ASYNC : true;
 	}
 
 	private void function __setupRicheditor() {
