@@ -6,6 +6,7 @@
  * @datamanagerDefaultSortOrder datecreated desc
  * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_link,activity_link_title,activity_link_body,activity_code,activity_reason
  * @datamanagerEnabled          true
+ * @datamanagerSearchFields     email_template,recipient,subject
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="email_template"  relationship="many-to-one" relatedto="email_template" required=false indexes="template,template_created|1";
@@ -16,7 +17,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="website_user_recipient"  relationship="many-to-one" relatedto="website_user"  required=false;
 	property name="security_user_recipient" relationship="many-to-one" relatedto="security_user" required=false;
 
-	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false feature="emailCenterResend";
+	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false feature="emailCenterResend" excludeDataExport=true;
 
 	property name="recipient" type="string" dbtype="varchar" maxlength=255 required=true indexes="recipient";
 	property name="sender"    type="string" dbtype="varchar" maxlength=255 required=true indexes="sender";
@@ -47,13 +48,16 @@ component extends="preside.system.base.SystemPresideObject" {
 
 	property name="activities" relationship="one-to-many" relatedto="email_template_send_log_activity" relationshipkey="message";
 
-	property name="activity_type"       formula="activities.activity_type";
-	property name="activity_ip"         formula="activities.user_ip";
-	property name="activity_user_agent" formula="activities.user_agent";
-	property name="activity_link"       formula="activities.link";
-	property name="activity_link_title" formula="activities.link_title";
-	property name="activity_link_body"  formula="activities.link_body";
-	property name="activity_code"       formula="activities.code";
-	property name="activity_reason"     formula="activities.reason";
-	property name="activity_date"       formula="activities.datecreated" type="date" dbtype="datetime";
+	property name="activity_type"       formula="${prefix}activities.activity_type";
+	property name="activity_ip"         formula="${prefix}activities.user_ip";
+	property name="activity_user_agent" formula="${prefix}activities.user_agent";
+	property name="activity_link"       formula="${prefix}activities.link";
+	property name="activity_link_title" formula="${prefix}activities.link_title";
+	property name="activity_link_body"  formula="${prefix}activities.link_body";
+	property name="activity_code"       formula="${prefix}activities.code";
+	property name="activity_reason"     formula="${prefix}activities.reason";
+	property name="activity_date"       formula="${prefix}activities.datecreated" type="date" dbtype="datetime";
+
+	property name="content_html" formula="${prefix}content.html_body";
+	property name="content_text" formula="${prefix}content.text_body";
 }
