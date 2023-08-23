@@ -86,8 +86,16 @@ component output="false" singleton=true {
 
 					if ( StructKeyExists( field, "rules" ) ) {
 						for( rule in field.rules ){
-							rule.fieldName  = field.name;
-							rule.fieldLabel = field.label;
+							rule.fieldName        = field.name;
+							rule.fieldLabel       = field.label;
+							rule.paramsFieldLabel = {};
+							if ( !StructIsEmpty( rule.params ?: {} ) && StructKeyExists( rule.params, "field" ) ) {
+								var paramFieldName = rule.params.field;
+								var paramField     = _getParamField( fieldName=paramFieldName, fieldsets=tab.fieldsets );
+								if ( !StructIsEmpty( paramField ) ) {
+									StructAppend( rule.paramsFieldLabel, { "#paramFieldName#" = ( paramField.label ?: "" ) } );
+								}
+							}
 							ArrayAppend( rules, rule );
 						}
 					}
@@ -283,6 +291,22 @@ component output="false" singleton=true {
 		_getInterceptorService().processState( argumentCollection=arguments );
 
 		return interceptData.interceptorResult ?: {};
+	}
+
+	private struct function _getParamField( required string fieldName, required array fieldsets ) {
+		for( var fieldset in arguments.fieldsets ){
+			if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
+				continue;
+			}
+
+			for( var f in fieldset.fields ){
+				if ( f.name == arguments.fieldName ) {
+					return f;
+				}
+			}
+		}
+
+		return {};
 	}
 
 // GETTERS AND SETTERS
