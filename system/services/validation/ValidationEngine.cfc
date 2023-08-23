@@ -82,6 +82,19 @@ component displayName="Validation Engine" {
 						ArrayAppend( params, _translateLabel( fieldLabel=rule.fieldLabel, fieldName=rule.fieldName ) );
 					}
 
+					if ( !StructIsEmpty( rule.paramsFieldLabel ?: {} ) ) {
+						for ( paramField in rule.paramsFieldLabel )  {
+							if ( !$helpers.IsEmptyString( rule.paramsFieldLabel[ paramField ] ) ) {
+								for( var index = 1; index <= ArrayLen( params ); index++ ) {
+									if ( params[ index ] == paramField ) {
+										params[ index ] = _translateLabel( fieldLabel=rule.paramsFieldLabel[ paramField ], fieldName=paramField );
+										break;
+									}
+								}
+							}
+						}
+					}
+
 					result.addError(
 						  fieldName = expandedFieldName
 						, message   = ( Len( Trim( rule.message ) ) ? rule.message : provider.getDefaultMessage( name=rule.validator ) )
@@ -312,6 +325,19 @@ component displayName="Validation Engine" {
 
 			if ( Len( Trim( rule.fieldLabel ?: "" ) ) ) {
 				ArrayAppend( data, _translateLabel( fieldLabel=rule.fieldLabel, fieldName=fieldName ) );
+			}
+
+			if ( !StructIsEmpty( rule.paramsFieldLabel ?: {} ) ) {
+				for ( paramField in rule.paramsFieldLabel )  {
+					if ( !$helpers.IsEmptyString( rule.paramsFieldLabel[ paramField ] ) ) {
+						for( var index = 1; index <= ArrayLen( data ); index++ ) {
+							if ( data[ index ] == paramField ) {
+								data[ index ] = _translateLabel( fieldLabel=rule.paramsFieldLabel[ paramField ], fieldName=paramField );
+								break;
+							}
+						}
+					}
+				}
 			}
 
 			jsRules[ fieldName ] = ListAppend( jsRules[ fieldName ], ' "#validator#" : { param : #_parseParamsForJQueryValidate( params, validator )#' );
