@@ -34,9 +34,13 @@
         <cfcase value="PASSWORD_RESET">
             <div class="alert alert-success">#translateResource( 'cms:login.password.reset.confirmation' )#</div>
         </cfcase>
+        <cfcase value="INVALID_CSRF_TOKEN">
+            <div class="alert alert-warning">#translateResource( "cms:invalidCsrfToken.error" )#</div>
+        </cfcase>
     </cfswitch>
 
     <form action="#event.buildLink( linkTo="login.attemptLogin" )#" method="post">
+        <input type="hidden" name="csrfToken" value="#event.getCsrfToken()#">
         <input type="hidden" name="postLoginUrl" value="#args.postLoginUrl#">
 
         <div class="form-group">

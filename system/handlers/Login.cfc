@@ -7,32 +7,38 @@ component {
 	public void function attemptLogin( event, rc, prc ) output=false {
 		announceInterception( "preAttemptLogin" );
 
-		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
-			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
-		}
-		var loginId      = rc.loginId  ?: "";
-		var password     = rc.password ?: "";
-		var postLoginUrl = websiteLoginService.getPostLoginUrl( explicitValue=rc.postLoginUrl ?: "", defaultValue=cgi.http_referer ?: "" );
-		var rememberMe   = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
-		var loggedIn     = websiteLoginService.login(
-			  loginId              = loginId
-			, password             = password
-			, rememberLogin        = rememberMe
-			, rememberExpiryInDays = _getRememberMeExpiry()
-		);
+		var persist = event.getCollectionWithoutSystemVars();
 
-		if ( loggedIn ) {
-			announceInterception( "onLoginSuccess"  );
+		if ( event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
+			if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
+				setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
+			}
+			var loginId      = rc.loginId  ?: "";
+			var password     = rc.password ?: "";
+			var postLoginUrl = websiteLoginService.getPostLoginUrl( explicitValue=rc.postLoginUrl ?: "", defaultValue=cgi.http_referer ?: "" );
+			var rememberMe   = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
+			var loggedIn     = websiteLoginService.login(
+				  loginId              = loginId
+				, password             = password
+				, rememberLogin        = rememberMe
+				, rememberExpiryInDays = _getRememberMeExpiry()
+			);
 
-			websiteLoginService.clearPostLoginUrl();
-			setNextEvent( url=postLoginUrl );
+			if ( loggedIn ) {
+				announceInterception( "onLoginSuccess"  );
+
+				websiteLoginService.clearPostLoginUrl();
+				setNextEvent( url=postLoginUrl );
+			}
+
+			persist.message = "LOGIN_FAILED";
+		} else {
+			persist.message = "INVALID_CSRF_TOKEN";
 		}
 
 		announceInterception( "onLoginFailure"  );
 
 		websiteLoginService.setPostLoginUrl( postLoginUrl );
-		var persist = event.getCollectionWithoutSystemVars();
-		    persist.message = "LOGIN_FAILED";
 
 		setNextEvent( url=event.buildLink( page="login" ), persistStruct=persist );
 	}
