@@ -14,7 +14,7 @@
 
     <cfswitch expression="#args.message#">
         <cfcase value="LOGIN_REQUIRED">
-            <div class="alert alert-warning">
+            <div class="alert alert-warning" role="alert">
                 <cfif len( trim( args.login_required ) )>
                     #args.login_required#
                 <cfelse>
@@ -23,7 +23,7 @@
             </div>
         </cfcase>
         <cfcase value="LOGIN_FAILED">
-            <div class="alert alert-warning">
+            <div class="alert alert-warning" role="alert">
                 <cfif len( trim( args.login_failed ) )>
                     #args.login_failed#
                 <cfelse>
@@ -32,7 +32,9 @@
             </div>
         </cfcase>
         <cfcase value="PASSWORD_RESET">
-            <div class="alert alert-success">#translateResource( 'cms:login.password.reset.confirmation' )#</div>
+            <div class="alert alert-success" role="alert">
+                #translateResource( 'cms:login.password.reset.confirmation' )#
+            </div>
         </cfcase>
         <cfcase value="INVALID_CSRF_TOKEN">
             <div class="alert alert-danger" role="alert">
