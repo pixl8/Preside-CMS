@@ -44,13 +44,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function login( event, rc, prc ) {
-		if ( !event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
-			var persistData = event.getCollectionWithoutSystemVars();
-
-			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
-				message = translateResource( uri="cms:invalidCsrfToken.error" )
-			} );
-		}
+		_checkCsrfToken( argumentCollection=arguments );
 
 		var user                   = "";
 		var postLoginUrl           = event.getValue( name="postLoginUrl", defaultValue="" );
@@ -281,4 +275,14 @@ component extends="preside.system.base.AdminHandler" {
 	private void function _redirectToDefaultAdminEvent( required any event ) {
 		setNextEvent( url=applicationsService.getDefaultUrl( siteId=event.getSiteId() ) );
 	}
+
+	private void function _checkCsrfToken(  event, rc, prc ) {
+		if ( !event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
+			var persist = event.getCollectionWithoutSystemVars();
+			persist.message = "INVALID_CSRF_TOKEN";
+
+			setNextEvent( url=cgi.http_referer, persistStruct=persist );
+		}
+	}
+
 }
