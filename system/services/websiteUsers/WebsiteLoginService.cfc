@@ -569,9 +569,9 @@ component displayName="Website login service" {
 		return false;
 	}
 
-	public void function setUserSessionById( required string id ) {
+	public void function reloadLoggedInUserDetails( string userId=getLoggedInUserId() ) {
 		var user = _getUserDao().selectData(
-			  filter   = { id=id, active=true }
+			  filter   = { id=arguments.userId, active=true }
 			, useCache = false
 		);
 
