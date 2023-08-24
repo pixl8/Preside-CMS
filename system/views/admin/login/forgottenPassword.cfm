@@ -9,35 +9,33 @@
 						#translateResource( 'cms:forgotpassword.title' )#<!--Retrieve Password-->
 					</h4>
 
-					<cfif not isEmptyString( message )>
-						<cfswitch expression="#message#">
-							<cfcase value="LOGINID_NOT_FOUND">
-								<div class="alert alert-block alert-danger">
-									<p>#translateResource( 'cms:forgottenpassword.loginid.notfound.error' )#</p>
-								</div>
-							</cfcase>
-							<cfcase value="INVALID_RESET_TOKEN">
-								<cfset autoResend = getSystemSetting( category="email", setting="resendtoken", default=false ) />
-								<div class="alert alert-block alert-danger">
-									<cfif IsBoolean( autoResend ) and autoResend>
-										<p>#translateResource( 'cms:forgottenpassword.invalid.reset.token.error.resent' )#</p>
-									<cfelse>
-										<p>#translateResource( 'cms:forgottenpassword.invalid.reset.token.error' )#</p>
-									</cfif>
-								</div>
-							</cfcase>
-							<cfcase value="PASSWORD_RESET_INSTRUCTIONS_SENT">
-								<div class="alert alert-block alert-success">
-									<p>#translateResource( 'cms:forgottenpassword.instructions.sent.confirmation' )#</p>
-								</div>
-							</cfcase>
-							<cfdefaultcase>
-								<div class="alert alert-block alert-danger">
-									<p>#message#</p>
-								</div>
-							</cfdefaultcase>
-						</cfswitch>
-					</cfif>
+					<cfswitch expression="#message#">
+						<cfcase value="LOGINID_NOT_FOUND">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( 'cms:forgottenpassword.loginid.notfound.error' )#</p>
+							</div>
+						</cfcase>
+						<cfcase value="INVALID_RESET_TOKEN">
+							<cfset autoResend = getSystemSetting( category="email", setting="resendtoken", default=false ) />
+							<div class="alert alert-block alert-danger">
+								<cfif IsBoolean( autoResend ) and autoResend>
+									<p>#translateResource( 'cms:forgottenpassword.invalid.reset.token.error.resent' )#</p>
+								<cfelse>
+									<p>#translateResource( 'cms:forgottenpassword.invalid.reset.token.error' )#</p>
+								</cfif>
+							</div>
+						</cfcase>
+						<cfcase value="PASSWORD_RESET_INSTRUCTIONS_SENT">
+							<div class="alert alert-block alert-success">
+								<p>#translateResource( 'cms:forgottenpassword.instructions.sent.confirmation' )#</p>
+							</div>
+						</cfcase>
+						<cfcase value="INVALID_CSRF_TOKEN">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( "cms:invalidCsrfToken.error" )#</p>
+							</div>
+						</cfcase>
+					</cfswitch>
 
 					<div class="space-6"></div>
 					<p>
