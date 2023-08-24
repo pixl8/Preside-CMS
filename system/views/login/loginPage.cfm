@@ -35,7 +35,9 @@
             <div class="alert alert-success">#translateResource( 'cms:login.password.reset.confirmation' )#</div>
         </cfcase>
         <cfcase value="INVALID_CSRF_TOKEN">
-            <div class="alert alert-warning">#translateResource( "cms:invalidCsrfToken.error" )#</div>
+            <div class="alert alert-danger" role="alert">
+                #translateResource( "cms:invalidCsrfToken.error" )#
+            </div>
         </cfcase>
     </cfswitch>
 
