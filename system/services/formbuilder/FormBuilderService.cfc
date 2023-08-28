@@ -2157,7 +2157,7 @@ component {
 
 		ArrayAppend( xml.form.xmlChildren, fieldsRoot );
 
-		FileWrite( ExpandPath( fileName ), ToString( xml ) );
+		FileWrite( "#getTempDirectory()#/#fileName#", ToString( xml ) );
 
 		return fileName;
 	}

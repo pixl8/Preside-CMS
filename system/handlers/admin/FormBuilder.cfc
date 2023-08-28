@@ -903,7 +903,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		header name="Content-Disposition" value="attachment; filename=""#fileName#""";
-		content reset=true file=fileName deletefile=true type="application/xml";
+		content reset=true file=getTempDirectory() & "/" & fileName deletefile=true type="application/xml";
 		abort;
 	}
 
