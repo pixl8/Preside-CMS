@@ -30,6 +30,8 @@ component {
 			setNextEvent( url=postLoginUrl );
 		}
 
+		announceInterception( "onLoginFailure"  );
+
 		websiteLoginService.setPostLoginUrl( postLoginUrl );
 		var persist = event.getCollectionWithoutSystemVars();
 		    persist.message = "LOGIN_FAILED";
