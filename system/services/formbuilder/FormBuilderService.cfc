@@ -2132,6 +2132,11 @@ component {
 
 		xml.XmlRoot = XmlElemNew( xml, "form" );
 
+		StructAppend( xml.form.xmlAttributes, {
+			    id   = formbuilderForm.id
+			  , name = formbuilderForm.name
+		} );
+
 		// Items
 		var formbuilderFormItems = getFormItems( id=arguments.formId );
 		var fieldsRoot           = XmlElemNew( xml, "fields" );

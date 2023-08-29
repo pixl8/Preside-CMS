@@ -65,15 +65,17 @@
 			</button>
 
 			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
-				<li><a href="#event.buildAdminLink( linkto="formbuilder.importForm", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-import"></i>&nbsp; Import form</a></li>
-				<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormAction", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; Export form</a></li>
+				<li><a href="#event.buildAdminLink( linkto="formbuilder.importForm", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-import"></i>&nbsp; #translateResource( "formbuilder:action.form.import.title" )#</a></li>
+				<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormAction", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; #translateResource( "formbuilder:action.form.export.title" )#</a></li>
+				<li class="divider"></li>
+				<li><a href="#event.buildAdminLink( linkto="formbuilder.deleteRecordAction", queryString="id=#formId#" )#" title="#translateResource( "formbuilder:action.form.delete.prompt" )#" class="red confirmation-prompt"><i class="fa fa-fw fa-trash-o"></i>&nbsp; #translateResource( "formbuilder:action.form.delete.title" )#</a></li>
 			</ul>
 		</div>
 
 		<a class="pull-right inline" href="#event.buildAdminLink( linkto="formbuilder.exportSubmissions", queryString="formid=#formId#" )#">
 			<button class="btn btn-success btn-sm">
 				<i class="fa fa-cloud-download"></i>
-				#translateResource( "formbuilder:excel.download.link" )#
+				#translateResource( "formbuilder:action.submission.download.title" )#
 			</button>
 		</a>
 	</div>
