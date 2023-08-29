@@ -947,6 +947,8 @@ component extends="preside.system.base.AdminHandler" {
 		args.locked      = IsTrue( args.locked ?: "" );
 		args.canLock     = hasCmsPermission( permissionKey="formbuilder.lockForm" );
 		args.canActivate = !args.locked && hasCmsPermission( permissionKey="formbuilder.activateForm" );
+		args.canEdit     = hasCmsPermission( permissionKey="formbuilder.editform" );
+		args.canDelete   = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 
 		return renderView( view="/admin/formbuilder/_statusControls", args=args );
 	}

@@ -4,6 +4,8 @@
 	canActivate = IsTrue( args.canActivate ?: "" );
 	active      = IsTrue( args.active      ?: "" );
 	locked      = IsTrue( args.locked      ?: "" );
+	canEdit     = IsTrue( args.canEdit     ?: "" );
+	canDelete   = IsTrue( args.canDelete   ?: "" );
 
 	activeClass    = ( active ? "green"    : "grey" ) & " " & ( canActivate ? "enabled" : "disabled" );
 	activeIcon     = active ? "fa-check" : "fa-times";
@@ -58,19 +60,25 @@
 			</label>
 		</div>
 
-		<div class="btn-group pull-right">
-			<button data-toggle="dropdown" class="btn btn-sm btn-default inline">
-				<span class="fa fa-caret-down"></span>
-				Form options
-			</button>
+		<cfif canEdit or canDelete>
+			<div class="btn-group pull-right">
+				<button data-toggle="dropdown" class="btn btn-sm btn-default inline">
+					<span class="fa fa-caret-down"></span>
+					Form options
+				</button>
 
-			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
-				<li><a href="#event.buildAdminLink( linkto="formbuilder.importForm", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-import"></i>&nbsp; #translateResource( "formbuilder:action.form.import.title" )#</a></li>
-				<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormAction", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; #translateResource( "formbuilder:action.form.export.title" )#</a></li>
-				<li class="divider"></li>
-				<li><a href="#event.buildAdminLink( linkto="formbuilder.deleteRecordAction", queryString="id=#formId#" )#" title="#translateResource( "formbuilder:action.form.delete.prompt" )#" class="red confirmation-prompt"><i class="fa fa-fw fa-trash-o"></i>&nbsp; #translateResource( "formbuilder:action.form.delete.title" )#</a></li>
-			</ul>
-		</div>
+				<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+					<cfif canEdit>
+						<li><a href="#event.buildAdminLink( linkto="formbuilder.importForm", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-import"></i>&nbsp; #translateResource( "formbuilder:action.form.import.title" )#</a></li>
+						<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormAction", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; #translateResource( "formbuilder:action.form.export.title" )#</a></li>
+					</cfif>
+					<cfif canDelete>
+						<li class="divider"></li>
+						<li><a href="#event.buildAdminLink( linkto="formbuilder.deleteRecordAction", queryString="id=#formId#" )#" title="#translateResource( "formbuilder:action.form.delete.prompt" )#" class="red confirmation-prompt"><i class="fa fa-fw fa-trash-o"></i>&nbsp; #translateResource( "formbuilder:action.form.delete.title" )#</a></li>
+					</cfif>
+				</ul>
+			</div>
+		</cfif>
 
 		<a class="pull-right inline" href="#event.buildAdminLink( linkto="formbuilder.exportSubmissions", queryString="formid=#formId#" )#">
 			<button class="btn btn-success btn-sm">
