@@ -2423,6 +2423,10 @@ component displayName="Preside Object Service" {
 			}
 		}
 
+		if ( ArrayIsEmpty( arguments.selectFields ) ) {
+			ArrayAppend( arguments.selectFields, getIdField( arguments.objectName ) );
+		}
+
 		return arguments.selectFields;
 	}
 
