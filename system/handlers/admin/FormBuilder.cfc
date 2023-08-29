@@ -7,7 +7,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
 	property name="adHocTaskManagerService"     inject="adHocTaskManagerService";
 
-
 // PRE-HANDLER
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -874,29 +873,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( !IsNull( formData.file.binary ) ) {
-			var formItems   = formBuilderService.getFormItems( id=formId );
-			var questionIds = [];
-
-			for ( var formItem in formItems ) {
-				if ( !isEmptyString( formItem.questionId ?: "" ) ) {
-					ArrayAppend( questionIds, formItem.questionId );
-				}
-			}
-
-			var xml = XmlParse( CharsetDecode( formData.file.binary, "UTF-8" ) );
-
-			var fields = XmlSearch( xml, "/form/fields/field" );
-
-			for ( var field in fields ) {
-				if ( !IsNUll( field.config ) ) {
-					var fieldAttributes    = field.xmlAttributes        ?: {};
-					var fieldConfiguration = field.config.xmlAttributes ?: {};
-
-					if ( !ArrayContains( questionIds, fieldAttributes.questionId ) && !StructIsEmpty( fieldConfiguration ) ) {
-						formBuilderService.addItem( formId=formId, itemType=fieldAttributes.item_type, configuration=fieldConfiguration, question=fieldAttributes.questionId );
-					}
-				}
-			}
+			formBuilderService.importForm( formId=formId, xml=XmlParse( CharsetDecode( formData.file.binary, "UTF-8" ) ) )
 		}
 
 		messagebox.info( translateResource( "formbuilder:importForm.success.message" ) );

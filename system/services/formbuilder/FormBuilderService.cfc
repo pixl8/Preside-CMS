@@ -2132,6 +2132,7 @@ component {
 
 		xml.XmlRoot = XmlElemNew( xml, "form" );
 
+		// Items
 		var formbuilderFormItems = getFormItems( id=id );
 
 		var fieldsRoot = XmlElemNew( xml, "fields" );
@@ -2147,9 +2148,7 @@ component {
 			} );
 
 			var config = XmlElemNew( xml, "config" );
-
 			StructAppend( config.xmlAttributes, formbuilderFormItem.configuration ?: {} );
-
 			ArrayAppend( field.xmlChildren, config );
 
 			ArrayAppend( fieldsRoot.xmlChildren, field );
@@ -2157,9 +2156,34 @@ component {
 
 		ArrayAppend( xml.form.xmlChildren, fieldsRoot );
 
-		FileWrite( "#getTempDirectory()#/#fileName#", ToString( xml ) );
-
 		return fileName;
+	}
+
+	public void function importForm(
+		  required string formId
+		, required any    xml
+	) {
+		var formItems   = getFormItems( id=arguments.formId );
+		var questionIds = [];
+
+		for ( var formItem in formItems ) {
+			if ( !isEmptyString( formItem.questionId ?: "" ) ) {
+				ArrayAppend( questionIds, formItem.questionId );
+			}
+		}
+
+		var fields = XmlSearch( arguments.xml, "/form/fields/field" );
+
+		for ( var field in fields ) {
+			if ( !IsNUll( field.config ) ) {
+				var fieldAttributes    = field.xmlAttributes        ?: {};
+				var fieldConfiguration = field.config.xmlAttributes ?: {};
+
+				if ( !ArrayContains( questionIds, fieldAttributes.questionId ) && !StructIsEmpty( fieldConfiguration ) ) {
+					addItem( formId=arguments.formId, itemType=fieldAttributes.item_type, configuration=fieldConfiguration, question=fieldAttributes.questionId );
+				}
+			}
+		}
 	}
 
 // PRIVATE HELPERS
