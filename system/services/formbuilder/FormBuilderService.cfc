@@ -2117,10 +2117,10 @@ component {
 		return false;
 	}
 
-	public string function generateXmlFileForForm(
-		  required string id
+	public string function exportForm(
+		  required string formId
 	) {
-		var formbuilderForm = getForm( id=id );
+		var formbuilderForm = getForm( id=arguments.formId );
 
 		if ( $helpers.isEmptyString( formbuilderForm.name ?: "" ) ) {
 			return "";
@@ -2133,18 +2133,15 @@ component {
 		xml.XmlRoot = XmlElemNew( xml, "form" );
 
 		// Items
-		var formbuilderFormItems = getFormItems( id=id );
-
-		var fieldsRoot = XmlElemNew( xml, "fields" );
-
+		var formbuilderFormItems = getFormItems( id=arguments.formId );
+		var fieldsRoot           = XmlElemNew( xml, "fields" );
 		for ( var formbuilderFormItem in formbuilderFormItems ) {
 			var field = XmlElemNew( xml, "field" );
 
 			StructAppend( field.xmlAttributes, {
 				  id         = formbuilderFormItem.id
-				, formId     = formbuilderFormItem.formId
+				, itemTypeId = formbuilderFormItem.item_type
 				, questionId = formbuilderFormItem.questionId
-				, item_type  = formbuilderFormItem.item_type
 			} );
 
 			var config = XmlElemNew( xml, "config" );
@@ -2153,8 +2150,28 @@ component {
 
 			ArrayAppend( fieldsRoot.xmlChildren, field );
 		}
-
 		ArrayAppend( xml.form.xmlChildren, fieldsRoot );
+
+		// Actions
+		var formbuilderFormActions = _getActionsService().getFormActions( id=arguments.formId );
+		var actionsRoot            = XmlElemNew( xml, "actions" );
+		for ( var formbuilderFormAction in formbuilderFormActions ) {
+			var action = XmlElemNew( xml, "action" );
+
+			StructAppend( action.xmlAttributes, {
+				  id       = formbuilderFormAction.id
+				, actionId = formbuilderFormAction.action.id
+			});
+
+			var config = XmlElemNew( xml, "config" );
+			StructAppend( config.xmlAttributes, formbuilderFormAction.configuration ?: {} );
+			ArrayAppend( action.xmlChildren, config );
+
+			ArrayAppend( actionsRoot.xmlChildren, action );
+		}
+		ArrayAppend( xml.form.xmlChildren, actionsRoot );
+
+		FileWrite( "#getTempDirectory()#/#fileName#", ToString( xml ) );
 
 		return fileName;
 	}
@@ -2173,16 +2190,23 @@ component {
 		}
 
 		var fields = XmlSearch( arguments.xml, "/form/fields/field" );
-
 		for ( var field in fields ) {
 			if ( !IsNUll( field.config ) ) {
 				var fieldAttributes    = field.xmlAttributes        ?: {};
 				var fieldConfiguration = field.config.xmlAttributes ?: {};
 
 				if ( !ArrayContains( questionIds, fieldAttributes.questionId ) && !StructIsEmpty( fieldConfiguration ) ) {
-					addItem( formId=arguments.formId, itemType=fieldAttributes.item_type, configuration=fieldConfiguration, question=fieldAttributes.questionId );
+					addItem( formId=arguments.formId, itemType=fieldAttributes.itemTypeId, configuration=fieldConfiguration, question=fieldAttributes.questionId );
 				}
 			}
+		}
+
+		var actions = XmlSearch( xml, "/form/actions/action" );
+		for ( var action in actions ) {
+			var actionAttributes    = action.xmlAttributes        ?: {};
+			var actionConfiguration = action.config.xmlAttributes ?: {};
+
+			_getActionsService().addAction( formId=arguments.formId, action=actionAttributes.actionId, configuration=actionConfiguration );
 		}
 	}
 

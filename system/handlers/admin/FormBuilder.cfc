@@ -882,7 +882,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public string function exportFormAction( event, rc, prc, args ) {
-		var fileName = formBuilderService.generateXmlFileForForm( id=rc.id ?: "" );
+		var fileName = formBuilderService.exportForm( formId=rc.id ?: "" );
 
 		if ( isEmptyString( fileName ) ) {
 			event.notFound();
