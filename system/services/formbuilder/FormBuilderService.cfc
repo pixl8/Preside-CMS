@@ -2130,32 +2130,64 @@ component {
 
 		var xml = XmlNew();
 
-		xml.XmlRoot = XmlElemNew( xml, "form" );
+		xml.xmlRoot = XmlElemNew( xml, "form" );
 
 		StructAppend( xml.form.xmlAttributes, {
-			    id   = formbuilderForm.id
-			  , name = formbuilderForm.name
+			  id   = formbuilderForm.id
+			, name = formbuilderForm.name
 		} );
 
 		// Items
 		var formbuilderFormItems = getFormItems( id=arguments.formId );
-		var fieldsRoot           = XmlElemNew( xml, "fields" );
+		var xmlItems             = XmlElemNew( xml, "items" );
+		var xmlQuestions         = XmlElemNew( xml, "questions" );
 		for ( var formbuilderFormItem in formbuilderFormItems ) {
-			var field = XmlElemNew( xml, "field" );
-
-			StructAppend( field.xmlAttributes, {
+			// Item
+			var xmlItem = XmlElemNew( xml, "item" );
+			StructAppend( xmlItem.xmlAttributes, {
 				  id         = formbuilderFormItem.id
-				, itemTypeId = formbuilderFormItem.item_type
+				, itemType   = formbuilderFormItem.item_type
 				, questionId = formbuilderFormItem.questionId
 			} );
 
-			var config = XmlElemNew( xml, "config" );
-			StructAppend( config.xmlAttributes, formbuilderFormItem.configuration ?: {} );
-			ArrayAppend( field.xmlChildren, config );
+			// Item config
+			var formbuilderFormItemConfig = $getPresideObject( "formbuilder_formitem" ).selectData(
+				  id           = formbuilderFormItem.id
+				, selectFields = [ "configuration" ]
+			);
+			if ( IsJSON( formbuilderFormItemConfig.configuration ?: "" ) ) {
+				var xmlItemConfig = XmlElemNew( xml, "config" );
+				StructAppend( xmlItemConfig.xmlAttributes, DeserializeJSON( formbuilderFormItemConfig.configuration ) );
+				ArrayAppend( xmlItem.xmlChildren, xmlItemConfig );
+			}
 
-			ArrayAppend( fieldsRoot.xmlChildren, field );
+			ArrayAppend( xmlItems.xmlChildren, xmlItem );
+
+			// Question
+			var formbuilderQuestion = getQuestion( formbuilderFormItem.questionId );
+			if ( formbuilderQuestion.recordCount ) {
+				var xmlQuestion = XmlElemNew( xml, "question" );
+
+				StructAppend( xmlQuestion.xmlAttributes, {
+					  id               = formbuilderQuestion.id
+					, fieldId          = formbuilderQuestion.field_id
+					, fieldLabel       = formbuilderQuestion.field_label
+					, fullQuestionText = formbuilderQuestion.full_question_text
+					, helpText         = formbuilderQuestion.help_text
+				} );
+
+				// Question config
+				if ( IsJSON( formbuilderQuestion.item_type_config ) ) {
+					var xmlQuestionConfig = XmlElemNew( xml, "config" );
+					StructAppend( xmlQuestionConfig.xmlAttributes, DeserializeJSON( formbuilderQuestion.item_type_config ) );
+					ArrayAppend( xmlQuestion.xmlChildren, xmlQuestionConfig );
+				}
+
+				ArrayAppend( xmlQuestions.xmlChildren, xmlQuestion );
+			}
 		}
-		ArrayAppend( xml.form.xmlChildren, fieldsRoot );
+		ArrayAppend( xml.form.xmlChildren, xmlItems );
+		ArrayAppend( xml.form.xmlChildren, xmlQuestions );
 
 		// Actions
 		var formbuilderFormActions = _getActionsService().getFormActions( id=arguments.formId );
@@ -2168,9 +2200,11 @@ component {
 				, actionId = formbuilderFormAction.action.id
 			});
 
-			var config = XmlElemNew( xml, "config" );
-			StructAppend( config.xmlAttributes, formbuilderFormAction.configuration ?: {} );
-			ArrayAppend( action.xmlChildren, config );
+			if ( !StructIsEmpty( formbuilderFormAction.configuration ) ) {
+				var config = XmlElemNew( xml, "config" );
+				StructAppend( config.xmlAttributes, formbuilderFormAction.configuration );
+				ArrayAppend( action.xmlChildren, config );
+			}
 
 			ArrayAppend( actionsRoot.xmlChildren, action );
 		}
