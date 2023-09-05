@@ -961,7 +961,8 @@ component {
 		};
 
 		settings.csrf = {
-			tokenExpiryInSeconds = 1200
+			  tokenExpiryInSeconds      = 1200
+			, authenticatedSessionsOnly = IsBoolean( settings.env.CSRF_AUTHENTICATED_ONLY ?: "" ) && settings.env.CSRF_AUTHENTICATED_ONLY
 		};
 	}
 
