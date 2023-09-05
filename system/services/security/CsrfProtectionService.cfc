@@ -24,7 +24,7 @@ component {
 
 // PUBLIC API
 	public string function generateToken( boolean force=false ) {
-		if ( skipCsrfValidation() ) {
+		if ( !arguments.force && skipCsrfValidation() ) {
 			return "";
 		}
 
@@ -44,8 +44,8 @@ component {
 		return token.value;
 	}
 
-	public boolean function validateToken( required string token, boolean regenerate=true ) {
-		if ( skipCsrfValidation() ) {
+	public boolean function validateToken( required string token, boolean regenerate=true, boolean force=false ) {
+		if ( !arguments.force && skipCsrfValidation() ) {
 			return true;
 		}
 
