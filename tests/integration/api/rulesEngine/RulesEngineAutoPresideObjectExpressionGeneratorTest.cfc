@@ -309,6 +309,74 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 			} );
 		} );
+
+		describe( "getAutoExpressionsForObject()", function(){
+			it( "should return a configured '{object} matches saved filter' expression", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_object";
+				var contexts     = _mockContexts( objectName );
+
+				mockPresideObjectService.$( "getLabelField" ).$args( objectname ).$results( "label" );
+				mockPresideObjectService.$( "getObjectProperties" ).$args( objectname ).$results( {} );
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectname, "autoGenerateFilterExpressionsFor" ).$results( "" );
+
+				var expectedExpr = {
+					id = "presideobject_recordmatchesfilter_#objectName#"
+				};
+
+				var expressions = builder.getAutoExpressionsForObject(
+					objectName = objectName
+				);
+
+				expect( arraySome( expressions, function( expr ) {
+					return "presideobject_recordmatchesfilter_#objectName#" == expr.id ?: "";
+				} ) ).toBe( 1 );
+
+			} ) ;
+			it( "should return a configured '{object} matches specific records' expression if the object has a label field", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_object";
+				var contexts     = _mockContexts( objectName );
+
+				mockPresideObjectService.$( "getLabelField" ).$args( objectname ).$results( "label" );
+				mockPresideObjectService.$( "getObjectProperties" ).$args( objectname ).$results( {} );
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectname, "autoGenerateFilterExpressionsFor" ).$results( "" );
+
+				var expectedExpr = {
+					id = "presideobject_recordmatchesid_#objectName#"
+				};
+
+				var expressions = builder.getAutoExpressionsForObject(
+					objectName = objectName
+				);
+
+				expect( arraySome( expressions, function( expr ) {
+					return "presideobject_recordmatchesid_#objectName#" == expr.id ?: "";
+				} ) ).toBe( 1 );
+			} );
+
+			it( "should NOT generate a '{object} matches specific records' expression if the object has no label field", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_other_object";
+				var contexts     = _mockContexts( objectName );
+
+				mockPresideObjectService.$( "getLabelField" ).$args( objectname ).$results( "" );
+				mockPresideObjectService.$( "getObjectProperties" ).$args( objectname ).$results( {} );
+				mockPresideObjectService.$( "getObjectAttribute" ).$args( objectname, "autoGenerateFilterExpressionsFor" ).$results( "" );
+
+				var expectedExpr = {
+					id = "presideobject_recordmatchesid_#objectName#"
+				};
+
+				var expressions = builder.getAutoExpressionsForObject(
+					objectName = objectName
+				);
+
+				expect( arraySome( expressions, function( expr ) {
+					return "presideobject_recordmatchesid_#objectName#" == expr.id ?: "";
+				} ) ).toBe( 0 );
+			} );
+		} );
 	}
 
 // PRIVATE
