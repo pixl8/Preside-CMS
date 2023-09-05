@@ -233,6 +233,10 @@
 		<cfreturn getSingleton( "websiteLoginService" ).getLoggedInUserDetails( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="reloadLoggedInUserDetails" access="public" returntype="void" output="false"><cfsilent>
+		<cfreturn getSingleton( "websiteLoginService" ).reloadLoggedInUserDetails( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 <!--- features --->
 	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
 		<cfargument name="feature"      type="string" required="true" />
