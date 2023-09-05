@@ -385,6 +385,23 @@ component displayName="Preside Super Class" {
 	}
 
 	/**
+	 * Proxy to the [[websiteloginservice-reloadLoggedInUserDetails]] method of [[api-websiteloginservice]].
+	 * See [[websiteusersandpermissioning]] for a full guide.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var userDetails = $reloadWebsiteLoggedInUserDetails();
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $reloadWebsiteLoggedInUserDetails() {
+		return $getWebsiteLoginService().reloadLoggedInUserDetails( argumentCollection=arguments );
+	}
+
+	/**
 	 * Proxy to the [[websiteloginservice-getloggedinuserid]] method of [[api-websiteloginservice]].
 	 * See [[websiteusersandpermissioning]] for a full guide.
 	 * \n
