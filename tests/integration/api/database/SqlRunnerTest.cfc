@@ -145,7 +145,7 @@
 			var start = getTickCount();
 
 			try {
-				runner.runSql( dsn=application.dsn, sql="select sleep( 10 )", timeout=1 );
+				runner.runSql( dsn=application.dsn, sql="select sleep( 10 )" );
 			} catch( database e ) {
 				correctError = ( e.message?: "" ) contains "timeout"
 			}
