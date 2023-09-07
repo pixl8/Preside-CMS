@@ -11,8 +11,8 @@ component singleton=true {
 		,          numeric defaultQueryTimeout   = 0
 		,          numeric defaultBgQueryTimeout = 0
 	) {
-		_setLogger( arguments.logger                );
-		_setDefaultQueryTimeout( arguments.defaultQueryTimeout   );
+		_setLogger( arguments.logger );
+		_setDefaultQueryTimeout( arguments.defaultQueryTimeout );
 		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
 
 		return this;
