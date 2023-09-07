@@ -169,6 +169,7 @@ component displayName="Preside Object Service" {
 	 * @bypassTenants.hint           Array of tenants to bypass. e.g. [ "site" ] to bypass site tenancy. See [[data-tenancy]] for more information on tenancy.
 	 * @returntype.hint              Either query (default),array,struct,arrayOfValues,singleRecordStruct or singleValue. Array and struct correspond to https://docs.lucee.org/reference/tags/query.html#attribute-returntype. ArrayOfValues return column array of the specified column in columnKey. SingleRecordStruct returns the first record in the result as a struct. SingleValue returns first result value of the specified column.
 	 * @columnKey.hint               When returntype="struct", "arrayOfValues" or "singleValue", this field is required to define the column that will be used for struct keys/values/value
+	 * @timeout.hint                 Timeout, in seconds, of the main select DB query
 	 * @selectFields.docdefault      []
 	 * @filter.docdefault            {}
 	 * @filterParams.docdefault      {}
@@ -497,6 +498,7 @@ component displayName="Preside Object Service" {
 	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
 	 * @bypassTenants.hint           Array of tenants to ignore (i.e. when the insert data wants to create a record in an alternative tenant to the current one)
 	 * @clearCaches.hint             Whether or not to clear caches related to the object whose record you are creating
+	 * @timeout.hint                 Timeout, in seconds, of the main insert DB query
 	 * @useVersioning.docdefault     automatic
 	 * @clearCaches.docdefault       Defaults to whether query caching is enabled or not for this object
 	 */
@@ -660,6 +662,7 @@ component displayName="Preside Object Service" {
 	 * @selectDataArgs.hint    Struct of arguments that are valid to pass to the [[presideobjectservice-selectdata]] method
 	 * @fieldList.hint         Array of table field names that the select fields in the select statement should map to for the insert
 	 * @clearCaches.hint       Whether or not to clear caches related to the object whose record you are creating
+	 * @timeout.hint           Timeout, in seconds, of the insert query
 	 * @clearCaches.docdefault Defaults to whether query caching is enabled or not for this object
 	 */
 	public numeric function insertDataFromSelect(
@@ -741,6 +744,7 @@ component displayName="Preside Object Service" {
 	 * @versionNumber.hint              If using versioning, specify a version number to save against (if none specified, one will be created automatically)
 	 * @setDateModified.hint            If true (default), updateData will automatically set the datelastmodified date on your record to the current date/time
 	 * @clearCaches.hint                Whether or not to clear caches related to the object whose record you are updating
+	 * @timeout.hint                    Timeout, in seconds, of the main update DB query
 	 * @useVersioning.docdefault        auto
 	 * @clearCaches.docdefault          Defaults to whether query caching is enabled or not for this object
 	 * @calculateChangedData.docdefault If true (default false), updateData will calculate the changed data even if requiresVersioning is false
@@ -1055,6 +1059,7 @@ component displayName="Preside Object Service" {
 	 * @extraFilters.hint      An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @forceDeleteAll.hint    If no id or filter supplied, this must be set to **true** in order for the delete to process
  	 * @clearCaches.hint       Whether or not to clear caches related to the object whose record you are deleting
+ 	 * @timeout.hint           Timeout, in seconds, of the main delete DB query
 	 * @clearCaches.docdefault Defaults to whether query caching is enabled or not for this object
 	 */
 	public numeric function deleteData(
