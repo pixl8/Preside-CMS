@@ -1176,6 +1176,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 // Threading
 	public boolean function isBackgroundThread( boolean value ) {
 		if ( structKeyExists( arguments, "value" ) ) {
+			request.__isbgthread = arguments.value;
 			getRequestContext().setValue( name="_isBackgroundThread", value=arguments.value, private=true );
 		}
 		return getRequestContext().getValue( name="_isBackgroundThread", defaultValue=false, private=true );

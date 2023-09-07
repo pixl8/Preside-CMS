@@ -726,6 +726,11 @@ component {
 		settings.autoRestoreDeprecatedFields = true;
 		settings.useQueryCacheDefault        = true;
 		settings.mssql = { useVarcharMaxForText = false }
+
+		settings.queryTimeout = {
+			  default                 = Val( settings.env.QUERY_TIMEOUT ?: 0 )
+			, backgroundThreadDefault = Val( settings.env.BACKGROUND_QUERY_TIMEOUT ?: ( settings.env.QUERY_TIMEOUT ?: 0 ) )
+		};
 	}
 
 	private void function __setupGlobalDataFilters() {

@@ -26,6 +26,8 @@ component displayName="Preside Object Service" {
 	 * @interceptorService.inject     coldbox:InterceptorService
 	 * @reloadDb.inject               coldbox:setting:syncDb
 	 * @throwOnLongTableName.inject   coldbox:setting:throwOnLongTableName
+	 * @defaultQueryTimeout.inject    coldbox:setting:queryTimeout.default
+	 * @defaultBgQueryTimeout.inject  coldbox:setting:queryTimeout.backgroundThreadDefault
 	 */
 	public any function init(
 		  required array   objectDirectories
@@ -41,8 +43,10 @@ component displayName="Preside Object Service" {
 		, required any     selectDataViewService
 		, required any     defaultQueryCache
 		, required any     interceptorService
-		,          boolean reloadDb = true
-		,          boolean throwOnLongTableName = false
+		,          boolean reloadDb              = true
+		,          boolean throwOnLongTableName  = false
+		,          numeric defaultQueryTimeout   = 0
+		,          numeric defaultBgQueryTimeout = 0
 	) {
 		_setObjectDirectories( arguments.objectDirectories );
 		_setObjectReader( arguments.objectReader );
@@ -59,6 +63,8 @@ component displayName="Preside Object Service" {
 		_setInterceptorService( arguments.interceptorService );
 		_setThrowOnLongTableName( arguments.throwOnLongTableName );
 		_setInstanceId( CreateObject('java','java.lang.System').identityHashCode( this ) );
+		_setDefaultQueryTimeout( arguments.defaultQueryTimeout   );
+		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
 
 		_loadObjects();
 
@@ -203,6 +209,7 @@ component displayName="Preside Object Service" {
 		,          array   ignoreDefaultFilters    = []
 		,          string  returntype              = "query"
 		,          string  columnKey               = ""
+		,          numeric timeout                 = _getDefaultTimeout()
 	) autodoc=true {
 		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
@@ -290,6 +297,7 @@ component displayName="Preside Object Service" {
 					, params     = versionTablePrep.params
 					, returntype = sqlRunnerReturnType
 					, columnKey  = args.columnKey
+					, timeout    = args.timeout
 				);
 
 				if ( arguments.recordCountOnly ) {
@@ -333,6 +341,7 @@ component displayName="Preside Object Service" {
 				, params     = args.preparedFilter.params
 				, returntype = sqlRunnerReturnType
 				, columnKey  = args.columnKey
+				, timeout    = args.timeout
 			);
 			if ( arguments.recordCountOnly ) {
 				args.result = Val( args.result.record_count ?: "" );
@@ -500,6 +509,7 @@ component displayName="Preside Object Service" {
 		,          numeric versionNumber           = 0
 		,          array   bypassTenants           = []
 		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
+		,          numeric timeout                 = _getDefaultTimeout()
 
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preInsertObjectData", arguments );
@@ -578,7 +588,7 @@ component displayName="Preside Object Service" {
 				, dbAdapter         = adapter
 			);
 
-			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType() );
+			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType(), timeout=args.timeout );
 
 			if ( adapter.requiresManualCommitForTransactions() ){
 				_runSql( sql='commit', dsn=obj.dsn );
@@ -657,6 +667,7 @@ component displayName="Preside Object Service" {
 		, required struct  selectDataArgs
 		, required array   fieldList
 		,          boolean clearCaches = _objectUsesCaching( arguments.objectName )
+		,          numeric timeout     = _getDefaultTimeout()
 	) {
 		var obj       = _getObject( arguments.objectName ).meta;
 		var adapter   = _getAdapter( obj.dsn );
@@ -672,6 +683,7 @@ component displayName="Preside Object Service" {
 			, dsn        = obj.dsn
 			, params     = selectSql.params
 			, returnType = "info"
+			, timeout    = arguments.timeout
 		);
 
 		if ( arguments.clearCaches ) {
@@ -752,6 +764,7 @@ component displayName="Preside Object Service" {
 		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
 		,          boolean calculateChangedData    = false
 		,          struct  changedData             = {}
+		,          numeric timeout                 = _getDefaultTimeout()
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -921,13 +934,13 @@ component displayName="Preside Object Service" {
 
 		if ( structCount( cleanedData ) ) {
 			sql = adapter.getUpdateSql(
-				tableName     = obj.tableName
+				  tableName     = obj.tableName
 				, tableAlias    = arguments.objectName
 				, updateColumns = StructKeyArray( cleanedData )
 				, filter        = preparedFilter.filter
 				, joins         = joins
 			);
-			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info", timeout=arguments.timeout );
 		}
 		var updatedRecordCount = Val( result.recordCount ?: 0 );
 
@@ -1055,6 +1068,7 @@ component displayName="Preside Object Service" {
 		,          string  forceJoins       = ""
 		,          boolean fromVersionTable = false
 		,          boolean clearCaches      = _objectUsesCaching( arguments.objectName )
+		,          numeric timeout          = _getDefaultTimeout()
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preDeleteObjectData", arguments );
 
@@ -1093,7 +1107,7 @@ component displayName="Preside Object Service" {
 			, joins      = _convertObjectJoinsToTableJoins( argumentCollection=args )
 		);
 
-		result = _runSql( sql=sql, dsn=obj.dsn, params=args.preparedFilter.params, returnType="info" );
+		result = _runSql( sql=sql, dsn=obj.dsn, params=args.preparedFilter.params, returnType="info", timeout=args.timeout );
 
 		if ( arguments.clearCaches && Val( result.recordCount ?: 0 ) ) {
 			clearRelatedCaches(
@@ -4230,6 +4244,13 @@ component displayName="Preside Object Service" {
 		return ReFindNoCase( nofunctionBracketsAndSpaces, fieldMinusAlias );
 	}
 
+	private numeric function _getDefaultTimeout() {
+		if ( StructKeyExists( request, "__isbgthread" ) && IsBoolean( request._isbgthread ) && request._isbgthread ) {
+			return _getDefaultBgQueryTimeout();
+		}
+		return _getDefaultQueryTimeout();
+	}
+
 
 // SIMPLE PRIVATE PROXIES
 	private any function _getAdapter() {
@@ -4405,5 +4426,19 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setSelectDataViewService( required any selectDataViewService ) {
 	    _selectDataViewService = arguments.selectDataViewService;
+	}
+
+	private numeric function _getDefaultQueryTimeout() {
+		return _defaultQueryTimeout;
+	}
+	private void function _setDefaultQueryTimeout( required numeric defaultQueryTimeout ) {
+		_defaultQueryTimeout = arguments.defaultQueryTimeout;
+	}
+
+	private numeric function _getDefaultBgQueryTimeout() {
+		return _defaultBgQueryTimeout;
+	}
+	private void function _setDefaultBgQueryTimeout( required numeric defaultBgQueryTimeout ) {
+		_defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
 	}
 }
