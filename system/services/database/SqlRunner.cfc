@@ -147,7 +147,7 @@ component singleton=true {
 	}
 
 	private numeric function _getDefaultTimeout() {
-		if ( StructKeyExists( request, "__isbgthread" ) && IsBoolean( request._isbgthread ) && request._isbgthread ) {
+		if ( StructKeyExists( request, "__isbgthread" ) && IsBoolean( request.__isbgthread ) && request.__isbgthread ) {
 			return _getDefaultBgQueryTimeout();
 		}
 		return _getDefaultQueryTimeout();
