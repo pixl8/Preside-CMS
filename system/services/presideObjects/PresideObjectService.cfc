@@ -161,6 +161,8 @@ component displayName="Preside Object Service" {
 	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
 	 * @tenantIds.hint               Struct of tenant IDs. Keys of the struct indicate the tenant, values indicate the ID. e.g. `{ site=specificSiteId }`. These values will override the current active tenant for the request.
 	 * @bypassTenants.hint           Array of tenants to bypass. e.g. [ "site" ] to bypass site tenancy. See [[data-tenancy]] for more information on tenancy.
+	 * @returntype.hint              Either query (default),array,struct,arrayOfValues,singleRecordStruct or singleValue. Array and struct correspond to https://docs.lucee.org/reference/tags/query.html#attribute-returntype. ArrayOfValues return column array of the specified column in columnKey. SingleRecordStruct returns the first record in the result as a struct. SingleValue returns first result value of the specified column.
+	 * @columnKey.hint               When returntype="struct", "arrayOfValues" or "singleValue", this field is required to define the column that will be used for struct keys/values/value
 	 * @selectFields.docdefault      []
 	 * @filter.docdefault            {}
 	 * @filterParams.docdefault      {}
@@ -199,6 +201,8 @@ component displayName="Preside Object Service" {
 		,          struct  tenantIds               = {}
 		,          array   bypassTenants           = []
 		,          array   ignoreDefaultFilters    = []
+		,          string  returntype              = "query"
+		,          string  columnKey               = ""
 	) autodoc=true {
 		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
@@ -228,6 +232,16 @@ component displayName="Preside Object Service" {
 
 		var objMeta = _getObject( args.objectName ).meta;
 		var adapter = _getAdapter( objMeta.dsn );
+		var sqlRunnerReturnType = "recordset";
+
+		if ( !arguments.recordCountOnly ) {
+			if ( arguments.returnType == "array" || arguments.returnType == "struct" ) {
+				sqlRunnerReturnType = arguments.returnType;
+			} else if ( arguments.returnType == "singleRecordStruct" ) {
+				args.maxRows = 1;
+				sqlRunnerReturnType = "array";
+			}
+		}
 
 		args.selectFields   = expandHavingClauses( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
@@ -271,9 +285,11 @@ component displayName="Preside Object Service" {
 				);
 			} else {
 				args.result = _runSql(
-					  sql    = versionTablePrep.sql
-					, dsn    = versionTablePrep.dsn
-					, params = versionTablePrep.params
+					  sql        = versionTablePrep.sql
+					, dsn        = versionTablePrep.dsn
+					, params     = versionTablePrep.params
+					, returntype = sqlRunnerReturnType
+					, columnKey  = args.columnKey
 				);
 
 				if ( arguments.recordCountOnly ) {
@@ -311,9 +327,27 @@ component displayName="Preside Object Service" {
 					, prefix = arguments.sqlAndParamsPrefix
 				);
 			}
-			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
+			args.result = _runSql(
+				  sql        = sql
+				, dsn        = args.objMeta.dsn
+				, params     = args.preparedFilter.params
+				, returntype = sqlRunnerReturnType
+				, columnKey  = args.columnKey
+			);
 			if ( arguments.recordCountOnly ) {
 				args.result = Val( args.result.record_count ?: "" );
+			}
+		}
+
+		if ( arguments.returnType == "arrayOfValues" && IsQuery( args.result ) ) {
+			args.result = QueryColumnData( args.result, arguments.columnKey );
+		} else if ( arguments.returnType == "singleValue" && IsQuery( args.result ) ) {
+			args.result = args.result[ arguments.columnKey ][ 1 ] ?: "";
+		} else if ( arguments.returnType == "singleRecordStruct" ) {
+			if ( IsArray( args.result ) && ArrayLen( args.result ) >= 1 ) {
+				args.result = args.result[ 1 ];
+			} else {
+				args.result = {};
 			}
 		}
 
@@ -748,6 +782,7 @@ component displayName="Preside Object Service" {
 				StructDelete( cleanedData, key );
 			}
 		}
+
 		StructAppend( cleanedData, _addGeneratedValues(
 			  operation  = "update"
 			, objectName = arguments.objectName
@@ -828,7 +863,7 @@ component displayName="Preside Object Service" {
 						arguments.changedData[ record[ idField ] ] = {};
 					}
 					for( var field in changedFields ) {
-						arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+						arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: ( manyToManyData[ field ] ?: "" );
 					}
 				}
 			}
@@ -1125,7 +1160,7 @@ component displayName="Preside Object Service" {
 	 * @selectFields.hint Array of fields to select
 	 * @orderBy.hint      Plain SQL order by statement
 	 */
-	public query function selectManyToManyData(
+	public any function selectManyToManyData(
 		  required string  objectName
 		, required string  propertyName
 		,          array   selectFields = []
@@ -1773,6 +1808,30 @@ component displayName="Preside Object Service" {
 		}
 
 		return getObjectAttribute( arguments.objectName, "dateModifiedField", "dateModified" );
+	}
+
+	/**
+	 * Get the datasource for the given object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose DSN you wish to get
+	 */
+	public string function getDsn( required string objectName ) {
+		var obj = _getObject( arguments.objectName );
+
+		return obj.meta.dsn ?: "";
+	}
+
+	/**
+	 * Get the table name for the given object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose table name you wish to get
+	 */
+	public string function getTablename( required string objectName ) {
+		var obj = _getObject( arguments.objectName );
+
+		return obj.meta.tableName ?: arguments.objectname;
 	}
 
 	/**

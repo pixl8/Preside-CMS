@@ -1052,6 +1052,43 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test026_2_updateData_should_calculate_changeddata_when_asked" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+
+			poService.dbSync();
+
+			var a1 = poService.insertData( objectName="obj_a", data={ label="a1" } );
+			poService.insertData( objectName="obj_b", data={ id="b1", label="b1" } );
+			poService.insertData( objectName="obj_b", data={ id="b2", label="b2" } );
+			poService.insertData( objectName="obj_b", data={ id="b3", label="b3" } );
+			poService.insertData( objectName="obj_b", data={ id="b4", label="b4" } );
+
+			var changedData = {};
+			poService.updateData(
+				  objectName              = "obj_a"
+				, id                      = a1
+				, data                    = { lots_of_bees="b1,b2", label="a1 changed" }
+				, updateManyToManyRecords = true
+				, calculateChangedData    = true
+				, changedData             = changedData
+			);
+
+			super.assertEquals( { "#a1#" = { lots_of_bees="b1,b2", label="a1 changed"  } }, changedData );
+
+			changedData = {};
+			poService.updateData(
+				  objectName              = "obj_a"
+				, id                      = a1
+				, data                    = { lots_of_bees="b1,b3", label="a1 changed" }
+				, updateManyToManyRecords = true
+				, calculateChangedData    = true
+				, changedData             = changedData
+			);
+			super.assertEquals( { "#a1#" = { lots_of_bees="b1,b3" } }, changedData );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test027_selectData_shouldSelectAllDataAndAllColumns_whenNoArgumentsSupplied" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
@@ -3674,6 +3711,185 @@
 			super.assertEquals( result.recordCount, 2      , "Expected record count mismatch" );
 			super.assertEquals( result.id[1]      , dIds[1], "Expected record ID mismatch" );
 			super.assertEquals( result.id[2]      , dIds[2], "Expected record ID mismatch" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test105_selectData_shouldSupportArrayReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id","label" ]
+				, objectName = "object_e"
+				, orderBy    = "label"
+				, returntype = "array"
+			);
+			var expected = [];
+			for( var i=1; i<=9; i++ ) {
+				ArrayAppend( expected, { id=eId[i], label="label #i#" } );
+			}
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test106_selectData_shouldSupportStructReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id","label" ]
+				, objectName = "object_e"
+				, orderBy    = "label"
+				, returntype = "struct"
+				, columnKey  = "id"
+			);
+			var expected = {};
+			for( var i=1; i<=9; i++ ) {
+				expected[ eId[i] ] = { id=eId[i], label="label #i#" };
+			}
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test107_selectData_shouldSupportArrayOfValuesReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id" ]
+				, objectName = "object_e"
+				, orderBy    = "label"
+				, returntype = "arrayOfValues"
+				, columnKey  = "id"
+			);
+			var expected = [];
+			for( var i=1; i<=9; i++ ) {
+				ArrayAppend( expected, eId[i] );
+			}
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test108_selectData_shouldSupportSingleValueReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "label" ]
+				, id           = eId[5]
+				, objectName   = "object_e"
+				, orderBy      = "label"
+				, returntype   = "singleValue"
+				, columnKey    = "label"
+			);
+
+			super.assertEquals( "label 5", result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test109_selectData_shouldSupportSingleRecordStructReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id", "label" ]
+				, id           = eId[5]
+				, objectName   = "object_e"
+				, returntype   = "singleRecordStruct"
+			);
+
+			super.assertEquals( { id=eId[5], label="label 5" }, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test110_selectData_shouldReturnEmptyStructWhenSingleRecordStructReturnTypeAndNoResults" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id", "label" ]
+				, id           = "nonexistantrecord"
+				, objectName   = "object_e"
+				, returntype   = "singleRecordStruct"
+			);
+
+			super.assertEquals( {}, result );
 		</cfscript>
 	</cffunction>
 

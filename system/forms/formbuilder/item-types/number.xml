@@ -2,9 +2,10 @@
 <form i18nBaseUri="formbuilder.item-types.number:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="format"      control="select"  required="false" sortorder="35" values="integer,free,price" labels="formbuilder.item-types.number:format.integer,formbuilder.item-types.number:format.free,formbuilder.item-types.number:format.price" />
-			<field name="minValue"    control="spinner" required="false" sortorder="37" />
-			<field name="maxValue"    control="spinner" required="false" sortorder="39" />
+			<field name="format"       control="select"  required="false" sortorder="35" values="integer,free,price" labels="formbuilder.item-types.number:format.integer,formbuilder.item-types.number:format.free,formbuilder.item-types.number:format.price" />
+			<field name="minValue"     control="spinner" required="false" sortorder="37" />
+			<field name="maxValue"     control="spinner" required="false" sortorder="39" />
+			<field name="defaultvalue" control="spinner" required="false" sortorder="41" />
 		</fieldset>
 	</tab>
 </form>

@@ -565,9 +565,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "init()", function(){
+		describe( "ensureSystemTemplatesHaveDbEntries()", function(){
 			it( "should populate template records for any system email templates that do not already have a record in the DB", function(){
-				var service = _getService( initialize=false );
+				var service = _getService();
 				var recipientType = CreateUUId();
 				var systemTemplates = [ { id="t1", title="Template 1" }, { id="t2", title="Template 2" }, { id="t3", title="Template 3" } ];
 				var existingTemplates = { "t2"={ id="t2", recipient_type=recipientType } };
@@ -583,16 +583,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					mockSystemEmailTemplateService.$( "getRecipientType" ).$args( t.id ).$results( recipientType );
 				}
 
-				service.init(
-					  systemEmailTemplateService = mockSystemEmailTemplateService
-					, emailRecipientTypeService  = mockEmailRecipientTypeService
-					, emailLayoutService         = mockEmailLayoutService
-					, emailSendingContextService = mockEmailSendingContextService
-					, assetManagerService        = mockAssetManagerService
-					, emailStyleInliner          = mockEmailStyleInliner
-					, emailSettings              = mockEmailSettings
-					, templateCache              = createStub()
-				);
+				service.ensureSystemTemplatesHaveDbEntries();
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
 				expect( service.$callLog().saveTemplate[1] ).toBe( {
@@ -622,7 +613,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should update the recipient type of any system email templates whose config does not match the record in the DB", function(){
-				var service = _getService( initialize=false );
+				var service = _getService();
 				var recipientType = CreateUUId();
 				var systemTemplates = [ { id="t1", title="Template 1" }, { id="t2", title="Template 2" } ];
 				var existingTemplates = { "t1"={ id="t1", recipient_type=createUUID() }, "t2"={ id="t2", recipient_type=recipientType } };
@@ -638,16 +629,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					mockSystemEmailTemplateService.$( "getRecipientType" ).$args( t.id ).$results( recipientType );
 				}
 
-				service.init(
-					  systemEmailTemplateService = mockSystemEmailTemplateService
-					, emailRecipientTypeService  = mockEmailRecipientTypeService
-					, emailLayoutService         = mockEmailLayoutService
-					, emailSendingContextService = mockEmailSendingContextService
-					, assetManagerService        = mockAssetManagerService
-					, emailStyleInliner          = mockEmailStyleInliner
-					, emailSettings              = mockEmailSettings
-					, templateCache              = createStub()
-				);
+				service.ensureSystemTemplatesHaveDbEntries();
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
 				expect( service.$callLog().saveTemplate[1] ).toBe( {
@@ -1451,10 +1433,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templateId = CreateUUId();
 				var stats      = QueryNew( 'sent_count', 'int', [[635]] );
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( send_logs.id ) as sent_count" ]
-					, filter       = { id=templateId, "send_logs.sent"=true }
-					, forceJoins   = "inner"
+				mockSendLogDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as sent_count" ]
+					, filter       = { email_template=templateId, sent=true }
 					, extraFilters = []
 					, useCache     = false
 				).$results( stats );
@@ -1469,13 +1450,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dateFrom   = "1900-01-01";
 				var dateTo   = "1999-06-29";
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( send_logs.id ) as sent_count" ]
-					, filter       = { id=templateId, "send_logs.sent"=true }
-					, forceJoins   = "inner"
+				mockSendLogDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as sent_count" ]
+					, filter       = { email_template=templateId, sent=true }
 					, extraFilters = [
-						  { filter="send_logs.sent_date >= :dateFrom", filterParams={ dateFrom = { type="cf_sql_timestamp", value=dateFrom } } }
-						, { filter="send_logs.sent_date <= :dateTo"  , filterParams={ dateTo   = { type="cf_sql_timestamp", value=dateTo   } } }
+						  { filter="sent_date >= :dateFrom", filterParams={ dateFrom = { type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="sent_date <= :dateTo"  , filterParams={ dateTo   = { type="cf_sql_timestamp", value=dateTo   } } }
 					]
 					, useCache     = false
 				).$results( stats );
@@ -1490,10 +1470,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templateId = CreateUUId();
 				var stats      = QueryNew( 'delivered_count', 'int', [[635]] );
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( send_logs.id ) as delivered_count" ]
-					, filter       = { id=templateId, "send_logs.delivered"=true }
-					, forceJoins   = "inner"
+				mockSendLogDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as delivered_count" ]
+					, filter       = { email_template=templateId, delivered=true }
 					, extraFilters = []
 					, useCache     = false
 				).$results( stats );
@@ -1508,13 +1487,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dateFrom   = "1900-01-01";
 				var dateTo   = "1999-06-29";
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( send_logs.id ) as delivered_count" ]
-					, filter       = { id=templateId, "send_logs.delivered"=true }
-					, forceJoins   = "inner"
+				mockSendLogDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as delivered_count" ]
+					, filter       = { email_template=templateId, delivered=true }
 					, extraFilters = [
-						  { filter="send_logs.delivered_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
-						, { filter="send_logs.delivered_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
+						  { filter="delivered_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="delivered_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
 					]
 					, useCache     = false
 				).$results( stats );
@@ -1529,12 +1507,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templateId = CreateUUId();
 				var stats      = QueryNew( 'opened_count', 'int', [[635]] );
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( send_logs.id ) as opened_count" ]
-					, filter       = { id=templateId, "send_logs.opened"=true }
-					, forceJoins   = "inner"
+				mockSendLogDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as opened_count" ]
+					, filter       = { email_template=templateId, opened=true }
 					, extraFilters = []
 				).$results( stats );
+
 
 				expect( service.getUniqueOpenedCount( templateId ) ).toBe( 635 );
 			} );
@@ -1546,13 +1524,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dateFrom   = "1900-01-01";
 				var dateTo   = "1999-06-29";
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( send_logs.id ) as opened_count" ]
-					, filter       = { id=templateId, "send_logs.opened"=true }
-					, forceJoins   = "inner"
+				mockSendLogDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as opened_count" ]
+					, filter       = { email_template=templateId, opened=true }
 					, extraFilters = [
-						  { filter="send_logs.opened_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
-						, { filter="send_logs.opened_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
+						  { filter="opened_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="opened_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
 					]
 				).$results( stats );
 
@@ -1566,10 +1543,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templateId = CreateUUId();
 				var stats      = QueryNew( 'failed_count', 'int', [[635]] );
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( send_logs.id ) as failed_count" ]
-					, filter       = { id=templateId, "send_logs.failed"=true }
-					, forceJoins   = "inner"
+				mockSendLogDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as failed_count" ]
+					, filter       = { email_template=templateId, failed=true }
 					, extraFilters = []
 				).$results( stats );
 
@@ -1583,13 +1559,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dateFrom   = "1900-01-01";
 				var dateTo   = "1999-06-29";
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( send_logs.id ) as failed_count" ]
-					, filter       = { id=templateId, "send_logs.failed"=true }
-					, forceJoins   = "inner"
+				mockSendLogDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as failed_count" ]
+					, filter       = { email_template=templateId, failed=true }
 					, extraFilters = [
-						  { filter="send_logs.failed_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
-						, { filter="send_logs.failed_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
+						  { filter="failed_date >= :dateFrom", filterParams={ dateFrom={ type="cf_sql_timestamp", value=dateFrom } } }
+						, { filter="failed_date <= :dateTo"  , filterParams={ dateTo={ type="cf_sql_timestamp", value=dateTo } } }
 					]
 				).$results( stats );
 
@@ -1603,10 +1578,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templateId = CreateUUId();
 				var stats      = QueryNew( 'queued_count', 'int', [[459]] );
 
-				mockTemplateDao.$( "selectData" ).$args(
-					  selectFields = [ "Count( queued_emails.id ) as queued_count" ]
-					, filter       = { id=templateId }
-					, forceJoins   = "inner"
+				mockQueueDao.$( "selectData" ).$args(
+					  selectFields = [ "Count( 1 ) as queued_count" ]
+					, filter       = { template=templateId }
 					, useCache     = false
 				).$results( stats );
 
@@ -1659,14 +1633,19 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		var service = createMock( object=CreateObject( "preside.system.services.email.EmailTemplateService" ) );
 
 		mockTemplateDao          = createStub();
+		mockSendLogDao           = createStub();
+		mockSendLogActivityDao   = createStub();
 		mockQueueDao             = createStub();
 		mockBlueprintDao         = createStub();
 		mockViewOnlineContentDao = createStub();
 		mockRequestContext       = createStub();
 		mockTemplateCache        = createStub();
+		mockTimeSeriesUtils      = createStub();
 		mockEmailSettings        = { defaultContentExpiry=30 };
 
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
+		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockSendLogDao );
+		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockSendLogActivityDao );
 		service.$( "$getPresideObject" ).$args( "email_mass_send_queue" ).$results( mockQueueDao );
 		service.$( "$getPresideObject" ).$args( "email_blueprint" ).$results( mockBlueprintDao );
 		service.$( "$getPresideObject" ).$args( "email_template_view_online_content" ).$results( mockViewOnlineContentDao );
@@ -1707,6 +1686,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				, emailStyleInliner          = mockEmailStyleInliner
 				, emailSettings              = mockEmailSettings
 				, templateCache              = mockTemplateCache
+				, timeSeriesUtils            = mockTimeSeriesUtils
 			);
 		}
 

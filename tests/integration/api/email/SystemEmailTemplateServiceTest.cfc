@@ -5,14 +5,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "listTemplates()", function(){
 			it( "should return an array of templates based on system email templates config (settings.email.templates) decorated with title and description and sorted by title", function(){
 				var service   = _getService();
-				var templates = _getDefaultConfiguredTemplates().keyArray();
+				var templates = _getDefaultConfiguredTemplates();
 				var expected  = [];
 
-				for( var templateId in templates ) {
+				for( var templateId in StructKeyArray( templates ) ) {
 					var template = {
-						  id          = templateId
-						, title       = "Template #templateId#"
-						, description = "This is the template: #templateId#"
+						  id            = templateId
+						, group         = templates[ templateId ].group ?: "unclassified"
+						, allowVariants = templates[ templateId ].allowVariants ?: false
+						, title         = "Template #templateId#"
+						, description   = "This is the template: #templateId#"
 					};
 
 					service.$( "$translateResource" ).$args( uri="email.template.#templateId#:title"      , defaultValue=templateId ).$results( template.title );
@@ -28,16 +30,48 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.listTemplates() ).toBe( expected );
 			} );
 
+			it( "should return an array of templates from a specific group if the group arguments is provided", function(){
+				var service       = _getService();
+				var templates     = _getDefaultConfiguredTemplates();
+				var expected      = [];
+				var specificGroup = "presideadmin";
+
+				for( var templateId in StructKeyArray( templates ) ) {
+					var template = {
+						  id            = templateId
+						, group         = templates[ templateId ].group ?: "unclassified"
+						, allowVariants = templates[ templateId ].allowVariants ?: false
+						, title         = "Template #templateId#"
+						, description   = "This is the template: #templateId#"
+					};
+
+					service.$( "$translateResource" ).$args( uri="email.template.#templateId#:title"      , defaultValue=templateId ).$results( template.title );
+					service.$( "$translateResource" ).$args( uri="email.template.#templateId#:description", defaultValue=""         ).$results( template.description );
+
+					if ( template.group==specificGroup ) {
+						expected.append( template );
+					}
+				}
+
+				expected.sort( function( a, b ){
+					return a.title > b.title ? 1 : -1;
+				} );
+
+				expect( service.listTemplates( specificGroup ) ).toBe( expected );
+			} );
+
 			it( "should not list templates who are associated with disabled features", function(){
 				var service   = _getService( enabledFeatures=[ "cms" ], disabledFeatures=[ "websiteUsers" ] );
 				var templates = _getDefaultConfiguredTemplates();
 				var expected  = [];
 
-				for( var templateId in templates.keyArray() ) {
+				for( var templateId in StructKeyArray( templates ) ) {
 					var template = {
-						  id          = templateId
-						, title       = "Template #templateId#"
-						, description = "This is the template: #templateId#"
+						  id            = templateId
+						, group         = templates[ templateId ].group ?: "unclassified"
+						, allowVariants = templates[ templateId ].allowVariants ?: false
+						, title         = "Template #templateId#"
+						, description   = "This is the template: #templateId#"
 					};
 
 					service.$( "$translateResource" ).$args( uri="email.template.#templateId#:title"      , defaultValue=templateId ).$results( template.title );
@@ -85,7 +119,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should return an empty array when the template does not exist", function(){
-				expect( _getService().listTemplateParameters( CreateUUId() )  ).toBe( [] );
+				var service = _getService();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
+				expect( service.listTemplateParameters( CreateUUId() )  ).toBe( [] );
 			} );
 		} );
 
@@ -95,7 +131,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should return false if the provided template is not configured in the system", function(){
-				expect( _getService().templateExists( CreateUUId() ) ).toBe( false );
+				var service = _getService();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
+				expect( service.templateExists( CreateUUId() ) ).toBe( false );
 			} );
 		} );
 
@@ -123,7 +161,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should return an empty struct when the template does not exist", function(){
-				expect( _getService().prepareParameters(
+				var service = _getService();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
+				expect( service.prepareParameters(
 					  template = CreateUUId()
 					, args     = {}
 				) ).toBe( {} );
@@ -160,7 +200,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should return an empty struct when the template does not exist", function(){
-				expect( _getService().getPreviewParameters( template = CreateUUId() ) ).toBe( {} );
+				var service = _getService();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
+				expect( service.getPreviewParameters( template = CreateUUId() ) ).toBe( {} );
 			} );
 
 			it( "should return an empty struct when the template does not have a corresponding getPreviewParameters handler action", function(){
@@ -195,7 +237,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should return an empty array when the template does not exist", function(){
-				expect( _getService().prepareAttachments(
+				var service = _getService();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
+				expect( service.prepareAttachments(
 					  template = CreateUUId()
 					, args     = {}
 				) ).toBe( [] );
@@ -239,6 +283,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return templateid, if the template does not exist", function(){
 				var service  = _getService();
 				var template = CreateUUId();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
 
 				expect( service.getDefaultSubject( template ) ).toBe( template );
 			} );
@@ -268,6 +313,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return empty string, if the template does not exist", function(){
 				var service  = _getService();
 				var template = CreateUUId();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
 
 				expect( service.getDefaultHtmlBody( template ) ).toBe( "" );
 			} );
@@ -297,6 +343,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return empty string, if the template does not exist", function(){
 				var service  = _getService();
 				var template = CreateUUId();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
 
 				expect( service.getDefaultTextBody( template ) ).toBe( "" );
 			} );
@@ -320,6 +367,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return 'default', if the template does not exist", function(){
 				var service  = _getService();
 				var template = CreateUUId();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
 
 				expect( service.getDefaultLayout( template ) ).toBe( "default" );
 			} );
@@ -343,6 +391,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return 'anonymous', if the template does not exist", function(){
 				var service  = _getService();
 				var template = CreateUUId();
+				mockEmailTemplateDao.$( "selectData", queryNew("") );
 
 				expect( service.getRecipientType( template ) ).toBe( "anonymous" );
 			} );
@@ -357,7 +406,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		var service = createMock( object=CreateObject( "preside.system.services.email.SystemEmailTemplateService" ) );
 
 		mockColdboxController = createStub();
+		mockEmailTemplateDao  = CreateStub();
+		helpers               = createStub();
+
 		service.$( "$getColdbox", mockColdboxController );
+		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockEmailTemplateDao );
+		service.$property( propertyName="$helpers", mock=helpers );
+
+		helpers.$( method="isTrue", callback=function( val ){
+			return IsBoolean( arguments.val ?: "" ) && arguments.val;
+		} );
 
 		for( var feature in enabledFeatures ) {
 			service.$( "$isFeatureEnabled" ).$args( feature ).$results( true );
@@ -376,10 +434,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getDefaultConfiguredTemplates() {
 		return {
-			  adminResetPassword   = { feature="cms", parameters=[ { id="resetLink", required=true }, "testParam" ] }
-			, adminWelcome         = { feature="cms", layout="blah" }
-			, websiteResetPassword = { feature="websiteUsers", recipientType="websiteUser" }
-			, websiteWelcome       = { feature="websiteUsers", }
+			  adminResetPassword   = { feature="cms", group="presideadmin", parameters=[ { id="resetLink", required=true }, "testParam" ] }
+			, adminWelcome         = { feature="cms", group="presideadmin", allowVariants=true, layout="blah" }
+			, websiteResetPassword = { feature="websiteUsers", group="websiteuser", recipientType="websiteUser" }
+			, websiteWelcome       = { feature="websiteUsers", group="websiteuser" }
 		};
 	}
 

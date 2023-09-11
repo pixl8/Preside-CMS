@@ -1,14 +1,15 @@
 <cfscript>
 	formId           = "configure-layout";
-	layoutId         = args.layoutId ?: "";
-	templateId       = args.templateId ?: "";
-	blueprint        = args.blueprint  ?: "";
-	formAction       = args.formAction ?: "";
+	layoutId         = args.layoutId       ?: "";
+	templateId       = args.templateId     ?: "";
+	blueprint        = args.blueprint      ?: "";
+	customLayout     = args.customLayout   ?: "";
+	formAction       = args.formAction     ?: "";
 	layoutFormName   = args.layoutFormName ?: "";
-	savedConfig      = args.savedConfig ?: {};
+	savedConfig      = args.savedConfig    ?: {};
 	validationResult = rc.validationResult ?: "";
 
-	isOverrideConfig = Len( Trim( templateId ) & Trim( blueprint ) ) > 0;
+	isOverrideConfig = Len( Trim( templateId ) & Trim( blueprint ) & Trim( customLayout ) ) > 0;
 </cfscript>
 <cfoutput>
 	<form id="#formId#" method="post" action="#formAction#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal">
@@ -18,6 +19,9 @@
 		</cfif>
 		<cfif Len( Trim( blueprint ) )>
 			<input type="hidden" name="blueprint" value="#blueprint#">
+		</cfif>
+		<cfif Len( Trim( customLayout ) )>
+			<input type="hidden" name="customLayout" value="#customLayout#">
 		</cfif>
 
 		#renderForm(

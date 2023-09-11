@@ -6,22 +6,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var dummyId = CreateUUId();
 				var args    = {
-					  template      = "sometemplate"
-					, recipientType = "blah"
-					, recipientId   = CreateUUId()
-					, recipient     = CreateUUId() & "@test.com"
-					, sender        = CreateUUId() & "@test.com"
-					, subject       = "Some subject " & CreateUUId()
-					, sendArgs      = { blah=CreateUUId() }
+					  template       = "sometemplate"
+					, recipientType  = "blah"
+					, recipientId    = CreateUUId()
+					, recipient      = CreateUUId() & "@test.com"
+					, sender         = CreateUUId() & "@test.com"
+					, subject        = "Some subject " & CreateUUId()
+					, sendArgs       = { blah=CreateUUId() }
+					, layoutOverride = ""
+					, customLayout   = ""
 				};
 
 				mockLogDao.$( "insertData" ).$args( {
-					  email_template = args.template
-					, recipient      = args.recipient
-					, sender         = args.sender
-					, subject        = args.subject
-					, resend_of      = ""
-					, send_args      = Serializejson( args.sendArgs )
+					  email_template  = args.template
+					, recipient       = args.recipient
+					, sender          = args.sender
+					, subject         = args.subject
+					, resend_of       = ""
+					, send_args       = Serializejson( args.sendArgs )
+					, layout_override = ""
+					, custom_layout   = ""
 				}).$results( dummyId );
 
 				expect( service.createEmailLog( argumentCollection=args ) ).toBe( dummyId );
@@ -32,25 +36,29 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dummyId   = CreateUUId();
 				var dummyFkId = CreateUUId();
 				var args      = {
-					  template      = "sometemplate"
-					, recipientId   = dummyFkId
-					, recipientType = "sometype"
-					, recipient     = CreateUUId() & "@test.com"
-					, sender        = CreateUUId() & "@test.com"
-					, subject       = "Some subject " & CreateUUId()
-					, sendArgs      = { test=CreateUUId() }
+					  template       = "sometemplate"
+					, recipientId    = dummyFkId
+					, recipientType  = "sometype"
+					, recipient      = CreateUUId() & "@test.com"
+					, sender         = CreateUUId() & "@test.com"
+					, subject        = "Some subject " & CreateUUId()
+					, sendArgs       = { test=CreateUUId() }
+					, layoutOverride = ""
+					, customLayout   = ""
 				};
 
 				mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType" ).$args( args.recipientType ).$results( "dummyFk" );
 
 				mockLogDao.$( "insertData" ).$args( {
-					  email_template = args.template
-					, recipient      = args.recipient
-					, sender         = args.sender
-					, subject        = args.subject
-					, resend_of      = ""
-					, dummyFk        = dummyFkId
-					, send_args      = Serializejson( args.sendArgs )
+					  email_template  = args.template
+					, recipient       = args.recipient
+					, sender          = args.sender
+					, subject         = args.subject
+					, resend_of       = ""
+					, dummyFk         = dummyFkId
+					, send_args       = Serializejson( args.sendArgs )
+					, layout_override = ""
+					, custom_layout   = ""
 				}).$results( dummyId );
 
 				expect( service.createEmailLog( argumentCollection=args ) ).toBe( dummyId );

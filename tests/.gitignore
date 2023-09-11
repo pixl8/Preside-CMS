@@ -2,4 +2,4 @@
 web.config
 testbox
 testresults*.html
-server.json
+.cfconfig.json
