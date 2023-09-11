@@ -37,16 +37,9 @@
                 </cfif>
             </div>
         </cfcase>
-        <cfcase value="INVALID_CSRF_TOKEN">
-            <div class="alert alert-danger" role="alert">
-                #translateResource( "cms:invalidCsrfToken.error" )#
-            </div>
-        </cfcase>
     </cfswitch>
 
     <form action="#event.buildLink( linkTo='login.sendResetInstructions' )#" method="post">
-        <input type="hidden" name="csrfToken" value="#event.getCsrfToken()#">
-
         <div class="form-group">
             <label for="loginIdField">#translateResource( uri="page-types.forgotten_password:emailaddress.label" )#</label>
             <input type="email" class="form-control" name="loginId" id="loginIdField">
