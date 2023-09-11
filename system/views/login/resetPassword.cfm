@@ -46,17 +46,10 @@
                 </cfif>
             </div>
         </cfcase>
-        <cfcase value="INVALID_CSRF_TOKEN">
-            <div class="alert alert-danger" role="alert">
-                #translateResource( "cms:invalidCsrfToken.error" )#
-            </div>
-        </cfcase>
     </cfswitch>
 
     <form action="#event.buildLink( linkTo='login.resetPasswordAction' )#" method="post">
-        <input type="hidden" name="csrfToken" value="#event.getCsrfToken()#">
         <input type="hidden" name="token" value="#rc.token#" />
-
         <div class="form-group">
             <label for="passwordField">#translateResource( uri="page-types.reset_password:newPassword.label" )#</label>
             <input type="password" name="password" id="passwordField" class="form-control">

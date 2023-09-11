@@ -6,7 +6,6 @@ component {
 // core events
 	public void function attemptLogin( event, rc, prc ) output=false {
 		_checkCsrfToken( argumentCollection=arguments );
-
 		announceInterception( "preAttemptLogin" );
 
 		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
@@ -58,8 +57,6 @@ component {
 	}
 
 	public void function resetPasswordAction( event, rc, prc ) output=false {
-		_checkCsrfToken( argumentCollection=arguments );
-
 		var pw           = rc.password             ?: "";
 		var confirmation = rc.passwordConfirmation ?: "";
 		var token        = rc.token                ?: "";
