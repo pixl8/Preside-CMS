@@ -34,14 +34,10 @@
 								<p>#translateResource( 'cms:resetLogin.password.not.strong.enough.error' )#</p>
 							</div>
 						</cfcase>
+
 						<cfcase value="UNKNOWN_ERROR">
 							<div class="alert alert-block alert-danger">
 								<p>#translateResource( 'cms:resetLogin.unknown.error' )#</p>
-							</div>
-						</cfcase>
-						<cfcase value="INVALID_CSRF_TOKEN">
-							<div class="alert alert-block alert-danger">
-								<p>#translateResource( "cms:invalidCsrfToken.error" )#</p>
 							</div>
 						</cfcase>
 					</cfswitch>

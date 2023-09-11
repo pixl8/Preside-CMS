@@ -208,8 +208,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function resetPasswordAction( event, rc, prc ) {
-		_checkCsrfToken( argumentCollection=arguments );
-
 		var pw           = rc.password             ?: "";
 		var confirmation = rc.passwordConfirmation ?: "";
 		var token        = rc.token                ?: "";
