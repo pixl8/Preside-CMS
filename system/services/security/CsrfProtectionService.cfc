@@ -1,23 +1,33 @@
 /**
- * @singleton
- *
+ * @singleton      true
+ * @presideService true
  */
 component {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionStorage.inject       sessionStorage
-	 * @tokenExpiryInSeconds.inject coldbox:setting:csrf.tokenExpiryInSeconds
+	 * @sessionStorage.inject           sessionStorage
+	 * @tokenExpiryInSeconds.inject     coldbox:setting:csrf.tokenExpiryInSeconds
+	 * @authenticatedSessionOnly.inject coldbox:setting:csrf.authenticatedSessionsOnly
 	 */
-	public any function init( required any sessionStorage, required numeric tokenExpiryInSeconds ) {
+	public any function init(
+		  required any     sessionStorage
+		, required numeric tokenExpiryInSeconds
+		, required boolean authenticatedSessionOnly
+	) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setTokenExpiryInSeconds( arguments.tokenExpiryInSeconds );
+		_setAuthenticatedSessionOnly( arguments.authenticatedSessionOnly );
 
 		return this;
 	}
 
 // PUBLIC API
 	public string function generateToken( boolean force=false ) {
+		if ( !arguments.force && skipCsrfValidation() ) {
+			return "";
+		}
+
 		var generate = arguments.force;
 		var token    = "";
 
@@ -34,7 +44,11 @@ component {
 		return token.value;
 	}
 
-	public boolean function validateToken( required string token, boolean regenerate=true ) {
+	public boolean function validateToken( required string token, boolean regenerate=true, boolean force=false ) {
+		if ( !arguments.force && skipCsrfValidation() ) {
+			return true;
+		}
+
 		if ( !Len( Trim( arguments.token ) ) ) {
 			return false;
 		}
@@ -62,6 +76,10 @@ component {
 		return false;
 	}
 
+	public boolean function skipCsrfValidation() {
+		return _getAuthenticatedSessionOnly() && !$isWebsiteUserLoggedIn() && !$isAdminUserLoggedIn() && StructIsEmpty( _getToken() );
+	}
+
 // PRIVATE HELPERS
 	private struct function _getToken() {
 		return _getSessionStorage().getVar( name="_csrfToken", default={} );
@@ -84,5 +102,12 @@ component {
 	}
 	private void function _setTokenExpiryInSeconds( required numeric tokenExpiryInSeconds ) {
 		_tokenExpiryInSeconds = arguments.tokenExpiryInSeconds;
+	}
+
+	private boolean function _getAuthenticatedSessionOnly() {
+	    return _authenticatedSessionOnly;
+	}
+	private void function _setAuthenticatedSessionOnly( required boolean authenticatedSessionOnly ) {
+	    _authenticatedSessionOnly = arguments.authenticatedSessionOnly;
 	}
 }
