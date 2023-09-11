@@ -14,7 +14,7 @@
 
     <cfswitch expression="#args.message#">
         <cfcase value="LOGIN_REQUIRED">
-            <div class="alert alert-danger" role="alert">
+            <div class="alert alert-warning" role="alert">
                 <cfif len( trim( args.login_required ) )>
                     #args.login_required#
                 <cfelse>
@@ -23,7 +23,7 @@
             </div>
         </cfcase>
         <cfcase value="LOGIN_FAILED">
-            <div class="alert alert-danger" role="alert">
+            <div class="alert alert-warning" role="alert">
                 <cfif len( trim( args.login_failed ) )>
                     #args.login_failed#
                 <cfelse>
