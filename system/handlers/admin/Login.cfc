@@ -44,14 +44,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function login( event, rc, prc ) {
-		if ( !event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
-			var persistData = event.getCollectionWithoutSystemVars();
-
-			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
-				message = translateResource( uri="cms:invalidCsrfToken.error" )
-			} );
-		}
-
 		var user                   = "";
 		var postLoginUrl           = event.getValue( name="postLoginUrl", defaultValue="" );
 		var isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
