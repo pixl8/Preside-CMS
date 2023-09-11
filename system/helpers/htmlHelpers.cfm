@@ -19,21 +19,26 @@
 	<cfreturn IsTrue( ReFind(  "<[^>]*>",stringValue ) ) />
 </cfsilent></cffunction>
 
-<cffunction name="renderForHTMLAttributes" access="public" returntype="string" output="false">
-	<cfargument name="htmlAttributeNames"  type="string" default="" />
-	<cfargument name="htmlAttributeValues" type="string" default="" />
-	<cfargument name="htmlAttributes"      type="struct" default="#StructNew()#" />
-	<cfargument name="htmlAttributePrefix" type="string" default="data-" /><cfsilent>
+<cffunction name="renderHtmlAttributes" access="public" returntype="string" output="false">
+	<cfargument name="attribs"      type="struct" default="#StructNew()#" />
+	<cfargument name="attribNames"  type="string" default="" />
+	<cfargument name="attribValues" type="string" default="" />
+	<cfargument name="attribPrefix" type="string" default="" /><cfsilent>
 	<cfscript>
 		var rendered = [];
 
-		var names = ListToArray( arguments.htmlAttributeNames, "," );
-	 	for ( var i=1; i<=ArrayLen( names ); i++ ) {
-	 		ArrayAppend( rendered, '#htmlAttributePrefix##names[ i ]#="#( ListGetAt( arguments.htmlAttributeValues, i, ",", true ) )#"' );
+		var names  = ListToArray( arguments.attribNames );
+		var values = ListToArray( arguments.attribValues );
+
+		for ( var i=1; i<=ArrayLen( names ); i++ ) {
+			arguments.attribs[ names[ i ] ] = values[ i ] ?: "";
 		}
 
-		for ( var name in arguments.htmlAttributes ) {
-			ArrayAppend( rendered, '#htmlAttributePrefix##name#="#arguments.htmlAttributes[ name ]#"' );
+		for ( var key in arguments.attribs ) {
+			var encodedName  = EncodeForHTMLAttribute( arguments.attribPrefix & key );
+			var encodedValue = EncodeForHTMLAttribute( arguments.attribs[ key ] );
+
+			ArrayAppend( rendered, '#encodedName#="#encodedValue#"' );
 		}
 
 		return ArrayToList( rendered, " " );
