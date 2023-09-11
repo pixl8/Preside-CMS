@@ -2845,6 +2845,7 @@ component extends="preside.system.base.AdminHandler" {
 				, adminOwner           = event.getAdminUserId()
 				, title                = "cms:datamanager.batchdelete.task.title"
 				, returnUrl            = event.buildAdminLink( objectName=objectName, operation="listing" )
+				, resultUrl            = postActionUrl
 				, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
 				, args       = {
 					  objectName   = objectName

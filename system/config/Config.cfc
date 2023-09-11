@@ -654,7 +654,7 @@ component {
 			, systemInformation      = [ "navigate" ]
 			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "deleteForm" ,"lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
-			, formquestions          = [ "navigate", "read", "add", "edit", "delete", "batchdelete", "batchedit", "clone" ]
+			, formquestions          = [ "navigate", "read", "add", "edit", "delete", "batchdelete", "batchedit", "clone", "managefilters", "usefilters" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, adhocTaskManager       = [ "navigate", "viewtask", "canceltask" ]
 			, savedExport            = [ "navigate", "read", "add", "edit", "delete" ]
@@ -726,6 +726,11 @@ component {
 		settings.autoRestoreDeprecatedFields = true;
 		settings.useQueryCacheDefault        = true;
 		settings.mssql = { useVarcharMaxForText = false }
+
+		settings.queryTimeout = {
+			  default                 = Val( settings.env.QUERY_TIMEOUT ?: 0 )
+			, backgroundThreadDefault = Val( settings.env.BACKGROUND_QUERY_TIMEOUT ?: ( settings.env.QUERY_TIMEOUT ?: 0 ) )
+		};
 	}
 
 	private void function __setupGlobalDataFilters() {
@@ -961,7 +966,8 @@ component {
 		};
 
 		settings.csrf = {
-			tokenExpiryInSeconds = 1200
+			  tokenExpiryInSeconds      = 1200
+			, authenticatedSessionsOnly = IsBoolean( settings.env.CSRF_AUTHENTICATED_ONLY ?: "" ) && settings.env.CSRF_AUTHENTICATED_ONLY
 		};
 	}
 

@@ -2,22 +2,31 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @logger.inject defaultLogger
+	 * @logger.inject                defaultLogger
+	 * @defaultQueryTimeout.inject   coldbox:setting:queryTimeout.default
+	 * @defaultBgQueryTimeout.inject coldbox:setting:queryTimeout.backgroundThreadDefault
 	 */
-	public any function init( required any logger ) output=false {
+	public any function init(
+		  required any     logger
+		,          numeric defaultQueryTimeout   = 0
+		,          numeric defaultBgQueryTimeout = 0
+	) {
 		_setLogger( arguments.logger );
+		_setDefaultQueryTimeout( arguments.defaultQueryTimeout );
+		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
 	public any function runSql(
-		  required string sql
-		, required string dsn
-		,          array  params
-		,          string returntype = "recordset"
-		,          string columnKey  = ""
-	) output=false {
+		  required string  sql
+		, required string  dsn
+		,          array   params
+		,          string  returntype = "recordset"
+		,          string  columnKey  = ""
+		,          numeric timeout    = _getDefaultTimeout()
+	) {
 		var result = "";
 		var params = {};
 		var options = { datasource=arguments.dsn, name="result" };
@@ -34,6 +43,10 @@ component singleton=true {
 		} else if ( arguments.returntype == "struct" ) {
 			options.returntype = "struct";
 			options.columnKey  = arguments.columnKey;
+		}
+
+		if ( arguments.timeout > 0 ) {
+			options.timeout = arguments.timeout;
 		}
 
 		if ( StructKeyExists( arguments, "params" ) ) {
@@ -133,11 +146,32 @@ component singleton=true {
 		return matched;
 	}
 
+	private numeric function _getDefaultTimeout() {
+		if ( StructKeyExists( request, "__isbgthread" ) && IsBoolean( request.__isbgthread ) && request.__isbgthread ) {
+			return _getDefaultBgQueryTimeout();
+		}
+		return _getDefaultQueryTimeout();
+	}
+
 // GETTERS AND SETTERS
 	private any function _getLogger() output=false {
 		return _logger;
 	}
 	private void function _setLogger( required any logger ) output=false {
 		_logger = arguments.logger;
+	}
+
+	private numeric function _getDefaultQueryTimeout() {
+		return _defaultQueryTimeout;
+	}
+	private void function _setDefaultQueryTimeout( required numeric defaultQueryTimeout ) {
+		_defaultQueryTimeout = arguments.defaultQueryTimeout;
+	}
+
+	private numeric function _getDefaultBgQueryTimeout() {
+		return _defaultBgQueryTimeout;
+	}
+	private void function _setDefaultBgQueryTimeout( required numeric defaultBgQueryTimeout ) {
+		_defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
 	}
 }
