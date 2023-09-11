@@ -167,14 +167,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function sendResetInstructions( event, rc, prc ) {
-		if ( !event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
-			var persistData = event.getCollectionWithoutSystemVars();
-
-			setNextEvent( url=event.buildAdminLink( linkTo="login.forgottenPassword" ), persistStruct={
-				message = translateResource( uri="cms:invalidCsrfToken.error" )
-			} );
-		}
-
 		if ( !loginProviderService.isProviderEnabled( "preside" ) ) {
 			setNextEvent( url=event.buildAdminLink( linkto="login" ) );
 		}
