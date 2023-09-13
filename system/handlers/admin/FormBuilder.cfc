@@ -872,13 +872,50 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importForm", queryString="id=#formId#" ), persistStruct=formData );
 		}
 
-		if ( !IsNull( formData.file.binary ) ) {
-			formBuilderService.importForm( formId=formId, xml=XmlParse( CharsetDecode( formData.file.binary, "UTF-8" ) ) )
+		try {
+			var xml = XmlParse( formData.file.binary );
+
+			var taskId = createTask(
+				  event             = "admin.FormBuilder.importFormInBackgroundThread"
+				, args              = { formId=formId, xml=xml }
+				, runNow            = true
+				, adminOwner        = event.getAdminUserId()
+				, discardOnComplete = false
+				, title             = "formbuilder:task.form.delete.title"
+				, returnUrl         = event.buildAdminLink( linkto="formbuilder.manageForm", queryString="id=#formId#" )
+			);
+
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=" & taskId
+			) );
+		} catch ( any e ) {
+			messageBox.error( translateResource( uri="formbuilder:importForm.message.error" ) );
+
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importForm", queryString="id=#formId#" ), persistStruct=formData );
+		}
+	}
+
+	private void function importFormInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		var canProgress = StructKeyExists( arguments, "progress" );
+
+		var formId = args.formId ?: "";
+		var xml    = args.xml    ?: "";
+
+		logMessage( logger, "info", "Start importing the form fields and actions..." );
+
+		formBuilderService.importForm(
+			  formId   = formId
+			, xml      = XmlParse( xml )
+			, logger   = logger
+			, progress = progress
+		);
+
+		if ( canProgress ) {
+			arguments.progress.setProgress( 100 );
 		}
 
-		messagebox.info( translateResource( "formbuilder:importForm.success.message" ) );
-
-		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=#formId#" ) );
+		logMessage( logger, "info", "Finished import." );
 	}
 
 	public string function exportFormAction( event, rc, prc, args ) {

@@ -2146,7 +2146,7 @@ component {
 			var xmlItem = XmlElemNew( xml, "item" );
 			StructAppend( xmlItem.xmlAttributes, {
 				  id         = formbuilderFormItem.id
-				, itemType   = formbuilderFormItem.item_type
+				, itemTypeId = formbuilderFormItem.item_type
 				, questionId = formbuilderFormItem.questionId
 			} );
 
@@ -2218,24 +2218,55 @@ component {
 	public void function importForm(
 		  required string formId
 		, required any    xml
+		,          any    logger
+		,          any    progress
 	) {
-		var formItems   = getFormItems( id=arguments.formId );
-		var questionIds = [];
+		var items = XmlSearch( arguments.xml, "/form/items/item" );
+		for ( var item in items ) {
+			var itemAttributes    = item.xmlAttributes        ?: {};
+			var itemConfiguration = item.config.xmlAttributes ?: {};
 
-		for ( var formItem in formItems ) {
-			if ( !isEmptyString( formItem.questionId ?: "" ) ) {
-				ArrayAppend( questionIds, formItem.questionId );
+			var questionId  = "";
+			var xmlQuestion = XmlSearch( arguments.xml, "/form/questions/question[@id='#itemAttributes.questionId#']" );
+
+			if ( ArrayLen( xmlQuestion ) ) {
+				var question = ArrayFirst( xmlQuestion  );
+
+				var questionAttributes    = question.xmlAttributes        ?: {};
+				var questionConfiguration = question.config.xmlAttributes ?: {};
+
+				var existingQuestion = $getPresideObject( "formbuilder_question" ).selectData(
+					  filter       = { field_id = questionAttributes.fieldId }
+					, selectFields = [ "id" ]
+				);
+
+				if ( existingQuestion.recordCount ) {
+					questionId = existingQuestion.id;
+				} else {
+					questionId = $getPresideObject( "formbuilder_question" ).insertData(
+						data = {
+							  item_type          = itemAttributes.itemTypeId
+							, field_id           = questionAttributes.fieldId
+							, field_label        = questionAttributes.fieldLabel
+							, full_question_text = questionAttributes.fullQuestionText
+							, help_text          = questionAttributes.helpText
+							, item_type_config   = SerializeJSON( questionConfiguration )
+						}
+					);
+
+					$helpers.logMessage( logger, "warn", "Question: #questionAttributes.fieldId# not found. Created." );
+				}
 			}
-		}
 
-		var fields = XmlSearch( arguments.xml, "/form/fields/field" );
-		for ( var field in fields ) {
-			if ( !IsNUll( field.config ) ) {
-				var fieldAttributes    = field.xmlAttributes        ?: {};
-				var fieldConfiguration = field.config.xmlAttributes ?: {};
+			if ( !$helpers.isEmptyString( questionId ) && $getPresideObject( "formbuilder_formitem" ).dataExists( filter={ form=arguments.formId, question=questionId } ) ) {
+				$helpers.logMessage( logger, "warn", "Question #questionAttributes.fieldId# found. Skipped" );
+			} else {
+				addItem( formId=arguments.formId, itemType=itemAttributes.itemTypeId, configuration=itemConfiguration, question=questionId );
 
-				if ( !ArrayContains( questionIds, fieldAttributes.questionId ) && !StructIsEmpty( fieldConfiguration ) ) {
-					addItem( formId=arguments.formId, itemType=fieldAttributes.itemTypeId, configuration=fieldConfiguration, question=fieldAttributes.questionId );
+				if ( $helpers.isEmptyString( questionId ) ) {
+					$helpers.logMessage( logger, "info", "Field #itemAttributes.itemTypeId# added." );
+				} else {
+					$helpers.logMessage( logger, "info", "Question #questionAttributes.fieldId# added." );
 				}
 			}
 		}
@@ -2246,6 +2277,8 @@ component {
 			var actionConfiguration = action.config.xmlAttributes ?: {};
 
 			_getActionsService().addAction( formId=arguments.formId, action=actionAttributes.actionId, configuration=actionConfiguration );
+
+			$helpers.logMessage( logger, "info", "Action: #actionAttributes.actionId# created." );
 		}
 	}
 
