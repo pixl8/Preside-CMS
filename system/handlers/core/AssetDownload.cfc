@@ -5,12 +5,13 @@ component {
 	property name="websiteUserActionService"     inject="websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 	property name="queueMaxWaitAttempts"         inject="coldbox:setting:assetManager.queue.downloadWaitSeconds";
+	property name="publicCacheAge"               inject="coldbox:setting:assetManager.cacheExpiry.public";
+	property name="privateCacheAge"              inject="coldbox:setting:assetManager.cacheExpiry.private";
 
 	public function asset( event, rc, prc ) output=false {
 		announceInterception( "preDownloadAsset" );
 
-		_checkDownloadPermissions( argumentCollection=arguments );
-
+		var isRestricted      = _checkDownloadPermissions( argumentCollection=arguments );
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
@@ -137,8 +138,13 @@ component {
 					);
 				}
 
+
 				header name="etag" value=etag;
-				header name="cache-control" value="max-age=31536000";
+				if ( isRestricted ) {
+					header name="cache-control" value="private, max-age=#privateCacheAge#";
+				} else {
+					header name="cache-control" value="public, max-age=#publicCacheAge#";
+				}
 
 				if ( IsBinary( assetFilePathOrBinary ) ) {
 					content
@@ -178,54 +184,55 @@ component {
 		return ReReplace( arguments.assetTitle, "\.#arguments.extension#$", "" ) & "." & arguments.extension;
 	}
 
-	private void function _checkDownloadPermissions( event, rc, prc ) output=false {
+	private boolean function _checkDownloadPermissions( event, rc, prc ) output=false {
 		var assetId        = rc.assetId       ?: "";
 		var derivativeName = rc.derivativeId  ?: "";
 
 		if ( Len( Trim( derivativeName ) ) && assetManagerService.isDerivativePubliclyAccessible( derivativeName ) ) {
-			return;
+			return false;
 		}
 
 		var permissionSettings = assetManagerService.getAssetPermissioningSettings( assetId );
 
+		if ( !permissionSettings.restricted ) {
+			return false;
+		}
+
 		if ( !event.isAdminUser() ) {
-			if ( permissionSettings.restricted ) {
-				if ( Len( Trim( permissionSettings.conditionId ) ) ) {
-					var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( permissionSettings.conditionId );
+			if ( Len( Trim( permissionSettings.conditionId ) ) ) {
+				var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( permissionSettings.conditionId );
 
-					if ( !conditionIsTrue ) {
-						if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-							event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
-						} else {
-							event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
-						}
+				if ( !conditionIsTrue ) {
+					if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+						event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
+					} else {
+						event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 					}
-					return;
 				}
-				var hasPerm = event.isAdminUser() && hasCmsPermission(
-					  permissionKey       = "assetmanager.assets.download"
-					, context             = "assetmanagerfolder"
-					, contextKeys         = permissionSettings.contextTree
-					, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
-				);
-				if ( hasPerm ) { return; }
+				return true;
+			}
+			var hasPerm = event.isAdminUser() && hasCmsPermission(
+				  permissionKey       = "assetmanager.assets.download"
+				, context             = "assetmanagerfolder"
+				, contextKeys         = permissionSettings.contextTree
+				, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
+			);
+			if ( hasPerm ) { return true; }
 
-				if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-					event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
-				}
+			if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+				event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
+			}
 
-				hasPerm = hasWebsitePermission(
-					  permissionKey       = "assets.access"
-					, context             = "asset"
-					, contextKeys         = permissionSettings.contextTree
-					, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
-				)
-				if ( !hasPerm ) {
-					event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
-				}
+			hasPerm = hasWebsitePermission(
+				  permissionKey       = "assets.access"
+				, context             = "asset"
+				, contextKeys         = permissionSettings.contextTree
+				, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
+			)
+			if ( !hasPerm ) {
+				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}
 		} else {
-
 			hasPerm = hasCmsPermission(
 				  permissionKey = "assetmanager.assets.download"
 				, context       = "assetmanagerfolder"
@@ -235,5 +242,7 @@ component {
 				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}
 		}
+
+		return true;
 	}
 }
