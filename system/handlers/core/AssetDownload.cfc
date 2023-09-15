@@ -192,7 +192,7 @@ component {
 		var derivativeName = rc.derivativeId  ?: "";
 
 		if ( Len( Trim( derivativeName ) ) && assetManagerService.isDerivativePubliclyAccessible( derivativeName ) ) {
-			return false;
+			return { restricted=false };
 		}
 
 		return assetManagerService.getAssetPermissioningSettings( assetId );
