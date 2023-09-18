@@ -13,6 +13,7 @@ component singleton=true autodoc=true displayName="Feature service" {
 	 */
 	public any function init( required struct configuredFeatures ) {
 		_setConfiguredFeatures( arguments.configuredFeatures );
+		_setLocalCache( {} );
 		return this;
 	}
 
@@ -74,11 +75,43 @@ component singleton=true autodoc=true displayName="Feature service" {
 		return "";
 	}
 
+	public array function getAllEnabledFeatures() {
+		return _simpleLocalCache( "getAllEnabledFeatures", function() {
+			var allEnabledFeatures = [];
+
+			for ( var feature in _getConfiguredFeatures() ) {
+				if ( isFeatureEnabled( feature=feature ) ) {
+					ArrayAppend( allEnabledFeatures, feature );
+				}
+			}
+
+			return allEnabledFeatures;
+		} );
+	}
+
+// PRIVATE HELPERS
+	private any function _simpleLocalCache( required string cacheKey, required any generator ) {
+		var cache = _getLocalCache();
+
+		if ( !StructKeyExists( cache, cacheKey ) ) {
+			cache[ cacheKey ] = generator();
+		}
+
+		return cache[ cacheKey ] ?: NullValue();
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getConfiguredFeatures() {
 		return _configuredFeatures;
 	}
 	private void function _setConfiguredFeatures( required struct configuredFeatures ) {
 		_configuredFeatures = arguments.configuredFeatures;
+	}
+
+	private struct function _getLocalCache() {
+		return _localCache;
+	}
+	private void function _setLocalCache( required struct localCache ) {
+		_localCache = arguments.localCache;
 	}
 }

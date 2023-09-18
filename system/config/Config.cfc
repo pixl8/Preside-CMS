@@ -980,6 +980,14 @@ component {
 		};
 
 		settings.rest.authProviders.token = { feature = "restTokenAuth" };
+
+		settings.rest.apis[ "/presideUtils" ]   = {
+			  authProvider        = "presideApi"
+			, description         = "Utility REST API for external systems to interact with Preside"
+			, dataApiQueueEnabled = false
+		};
+
+		settings.preside.restauthtoken = settings.env.preside_rest_auth_token ?: "";
 	}
 
 	private void function __setupMultilingualDefaults() {
