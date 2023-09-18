@@ -777,6 +777,10 @@ component {
 				, trash     = ( settings.env[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
 				, publicUrl = ( settings.env[ "assetmanager.storage.publicUrl" ] ?: "" )
 			  }
+			, cacheExpiry = {
+				  public  = Val( settings.env.ASSET_CACHE_EXPIRY_PUBLIC  ?: 31536000 ) // one year
+				, private = Val( settings.env.ASSET_CACHE_EXPIRY_PRIVATE ?: 86400    ) // one day
+			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 		settings.assetManager.types.document.append( { tiff = { serveAsAttachment = true, mimeType="image/tiff" } } );
