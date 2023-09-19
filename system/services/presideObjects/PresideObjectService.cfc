@@ -2190,6 +2190,7 @@ component displayName="Preside Object Service" {
 		switch( arguments.dbType ){
 			case "text":
 			case "longtext":
+			case "mediumtext":
 			case "clob":
 				return "richeditor";
 			case "date":
