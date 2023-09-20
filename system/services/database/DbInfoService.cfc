@@ -7,6 +7,7 @@ component {
 
 // CONSTRUCTOR
 	public any function init() {
+		variables.hasModernDbInfo = structKeyExists( getTagData( "CF", "DBINFO" ).attributes, "filter" ); // Lucee 6
 		return this;
 	}
 
@@ -21,17 +22,31 @@ component {
 
 	public query function getTableInfo( required string tableName, required string dsn ) {
 		var table = "";
+		var attrCol = {
+			type="tables",
+			name="table",
+			pattern="#arguments.tableName#",
+			datasource="#arguments.dsn#"
+		}
+		if ( variables.hasModernDbInfo ){
+			attrCol.filter = "TABLE"; // this is much faster
+		}
 
-		dbinfo type="tables" name="table" pattern="#arguments.tableName#" datasource="#arguments.dsn#";
+		dbinfo attributeCollection=attrCol;
 
 		return table;
 	}
 
-	public query function getTableColumns( required string tableName, required string dsn ) {
+	public query function getTableColumns( required string tableName, required string dsn, boolean detail=false ) {
 		var columns = "";
+		var attrCol = {
+			type: ( variables.hasModernDbInfo && !detail ) ? "columns_minimal" : "columns",
+			name: "columns",
+			table: arguments.tableName,
+			datasource: arguments.dsn
+		}
 
-		dbinfo type="columns" name="columns" table=arguments.tableName datasource=arguments.dsn;
-
+		dbinfo attributeCollection=attrCol;
 		return columns;
 	}
 

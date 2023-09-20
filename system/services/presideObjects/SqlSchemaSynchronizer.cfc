@@ -102,7 +102,7 @@ component {
 			}
 			_syncForeignKeys( objects );
 
-			for( dsn in dsns ){
+			for( var dsn in dsns ){
 				_setDatabaseObjectVersion(
 					  entityType = "db"
 					, entityName = "db"
@@ -167,7 +167,7 @@ component {
 	) {
 		var adapter        = _getAdapter( dsn = arguments.dsn );
 		var tableExists    =  _tableExists( tableName=arguments.tableName, dsn=arguments.dsn );
-		var tableColumns   = tableExists ? valueList( _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ).COLUMN_NAME ) : "";
+		var tableColumns   = tableExists ? QueryColumnData( _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ), "COLUMN_NAME" ) : [];
 		var columnSql      = "";
 		var colName        = "";
 		var column         = "";
@@ -188,7 +188,7 @@ component {
 
 		for( colName in ListToArray( arguments.dbFieldList ) ) {
 			colMeta = arguments.properties[ colName ];
-			if( listFindNoCase( tableColumns, colName ) && _skipSync( colMeta ) ) {
+			if( _skipSync( colMeta ) && ArrayContainsNoCase( tableColumns, colName ) ) {
 				continue;
 			}
 			column = sql.columns[ colName ] = StructNew();
@@ -346,7 +346,7 @@ component {
 		, required boolean skipSync
 
 	) {
-		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
+		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn, detail=true );
 		var indexesFromDb   = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
 		var dbColumnNames   = ValueList( columnsFromDb.column_name );
 		var colsSql         = arguments.generatedSql.columns;
@@ -538,9 +538,9 @@ component {
 		for( keyName in keys ){
 			key = keys[ keyName ];
 			if ( key.fk_table eq arguments.foreignTableName and key.fk_column eq arguments.foreignColumnName ) {
-				sql = adapter.getDropForeignKeySql( tableName = key.fk_table, foreignKeyName = keyName );
+				dropSql = adapter.getDropForeignKeySql( tableName = key.fk_table, foreignKeyName = keyName );
 
-				_runSql( sql = sql, dsn = arguments.dsn );
+				_runSql( sql = dropSql, dsn = arguments.dsn );
 			}
 		}
 	}
