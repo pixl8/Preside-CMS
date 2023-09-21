@@ -69,8 +69,7 @@
 
 				<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
 					<cfif canEdit>
-						<li><a href="#event.buildAdminLink( linkto="formbuilder.importForm", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-import"></i>&nbsp; #translateResource( "formbuilder:action.form.import.title" )#</a></li>
-						<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormAction", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; #translateResource( "formbuilder:action.form.export.title" )#</a></li>
+						<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormFieldsAction", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; #translateResource( "formbuilder:action.fields.export.title" )#</a></li>
 					</cfif>
 					<cfif canDelete>
 						<li class="divider"></li>

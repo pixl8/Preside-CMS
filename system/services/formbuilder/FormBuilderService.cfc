@@ -2117,7 +2117,7 @@ component {
 		return false;
 	}
 
-	public string function exportForm(
+	public string function exportFormFields(
 		  required string formId
 	) {
 		var formbuilderForm = getForm( id=arguments.formId );
@@ -2189,39 +2189,19 @@ component {
 		ArrayAppend( xml.form.xmlChildren, xmlItems );
 		ArrayAppend( xml.form.xmlChildren, xmlQuestions );
 
-		// Actions
-		var formbuilderFormActions = _getActionsService().getFormActions( id=arguments.formId );
-		var actionsRoot            = XmlElemNew( xml, "actions" );
-		for ( var formbuilderFormAction in formbuilderFormActions ) {
-			var action = XmlElemNew( xml, "action" );
-
-			StructAppend( action.xmlAttributes, {
-				  id       = formbuilderFormAction.id
-				, actionId = formbuilderFormAction.action.id
-			});
-
-			if ( !StructIsEmpty( formbuilderFormAction.configuration ) ) {
-				var config = XmlElemNew( xml, "config" );
-				StructAppend( config.xmlAttributes, formbuilderFormAction.configuration );
-				ArrayAppend( action.xmlChildren, config );
-			}
-
-			ArrayAppend( actionsRoot.xmlChildren, action );
-		}
-		ArrayAppend( xml.form.xmlChildren, actionsRoot );
-
 		FileWrite( "#getTempDirectory()#/#fileName#", ToString( xml ) );
 
 		return fileName;
 	}
 
-	public void function importForm(
+	public void function importFormFields(
 		  required string formId
 		, required any    xml
 		,          any    logger
 		,          any    progress
 	) {
 		var items = XmlSearch( arguments.xml, "/form/items/item" );
+
 		for ( var item in items ) {
 			var itemAttributes    = item.xmlAttributes        ?: {};
 			var itemConfiguration = item.config.xmlAttributes ?: {};
@@ -2269,16 +2249,6 @@ component {
 					$helpers.logMessage( logger, "info", "Question #questionAttributes.fieldId# added." );
 				}
 			}
-		}
-
-		var actions = XmlSearch( xml, "/form/actions/action" );
-		for ( var action in actions ) {
-			var actionAttributes    = action.xmlAttributes        ?: {};
-			var actionConfiguration = action.config.xmlAttributes ?: {};
-
-			_getActionsService().addAction( formId=arguments.formId, action=actionAttributes.actionId, configuration=actionConfiguration );
-
-			$helpers.logMessage( logger, "info", "Action: #actionAttributes.actionId# created." );
 		}
 	}
 

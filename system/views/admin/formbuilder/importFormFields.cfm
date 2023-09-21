@@ -4,12 +4,12 @@
 </cfscript>
 
 <cfoutput>
-	<form id="formbuilder-import-form" class="form-horizontal" method="post" enctype="multipart/form-data" action="#event.buildAdminLink( linkTo='formbuilder.importFormAction' )#">
+	<form id="formbuilder-import-form" class="form-horizontal" method="post" enctype="multipart/form-data" action="#event.buildAdminLink( linkTo='formbuilder.importFormFieldsAction' )#">
 		<input type="hidden" name="id" value="#id#" />
 
 		#renderForm(
-			  formName          = "formbuilder.importForm"
-			, formId            = "formbuilder-import-form"
+			  formName          = "formbuilder.importFormFields"
+			, formId            = "formbuilder-import-form-fields"
 			, context           = "admin"
 			, validationResult  = validationResult
 		)#
@@ -21,7 +21,7 @@
 					#translateResource( "cms:sitetree.cancel.btn" )#
 				</a>
 
-				<button type="submit" name="_saveAction" value="publish" class="btn btn-warning">#translateResource( "formbuilder:importForm.submit.title" )#</button>
+				<button type="submit" name="_saveAction" value="publish" class="btn btn-warning">#translateResource( "formbuilder:importFormFields.submit.title" )#</button>
 			</div>
 		</div>
 	</form>

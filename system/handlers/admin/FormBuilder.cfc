@@ -848,8 +848,8 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function importForm( event, rc, prc, args ) {
-		prc.pageTitle = translateResource( "formbuilder:importForm.page.title" );
+	public void function importFormFields( event, rc, prc, args ) {
+		prc.pageTitle = translateResource( "formbuilder:importFormFields.page.title" );
 		prc.pageIcon  = "file-import";
 
 		event.addAdminBreadCrumb(
@@ -858,7 +858,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public string function importFormAction( event, rc, prc, args ) {
+	public string function importFormFieldsAction( event, rc, prc, args ) {
 		var formId = rc.id ?: "";
 
 		var formData         = event.getCollectionWithoutSystemVars()
@@ -869,14 +869,14 @@ component extends="preside.system.base.AdminHandler" {
 
 			formData.validationResult = validationResult;
 
-			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importForm", queryString="id=#formId#" ), persistStruct=formData );
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importFormFields", queryString="id=#formId#" ), persistStruct=formData );
 		}
 
 		try {
 			var xml = XmlParse( formData.file.binary );
 
 			var taskId = createTask(
-				  event             = "admin.FormBuilder.importFormInBackgroundThread"
+				  event             = "admin.FormBuilder.importFormFieldsInBackgroundThread"
 				, args              = { formId=formId, xml=xml }
 				, runNow            = true
 				, adminOwner        = event.getAdminUserId()
@@ -890,21 +890,21 @@ component extends="preside.system.base.AdminHandler" {
 				, queryString = "taskId=" & taskId
 			) );
 		} catch ( any e ) {
-			messageBox.error( translateResource( uri="formbuilder:importForm.message.error" ) );
+			messageBox.error( translateResource( uri="formbuilder:importFormFields.message.error" ) );
 
-			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importForm", queryString="id=#formId#" ), persistStruct=formData );
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importFormFields", queryString="id=#formId#" ), persistStruct=formData );
 		}
 	}
 
-	private void function importFormInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+	private void function importFormFieldsInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
 		var canProgress = StructKeyExists( arguments, "progress" );
 
 		var formId = args.formId ?: "";
 		var xml    = args.xml    ?: "";
 
-		logMessage( logger, "info", "Start importing the form fields and actions..." );
+		logMessage( logger, "info", "Start importing the form fields..." );
 
-		formBuilderService.importForm(
+		formBuilderService.importFormFields(
 			  formId   = formId
 			, xml      = XmlParse( xml )
 			, logger   = logger
@@ -918,8 +918,8 @@ component extends="preside.system.base.AdminHandler" {
 		logMessage( logger, "info", "Finished import." );
 	}
 
-	public string function exportFormAction( event, rc, prc, args ) {
-		var fileName = formBuilderService.exportForm( formId=rc.id ?: "" );
+	public string function exportFormFieldsAction( event, rc, prc, args ) {
+		var fileName = formBuilderService.exportFormFields( formId=rc.id ?: "" );
 
 		if ( isEmptyString( fileName ) ) {
 			event.notFound();
