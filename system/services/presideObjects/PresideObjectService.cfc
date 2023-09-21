@@ -4231,12 +4231,6 @@ component displayName="Preside Object Service" {
 	 *
 	 */
 	private any function _deepishDuplicate( args ) {
-		if ( StructKeyExists( args, "domtest" ) ) {
-			StructDelete( args, "domtest" );
-			for( var i=1; i<=10000; i++ ) {
-				_deepishDuplicate( args );
-			}
-		}
 		var newArgs = {};
 
 		for( var key in arguments.args ) {
