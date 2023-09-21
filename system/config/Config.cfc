@@ -309,11 +309,16 @@ component {
 				taskmanagerRequestAppender = {
 					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'
 					, properties = { logName="TASKMANAGER" }
+				},
+				adhocTaskmanagerAppender = {
+					  class      = 'preside.system.services.logger.AdhocTaskmanagerLogAppender'
+					, properties = { logName="TASKMANAGER" }
 				}
 			},
 			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' },
 			categories = {
-				taskmanager = { appenders='taskmanagerRequestAppender', levelMin='FATAL', levelMax='INFO' }
+				taskManager      = { appenders='taskmanagerRequestAppender', levelMin='FATAL', levelMax='INFO' },
+				adhocTaskManager = { appenders='adhocTaskmanagerAppender'  , levelMin='FATAL', levelMax='INFO' }
 			}
 		};
 	}

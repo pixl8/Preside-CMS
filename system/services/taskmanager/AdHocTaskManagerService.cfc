@@ -12,7 +12,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	/**
 	 * @siteService.inject siteService
 	 * @threadUtil.inject  threadUtil
-	 * @logger.inject      logbox:logger:taskmanager
+	 * @logger.inject      logbox:logger:adhocTaskManager
  	 * @executor.inject    presideAdhocTaskManagerExecutor
 	 */
 	public any function init(
@@ -435,6 +435,37 @@ component displayName="Ad-hoc Task Manager Service" {
 		return {};
 	}
 
+	/**
+	 * Returns a db query of the individual log lines of the task
+	 * [ts, severity, line ].
+	 *
+	 * @autodoc          true
+	 * @taskId           ID of the task whose logs you wish to get
+	 * @fetchAfterLines  Only fetch lines after this line number
+	 */
+	public query function getLogLines( required string taskId, numeric fetchAfterLines=0 ) {
+		return $getPresideObject( "taskmanager_adhoc_task_log_line" ).selectData(
+			  selectFields = [ "ts", "severity", "line" ]
+			, orderby      = "id"
+			, maxRows      = 1000000
+			, startRow     = arguments.fetchAfterLines + 1
+			, filter       = { task=arguments.taskId }
+		);
+	}
+
+	/**
+	 * Returns number of lines in this tasks logs
+	 *
+	 * @autodoc          true
+	 * @taskId           ID of the task whose logs you wish to get
+	 */
+	public numeric function getLogLineCount( required string taskId ) {
+		return $getPresideObject( "taskmanager_adhoc_task_log_line" ).selectData(
+			  recordCountOnly = true
+			, filter          = { task=arguments.taskId }
+		);
+	}
+
 
 	/**
 	 * Discards the given task
@@ -577,7 +608,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		return new TaskManagerLoggerWrapper(
 			  logboxLogger   = _getLogger()
 			, taskRunId      = arguments.taskId
-			, taskHistoryDao = $getPresideObject( "taskmanager_adhoc_task" )
+			, taskHistoryDao = $getPresideObject( "taskmanager_adhoc_task_log_line" )
 		);
 	}
 
