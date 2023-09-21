@@ -40,7 +40,7 @@ component {
 	public query function getTableColumns( required string tableName, required string dsn, boolean detail=false ) {
 		var columns = "";
 		var attrCol = {
-			type: ( variables.hasModernDbInfo && !detail ) ? "columns_minimal" : "columns",
+			type: ( variables.hasModernDbInfo && !arguments.detail ) ? "columns_minimal" : "columns",
 			name: "columns",
 			table: arguments.tableName,
 			datasource: arguments.dsn
@@ -105,5 +105,9 @@ component {
 		}
 
 		return constraints;
+	}
+
+	public boolean function hasModernDbInfo(){
+		return variables.hasModernDbInfo;
 	}
 }
