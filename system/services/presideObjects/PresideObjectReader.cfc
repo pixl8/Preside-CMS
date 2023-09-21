@@ -102,10 +102,18 @@ component {
 		_ensureAllPropertiesHaveName( meta.properties );
 	}
 
-	public struct function getAutoPivotObjectDefinition( required struct sourceObject, required struct targetObject, required string pivotObjectName, required string sourcePropertyName, required string targetPropertyName ) {
+	public struct function getAutoPivotObjectDefinition(
+		  required struct  sourceObject
+		, required struct  targetObject
+		, required string  pivotObjectName
+		, required string  sourcePropertyName
+		, required string  targetPropertyName
+		,          boolean pivotRequired = true
+	) {
 		var tmp = "";
 		var autoObject = "";
-		var objAName = LCase( ListLast( sourceObject.name, "." ) );
+		var objAName = LCase( ListLast( sourceObject.name
+			, "." ) );
 		var objBName = LCase( ListLast( targetObject.name, "." ) );
 		var fieldOrder = ( sourcePropertyName < targetPropertyName ) ? "#sourcePropertyName#,#targetPropertyName#" : "#targetPropertyName#,#sourcePropertyName#";
 		var sourceObjectIdField = sourceObject.idField ?: "id";
@@ -123,8 +131,8 @@ component {
 			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
 			, useDrafts   = ( ( sourceObject.useDrafts ?: false ) || ( targetObject.useDrafts ?: false ) )
 			, properties  = {
-				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObjectPk.type, dbtype=sourceObjectPk.dbtype, maxLength=sourceObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
-				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObjectPk.type, dbtype=targetObjectPk.dbtype, maxLength=targetObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
+				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObjectPk.type, dbtype=sourceObjectPk.dbtype, maxLength=sourceObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objAName, required=arguments.pivotRequired, onDelete="cascade" }
+				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObjectPk.type, dbtype=targetObjectPk.dbtype, maxLength=targetObjectPk.maxLength, generator="none", generate="never", relationship="many-to-one", relatedTo=objBName, required=arguments.pivotRequired, onDelete="cascade" }
 				, "sort_order"           = { name="sort_order"      , control="auto", type="numeric"          , dbtype="int"                , maxLength=0                       , generator="none", generate="never", relationship="none"                           , required=false }
 			  }
 		};

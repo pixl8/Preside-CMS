@@ -196,6 +196,7 @@ component singleton=true {
 							, pivotObjectName    = property.relatedVia
 							, sourcePropertyName = property.relatedViaSourceFk
 							, targetPropertyName = property.relatedViaTargetFk
+							, pivotRequired      = property.required
 						};
 
 						if ( !property.relationshipIsSource ) {
