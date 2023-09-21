@@ -664,7 +664,7 @@ component displayName="Task Manager Service" {
 		return $getPresideObject( "taskmanager_task_history_log_line" ).selectData(
 			  selectFields = [ "ts", "severity", "line" ]
 			, orderby      = "id"
-			, maxRows      = 1000000
+			, maxRows      = arguments.fetchAfterLines ? 1000000 : 0 // impossibly high number. Forcing startRow to work without really wanting a max rows
 			, startRow     = arguments.fetchAfterLines + 1
 			, filter       = { history=arguments.historyId }
 		);
