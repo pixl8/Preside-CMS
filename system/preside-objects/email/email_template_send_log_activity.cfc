@@ -18,7 +18,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="link_title"    type="string" dbtype="text";
 	property name="link_body"     type="string" dbtype="text";
 	property name="code"          type="string" dbtype="varchar" maxlength=20  indexes="errorcode";
-	property name="reason"        type="string" dbtype="varchar" maxlength=800;
+	property name="reason"        type="string" dbtype="text";
 
 	property name="link_summary" formula="case when ${prefix}link_title is null and ${prefix}link_body is null then ${prefix}link else concat( coalesce( ${prefix}link_title, ${prefix}link_body ), ' (', ${prefix}link, ')' ) end";
 }

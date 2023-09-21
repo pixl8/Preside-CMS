@@ -26,13 +26,14 @@ component {
 		for( rule in parsedRules ){
 			try {
 				rules.append( {
-					  fieldName       = rule.fieldName
-					, fieldLabel      = rule.fieldLabel      ?: ""
-					, validator       = rule.validator
-					, params          = rule.params          ?: {}
-					, message         = rule.message         ?: ""
-					, serverCondition = rule.serverCondition ?: ""
-					, clientCondition = rule.clientCondition ?: ""
+					  fieldName        = rule.fieldName
+					, fieldLabel       = rule.fieldLabel       ?: ""
+					, validator        = rule.validator
+					, params           = rule.params           ?: {}
+					, paramsFieldLabel = rule.paramsFieldLabel ?: {}
+					, message          = rule.message          ?: ""
+					, serverCondition  = rule.serverCondition  ?: ""
+					, clientCondition  = rule.clientCondition  ?: ""
 				} );
 			} catch ( any e ) {
 				throw(

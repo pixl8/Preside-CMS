@@ -3,7 +3,8 @@
  *
  */
 component {
-	property name="emailService" inject="emailService";
+	property name="emailService"  inject="emailService";
+	property name="asyncSmtp"     inject="coldbox:setting:email.smtp.async";
 
 	private boolean function send( struct sendArgs={}, struct settings={} ) {
 		var m           = new Mail();
@@ -19,6 +20,7 @@ component {
 		m.setFrom( sendArgs.from );
 		m.setSubject( sendArgs.subject );
 		m.setUseTls( useTls );
+		m.setAsync( asyncSmtp );
 
 		if ( sendArgs.cc.len()  ) {
 			m.setCc( sendArgs.cc.toList( ";" ) );
@@ -50,6 +52,7 @@ component {
 		if ( Len( Trim( password ) ) ) {
 			m.setPassword( password );
 		}
+
 
 		for( var param in params ){
 			m.addParam( argumentCollection=sendArgs.params[ param ] );
