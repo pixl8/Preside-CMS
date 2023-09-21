@@ -13,7 +13,7 @@
 		<p class="empty-notice">
 			<a class="btn btn-info" href="#event.buildAdminLink( linkto="formbuilder.importFormFields", queryString="id=#formId#" )#">
 				<i class="fa fa-plus bigger-110"></i>
-				#translateResource( "formbuilder:importFormFields.import.button.title" )#
+				#translateResource( "formbuilder:importFormFields.import.title" )#
 			</a>
 			<br />
 			<br />
