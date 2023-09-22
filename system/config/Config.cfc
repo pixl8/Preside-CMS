@@ -306,18 +306,18 @@ component {
 					  class      = 'coldbox.system.logging.appenders.RollingFileAppender'
 					, properties = { filePath=settings.logsMapping, filename="coldbox.log", async=true }
 				},
-				taskmanagerRequestAppender = {
-					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'
+				taskManagerRequestAppender = {
+					  class      = 'preside.system.services.logger.TaskManagerLogAppender'
 					, properties = { logName="TASKMANAGER" }
 				},
-				adhocTaskmanagerAppender = {
-					  class      = 'preside.system.services.logger.AdhocTaskmanagerLogAppender'
-					, properties = { logName="TASKMANAGER" }
+				adhocTaskManagerAppender = {
+					  class      = 'preside.system.services.logger.AdhocTaskManagerLogAppender'
+					, properties = { logName="ADHOCTASKMANAGER" }
 				}
 			},
 			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' },
 			categories = {
-				taskManager      = { appenders='taskmanagerRequestAppender', levelMin='FATAL', levelMax='INFO' },
+				taskManager      = { appenders='taskManagerRequestAppender', levelMin='FATAL', levelMax='INFO' },
 				adhocTaskManager = { appenders='adhocTaskmanagerAppender'  , levelMin='FATAL', levelMax='INFO' }
 			}
 		};

@@ -31,8 +31,8 @@ component {
 		var outputArray = [];
 
 		for( var i=arguments.fetchAfterLines+1; i <= logArray.len(); i++ ){
-			var line = logArray[ i ];
-			var logClass = LCase( ReReplace( line, '^\[(.*?)\].*$', '\1' ) );
+			var line          = logArray[ i ];
+			var logClass      = LCase( ReReplace( line, '^\[(.*?)\].*$', '\1' ) );
 			var dateTimeRegex = "(\[20[0-9]{2}\-[0-9]{2}\-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}\])";
 
 			line = ReReplace( line, dateTimeRegex, '<span class="task-log-datetime">\1</span>' );

@@ -54,10 +54,10 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			if ( Len( prc.taskProgress.log ) ) {
 				prc.taskProgress.lineCount = ListLen( prc.taskProgress.log, Chr( 10 ) );
-				prc.taskProgress.log = logRendererUtil.renderLegacyLogs( prc.taskProgress.log );
+				prc.taskProgress.log       = logRendererUtil.renderLegacyLogs( prc.taskProgress.log );
 			} else {
-				prc.taskProgress.log = logRendererUtil.renderLogs( adhocTaskManagerService.getLogLines( prc.taskProgress.id ) );
 				prc.taskProgress.lineCount = adhocTaskManagerService.getLogLineCount( prc.taskProgress.id );
+				prc.taskProgress.log       = logRendererUtil.renderLogs( adhocTaskManagerService.getLogLines( prc.taskProgress.id ) );
 			}
 			prc.taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=prc.taskProgress.timeTaken*1000, context=[ "accurate" ] );
 		}

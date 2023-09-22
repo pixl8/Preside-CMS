@@ -509,7 +509,6 @@ component displayName="Task Manager Service" {
 		);
 	}
 
-
 	public struct function runScheduledTasks() {
 		var settings              = _getSystemConfigurationService().getCategorySettings( "taskmanager" );
 		var scheduledTasksEnabled = settings.scheduledtasks_enabled ?: false;
