@@ -23,10 +23,10 @@ component {
 	public query function getTableInfo( required string tableName, required string dsn ) {
 		var table = "";
 		var attrCol = {
-			type="tables",
-			name="table",
-			pattern="#arguments.tableName#",
-			datasource="#arguments.dsn#"
+			  type       = "tables"
+			, name       = "table"
+			, pattern    = "#arguments.tableName#"
+			, datasource = "#arguments.dsn#"
 		}
 		if ( variables.hasModernDbInfo ){
 			attrCol.filter = "TABLE"; // this is much faster
@@ -40,10 +40,10 @@ component {
 	public query function getTableColumns( required string tableName, required string dsn, boolean detail=false ) {
 		var columns = "";
 		var attrCol = {
-			type: ( variables.hasModernDbInfo && !arguments.detail ) ? "columns_minimal" : "columns",
-			name: "columns",
-			table: arguments.tableName,
-			datasource: arguments.dsn
+			  type       = ( variables.hasModernDbInfo && !arguments.detail ) ? "columns_minimal" : "columns"
+			, name       = "columns"
+			, table      = arguments.tableName
+			, datasource = arguments.dsn
 		}
 
 		dbinfo attributeCollection=attrCol;
