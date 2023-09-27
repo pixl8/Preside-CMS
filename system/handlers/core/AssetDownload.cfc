@@ -121,7 +121,7 @@ component {
 				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
 					setNextEvent(
 						  url        = assetPublicUrl
-						, statusCode = "302"
+						, statusCode = type.serveAsAttachment ? 302 : 301
 					);
 				}
 
