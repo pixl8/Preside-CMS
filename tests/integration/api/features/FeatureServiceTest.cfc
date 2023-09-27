@@ -36,8 +36,9 @@ component extends="testbox.system.BaseSpec"{
 				var svc = _getService();
 
 				expect( svc.isFeatureEnabled( feature="sites || websiteUsers", siteTemplate="" ) ).toBeTrue();
+				expect( svc.isFeatureEnabled( feature="sites or websiteUsers", siteTemplate="" ) ).toBeTrue();
 				expect( svc.isFeatureEnabled( feature="sites && assetManager", siteTemplate="" ) ).toBeFalse();
-				expect( svc.isFeatureEnabled( feature="sites && websiteUsers", siteTemplate="" ) ).toBeTrue();
+				expect( svc.isFeatureEnabled( feature="sites and websiteUsers", siteTemplate="" ) ).toBeTrue();
 				expect( svc.isFeatureEnabled( feature="(sites || what) && websiteusers", siteTemplate="" ) ).toBeTrue();
 				expect( svc.isFeatureEnabled( feature="((sites && what) && websiteusers)", siteTemplate="" ) ).toBeFalse();
 				expect( svc.isFeatureEnabled( feature="((sites && !what) && websiteusers)", siteTemplate="" ) ).toBeTrue();

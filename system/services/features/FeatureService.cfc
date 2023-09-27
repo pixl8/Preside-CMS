@@ -98,7 +98,9 @@ component singleton=true autodoc=true displayName="Feature service" {
 		} );
 
 		for( var feature in features ) {
-			compiled = ReplaceNoCase( compiled, feature, isFeatureEnabled( feature, arguments.siteTemplate ) ? "true" : "false", "all" );
+			if ( feature != "not" && feature != "and" && feature != "or" ) {
+				compiled = ReplaceNoCase( compiled, feature, isFeatureEnabled( feature, arguments.siteTemplate ) ? "true" : "false", "all" );
+			}
 		}
 
 		try {
