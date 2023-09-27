@@ -42,6 +42,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( svc.isFeatureEnabled( feature="(sites || what) && websiteusers", siteTemplate="" ) ).toBeTrue();
 				expect( svc.isFeatureEnabled( feature="((sites && what) && websiteusers)", siteTemplate="" ) ).toBeFalse();
 				expect( svc.isFeatureEnabled( feature="((sites && !what) && websiteusers)", siteTemplate="" ) ).toBeTrue();
+				expect( svc.isFeatureEnabled( feature="((sites and not what) and websiteusers)", siteTemplate="" ) ).toBeTrue();
 			} );
 
 			it( "should not attempt dynamic lucee execution with malicious input", function(){
