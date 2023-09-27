@@ -25,7 +25,7 @@ component singleton=true autodoc=true displayName="Feature service" {
 	 */
 	public boolean function isFeatureEnabled( required string feature, string siteTemplate ) autodoc=true {
 		if ( _isComplexExpression( Trim( arguments.feature ) ) ) {
-			return _processComplexExpression( arguments.feature );
+			return _processComplexExpression( arguments.feature, arguments.siteTemplate );
 		}
 		var features  = _getConfiguredFeatures();
 		var isEnabled = IsBoolean( features[ arguments.feature ].enabled ?: "" ) && features[ arguments.feature ].enabled;
