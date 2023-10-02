@@ -51,6 +51,7 @@ component {
 				dbVersion.append( obj.sql.table.version );
 			}
 		}
+		StructDelete( variables, "columnCache" ); // cache no longer required, release memory
 		dbVersion.sort( "text" );
 		dbVersion = Hash( dbVersion.toList() );
 		if ( ( versions.db.db ?: "" ) neq dbVersion ) {
@@ -102,7 +103,7 @@ component {
 			}
 			_syncForeignKeys( objects );
 
-			for( dsn in dsns ){
+			for( var dsn in dsns ){
 				_setDatabaseObjectVersion(
 					  entityType = "db"
 					, entityName = "db"
@@ -167,7 +168,7 @@ component {
 	) {
 		var adapter        = _getAdapter( dsn = arguments.dsn );
 		var tableExists    =  _tableExists( tableName=arguments.tableName, dsn=arguments.dsn );
-		var tableColumns   = tableExists ? valueList( _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ).COLUMN_NAME ) : "";
+		var tableColumns   = tableExists ? _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ) : [];
 		var columnSql      = "";
 		var colName        = "";
 		var column         = "";
@@ -188,7 +189,7 @@ component {
 
 		for( colName in ListToArray( arguments.dbFieldList ) ) {
 			colMeta = arguments.properties[ colName ];
-			if( listFindNoCase( tableColumns, colName ) && _skipSync( colMeta ) ) {
+			if( _skipSync( colMeta ) && ArrayContainsNoCase( tableColumns, colName ) ) {
 				continue;
 			}
 			column = sql.columns[ colName ] = StructNew();
@@ -346,7 +347,7 @@ component {
 		, required boolean skipSync
 
 	) {
-		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
+		var columnsFromDb   = _getTableColumnsWithForeignKeys( tableName=arguments.tableName, dsn=arguments.dsn, detail=true );
 		var indexesFromDb   = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
 		var dbColumnNames   = ValueList( columnsFromDb.column_name );
 		var colsSql         = arguments.generatedSql.columns;
@@ -538,9 +539,9 @@ component {
 		for( keyName in keys ){
 			key = keys[ keyName ];
 			if ( key.fk_table eq arguments.foreignTableName and key.fk_column eq arguments.foreignColumnName ) {
-				sql = adapter.getDropForeignKeySql( tableName = key.fk_table, foreignKeyName = keyName );
+				dropSql = adapter.getDropForeignKeySql( tableName = key.fk_table, foreignKeyName = keyName );
 
-				_runSql( sql = sql, dsn = arguments.dsn );
+				_runSql( sql = dropSql, dsn = arguments.dsn );
 			}
 		}
 	}
@@ -702,7 +703,30 @@ component {
 		return variables._tableCache[ arguments.dsn ][ arguments.tableName ] ?: false;
 	}
 
-	private query function _getTableColumns() {
+	private array function _getTableColumns() {
+		try {
+			if ( _getDbInfoService().hasModernDbInfo() ){
+				// with the faster version, we can fetch the entire schema in one call.
+				if ( !StructKeyExists( variables, "columnCache" )){
+					variables.columnCache =  _getTableColumnCache( argumentCollection = arguments );
+				}
+				if ( StructKeyExists( variables.columnCache, arguments.tableName ) ) {
+					return variables.columnCache[ arguments.tableName ];
+				} else {
+					return [];
+				}
+			}
+			var tableColumns = _getDbInfoService().getTableColumns( argumentCollection = arguments );
+			return QueryColumnData( tableColumns, "COLUMN_NAME" );
+		} catch( any e ) {
+			if ( e.message contains "there is no table that match the following pattern" ) {
+				return [];
+			}
+			rethrow;
+		}
+	}
+
+	private query function _getTableColumnsWithForeignKeys() {
 		try {
 			return _getDbInfoService().getTableColumns( argumentCollection = arguments );
 		} catch( any e ) {
@@ -769,6 +793,18 @@ component {
 		for( var script in versionScripts ){
 			syncScripts.append( script );
 		}
+	}
+
+	private struct function _getTableColumnCache(){
+		var srcColumns = _getDbInfoService().getTableColumns( tableName="%", dsn=arguments.dsn, detail=false );
+		var columns = {};
+		loop query=srcColumns {
+			if ( !StructKeyExists( columns, srcColumns.table_name ) ) {
+				columns[ srcColumns.table_name ] = [];
+			}
+			ArrayAppend( columns[ srcColumns.table_name ], srcColumns.column_name );
+		}
+		return columns;
 	}
 
 
