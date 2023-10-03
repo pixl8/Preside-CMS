@@ -74,7 +74,15 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 
 				removeFromQueue( queuedAsset.id );
 			} catch ( any e ) {
-				var err = SerializeJson( e );
+				var err = {};
+				var errKeys = [ "type", "message", "detail" ];
+				for( var k in errKeys ) {
+					if ( IsSimpleValue( e[ key ] ?: {} ) ) {
+						err[ key ] = e[ key ];
+					}
+				}
+
+				err = SerializeJson( err );
 
 				if ( queuedAsset.retry_count >= 3 ) {
 					failQueue( queuedAsset, err );
