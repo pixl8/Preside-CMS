@@ -77,8 +77,8 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 				var err = {};
 				var errKeys = [ "type", "message", "detail" ];
 				for( var k in errKeys ) {
-					if ( IsSimpleValue( e[ key ] ?: {} ) ) {
-						err[ key ] = e[ key ];
+					if ( IsSimpleValue( e[ k ] ?: {} ) ) {
+						err[ k ] = e[ k ];
 					}
 				}
 
