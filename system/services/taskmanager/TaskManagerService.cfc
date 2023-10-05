@@ -659,22 +659,21 @@ component displayName="Task Manager Service" {
 		);
 	}
 
-	public string function createLogHtml( required string log, numeric fetchAfterLines=0 ) {
-		var logArray = ListToArray( arguments.log, Chr(10) );
-		var outputArray = [];
+	public query function getLogLines( required string historyId, numeric fetchAfterLines=0 ) {
+		return $getPresideObject( "taskmanager_task_history_log_line" ).selectData(
+			  selectFields = [ "ts", "severity", "line" ]
+			, orderby      = "id"
+			, maxRows      = arguments.fetchAfterLines ? 1000000 : 0 // impossibly high number. Forcing startRow to work without really wanting a max rows
+			, startRow     = arguments.fetchAfterLines + 1
+			, filter       = { history=arguments.historyId }
+		);
+	}
 
-		for( var i=arguments.fetchAfterLines+1; i <= logArray.len(); i++ ){
-			var line = logArray[ i ];
-			var logClass = LCase( ReReplace( line, '^\[(.*?)\].*$', '\1' ) );
-			var dateTimeRegex = "(\[20[0-9]{2}\-[0-9]{2}\-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}\])";
-
-			line = ReReplace( line, dateTimeRegex, '<span class="task-log-datetime">\1</span>' );
-			line = '<span class="line-number">#i#.</span> <span class="task-log-line task-log-#logClass#">' & line & '</span>';
-
-			outputArray.append( line );
-		}
-
-		return outputArray.toList( Chr(10) );
+	public numeric function getLogLineCount( required string historyId ) {
+		return $getPresideObject( "taskmanager_task_history_log_line" ).selectData(
+			  recordCountOnly = true
+			, filter          = { history=arguments.historyId }
+		);
 	}
 
 	public struct function getStats() {
@@ -854,7 +853,7 @@ component displayName="Task Manager Service" {
 		return new TaskManagerLoggerWrapper(
 			  logboxLogger   = _logger
 			, taskRunId      = taskRunId
-			, taskHistoryDao = _getTaskHistoryDao()
+			, taskHistoryDao = $getPresideObject( "taskmanager_task_history_log_line" )
 		);
 	}
 	private void function _setLogger( required any logger ) {
