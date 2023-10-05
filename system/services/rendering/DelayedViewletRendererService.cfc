@@ -147,16 +147,17 @@ component {
 
 // PRIVATE HELPERS
 	private struct function _parseArgs( required string args ) {
-		var parsed = {};
-		var keyValues = args.listToArray( "," );
+		var parsed       = {};
+		var keyValues    = ListToArray( args, "," );
+		var jsonDetector = "^[\{\[]"; // string starts with "[" or "{"
 
 		for( var keyValue in keyValues ) {
-			var key   = keyValue.trim().listFirst( "=" ).trim();
-			var value = keyValue.trim().listRest( "=" ).trim();
+			var key   = Trim( ListFirst( keyValue, "=" ) );
+			var value = Trim( ListRest(  keyValue, "=" ) );
 
 			parsed[ key ] = ToString( ToBinary( value ) );
 
-			if ( IsJson( parsed[ key ] ) ) {
+			if ( ReFind( jsonDetector, parsed[ key ] ) && IsJson( parsed[ key ] ) ) {
 				parsed[ key ] = DeserializeJSON( parsed[ key ], false );
 			}
 		}
