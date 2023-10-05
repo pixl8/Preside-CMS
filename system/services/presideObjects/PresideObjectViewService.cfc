@@ -76,28 +76,38 @@ component displayName="Preside Object View Service" {
 
 		var viewFilePath   = _getColdboxRenderer().locateView( arguments.view ) & ".cfm";
 		var viewDetails    = _readView( arguments.presideObject, viewFilePath );
-		var selectDataArgs = Duplicate( arguments );
 		var data           = "";
 		var record         = "";
-		var rendered       = CreateObject( "java", "java.lang.StringBuffer" );
+		var renderer       = _getColdboxRenderer();
+		var rendered       = [];
 		var result         = "";
+		var selectDataArgs = {};
+		var nonSelectArgs  = [
+			  "presideObject"
+			, "view"
+			, "layout"
+			, "cache"
+			, "cacheAutoKey"
+			, "cacheLastAccessTimeout"
+			, "cacheProvider"
+			, "cacheSuffix"
+			, "cacheTimeout"
+			, "objectName"
+			, "selectFields"
+		]
 
-		StructDelete( selectDataArgs, "presideObject"          );
-		StructDelete( selectDataArgs, "view"                   );
-		StructDelete( selectDataArgs, "layout"                 );
-		StructDelete( selectDataArgs, "cache"                  );
-		StructDelete( selectDataArgs, "cacheAutoKey"           );
-		StructDelete( selectDataArgs, "cacheLastAccessTimeout" );
-		StructDelete( selectDataArgs, "cacheProvider"          );
-		StructDelete( selectDataArgs, "cacheSuffix"            );
-		StructDelete( selectDataArgs, "cacheTimeout"           );
+		for( var argName in arguments ) {
+			if ( !ArrayFindNoCase( nonSelectArgs, argName ) ) {
+				selectDataArgs[ argName ] = arguments[ argName ];
+			}
+		}
 
 		selectDataArgs.objectName         = arguments.presideObject;
 		selectDataArgs.selectFields       = viewDetails.selectFields;
 		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $getRequestContext().showNonLiveContent();
 
 		if ( selectDataArgs.allowDraftVersions ) {
-			selectDataArgs.append( _getVersioningArgsForSelectData( argumentCollection=selectDataArgs ), false );
+			StructAppend( selectDataArgs, _getVersioningArgsForSelectData( argumentCollection=selectDataArgs ), false );
 		}
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
@@ -111,9 +121,9 @@ component displayName="Preside Object View Service" {
 
 		for( record in data ) {
 			var viewArgs = _renderFields( arguments.presideObject, record, viewDetails.fieldOptions );
-			viewArgs.append( arguments.args );
+			StructAppend( viewArgs, arguments.args );
 
-			rendered.append( _getColdboxRenderer().renderView(
+			ArrayAppend( rendered, renderer.renderView(
 				  view     = arguments.view
 				, args     = viewArgs
 				, _counter = data.currentRow
@@ -123,13 +133,13 @@ component displayName="Preside Object View Service" {
 
 		if ( arguments.returntype == "struct" ) {
 			result = {
-				  recordcount = data.getrecordcount()
-				, rendered    = rendered.toString()
+				  recordcount = data.getRecordCount()
+				, rendered    = ArrayToList( rendered, "" )
 				, data        = data
-				, columnlist  = data.getColumnlist(false)
+				, columnlist  = data.getColumnlist( false )
 			};
 		} else {
-			result = rendered.toString();
+			result = ArrayToList( rendered, "" )
 		}
 
 		if ( arguments.cache ) {
@@ -280,7 +290,7 @@ component displayName="Preside Object View Service" {
 		,          any     cacheTimeout           = ""
 		,          any     cacheLastAccessTimeout = ""
 	) {
-		var cache    = _getCacheBox().getCache( arguments.cacheProvider );
+		var cache = _getCacheBox().getCache( arguments.cacheProvider );
 
 		cache.set(
 			  objectKey         = arguments.cacheKey
@@ -306,26 +316,16 @@ component displayName="Preside Object View Service" {
 			return cacheKey;
 		}
 
-		var keyArgs        = Duplicate( arguments );
-		var selectDataArgs = Duplicate( arguments );
+		var keyArgs = {};
+		var ignoreKeys = [ "cacheAutoKey", "cacheTimeout", "cacheLastAccessTimeout", "cacheSuffix", "cacheProvider", "value" ];
 
-		keyArgs.delete( "cacheAutoKey"           );
-		keyArgs.delete( "cacheTimeout"           );
-		keyArgs.delete( "cacheLastAccessTimeout" );
-		keyArgs.delete( "cacheSuffix"            );
-		keyArgs.delete( "cacheProvider"          );
-		keyArgs.delete( "value"                  );
+		for( var argName in arguments ) {
+			if ( !ArrayFindNoCase( ignoreKeys, argName ) && ( IsSimpleValue( arguments[ argName ] ) || IsStruct( arguments[ argName ] ) || IsArray( arguments[ argName ] ) ) ) {
+				keyArgs[ argName ] = arguments[ argName ];
+			}
+		}
 
-
-		selectDataArgs.objectName   = arguments.presideObject
-		selectDataArgs.selectFields = [ "Max( #arguments.presideobject#.datemodified ) as datemodified" ];
-
-		var lastRecordModified = _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
-
-		cacheKey &= Hash( SerializeJson( keyArgs ) & ( lastRecordModified.datemodified ?: "" ) );
-
-		return cacheKey;
-
+		return cacheKey & Hash( SerializeJson( keyArgs ) );
 	}
 
 	private struct function _getVersioningArgsForSelectData( required string objectName, string id="", any filter={}, struct filterParams={} ) {

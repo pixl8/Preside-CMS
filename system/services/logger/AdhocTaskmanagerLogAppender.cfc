@@ -23,7 +23,7 @@ component extends="coldbox.system.logging.AbstractAppender" {
 		var q = new Query();
 		q.setDatasource( variables._logInfo.dsn );
 		q.setSQL( variables._logInfo.sql );
-		q.addParam( name="history" , value=taskRunId                               , cfsqltype="cf_sql_varchar" );
+		q.addParam( name="task"    , value=taskRunId                               , cfsqltype="cf_sql_varchar" );
 		q.addParam( name="ts"      , value=_ts( arguments.logEvent.getTimestamp() ), cfsqltype="cf_sql_bigint"  );
 		q.addParam( name="severity", value=arguments.logEvent.getSeverity()        , cfsqltype="cf_sql_int"     );
 		q.addParam( name="line"    , value=arguments.logEvent.getMessage()         , cfsqltype="cf_sql_varchar" );
@@ -40,13 +40,13 @@ component extends="coldbox.system.logging.AbstractAppender" {
 			var taskHistoryDao = arguments.extraInfo.taskHistoryDao ?: "";
 			var adapter        = taskHistoryDao.getDbAdapter();
 			var tableName      = adapter.escapeEntity( taskHistoryDao.getTableName() );
-			var historyCol     = adapter.escapeEntity( "history" );
+			var taskCol        = adapter.escapeEntity( "task" );
 			var tsCol          = adapter.escapeEntity( "ts" );
 			var severityCol    = adapter.escapeEntity( "severity" );
 			var lineCol        = adapter.escapeEntity( "line" );
 
 			variables._logInfo = {
-				  sql       = "insert into #tableName# ( #historyCol#, #tsCol#, #severityCol#, #lineCol# ) values ( :history, :ts, :severity, :line )"
+				  sql       = "insert into #tableName# ( #taskCol#, #tsCol#, #severityCol#, #lineCol# ) values ( :task, :ts, :severity, :line )"
 				, dsn       = taskHistoryDao.getDsn()
 			};
 		}

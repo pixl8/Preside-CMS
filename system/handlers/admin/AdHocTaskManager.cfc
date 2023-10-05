@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="adHocTaskManagerService" inject="adHocTaskManagerService";
 	property name="taskManagerService"      inject="taskManagerService";
+	property name="logRendererUtil"         inject="logRendererUtil";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection=arguments );
@@ -44,15 +45,21 @@ component extends="preside.system.base.AdminHandler" {
 		var taskTitleData = IsJson( prc.task.title_data ?: "" ) ? DeserializeJson( prc.task.title_data ) : [];
 		var taskTitle = translateResource( uri=prc.task.title, data=taskTitleData, defaultValue=prc.task.title );
 
-		prc.taskProgress           = adHocTaskManagerService.getProgress( taskId );
+		prc.taskProgress = adHocTaskManagerService.getProgress( taskId );
 
 		if ( prc.task.status == "pending" ) {
 			prc.taskProgress.timeTaken = translateResource( "enum.adhocTaskStatus:pending.title" );
-			prc.taskProgress.log       = taskManagerService.createLogHtml( translateResource( "cms:adhoctaskmanager.progress.pending.log" ) );
+			prc.taskProgress.log       = logRendererUtil.renderLegacyLogs( translateResource( "cms:adhoctaskmanager.progress.pending.log" ) );
+			prc.taskProgress.lineCount = 0;
 		} else {
+			if ( Len( prc.taskProgress.log ) ) {
+				prc.taskProgress.lineCount = ListLen( prc.taskProgress.log, Chr( 10 ) );
+				prc.taskProgress.log       = logRendererUtil.renderLegacyLogs( prc.taskProgress.log );
+			} else {
+				prc.taskProgress.lineCount = adhocTaskManagerService.getLogLineCount( prc.taskProgress.id );
+				prc.taskProgress.log       = logRendererUtil.renderLogs( adhocTaskManagerService.getLogLines( prc.taskProgress.id ) );
+			}
 			prc.taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=prc.taskProgress.timeTaken*1000, context=[ "accurate" ] );
-			prc.taskProgress.log       = taskManagerService.createLogHtml( prc.taskProgress.log );
-
 		}
 
 		prc.canCancel = prc.task.status == "running" || prc.task.status == "pending";
@@ -71,13 +78,14 @@ component extends="preside.system.base.AdminHandler" {
 		var taskId       = rc.taskId ?: "";
 		var task         = adHocTaskManagerService.getTask( taskId );
 		var taskProgress = adHocTaskManagerService.getProgress( taskId );
+		var fetchAfter   = Val( rc.fetchAfterLines ?: "" );
 
 		if ( !task.admin_owner.len() || task.admin_owner != event.getAdminUserId() ) {
 			_checkPermissions( event, "viewtask" );
 		}
 
-		taskProgress.logLineCount = taskProgress.log.listLen( Chr( 10 ) );
-		taskProgress.log          = taskManagerService.createLogHtml( taskProgress.log, Val( rc.fetchAfterLines ?: "" ) );
+		taskProgress.logLineCount = adhocTaskManagerService.getLogLineCount( taskId );
+		taskProgress.log          = logRendererUtil.renderLogs( adhocTaskManagerService.getLogLines( taskId, fetchAfter ), fetchAfter );
 
 		if ( task.status == "pending" ) {
 			taskProgress.timeTaken = translateResource( "enum.adhocTaskStatus:pending.title" );
