@@ -69,10 +69,12 @@
 				</tr>
 			</cfif>
 		</cfif>
-		<tr>
-			<td class="label">Java Stacktrace</td>
-			<td>#replace( catch.stacktrace, chr(10), "<br><span style='margin-right: 1em;'>&nbsp;</span>", "all" )#</td>
-		</tr>
+		<cfif StructKeyExists( catch, "stacktrace" )>
+			<tr>
+				<td class="label">Java Stacktrace</td>
+				<td>#replace( catch.stacktrace, chr(10), "<br><span style='margin-right: 1em;'>&nbsp;</span>", "all" )#</td>
+			</tr>
+		</cfif>
 		<tr>
 			<td class="label">Timestamp</td>
 			<td>
