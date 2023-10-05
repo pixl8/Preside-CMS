@@ -6,6 +6,7 @@
 	progress       = Round( Val( taskProgress.progress ) );
 	log            = taskProgress.log;
 	timeTaken      = taskProgress.timeTaken;
+	lineCount      = taskProgress.lineCount;
 
 	hideTaskLog = isTrue( rc.hideTaskLog ?: "" );
 	hideCancel  = isTrue( rc.hideCancel  ?: "" );
@@ -35,7 +36,7 @@
 		event.include( "/js/admin/specific/adhoctaskprogress/" );
 		event.includeData({
 			  adhocTaskStatusUpdateUrl = event.buildAdminLink( linkto="adhocTaskManager.status", queryString="taskId=#taskId#" )
-			, adhocTaskLineCount       = task.log.listLen( Chr( 10 ) )
+			, adhocTaskLineCount       = lineCount
 		} );
 	}
 </cfscript>

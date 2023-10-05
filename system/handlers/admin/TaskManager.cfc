@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="taskManagerService"         inject="taskManagerService";
+	property name="logRendererUtil"            inject="logRendererUtil";
 	property name="taskHistoryDao"             inject="presidecms:object:taskmanager_task_history";
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
@@ -207,15 +208,22 @@ component extends="preside.system.base.AdminHandler" {
 
 		var log = taskHistoryDao.selectData(
 			  id           = rc.id ?: "---"
-			, selectFields = [ "task_key", "success", "time_taken", "complete", "log", "datecreated" ]
+			, selectFields = [ "id", "task_key", "success", "time_taken", "complete", "datecreated", "log" ]
 			, useCache     = false
 		);
 
 		if ( !log.recordCount ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="taskmanager" ) );
 		}
-		for( var l in log ) { prc.log = l; }
-		prc.log.log = taskManagerService.createLogHtml( prc.log.log );
+		prc.log = queryRowToStruct( log );
+
+		if ( Len( Trim( log.log ) ) ) {
+			prc.log.lineCount = ListLen( log.log, Chr(10) );
+			prc.log.log       = logRendererUtil.renderLegacyLogs( log.log );
+		} else {
+			prc.log.lineCount = taskManagerService.getLogLineCount( log.id );
+			prc.log.log       = logRendererUtil.renderLogs( taskManagerService.getLogLines( log.id ) );
+		}
 
 		prc.log.time_taken = IsTrue( prc.log.complete ) ? prc.log.time_taken : DateDiff( 's', prc.log.datecreated, Now() ) * 1000;
 		prc.log.time_taken = renderContent( renderer="TaskTimeTaken", data=prc.log.time_taken, context=[ "accurate" ] );
@@ -237,7 +245,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !prc.log.complete ) {
 			event.includeData({
 				  logUpdateUrl = event.buildAdminLink( linkTo="taskmanager.ajaxLogUpdate", queryString="id=" & rc.id )
-				, lineCount    = ListLen( prc.log.log, Chr( 10 ) )
+				, lineCount    = prc.log.lineCount
 			});
 		}
 
@@ -246,18 +254,21 @@ component extends="preside.system.base.AdminHandler" {
 	public void function ajaxLogUpdate( event, rc, prc ) {
 		_checkPermission( "viewlogs", event );
 
+		var historyId  = rc.id ?: "";
+		var fetchAfter = Val( rc.fetchAfterLines ?: "" );
+
 		var log = taskHistoryDao.selectData(
-			  id           = rc.id ?: "---"
-			, selectFields = [ "task_key", "success", "time_taken", "complete", "log", "datecreated" ]
+			  id           = historyId
+			, selectFields = [ "id", "task_key", "success", "time_taken", "complete", "log", "datecreated" ]
 			, useCache     = false
 		);
 		if ( !log.recordCount ) {
 			event.notFound();
 		}
-		for( var l in log ) { log = l; break; }
-		log.lineCount = ListLen( log.log, Chr(10) );
-		log.log = taskManagerService.createLogHtml( log.log, Val( rc.fetchAfterLines ?: "" ) );
+		for( var l in log ) { log=l; }
 
+		log.lineCount  = taskManagerService.getLogLineCount( log.id );
+		log.log        = logRendererUtil.renderLogs( taskManagerService.getLogLines( log.id, fetchAfter ), fetchAfter );
 		log.time_taken = IsTrue( log.complete ) ? log.time_taken : DateDiff( 's', log.datecreated, Now() ) * 1000;
 		log.time_taken = renderContent( renderer="TaskTimeTaken", data=log.time_taken, context=[ "accurate" ] );
 
