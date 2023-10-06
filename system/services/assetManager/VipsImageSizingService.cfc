@@ -374,7 +374,15 @@ component {
 		var smartcrop     = arguments.smartcrop ? "--smartcrop attention" : "";
 
 		try {
-			_exec( "vipsthumbnail", """#arguments.targetFile#"" -s #size# #smartcrop# --eprofile srgb -d -o ""#outputFormat#[#arguments.vipsQuality#,strip]""" );
+			try {
+				_exec( "vipsthumbnail", """#arguments.targetFile#"" -s #size# #smartcrop# --eprofile srgb -d -o ""#outputFormat#[#arguments.vipsQuality#,strip]""" );
+			} catch( any e ) {
+				if ( e.detail contains "no input profile" ) {
+					_exec( "vipsthumbnail", """#arguments.targetFile#"" -s #size# #smartcrop# -d -o ""#outputFormat#[#arguments.vipsQuality#,strip]""" );
+				} else {
+					rethrow;
+				}
+			}
 		} finally {
 			_deleteFile( arguments.targetFile );
 		}
