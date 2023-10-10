@@ -1213,7 +1213,7 @@ component {
 
 		var rawClickStats  = $getPresideObject( "email_template_send_log_activity" ).selectData(
 			  selectFields = [ "sendLog.click_count", "email_template_send_log_activity.link", "email_template_send_log_activity.link_title", "email_template_send_log_activity.link_body" ]
-			, filterParams = filterParams
+			, filterParams = subQuery.params
 			, extraJoins   = [
 				{
 					  type           = "inner"
