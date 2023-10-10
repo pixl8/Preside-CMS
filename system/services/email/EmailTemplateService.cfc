@@ -1187,7 +1187,7 @@ component {
 			filter = { activity_type="click" }
 		}];
 
-		extraFilters.append( { filter="email_template_send_log_activity.link is not null" } );
+		extraFilters.append( { filter="email_template_send_log_activity.link_hash is not null" } );
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
@@ -1202,15 +1202,32 @@ component {
 			});
 		}
 
-		var clickStats    = StructNew( "ordered" );
-		var rawClickStats = $getPresideObject( "email_template_send_log_activity" ).selectData(
-			  filter       = { "message.email_template"=arguments.templateId }
-			, selectFields = [ "count( 1 ) as click_count", "link", "link_title", "link_body" ]
-			, extraFilters = extraFilters
-			, autoGroupBy  = true
-			, orderBy      = "click_count desc"
+		var subQuery = $getPresideObject( "email_template_send_log_activity" ).selectData(
+			  filter              = { "message.email_template"=arguments.templateId }
+			, extraFilters        = extraFilters
+			, selectFields        = [ "count(1) as click_count", "id", "link_body_hash" ]
+			, groupBy             = "link_hash,link_title_hash,link_body_hash"
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
 		);
 
+		var rawClickStats  = $getPresideObject( "email_template_send_log_activity" ).selectData(
+			  selectFields = [ "sendLog.click_count", "email_template_send_log_activity.link", "email_template_send_log_activity.link_title", "email_template_send_log_activity.link_body" ]
+			, filterParams = filterParams
+			, extraJoins   = [
+				{
+					  type           = "inner"
+					, subQuery       = subQuery.sql
+					, subQueryAlias  = "sendLog"
+					, subQueryColumn = "id"
+					, joinToTable    = "email_template_send_log_activity"
+					, joinToColumn   = "id"
+				}
+			]
+			, orderBy = "sendLog.click_count desc"
+		);
+
+		var clickStats    = StructNew( "ordered" );
 		for( var link in rawClickStats ) {
 			if ( !StructKeyExists( clickStats, link.link_body ) ) {
 				clickStats[ link.link_body ] = {
