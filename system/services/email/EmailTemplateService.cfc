@@ -1211,7 +1211,7 @@ component {
 		var subQuerySelectFields      = [ "count(1) as click_count", "id" ];
 		var rawClickStatsSelectfields = [ "sendLog.click_count", "link", "link_title", "link_body" ];
 		var subQueryGroupBy           = "link_hash,link_title_hash,link_body_hash";
-		var rawClickStatsGroupBy      = "";
+		var rawClickStatsGroupBy      = "link_hash,link_title_hash,link_body_hash";
 		var dbInfo                    = _getDbInfoService().getDatabaseVersion( "preside" );
 
 		if ( dbInfo.database_productName == "Microsoft SQL Server" ) { // MSSQL is strict with select field and group by, thus we can't really fully ultilize our hash column approach.
