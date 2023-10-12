@@ -1215,12 +1215,10 @@ component {
 		var dbInfo                    = _getDbInfoService().getDatabaseVersion( "preside" );
 
 		if ( dbInfo.database_productName == "Microsoft SQL Server" ) { // MSSQL is strict with select field and group by, thus we can't really fully ultilize our hash column approach.
-			subQuerySelectFields = [ "id" ];
-			arrayDelete( rawClickStatsSelectfields, "sendLog.click_count" );
-			arrayPrepend( rawClickStatsSelectfields, "count(1) as click_count" );
-
-			subQueryGroupBy      = "id";
-			rawClickStatsGroupBy = "link,link_title,link_body";
+			subQuerySelectFields      = [ "id" ];
+			rawClickStatsSelectfields = [ "count(1) as click_count", "link", "cast(link_title as NVARCHAR( max ) ) as link_title", "cast(link_body as NVARCHAR( max ) ) as link_body" ]; 
+			subQueryGroupBy           = "id";
+			rawClickStatsGroupBy      = "link,cast(link_title as NVARCHAR( max ) ),cast(link_body as NVARCHAR( max ) )";
 		}
 
 		var subQuery = $getPresideObject( "email_template_send_log_activity" ).selectData(
