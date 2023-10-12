@@ -1190,7 +1190,10 @@ component {
 			filter = { activity_type="click" }
 		}];
 
-		extraFilters.append( { filter="email_template_send_log_activity.link_hash is not null" } );
+		extraFilters.append({ 
+			  filter       = "email_template_send_log_activity.link_hash != :email_template_send_log_activity.link_hash"
+			, filterParams = { "email_template_send_log_activity.link_hash" = hash( "" ) }
+		});
 
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
