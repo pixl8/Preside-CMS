@@ -9,7 +9,7 @@
 component extends="preside.system.base.SystemPresideObject" {
 	property name="message" relationship="many-to-one" relatedto="email_template_send_log" required=true indexes="message,logdatecreated|1,logactivitytype|1,click_stat_hash|1";
 
-	property name="datecreated" indexes="datecreated,logdatecreated|2";
+	property name="datecreated" indexes="datecreated,logdatecreated|2,click_stat_hash|6";
 	property name="activity_type" type="string" dbtype="varchar" maxlength=15   required=true enum="emailActivityType" indexes="activitytype,logactivitytype|2,click_stat_hash|2";
 	property name="user_ip"       type="string" dbtype="varchar" maxLength=255  required=true;
 	property name="user_agent"    type="string" dbtype="text"                   required=false;
