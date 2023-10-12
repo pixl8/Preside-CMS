@@ -60,7 +60,7 @@
 			quickEditModalTitle = translateResource( args.quickEditModalTitle ?: "cms:datamanager.quick.edit.modal.title" );
 
 			selectedTemplate = '<span class="selected-text">' & selectedTemplate & '</span>';
-			selectedTemplate &= ' <a class="fa fa-pencil quick-edit-link" href="#quickEditUrl#{{value}}" title="#HtmlEditFormat( quickEditModalTitle )#"></a>';
+			selectedTemplate &= ' <a class="fa fa-pencil edit-choice-link quick-edit-link" href="#quickEditUrl#{{value}}" title="#HtmlEditFormat( quickEditModalTitle )#"></a>';
 		}
 	}
 
