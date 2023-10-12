@@ -1228,7 +1228,6 @@ component {
 			, groupBy             = subQueryGroupBy
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
-			, useCache            = false
 		);
 
 		var filterParams = subQuery.params;
@@ -1247,7 +1246,6 @@ component {
 			]
 			, orderBy  = "click_count desc"
 			, groupBy  = rawClickStatsGroupBy
-			, useCache = false
 		);
 
 		var clickStats    = StructNew( "ordered" );
