@@ -27,6 +27,7 @@ component {
 	 * @emailSettings.inject              coldbox:setting:email
 	 * @templateCache.inject              cachebox:emailTemplateCache
 	 * @timeSeriesUtils.inject            timeSeriesUtils
+	 * @dbInfoService.inject              DbInfoService
 	 *
 	 */
 	public any function init(
@@ -39,6 +40,7 @@ component {
 		, required any emailSettings
 		, required any templateCache
 		, required any timeSeriesUtils
+		, required any dbInfoService
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
@@ -49,7 +51,8 @@ component {
 		_setEmailSettings( arguments.emailSettings );
 		_setTemplateCache( arguments.templateCache );
 		_setTimeSeriesUtils( arguments.timeSeriesUtils );
-
+		_setDbInfoService( arguments.dbInfoService );
+		
 		return this;
 	}
 
@@ -1202,18 +1205,35 @@ component {
 			});
 		}
 
+		var subQuerySelectFields      = [ "count(1) as click_count", "id" ];
+		var rawClickStatsSelectfields = [ "sendLog.click_count", "link", "link_title", "link_body" ];
+		var subQueryGroupBy           = "link_hash,link_title_hash,link_body_hash";
+		var rawClickStatsGroupBy      = "";
+		var dbInfo                    = _getDbInfoService().getDatabaseVersion( "preside" );
+
+		if ( dbInfo.database_productName == "Microsoft SQL Server" ) { // MSSQL is strict with select field and group by, thus we can't really fully ultilize our hash column approach.
+			subQuerySelectFields = [ "id" ];
+			arrayDelete( rawClickStatsSelectfields, "sendLog.click_count" );
+			arrayPrepend( rawClickStatsSelectfields, "count(1) as click_count" );
+
+			subQueryGroupBy      = "id";
+			rawClickStatsGroupBy = "link,link_title,link_body";
+		}
+
 		var subQuery = $getPresideObject( "email_template_send_log_activity" ).selectData(
 			  filter              = { "message.email_template"=arguments.templateId }
 			, extraFilters        = extraFilters
-			, selectFields        = [ "count(1) as click_count", "id", "link_body_hash" ]
-			, groupBy             = "link_hash,link_title_hash,link_body_hash"
+			, selectFields        = subQuerySelectFields
+			, groupBy             = subQueryGroupBy
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
+			, useCache            = false
 		);
 
+		var filterParams = subQuery.params;
 		var rawClickStats  = $getPresideObject( "email_template_send_log_activity" ).selectData(
-			  selectFields = [ "sendLog.click_count", "email_template_send_log_activity.link", "email_template_send_log_activity.link_title", "email_template_send_log_activity.link_body" ]
-			, filterParams = subQuery.params
+			  selectFields = rawClickStatsSelectfields
+			, filterParams = filterParams
 			, extraJoins   = [
 				{
 					  type           = "inner"
@@ -1224,7 +1244,9 @@ component {
 					, joinToColumn   = "id"
 				}
 			]
-			, orderBy = "sendLog.click_count desc"
+			, orderBy  = "click_count desc"
+			, groupBy  = rawClickStatsGroupBy
+			, useCache = false
 		);
 
 		var clickStats    = StructNew( "ordered" );
@@ -1602,5 +1624,12 @@ component {
 	}
 	private void function _setTimeSeriesUtils( required any timeSeriesUtils ) {
 	    _timeSeriesUtils = arguments.timeSeriesUtils;
+	}
+
+	private any function _getDbInfoService() {
+	    return _dbInfoService;
+	}
+	private void function _setDbInfoService( required any dbInfoService ) {
+	    _dbInfoService = arguments.dbInfoService;
 	}
 }
