@@ -31,7 +31,7 @@ component extends="preside.system.base.SystemPresideObject" displayName="Rules e
 	property name="is_segmentation_filter"         type="boolean" dbtype="boolean" default=false batchEditable=false;
 	property name="segmentation_frequency_measure" type="numeric" dbtype="int" batchEditable=false minValue=1;
 	property name="segmentation_frequency_unit"    type="string"  dbtype="varchar" maxlength=10 batchEditable=false enum="segmentationFilterTimeUnit";
-	property name="parent_segmentation_filter" relationship="many-to-one" relatedto="rules_engine_condition" batchEditable=false uniqueindexes="filterobjectname|3" ondelete="cascade-if-no-cycle-check";
+	property name="parent_segmentation_filter" relationship="many-to-one" relatedto="rules_engine_condition" batchEditable=false uniqueindexes="filterobjectname|3" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 	property name="segmentation_last_calculation" type="date"    dbtype="datetime" batcheditable=false ignoreChangesForVersioning=true renderer="lastSegmentationRuleCalculation";
 	property name="segmentation_next_calculation" type="date"    dbtype="datetime" batcheditable=false ignoreChangesForVersioning=true;
 	property name="segmentation_last_count"       type="numeric" dbtype="int" required=false default=0 batcheditable=false ignoreChangesForVersioning=true;

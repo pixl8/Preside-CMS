@@ -40,6 +40,7 @@ component extends="BaseAdapter" {
 				columnDef &= "datetime";
 				break;
 			case "longtext":
+			case "mediumtext":
 			case "text":
 				arguments.maxLength = 0;
 				columnDef &= _getUseVarcharMaxForText() ? "varchar(max)" : "text";

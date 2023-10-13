@@ -17,7 +17,7 @@ component displayname="Form builder: form" extends="preside.system.base.SystemPr
 	property name="notification_enabled"   type="boolean" dbtype="boolean"               required=false default=false;
 
 	property name="require_login"          type="boolean" dbtype="boolean" required=false default=false;
-	property name="access_condition"       relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest";
+	property name="access_condition"       relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 	property name="login_required_content" type="string"  dbtype="text"    required=false;
 	property name="access_denied_content"  type="string"  dbtype="text"    required=false;
 
