@@ -34,8 +34,6 @@ component displayName="AssetManager Service" {
 		,          struct derivativeLimits       = {}
 		,          struct configuredFolders      = {}
 	) {
-		_migrateFromLegacyRecycleBinApproach();
-		_setupSystemFolders( arguments.configuredFolders );
 
 		_setDefaultStorageProvider( arguments.defaultStorageProvider );
 		_setDocumentMetadataService( arguments.documentMetadataService );
@@ -47,9 +45,16 @@ component displayName="AssetManager Service" {
 		_setDerivativeLimits( arguments.derivativeLimits );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
-		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
+		_setConfiguredFolders( arguments.configuredFolders );
+		_setConfiguredTypesByGroup( arguments.configuredTypesByGroup );
 
 		return this;
+	}
+
+	public void function postInit() {
+		_migrateFromLegacyRecycleBinApproach();
+		_setupSystemFolders( _getConfiguredFolders() );
+		_setupConfiguredFileTypesAndGroups( _getConfiguredTypesByGroup() );
 	}
 
 // PUBLIC API METHODS
@@ -2840,4 +2845,19 @@ component displayName="AssetManager Service" {
 			, tooBigPlaceholder = arguments.derivativeLimits.tooBigPlaceholder ?: "/preside/system/assets/images/placeholders/largeimage.jpg"
 		};
 	}
+
+	private struct function _getConfiguredFolders() {
+	    return _configuredFolders;
+	}
+	private void function _setConfiguredFolders( required struct configuredFolders ) {
+	    _configuredFolders = arguments.configuredFolders;
+	}
+
+	private struct function _getConfiguredTypesByGroup() {
+	    return _configuredTypesByGroup;
+	}
+	private void function _setConfiguredTypesByGroup( required struct configuredTypesByGroup ) {
+	    _configuredTypesByGroup = arguments.configuredTypesByGroup;
+	}
+
 }
