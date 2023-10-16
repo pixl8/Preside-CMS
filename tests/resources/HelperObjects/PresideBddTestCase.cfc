@@ -125,6 +125,7 @@
 					, selectDataViewService  = arguments.selectDataViewService
 					, reloadDb               = false
 				);
+				request[ key ].postInit();
 				request[ key ] = getMockbox().createMock( object=request[ key ] );
 
 				versioningService.$( "$getPresideObjectService", request[ key ] );

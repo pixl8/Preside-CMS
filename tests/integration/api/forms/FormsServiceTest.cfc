@@ -923,6 +923,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, featureService       = mockFeatureService
 		) );
 
+		service.postInit();
+
 		service.$( "$hasAdminPermission", true );
 		service.$( "$getSystemConfigurationService", mockConfigService );
 		service.$( "$getPresideSetting", "" );
