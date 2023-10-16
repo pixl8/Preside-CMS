@@ -167,8 +167,8 @@ component {
 
 	) {
 		var adapter        = _getAdapter( dsn = arguments.dsn );
-		var tableExists    =  _tableExists( tableName=arguments.tableName, dsn=arguments.dsn );
-		var tableColumns   = tableExists ? _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ) : [];
+		var tableExists    = NullValue();
+		var tableColumns   = NullValue();
 		var columnSql      = "";
 		var colName        = "";
 		var column         = "";
@@ -189,8 +189,12 @@ component {
 
 		for( colName in ListToArray( arguments.dbFieldList ) ) {
 			colMeta = arguments.properties[ colName ];
-			if( _skipSync( colMeta ) && ArrayContainsNoCase( tableColumns, colName ) ) {
-				continue;
+			if( _skipSync( colMeta ) ) {
+				tableExists  = tableExists  ?: _tableExists( tableName=arguments.tableName, dsn=arguments.dsn );
+				tableColumns = tableColumns ?: tableExists ? _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ) : [];
+				if ( ArrayContainsNoCase( tableColumns, colName ) ) {
+					continue;
+				}
 			}
 			column = sql.columns[ colName ] = StructNew();
 			args = {
