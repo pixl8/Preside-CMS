@@ -90,7 +90,7 @@ component displayName="RulesEngine Expression Reader Service" {
 	 * @rootPath.hint      Root path of directory containing expressions, e.g. app.handlers.rules.expressions
 	 */
 	public struct function getExpressionsFromCfc( required string componentPath, required string rootPath ) {
-		var meta            = getComponentMetadata( arguments.componentPath );
+		var meta            = preside.system.services.helpers.ComponentMetaDataReader::getComponentAttributes( arguments.componentPath, [ "feature", "expressionCategory", "expressionContexts", "expressionTags" ] );
 		var feature         = meta.feature ?: "";
 		var category        = meta.expressionCategory ?: "default";
 		var contexts        = ListToArray( meta.expressionContexts ?: "global" );
@@ -113,15 +113,16 @@ component displayName="RulesEngine Expression Reader Service" {
 			return {};
 		}
 
-		var functions     = meta.functions ?: [];
+		var functions     = preside.system.services.helpers.ComponentMetaDataReader::getComponentFunctions( arguments.componentPath );
 		var baseId        = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
 		var filterObjects = [];
 		var expressions   = {};
 
-		for( var func in functions ) {
-			if ( func.name == "evaluateExpression" ) {
+		for( var functionName in functions ) {
+			var func = functions[ functionName ];
+			if ( functionName == "evaluateExpression" ) {
 				expressions[ baseId ] = {
-					  contexts              = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
+					  contexts              = _getContextService().expandContexts( contexts )
 					, fields                = getExpressionFieldsFromFunctionDefinition( func )
 					, filterObjects         = filterObjects
 					, category              = category
@@ -136,7 +137,7 @@ component displayName="RulesEngine Expression Reader Service" {
 					, textHandlerArgs       = {}
 				};
 
-			} else if ( func.name == "prepareFilters" ) {
+			} else if ( functionName == "prepareFilters" ) {
 				filterObjects = ListToArray( func.objects ?: "" );
 				if ( StructKeyExists( expressions, baseId ) ) {
 					expressions[ baseId ].filterObjects = filterObjects;

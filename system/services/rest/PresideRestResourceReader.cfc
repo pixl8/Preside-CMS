@@ -85,18 +85,7 @@ component displayName="Preside REST Resource Reader" {
 	 * @autodoc true
 	 */
 	public boolean function isValidResource( required string cfcPath ) {
-		var tester = function( meta ){
-			if ( StructKeyExists( arguments.meta, "restUri" ) ) {
-				return true;
-			}
-			if ( StructKeyExists( arguments.meta, "extends" ) ) {
-				return tester( arguments.meta.extends );
-			}
-
-			return false;
-		};
-
-		return tester( GetComponentMetaData( arguments.cfcPath ) );
+		return Len( preside.system.services.helpers.ComponentMetaDataReader::getComponentAttribute( arguments.cfcPath, "restUri" ) ) > 0;
 	}
 
 	/**
@@ -108,46 +97,39 @@ component displayName="Preside REST Resource Reader" {
 	 * @autodoc true
 	 */
 	public array function readResource( required string cfcPath, required string api ) {
-		var readMeta                  = { verbs={}, requiredParameters={}, parameterTypes={} };
 		var verbs                     = [ "get", "post", "put", "delete", "head", "options" ];
 		var validatableParameterTypes = [ "string", "date", "numeric", "uuid" ];
+		var cfcFunctions              = preside.system.services.helpers.ComponentMetaDataReader::getComponentFunctions( arguments.cfcPath );
+		var readMeta                  = {
+			  verbs              = {}
+			, requiredParameters = {}
+			, parameterTypes     = {}
+			, restUri            = preside.system.services.helpers.ComponentMetaDataReader::getComponentAttribute( arguments.cfcPath, "restUri" )
+		};
 
-		var reader = function( meta ){
-			if ( StructKeyExists( arguments.meta, "extends" ) ) {
-				reader( arguments.meta.extends );
+		for( var functionName in cfcFunctions ) {
+			var func = cfcFunctions[ functionName ];
+			var verb = "";
+
+			if ( ArrayFindNoCase( verbs, functionName ) ) {
+				verb = functionName;
+			} else if ( ArrayFindNoCase( verbs, func.restVerb ?: "" ) ) {
+				verb = func.restVerb;
 			}
-
-			if ( StructKeyExists( arguments.meta, "restUri" ) ) {
-				readMeta.restUri = arguments.meta.restUri;
-			}
-
-			var functions = meta.functions ?: [];
-
-			for( var func in functions ) {
-				var verb = "";
-
-				if ( verbs.findNoCase( func.name ?: "" ) ) {
-					verb = func.name;
-				} else if ( verbs.findNoCase( func.restVerb ?: "" ) ) {
-					verb = func.restVerb;
-				}
-				if ( Len( verb ) ) {
-					readMeta.verbs[ verb ] = func.name;
-					readMeta.requiredParameters[ verb ] = [];
-					readMeta.parameterTypes[ verb ] = {};
-					for ( var param in func.parameters ) {
-						if ( isBoolean( param.required ?: "" ) && param.required ) {
-							readMeta.requiredParameters[ verb ].append( param.name );
-						}
-						if ( validatableParameterTypes.findNoCase( param.type ?: "" ) ) {
-							readMeta.parameterTypes[ verb ][ param.name ] = param.type;
-						}
+			if ( Len( verb ) ) {
+				readMeta.verbs[ verb ] = functionName;
+				readMeta.requiredParameters[ verb ] = [];
+				readMeta.parameterTypes[ verb ] = {};
+				for ( var param in func.parameters ) {
+					if ( isBoolean( param.required ?: "" ) && param.required ) {
+						readMeta.requiredParameters[ verb ].append( param.name );
+					}
+					if ( validatableParameterTypes.findNoCase( param.type ?: "" ) ) {
+						readMeta.parameterTypes[ verb ][ param.name ] = param.type;
 					}
 				}
 			}
-		};
-
-		reader( GetComponentMetaData( arguments.cfcPath ) );
+		}
 
 		var resources = [];
 		var uris      = ListToArray( readMeta.restUri ?: "" );

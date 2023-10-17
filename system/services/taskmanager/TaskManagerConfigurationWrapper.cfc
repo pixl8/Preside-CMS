@@ -37,13 +37,15 @@ component displayName="TaskManager Configuration Wrapper" {
 					var componentPath = Replace( filePath, "/", ".", "all" );
 					    componentPath = ReReplace( componentPath, "\.cfc$", "" );
 
-					var meta = getComponentMetaData( componentPath );
+					var feature   = preside.system.services.helpers.ComponentMetaDataReader::getComponentAttribute( componentPath, "feature" );
+					var functions = preside.system.services.helpers.ComponentMetaDataReader::getComponentFunctions( componentPath );
 
-					if ( len( meta.feature ?: "" ) && !$isFeatureEnabled( meta.feature ) ) {
+					if ( len( feature ) && !$isFeatureEnabled( feature ) ) {
 						continue;
 					}
 
-					for( var f in meta.functions ){
+					for( var functionName in functions ){
+						var f = functions[ functionName ];
 						if ( len( f.feature ?: "" ) && !$isFeatureEnabled( f.feature ) ) {
 							continue;
 						}
