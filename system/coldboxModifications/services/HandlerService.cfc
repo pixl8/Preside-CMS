@@ -67,7 +67,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 			cleanHandler = controller.getUtil().ripExtension(cleanhandler);
 
 			//Add data to array
-			actions = _getCfcMethods( getComponentMetaData( ListAppend( arguments.invocationPath, cleanHandler, "." ) ) );
+			actions = StructKeyArray( preside.system.services.helpers.ComponentMetaDataReader::getComponentFunctions( ListAppend( arguments.invocationPath, cleanHandler, "." ) ) );
 
 			ArrayAppend( fileArray , { name=cleanHandler, actions=Duplicate( actions ) } );
 		}
@@ -214,22 +214,6 @@ component extends="coldbox.system.web.services.HandlerService" {
 				}
 			}
 		}
-	}
-
-	private array function _getCfcMethods( required struct meta ) {
-		var methods = {};
-
-		if ( ( arguments.meta.extends ?: {} ).count() ) {
-			_getCfcMethods( arguments.meta.extends ).each( function( method ){
-				methods[ method ] = true;
-			} );
-		}
-		var metaMethods = arguments.meta.functions ?: [];
-		for( var method in metaMethods ) {
-			methods[ method.name ] = true;
-		}
-
-		return methods.keyArray();
 	}
 
 	private string function _listHandlerNames( required array handlers ) {

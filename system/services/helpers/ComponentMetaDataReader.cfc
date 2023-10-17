@@ -18,22 +18,24 @@ component {
 	 */
 	public static struct function readMeta( required string componentPath ) {
 		var filePath = ExpandPath( "/" & ReReplace( arguments.componentPath, "\.+", "/", "all" ) & ".cfc" );
+		var cfcPath  = ReReplace( ReReplace( arguments.componentPath, "\.+", ".", "all" ), "^\.", "" );
 
 		if ( !StructKeyExists( server, "_cfcMetaCache" ) ) {
-			server._cfcMetaCache = {};
+			server._cfcMetaCache = _instantiateCache();
 		}
 		if ( !StructKeyExists( request, "_cfcMetaCache" ) ) {
 			request._cfcMetaCache = {};
 		}
-		if ( !StructKeyExists( request._cfcMetaCache, filePath ) && ( !StructKeyExists( server._cfcMetaCache, filePath ) || FileInfo( filePath ).dateLastModified > server._cfcMetaCache[ filePath ].lastCalculated ) ) {
-			request._cfcMetaCache[ filePath ] = true; // avoids double fileinfo reads to the same file in a single request
-			server._cfcMetaCache[ filePath ] = {
+
+		if ( !StructKeyExists( request._cfcMetaCache, cfcPath ) && ( !StructKeyExists( server._cfcMetaCache, cfcPath ) || FileInfo( filePath ).dateLastModified > server._cfcMetaCache[ cfcPath ].lastCalculated ) ) {
+			request._cfcMetaCache[ cfcPath ] = true; // avoids double fileinfo reads to the same file in a single request
+			server._cfcMetaCache[ cfcPath ] = {
 				  lastCalculated = Now()
-				, meta           = GetComponentMetadata( arguments.componentPath )
+				, meta           = GetComponentMetadata( cfcPath )
 			};
 		}
 
-		return server._cfcMetaCache[ filePath ].meta;
+		return server._cfcMetaCache[ cfcPath ].meta;
 	}
 
 	/**
@@ -115,6 +117,80 @@ component {
 		}
 
 		return attribs;
+	}
+
+	public static function createPersistentCache() {
+		var start     = GetTickCount();
+		var mappings  = [ "/preside/system", "/app", "/coldbox/system" ];
+		var cacheFile = ExpandPath( "/uploads/.cache/componentMetaCache.jsonl" );
+
+		SystemOutput( "=====================================================", true );
+		SystemOutput( "Generating Persistent cache for Component metadata...", true );
+
+		DirectoryCreate( GetDirectoryFromPath( cacheFile ), true, true );
+		if ( FileExists( cachefile ) ) {
+			FileDelete( cacheFile );
+		}
+
+		var openFile = FileOpen( cacheFile, "write" );
+
+		try {
+			for( var mapping in mappings ) {
+				var expandedMappingPath = ExpandPath( mapping );
+				var dottedMapping       = Replace( ReReplace( mapping, "^/", "" ), "/", ".", "all" );
+				var cfcPaths            = DirectoryList( expandedMappingPath, true, "path", "*.cfc" );
+				for( var cfcPath in cfcPaths ) {
+					if ( cfcPath contains "/preside/system/externals" ) {
+						continue;
+					}
+
+					var relPath       = Right( cfcPath, Len( cfcPath )-Len( expandedMappingPath ) );
+					var componentPath = dottedMapping & ReReplace( Replace( relPath, "/", ".", "all" ), "\.cfc$", "" );
+
+					try {
+						var meta = readMeta( componentPath );
+						FileWriteLine( openfile, SerializeJson( meta ) );
+					} catch( any e ) {
+						// should we??
+					}
+				}
+			}
+		} catch( any e ) {
+			rethrow;
+		} finally {
+			FileClose( openFile );
+		}
+
+		SystemOutput( "Finished generating Persistent cache for component metadata in #LsNumberFormat( GetTickCount()-start )# ms", true );
+		SystemOutput( "=====================================================", true );
+	}
+
+	private static function _instantiateCache() {
+		var cache     = {};
+		var cacheFile = ExpandPath( "/uploads/.cache/componentMetaCache.jsonl" );
+
+		if ( FileExists( cacheFile ) ) {
+			var openFile = FileOpen( cacheFile, "read" );
+
+			try {
+				while( !FileIsEoF( openFile ) ) {
+					var ln = FileReadLine( openFile );
+					if ( IsJson( ln ) ) {
+						var meta = DeserializeJson( ln );
+						cache[ meta.fullname ] = {
+							  lastCalculated = Now()
+							, meta           = meta
+						};
+					}
+				}
+			} catch( any e ) {
+				rethrow;
+			} finally {
+				FileClose( openFile );
+			}
+		}
+
+		return cache;
 	}
 
 }

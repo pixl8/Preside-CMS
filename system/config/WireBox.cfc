@@ -120,20 +120,14 @@
 	}
 
 	private void function _injectPresideSuperClass( required any mapping, required string objectPath ) {
-		if ( _wantsPresideInjection( getComponentMetaData( arguments.objectPath ) ) ) {
+		if ( _wantsPresideInjection( arguments.objectPath ) ) {
 			arguments.mapping.virtualInheritance( "presideSuperClass" );
 		}
 	}
 
-	private boolean function _wantsPresideInjection( required struct meta ) {
-		if ( StructKeyExists( arguments.meta, "presideService" ) ) {
-			return true;
-		}
+	private boolean function _wantsPresideInjection( objectPath ) {
+		var presideService = preside.system.services.helpers.ComponentMetaDataReader::getComponentAttribute( arguments.objectPath, "presideService" );
 
-		if ( StructKeyExists( arguments.meta, "extends" ) && arguments.meta.extends.count() ) {
-			return _wantsPresideInjection( arguments.meta.extends );
-		}
-
-		return false;
+		return isBoolean( presideService ) && presideService;
 	}
 }
