@@ -103,6 +103,7 @@ component extends="testbox.system.BaseSpec"{
 
 // private helpers
 	private void function _setup( array ignore=[] ) {
+		StructDelete( application, "__presideappExtensions" );
 		manager = new preside.system.services.devtools.ExtensionManagerService(
 			  appMapping       = "/tests/resources/extensionManager/application"
 			, ignoreExtensions = arguments.ignore
