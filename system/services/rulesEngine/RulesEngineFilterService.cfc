@@ -47,10 +47,12 @@ component displayName="Rules Engine Filter Service" {
 		var havingSql  = "";
 		var havingfields = [];
 
-		for( var i=1; i <= expressionArray.len(); i++ ) {
+		for( var i=1; i <= ArrayLen( expressionArray ); i++ ) {
 			var isJoin = !(i mod 2);
 			if ( isJoin ) {
-				join = expressionArray[i] == "and" ? "and" : "or";
+				if ( Len( Trim( sql ) ) ) {
+					join = expressionArray[i] == "and" ? "and" : "or";
+				}
 			} else if ( IsArray( expressionArray[i] ) ) {
 				var subFilter = prepareFilter( objectName=objectName, expressionArray=expressionArray[i] );
 
@@ -61,26 +63,27 @@ component displayName="Rules Engine Filter Service" {
 					sql &= " #join# #subfilter.filter#";
 				}
 
-				params.append( subFilter.filterParams );
-				extraJoins.append( subFilter.extraJoins, true );
+				StructAppend( params, subFilter.filterParams );
+				ArrayAppend( extraJoins, subFilter.extraJoins, true );
 			} else {
 				var rawFilters = _getExpressionService().prepareExpressionFilters(
 					  expressionId     = expressionArray[i].expression ?: ""
 					, configuredFields = expressionArray[i].fields     ?: {}
 					, objectName       = arguments.objectName
 				);
+				var rawFilterCount = ArrayLen( rawFilters );
 
-				if ( rawFilters.len() ) {
+				if ( rawFilterCount ) {
 					sql &= " #join# ";
-					if ( rawFilters.len() > 1 ) {
+					if ( rawFilterCount > 1 ) {
 						sql &= "( ";
 					}
 					var delim = "";
 					for( var rawFilter in rawFilters ) {
-						extraJoins.append( rawFilter.extraJoins ?: [], true );
-						params.append( rawFilter.filterParams ?: {} );
+						ArrayAppend( extraJoins, rawFilter.extraJoins ?: [], true );
+						StructAppend( params, rawFilter.filterParams ?: {} );
 						if ( IsStruct( rawFilter.filter ?: "" ) ){
-							params.append( rawFilter.filter );
+							StructAppend( params, rawFilter.filter );
 						}
 
 						var rawSql = dbAdapter.getClauseSql( filter=rawFilter.filter ?: "", tableAlias=arguments.objectName );
@@ -89,25 +92,25 @@ component displayName="Rules Engine Filter Service" {
 						}
 						var having = rawFilter.having ?: "";
 
-						if ( having.len() ) {
+						if ( Len( having ) ) {
 							isHaving = true;
-							if ( havingSql.len() ) {
+							if ( Len( havingSql ) ) {
 								havingSql = "( #havingSql# and #having# )";
 							} else {
 								havingSql = having;
 							}
 						}
 
-						if ( rawSql.len() ) {
+						if ( Len( rawSql ) ) {
 							sql  &= delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
 							delim = " and ";
 
 							var havingField = "";
 
-							if( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
+							if ( Len( Trim( rawFilter.propertyName ?: "" ) ) ) {
 								havingField = rawFilter.propertyName;
 							} else {
-								var firstField = ListFirst( Trim( Replace( Len( having ) ? having : ( isStruct( rawFilter.filter ?: "" ) ? "" : rawFilter.filter ?: "" ), "(", "", "all" ) ), " " );
+								var firstField = ListFirst( Trim( Replace( Len( having ) ? having : ( IsStruct( rawFilter.filter ?: "" ) ? "" : rawFilter.filter ?: "" ), "(", "", "all" ) ), " " );
 								if( ListLen( firstField, "." ) == 2 ) {
 									havingField = firstField;
 								}
@@ -118,22 +121,22 @@ component displayName="Rules Engine Filter Service" {
 							}
 						}
 					}
-					if ( rawFilters.len() > 1 ) {
+					if ( rawFilterCount > 1 ) {
 						sql &= " )";
 					}
 				}
 			}
 		}
 
-		if ( sql.trim().len() ) {
-			sql = "( #sql.trim()# )";
+		if ( Len( Trim( sql ) ) ) {
+			sql = "( #Trim( sql )# )";
 		}
 
 		var returnValue = { filter=Trim( sql ), filterParams=params, extraJoins=extraJoins };
 
 		if ( isHaving ) {
-			returnValue.having        = havingSql;
-			returnValue.havingfields  = havingfields;
+			returnValue.having       = havingSql;
+			returnValue.havingfields = havingfields;
 		}
 		return returnValue;
 	}
