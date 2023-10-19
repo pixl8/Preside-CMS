@@ -35,7 +35,8 @@ component {
 
 // PUBLIC API METHODS
 	public void function synchronize( required array dsns, required struct objects ) {
-		var versions           = _getVersionsOfDatabaseObjects( arguments.dsns );
+		var dbVersionHash      = _getSchemaVersioningService().getDbVersion( arguments.dsns );
+		var versions           = "";
 		var objName            = "";
 		var obj                = "";
 		var table              = "";
@@ -54,7 +55,8 @@ component {
 		StructDelete( variables, "columnCache" ); // cache no longer required, release memory
 		dbVersion.sort( "text" );
 		dbVersion = Hash( dbVersion.toList() );
-		if ( ( versions.db.db ?: "" ) neq dbVersion ) {
+		if ( dbVersionHash != dbVersion ) {
+			var versions = _getVersionsOfDatabaseObjects( arguments.dsns );
 			for( objName in objects ) {
 				obj = objects[ objName ];
 
@@ -117,15 +119,16 @@ component {
 			objects[ objName ].delete( "sql" );
 		}
 
-		var cleanupScripts = _getSchemaVersioningService().cleanupDbVersionTableEntries( versions, objects, dsns[1], _getAutoRunScripts() );
+		if ( dbVersionHash != dbVersion ) {
+			var cleanupScripts = _getSchemaVersioningService().cleanupDbVersionTableEntries( versions, objects, dsns[1], _getAutoRunScripts() );
 
-		if ( !_getAutoRunScripts() ) {
-			var scriptsToRun = _getBuiltSqlScriptArray();
-			var scriptsOutput = [];
-			var versionScriptsToRun = _getVersionTableScriptArray();
-			if ( scriptsToRun.len() || versionScriptsToRun.len() || cleanupScripts.len() ) {
-				var newLine = Chr( 10 );
-				var sql = "/**
+			if ( !_getAutoRunScripts() ) {
+				var scriptsToRun = _getBuiltSqlScriptArray();
+				var scriptsOutput = [];
+				var versionScriptsToRun = _getVersionTableScriptArray();
+				if ( scriptsToRun.len() || versionScriptsToRun.len() || cleanupScripts.len() ) {
+					var newLine = Chr( 10 );
+					var sql = "/**
  * The following commands are to make alterations to the database schema
  * in order to synchronize it with the Preside codebase.
  *
@@ -133,25 +136,26 @@ component {
  *
  * Please review the scripts before running.
  */" & newline & newline;
-				for( var script in scriptsToRun ) {
-					if ( !scriptsOutput.findNoCase( script.sql ) ) {
-						sql &= script.sql & ";" & newline;
-						scriptsOutput.append( script.sql );
+					for( var script in scriptsToRun ) {
+						if ( !scriptsOutput.findNoCase( script.sql ) ) {
+							sql &= script.sql & ";" & newline;
+							scriptsOutput.append( script.sql );
+						}
 					}
-				}
-				sql &= newline & "/* The commands below ensure that Preside's internal DB versioning tracking is up to date */" & newline & newline;
-				for( var script in versionScriptsToRun ) {
-					sql &= script.sql & ";" & newline;
-				}
-				for( var script in cleanupScripts ) {
-					sql &= script & ";" & newline;
-				}
+					sql &= newline & "/* The commands below ensure that Preside's internal DB versioning tracking is up to date */" & newline & newline;
+					for( var script in versionScriptsToRun ) {
+						sql &= script.sql & ";" & newline;
+					}
+					for( var script in cleanupScripts ) {
+						sql &= script & ";" & newline;
+					}
 
-				throw(
-					  type    = "presidecms.auto.schema.sync.disabled"
-					, message = "Code changes have been detected that require a database changes. However, auto db sync is disabled for this website. Please see the error detail for full SQL script that should be run directly on your database."
-					, detail  = sql
-				);
+					throw(
+						  type    = "presidecms.auto.schema.sync.disabled"
+						, message = "Code changes have been detected that require a database changes. However, auto db sync is disabled for this website. Please see the error detail for full SQL script that should be run directly on your database."
+						, detail  = sql
+					);
+				}
 			}
 		}
 	}
