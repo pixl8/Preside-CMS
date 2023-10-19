@@ -47,9 +47,9 @@ component {
 
 	public boolean function providerSupportsFileSystem( required any storageProvider ) {
 		if ( !StructKeyExists( arguments.storageProvider, "__supportsFileSystem" ) ) {
-			var fileSystemSupport = preside.system.services.helpers.ComponentMetaDataReader::getComponentAttribute( arguments.storageProvider, "fileSystemSupport" );
+			var meta = getComponentMetadata( arguments.storageProvider );
 
-			if ( $helpers.isTrue( fileSystemSupport ) ) {
+			if ( $helpers.isTrue( meta.fileSystemSupport ?: "" ) ) {
 				arguments.storageProvider.__supportsFileSystem = true;
 			} else if ( IsInstanceOf( arguments.storageProvider, "StorageProviderFileSystemSupport" ) ) {
 				arguments.storageProvider.__supportsFileSystem = true;
