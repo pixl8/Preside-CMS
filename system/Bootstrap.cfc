@@ -148,12 +148,14 @@ component {
 	) {
 		var presideroot = _getPresideRoot();
 
-		this.mappings[ "/preside"        ] = presideroot;
-		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox";
-		this.mappings[ "/sticker"        ] = presideroot & "/system/externals/sticker";
-		this.mappings[ "/cfconcurrent"   ] = presideroot & "/system/externals/cfconcurrent";
-		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
-		this.mappings[ "/javaloader"     ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
+		this.mappings[ "/preside"                  ] = presideroot;
+		this.mappings[ "/coldbox"                  ] = presideroot & "/system/externals/coldbox";
+		this.mappings[ "/originalcoldbox"          ] = presideroot & "/system/externals/coldbox";
+		this.mappings[ "/coldbox/system/core/util" ] = presideroot & "/system/coldboxModifications/util";
+		this.mappings[ "/sticker"                  ] = presideroot & "/system/externals/sticker";
+		this.mappings[ "/cfconcurrent"             ] = presideroot & "/system/externals/cfconcurrent";
+		this.mappings[ "/spreadsheetlib"           ] = presideroot & "/system/externals/lucee-spreadsheet";
+		this.mappings[ "/javaloader"               ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
@@ -201,6 +203,10 @@ component {
 				request._isPresideReloadRequest = true;
 				request._loadingStartTime = GetTickCount();
 				_isReloading( true );
+
+				if ( _isCacheWarmup() ) {
+					_doCacheWarmup();
+				}
 
 				SystemOutput( "Preside System Output (#( this.PRESIDE_APPLICATION_ID ?: ( this.name ?: "" ))#) [#DateTimeFormat( Now(), 'yyyy-mm-dd HH:nn:ss' )#]: Application starting up (fwreinit called, or application starting for the first time)." & Chr( 13 ) & Chr( 10 ) );
 
@@ -905,5 +911,20 @@ component {
 		}
 
 		return application._sessionType;
+	}
+
+	private boolean function _isCacheWarmup() {
+		var _env = server.system.environment ?: {};
+		return IsBoolean( _env.PRESIDE_CACHE_WARMUP ?: "" ) && _env.PRESIDE_CACHE_WARMUP;
+	}
+
+	private void function _doCacheWarmup() {
+		preside.system.services.helpers.ComponentMetaDataReader::createPersistentCache();
+
+		// TODO, other services
+
+		content reset=true type="text/plain";
+		echo( "Cache warmup complete" );
+		abort;
 	}
 }
