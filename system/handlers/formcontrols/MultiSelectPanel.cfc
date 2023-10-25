@@ -12,28 +12,7 @@ component {
 		if ( !isEmptyString( objectName ) ) {
 			if ( isTrue( args.useObjProperties ?: "" ) ) {
 				args.labels = [];
-				args.values = [];
-				var props   = presideObjectService.getObjectProperties( objectName );
-
-				for ( var prop in props ) {
-					if ( !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) && !IsTrue( props[ prop ].excludeDataExport ?: "" ) ) {
-						var hasPermission     = true;
-						var requiredRoleCheck = StructKeyExists( props[ prop ], "limitToAdminRoles" )
-						                     && ( args.context ?: "" ) == "admin"
-						                     && !loginService.isSystemUser();
-
-						if ( requiredRoleCheck ) {
-							hasPermission = permissionService.userHasAssignedRoles(
-								  userId = loginService.getLoggedInUserId()
-								, roles  = ListToArray( props[ prop ].limitToAdminRoles )
-							);
-						}
-
-						if ( hasPermission ) {
-							ArrayAppend( args.values, prop );
-						}
-					}
-				}
+				args.values = _getAllowExportObjectProperties( objectName=objectName );
 
 				if ( !isEmptyString( savedValue ) ) {
 					var savedValueArray = listToArray( savedValue );
@@ -51,9 +30,11 @@ component {
 
 				var baseI18nUri = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 				for( var prop in args.values ) {
-					args.labels.append( translateResource(
-						  uri          = baseI18nUri & "field.#prop#.title"
-						, defaultValue = translateResource( uri="cms:preside-objects.default.field.#prop#.title", defaultValue=prop )
+					var propId = IsSimpleValue( prop ) ? prop : StructKeyList( prop );
+
+					ArrayAppend( args.labels, translateResource(
+						  uri          = baseI18nUri & "field.#propId#.title"
+						, defaultValue = translateResource( uri="cms:preside-objects.default.field.#propId#.title", defaultValue=propId )
 					) );
 				}
 
@@ -87,5 +68,50 @@ component {
 		}
 
 		return renderView( view="/formcontrols/multiSelectPanel/index", args=args )
+	}
+
+	private array function _getAllowExportObjectProperties( required string objectName ) {
+		var fields = [];
+		var props   = presideObjectService.getObjectProperties( objectName );
+
+				for ( var prop in props ) {
+					if ( !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) && !IsTrue( props[ prop ].excludeDataExport ?: "" ) ) {
+						var hasPermission     = true;
+						var requiredRoleCheck = StructKeyExists( props[ prop ], "limitToAdminRoles" )
+						                     && ( args.context ?: "" ) == "admin"
+						                     && !loginService.isSystemUser();
+
+						if ( requiredRoleCheck ) {
+							hasPermission = permissionService.userHasAssignedRoles(
+								  userId = loginService.getLoggedInUserId()
+								, roles  = ListToArray( props[ prop ].limitToAdminRoles )
+							);
+						}
+
+						if ( hasPermission ) {
+							if ( ( ( props[ prop ].relationship ?: "" ) == "many-to-one" ) && isTrue( props[ prop ].dataExportAllowExpandFields ?: "" ) ) {
+								var relatedFields   = [];
+								var relatedLabels   = [];
+								var relatedObjName  = props[ prop ].relatedTo;
+								var relatedObjProps = _getAllowExportObjectProperties( objectName=relatedObjName );
+								var relatedI18nUri  = presideObjectService.getResourceBundleUriRoot( objectName=relatedObjName );
+
+								for ( var field in relatedObjProps ) {
+									ArrayAppend( relatedFields, field );
+									ArrayAppend( relatedLabels, translateResource(
+										  uri          = relatedI18nUri & "field.#field#.title"
+										, defaultValue = translateResource( uri="cms:preside-objects.default.field.#field#.title", defaultValue=field )
+									) );
+								}
+
+								ArrayAppend( fields, { "#prop#"={ fields=relatedFields, labels=relatedLabels } } );
+							} else {
+								ArrayAppend( fields, prop );
+							}
+						}
+					}
+				}
+
+		return fields;
 	}
 }

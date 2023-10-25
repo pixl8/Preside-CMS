@@ -30,12 +30,37 @@
 	        size="#selectSize#"
 	>
 		<cfloop array="#values#" index="i" item="selectedValue">
-			<cfset selected = ListFindNoCase( value, selectedValue ) />
+			<cfset simpleValue = selectedValue />
 
-			<cfif isTrue( selected )>
-				<option value="#HtmlEditFormat( selectedValue )#">
+			<cfif !IsSimpleValue( selectedValue )>
+				<cfset simpleValue = StructKeyList( selectedValue ) />
+			</cfif>
+
+			<cfset selected = ListFindNoCase( value, simpleValue ) />
+
+			<cfif isTrue( selected ) && ListLen( simpleValue, "." ) == 1>
+				<option value="#HtmlEditFormat( simpleValue )#">
 					#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 				</option>
+			</cfif>
+
+			<cfif !IsSimpleValue( selectedValue )>
+				<optgroup id="#simpleValue#" label="#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#">
+					<cfloop array="#selectedValue[ simpleValue ].fields ?: []#" index="j" item="relatedField">
+						<cfset nestedValue = "#simpleValue#.#relatedField#" />
+						<cfset selected    = ListFindNoCase( value, nestedValue ) />
+
+						<cfif isTrue( selected )>
+							<option value="#HtmlEditFormat( nestedValue )#">
+								#HtmlEditFormat( translateResource( selectedValue[ simpleValue ].labels[j] ?: "", selectedValue[ simpleValue ].labels[j] ?: "" ) )#
+							</option>
+						</cfif>
+					</cfloop>
+
+					<option class="multi-select-panel-no-nested-option-selected" disabled>
+						<i>#translateResource( "formcontrols.multiSelectPanel:selectedOptions.nested.none.label" )#</i>
+					</option>
+				</optgroup>
 			</cfif>
 		</cfloop>
 	</select>

@@ -240,8 +240,13 @@ component {
 				var columns = ListToArray( results.columnList );
 				for( var i=1; i<=results.recordCount; i++ ) {
 					for( var field in cleanedSelectFields ) {
-						if ( ArrayFindNoCase( columns, field ) ) {
-							results[ field ][ i ] = simpleFormatField( field, results[ field ][ i ] );
+						var fieldName = field;
+						if ( ListLen( fieldName, "." ) > 1 ) {
+							fieldName = "#ListFirst( fieldName, "." )#_#ListLast( fieldName, "." )#";
+						}
+
+						if ( ArrayFindNoCase( columns, fieldName ) ) {
+							results[ fieldName ][ i ] = simpleFormatField( fieldName, results[ fieldName ][ i ] );
 						}
 					}
 				}
@@ -252,40 +257,60 @@ component {
 
 
 		for( var field in arguments.selectFields ) {
-			cleanedSelectFields.append( field.listLast( " " ) );
+			var fieldName = field.listLast( " " );
+			ArrayAppend( cleanedSelectFields, fieldName );
+
+			if ( ( ListLen( fieldName, "." ) > 1 ) &&
+				 !StructKeyExists( propertyDefinitions, fieldName ) &&
+				 StructKeyExists( propertyDefinitions, ListFirst( fieldName, "." ) )
+			) {
+				var relatedObjectName = propertyDefinitions[ ListFirst( fieldName, "." ) ].relatedTo ?: "";
+
+				if ( Len( relatedObjectName ) && presideObjectService.objectExists( objectName=relatedObjectName ) ) {
+					propertyDefinitions[ "#ListFirst( fieldName, "." )#_#ListLast( fieldName, "." )#" ] = presideObjectService.getObjectProperty(
+						  objectName   = relatedObjectName
+						, propertyName = ListLast( fieldName, "." )
+					);
+				}
+			}
 		}
 
 		if ( !templateHasCustomRenderer ) {
 			for( var field in cleanedSelectFields ) {
-				propertyRendererMap[ field ] = "none";
+				var fieldName = field;
+				if ( ListLen( fieldName, "." ) > 1 ) {
+					fieldName = "#ListFirst( fieldName, "." )#_#ListLast( fieldName, "." )#";
+				}
 
-				if ( StructKeyExists( propertyDefinitions, field ) ) {
-					if ( StructKeyExists( propertyDefinitions[ field ], "dataExportRenderer" ) && Len( propertyDefinitions[ field ].dataExportRenderer )  ) {
-						propertyRendererMap[ field ] = "renderer";
+				propertyRendererMap[ fieldName ] = "none";
+
+				if ( StructKeyExists( propertyDefinitions, fieldName ) ) {
+					if ( StructKeyExists( propertyDefinitions[ fieldName ], "dataExportRenderer" ) && Len( propertyDefinitions[ fieldName ].dataExportRenderer )  ) {
+						propertyRendererMap[ fieldName ] = "renderer";
 						continue;
 					}
 
-					if ( StructKeyExists( propertyDefinitions[ field ], "type" ) && Len( propertyDefinitions[ field ].type )  ) {
-						switch( propertyDefinitions[ field ].type ?: "" ) {
+					if ( StructKeyExists( propertyDefinitions[ fieldName ], "type" ) && Len( propertyDefinitions[ fieldName ].type )  ) {
+						switch( propertyDefinitions[ fieldName ].type ?: "" ) {
 							case "boolean":
-								propertyRendererMap[ field ] = "boolean";
+								propertyRendererMap[ fieldName ] = "boolean";
 								continue;
 							case "date":
 							case "time":
-								switch( propertyDefinitions[ field ].dbtype ?: "" ) {
+								switch( propertyDefinitions[ fieldName ].dbtype ?: "" ) {
 									case "date":
-										propertyRendererMap[ field ] = "date";
+										propertyRendererMap[ fieldName ] = "date";
 										continue;
 									case "time":
-										propertyRendererMap[ field ] = "time";
+										propertyRendererMap[ fieldName ] = "time";
 										continue;
 									default:
-										propertyRendererMap[ field ] = "datetime";
+										propertyRendererMap[ fieldName ] = "datetime";
 										continue;
 								}
 							case "string":
-								if ( Len( Trim( propertyDefinitions[ field ].enum ?: "" ) ) ) {
-									propertyRendererMap[ field ] = "enum";
+								if ( Len( Trim( propertyDefinitions[ fieldName ].enum ?: "" ) ) ) {
+									propertyRendererMap[ fieldName ] = "enum";
 									continue;
 								}
 								break;
@@ -446,17 +471,23 @@ component {
 		var i     = 0;
 
 		for( var field in arguments.selectFields ) {
+			var fieldName = ListFirst( field, "." );
+
 			i++;
-			prop = props[ field ] ?: {};
+			prop = props[ fieldName ] ?: {};
 
 			switch( prop.relationship ?: "none" ) {
 				case "one-to-many":
 				case "many-to-many":
-					selectFields[ i ] = "'' as " & field;
+					selectFields[ i ] = "'' as " & fieldName;
 				break;
 
 				case "many-to-one":
-					selectFields[ i ] = "#field#.${labelfield} as " & field;
+					if ( ListLen( field, "." ) > 1 ) {
+						selectFields[ i ] = "#field# as " & "#fieldName#_#ListLast( field, "." )#";
+					} else {
+						selectFields[ i ] = "#fieldName#.${labelfield} as " & fieldName;
+					}
 				break;
 			}
 		}
@@ -471,10 +502,31 @@ component {
 	) {
 		var baseUri = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
 		for( var field in arguments.fieldNames ) {
-			arguments.existingTitles[ field ] = arguments.existingTitles[ field ] ?: $translateResource(
-				  uri          = baseUri & "field.#field#.title"
-				, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#field#.title", defaultValue=field )
-			);
+			if ( !StructKeyExists( arguments.existingTitles, field ) ) {
+				var fieldKey   = field;
+				var fieldName  = ListFirst( field, "." );
+				var fieldTitle = $translateResource(
+					  uri          = baseUri & "field.#fieldName#.title"
+					, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#fieldName#.title", defaultValue=fieldName )
+				);
+
+				if ( ListLen( field, "." ) > 1 ) {
+					var nestedField       = ListLast( field, "." );
+					var relatedObjectName = $getPresideObjectService().getObjectPropertyAttribute( arguments.objectName, fieldName, "relatedTo" );
+					    fieldKey          = "#fieldName#_#nestedField#";
+
+					if ( Len( relatedObjectName ) && $getPresideObjectService().objectExists( relatedObjectName ) ) {
+						var nestedFieldTitle = $translateResource(
+							  uri          = $getPresideObjectService().getResourceBundleUriRoot( relatedObjectName ) & "field.#nestedField#.title"
+							, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#nestedField#.title", defaultValue=nestedField )
+						);
+
+						fieldTitle = $translateResource( uri="cms:dataexport.expanded.field.title.default", data=[ fieldTitle, nestedFieldTitle ] );
+					}
+				}
+
+				arguments.existingTitles[ fieldKey ] = fieldTitle;
+			}
 		}
 
 		return arguments.existingTitles;
