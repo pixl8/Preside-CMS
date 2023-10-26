@@ -70,7 +70,7 @@ component {
 		return renderView( view="/formcontrols/multiSelectPanel/index", args=args )
 	}
 
-	private array function _getAllowExportObjectProperties( required string objectName ) {
+	private array function _getAllowExportObjectProperties( required string objectName, boolean expandNestedRelationField=true ) {
 		var fields = [];
 		var props   = presideObjectService.getObjectProperties( objectName );
 
@@ -89,11 +89,11 @@ component {
 						}
 
 						if ( hasPermission ) {
-							if ( ( ( props[ prop ].relationship ?: "" ) == "many-to-one" ) && isTrue( props[ prop ].dataExportAllowExpandFields ?: "" ) ) {
+							if ( arguments.expandNestedRelationField && ( ( props[ prop ].relationship ?: "" ) == "many-to-one" ) && isTrue( props[ prop ].dataExportAllowExpandFields ?: "" ) ) {
 								var relatedFields   = [];
 								var relatedLabels   = [];
 								var relatedObjName  = props[ prop ].relatedTo;
-								var relatedObjProps = _getAllowExportObjectProperties( objectName=relatedObjName );
+								var relatedObjProps = _getAllowExportObjectProperties( objectName=relatedObjName, expandNestedRelationField=false );
 								var relatedI18nUri  = presideObjectService.getResourceBundleUriRoot( objectName=relatedObjName );
 
 								for ( var field in relatedObjProps ) {
@@ -104,7 +104,11 @@ component {
 									) );
 								}
 
-								ArrayAppend( fields, { "#prop#"={ fields=relatedFields, labels=relatedLabels } } );
+								if ( ArrayLen( relatedFields ) ) {
+									ArrayAppend( fields, { "#prop#"={ fields=relatedFields, labels=relatedLabels } } );
+								} else {
+									ArrayAppend( fields, prop );
+								}
 							} else {
 								ArrayAppend( fields, prop );
 							}

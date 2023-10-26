@@ -36,7 +36,7 @@
 				<cfset simpleValue = StructKeyList( selectedValue ) />
 			</cfif>
 
-			<cfset selected = ListFindNoCase( value, simpleValue ) />
+			<cfset selected = IsSimpleValue( selectedValue ) && ListFindNoCase( value, simpleValue ) />
 
 			<cfif isTrue( selected ) && ListLen( simpleValue, "." ) == 1>
 				<option value="#HtmlEditFormat( simpleValue )#">
