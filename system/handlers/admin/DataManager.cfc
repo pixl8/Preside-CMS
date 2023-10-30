@@ -44,7 +44,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function object( event, rc, prc ) {
-		var objectName        = prc.objectName        ?: "";
+		var objectName        = prc.objectName ?: "";
 		var objectTitle       = prc.objectTitlePlural ?: "";
 		var objectDescription = prc.objectDescription ?: "";
 		var args              = { objectName=objectName };
@@ -4174,7 +4174,7 @@ component extends="preside.system.base.AdminHandler" {
 			if ( prc.objectIconClass.len() ) {
 				prc.pageIcon = prc.objectIconClass.reReplace( "^fa-", "" );
 			}
-systemOutput( prc );
+
 			if ( Len( Trim( prc.recordId ) ) && ListLen( prc.recordId ) == 1 ) {
 
 				if ( prc.useVersioning ) {
