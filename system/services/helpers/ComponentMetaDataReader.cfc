@@ -23,19 +23,26 @@ component {
 		if ( !StructKeyExists( server, "_cfcMetaCache" ) ) {
 			server._cfcMetaCache = _instantiateCache();
 		}
-		if ( !StructKeyExists( request, "_cfcMetaCache" ) ) {
-			request._cfcMetaCache = {};
+		if ( !StructKeyExists( request, "_cfcMetaCheckedCache" ) ) {
+			request._cfcMetaCheckedCache = {};
 		}
 
-		if ( !StructKeyExists( request._cfcMetaCache, cfcPath ) && ( !StructKeyExists( server._cfcMetaCache, cfcPath ) || FileInfo( filePath ).dateLastModified > server._cfcMetaCache[ cfcPath ].lastCalculated ) ) {
-			request._cfcMetaCache[ cfcPath ] = true; // avoids double fileinfo reads to the same file in a single request
-			server._cfcMetaCache[ cfcPath ] = {
-				  lastCalculated = Now()
-				, meta           = GetComponentMetadata( cfcPath )
-			};
+		var fromCache = NullValue();
+		if ( StructKeyExists( server._cfcMetaCache, cfcPath ) ) {
+			try {
+				fromCache = server._cfcMetaCache[ cfcPath ].get();
+			} catch( any e ){}
 		}
 
-		return server._cfcMetaCache[ cfcPath ].meta;
+		if ( IsNull( fromCache ) || ( !StructKeyExists( request._cfcMetaCheckedCache, cfcPath ) && ( FileInfo( filePath ).dateLastModified > fromCache.lastCalculated ) ) ) {
+			var cfcMeta = GetComponentMetadata( cfcPath );
+
+			request._cfcMetaCheckedCache[ cfcPath ] = true;
+			server._cfcMetaCache[ cfcPath ] = _newEntry( cfcMeta );
+			fromCache = { meta=cfcMeta };
+		}
+
+		return fromCache.meta;
 	}
 
 	/**
@@ -177,10 +184,7 @@ component {
 					var ln = FileReadLine( openFile );
 					if ( IsJson( ln ) ) {
 						var meta = DeserializeJson( ln );
-						cache[ meta.fullname ] = {
-							  lastCalculated = Now()
-							, meta           = meta
-						};
+						cache[ meta.fullname ] = _newEntry( meta );
 					}
 				}
 			} catch( any e ) {
@@ -191,6 +195,13 @@ component {
 		}
 
 		return cache;
+	}
+
+	private static function _newEntry( meta ) {
+		return CreateObject( "java", "java.lang.ref.SoftReference" ).init( {
+			  lastCalculated = Now()
+			, meta           = arguments.meta
+		} );
 	}
 
 }
