@@ -39,8 +39,6 @@ component {
 		  required string question
 		, required string value
 		,          string _numericOperator = "eq"
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
 	){
 		return formBuilderFilterService.prepareFilterForSubmissionQuestionResponseMatchesNumber( argumentCollection=arguments );
 	}

@@ -1,5 +1,24 @@
 component {
 	property name="scheduledExportService" inject="ScheduledExportService";
+	property name="datamanagerService"        inject="datamanagerService";
+
+	private boolean function checkPermission( event, rc, prc, args={} ) {
+		var objectName       = "saved_export_history";
+		var allowedOps       = datamanagerService.getAllowedOperationsForObject( objectName );
+		var permissionsBase  = "savedExport"
+		var alwaysDisallowed = [ "manageContextPerms" ];
+		var operationMapped  = [ "read", "add", "edit", "delete", "batchdelete", "clone" ];
+		var permissionKey    = "#permissionsBase#.#( args.key ?: "" )#";
+		var hasPermission    = !alwaysDisallowed.find( args.key )
+		                    && ( !operationMapped.find( args.key ) || allowedOps.find( args.key ) )
+		                    && hasCmsPermission( permissionKey );
+
+		if ( !hasPermission && IsTrue( args.throwOnError ?: "" ) ) {
+			event.adminAccessDenied();
+		}
+
+		return hasPermission;
+	}
 
 	private array function getActionsForGridListing( event, rc, prc, args={} ) {
 		var records   = args.records ?: QueryNew('');

@@ -283,6 +283,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, assetRendererService = getMockBox().createEmptyMock( "preside.system.services.assetManager.assetRendererService" )
 			, widgetsService       = getMockBox().createEmptyMock( "preside.system.services.widgets.widgetsService" )
 			, labelRendererService = getMockBox().createEmptyMock( "preside.system.services.rendering.LabelRendererService" )
+			, dynamicFindAndReplaceService = new preside.system.services.rendering.DynamicFindAndReplaceService()
 		) );
 
 		svc.$( "$announceInterception" );

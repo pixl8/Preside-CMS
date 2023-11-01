@@ -6,7 +6,7 @@
 
 <cfoutput>
 	<div class="action-buttons btn-group">
-		<a href="#args.viewSubmissionLink#" data-toggle="bootbox-modal" data-title="#HtmlEditFormat( args.viewSubmissionTitle )#" data-modal-class="full-screen-dialog limited-size">
+		<a href="#args.viewSubmissionLink#" class="row-link" data-toggle="bootbox-modal" data-title="#HtmlEditFormat( args.viewSubmissionTitle )#" data-modal-class="full-screen-dialog limited-size">
 			<i class="fa fa-eye"></i>
 		</a>
 

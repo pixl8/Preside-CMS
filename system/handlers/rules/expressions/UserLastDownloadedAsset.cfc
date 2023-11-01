@@ -43,19 +43,15 @@ component {
 	 *
 	 */
 	private array function prepareFilters(
-		  required string  asset
-		,          struct  _pastTime
-		,          string  filterPrefix
-		,          string  parentPropertyName
+		  required string asset
+		,          struct _pastTime
 	) {
 		return websiteUserActionService.getUserLastPerformedActionFilter(
-			  action             = "download"
-			, type               = "asset"
-			, datefrom           = arguments._pastTime.from ?: ""
-			, dateto             = arguments._pastTime.to   ?: ""
-			, identifier         = arguments.asset
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  action     = "download"
+			, type       = "asset"
+			, datefrom   = arguments._pastTime.from ?: ""
+			, dateto     = arguments._pastTime.to   ?: ""
+			, identifier = arguments.asset
 		);
 	}
 

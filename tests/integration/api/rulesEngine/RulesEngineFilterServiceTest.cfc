@@ -42,10 +42,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					]
 				];
 
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[1].expression, objectName=dummyObject, configuredFields = dummyCondition[1].fields, filterPrefix="" ).$results( dummyFilters[1] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][1].fields, filterPrefix="" ).$results( dummyFilters[2] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][1].fields, filterPrefix="" ).$results( dummyFilters[3] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][3].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][3].fields, filterPrefix="" ).$results( dummyFilters[4] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[1].expression, objectName=dummyObject, configuredFields = dummyCondition[1].fields ).$results( dummyFilters[1] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][1].fields ).$results( dummyFilters[2] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][1].fields ).$results( dummyFilters[3] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][3].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][3].fields ).$results( dummyFilters[4] );
 
 				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[1][1].filter, tableAlias=dummyObject ).$results( dummySqlFilters[1] );
 				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[1][2].filter, tableAlias=dummyObject ).$results( dummySqlFilters[2] );
@@ -78,7 +78,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, "filter5"
 				];
 				var expectedSql = "( ( filter1 and filter2 ) and #dummyFilters[2][1].having# )";
-				var filterPrefix = CreateUUId();
 				var expectedParams = {
 					  param1 = dummyFilters[1][1].filterParams.param1
 					, param2 = dummyFilters[1][2].filterParams.param2
@@ -103,10 +102,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					]
 				];
 
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[1].expression, objectName=dummyObject, configuredFields = dummyCondition[1].fields, filterPrefix=filterPrefix ).$results( dummyFilters[1] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][1].fields, filterPrefix=filterPrefix ).$results( dummyFilters[2] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][1].fields, filterPrefix=filterPrefix ).$results( dummyFilters[3] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][3].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][3].fields, filterPrefix=filterPrefix ).$results( dummyFilters[4] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[1].expression, objectName=dummyObject, configuredFields = dummyCondition[1].fields ).$results( dummyFilters[1] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][1].fields ).$results( dummyFilters[2] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][1].fields ).$results( dummyFilters[3] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][3].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][3].fields ).$results( dummyFilters[4] );
 
 				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[1][1].filter, tableAlias=dummyObject ).$results( dummySqlFilters[1] );
 				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[1][2].filter, tableAlias=dummyObject ).$results( dummySqlFilters[2] );
@@ -117,7 +116,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var result = service.prepareFilter(
 					  objectName      = dummyObject
 					, expressionArray = dummyCondition
-					, filterPrefix    = filterPrefix
 				);
 
 				expect( result.having ?: "" ).toBe( "" );
@@ -154,12 +152,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( mockPresideObjectService.$callLog().selectData.len() ).toBe( 1 );
 				expect( mockPresideObjectService.$callLog().selectData[1] ).toBe( {
-					  objectName   = dummyObject
-					, extraFilters = expectedFilters
-					, someArgument = randomArgs.someArgument
-					, anotherArg   = randomArgs.anotherArg
-					, autoGroupBy  = true
-					, distinct     = true
+					  objectName    = dummyObject
+					, extraFilters  = expectedFilters
+					, someArgument  = randomArgs.someArgument
+					, anotherArg    = randomArgs.anotherArg
+					, autoGroupBy   = true
+					, distinct      = false
+					, forceDistinct = false
 				} );
 			} );
 		} );
@@ -180,6 +179,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().selectData[1] ).toBe( {
 					  objectName      = dummyObject
 					, expressionArray = expressionArray
+					, selectFields    = [ "id" ]
 					, recordCountOnly = true
 				} );
 			} );
@@ -202,6 +202,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		service.$( "$getColdbox", mockColdbox );
 		mockPresideObjectService.$( "getDbAdapterForObject" ).$args( dummyObject ).$results( mockDbAdapter );
+		mockPresideObjectService.$( "getIdField", "id" );
 
 		return service;
 	}

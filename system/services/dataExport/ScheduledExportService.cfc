@@ -35,28 +35,40 @@ component {
 		}
 	}
 
-	public void function sendExportedFileToRecipient( required string historyExportId ) {
+	public void function saveNumberOfRecordsToHistoryExport( required numeric numberOfRecords, required string historyExportId ) {
+		try {
+			$getPresideObject( "saved_export_history" ).updateData( id=arguments.historyExportId, data={ num_records=arguments.numberOfRecords } );
+		} catch (any e) {
+			$raiseError(e);
+		}
+	}
+
+	public void function sendExportedFileToRecipient( required string historyExportId, boolean omitEmptyExports=false ) {
 		try {
 			var detail          = getHistoryExportDetail( arguments.historyExportId );
 			var scheduledExport = detail.saved_export ?: "";
 			var exportFilepath  = detail.filepath     ?: ""
 
 			if ( !isEmpty( scheduledExport ) and !isEmpty( exportFilepath ) ) {
-				var recipients = valueArray( $getPresideObject( "saved_export" ).selectManyToManyData(
-					  id           = scheduledExport
-					, propertyName = "recipients"
-					, selectFields = [ "recipients.id" ]
-				), "id" ) ?: [];
+				if ( val( detail.num_records ) || ( arguments.omitEmptyExports == false ) ) {
 
-				for ( var recipient in recipients ) {
-					$sendEmail(
-						  template    = "scheduledExport"
-						, recipientId = recipient
-						, args        = {
-							  filepath        = exportFilepath
-							, savedExportName = $renderLabel( "saved_export", scheduledExport )
-						}
-					);
+					var recipients = valueArray( $getPresideObject( "saved_export" ).selectManyToManyData(
+						  id           = scheduledExport
+						, propertyName = "recipients"
+						, selectFields = [ "recipients.id" ]
+					), "id" ) ?: [];
+
+					for ( var recipient in recipients ) {
+						$sendEmail(
+							  template    = "scheduledExport"
+							, recipientId = recipient
+							, args        = {
+								  filepath        = exportFilepath
+								, savedExportName = $renderLabel( "saved_export", scheduledExport )
+								, numberOfRecords = detail.num_records
+							}
+						);
+					}
 				}
 			}
 		} catch (any e) {
@@ -65,7 +77,7 @@ component {
 	}
 
 	public struct function getExportDetail( required string exportId ) {
-		var detail = $getPresideObject( "saved_export" ).selectData( id=arguments.exportId );
+		var detail = $getPresideObject( "saved_export" ).selectData( id=arguments.exportId, useCache=false );
 
 		return !isEmpty( detail ) ? queryGetRow( detail, 1 ) : {};
 	}
@@ -133,15 +145,18 @@ component {
 
 		try {
 			lock name=lockName type="exclusive" timeout=1 {
-				var newThreadId = "PresideExportScheduledExport-" & arguments.scheduledExportId & "-" & CreateUUId();
-				var newLogId    = createExportHistoryLog( arguments.scheduledExportId, newThreadId );
+				var newThreadId = "PresideExportScheduledExport-" & arguments.scheduledExportId & "-" & hash( exportDetail.last_ran ?: "" );
 
-				transaction {
-					if ( exportIsRunning( arguments.scheduledExportId ) ) {
-						return;
-					}
+				if ( exportIsRunning( arguments.scheduledExportId ) ) {
+					return;
+				}
 
-					markExportAsRunning( arguments.scheduledExportId, newThreadId );
+				markExportAsRunning( arguments.scheduledExportId, newThreadId );
+
+				var newLogId = createExportHistoryLog( arguments.scheduledExportId, newThreadId );
+				if ( !len( trim( newLogId ) ) ) {
+					markExportAsFailed( exportId=arguments.scheduledExportId );
+					return;
 				}
 
 				markExportAsStarted( arguments.scheduledExportId );
@@ -206,6 +221,26 @@ component {
 		runningExports[ arguments.threadId ] = { status="started" };
 	}
 
+	public void function markExportAsFailed( required string exportId ) {
+		var runningTasks = _getRunningExports();
+		var exportRecord = getExportDetail( arguments.exportId );
+
+		runningTasks.delete( exportRecord.running_thread ?: "", false );
+
+		$getPresideObject( "saved_export" ).updateData(
+			  id   = arguments.exportId
+			, data = {
+				  is_running           = false
+				, last_ran             = now()
+				, next_run             = ( ( exportRecord.schedule ?: "" ) eq "disabled" ) ? "" : getNextRunDate( exportRecord.schedule ?: "" )
+				, was_last_run_success = false
+				, last_run_time_taken  = ""
+				, running_thread       = ""
+				, running_machine      = ""
+			}
+		);
+	}
+
 	public numeric function markExportAsCompleted(
 		  required string  historyExportId
 		, required string  exportId
@@ -243,7 +278,16 @@ component {
 		  required string exportId
 		, required string threadId
 	) {
-		var exporter = getExportDetail( arguments.exportId ).exporter ?: "";
+		var exporter       = getExportDetail( arguments.exportId ).exporter ?: "";
+		var threadLogExist = $getPresideObject( "saved_export_history" ).dataExists( useCache=false, filter={
+			  saved_export = arguments.exportId
+			, thread_id    = arguments.threadId
+			, exporter     = exporter
+		} );
+
+		if ( threadLogExist ) {
+			return "";
+		}
 
 		return $getPresideObject( "saved_export_history" ).insertData( data={
 			  saved_export = arguments.exportId
@@ -269,15 +313,12 @@ component {
 	}
 
 	public boolean function exportIsRunning( required string exportId ) {
-		transaction {
-			var markedAsRunning = $getPresideObject( "saved_export" ).dataExists( filter = { id=arguments.exportId, is_running=true } );
-
-			if ( markedAsRunning && !exportThreadIsRunning( arguments.exportId ) ) {
-				return false;
-			}
-
-			return markedAsRunning;
+		var markedAsRunning = $getPresideObject( "saved_export" ).dataExists( filter = { id=arguments.exportId, is_running=true } );
+		if ( markedAsRunning && !exportThreadIsRunning( arguments.exportId ) ) {
+			return false;
 		}
+
+		return markedAsRunning;
 	}
 
 	public boolean function exportThreadIsRunning( required string exportId ) {
@@ -290,7 +331,7 @@ component {
 			return false;
 		}
 
-		if ( export.running_machine != _getMachineId() ) {
+		if ( len( trim( export.running_machine ?: "" ) ) ) {
 			return true;
 		}
 
@@ -316,7 +357,7 @@ component {
 	}
 
 	private boolean function _exportIsRunningOnLocalMachine( required any task ){
-		var runningTasks = _getRunningTasks();
+		var runningTasks = _getRunningExports();
 		var threadRef    = runningTasks[ task.running_thread ].thread ?: NullValue();
 
 		if ( IsNull( threadRef ) ) {

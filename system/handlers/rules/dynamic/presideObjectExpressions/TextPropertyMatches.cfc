@@ -6,21 +6,17 @@
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";
+	property name="enumService"          inject="enumService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -28,47 +24,84 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
-		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-		var paramName = "textPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql = "#prefix#.#propertyName# ${operator} :#paramName#";
-		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
+		var paramName     = "textPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
+		var filterSql     = "#arguments.objectName#.#propertyName# ${operator} :#paramName#";
+		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
+		var fieldEnumName = presideObjectService.getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.propertyName
+			, attributeName = "enum"
+		);
+
+		if ( !isEmpty( fieldEnumName ) ) {
+			var enumFilterSql = "";
+			var enumDelim     = ArrayFind( [ "neq", "notcontains", "notstartswith", "notendsWith" ], arguments._stringOperator ) ? "and" : "or";
+			var items         = enumService.listItems( fieldEnumName );
+
+			for ( var item in items ) {
+				var isMatched = false;
+				switch ( arguments._stringOperator ) {
+					case "eq":
+					case "neq":
+						isMatched = arguments.value == item.label;
+					break;
+					case "contains":
+					case "notcontains":
+						isMatched = findNoCase( arguments.value, item.label );
+					break;
+					case "startsWith":
+					case "notstartsWith":
+						isMatched = Left( item.label, Len( arguments.value ) ) == arguments.value;
+					break;
+					case "endsWith":
+					case "notendsWith":
+						isMatched = Right( item.label, Len( arguments.value ) ) == arguments.value;
+					break;
+				}
+				if ( isMatched || item.id == arguments.value ) {
+					var enumParamName       = "enum#paramName##item.id#";
+					enumFilterSql          &= ( Len( enumFilterSql ) ? " #enumDelim# " : "" ) & "#arguments.objectName#.#propertyName#" & " ${operator} :#enumParamName#";
+					params[ enumParamName ] = { type="varchar", value=item.id };
+				}
+			}
+			if ( Len( enumFilterSql ) ) {
+				filterSql = "( ( #filterSql# ) #enumDelim# ( #enumFilterSql# ) )";
+			}
+		}
 
 		switch ( _stringOperator ) {
 			case "eq":
-				filterSql = filterSql.replace( "${operator}", "=" );
+				filterSql = filterSql.replace( "${operator}", "=", "all" );
 			break;
 			case "neq":
-				filterSql = filterSql.replace( "${operator}", "!=" );
+				filterSql = filterSql.replace( "${operator}", "!=", "all" );
 			break;
 			case "contains":
 				params[ paramName ].value = "%#arguments.value#%";
-				filterSql = filterSql.replace( "${operator}", "like" );
+				filterSql   = filterSql.replace( "${operator}", "like", "all" );
 			break;
 			case "startsWith":
 				params[ paramName ].value = "#arguments.value#%";
-				filterSql = filterSql.replace( "${operator}", "like" );
+				filterSql = filterSql.replace( "${operator}", "like", "all" );
 			break;
 			case "endsWith":
 				params[ paramName ].value = "%#arguments.value#";
-				filterSql = filterSql.replace( "${operator}", "like" );
+				filterSql = filterSql.replace( "${operator}", "like", "all" );
 			break;
 			case "notcontains":
 				params[ paramName ].value = "%#arguments.value#%";
-				filterSql = filterSql.replace( "${operator}", "not like" );
+				filterSql = filterSql.replace( "${operator}", "not like", "all" );
 			break;
 			case "notstartsWith":
 				params[ paramName ].value = "#arguments.value#%";
-				filterSql = filterSql.replace( "${operator}", "not like" );
+				filterSql = filterSql.replace( "${operator}", "not like", "all" );
 			break;
 			case "notendsWith":
 				params[ paramName ].value = "%#arguments.value#";
-				filterSql = filterSql.replace( "${operator}", "not like" );
+				filterSql = filterSql.replace( "${operator}", "not like", "all" );
 			break;
 		}
 
@@ -76,10 +109,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 

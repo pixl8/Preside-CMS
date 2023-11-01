@@ -35,13 +35,12 @@ component {
 	private array function prepareFilters(
 		  required string  pages
 		,          boolean _is = true
-		,          string  filterPrefix = ""
 	) {
 		var sql       = "";
 		var ancestors = presideObjectService.selectData( objectName="page", filter={ id=pages.listToArray() }, selectFields=["_hierarchy_id"] );
 		var delim     = "";
 		var params    = {};
-		var prefix    = filterPrefix.len() ? filterPrefix : "page";
+		var prefix    = "page";
 
 		for( var ancestor in ancestors ) {
 			var paramName = "pageIsDescendant#ancestor._hierarchy_id#";

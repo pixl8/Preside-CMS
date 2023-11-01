@@ -7,6 +7,7 @@
 			<field binding="url_redirect_rule.redirect_to_link"   control="linkpicker"  />
 			<field binding="url_redirect_rule.redirect_type" />
 			<field binding="url_redirect_rule.exact_match_only"   control="yesNoSwitch" />
+			<field binding="url_redirect_rule.keep_query_string"  control="yesNoSwitch" />
 		</fieldset>
 	</tab>
 </form>

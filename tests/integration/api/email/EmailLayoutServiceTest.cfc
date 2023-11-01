@@ -227,12 +227,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				);
 
 				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
-				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template="", email_blueprint="" } } );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template="", email_blueprint="", custom_layout="" } } );
 
 				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
-				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="test"  , value=config.test   } ] );
-				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="all"   , value=config.all    } ] );
-				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", email_blueprint="", item="things", value=config.things } ] );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", email_blueprint="", custom_layout="", item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", email_blueprint="", custom_layout="", item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", email_blueprint="", custom_layout="", item="things", value=config.things } ] );
 			} );
 
 			it( "should insert an email specific configuration record for each config item supplied after deleting any potential previously saved records", function(){
@@ -255,12 +255,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				);
 
 				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
-				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template=emailTemplate, email_blueprint="" } } );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template=emailTemplate, email_blueprint="", custom_layout="" } } );
 
 				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
-				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="test"  , value=config.test   } ] );
-				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="all"   , value=config.all    } ] );
-				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", item="things", value=config.things } ] );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", custom_layout="", item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", custom_layout="", item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template=emailTemplate, email_blueprint="", custom_layout="", item="things", value=config.things } ] );
 			} );
 
 			it( "should insert a blueprint specific configuration record for each config item supplied after deleting any potential previously saved records", function(){
@@ -283,12 +283,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				);
 
 				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
-				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_blueprint=blueprint, email_template="" } } );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_blueprint=blueprint, email_template="", custom_layout="" } } );
 
 				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
-				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="test"  , value=config.test   } ] );
-				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="all"   , value=config.all    } ] );
-				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, item="things", value=config.things } ] );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, custom_layout="", item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, custom_layout="", item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", email_blueprint=blueprint, custom_layout="", item="things", value=config.things } ] );
 			} );
 
 		} );
@@ -305,7 +305,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template="", email_blueprint="" }
+					  filter       = { layout=layout, email_template="", email_blueprint="", custom_layout="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockDbRecords );
 
@@ -324,7 +324,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template=emailTemplate, email_blueprint="" }
+					  filter       = { layout=layout, email_template=emailTemplate, email_blueprint="", custom_layout="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockDbRecords );
 
@@ -343,7 +343,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template="", email_blueprint=blueprint }
+					  filter       = { layout=layout, email_template="", email_blueprint=blueprint, custom_layout="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockDbRecords );
 
@@ -371,15 +371,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template=emailTemplate, email_blueprint="" }
+					  filter       = { layout=layout, email_template=emailTemplate, email_blueprint="", custom_layout="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockSpecificDbRecords );
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template="", email_blueprint=blueprint }
+					  filter       = { layout=layout, email_template="", email_blueprint=blueprint, custom_layout="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockBlueprintDbRecords );
 				mockConfigDao.$( "selectData" ).$args(
-					  filter       = { layout=layout, email_template="", email_blueprint="" }
+					  filter       = { layout=layout, email_template="", email_blueprint="", custom_layout="" }
 					, selectFields = [ "item", "value" ]
 				).$results( mockGlobalDbRecords );
 

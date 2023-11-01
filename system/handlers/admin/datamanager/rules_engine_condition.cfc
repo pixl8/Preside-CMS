@@ -6,6 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="customizationService"        inject="dataManagerCustomizationService";
 	property name="datamanagerService"          inject="datamanagerService";
 	property name="formsService"                inject="formsService";
+	property name="systemAlertsService"         inject="systemAlertsService";
 	property name="messageBox"                  inject="messagebox@cbmessagebox";
 
 // PUBLIC ACTIONS
@@ -504,6 +505,8 @@ component extends="preside.system.base.AdminHandler" {
 				, recalculateChildren = false
 			);
 		}
+
+		systemAlertsService.runCheck( type="invalidRuleEngineRules" );
 	}
 
 	private void function postEditRecordAction( event, rc, prc, args={} ) {
@@ -516,6 +519,8 @@ component extends="preside.system.base.AdminHandler" {
 				, discardOnComplete = true
 				, args              = { id=args.recordId ?: "" }
 			);
+
+			systemAlertsService.runCheck( type="invalidRuleEngineRules" );
 		}
 	}
 
@@ -547,6 +552,14 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			}
 		}
+	}
+
+	private void function postDeleteRecordAction( event, rc, prc, args={} ) {
+		systemAlertsService.runCheck( type="invalidRuleEngineRules" );
+	}
+
+	private void function postBatchDeleteRecordsAction( event, rc, prc, args={} ) {
+		systemAlertsService.runCheck( type="invalidRuleEngineRules" );
 	}
 
 // EDITING RECORDS

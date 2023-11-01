@@ -562,7 +562,8 @@ component displayName="Forms service" {
 		var pobjService     = _getPresideObjectService();
 	    var fieldBaseI18n   = pobjService.getResourceBundleUriRoot( arguments.objectName );
 		var fieldAttributes = pobjService.getObjectProperty( objectName, arguments.fieldName );
-		var fieldType       = pobjService.getDefaultFormControlForPropertyAttributes( argumentCollection = fieldAttributes );
+		var fieldControl    = fieldAttributes.control ?: "default"
+		var fieldType       = fieldControl == "default" ? _getDefaultFormControl( argumentCollection=fieldAttributes ) : fieldControl;
 	    var formControlArgs = Duplicate( fieldAttributes );
 	    var i18n            = _getI18n();
 
@@ -603,6 +604,7 @@ component displayName="Forms service" {
 		,          string  fieldNamePrefix         = ""
 		,          string  fieldNameSuffix         = ""
 		,          array   suppressFields          = []
+		,          array   bypassTenants           = []
 	) {
 		arguments.objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
 		arguments.data = arguments.formData;

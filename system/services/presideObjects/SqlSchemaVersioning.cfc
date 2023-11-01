@@ -21,7 +21,7 @@ component singleton=true {
 		var versionRecords = "";
 		var versionRecord  = "";
 
-		for( dsn in dsns ){
+		for( dsn in arguments.dsns ){
 			_checkVersionsTableExistance( dsn = dsn );
 			versionRecords = _runSql(
 				  sql = "select entity_type, entity_name, parent_entity_name, version_hash from _preside_generated_entity_versions order by entity_type, parent_entity_name"

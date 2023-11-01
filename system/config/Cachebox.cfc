@@ -165,5 +165,23 @@ component {
 				}
 			}
 		};
+
+		_configureExtensions();
+	}
+
+// PRIVATE HELPERS
+	private function _configureExtensions() {
+		var extensions     = application.activeExtensions ?: [];
+		var appMappingPath = application.appMappingPath   ?: "app";
+
+		for( var ext in extensions ) {
+			var cacheboxConfigFile = ReReplace( ext.directory, "/$", "" ) & "/config/Cachebox.cfc";
+
+			if ( FileExists( cacheboxConfigFile ) ) {
+				var mappedPath = appMappingPath & ".extensions.#ListLast( ext.directory, '\/' )#.config.Cachebox";
+
+				CreateObject( "component", mappedPath ).configure( cachebox );
+			}
+		}
 	}
 }

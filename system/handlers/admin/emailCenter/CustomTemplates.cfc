@@ -459,7 +459,23 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( validationResult.validated() ) {
+			var resaveDraft = isTrue( prc.template._version_has_drafts ?: "" );
+			if ( resaveDraft ) {
+				var draftRecord = emailTemplateService.getTemplate(
+					  id                = id
+					, allowDrafts       = true
+					, fromVersionTable  = true
+					, extraSelectFields = [ "group_concat( attachments.id ) as attachments" ]
+				);
+				for( var key in [ "id", "layout", "_version_has_drafts", "_version_is_draft", "datecreated", "datemodified" ] ) {
+					StructDelete( draftRecord, key );
+				}
+				StructAppend( draftRecord, formData );
+			}
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=( IsTrue( prc.template._version_is_draft ?: false ) ) );
+			if ( resaveDraft ) {
+				emailTemplateService.saveTemplate( id=id, template=draftRecord, isDraft=true );
+			}
 			emailTemplateService.updateScheduledSendFields( templateId=id );
 
 			messagebox.info( translateResource( "cms:emailcenter.customTemplates.settings.saved.confirmation" ) );
@@ -498,7 +514,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template"
-				, gridFields    = "name,sending_method,send_date,schedule_type"
+				, gridFields    = "name,sending_method,send_date,datemodified,last_sent_date,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date"
 				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
 				, filter        = { "email_template.is_system_email" = false }
 				, draftsEnabled = true
@@ -649,6 +665,7 @@ component extends="preside.system.base.AdminHandler" {
 				, actionsView   = actionsView
 				, draftsEnabled = false
 				, extraFilters  = extraFilters
+				, useCache      = false
 			}
 		);
 	}
@@ -729,14 +746,17 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function _customTemplateActions( event, rc, prc, args={} ) {
 		var templateId = rc.id ?: "";
-		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
-		if ( template.count() ) {
-			args.isDraft       = IsTrue( template._version_is_draft );
-			args.canSend       = !args.isDraft && template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+		args.template  = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
+
+		if ( args.template.count() ) {
+			args.isDraft       = IsTrue( args.template._version_is_draft );
+			args.canSend       = !args.isDraft && args.template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
 			args.canPublish    = args.isDraft && hasCmsPermission( "emailCenter.customTemplates.publish"   );
 			args.canSendTest   = true;
 			args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );
 			args.canClone      = hasCmsPermission( "emailcenter.customtemplates.add" );
+
+			announceInterception( "preRenderEmailTemplateActions", args );
 
 			if ( args.canSend || args.canDelete || args.canClone || args.canPublish ) {
 				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
@@ -751,26 +771,28 @@ component extends="preside.system.base.AdminHandler" {
 		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 
 		if ( template.count() ) {
+			var defaultNotice = { class="info", icon="fa-info-circle", message="" }
+
 			args.isDraft       = IsTrue( template._version_is_draft );
 			args.sendMethod    = template.sending_method ?: "";
 			args.scheduleType  = template.schedule_type ?: "";
 
-			if ( !args.isDraft  ) {
-				if ( args.sendMethod == "scheduled" ){
-					args.sendDate = args.scheduleType == "repeat" ? ( template.schedule_next_send_date ?: "" ) : ( template.schedule_date ?: "" );
-
-					if ( IsDate( args.sendDate ) ) {
-						if ( args.sendDate <= Now() ) {
-							args.sent   = emailTemplateService.getSentCount( templateId );
-							args.queued = emailTemplateService.getQueuedCount( templateId );
-						} else {
-							args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
-						}
-					}
-				} else {
-					args.sent   = emailTemplateService.getSentCount( templateId );
-					args.queued = emailTemplateService.getQueuedCount( templateId );
+			if ( args.isDraft  ) {
+				defaultNotice.class = "warning";
+				defaultNotice.icon  = "fa-exclamation-triangle";
+				switch( args.sendMethod ) {
+					case "scheduled":
+						defaultNotice.message = translateResource( uri="cms:emailcenter.customTemplates.draftScheduled.notice" ) & "<br><br>" & translateResource( uri="cms:emailcenter.customTemplates.draftScheduled.additionalNotice" );
+					break;
+					case "manual":
+						defaultNotice.message = translateResource( uri="cms:emailcenter.customTemplates.draft.notice" ) & "<br><br>" & translateResource( uri="cms:emailcenter.customTemplates.draftManual.additionalNotice" );
+					break;
+					default:
+						defaultNotice.message = translateResource( uri="cms:emailcenter.customTemplates.draft.notice" );
 				}
+			} else {
+				args.sent   = emailTemplateService.getSentCount( templateId );
+				args.queued = emailTemplateService.getQueuedCount( templateId );
 
 				if ( Val( args.queued ?: "" ) ) {
 					args.canCancel = hasCmsPermission( "emailcenter.customtemplates.cancelsend" );
@@ -780,7 +802,67 @@ component extends="preside.system.base.AdminHandler" {
 						args.cancelSend   = translateResource( "cms:emailcenter.customtemplates.cancel.send.link"   );
 					}
 				}
+
+				if ( args.sendMethod == "scheduled" ){
+					var nowish = Now();
+					args.sendDate = args.scheduleType == "repeat" ? ( template.schedule_next_send_date ?: "" ) : ( template.schedule_date ?: "" );
+
+					if ( IsDate( args.sendDate ) && args.sendDate > nowish ) {
+						args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
+					}
+
+					if ( args.scheduleType == "repeat" ) {
+						if ( IsDate( args.sendDate ) ) {
+							if ( args.sendDate > nowish ) {
+								defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn"), NumberFormat( args.estimatedSendCount ) ] );
+							} else {
+								defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.in.past.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn") ] );
+							}
+						} else {
+							defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.unknown.alert" );
+							defaultNotice.class   = "warn";
+							defaultNotice.icon    = "fa-exclamation-triangle";
+						}
+					} else if ( IsDate( args.sendDate ) ) {
+						if ( args.sendDate > nowish ) {
+							defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn"), NumberFormat( args.estimatedSendCount ) ]);
+						} else if ( args.queued ) {
+							defaultNotice.message = translateResource( uri="cms:emailcenter.sending.alert", data=[ NumberFormat( args.queued ), NumberFormat( args.sent ) ] );
+							if ( args.canCancel ) {
+								defaultNotice.message &= '<a href="#args.cancelLink#" class="confirmation-prompt" title="#HtmlEditFormat( args.cancelPrompt )#">
+									<i class="fa fa-fw fa-ban"></i>
+									#args.cancelSend#
+								</a>';
+							}
+						} else if ( args.sent ) {
+							defaultNotice.message = translateResource( uri="cms:emailcenter.sent.alert", data=[ NumberFormat( args.sent ) ] );
+						} else {
+							defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.in.past.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn") ] )
+						}
+					} else {
+						defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.unknown.alert" );
+						defaultNotice.class   = "warn";
+						defaultNotice.icon    = "fa-exclamation-triangle";
+					}
+				} else {
+					if ( args.queued ) {
+						defaultNotice.message = translateResource( uri="cms:emailcenter.sending.alert", data=[ NumberFormat( args.queued ), NumberFormat( args.sent ) ] )
+						if ( args.canCancel ) {
+							defaultNotice.message &= '<a href="#args.cancelLink#" class="confirmation-prompt" title="#HtmlEditFormat( args.cancelPrompt )#">
+								<i class="fa fa-fw fa-ban"></i>
+								#args.cancelSend#
+							</a>';
+						}
+					} else {
+						defaultNotice.message = translateResource( uri="cms:emailcenter.manual.sent.alert", data=[ NumberFormat( Val( args.sent ) ) ] );
+					}
+				}
+
 			}
+
+			args.template = template;
+			args.notices = [ defaultNotice ];
+			announceInterception( "preRenderEmailTemplateNotices", args );
 
 			return renderView( view="/admin/emailCenter/customTemplates/_customTemplateNotices", args=args );
 		}

@@ -385,9 +385,6 @@ component {
 				arguments.meta.properties[ flagField ] = defaults[ "flag" ];
 				ArrayAppend( arguments.meta.propertyNames, flagField );
 			}
-			if ( flagField.len() && flagField != "recordflagged" && !arguments.meta.propertyNames.findNoCase( "recordflagged" ) ) {
-				arguments.meta.properties[ flagField ].aliases = ( arguments.meta.properties[ flagField ].aliases ?: "" ).listAppend( "recordflagged" );
-			}
 		}
 	}
 

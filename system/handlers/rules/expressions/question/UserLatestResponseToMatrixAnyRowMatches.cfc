@@ -43,8 +43,6 @@ component {
 		, required string  value
 		,          string  formId             = ""
 		,          boolean _all               = false
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
 	) {
 		return formBuilderFilterService.prepareFilterForUserLatestResponseMatrixAnyRowMatches( argumentCollection=arguments );
 	}

@@ -6,7 +6,7 @@
  * @useDrafts          true
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email template"  {
-	property name="name"                type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename";
+	property name="name"                type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename" renderer="emailName";
 	property name="layout"              type="string"  dbtype="varchar" maxlength=200 required=false;
 	property name="recipient_type"      type="string"  dbtype="varchar" maxlength=200 required=false;
 	property name="subject"             type="string"  dbtype="varchar" maxlength=255 required=true;
@@ -18,10 +18,14 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="save_content"        type="boolean" dbtype="boolean"               required=false default=false;
 	property name="save_content_expiry" type="numeric" dbtype="int"                   required=false;
 
-	property name="html_body" type="string" dbtype="longtext";
-	property name="text_body" type="string" dbtype="longtext";
+	property name="html_body"                 type="string"  dbtype="longtext";
+	property name="text_body"                 type="string"  dbtype="longtext";
+	property name="body_changed_from_default" type="boolean" dbtype="boolean" required=false default=false;
 
 	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment";
+
+	property name="variant_of"  relationship="many-to-one"  relatedto="email_template" required=false;
+	property name="is_variant"  type="boolean" formula="case when ${prefix}variant_of is null then 0 else 1 end";
 
 	property name="email_blueprint"  relationship="many-to-one" relatedTo="email_blueprint";
 	property name="recipient_filter" relationship="many-to-one" relatedto="rules_engine_condition" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
@@ -40,6 +44,9 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="schedule_measure"        type="numeric" dbtype="int"                  required=false ignoreChangesForVersioning=true;
 	property name="schedule_sent"           type="boolean" dbtype="boolean"              required=false ignoreChangesForVersioning=true cloneable=false;
 	property name="schedule_next_send_date" type="date"    dbtype="datetime"             required=false ignoreChangesForVersioning=true cloneable=false;
+
+	property name="last_sent_date" type="date" dbtype="datetime" required=false ignoreChangesForVersioning=true cloneable=false renderer="dateTimeRelative";
+	property name="datemodified" renderer="dateTimeRelative";
 
 	property name="send_logs"           relationship="one-to-many" relatedto="email_template_send_log"  relationshipKey="email_template" cloneable=false;
 	property name="queued_emails"       relationship="one-to-many" relatedto="email_mass_send_queue"    relationshipKey="template"       cloneable=false;

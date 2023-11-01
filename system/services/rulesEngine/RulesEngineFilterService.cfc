@@ -30,7 +30,6 @@ component displayName="Rules Engine Filter Service" {
 	 * @objectName.hint      The name of the object that the filter is for
 	 * @filterId.hint        ID of the saved filter (from rules_engine_condition object) to prepare filters for. Not required if using expressionArray
 	 * @expressionArray.hint Configured expression array of the condition to prepare a filter for. Not required if using filterId.
-	 * @filterPrefix.hint    An optional prefix to prepend to any property filters. This is useful when you are traversing the relationship tree and building filters within filters!
 	 *
 	 */
 	public struct function prepareFilter(
@@ -38,7 +37,6 @@ component displayName="Rules Engine Filter Service" {
 		,          string  filterId           = ""
 		,          array   expressionArray
 		,          boolean ignoreSegmentation = false
-		,          string  filterPrefix       = ""
 	) {
 		if ( Len( arguments.filterId ) && isSegmentionFilter( arguments.filterId ) && !arguments.ignoreSegmentation ) {
 			return prepareSegmentationFilter( arguments.objectName, arguments.filterId );
@@ -60,7 +58,7 @@ component displayName="Rules Engine Filter Service" {
 			if ( isJoin ) {
 				join = expressionArray[i] == "and" ? "and" : "or";
 			} else if ( IsArray( expressionArray[i] ) ) {
-				var subFilter = prepareFilter( objectName=objectName, expressionArray=expressionArray[i], filterPrefix=arguments.filterPrefix );
+				var subFilter = prepareFilter( objectName=objectName, expressionArray=expressionArray[i] );
 
 				if ( StructKeyExists( subFilter, "having" ) ) {
 					isHaving = true;
@@ -76,7 +74,6 @@ component displayName="Rules Engine Filter Service" {
 					  expressionId     = expressionArray[i].expression ?: ""
 					, configuredFields = expressionArray[i].fields     ?: {}
 					, objectName       = arguments.objectName
-					, filterPrefix     = arguments.filterPrefix
 				);
 
 				if ( rawFilters.len() ) {
@@ -158,8 +155,10 @@ component displayName="Rules Engine Filter Service" {
 	 * @expressionArray.hint Cofigured expression array of the condition to prepare a filter for
 	 */
 	public any function selectData(
-		  required string objectName
-		, required array  expressionArray
+		  required string  objectName
+		, required array   expressionArray
+		,          boolean distinct      = true
+		,          boolean forceDistinct = false
 	) {
 		var args = Duplicate( arguments );
 
@@ -169,7 +168,21 @@ component displayName="Rules Engine Filter Service" {
 			, expressionArray = arguments.expressionArray
 		) );
 		args.autoGroupBy = true;
-		args.distinct    = true;
+
+		if ( args.distinct && !args.forceDistinct ) {
+			args.distinct = false;
+			for ( var extraFilter in args.extraFilters ) {
+				for ( var extraJoin in extraFilter.extraJoins ?: [] ) {
+					if ( Len( extraJoin.subQuery ?: "" ) ) {
+						args.distinct = true;
+						break;
+					}
+				}
+
+				if ( args.distinct ) { break; }
+			}
+		}
+
 
 		args.delete( "expressionArray" );
 
@@ -188,6 +201,12 @@ component displayName="Rules Engine Filter Service" {
 		  required string objectName
 		, required array  expressionArray
 	) {
+		if ( !StructKeyExists( arguments, "selectFields" ) ) {
+			var idField = $getPresideObjectService().getIdField( arguments.objectName );
+			if ( Len( idField ) ) {
+				arguments.selectFields = [ idField ];
+			}
+		}
 		return selectData( argumentCollection=arguments, recordCountOnly=true );
 	}
 
@@ -528,6 +547,32 @@ component displayName="Rules Engine Filter Service" {
 		}
 
 		return true;
+	}
+
+	public struct function prepareAutoFormulaFilter(
+		  required string objectName
+		, required string propertyName
+		, required string filter
+		, required struct filterParams
+	) {
+		var suffix        = CreateUUId().lCase().replace( "-", "", "all" )
+		var subQueryAlias = "formulaFieldSubquery" & suffix;
+		var idField       = $getPresideObjectService().getIdField( arguments.objectName );
+		var subquery      = $getPresideObjectService().selectData(
+			  objectName          = arguments.objectName
+			, selectFields        = [ idField, arguments.propertyName ]
+			, having              = arguments.filter
+			, filterParams        = arguments.filterParams
+			, autoGroupBy         = true
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
+		var existsSubQuery = "select 1 from (#subQuery.sql#) #subQueryAlias# where #subqueryAlias#.#idField# = #arguments.objectName#.#idField#";
+
+		return {
+			  filter       = "exists (#$obfuscateSqlForPreside( existsSubQuery )#)"
+			, filterParams = subquery.params
+		};
 	}
 
 // PRIVATE HELPERS

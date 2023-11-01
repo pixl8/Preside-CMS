@@ -46,14 +46,18 @@ component {
 		, required string subject
 		,          string resendOf = ""
 		,          struct sendArgs = {}
+		,          string layoutOverride = ""
+		,          string customLayout   = ""
 	) {
 		var data = {
-			  email_template = arguments.template
-			, recipient      = arguments.recipient
-			, sender         = arguments.sender
-			, subject        = arguments.subject
-			, resend_of      = arguments.resendOf
-			, send_args      = SerializeJson( arguments.sendArgs )
+			  email_template  = arguments.template
+			, recipient       = arguments.recipient
+			, sender          = arguments.sender
+			, subject         = arguments.subject
+			, resend_of       = arguments.resendOf
+			, send_args       = SerializeJson( arguments.sendArgs )
+			, layout_override = arguments.layoutOverride
+			, custom_layout   = arguments.customLayout
 		};
 
 		if ( Len( Trim( arguments.recipientType ) ) ) {
@@ -106,17 +110,26 @@ component {
 	/**
 	 * Marks the given email as sent
 	 *
-	 * @autodoc true
-	 * @id.hint ID of the email to mark as sent
+	 * @autodoc         true
+	 * @id.hint         ID of the email to mark as sent
+	 * @templateId.hint ID of the email template
 	 *
 	 */
-	public void function markAsSent( required string id ) {
+	public void function markAsSent(
+		  required string id
+		,          string templateId = ""
+	) {
+		var now     = _getNow();
 		var updated = $getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
 			  sent      = true
-			, sent_date = _getNow()
+			, sent_date = now
 		} );
 
 		if ( updated ) {
+			if ( !$helpers.isEmptyString( arguments.templateId ) ) {
+				_getEmailTemplateService().updateLastSentDate( templateId=arguments.templateId, lastSentDate=now );
+			}
+
 			recordActivity(
 				  messageId = arguments.id
 				, activity  = "send"
@@ -356,6 +369,8 @@ component {
 		    , resendOf              = message.id
 		    , returnLogId           = true
 		    , overwriteTemplateArgs = true
+			, layout                = message.layout_override
+			, customLayout          = message.custom_layout
 		);
 
 		$audit(
@@ -386,12 +401,14 @@ component {
 		var originalArgs           = deserializeJson( message.send_args );
 		var sendArgs               = _getEmailTemplateService().rebuildArgsForResend( template=message.email_template, logId=id, originalArgs=originalArgs );
 		var resentMessageId        = $sendEmail(
-		      template    = message.email_template
-		    , recipientId = message[ recipientIdLogProperty ] ?: ""
-		    , to          = !len( message[ recipientIdLogProperty ] ?: "" ) ? [ message.recipient ] : []
-		    , args        = sendArgs
-		    , resendOf    = message.id
-		    , returnLogId = true
+			  template     = message.email_template
+			, recipientId  = message[ recipientIdLogProperty ] ?: ""
+			, to           = !len( message[ recipientIdLogProperty ] ?: "" ) ? [ message.recipient ] : []
+			, args         = sendArgs
+			, resendOf     = message.id
+			, returnLogId  = true
+			, layout       = message.layout_override
+			, customLayout = message.custom_layout
 		);
 
 		$audit(
@@ -411,7 +428,7 @@ component {
 	}
 
 	/**
-	 * Resends an email. Email is regenerated using the original sendArgs
+	 * Delete expired email content and it's send log
 	 *
 	 */
 	public boolean function deleteExpiredContent( any logger ) {
@@ -428,6 +445,16 @@ component {
 		);
 
 		if ( canInfo ) { logger.info( "Content of [#deleted#] emails deleted." ); }
+
+		var emailSettings = $getPresideCategorySettings( "email" );
+		if ( $helpers.isTrue( emailSettings.remove_view_online_content ?: "" ) && ( val( emailSettings.view_online_content_expiry ?: "" ) > 0 ) ) {
+			var deleted = $getPresideObject( "email_template_view_online_content").deleteData(
+				  filter       = "datecreated <= :datecreated"
+				, filterParams = { datecreated=dateAdd( "d", -val( emailSettings.view_online_content_expiry ), now() ) }
+			);
+
+			if ( canInfo ) { logger.info( "[#deleted#] emails' view online contents deleted." ); }
+		}
 
 		return true;
 	}

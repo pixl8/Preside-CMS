@@ -11,18 +11,13 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          string  _numericOperator = "eq"
 		,          string  savedFilter      = ""
 		,          numeric value            = 0
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -32,15 +27,10 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  propertyName
 		, required string  relatedTo
 		, required string  relationshipKey
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
 		,          string  savedFilter        = ""
 		,          string  _numericOperator   = "eq"
 		,          numeric value              = 0
 	){
-		var prefix               = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
-		var hasParent            = Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName );
 		var params               = {};
 		var subQueryExtraFilters = [];
 
@@ -51,7 +41,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			StructAppend( params, extraFilter.filterParams ?: {} );
 		}
 
-		var outerPk       = hasParent ? "#arguments.parentObjectName#.#arguments.parentPropertyName#" : "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+		var outerPk       = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
 		var countOperator = rulesEngineNumericOperatorToSqlOperator( arguments._numericOperator );
 		var countParam    = "oneToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
 		var countField    = "#arguments.relatedTo#.#relationshipKey#";
@@ -75,12 +65,12 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		, required string  relatedTo
-		, required string  relationshipKey
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		, required string relatedTo
+		, required string relationshipKey
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
 		var relatedToTranslated = translateObjectProperty( objectName, propertyName );

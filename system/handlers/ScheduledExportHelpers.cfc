@@ -27,6 +27,7 @@ component {
 					, extraFilters       = []
 					, exportTemplate     = savedExportDetail.template
 					, templateConfig     = IsJson( savedExportDetail.template_config ) ? DeSerializeJson( savedExportDetail.template_config ) : {}
+					, historyExportId    = historyId
 				};
 
 				try {
@@ -62,11 +63,26 @@ component {
 				var exportedFile = dataExportService.exportData( argumentCollection=configArgs );
 
 				if ( !isEmpty( exportedFile ) ) {
-					var filePath = slugify( "#savedExportDetail.file_name# #dateTimeFormat( now() )#" ) & ".#exporterDetail.fileExtension#";
+					var filePath = slugify( "#savedExportDetail.file_name# #dateTimeFormat( now(), "dd-mmm-yyyy HH" )#" ) & ".#exporterDetail.fileExtension#";
+
+					while ( exportStorageProvider.objectExists( path=filePath ) ) {
+						var fileName = listFirst( filePath, "." );
+						var counter  = listLast( fileName, "_" );
+
+						if ( isNumeric( counter ) ) {
+							counter = val( counter ) + 1;
+
+							fileName = listFirst( fileName, "_" ) & "_#counter#";
+						} else {
+							fileName = fileName & "_1";
+						}
+
+						filePath = fileName & ".#exporterDetail.fileExtension#";
+					}
 
 					exportStorageProvider.putObject( object=fileReadBinary( exportedFile ), path=filePath );
 					scheduledExportService.saveFilePathToHistoryExport( filepath=filePath, historyExportId=historyId );
-					scheduledExportService.sendExportedFileToRecipient( historyExportId=historyId );
+					scheduledExportService.sendExportedFileToRecipient( historyExportId=historyId, omitEmptyExports=isTrue( savedExportDetail.omit_empty_exports ?: false ) );
 
 					return true;
 				}

@@ -40,8 +40,6 @@ component {
 		  required string question
 		, required string value
 		,          string _stringOperator = "contains"
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
 	){
 		return formBuilderFilterService.prepareFilterForSubmissionQuestionResponseMatchesText( argumentCollection=arguments );
 	}

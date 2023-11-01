@@ -36,9 +36,7 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string  question
-		,          boolean _has               = true
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          boolean _has = true
 	) {
 		return formBuilderFilterService.prepareFilterForSubmissionQuestionHasResponded( argumentCollection=arguments );
 	}

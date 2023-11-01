@@ -871,13 +871,11 @@ component {
 	 * @submissionId The ID of the submission that has responses
 	 */
 	public string function getV2QuestionResponses( required string formId, required string submissionId, required questionId ) {
-
-
 		var responses = $getPresideObject( "formbuilder_question_response" ).selectData(
 			  filter  = { submission=arguments.submissionId, question=arguments.questionId }
-
 		);
-		var responseForQuestion={};
+
+		var responseForQuestion = {};
 
 		for( var response in responses ) {
 			if ( Len( response.question_subreference ) ) {
@@ -890,7 +888,7 @@ component {
 			}
 		}
 
-		return  SerializeJson( responseForQuestion );
+		return SerializeJson( responseForQuestion );
 	}
 
 	public string function renderV2QuestionResponses( required string formId, required string submissionId, required questionId, required itemType ) {
@@ -1086,6 +1084,16 @@ component {
 				, detail     = submission
 			);
 
+			if ( $helpers.isTrue( formConfiguration.notification_enabled ?: false ) ) {
+				$createNotification(
+					  topic = "FormbuilderSubmissionReceived"
+					, type  = "info"
+					, data  = {
+						id = submissionId
+					}
+				);
+			}
+
 			$announceInterception( "postFormBuilderFormSubmission", {
 				  formData          = formData
 				, requestData       = arguments.requestData
@@ -1121,12 +1129,22 @@ component {
 	 *
 	 * @autodoc
 	 * @submissionId.hint The ID of the submission you wish to get
+	 * @selectFields.hint Array of field names to select
 	 *
 	 */
-	public query function getSubmission( required string submissionId ) {
-		return $getPresideObject( "formbuilder_formsubmission" ).selectData(
-			filter = { id=submissionId }
-		);
+	public query function getSubmission(
+		  required string submissionId
+		,          array  selectFields = []
+	) {
+		var args = {
+			filter = { id=arguments.submissionId }
+		};
+
+		if ( ArrayLen( arguments.selectFields ) ) {
+			StructAppend( args, { selectFields=arguments.selectFields } );
+		}
+
+		return $getPresideObject( "formbuilder_formsubmission" ).selectData( argumentCollection=args );
 	}
 
 	/**
@@ -2227,6 +2245,10 @@ component {
 		}
 
 		if ( IsSimpleValue( arguments.response ) ) {
+			if ( !$helpers.isEmptyString( arguments.questionSubReference ) ) {
+				arguments.questionSubReference = Hash( Trim( arguments.questionSubReference ) );
+			}
+
 			var responseData = {
 				  question              = arguments.questionId
 				, submission_type       = "formbuilder"
@@ -2253,7 +2275,6 @@ component {
 
 			$getPresideObject( "formbuilder_question_response" ).insertData( responseData );
 		}
-
 	}
 
 	private string function _getSubmitterNamePlainText() {

@@ -1052,6 +1052,43 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test026_2_updateData_should_calculate_changeddata_when_asked" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+
+			poService.dbSync();
+
+			var a1 = poService.insertData( objectName="obj_a", data={ label="a1" } );
+			poService.insertData( objectName="obj_b", data={ id="b1", label="b1" } );
+			poService.insertData( objectName="obj_b", data={ id="b2", label="b2" } );
+			poService.insertData( objectName="obj_b", data={ id="b3", label="b3" } );
+			poService.insertData( objectName="obj_b", data={ id="b4", label="b4" } );
+
+			var changedData = {};
+			poService.updateData(
+				  objectName              = "obj_a"
+				, id                      = a1
+				, data                    = { lots_of_bees="b1,b2", label="a1 changed" }
+				, updateManyToManyRecords = true
+				, calculateChangedData    = true
+				, changedData             = changedData
+			);
+
+			super.assertEquals( { "#a1#" = { lots_of_bees="b1,b2", label="a1 changed"  } }, changedData );
+
+			changedData = {};
+			poService.updateData(
+				  objectName              = "obj_a"
+				, id                      = a1
+				, data                    = { lots_of_bees="b1,b3", label="a1 changed" }
+				, updateManyToManyRecords = true
+				, calculateChangedData    = true
+				, changedData             = changedData
+			);
+			super.assertEquals( { "#a1#" = { lots_of_bees="b1,b3" } }, changedData );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test027_selectData_shouldSelectAllDataAndAllColumns_whenNoArgumentsSupplied" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
@@ -2903,7 +2940,7 @@
 				, getSqlAndParamsOnly = true
 			);
 
-			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :bees_count) and (Count( lots_of_bees.id ) = :bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`id` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :bees_count) and (Count( lots_of_bees.id ) = :bees_count_2) ) `original_statement`", result.sql ?: "" );
 			super.assertEquals( [ { name="bees_count", type="cf_sql_int", value=2 }, { name="bees_count_2", type="cf_sql_int", value=4 } ], result.params ?: [] );
 
 		</cfscript>
@@ -2937,7 +2974,7 @@
 				, formatSqlParams     = true
 			);
 
-			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :bees_count) and (Count( lots_of_bees.id ) = :bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`id` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :bees_count) and (Count( lots_of_bees.id ) = :bees_count_2) ) `original_statement`", result.sql ?: "" );
 			super.assertEquals( { bees_count={ type="cf_sql_int", value=2 }, bees_count_2={ type="cf_sql_int", value=4 } }, result.params ?: {} );
 
 		</cfscript>
@@ -2971,7 +3008,7 @@
 				, sqlAndParamsPrefix  = "test_prefix__"
 			);
 
-			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :test_prefix__bees_count) and (Count( lots_of_bees.id ) = :test_prefix__bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`id` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :test_prefix__bees_count) and (Count( lots_of_bees.id ) = :test_prefix__bees_count_2) ) `original_statement`", result.sql ?: "" );
 			super.assertEquals( [ { name="test_prefix__bees_count", type="cf_sql_int", value=2 }, { name="test_prefix__bees_count_2", type="cf_sql_int", value=4 } ], result.params ?: [] );
 
 		</cfscript>
@@ -3006,7 +3043,7 @@
 				, sqlAndParamsPrefix  = "test_prefix__"
 			);
 
-			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`label`, `obj_a`.`id`, `obj_a`.`datecreated`, `obj_a`.`datemodified` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :test_prefix__bees_count) and (Count( lots_of_bees.id ) = :test_prefix__bees_count_2) ) `original_statement`", result.sql ?: "" );
+			super.assertEquals( "select count(1) as `record_count` from ( select `obj_a`.`id` from `ptest_obj_a` `obj_a` left join `ptest_obj_a__join__obj_b` `obj_a__join__obj_b` on (`obj_a__join__obj_b`.`obj_a` = `obj_a`.`id`) left join `ptest_obj_b` `lots_of_bees` on (`lots_of_bees`.`id` = `obj_a__join__obj_b`.`obj_b`) group by obj_a.id having (Count( lots_of_bees.id ) >= :test_prefix__bees_count) and (Count( lots_of_bees.id ) = :test_prefix__bees_count_2) ) `original_statement`", result.sql ?: "" );
 			super.assertEquals( { test_prefix__bees_count={ type="cf_sql_int", value=2 }, test_prefix__bees_count_2={ type="cf_sql_int", value=4 } }, result.params ?: {} );
 
 		</cfscript>
@@ -3296,16 +3333,20 @@
 				, "object_1.label as labelAlias"
 				, "undefined"
 				, "undefined as undefinedAlias"
+				, "cast( object_1.label as char ) as charLabelAlias"
+				, " cast( object_1.label as char ) as charLabelAlias "
 			];
 			var expected     = [
 				  "`object_1`.`id`"
 				, "`object_1`.`label`"
-				, "`object_1`.`label` as labelAlias"
-				, "${labelField} as labelAlias"
+				, "`object_1`.`label` as `labelAlias`"
+				, "${labelField} as `labelAlias`"
 				, "object_1.label"
-				, "object_1.label as labelAlias"
+				, "object_1.label as `labelAlias`"
 				, "undefined"
-				, "undefined as undefinedAlias"
+				, "undefined as `undefinedAlias`"
+				, "cast( object_1.label as char ) as `charLabelAlias`"
+				, "cast( object_1.label as char ) as `charLabelAlias`"
 			];
 
 			poService.dbSync();
@@ -3639,6 +3680,219 @@
 			super.assertEquals( "id_2", result.id[ 6 ] );
 		</cfscript>
 	</cffunction>
+
+	<cffunction name="test104_selectData_shouldIncludeAggregateJoinIfAggregateFormulaOrderByNotIncludedInSelectFields" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var aIds      = [];
+			var bIds      = [];
+			var cIds      = [];
+			var dIds      = [];
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 1", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 2", lots_of_a="#aIds[2]#" }, insertManyToManyRecords=true ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 1", obj_b=bIds[1] } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 2", obj_b=bIds[2] } ) );
+			dIds.append( poService.insertData( objectName="object_d", data={ label="d 1", obj_c=cIds[1] } ) );
+			dIds.append( poService.insertData( objectName="object_d", data={ label="d 1", obj_c=cIds[2] } ) );
+
+			var result = poService.selectData(
+				  objectName   = "object_d"
+				, selectFields = [ "id" ]
+				, orderBy      = "obj_c.a_count desc"
+			);
+
+			super.assertEquals( result.recordCount, 2      , "Expected record count mismatch" );
+			super.assertEquals( result.id[1]      , dIds[1], "Expected record ID mismatch" );
+			super.assertEquals( result.id[2]      , dIds[2], "Expected record ID mismatch" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test105_selectData_shouldSupportArrayReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id","label" ]
+				, objectName = "object_e"
+				, orderBy    = "label"
+				, returntype = "array"
+			);
+			var expected = [];
+			for( var i=1; i<=9; i++ ) {
+				ArrayAppend( expected, { id=eId[i], label="label #i#" } );
+			}
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test106_selectData_shouldSupportStructReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id","label" ]
+				, objectName = "object_e"
+				, orderBy    = "label"
+				, returntype = "struct"
+				, columnKey  = "id"
+			);
+			var expected = {};
+			for( var i=1; i<=9; i++ ) {
+				expected[ eId[i] ] = { id=eId[i], label="label #i#" };
+			}
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test107_selectData_shouldSupportArrayOfValuesReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id" ]
+				, objectName = "object_e"
+				, orderBy    = "label"
+				, returntype = "arrayOfValues"
+				, columnKey  = "id"
+			);
+			var expected = [];
+			for( var i=1; i<=9; i++ ) {
+				ArrayAppend( expected, eId[i] );
+			}
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test108_selectData_shouldSupportSingleValueReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "label" ]
+				, id           = eId[5]
+				, objectName   = "object_e"
+				, orderBy      = "label"
+				, returntype   = "singleValue"
+				, columnKey    = "label"
+			);
+
+			super.assertEquals( "label 5", result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test109_selectData_shouldSupportSingleRecordStructReturnType" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+			eId[2] = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			eId[3] = poService.insertData( objectName="object_e", data={ label="label 3" } );
+			eId[4] = poService.insertData( objectName="object_e", data={ label="label 4" } );
+			eId[5] = poService.insertData( objectName="object_e", data={ label="label 5" } );
+			eId[6] = poService.insertData( objectName="object_e", data={ label="label 6" } );
+			eId[7] = poService.insertData( objectName="object_e", data={ label="label 7" } );
+			eId[8] = poService.insertData( objectName="object_e", data={ label="label 8" } );
+			eId[9] = poService.insertData( objectName="object_e", data={ label="label 9" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id", "label" ]
+				, id           = eId[5]
+				, objectName   = "object_e"
+				, returntype   = "singleRecordStruct"
+			);
+
+			super.assertEquals( { id=eId[5], label="label 5" }, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test110_selectData_shouldReturnEmptyStructWhenSingleRecordStructReturnTypeAndNoResults" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result    = "";
+			var eIds      = [];
+
+			poService.dbSync();
+
+			eId[1] = poService.insertData( objectName="object_e", data={ label="label 1" } );
+
+			result = poService.selectData(
+				  selectFields = [ "id", "label" ]
+				, id           = "nonexistantrecord"
+				, objectName   = "object_e"
+				, returntype   = "singleRecordStruct"
+			);
+
+			super.assertEquals( {}, result );
+		</cfscript>
+	</cffunction>
+
 
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">

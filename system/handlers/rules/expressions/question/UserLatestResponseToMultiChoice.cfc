@@ -40,10 +40,8 @@ component {
 	private array function prepareFilters(
 		  required string  question
 		, required string  value
-		,          string  formId             = ""
-		,          boolean _all               = false
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          string  formId = ""
+		,          boolean _all   = false
 	) {
 		return formBuilderFilterService.prepareFilterForUserLatestResponseToChoiceField( argumentCollection=arguments );
 	}

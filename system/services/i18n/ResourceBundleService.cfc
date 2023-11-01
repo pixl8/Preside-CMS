@@ -210,7 +210,8 @@ component singleton=true {
 
 	private struct function _propertiesFileToStruct( required string propertiesFile ) output=false {
 		var fis          = CreateObject("java","java.io.FileInputStream").init( arguments.propertiesFile );
-		var prb          = CreateObject("java","java.util.PropertyResourceBundle").init( fis );
+		var fir          = CreateObject("java","java.io.InputStreamReader").init( fis, "UTF-8" );
+		var prb          = CreateObject("java","java.util.PropertyResourceBundle").init( fir );
 		var keys         = prb.getKeys();
 		var key          = "";
 		var returnStruct = {};

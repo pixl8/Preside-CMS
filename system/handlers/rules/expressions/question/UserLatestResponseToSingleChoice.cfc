@@ -40,8 +40,6 @@ component {
 		  required string question
 		, required string value
 		,          string formId
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
 	) {
 		return formBuilderFilterService.prepareFilterForUserLatestResponseToChoiceField( argumentCollection=arguments, _all=false );
 	}

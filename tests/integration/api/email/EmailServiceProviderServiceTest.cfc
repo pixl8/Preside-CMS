@@ -465,7 +465,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody } );
 
 				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
-				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
+				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId, "" ] );
 			} );
 
 			it( "should insert tracking pixel into html body", function(){
@@ -490,7 +490,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody } );
 
 				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
-				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
+				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId, "" ] );
 			} );
 
 			it( "should replace hrefs with tracking link in html body", function(){
@@ -516,7 +516,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody, template=templateId } );
 
 				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
-				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
+				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId, templateId ] );
 			} );
 
 			it( "should NOT replace hrefs with tracking link in html body when click tracking is not enabled for the template", function(){
@@ -542,7 +542,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.sendWithProvider( provider, { htmlBody=dummyHtmlBody, template=templateId } );
 
 				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
-				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
+				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId, templateId ] );
 			} );
 
 			it( "should announce pre and post email send interception points", function(){

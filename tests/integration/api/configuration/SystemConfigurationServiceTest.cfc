@@ -441,8 +441,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		mockSiteService.$( "getActiveSiteId", activeSite );
 		mockTenancyService.$( "getTenantId" ).$args( "site" ).$results( activeSite );
 
-		mockSystemAlertsService.$( "runWatchedSettingsChecks" );
-
 		mockCache.$( "get" );
 		mockCache.$( "set" );
 		mockCache.$( "clearByKeySnippet" );
@@ -454,7 +452,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 			, formsService            = mockFormsService
 			, siteService             = mockSiteService
 			, tenancyService          = mockTenancyService
-			, systemAlertsService     = mockSystemAlertsService
 			, settingsCache           = mockCache
 		) );
 

@@ -36,10 +36,8 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string  question
-		,          string  formId             = ""
-		,          boolean _has               = true
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          string  formId = ""
+		,          boolean _has   = true
 	) {
 		return formBuilderFilterService.prepareFilterForUserHasRespondedToQuestion( argumentCollection=arguments );
 	}

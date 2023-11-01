@@ -199,16 +199,17 @@ component displayName="Multilingual Preside Object Service" {
 		arguments.object.meta.properties = arguments.object.meta.properties ?: {};
 
 		arguments.object.meta.properties._translations = {
-			  name            = "_translations"
-			, relationship    = "one-to-many"
-			, relatedto       = _getTranslationObjectPrefix() & arguments.objectName
-			, relationshipKey = "_translation_source_record"
-			, required        = false
-			, uniqueindexes   = ""
-			, indexes         = ""
-			, generator       = "none"
-			, control         = "none"
-			, adminRenderer   = "none"
+			  name                   = "_translations"
+			, relationship           = "one-to-many"
+			, relatedto              = _getTranslationObjectPrefix() & arguments.objectName
+			, relationshipKey        = "_translation_source_record"
+			, required               = false
+			, uniqueindexes          = ""
+			, indexes                = ""
+			, generator              = "none"
+			, control                = "none"
+			, adminRenderer          = "none"
+			, excludeAutoExpressions = "OneToManyMatch,OneToManyCount"
 		};
 	}
 

@@ -10,17 +10,12 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          boolean _possesses = true
 		,          string  value      = ""
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -33,18 +28,14 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		, required string  relatedViaSourceFk
 		, required string  relatedViaTargetFk
 		, required string  relationshipIsSource
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
 		,          boolean _possesses = true
 		,          string  value      = ""
 	){
-		var prefix    = Len( arguments.filterPrefix ) ? arguments.filterPrefix : ( Len( arguments.parentPropertyName ) ? arguments.parentPropertyName : arguments.objectName );
-		var hasParent = Len( arguments.parentObjectName ) && Len( arguments.parentPropertyName );
 		var paramName = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var valueFk   = arguments.relationshipIsSource ? arguments.relatedViaTargetFk : arguments.relatedViaSourceFk;
-		var keyFk     = arguments.relationshipIsSource ? arguments.relatedViaSourceFk : arguments.relatedViaTargetFk;
-		var outerPk   = hasParent ? "#arguments.parentObjectName#.#arguments.parentPropertyName#" : "#prefix#.#presideObjectService.getIdField( arguments.objectName )#";
+		var isSource  = !IsBoolean( arguments.relationshipIsSource ) || arguments.relationshipIsSource;
+		var valueFk   = isSource ? arguments.relatedViaTargetFk : arguments.relatedViaSourceFk;
+		var keyFk     = isSource ? arguments.relatedViaSourceFk : arguments.relatedViaTargetFk;
+		var outerPk   = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
 		var exists    = arguments._possesses ? "exists" : "not exists";
 		var subquery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedVia
@@ -62,11 +53,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		, required string  relatedTo
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		, required string relatedTo
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
 		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );

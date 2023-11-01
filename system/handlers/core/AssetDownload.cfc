@@ -5,11 +5,16 @@ component {
 	property name="websiteUserActionService"     inject="websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 	property name="queueMaxWaitAttempts"         inject="coldbox:setting:assetManager.queue.downloadWaitSeconds";
+	property name="publicCacheAge"               inject="coldbox:setting:assetManager.cacheExpiry.public";
+	property name="privateCacheAge"              inject="coldbox:setting:assetManager.cacheExpiry.private";
 
-	public function asset( event, rc, prc ) output=false {
+	public function asset( event, rc, prc ) {
 		announceInterception( "preDownloadAsset" );
 
-		_checkDownloadPermissions( argumentCollection=arguments );
+		var permissionSettings = _getPermissionSettings( argumentCollection=arguments );
+		if ( permissionSettings.restricted ) {
+			_checkDownloadPermissions( argumentCollection=arguments, permissionSettings=permissionSettings );
+		}
 
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
@@ -116,7 +121,7 @@ component {
 				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
 					setNextEvent(
 						  url        = assetPublicUrl
-						, statusCode = "302"
+						, statusCode = type.serveAsAttachment ? 302 : 301
 					);
 				}
 
@@ -138,7 +143,11 @@ component {
 				}
 
 				header name="etag" value=etag;
-				header name="cache-control" value="max-age=31536000";
+				if ( permissionSettings.restricted ) {
+					header name="cache-control" value="private, max-age=#privateCacheAge#";
+				} else {
+					header name="cache-control" value="public, max-age=#publicCacheAge#";
+				}
 
 				if ( IsBinary( assetFilePathOrBinary ) ) {
 					content
@@ -167,7 +176,7 @@ component {
 	}
 
 // private helpers
-	private string function _doBrowserEtagLookup( required string etag ) output=false {
+	private string function _doBrowserEtagLookup( required string etag ) {
 		if ( ( cgi.http_if_none_match ?: "" ) == arguments.etag ) {
 			announceInterception( "onReturnAsset304", { etag = arguments.etag } );
 			content reset=true;header statuscode=304 statustext="Not Modified";abort;
@@ -178,62 +187,61 @@ component {
 		return ReReplace( arguments.assetTitle, "\.#arguments.extension#$", "" ) & "." & arguments.extension;
 	}
 
-	private void function _checkDownloadPermissions( event, rc, prc ) output=false {
+	private struct function _getPermissionSettings( event, rc, prc ) {
 		var assetId        = rc.assetId       ?: "";
 		var derivativeName = rc.derivativeId  ?: "";
 
 		if ( Len( Trim( derivativeName ) ) && assetManagerService.isDerivativePubliclyAccessible( derivativeName ) ) {
-			return;
+			return { restricted=false };
 		}
 
-		var permissionSettings = assetManagerService.getAssetPermissioningSettings( assetId );
+		return assetManagerService.getAssetPermissioningSettings( assetId );
+	}
 
-		if ( !event.isAdminUser() ) {
-			if ( permissionSettings.restricted ) {
-				if ( Len( Trim( permissionSettings.conditionId ) ) ) {
-					var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( permissionSettings.conditionId );
+	private void function _checkDownloadPermissions( event, rc, prc, permissionSettings ) {
+		var assetId        = rc.assetId       ?: "";
+		var derivativeName = rc.derivativeId  ?: "";
+		var hasPerm        = false;
 
-					if ( !conditionIsTrue ) {
-						if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-							event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
-						} else {
-							event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
-						}
-					}
-					return;
-				}
-				var hasPerm = event.isAdminUser() && hasCmsPermission(
-					  permissionKey       = "assetmanager.assets.download"
-					, context             = "assetmanagerfolder"
-					, contextKeys         = permissionSettings.contextTree
-					, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
-				);
-				if ( hasPerm ) { return; }
-
-				if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-					event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
-				}
-
-				hasPerm = hasWebsitePermission(
-					  permissionKey       = "assets.access"
-					, context             = "asset"
-					, contextKeys         = permissionSettings.contextTree
-					, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
-				)
-				if ( !hasPerm ) {
-					event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
-				}
-			}
-		} else {
-
+		if ( event.isAdminUser() ) {
 			hasPerm = hasCmsPermission(
 				  permissionKey = "assetmanager.assets.download"
 				, context       = "assetmanagerfolder"
-				, contextKeys   = permissionSettings.contextTree ?: []
+				, contextKeys   = arguments.permissionSettings.contextTree ?: []
 			);
 			if ( !hasPerm ) {
 				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}
+			return;
+		}
+
+		if ( Len( Trim( arguments.permissionSettings.conditionId ) ) ) {
+			var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( arguments.permissionSettings.conditionId );
+
+			if ( conditionIsTrue ) {
+				return;
+			}
+
+			if ( !isLoggedIn() || ( arguments.permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+				event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
+			} else {
+				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+			}
+		}
+
+		if ( !isLoggedIn() || ( arguments.permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+			event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
+		}
+
+		hasPerm = hasWebsitePermission(
+			  permissionKey       = "assets.access"
+			, context             = "asset"
+			, contextKeys         = arguments.permissionSettings.contextTree
+			, forceGrantByDefault = IsBoolean( arguments.permissionSettings.grantAcessToAllLoggedInUsers ) && arguments.permissionSettings.grantAcessToAllLoggedInUsers
+		);
+
+		if ( !hasPerm ) {
+			event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 		}
 	}
 }

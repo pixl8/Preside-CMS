@@ -5,16 +5,17 @@ component hint="Interact with and report on system caches" {
 	property name="presideObjectService" inject="presideObjectService";
 
 	private function index( event, rc, prc ) {
-		var params       = jsonRpc2Plugin.getRequestParams();
-		var validOperations = [ "stats", "resetstats" ];
+		var params          = jsonRpc2Plugin.getRequestParams();
+		var validOperations = [ "stats", "resetstats", "clear" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
-		if ( !params.len() || !ArrayFindNoCase( validOperations, params[1] ) ) {
+		if ( !ArrayLen( params ) || !ArrayFindNoCase( validOperations, params[1] ) ) {
 			return Chr(10) & "[[b;white;]Usage:] cache [operation]" & Chr(10) & Chr(10)
 			               & "Valid operations:" & Chr(10) & Chr(10)
 			               & "    [[b;white;]stats]      : Displays summary statistics of the Preside caches." & Chr(10)
 			               & "    [[b;white;]resetstats] : Resets hit, miss and other agreggated statistics to zero." & Chr(10)
+			               & "    [[b;white;]clear]      : Clears the spcified cache or caches" & Chr(10)
 		}
 
 		return runEvent( event="admin.devtools.terminalCommands.cache.#params[1]#", private=true, prePostExempt=true );
@@ -23,8 +24,8 @@ component hint="Interact with and report on system caches" {
 	private function stats( event, rc, prc ) {
 		var params           = jsonRpc2Plugin.getRequestParams();
 		var full             = ( params.commandLineArgs[ 2 ] ?: "" ) == "full"
-		var cacheName        = params[ 2 ] ?: "";
-		var cachesToShow     = cacheName.listToArray( Trim( cacheName ) );
+		var cacheNames       = full ? "" : ( params.commandLineArgs[ 2 ] ?: "" );
+		var cachesToShow     = ListToArray( Trim( cacheNames ) );
 		var cacheStats       = [];
 		var statsOutput      = "";
 		var titleWidth       = 4;
@@ -35,18 +36,18 @@ component hint="Interact with and report on system caches" {
 		var performanceWidth = 17;
 		var gcsWidth         = 19;
 		var lastReapWidth    = 9;
-		var doSpecialQueryCache = !full && isFeatureEnabled( "queryCachePerObject" ) && !cacheName.listToArray( Trim( cacheName ) ).len();
+		var doSpecialQueryCache = !full && isFeatureEnabled( "queryCachePerObject" ) && !ArrayLen( cachesToShow );
 
-		if ( !cachesToShow.len() ) {
+		if ( !ArrayLen( cachesToShow ) ) {
 			cachesToShow = cachebox.getCacheNames();
 			if ( doSpecialQueryCache ) {
-				for( var i=cachesToShow.len(); i>0; i-- ) {
+				for( var i=ArrayLen( cachesToShow ); i>0; i-- ) {
 					if ( cachesToShow[ i ] == "DefaultQueryCache" || cachesToShow[ i ].reFindNoCase( "^presideQueryCache_.+" ) ) {
-						cachesToShow.deleteAt( i );
+						ArrayDeleteAt( cachesToShow, i );
 					}
 				}
 
-				cachesToShow.append( "_special_query_cache_" );
+				ArrayAppend( cachesToShow, "_special_query_cache_" );
 			}
 		}
 
@@ -55,7 +56,7 @@ component hint="Interact with and report on system caches" {
 				if ( cacheName == "_special_query_cache_" ) {
 					var cacheStat = { name="Query cache" };
 
-					cacheStat.append( presideObjectService.getCacheStats() );
+					StructAppend( cacheStat, presideObjectService.getCacheStats() );
 
 					cacheStat.objects     = NumberFormat( cacheStat.objects ) & " / " & NumberFormat( cacheStat.maxObjects );
 					cacheStat.hits        = NumberFormat( cacheStat.hits );
@@ -79,7 +80,7 @@ component hint="Interact with and report on system caches" {
 					cacheStat.lastReap    = DateTimeFormat( stats.getLastReapDateTime(), "yyyy-mm-dd HH:mm:ss" );
 				}
 
-				cacheStats.append( cacheStat );
+				ArrayAppend( cacheStats, cacheStat );
 
 				titleWidth       = cacheName.len()             > titleWidth       ? cacheName.len()             : titleWidth;
 				objectsWidth     = cacheStat.objects.len()     > objectsWidth     ? cacheStat.objects.len()     : objectsWidth;
@@ -127,16 +128,34 @@ component hint="Interact with and report on system caches" {
 
 	private function resetstats( event, rc, prc ) {
 		var params        = jsonRpc2Plugin.getRequestParams();
-		var cacheName     = params[ 2 ] ?: "";
-		var cachesToClear = cacheName.listToArray( Trim( cacheName ) );
+		var cacheNames    = params.commandLineArgs[ 2 ] ?: "";
+		var cachesToClear = ListToArray( Trim( cacheNames ) );
 
-		if ( !cachesToClear.len() ) {
+		if ( !ArrayLen( cachesToClear ) ) {
 			cachesToClear = cachebox.getCacheNames();
 		}
 
 		for( var cacheName in cachesToClear ){
 			if ( cachebox.cacheExists( cacheName ) ) {
 				cachebox.getCache( cacheName ).getStats().clearStatistics();
+			}
+		}
+
+		return runEvent( event="admin.devtools.terminalCommands.cache.stats", private=true, prePostExempt=true );
+	}
+
+	private function clear( event, rc, prc ) {
+		var params        = jsonRpc2Plugin.getRequestParams();
+		var cacheNames    = params.commandLineArgs[ 2 ] ?: "";
+		var cachesToClear = ListToArray( Trim( cacheNames ) );
+
+		if ( !ArrayLen( cachesToClear ) ) {
+			return "[[b;white;]You must specify the name of a cache to clear]" & Chr(10);
+		}
+
+		for( var cacheName in cachesToClear ){
+			if ( cachebox.cacheExists( cacheName ) ) {
+				cachebox.getCache( cacheName ).clearAll();
 			}
 		}
 

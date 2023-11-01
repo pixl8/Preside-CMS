@@ -1,8 +1,9 @@
 component {
 
 // CONSTRUCTOR
-	public any function init( required query dbInfo ) {
+	public any function init( required query dbInfo, required string dsn ) {
 		_setDbInfo( arguments.dbInfo );
+		_setDsn( arguments.dsn );
 
 		return this;
 	}
@@ -479,6 +480,10 @@ component {
 		return true;
 	}
 
+	public boolean function supportsGroupBySingleField() {
+		return false;
+	}
+
 	public boolean function autoCreatesFkIndexes(){
 		return false;
 	}
@@ -497,6 +502,13 @@ component {
 
 	public string function getCountSql( required string originalStatement ) {
 		return "select count(1) as #EscapeEntity( 'record_count' )# from ( #arguments.originalStatement# ) #EscapeEntity( 'original_statement' )#";
+	}
+
+	public string function wrapFieldInCount( required string field, required boolean distinct, required string alias  ) {
+		var fieldMinusAlias  = ReReplaceNoCase( arguments.field, "\s+as\s+.*$", "" );
+		var fieldAndDistinct = arguments.distinct ? "distinct #fieldMinusAlias#" : fieldMinusAlias;
+
+		return "count( #fieldAndDistinct# ) as #escapeEntity( arguments.alias )#";
 	}
 
 	public string function getDatabaseNameSql() {
@@ -520,5 +532,12 @@ component {
 			_dbInfo = row;
 			return;
 		}
+	}
+
+	private string function _getDsn() {
+	    return _dsn;
+	}
+	private void function _setDsn( required string dsn ) {
+	    _dsn = arguments.dsn;
 	}
 }

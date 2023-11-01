@@ -133,10 +133,13 @@ component displayName="Task Manager Service" {
 	}
 
 	public boolean function taskIsRunning( required string taskKey ) {
-		transaction {
-			var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
+		var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 
-			if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
+		if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
+			sleep( 1000 );
+			markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
+
+			if ( markedAsRunning ) {
 				var logger = _getLogger( taskKey=arguments.taskKey );
 
 				if ( logger.canError() ) {
@@ -150,9 +153,9 @@ component displayName="Task Manager Service" {
 				);
 				return false;
 			}
-
-			return markedAsRunning;
 		}
+
+		return markedAsRunning;
 	}
 
 	public boolean function taskThreadIsRunning( required string taskKey ) {
@@ -363,6 +366,7 @@ component displayName="Task Manager Service" {
 
 	public void function cleanupNoLongerRunningTasks() {
 		var localTaskThreads          = _getRunningTasks();
+		var localTaskThreadIds        = StructKeyArray( localTaskThreads );
 		var runningTasksAccordingToDb = _getTaskDao().selectData(
 			  filter = { is_running=true, running_machine=_getMachineId() }
 		);
@@ -377,7 +381,7 @@ component displayName="Task Manager Service" {
 			}
 		}
 
-		for( var threadId in localTaskThreads ) {
+		for( var threadId in localTaskThreadIds ) {
 			var markedAsRunningInDb = _getTaskDao().dataExists(
 				filter = { running_thread=threadId, is_running=true, running_machine=_getMachineId() }
 			);
@@ -443,7 +447,7 @@ component displayName="Task Manager Service" {
 		runningTasks.delete( taskRecord.running_thread ?: "", false );
 
 		var updatedRows = _getTaskDao().updateData(
-			  filter = { task_key = arguments.taskKey }
+			  filter = { task_key=arguments.taskKey, is_running=true }
 			, data   = {
 				  is_running           = false
 				, last_ran             = _getOperationDate()
@@ -474,6 +478,7 @@ component displayName="Task Manager Service" {
 			_getTaskHistoryDao().updateData(
 				  id = historyId
 				, data = { complete=true, success=arguments.success, time_taken=arguments.timeTaken }
+				, filter = { complete=false }
 			);
 		}
 	}
@@ -654,22 +659,21 @@ component displayName="Task Manager Service" {
 		);
 	}
 
-	public string function createLogHtml( required string log, numeric fetchAfterLines=0 ) {
-		var logArray = ListToArray( arguments.log, Chr(10) );
-		var outputArray = [];
+	public query function getLogLines( required string historyId, numeric fetchAfterLines=0 ) {
+		return $getPresideObject( "taskmanager_task_history_log_line" ).selectData(
+			  selectFields = [ "ts", "severity", "line" ]
+			, orderby      = "id"
+			, maxRows      = arguments.fetchAfterLines ? 1000000 : 0 // impossibly high number. Forcing startRow to work without really wanting a max rows
+			, startRow     = arguments.fetchAfterLines + 1
+			, filter       = { history=arguments.historyId }
+		);
+	}
 
-		for( var i=arguments.fetchAfterLines+1; i <= logArray.len(); i++ ){
-			var line = logArray[ i ];
-			var logClass = LCase( ReReplace( line, '^\[(.*?)\].*$', '\1' ) );
-			var dateTimeRegex = "(\[20[0-9]{2}\-[0-9]{2}\-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}\])";
-
-			line = ReReplace( line, dateTimeRegex, '<span class="task-log-datetime">\1</span>' );
-			line = '<span class="line-number">#i#.</span> <span class="task-log-line task-log-#logClass#">' & line & '</span>';
-
-			outputArray.append( line );
-		}
-
-		return outputArray.toList( Chr(10) );
+	public numeric function getLogLineCount( required string historyId ) {
+		return $getPresideObject( "taskmanager_task_history_log_line" ).selectData(
+			  recordCountOnly = true
+			, filter          = { history=arguments.historyId }
+		);
 	}
 
 	public struct function getStats() {
@@ -849,7 +853,7 @@ component displayName="Task Manager Service" {
 		return new TaskManagerLoggerWrapper(
 			  logboxLogger   = _logger
 			, taskRunId      = taskRunId
-			, taskHistoryDao = _getTaskHistoryDao()
+			, taskHistoryDao = $getPresideObject( "taskmanager_task_history_log_line" )
 		);
 	}
 	private void function _setLogger( required any logger ) {

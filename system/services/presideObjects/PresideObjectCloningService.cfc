@@ -204,14 +204,21 @@ component {
 	 * @objectName Name of the object whose list of fields you wish to get
 	 *
 	 */
-	public array function listCloneableFields( required string objectName ) {
+	public array function listCloneableFields(
+		  required string  objectName
+		,          boolean ignoreIdField = true
+	) {
 		var cloneable         = [];
 		var poService         = $getPresideObjectService();
 		var props             = poService.getObjectProperties( objectName=objectName );
 		var idField           = poService.getIdField( objectName=objectName );
 		var dateCreatedField  = poService.getDateCreatedField( objectName=objectName );
 		var dateModifiedField = poService.getDateModifiedField( objectName=objectName );
-		var ignoreFields      = [ idField, dateCreatedField, dateModifiedField ];
+		var ignoreFields      = [ dateCreatedField, dateModifiedField ];
+
+		if ( ignoreIdField ) {
+			ArrayAppend( ignoreFields, idField );
+		}
 
 		for( var propName in props ) {
 			var prop        = props[ propName ];

@@ -27,12 +27,15 @@ component {
 		var expressions                     = [];
 
 		ArrayAppend( expressions, _createRecordMatchesFilterExpression( arguments.objectName ) );
+		if ( len( $getPresideObjectService().getLabelField( arguments.objectName ) ) ) {
+			ArrayAppend( expressions, _createRecordMatchesIdExpression( arguments.objectName ) );
+		}
 
 		for( var propName in properties ) {
 			expressions.append( generateExpressionsForProperty( arguments.objectName, properties[ propName ] ), true );
 		}
-		for( var relatedObjectPath in relatedObjectsForAutoGeneration.listToArray() ) {
-			expressions.append( _createExpressionsForRelatedObjectProperties( arguments.objectName, relatedObjectPath.trim() ), true );
+		for( var relatedObjectPath in ListToArray( relatedObjectsForAutoGeneration ) ) {
+			ArrayAppend( expressions, _createExpressionsForRelatedObjectProperties( arguments.objectName, Trim( relatedObjectPath ) ), true );
 		}
 
 		return expressions;
@@ -63,6 +66,10 @@ component {
 		var expressions  = [];
 		var isFormula    = Len( Trim( propertyDefinition.formula ?: "" ) );
 		var excludedKeys = listToArray( propertyDefinition.excludeAutoExpressions ?: "" );
+
+		if ( isFormula && !Len( $getPresideObjectService().getIdField( arguments.objectName ) ) ) {
+			return [];
+		}
 
 		if ( !isRequired && !( [ "many-to-many", "one-to-many" ] ).findNoCase( relationship ) && !isFormula ) {
 			switch( propType ) {
@@ -171,11 +178,21 @@ component {
 				if ( !arrayContainsNoCase( excludedKeys, "OneToManyHas" ) ) {
 					arrayAppend( expressions, _createOneToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
+				if ( reFind( "^\_translation\_", relatedTo ) ) {
+					arrayAppend( expressions, _createOutdatedTranslationExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+					arrayAppend( expressions, _createTranslationExistsExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				}
 			break;
 		}
 
-		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) && !arrayContainsNoCase( excludedKeys, "EnumPropertyMatches" ) ) {
-			arrayAppend( expressions, _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
+		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
+			if ( isFormula ) {
+				if ( !arrayContainsNoCase( excludedKeys, "EnumFormulaPropertyMatches" ) ) {
+					arrayAppend( expressions, _createEnumFormulaMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
+				}
+			} else if ( !arrayContainsNoCase( excludedKeys, "EnumPropertyMatches" ) ) {
+				arrayAppend( expressions, _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
+			}
 		}
 
 
@@ -196,6 +213,21 @@ component {
 				  value = { fieldType="filter", object=arguments.objectName, multiple=true, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:recordMatchesFilters.value.default.label" }
 				, _does = { fieldType="boolean", variety="doesDoesNot", default=true, required=false }
 			  }
+		} );
+
+		return expression;
+	}
+
+	private struct function _createRecordMatchesIdExpression( required string objectName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName="", parentObjectName="", parentPropertyName="" );
+
+		expression.append( {
+			  id                = "presideobject_recordmatchesid_#arguments.objectName#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=objectName, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:recordMatchesId.value.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.RecordMatchesId.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.RecordMatchesId.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.RecordMatchesId.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.RecordMatchesId.getText"
 		} );
 
 		return expression;
@@ -261,6 +293,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createEnumFormulaMatchesExpression( required string objectName, required string propertyName, required string enum, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_enumFormulaMatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true }, enumValue={ fieldType="enum", enum=arguments.enum, required=false, default="", defaultLabel="rules.dynamicExpressions:enumFormulaPropertyMatches.enumValue.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.getText"
 		} );
 
 		return expression;
@@ -612,6 +659,60 @@ component {
 		return expression;
 	}
 
+	private struct function _createOutdatedTranslationExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression       = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
+		var possessesVariety = _getBooleanVariety( arguments.objectName, arguments.propertyDefinition.name, "possesses" );
+
+		expression.append( {
+			  id                = "presideobject_outdatedtranslation_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
+			, fields            = { _possesses={ fieldType="boolean", variety=possessesVariety, required=false, default=true }, value={ fieldType="object", object="multilingual_language", multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:outdatedTranslation.value.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.OutdatedTranslation.getText"
+		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
+		expression.expressionHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo           = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo             = propertyDefinition.relatedTo;
+		expression.expressionHandlerArgs.relationshipKey = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.filterHandlerArgs.relationshipKey     = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.labelHandlerArgs.relationshipKey      = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.textHandlerArgs.relationshipKey       = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+
+		return expression;
+	}
+
+	private struct function _createTranslationExistsExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression       = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
+		var possessesVariety = _getBooleanVariety( arguments.objectName, arguments.propertyDefinition.name, "possesses" );
+
+		expression.append( {
+			  id                = "presideobject_translationexists_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
+			, fields            = { _possesses={ fieldType="boolean", variety=possessesVariety, required=false, default=true }, value={ fieldType="object", object="multilingual_language", multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:TranslationExists.value.default.label" }, savedFilter={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=false, default="", defaultLabel="rules.dynamicExpressions:TranslationExists.savedFilter.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.TranslationExists.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.TranslationExists.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.TranslationExists.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.TranslationExists.getText"
+		} );
+
+		expression.fields.value.append( arguments.propertyDefinition, false );
+
+		expression.expressionHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo           = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo             = propertyDefinition.relatedTo;
+		expression.expressionHandlerArgs.relationshipKey = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.filterHandlerArgs.relationshipKey     = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.labelHandlerArgs.relationshipKey      = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.textHandlerArgs.relationshipKey       = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+
+		return expression;
+	}
+
 
 	private struct function _getCommonExpressionDefinition(
 		  required string objectName
@@ -642,33 +743,61 @@ component {
 		};
 	}
 
+	/**
+	 * In addition to auto expressions being generated per property on an object,
+	 * developers can specify additional relationship properties + property *chains*
+	 * to have a related object's auto generated rules also applied to the source
+	 * object. This logic deals with creating those
+	 */
 	private array function _createExpressionsForRelatedObjectProperties(
 		  required string objectName
-		, required string propertyName
+		, required string relatedObjectPath
 	) {
-		var poService          = $getPresideObjectService();
-		var propertyChain      = arguments.propertyName.listToArray( "." );
-		var currentObjectName  = arguments.objectName;
-		var parentPropertyName = arguments.propertyName.listChangeDelims( "$", "." );
-		var expressions        = [];
+		var poService              = $getPresideObjectService();
+		var currentObjectName      = arguments.objectName;
+		var parentPropertyName     = ListChangeDelims( arguments.relatedObjectPath, "$", "." );
+		var supportedRelationships = [ "many-to-one", "many-to-many", "one-to-many" ];
+		var relationshipHelpers    = [];
+		var expressions            = [];
 
-		for( var propName in propertyChain ) {
-			var prop = poService.getObjectProperty( currentObjectName, propName );
+		for( var propName in ListToArray( arguments.relatedObjectPath, "." ) ) {
+			var prop    = poService.getObjectProperty( currentObjectName, propName );
+			var isValid = Len( prop.relatedTo ?: "" ) && ArrayFindNoCase( supportedRelationships, prop.relationship ?: "" );
 
-			currentObjectName = prop.relatedto ?: "";
+			if ( !isValid ) {
+				return [];
+			}
+
+			ArrayAppend( relationshipHelpers,  _prepareRelatedObjectRelationshipHelpers(
+				  objectName         = prop.relatedTo
+				, parentObjectName   = currentObjectName
+				, parentPropertyName = propName
+				, parentProperty     = prop
+			) );
+
+			currentObjectName = prop.relatedto;
 		}
 
-		if ( currentObjectName.len() ) {
-			var properties = $getPresideObjectService().getObjectProperties( currentObjectName );
+		var properties = $getPresideObjectService().getObjectProperties( currentObjectName );
+		for( var propName in properties ) {
+			ArrayAppend( expressions, generateExpressionsForProperty(
+				  objectName         = currentObjectName
+				, propertyDefinition = properties[ propName ]
+				, parentObjectName   = arguments.objectName
+				, parentPropertyName = parentPropertyName
+			), true );
+		}
 
-			for( var propName in properties ) {
-				expressions.append( generateExpressionsForProperty(
-					  objectName         = currentObjectName
-					, propertyDefinition = properties[ propName ]
-					, parentObjectName   = objectName
-					, parentPropertyName = parentPropertyName
-				), true );
-			}
+		// wrap expressions using a handler designed for related property filtering
+		for( var expression in expressions ) {
+			expression.expressionHandlerArgs.originalFilterHandler = expression.filterHandler;
+			expression.expressionHandlerArgs.relationshipHelpers   = relationshipHelpers;
+
+			expression.filterHandlerArgs.originalFilterHandler = expression.filterHandler;
+			expression.filterHandlerArgs.relationshipHelpers   = relationshipHelpers;
+
+			expression.expressionHandler = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.evaluateExpression";
+			expression.filterHandler     = "rules.dynamic.presideObjectExpressions._relatedObjectExpressions.prepareFilters";
 		}
 
 		return expressions;
@@ -691,6 +820,71 @@ component {
 		}
 
 		return defaultVariety;
+	}
+
+	private struct function _prepareRelatedObjectRelationshipHelpers(
+		  required string objectName
+		, required string parentObjectName
+		, required string parentPropertyName
+		, required struct parentProperty
+	) {
+		var helpers = {
+			  objectName = arguments.objectName
+		};
+		switch( arguments.parentProperty.relationship ) {
+			case "many-to-one":
+				helpers.filterArgs = _getOuterJoinForManyToOne( argumentCollection=arguments );
+			break;
+
+			case "one-to-many":
+				helpers.filterArgs = _getOuterJoinForOneToMany( argumentCollection=arguments );
+			break;
+
+			case "many-to-many":
+				helpers.filterArgs = _getFilterJoinsForManyToMany( argumentCollection=arguments );
+			break;
+		}
+
+		return helpers;
+	}
+
+
+	private struct function _getOuterJoinForManyToOne() {
+		var idField    = $getPresideObjectService().getIdField( arguments.objectName );
+		var innerField = "#arguments.objectName#.#idField#";
+		var outerField = "#arguments.parentObjectName#.#arguments.parentPropertyName#";
+
+		return { filter = $helpers.obfuscateSqlForPreside( "#innerField# = #outerField#" ) };
+	}
+
+	private struct function _getOuterJoinForOneToMany() {
+		var relationshipKey = $getPresideObjectService().getObjectPropertyAttribute( objectName=arguments.parentObjectName, propertyName=arguments.parentPropertyName, attributeName="relationshipKey", defaultValue=arguments.parentObjectName );
+		var idField = $getPresideObjectService().getIdField( arguments.parentObjectName );
+		var innerField = "#arguments.objectName#.#relationshipKey#";
+		var outerField = "#arguments.parentObjectName#.#idField#";
+
+		return { filter = $helpers.obfuscateSqlForPreside( "#innerField# = #outerField#" ) };
+	}
+
+	private struct function _getFilterJoinsForManyToMany() {
+		var idField    = $getPresideObjectService().getIdField( arguments.parentObjectName );
+		var outerField = "#arguments.parentObjectName#.#idField#";
+
+		var prop       = $getPresideObjectService().getObjectProperty( objectName=arguments.parentObjectName, propertyName=arguments.parentPropertyName );
+		var relatedVia = prop.relatedVia           ?: "";
+		var outerFk    = "";
+
+		if ( $helpers.isTrue( prop.relationshipIsSource ?: true ) ) {
+			outerFk = prop.relatedViaSourceFk ?: arguments.parentObjectName;
+		} else {
+			outerFk = prop.relatedViaTargetFk ?: arguments.parentObjectName;
+		}
+		var innerField = "#relatedVia#.#outerFk#"
+
+		return {
+			  filter     = "#innerField# = #$helpers.obfuscateSqlForPreside( outerField )#"
+			, forceJoins = "inner"
+		};
 	}
 
 

@@ -13,25 +13,48 @@ component extends="coldbox.system.logging.AbstractAppender" {
 
 // PUBLIC API METHODS
 	public void function logMessage( required any logEvent ) output=false {
-		var e              = arguments.logEvent;
-		var extraInfo      = e.getExtraInfo();
-		var taskRunId      = extraInfo.taskRunId      ?: "";
-		var taskHistoryDao = extraInfo.taskHistoryDao ?: "";
+		var extraInfo = arguments.logEvent.getExtraInfo();
+		var taskRunId = extraInfo.taskRunId ?: "";
 
-		if ( Len( Trim( taskRunId ) ) && IsObject( taskHistoryDao ) ) {
-			var adapter   = taskHistoryDao.getDbAdapter();
-			var tableName = adapter.escapeEntity( taskHistoryDao.getTableName() );
-			var colName   = adapter.escapeEntity( "log" );
-			var idCol     = adapter.escapeEntity( "id" );
-			var message   = "[#super.severityToString( e.getSeverity() )#] [#DateFormat( e.getTimeStamp(), 'yyyy-mm-dd' )# #TimeFormat( e.getTimeStamp(), 'HH:mm:ss' )#]: #e.getMessage()#" & Chr(10);
-			var sql       = "update #tableName# set #colName# = #adapter.getConcatenationSql( "coalesce( #colName#, '' )", ':log' )# where #idCol# = :id";
-			var q         = new Query();
-
-			q.setDatasource( taskHistoryDao.getDsn() );
-			q.addParam( name="log", value=message  , cfsqltype="cf_sql_varchar" );
-			q.addParam( name="id" , value=taskRunId, cfsqltype="cf_sql_varchar" );
-			q.setSQL( sql );
-			q.execute();
+		if ( !Len( Trim( taskRunId ) ) || !_setup( extraInfo ) ) {
+			return;
 		}
+
+		var q = new Query();
+		q.setDatasource( variables._logInfo.dsn );
+		q.setSQL( variables._logInfo.sql );
+		q.addParam( name="history" , value=taskRunId                               , cfsqltype="cf_sql_varchar" );
+		q.addParam( name="ts"      , value=_ts( arguments.logEvent.getTimestamp() ), cfsqltype="cf_sql_bigint"  );
+		q.addParam( name="severity", value=arguments.logEvent.getSeverity()        , cfsqltype="cf_sql_int"     );
+		q.addParam( name="line"    , value=arguments.logEvent.getMessage()         , cfsqltype="cf_sql_varchar" );
+		q.execute();
+	}
+
+// private helpers
+	private function _setup( extraInfo ) {
+		if ( !StructKeyExists( variables, "_logInfo" ) ) {
+			if ( !StructKeyExists( arguments.extraInfo, "taskHistoryDao" ) ) {
+				return false;
+			}
+
+			var taskHistoryDao = arguments.extraInfo.taskHistoryDao ?: "";
+			var adapter        = taskHistoryDao.getDbAdapter();
+			var tableName      = adapter.escapeEntity( taskHistoryDao.getTableName() );
+			var historyCol     = adapter.escapeEntity( "history" );
+			var tsCol          = adapter.escapeEntity( "ts" );
+			var severityCol    = adapter.escapeEntity( "severity" );
+			var lineCol        = adapter.escapeEntity( "line" );
+
+			variables._logInfo = {
+				  sql       = "insert into #tableName# ( #historyCol#, #tsCol#, #severityCol#, #lineCol# ) values ( :history, :ts, :severity, :line )"
+				, dsn       = taskHistoryDao.getDsn()
+			};
+		}
+
+		return true;
+	}
+
+	private function _ts( datetime ) {
+		return DateDiff( 's', '1970-01-01 00:00:00', arguments.datetime );
 	}
 }

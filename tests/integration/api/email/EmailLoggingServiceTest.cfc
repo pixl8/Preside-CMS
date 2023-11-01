@@ -6,22 +6,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var dummyId = CreateUUId();
 				var args    = {
-					  template      = "sometemplate"
-					, recipientType = "blah"
-					, recipientId   = CreateUUId()
-					, recipient     = CreateUUId() & "@test.com"
-					, sender        = CreateUUId() & "@test.com"
-					, subject       = "Some subject " & CreateUUId()
-					, sendArgs      = { blah=CreateUUId() }
+					  template       = "sometemplate"
+					, recipientType  = "blah"
+					, recipientId    = CreateUUId()
+					, recipient      = CreateUUId() & "@test.com"
+					, sender         = CreateUUId() & "@test.com"
+					, subject        = "Some subject " & CreateUUId()
+					, sendArgs       = { blah=CreateUUId() }
+					, layoutOverride = ""
+					, customLayout   = ""
 				};
 
 				mockLogDao.$( "insertData" ).$args( {
-					  email_template = args.template
-					, recipient      = args.recipient
-					, sender         = args.sender
-					, subject        = args.subject
-					, resend_of      = ""
-					, send_args      = Serializejson( args.sendArgs )
+					  email_template  = args.template
+					, recipient       = args.recipient
+					, sender          = args.sender
+					, subject         = args.subject
+					, resend_of       = ""
+					, send_args       = Serializejson( args.sendArgs )
+					, layout_override = ""
+					, custom_layout   = ""
 				}).$results( dummyId );
 
 				expect( service.createEmailLog( argumentCollection=args ) ).toBe( dummyId );
@@ -32,25 +36,29 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dummyId   = CreateUUId();
 				var dummyFkId = CreateUUId();
 				var args      = {
-					  template      = "sometemplate"
-					, recipientId   = dummyFkId
-					, recipientType = "sometype"
-					, recipient     = CreateUUId() & "@test.com"
-					, sender        = CreateUUId() & "@test.com"
-					, subject       = "Some subject " & CreateUUId()
-					, sendArgs      = { test=CreateUUId() }
+					  template       = "sometemplate"
+					, recipientId    = dummyFkId
+					, recipientType  = "sometype"
+					, recipient      = CreateUUId() & "@test.com"
+					, sender         = CreateUUId() & "@test.com"
+					, subject        = "Some subject " & CreateUUId()
+					, sendArgs       = { test=CreateUUId() }
+					, layoutOverride = ""
+					, customLayout   = ""
 				};
 
 				mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType" ).$args( args.recipientType ).$results( "dummyFk" );
 
 				mockLogDao.$( "insertData" ).$args( {
-					  email_template = args.template
-					, recipient      = args.recipient
-					, sender         = args.sender
-					, subject        = args.subject
-					, resend_of      = ""
-					, dummyFk        = dummyFkId
-					, send_args      = Serializejson( args.sendArgs )
+					  email_template  = args.template
+					, recipient       = args.recipient
+					, sender          = args.sender
+					, subject         = args.subject
+					, resend_of       = ""
+					, dummyFk         = dummyFkId
+					, send_args       = Serializejson( args.sendArgs )
+					, layout_override = ""
+					, custom_layout   = ""
 				}).$results( dummyId );
 
 				expect( service.createEmailLog( argumentCollection=args ) ).toBe( dummyId );
@@ -150,13 +158,15 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		describe( "markAsSent()", function(){
 			it( "should update the log record by setting sent = true + sent_date to now(ish) and record an activity", function(){
-				var service = _getService();
-				var logId   = CreateUUId();
+				var service    = _getService();
+				var logId      = CreateUUID();
+				var templateId = CreateUUID();
 
 				mockLogDao.$( "updateData", 1 );
 				service.$( "recordActivity" );
+				mockEmailTemplateService.$( "updateLastSentDate" ).$args( templateId=templateId, lastSentDate=nowish ).$results( 1 );
 
-				service.markAsSent( logId );
+				service.markAsSent( logId, templateId );
 
 				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
@@ -575,6 +585,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		mockEmailTemplateService = createEmptyMock( "preside.system.services.email.EmailTemplateService" );
 		mockLogDao               = CreateStub();
 		mockLogActivityDao       = CreateStub();
+		mockHelpers              = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
 			  recipientTypeService = mockRecipientTypeService
@@ -592,6 +603,11 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 
 		nowish  = Now();
 		service.$( "_getNow", nowish );
+
+		service.$property( propertyName="$helpers", mock=mockHelpers );
+		mockHelpers.$( method="isEmptyString", callback=function( val ){
+			return !Len( Trim( arguments.val ) ) ;
+		} );
 
 		return service;
 	}

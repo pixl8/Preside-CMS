@@ -5,21 +5,17 @@
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 
-	property name="presideObjectService" inject="presideObjectService";
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="rulesEngineFilterService" inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          boolean _is = true
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -27,27 +23,23 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
 		,          boolean _is = true
 	){
-		var paramName           = "booleanFormulaPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
-		var prefix              = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-		var formulaPropertyName = "#prefix#.#propertyName#";
+		var paramName = "booleanFormulaPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
 
-		return [ {
-			  having       = "#formulaPropertyName# = :#paramName#"
-			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
-			, propertyName = formulaPropertyName
-		} ];
+		return [ rulesEngineFilterService.prepareAutoFormulaFilter(
+			  objectName   = arguments.objectName
+			, propertyName = arguments.propertyName
+			, filter       = "#arguments.propertyName# = :#paramName#"
+			, filterParams = { "#paramName#" ={ type="cf_sql_boolean", value=arguments._is }}
+		) ];
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 

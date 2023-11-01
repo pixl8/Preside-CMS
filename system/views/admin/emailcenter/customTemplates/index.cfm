@@ -1,6 +1,6 @@
 <cfscript>
 	objectName          = "email_template"
-	gridFields          = [ "name", "sending_method", "send_date" ];
+	gridFields          = [ "name", "sending_method", "send_date", "last_sent_date", "datemodified" ];
 	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
 	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
@@ -21,11 +21,11 @@
 	</div>
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
-		  objectName          = objectName
-		, useMultiActions     = canDelete
-		, datasourceUrl       = event.buildAdminLink( linkTo="emailCenter.customTemplates.getRecordsForAjaxDataTables" )
-		, multiActionUrl      = event.buildAdminLink( linkTo='emailCenter.customTemplates.deleteAction' )
-		, gridFields          = gridFields
-		, draftsEnabled       = true
+		  objectName      = objectName
+		, useMultiActions = canDelete
+		, datasourceUrl   = event.buildAdminLink( linkTo="emailCenter.customTemplates.getRecordsForAjaxDataTables" )
+		, multiActionUrl  = event.buildAdminLink( linkTo='emailCenter.customTemplates.deleteAction' )
+		, gridFields      = gridFields
+		, draftsEnabled   = false
 	} )#
 </cfoutput>

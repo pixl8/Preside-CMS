@@ -26,10 +26,7 @@ component {
 	 * @objects website_user
 	 *
 	 */
-	private array function prepareFilters(
-		  string parentPropertyName = ""
-		, string filterPrefix       = ""
-	){
+	private array function prepareFilters(){
 		var paramSuffix = CreateUUId().lCase().replace( "-", "", "all" );
 		var params      = {
 			"bounced#paramSuffix#" = { type="cf_sql_boolean", value=true }
@@ -49,7 +46,7 @@ component {
 			, subQuery       = subQuery.sql
 			, subQueryAlias  = subQueryAlias
 			, subQueryColumn = "id"
-			, joinToTable    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : "website_user" )
+			, joinToTable    = "website_user"
 			, joinToColumn   = "id"
 		} ] } ];
 	}

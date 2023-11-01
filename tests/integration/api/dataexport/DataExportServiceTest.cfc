@@ -276,6 +276,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockCustomizationService = createEmptyMock( "preside.system.services.admin.DataManagerCustomizationService" );
 		mockCustomizationService.$( "runCustomization" );
 
+		mockScheduledExportService = createEmptyMock( "preside.system.services.dataExport.ScheduledExportService" );
+		mockScheduledExportService.$( "saveNumberOfRecordsToHistoryExport" );
+
 		mockPresideObjectService = createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockColdbox              = createStub();
 
@@ -283,6 +286,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			    dataExporterReader              = mockDataExporterReader
 			  , dataManagerCustomizationService = mockCustomizationService
 			  , dataExportTemplateService       = mockDataExportTemplateService
+			  , scheduledExportService          = mockScheduledExportService
 		) );
 
 		service.$( "$getPresideObjectService", mockPresideObjectService );

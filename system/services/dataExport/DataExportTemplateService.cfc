@@ -79,6 +79,7 @@ component {
 	public string function renderSaveExportForm(
 		  required string templateId
 		, required string objectName
+		,          boolean hasFilter = false
 	) {
 		arguments.templateId = _getValidTemplateId( arguments.templateId );
 
@@ -86,6 +87,12 @@ component {
 		var allowedExporters      = getAllowedExporters( argumentCollection=arguments );
 		var defaultExporter       = getDefaultExporter( argumentCollection=arguments, allowedExporters=allowedExporters );
 		var defaultExportFilename = _getDefaultFileName( argumentCollection=arguments );
+
+		if ( $helpers.IsTrue( arguments.hasFilter ?: "" ) ) {
+			var mergeWithFilterForm = "dataExport.saveExportConfiguration.filter";
+			formName = _getFormsService().getMergedFormName( formName, mergeWithFilterForm );
+		}
+
 		var renderFormArgs        = {
 			  formName       = formName
 			, context        = "admin"

@@ -1,10 +1,11 @@
 <cfparam name="args.body"                              default="" />
 <cfparam name="args.tab"                               default="preview" />
-<cfparam name="args.canEdit" type="boolean"            default="false" />
+<cfparam name="args.canEdit"            type="boolean" default="false" />
 <cfparam name="args.canConfigureLayout" type="boolean" default="false" />
+<cfparam name="args.allowVariants"      type="boolean" default="false" />
 
 <cfscript>
-	templateId = rc.template ?: "";
+	templateId = rc.id ?: ( rc.template ?: "" );
 	version    = rc.version  ?: "";
 	tabs       = [];
 
@@ -33,6 +34,16 @@
 			, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.layout" )
 			, active = ( args.tab == "layout" )
 			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.configurelayout", queryString="template=" & templateId )
+		});
+	}
+
+	if ( args.allowVariants ) {
+		tabs.append({
+			  id     = "variants"
+			, icon   = "fa-code-branch blue"
+			, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.variants" )
+			, active = ( args.tab == "variants" )
+			, link   = ( args.tab == "variants" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.variants", queryString="template=" & templateId )
 		});
 	}
 

@@ -26,6 +26,8 @@ component displayName="Preside Object Service" {
 	 * @interceptorService.inject     coldbox:InterceptorService
 	 * @reloadDb.inject               coldbox:setting:syncDb
 	 * @throwOnLongTableName.inject   coldbox:setting:throwOnLongTableName
+	 * @defaultQueryTimeout.inject    coldbox:setting:queryTimeout.default
+	 * @defaultBgQueryTimeout.inject  coldbox:setting:queryTimeout.backgroundThreadDefault
 	 */
 	public any function init(
 		  required array   objectDirectories
@@ -41,8 +43,10 @@ component displayName="Preside Object Service" {
 		, required any     selectDataViewService
 		, required any     defaultQueryCache
 		, required any     interceptorService
-		,          boolean reloadDb = true
-		,          boolean throwOnLongTableName = false
+		,          boolean reloadDb              = true
+		,          boolean throwOnLongTableName  = false
+		,          numeric defaultQueryTimeout   = 0
+		,          numeric defaultBgQueryTimeout = 0
 	) {
 		_setObjectDirectories( arguments.objectDirectories );
 		_setObjectReader( arguments.objectReader );
@@ -59,6 +63,8 @@ component displayName="Preside Object Service" {
 		_setInterceptorService( arguments.interceptorService );
 		_setThrowOnLongTableName( arguments.throwOnLongTableName );
 		_setInstanceId( CreateObject('java','java.lang.System').identityHashCode( this ) );
+		_setDefaultQueryTimeout( arguments.defaultQueryTimeout   );
+		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
 
 		_loadObjects();
 
@@ -161,6 +167,9 @@ component displayName="Preside Object Service" {
 	 * @distinct.hint                Whether or not the record set should be a 'distinct' select
 	 * @tenantIds.hint               Struct of tenant IDs. Keys of the struct indicate the tenant, values indicate the ID. e.g. `{ site=specificSiteId }`. These values will override the current active tenant for the request.
 	 * @bypassTenants.hint           Array of tenants to bypass. e.g. [ "site" ] to bypass site tenancy. See [[data-tenancy]] for more information on tenancy.
+	 * @returntype.hint              Either query (default),array,struct,arrayOfValues,singleRecordStruct or singleValue. Array and struct correspond to https://docs.lucee.org/reference/tags/query.html#attribute-returntype. ArrayOfValues return column array of the specified column in columnKey. SingleRecordStruct returns the first record in the result as a struct. SingleValue returns first result value of the specified column.
+	 * @columnKey.hint               When returntype="struct", "arrayOfValues" or "singleValue", this field is required to define the column that will be used for struct keys/values/value
+	 * @timeout.hint                 Timeout, in seconds, of the main select DB query
 	 * @selectFields.docdefault      []
 	 * @filter.docdefault            {}
 	 * @filterParams.docdefault      {}
@@ -199,8 +208,11 @@ component displayName="Preside Object Service" {
 		,          struct  tenantIds               = {}
 		,          array   bypassTenants           = []
 		,          array   ignoreDefaultFilters    = []
+		,          string  returntype              = "query"
+		,          string  columnKey               = ""
+		,          numeric timeout                 = _getDefaultTimeout()
 	) autodoc=true {
-		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) ) );
+		var args = _addDefaultFilters( _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) ) );
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
@@ -228,9 +240,25 @@ component displayName="Preside Object Service" {
 
 		var objMeta = _getObject( args.objectName ).meta;
 		var adapter = _getAdapter( objMeta.dsn );
+		var sqlRunnerReturnType = "recordset";
+
+		if ( !arguments.recordCountOnly ) {
+			if ( arguments.returnType == "array" || arguments.returnType == "struct" ) {
+				sqlRunnerReturnType = arguments.returnType;
+			} else if ( arguments.returnType == "singleRecordStruct" ) {
+				args.maxRows = 1;
+				sqlRunnerReturnType = "array";
+			}
+		}
 
 		args.selectFields   = expandHavingClauses( argumentCollection=args );
 		args.selectFields   = parseSelectFields( argumentCollection=args );
+		if ( args.recordCountOnly ) {
+			args.selectFields = simplifySelectFieldsForRecordCount( argumentCollection=args );
+		}
+
+		_prepareAggregateFormulaFields( args );
+
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
 			, adapter            = adapter
@@ -239,10 +267,10 @@ component displayName="Preside Object Service" {
 
 		args.adapter     = adapter;
 		args.objMeta     = objMeta;
-		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter );
+		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter, args.filterParams, args.extraJoins );
 		args.groupBy     = _autoPrefixBareProperty( args.objectName, args.groupBy, args.adapter );
 		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
-			args.groupBy = _autoCalculateGroupBy( args.selectFields );
+			args.groupBy = _autoCalculateGroupBy( args.selectFields, args.objectName, args.adapter );
 		}
 
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
@@ -265,9 +293,12 @@ component displayName="Preside Object Service" {
 				);
 			} else {
 				args.result = _runSql(
-					  sql    = versionTablePrep.sql
-					, dsn    = versionTablePrep.dsn
-					, params = versionTablePrep.params
+					  sql        = versionTablePrep.sql
+					, dsn        = versionTablePrep.dsn
+					, params     = versionTablePrep.params
+					, returntype = sqlRunnerReturnType
+					, columnKey  = args.columnKey
+					, timeout    = args.timeout
 				);
 
 				if ( arguments.recordCountOnly ) {
@@ -275,6 +306,15 @@ component displayName="Preside Object Service" {
 				}
 			}
 		} else {
+			var convertedJoins = _convertObjectJoinsToTableJoins( argumentCollection=args );
+			var simpleRecordCount = false;
+			if ( arguments.recordCountOnly && ArrayLen( args.selectFields ) == 1 && !ArrayLen( convertedJoins ) && _canFieldBeCounted( args.selectFields[ 1 ] ) ) {
+				simpleRecordCount = true;
+
+				args.selectFields[ 1 ] = args.adapter.wrapFieldInCount( field=args.selectFields[ 1 ], distinct=args.distinct, alias="record_count" );
+				args.distinct = false;
+			}
+
 			var sql = args.adapter.getSelectSql(
 				  argumentCollection = args
 				, tableName          = args.objMeta.tableName
@@ -282,11 +322,11 @@ component displayName="Preside Object Service" {
 				, selectColumns      = args.selectFields
 				, filter             = args.preparedFilter.filter
 				, having             = args.preparedFilter.having
-				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
+				, joins              = convertedJoins
 				, distinct           = args.distinct
 			);
 
-			if ( arguments.recordCountOnly ) {
+			if ( arguments.recordCountOnly && !simpleRecordCount ) {
 				sql = args.adapter.getCountSql( sql );
 			}
 			if ( arguments.getSqlAndParamsOnly ) {
@@ -296,9 +336,28 @@ component displayName="Preside Object Service" {
 					, prefix = arguments.sqlAndParamsPrefix
 				);
 			}
-			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
+			args.result = _runSql(
+				  sql        = sql
+				, dsn        = args.objMeta.dsn
+				, params     = args.preparedFilter.params
+				, returntype = sqlRunnerReturnType
+				, columnKey  = args.columnKey
+				, timeout    = args.timeout
+			);
 			if ( arguments.recordCountOnly ) {
 				args.result = Val( args.result.record_count ?: "" );
+			}
+		}
+
+		if ( arguments.returnType == "arrayOfValues" && IsQuery( args.result ) ) {
+			args.result = QueryColumnData( args.result, arguments.columnKey );
+		} else if ( arguments.returnType == "singleValue" && IsQuery( args.result ) ) {
+			args.result = args.result[ arguments.columnKey ][ 1 ] ?: "";
+		} else if ( arguments.returnType == "singleRecordStruct" ) {
+			if ( IsArray( args.result ) && ArrayLen( args.result ) >= 1 ) {
+				args.result = args.result[ 1 ];
+			} else {
+				args.result = {};
 			}
 		}
 
@@ -439,6 +498,7 @@ component displayName="Preside Object Service" {
 	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
 	 * @bypassTenants.hint           Array of tenants to ignore (i.e. when the insert data wants to create a record in an alternative tenant to the current one)
 	 * @clearCaches.hint             Whether or not to clear caches related to the object whose record you are creating
+	 * @timeout.hint                 Timeout, in seconds, of the main insert DB query
 	 * @useVersioning.docdefault     automatic
 	 * @clearCaches.docdefault       Defaults to whether query caching is enabled or not for this object
 	 */
@@ -451,6 +511,7 @@ component displayName="Preside Object Service" {
 		,          numeric versionNumber           = 0
 		,          array   bypassTenants           = []
 		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
+		,          numeric timeout                 = _getDefaultTimeout()
 
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preInsertObjectData", arguments );
@@ -459,7 +520,7 @@ component displayName="Preside Object Service" {
 			return interceptorResult.returnValue ?: "";
 		}
 
-		var args               = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
+		var args               = _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) );
 		var obj                = _getObject( args.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var dateCreatedField   = getDateCreatedField( args.objectName );
@@ -529,7 +590,7 @@ component displayName="Preside Object Service" {
 				, dbAdapter         = adapter
 			);
 
-			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType() );
+			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType(), timeout=args.timeout );
 
 			if ( adapter.requiresManualCommitForTransactions() ){
 				_runSql( sql='commit', dsn=obj.dsn );
@@ -601,6 +662,7 @@ component displayName="Preside Object Service" {
 	 * @selectDataArgs.hint    Struct of arguments that are valid to pass to the [[presideobjectservice-selectdata]] method
 	 * @fieldList.hint         Array of table field names that the select fields in the select statement should map to for the insert
 	 * @clearCaches.hint       Whether or not to clear caches related to the object whose record you are creating
+	 * @timeout.hint           Timeout, in seconds, of the insert query
 	 * @clearCaches.docdefault Defaults to whether query caching is enabled or not for this object
 	 */
 	public numeric function insertDataFromSelect(
@@ -608,6 +670,7 @@ component displayName="Preside Object Service" {
 		, required struct  selectDataArgs
 		, required array   fieldList
 		,          boolean clearCaches = _objectUsesCaching( arguments.objectName )
+		,          numeric timeout     = _getDefaultTimeout()
 	) {
 		var obj       = _getObject( arguments.objectName ).meta;
 		var adapter   = _getAdapter( obj.dsn );
@@ -623,6 +686,7 @@ component displayName="Preside Object Service" {
 			, dsn        = obj.dsn
 			, params     = selectSql.params
 			, returnType = "info"
+			, timeout    = arguments.timeout
 		);
 
 		if ( arguments.clearCaches ) {
@@ -680,6 +744,7 @@ component displayName="Preside Object Service" {
 	 * @versionNumber.hint              If using versioning, specify a version number to save against (if none specified, one will be created automatically)
 	 * @setDateModified.hint            If true (default), updateData will automatically set the datelastmodified date on your record to the current date/time
 	 * @clearCaches.hint                Whether or not to clear caches related to the object whose record you are updating
+	 * @timeout.hint                    Timeout, in seconds, of the main update DB query
 	 * @useVersioning.docdefault        auto
 	 * @clearCaches.docdefault          Defaults to whether query caching is enabled or not for this object
 	 * @calculateChangedData.docdefault If true (default false), updateData will calculate the changed data even if requiresVersioning is false
@@ -703,6 +768,7 @@ component displayName="Preside Object Service" {
 		,          boolean clearCaches             = _objectUsesCaching( arguments.objectName )
 		,          boolean calculateChangedData    = false
 		,          struct  changedData             = {}
+		,          numeric timeout                 = _getDefaultTimeout()
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -733,6 +799,7 @@ component displayName="Preside Object Service" {
 				StructDelete( cleanedData, key );
 			}
 		}
+
 		StructAppend( cleanedData, _addGeneratedValues(
 			  operation  = "update"
 			, objectName = arguments.objectName
@@ -767,7 +834,7 @@ component displayName="Preside Object Service" {
 			arguments.oldData = selectData(
 				  argumentCollection = arguments
 				, allowDraftVersions = true
-				, fromVersionTable   = arguments.isDraft
+				, fromVersionTable   = arguments.isDraft || arguments.forceVersionCreation
 			);
 			if ( !arguments.oldData.recordCount && arguments.isDraft ) {
 				arguments.oldData = selectData(
@@ -813,7 +880,7 @@ component displayName="Preside Object Service" {
 						arguments.changedData[ record[ idField ] ] = {};
 					}
 					for( var field in changedFields ) {
-						arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+						arguments.changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: ( manyToManyData[ field ] ?: "" );
 					}
 				}
 			}
@@ -871,13 +938,13 @@ component displayName="Preside Object Service" {
 
 		if ( structCount( cleanedData ) ) {
 			sql = adapter.getUpdateSql(
-				tableName     = obj.tableName
+				  tableName     = obj.tableName
 				, tableAlias    = arguments.objectName
 				, updateColumns = StructKeyArray( cleanedData )
 				, filter        = preparedFilter.filter
 				, joins         = joins
 			);
-			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info", timeout=arguments.timeout );
 		}
 		var updatedRecordCount = Val( result.recordCount ?: 0 );
 
@@ -992,6 +1059,7 @@ component displayName="Preside Object Service" {
 	 * @extraFilters.hint      An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @forceDeleteAll.hint    If no id or filter supplied, this must be set to **true** in order for the delete to process
  	 * @clearCaches.hint       Whether or not to clear caches related to the object whose record you are deleting
+ 	 * @timeout.hint           Timeout, in seconds, of the main delete DB query
 	 * @clearCaches.docdefault Defaults to whether query caching is enabled or not for this object
 	 */
 	public numeric function deleteData(
@@ -1005,6 +1073,7 @@ component displayName="Preside Object Service" {
 		,          string  forceJoins       = ""
 		,          boolean fromVersionTable = false
 		,          boolean clearCaches      = _objectUsesCaching( arguments.objectName )
+		,          numeric timeout          = _getDefaultTimeout()
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preDeleteObjectData", arguments );
 
@@ -1012,7 +1081,7 @@ component displayName="Preside Object Service" {
 			return Val( interceptorResult.returnValue ?: 0 );
 		}
 
-		var args           = _cleanupPropertyAliases( argumentCollection=Duplicate( arguments ) );
+		var args           = _cleanupPropertyAliases( argumentCollection=_deepishDuplicate( arguments ) );
 		var obj            = _getObject( args.objectName ).meta;
 		var adapter        = _getAdapter( obj.dsn );
 		var sql            = "";
@@ -1043,7 +1112,7 @@ component displayName="Preside Object Service" {
 			, joins      = _convertObjectJoinsToTableJoins( argumentCollection=args )
 		);
 
-		result = _runSql( sql=sql, dsn=obj.dsn, params=args.preparedFilter.params, returnType="info" );
+		result = _runSql( sql=sql, dsn=obj.dsn, params=args.preparedFilter.params, returnType="info", timeout=args.timeout );
 
 		if ( arguments.clearCaches && Val( result.recordCount ?: 0 ) ) {
 			clearRelatedCaches(
@@ -1110,7 +1179,7 @@ component displayName="Preside Object Service" {
 	 * @selectFields.hint Array of fields to select
 	 * @orderBy.hint      Plain SQL order by statement
 	 */
-	public query function selectManyToManyData(
+	public any function selectManyToManyData(
 		  required string  objectName
 		, required string  propertyName
 		,          array   selectFields = []
@@ -1125,7 +1194,7 @@ component displayName="Preside Object Service" {
 
 		var relatedTo      = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedTo", "" );
 		var obj            = _getObject( relatedTo );
-		var selectDataArgs = Duplicate( arguments );
+		var selectDataArgs = _deepishDuplicate( arguments );
 
 		StructDelete( selectDataArgs, "propertyName" );
 		selectDataArgs.forceJoins = "inner"; // many-to-many joins are not required so "left" by default. Here we absolutely want inner joins.
@@ -1761,6 +1830,30 @@ component displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Get the datasource for the given object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose DSN you wish to get
+	 */
+	public string function getDsn( required string objectName ) {
+		var obj = _getObject( arguments.objectName );
+
+		return obj.meta.dsn ?: "";
+	}
+
+	/**
+	 * Get the table name for the given object
+	 *
+	 * @autodoc    true
+	 * @objectName Name of the object whose table name you wish to get
+	 */
+	public string function getTablename( required string objectName ) {
+		var obj = _getObject( arguments.objectName );
+
+		return obj.meta.tableName ?: arguments.objectname;
+	}
+
+	/**
 	 * Returns the flag field name of the object
 	 *
 	 * @autodoc    true
@@ -2128,6 +2221,7 @@ component displayName="Preside Object Service" {
 		switch( arguments.dbType ){
 			case "text":
 			case "longtext":
+			case "mediumtext":
 			case "clob":
 				return "richeditor";
 			case "date":
@@ -2290,6 +2384,7 @@ component displayName="Preside Object Service" {
 		  required string  objectName
 		, required array   selectFields
 		,          array   extraSelectFields       = []
+		,          boolean recordCountOnly         = true
 		,          boolean includeAlias            = true
 		,          boolean includeAllFormulaFields = false
 	) {
@@ -2298,8 +2393,14 @@ component displayName="Preside Object Service" {
 		var obj     = _getObject( arguments.objectName ).meta;
 		var adapter = _getAdapter( obj.dsn ?: "" );
 
-		if ( !fields.len() ) {
-			fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
+		if ( !ArrayLen( fields ) ) {
+			var idField = getIdField( arguments.objectName );
+
+			if ( arguments.recordCountOnly && Len( idField ) ) {
+				fields = [ idField ];
+			} else {
+				fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
+			}
 		}
 
 		for( var i=1; i <=fields.len(); i++ ){
@@ -2342,6 +2443,8 @@ component displayName="Preside Object Service" {
 					, dbAdapter    = adapter
 				);
 			}
+
+			fields[i] = _escapeAlias( fields[i], adapter );
 		}
 
 		arguments.selectFields = fields;
@@ -2360,6 +2463,28 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
+	}
+
+	public array function simplifySelectFieldsForRecordCount(
+		  required string  objectName
+		, required array   selectFields
+		,          string  groupBy     = ""
+		,          boolean autoGroupBy = false
+	) {
+		if ( arguments.autoGroupBy && !Len( arguments.groupBy ) ) {
+			var aggregateRegex = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
+			for( var i=ArrayLen( arguments.selectFields ); i>0; i-- ) {
+				if ( ReFindNoCase( aggregateRegex, arguments.selectFields[ i ] ) ) {
+					ArrayDeleteAt( arguments.selectFields, i );
+				}
+			}
+		}
+
+		if ( ArrayIsEmpty( arguments.selectFields ) ) {
+			ArrayAppend( arguments.selectFields, getIdField( arguments.objectName ) );
+		}
+
+		return arguments.selectFields;
 	}
 
 	public array function expandHavingClauses(
@@ -2469,6 +2594,8 @@ component displayName="Preside Object Service" {
 		var formula = props[ propertyName ].formula ?: "";
 
 		if ( Len( Trim( formula ) ) ) {
+			formula = _optimiseAggregateFunctions( formula );
+
 			if ( formula.findNoCase( "${prefix}" ) ) {
 				if ( prefix.len() ) {
 					formula = formula.reReplaceNoCase( "\$\{prefix\}(\S+)?\.", "${prefix}$\1.", "all" );
@@ -2478,6 +2605,10 @@ component displayName="Preside Object Service" {
 					formula = formula.reReplaceNoCase( "\$\{prefix\}([^\$])" , "#arguments.objectName#.\1", "all" );
 				}
 				formula = formula.replaceNoCase( "${prefix}", prefix, "all" );
+			}
+
+			if ( Left( Trim( formula ), 4 ) == "agg:" ) {
+				formula = formula & "{#Len( prefix ) ? prefix : "-"#}{#propertyName#}";
 			}
 
 			if ( arguments.includeAlias && !alias.len() ) {
@@ -2904,7 +3035,7 @@ component displayName="Preside Object Service" {
 			addMatches( field );
 		}
 		for( field in ListToArray( arguments.orderBy ) ){
-			addMatches( ListFirst( field, " " ) );
+			addMatches( field );
 		}
 		if ( isSimpleValue( filter ) ) {
 			addMatches( filter );
@@ -2968,7 +3099,7 @@ component displayName="Preside Object Service" {
 	}
 
 	private string function _removeDynamicElementsFromForeignObjectsCacheKey( required string cacheKey ) {
-		var staticCacheKey = arguments.cacheKey;
+		var staticCacheKey = _getSqlRunner().deObfuscateSql( arguments.cacheKey );
 
 		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{32}", "", "all" );
 		staticCacheKey = staticCacheKey.reReplaceNoCase( "[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{16}", "", "all" );
@@ -3252,6 +3383,80 @@ component displayName="Preside Object Service" {
 		return interceptArguments.tableJoins;
 	}
 
+	private void function _prepareAggregateFormulaFields( required struct selectDataArgs ) {
+		var args           = arguments.selectDataArgs;
+		var selectField    = "";
+		var allowedMethods = [ "count", "sum", "min", "max", "avg" ];
+
+		for( var i=1; i<=ArrayLen( args.selectFields); i++ ) {
+			selectField = args.selectFields[ i ];
+
+			if ( !ReFindNoCase( "^agg:", selectField ) ) {
+				continue;
+			}
+
+			var parts            = ListToArray( ListRest( selectField, ":" ), "{} " );
+			var aggregateMethod  = parts[ 1 ];
+			var suppliedProperty = parts[ 2 ];
+			var prefix           = parts[ 3 ] == "-" ? "" : parts[ 3 ];
+			var propertyName     = parts[ 4 ];
+			var alias            = parts[ 6 ];
+
+			if ( !ArrayFind( allowedMethods, aggregateMethod ) ) {
+				throw( "Aggregate method [ #aggregateMethod# ] is not valid. Method must be one of [ #ArrayToList( allowedMethods, ", " )# ]" );
+			}
+
+			var aggregatedObject    = ListFirst( suppliedProperty, "." );
+			    aggregatedObject    = len( prefix ) ? prefix & "$" & aggregatedObject : aggregatedObject;
+			var aggregatedField     = listLast( suppliedProperty, "." );
+
+			var relatedObjectJoin   = ListDeleteAt( aggregatedObject, ListLen( aggregatedObject, "$" ), "$" );
+			var relatedObjectName   = Len( relatedObjectJoin ) ? _resolveObjectNameFromColumnJoinSyntax( args.objectName, relatedObjectJoin ) : args.objectName;
+			var props               = getObjectProperties( relatedObjectName );
+			var aggregateByProperty = listLast( listFirst( suppliedProperty, "." ), "$" );
+			var relationship        = props[ aggregateByProperty ].relationship;
+
+			if ( !ArrayFind( [ "one-to-many", "many-to-many", "select-data-view" ], relationship ) ) {
+				throw( "Aggregate functions are only permitted on one-to-many, many-to-many and select-data-view relationships" );
+			}
+
+			var joinToTable      = args.objectName;
+			var joinToColumn     = getIdField( args.objectName );
+			var aggBySelectField = "#joinToTable#.#joinToColumn#";
+			var subQuerySuffix   = ListLast( lcase( createUUID() ), "-" );
+			var subQueryAlias    = "__agg_#aggregateMethod#__#propertyName#_#subQuerySuffix#";
+			var subQuery         = selectData(
+				  objectName          = args.objectName
+				, selectFields        = [ "#aggBySelectField# as aggBy", "#aggregateMethod#( #aggregatedObject#.#aggregatedField# ) as aggValue" ]
+				, groupBy             = "aggBy"
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+			);
+
+			args.filterParams = args.filterParams ?: {};
+			StructAppend( args.filterParams, subQuery.params );
+
+			args.selectFields[ i ] = "ifnull( #subQueryAlias#.aggValue, 0 ) as #alias#";
+			ArrayAppend( args.extraJoins, {
+				  subQuery       = subQuery.sql
+				, subQueryAlias  = subQueryAlias
+				, subQueryColumn = "aggBy"
+				, joinToTable    = joinToTable
+				, joinToColumn   = joinToColumn
+				, type           = "left"
+			} );
+		}
+	}
+
+	private string function _optimiseAggregateFunctions( required string formula ) {
+		var optimised = arguments.formula;
+
+		// Convert count() formula to optimised syntax
+		optimised = ReReplaceNoCase( optimised, "^count\(\s*(distinct\s+)?\$\{prefix\}(.+)\s*\)$", "agg:count{ \2 }" );
+
+		return optimised;
+	}
+
 	private struct function _prepareSelectFromVersionTables(
 		  required string  objectName
 		, required string  originalTableName
@@ -3270,6 +3475,7 @@ component displayName="Preside Object Service" {
 	) {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
+		var usesDrafts           = objectUsesDrafts( arguments.objectName );
 		var versionTableName     = versionObj.tableName;
 		var compiledSelectFields = Duplicate( arguments.selectFields );
 		var compiledFilter       = Duplicate( arguments.filter );
@@ -3290,20 +3496,20 @@ component displayName="Preside Object Service" {
 			versionFilter = "#arguments.objectName#._version_number = :#arguments.objectName#._version_number";
 			params.append( { name="#arguments.objectName#___version_number", value=arguments.specificVersion, type="cf_sql_int" } );
 
-			if ( !arguments.allowDraftVersions && objectUsesDrafts( arguments.objectName ) ) {
+			if ( !arguments.allowDraftVersions && usesDrafts ) {
 				versionFilter &= " and ( #arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft )";
 				params.append( { name="#arguments.objectName#___version_is_draft", value=false, type="cf_sql_bit" } );
 			}
 
 		} else {
-			var latestVersionField = arguments.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
+			var latestVersionField = arguments.allowDraftVersions && usesDrafts ? "_version_is_latest_draft" : "_version_is_latest";
 			versionFilter = "#arguments.objectName#.#latestVersionField# = :#arguments.objectName#.#latestVersionField#";
 			params.append( { name="#arguments.objectName#__#latestVersionField#", value=true, type="cf_sql_boolean" } );
 		}
 
 		compiledFilter = mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
 
-		var args = Duplicate( arguments );
+		var args = _deepishDuplicate( arguments );
 		args.append( {
 			  tableName     = versionTableName
 			, tableAlias    = arguments.objectName
@@ -3503,19 +3709,39 @@ component displayName="Preside Object Service" {
 		return true;
 	}
 
-	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter ) {
-		var items   = arguments.orderBy.listToArray();
-		var rebuilt = [];
+	private string function _escapeAlias(
+		  required string text
+		, required any    dbAdapter
+	) {
+		return REReplaceNoCase( Trim( text ), '\bas\b\s+(\w+)(?!\s*[`\"\[])$', "as #dbAdapter.escapeEntity( "\1" )#" );
+	}
+
+	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins ) {
+		var items         = arguments.orderBy.listToArray();
+		var rebuilt       = [];
+		var aliased       = "";
+		var propertyName  = "";
+		var direction     = "";
+		var aggregateArgs = {};
 
 		for( var item in items ) {
-			var propertyName = expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
-			var direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
-			var aliased      = _autoPrefixBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
+			propertyName = expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
+			direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
 
-			if ( propertyName != aliased ) {
-				item = aliased & direction;
+			if ( left( propertyName, 4 ) == "agg:" ) {
+				aggregateArgs = {
+					  selectFields = [ "#propertyName# as _placeholder" ]
+					, objectName   = arguments.objectName
+					, filterParams = arguments.filterParams
+					, extraJoins   = arguments.extraJoins
+				};
+				_prepareAggregateFormulaFields( aggregateArgs );
+
+				propertyName = ReReplaceNoCase( aggregateArgs.selectFields[ 1 ], " as _placeholder$", "" );
+				item         = propertyName & direction;
 			} else {
-				item = propertyName & direction;
+				aliased = _autoPrefixBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
+				item    = aliased & direction;
 			}
 
 			rebuilt.append( Trim( item ) );
@@ -3856,22 +4082,49 @@ component displayName="Preside Object Service" {
 		return dataExists( argumentCollection=arguments, extraFilters=draftCheckFilters );
 	}
 
-	private string function _autoCalculateGroupBy( required array selectFields ) {
-		var groupBy            = "";
+	private string function _autoCalculateGroupBy( required array selectFields, required string objectName, required any adapter ) {
+		var groupBy            = [];
 		var hasAggregateFields = false;
 		var aggregateRegex     = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
 
-
 		for( var field in selectFields ) {
-			var isAggregate = field.reFindNoCase( aggregateRegex );
-			hasAggregateFields = hasAggregateFields || isAggregate;
+			var isAggregate = ReFindNoCase( aggregateRegex, field ) || ReFindNoCase( "__agg_.+__.+\.aggValue", field );
 
-			if ( !isAggregate ) {
-				groupBy = groupBy.listAppend( field.reReplace( "^(.*?) as .*$", "\1" ) );
+			if ( isAggregate ) {
+				hasAggregateFields = true;
+			} else {
+				ArrayAppend( groupBy, ReReplaceNoCase( field, "^(.*?) as .*$", "\1" ) );
 			}
 		}
 
-		return hasAggregateFields ? groupBy : "";
+		if ( hasAggregateFields ) {
+			if ( arguments.adapter.supportsGroupBySingleField() ) {
+				var idField = getIdField( arguments.objectName );
+				if ( Len( idField ) ) {
+					var escapedField  = adapter.escapeEntity( idField );
+					var escapedObject = adapter.escapeEntity( arguments.objectName );
+
+					idFieldPatterns = [
+						  idField
+						, "#arguments.objectName#.#idField#"
+						, "#escapedField#"
+						, "#escapedObject#.#escapedField#"
+						, "#arguments.objectName#.#escapedField#"
+						, "#escapedObject#.#idField#"
+					];
+
+					for( var field in groupBy ) {
+						if ( ArrayFindNoCase( idFieldPatterns, field ) ) {
+							return field;
+						}
+					}
+				}
+			}
+
+			return ArrayToList( groupBy, ", " );
+		}
+
+		return "";
 	}
 
 	private boolean function _getUseCacheDefault( required string objectName ) {
@@ -3967,6 +4220,45 @@ component displayName="Preside Object Service" {
 				caches[ cacheName ].clearAll();
 			}
 		}
+	}
+
+	/**
+	 * throughout this service we need a "deep"
+	 * clone of arguments to be able to work
+	 * with them and change values with the new data.
+	 * However, we never expect objects as arguments
+	 * and do not want to deep clone those objects
+	 * which causes all sorts of memory usage problems.
+	 *
+	 */
+	private any function _deepishDuplicate( args ) {
+		var newArgs = {};
+
+		for( var key in arguments.args ) {
+			if ( IsNull( arguments.args[ key ] ) ){
+				continue;
+			} else if ( IsStruct( arguments.args[ key ] ) || IsArray( arguments.args[ key ] ) ) {
+				newArgs[ key ] = Duplicate( arguments.args[ key ] );
+			} else {
+				newArgs[ key ] = arguments.args[ key ];
+			}
+		}
+
+		return newArgs;
+	}
+
+	private boolean function _canFieldBeCounted( required string field ) {
+		var fieldMinusAlias             = ReReplaceNoCase( arguments.field, "\s+as\s+.*$", "" );
+		var nofunctionBracketsAndSpaces = "^[^\(\)\s]+$";
+
+		return ReFindNoCase( nofunctionBracketsAndSpaces, fieldMinusAlias );
+	}
+
+	private numeric function _getDefaultTimeout() {
+		if ( StructKeyExists( request, "__isbgthread" ) && IsBoolean( request.__isbgthread ) && request.__isbgthread ) {
+			return _getDefaultBgQueryTimeout();
+		}
+		return _getDefaultQueryTimeout();
 	}
 
 
@@ -4144,5 +4436,19 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setSelectDataViewService( required any selectDataViewService ) {
 	    _selectDataViewService = arguments.selectDataViewService;
+	}
+
+	private numeric function _getDefaultQueryTimeout() {
+		return _defaultQueryTimeout;
+	}
+	private void function _setDefaultQueryTimeout( required numeric defaultQueryTimeout ) {
+		_defaultQueryTimeout = arguments.defaultQueryTimeout;
+	}
+
+	private numeric function _getDefaultBgQueryTimeout() {
+		return _defaultBgQueryTimeout;
+	}
+	private void function _setDefaultBgQueryTimeout( required numeric defaultBgQueryTimeout ) {
+		_defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
 	}
 }

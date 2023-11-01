@@ -37,6 +37,14 @@ component {
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
+
+		request._sessionSettings = {
+			  statelessRequest         = this.statelessRequest
+			, presideSessionManagement = this.presideSessionManagement
+			, sessionManagement        = this.sessionManagement
+			, sessionTimeout           = this.sessionTimeout
+			, sessionType              = _getSessionType()
+		};
 	}
 
 // APPLICATION LIFECYCLE EVENTS
@@ -112,10 +120,16 @@ component {
 			return;
 		}
 
+		if ( this.presideSessionManagement ) {
+			_persistSession();
+			_removeSessionCookies();
+		} else {
+			_invalidateSessionIfNotUsed();
+		}
+		_cleanupCookies();
+
 		if ( _showErrors() ) {
 			throw object=arguments.exception;
-
-
 		} else {
 			_friendlyError( arguments.exception, 500 );
 
@@ -409,7 +423,7 @@ component {
 	private boolean function _dealWithSqlReloadProtectionErrors( required struct exception ) output=true {
 		var exceptionType = ( arguments.exception.type ?: "" );
 
-		if ( exceptionType == "presidecms.auto.schema.sync.disabled" ) {
+		if ( IsSimpleValue( exceptionType ) && exceptionType == "presidecms.auto.schema.sync.disabled" ) {
 			thread name=CreateUUId() e=arguments.exception {
 				new preside.system.services.errors.ErrorLogService(
 					  appMapping     = request._presideMappings.appMapping ?: "/app"
@@ -469,19 +483,16 @@ component {
 	}
 
 	private void function _preventSessionFixation() {
-		var appSettings = getApplicationSettings();
-
-		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
+		if ( _getSessionType() != "j2ee" ) {
 			SessionRotate();
 		}
 	}
 
 	private void function _invalidateSessionIfNotUsed() {
-		var applicationSettings  = getApplicationSettings();
 		var sessionIsUsed        = false;
 		var ignoreKeys           = [ "cfid", "timecreated", "sessionid", "urltoken", "lastvisit", "cftoken" ];
 		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
-		var sessionsEnabled      = IsBoolean( applicationSettings.sessionManagement ) && applicationSettings.sessionManagement;
+		var sessionsEnabled      = IsBoolean( request._sessionSettings.sessionManagement ) && request._sessionSettings.sessionManagement;
 		if ( sessionsEnabled ) {
 			for( var key in session ) {
 				if ( ignoreKeys.findNoCase( key ) ) {
@@ -881,5 +892,18 @@ component {
 		}
 
 		return;
+	}
+
+	private string function _getSessionType() {
+		if ( !Len( application._sessionType ?: "" ) ) {
+			var appSettings = getApplicationSettings( true );
+			application._sessionType = appSettings.sessionType ?: "cfml";
+
+			if ( !Len( application._sessionType ) ) {
+				application._sessionType = "cfml";
+			}
+		}
+
+		return application._sessionType;
 	}
 }

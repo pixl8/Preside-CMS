@@ -44,22 +44,18 @@ component {
 		  required string  asset
 		, required numeric times
 		,          string  _numericOperator = "eq"
-		,          boolean _has               = true
-		,          struct  _pastTime          = {}
-		,          string  filterPrefix       = ""
-		,          string  parentPropertyName = ""
+		,          boolean _has             = true
+		,          struct  _pastTime        = {}
 	) {
 		return websiteUserActionService.getUserPerformedActionFilter(
-			  action             = "download"
-			, type               = "asset"
-			, has                = arguments._has
-			, datefrom           = arguments._pastTime.from ?: ""
-			, dateto             = arguments._pastTime.to   ?: ""
-			, identifiers        = [ arguments.asset ]
-			, qty                = arguments.times
-			, qtyOperator        = arguments._numericOperator
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  action      = "download"
+			, type        = "asset"
+			, has         = arguments._has
+			, datefrom    = arguments._pastTime.from ?: ""
+			, dateto      = arguments._pastTime.to   ?: ""
+			, identifiers = [ arguments.asset ]
+			, qty         = arguments.times
+			, qtyOperator = arguments._numericOperator
 		);
 	}
 

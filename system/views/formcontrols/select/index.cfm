@@ -53,11 +53,16 @@
 			<option value=""></option>
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
-			<cfset selectValue = htmlEditFormat( selectValue ) />
-			<cfset selected    = listFindNoCase( value, selectValue ) />
-			<cfset valueFound  = valueFound || selected />
-			<option value="#selectValue#"<cfif selected> selected="selected"</cfif>>
-				#htmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
+			<cfset selectValue=EncodeForHTML( selectValue ) />
+			<cfset selected=ListFindNoCase( value, selectValue ) />
+			<cfset valueFound=valueFound || selected />
+			<cfset label=EncodeForHTML( translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) ) />
+			<option
+				value="#selectValue#"
+				title="#label#"
+				<cfif selected> selected="selected"</cfif>
+			>
+				#label#
 			</option>
 		</cfloop>
 		<cfif value.len() && !valueFound && addMissingValues>

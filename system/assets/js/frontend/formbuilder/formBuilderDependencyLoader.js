@@ -8,9 +8,9 @@
 
 ( function(){
 
-	var jQueryCdn            = 'http://code.jquery.com/jquery-1.12.1.min.js'
-	  , validateCdn          = 'https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.15.0/jquery.validate.min.js'
-	  , additionalMethodsCdn = 'https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.15.0/additional-methods.min.js'
+	var jQueryCdn            = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"
+	  , validateCdn          = "https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"
+	  , additionalMethodsCdn = "https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/additional-methods.min.js"
 	  , jQueryLoaded, validateLoaded, librariesAreLoaded, loadDependency;
 
 	librariesAreLoaded = function() {

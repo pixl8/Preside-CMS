@@ -722,7 +722,7 @@
 			    MySql | 0.0.0-#arguments.vendor#"
 			);
 
-			return new preside.system.services.database.adapters.MySqlAdapter( dbInfo=mockedDbInfo );
+			return new preside.system.services.database.adapters.MySqlAdapter( dbInfo=mockedDbInfo, dsn="preside" );
 		</cfscript>
 	</cffunction>
 </cfcomponent>

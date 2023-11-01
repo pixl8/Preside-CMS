@@ -38,10 +38,8 @@ component {
 	 */
 	private array function prepareFilters(
 		  required string question
-		,          string formId              = ""
-		,          struct _time               = {}
-		,          string parentPropertyName  = ""
-		,          string filterPrefix        = ""
+		,          string formId = ""
+		,          struct _time  = {}
 	){
 		return formBuilderFilterService.prepareFilterForUserLatestResponseToDateField( argumentCollection=arguments );
 	}

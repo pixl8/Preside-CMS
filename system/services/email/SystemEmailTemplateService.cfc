@@ -12,6 +12,7 @@ component {
 	 */
 	public any function init( required struct configuredTemplates ) {
 		_setConfiguredTemplates( arguments.configuredTemplates );
+		_initVariantTemplateLookupCache();
 
 		return this;
 	}
@@ -25,24 +26,71 @@ component {
 	 * @autodoc
 	 *
 	 */
-	public array function listTemplates() {
-		var templateIds = _getConfiguredTemplates().keyArray();
-		var templates   = [];
+	public array function listTemplates( string group="" ) {
+		var allTemplates = _getConfiguredTemplates();
+		var templateIds  = StructKeyArray( allTemplates );
+		var templates    = [];
 
 		for( var templateId in templateIds ) {
-			templates.append({
-				  id          = templateId
-				, title       = $translateResource( uri="email.template.#templateId#:title"      , defaultValue=templateId )
-				, description = $translateResource( uri="email.template.#templateId#:description", defaultValue=""         )
-			});
+			var template      = allTemplates[ templateId ];
+			var templateGroup = template.group ?: "unclassified";
+			if ( !Len( arguments.group ) || arguments.group==templateGroup ) {
+				ArrayAppend( templates, {
+					  id            = templateId
+					, group         = templateGroup
+					, allowVariants = $helpers.isTrue( template.allowVariants ?: "" )
+					, title         = $translateResource( uri="email.template.#templateId#:title"      , defaultValue=templateId )
+					, description   = $translateResource( uri="email.template.#templateId#:description", defaultValue=""         )
+				});
+			}
 		}
 
-		templates.sort( function( a, b ){
-			return a.title > b.title ? 1 : -1;
+		ArraySort( templates, function( a, b ){
+			return CompareNoCase( a.title, b.title );
 		} );
 
-
 		return templates;
+	}
+
+	public array function listTemplatesGrouped() {
+		var allTemplates = listTemplates();
+		var grouped      = {};
+		var groups       = [];
+
+		if ( ArrayLen( allTemplates ) ) {
+			grouped.default = allTemplates;
+		}
+
+		for( var template in allTemplates ) {
+			if ( Len( template.group ?: "" ) ) {
+				grouped[ template.group ] = grouped[ template.group ] ?: [];
+				ArrayAppend( grouped[ template.group ], template );
+			}
+		}
+
+		for( var group in grouped ) {
+			ArrayAppend( groups, {
+				  id        = group
+				, label     = $translateResource( uri="email.templateGroups:#group#.label", defaultValue=group )
+				, templates = grouped[ group ]
+			} );
+		}
+
+		ArraySort( groups, function( a, b ){
+			if ( a.id == "default" ) {
+				return -1;
+			} else if ( b.id == "default" ) {
+				return 1;
+			}
+			if ( a.id == "unclassified" ) {
+				return 1;
+			} else if ( b.id == "unclassified" ) {
+				return -1;
+			}
+			return CompareNoCase( a.label, b.label );
+		} );
+
+		return groups;
 	}
 
 	/**
@@ -53,7 +101,9 @@ component {
 	 * @template.hint The ID of the template to check
 	 */
 	public boolean function templateExists( required string template ) {
-		return StructKeyExists( _getConfiguredTemplates(), arguments.template );
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+
+		return StructKeyExists( _getConfiguredTemplates(), baseTemplateId );
 	}
 
 	/**
@@ -64,18 +114,19 @@ component {
 	 *
 	 */
 	public void function resetTemplate( required string template ) {
-		emailTemplateService.saveTemplate(
-			  id       = arguments.template
-			, template = {
-				  name            = $translateResource( uri="email.template.#arguments.template#:title", defaultValue=arguments.template )
-				, layout          = getDefaultLayout( arguments.template )
-				, subject         = getDefaultSubject( arguments.template )
-				, html_body       = getDefaultHtmlBody( arguments.template )
-				, text_body       = getDefaultTextBody( arguments.template )
-				, recipient_type  = getRecipientType( arguments.template )
-				, is_system_email = true
-			}
-		);
+		var templateData = {
+			  subject                   = getDefaultSubject( arguments.template )
+			, html_body                 = getDefaultHtmlBody( arguments.template )
+			, text_body                 = getDefaultTextBody( arguments.template )
+			, recipient_type            = getRecipientType( arguments.template )
+			, is_system_email           = true
+			, body_changed_from_default = false
+		};
+		if ( !isVariant( arguments.template ) ) {
+			templateData.name = $translateResource( uri="email.template.#arguments.template#:title", defaultValue=arguments.template );
+		}
+
+		emailTemplateService.saveTemplate( id=arguments.template, template=templateData );
 	}
 
 	/**
@@ -91,7 +142,8 @@ component {
 	public array function listTemplateParameters( required string template ) {
 		var params         = [];
 		var templates      = _getConfiguredTemplates();
-		var templateParams = templates[ arguments.template ].parameters ?: [];
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+		var templateParams = templates[ baseTemplateId ].parameters ?: [];
 
 		for( var param in templateParams ) {
 			var translatedParam = {};
@@ -108,14 +160,14 @@ component {
 				};
 			}
 
-			translatedParam.title       = $translateResource( uri="email.template.#arguments.template#:param.#translatedParam.id#.title"      , defaultValue=translatedParam.id );
-			translatedParam.description = $translateResource( uri="email.template.#arguments.template#:param.#translatedParam.id#.description", defaultValue="" );
+			translatedParam.title       = $translateResource( uri="email.template.#baseTemplateId#:param.#translatedParam.id#.title"      , defaultValue=translatedParam.id );
+			translatedParam.description = $translateResource( uri="email.template.#baseTemplateId#:param.#translatedParam.id#.description", defaultValue="" );
 
-			params.append( translatedParam );
+			ArrayAppend( params, translatedParam );
 		}
 
-		params.sort( function( a, b ){
-			return a.title > b.title ? 1 : -1;
+		ArraySort( params, function( a, b ){
+			return CompareNoCase( a.title, b.title );
 		} );
 
 		return params;
@@ -130,9 +182,10 @@ component {
 	 *
 	 */
 	public boolean function shouldSaveContentForTemplate( required string template ) {
-		var templates = _getConfiguredTemplates();
+		var templates      = _getConfiguredTemplates();
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
 
-		return templates[ arguments.template ].saveContent ?: true;
+		return templates[ baseTemplateId ].saveContent ?: true;
 	}
 
 	/**
@@ -144,9 +197,10 @@ component {
 	 *
 	 */
 	public any function getSavedContentExpiry( required string template ) {
-		var templates = _getConfiguredTemplates();
+		var templates      = _getConfiguredTemplates();
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
 
-		return templates[ arguments.template ].contentExpiry ?: "";
+		return templates[ baseTemplateId ].contentExpiry ?: "";
 	}
 
 	/**
@@ -166,8 +220,9 @@ component {
 		,          struct templateDetail = {}
 		,          array  detectedParams
 	) {
-		var handlerAction = "email.template.#arguments.template#.prepareParameters";
-		var prepArgs      = arguments.args.copy();
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+		var handlerAction  = "email.template.#baseTemplateId#.prepareParameters";
+		var prepArgs       = arguments.args.copy();
 
 		prepArgs.templateDetail = arguments.templateDetail;
 		if ( StructKeyExists( arguments, "detectedParams" ) ) {
@@ -197,7 +252,8 @@ component {
 	 *
 	 */
 	public struct function getPreviewParameters( required string template ) {
-		var handlerAction = "email.template.#arguments.template#.getPreviewParameters";
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+		var handlerAction  = "email.template.#baseTemplateId#.getPreviewParameters";
 
 		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
@@ -221,7 +277,8 @@ component {
 	 *
 	 */
 	public array function prepareAttachments( required string template, struct args={} ) {
-		var handlerAction = "email.template.#arguments.template#.prepareAttachments";
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+		var handlerAction  = "email.template.#baseTemplateId#.prepareAttachments";
 
 		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
@@ -250,7 +307,8 @@ component {
 		, required string logId
 		, required struct originalArgs
 	) {
-		var handlerAction = "email.template.#arguments.template#.rebuildArgsForResend";
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+		var handlerAction  = "email.template.#baseTemplateId#.rebuildArgsForResend";
 
 		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
@@ -272,9 +330,10 @@ component {
 	 * @template.hint ID of the template whose default layout you wish to get
 	 */
 	public string function getDefaultLayout( required string template ) {
-		var templates = _getConfiguredTemplates();
+		var templates      = _getConfiguredTemplates();
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
 
-		return templates[ arguments.template ].layout ?: "default";
+		return templates[ baseTemplateId ].layout ?: "default";
 	}
 
 	/**
@@ -285,7 +344,8 @@ component {
 	 * @template.hint ID of the template whose default subject you wish to get
 	 */
 	public string function getDefaultSubject( required string template ) {
-		var viewlet = "email.template.#arguments.template#.defaultSubject";
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+		var viewlet        = "email.template.#baseTemplateId#.defaultSubject";
 
 		if ( templateExists( arguments.template ) && $getColdbox().viewletExists( viewlet ) ) {
 			return $renderViewlet( viewlet );
@@ -302,7 +362,8 @@ component {
 	 * @template.hint ID of the template whose default html body you wish to get
 	 */
 	public string function getDefaultHtmlBody( required string template ) {
-		var viewlet = "email.template.#arguments.template#.defaultHtmlBody";
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+		var viewlet        = "email.template.#baseTemplateId#.defaultHtmlBody";
 
 		if ( templateExists( arguments.template ) && $getColdbox().viewletExists( viewlet ) ) {
 			return $renderViewlet( viewlet );
@@ -320,7 +381,8 @@ component {
 	 * @template.hint ID of the template whose default text body you wish to get
 	 */
 	public string function getDefaultTextBody( required string template ) {
-		var viewlet = "email.template.#arguments.template#.defaultTextBody";
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
+		var viewlet        = "email.template.#baseTemplateId#.defaultTextBody";
 
 		if ( templateExists( arguments.template ) && $getColdbox().viewletExists( viewlet ) ) {
 			return $renderViewlet( viewlet );
@@ -328,7 +390,6 @@ component {
 
 		return "";
 	}
-
 
 	/**
 	 * Returns the recipient type for a given template, read from the global
@@ -338,19 +399,164 @@ component {
 	 * @template.hint ID of the template whose recipient type you wish to get
 	 */
 	public string function getRecipientType( required string template ) {
-		var templates = _getConfiguredTemplates();
+		var templates      = _getConfiguredTemplates();
+		var baseTemplateId = _getBaseTemplateId( arguments.template );
 
-		return templates[ arguments.template ].recipientType ?: "anonymous";
+		return templates[ baseTemplateId ].recipientType ?: "anonymous";
 	}
 
-	public boolean function bodyIsDifferentWithDefault( required string template ) {
+	/**
+	 * Returns a boolean defining whether a system template allows variants to be created
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose variant setting you wish to get
+	 *
+	 */
+	public boolean function allowVariants( required string template ) {
+		var templates = _getConfiguredTemplates();
+
+		return $helpers.isTrue( templates[ arguments.template ].allowVariants ?: "" );
+	}
+
+	/**
+	 * Returns a boolean defining whether a template is a variant
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose variant status you wish to check
+	 *
+	 */
+	public boolean function isVariant( required string template ) {
+		return $getPresideObject( "email_template" ).dataExists(
+			  filter       = { id=arguments.template, is_system_email=true }
+			, extraFilters = [ { filter="variant_of is not null" } ]
+		);
+	}
+
+	/**
+	 * Returns a query containing all the defined variants of a system template
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template whose variants you wish to get
+	 *
+	 */
+	public query function getVariants( required string template ) {
+		return $getPresideObject( "email_template" ).selectData(
+			  filter       = { variant_of=arguments.template }
+			, selectFields = [ "id", "name", "subject", "layout" ]
+			, orderBy      = "name"
+		);
+	}
+
+	/**
+	 * Adds a new variant of a system template
+	 *
+	 * @autodoc   true
+	 * @variantOf The ID of the template the variant is a child of
+	 * @name      The name of the new variant
+	 *
+	 */
+	public string function addVariant( required string variantOf, required string name ) {
+		var template  = emailTemplateService.getTemplate( id=arguments.variantOf );
+		var variantId = "";
+
+		if ( StructCount( template ) ) {
+			variantId = emailTemplateService.saveTemplate( template={
+				  name            = arguments.name
+				, variant_of      = arguments.variantOf
+				, layout          = template.layout
+				, subject         = template.subject
+				, html_body       = template.html_body
+				, text_body       = template.text_body
+				, recipient_type  = template.recipient_type
+				, is_system_email = true
+			} );
+		}
+
+		return variantId;
+	}
+
+
+	public void function applicationStart() {
+		if ( $isFeatureEnabled( "emailcenter" ) ) {
+			$createTask(
+				  event             = "admin.emailCenter.systemTemplates.checkForTemplatesWithNonDefaultBody"
+				, runIn             = CreateTimespan( 0, 0, 1, 30 )
+				, discardOnComplete = true
+			);
+		}
+	}
+
+	public boolean function bodyIsChangedFromDefault( required string template, string htmlBody, string textBody ) {
 		var templateDetail = emailTemplateService.getTemplate( id=arguments.template );
-		var savedHtml      = templateDetail.html_body ?: "";
-		var savedText      = templateDetail.text_body ?: "";
+		var htmlBody       = arguments.htmlBody ?: templateDetail.html_body;
+		var textBody       = arguments.textBody ?: templateDetail.text_body;
 		var defaultHtml    = getDefaultHtmlBody( template=arguments.template );
 		var defaultText    = getDefaultTextBody( template=arguments.template );
 
-		return ( savedHtml != defaultHtml ) || ( savedText != defaultText );
+		return ( _htmlIsDifferent( htmlBody, defaultHtml ) || _textIsDifferent( textBody, defaultText ) );
+	}
+
+	public array function templatesWithNonDefaultBody() {
+		var templates = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = { is_system_email=true, body_changed_from_default=true }
+		);
+
+		return ValueArray( templates.id );
+	}
+
+	public void function checkForTemplatesWithNonDefaultBody() {
+		var dao       = $getPresideObject( "email_template" );
+		var templates = dao.selectData(
+			  filter       = { is_system_email=true }
+			, selectFields = [ "id", "body_changed_from_default", "html_body", "text_body" ]
+		);
+
+		for( var template in templates ) {
+			var bodyChanged = bodyIsChangedFromDefault( template=template.id, htmlBody=template.html_body, textBody=template.text_body );
+			if ( bodyChanged != template.body_changed_from_default ) {
+				dao.updateData( id=template.id, data={ body_changed_from_default=bodyChanged } );
+			}
+		}
+	}
+
+
+// PRIVATE HELPERS
+	private string function _getBaseTemplateId( required string template ) {
+		if ( StructKeyExists( _getConfiguredTemplates(), arguments.template ) ) {
+			return arguments.template;
+		}
+
+		var variantTemplates = _getVariantTemplateLookupCache();
+		if ( StructKeyExists( variantTemplates, arguments.template ) ) {
+			return variantTemplates[ arguments.template ];
+		}
+
+		var variant = $getPresideObject( "email_template" ).selectData(
+			  filter       = "id = :id and is_system_email = :is_system_email and variant_of is not null"
+			, filterParams = { id=arguments.template, is_system_email=true }
+			, selectFields = [ "variant_of" ]
+		);
+
+		if ( variant.recordcount ) {
+			variantTemplates[ arguments.template ] = variant.variant_of;
+			return variant.variant_of;
+		}
+
+		return "";
+	}
+
+	private string function _htmlIsDifferent( required string input1, required string input2 ) {
+		return _htmlForComparison( arguments.input1 ) != _htmlForComparison( arguments.input2 );
+	}
+	private string function _textIsDifferent( required string input1, required string input2 ) {
+		return _textForComparison( arguments.input1 ) != _textForComparison( arguments.input2 );
+	}
+	private string function _htmlForComparison( required string text ) {
+		return encodeForHTML( ReReplace( arguments.text, "\s", "", "all" ), true );
+	}
+	private string function _textForComparison( required string text ) {
+		return ReReplace( arguments.text, "\s", "", "all" );
 	}
 
 // GETTERS AND SETTERS
@@ -362,10 +568,17 @@ component {
 		for( var templateId in configuredTemplates ) {
 			var feature = Trim( configuredTemplates[ templateId ].feature ?: "" );
 
-			if ( !feature.len() || $isFeatureEnabled( feature ) ) {
+			if ( !Len( feature ) || $isFeatureEnabled( feature ) ) {
 				_configuredTemplates[ templateId ] = configuredTemplates[ templateId ];
 			}
 		}
+	}
+
+	private struct function _getVariantTemplateLookupCache() {
+		return _variantTemplateLookupCache;
+	}
+	private void function _initVariantTemplateLookupCache() {
+		_variantTemplateLookupCache = {};
 	}
 
 }

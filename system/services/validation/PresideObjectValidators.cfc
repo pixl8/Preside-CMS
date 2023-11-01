@@ -54,7 +54,7 @@ component validationProvider=true singleton=true {
 
 		if ( Len( Trim( objectName ) ) && Len( Trim( ids ) ) ) {
 			for( id in ListToArray( ids ) ) {
-				if ( !pobjService.dataExists( objectName=objectName , id=id ) ) {
+				if ( !pobjService.dataExists( objectName=objectName , id=id, bypassTenants=listToArray( arguments.bypassTenants ?: "" ) ) ) {
 					return false;
 				}
 			}

@@ -12,6 +12,7 @@ component displayName="Admin permissions service" {
 // CONSTRUCTOR
 	/**
 	 * @loginService.inject       LoginService
+	 * @bundleService.inject      delayedInjector:ResourceBundleService
 	 * @cacheProvider.inject      cachebox:PermissionsCache
 	 * @permissionsConfig.inject  coldbox:setting:adminPermissions
 	 * @rolesConfig.inject        coldbox:setting:adminRoles
@@ -21,6 +22,7 @@ component displayName="Admin permissions service" {
 	 */
 	public any function init(
 		  required any    loginService
+		, required any    bundleService
 		, required any    cacheProvider
 		, required struct permissionsConfig
 		, required struct rolesConfig
@@ -29,6 +31,7 @@ component displayName="Admin permissions service" {
 		, required any    contextPermDao
 	) {
 		_setLoginService( arguments.loginService );
+		_setBundleService( arguments.bundleService );
 		_setCacheProvider( arguments.cacheProvider );
 		_setGroupDao( arguments.groupDao );
 		_setUserDao( arguments.userDao );
@@ -50,6 +53,33 @@ component displayName="Admin permissions service" {
 	 */
 	public array function listRoles() {
 		return _getRoles().keyArray();
+	}
+
+	public struct function listRolesWithGroup() {
+		var cacheKey  = "admin-roles-with-group";
+		var fromCache = _getCacheProvider().get( cacheKey );
+
+		if ( !IsNull( local.fromCache ) ) {
+			return fromCache;
+		}
+
+		var grouped = {};
+		var roles   = listRoles();
+
+		for ( var role in roles ) {
+			var roleGroup = _getBundleService().getResource( uri="roles:#role#.group" );
+
+			if ( len( trim( roleGroup ) ) ) {
+				grouped[ roleGroup ] = grouped[ roleGroup ] ?: [];
+				arrayAppend( grouped[ roleGroup ], role );
+			} else {
+				grouped[ "__nogroup" ] = grouped[ "__nogroup" ] ?: [];
+				arrayAppend( grouped[ "__nogroup" ], role );
+			}
+		}
+
+		_getCacheProvider().set( cacheKey, grouped );
+		return grouped;
 	}
 
 	/**
@@ -683,6 +713,13 @@ component displayName="Admin permissions service" {
 	}
 	private void function _setLoginService( required any loginService ) {
 		_loginService = arguments.loginService;
+	}
+
+	private any function _getBundleService() {
+		return _bundleService;
+	}
+	private void function _setBundleService( required any bundleService ) {
+		_bundleService = arguments.bundleService;
 	}
 
 	private any function _getCacheProvider() {

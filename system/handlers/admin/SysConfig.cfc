@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="presideObjectService"       inject="presideObjectService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
 	property name="tenancyConfig"              inject="coldbox:setting:tenancy";
+	property name="systemAlertsService"        inject="systemAlertsService";
 
 
 // LIFECYCLE EVENTS
@@ -155,6 +156,10 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
+		if ( categoryId != "dynamicform" ) {
+			systemAlertsService.runWatchedSettingsChecks( categoryId );
+		}
+
 		event.audit(
 			  action   = "save_sysconfig_category"
 			, type     = "sysconfig"
@@ -168,7 +173,7 @@ component extends="preside.system.base.AdminHandler" {
 		} );
 
 		messageBox.info( translateResource( uri="cms:sysconfig.saved" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#&tenantId=#tenantId#" ) );
 	}
 
 // VIEWLETS

@@ -42,19 +42,14 @@ component {
 		,          boolean _has               = true
 		,          boolean _all               = false
 		,          struct  _pastTime          = {}
-		,          string  filterPrefix       = ""
-		,          string  parentPropertyName = ""
 	) {
-
 		return formBuilderFilterService.prepareFilterForUserHasSubmittedFormFilter(
-			  formId = ListToArray( forms )
-			, _has   = arguments._has
-			, _all   = arguments._all
+			  formId   = ListToArray( forms )
+			, _has     = arguments._has
+			, _all     = arguments._all
 			, dateFrom = arguments._pastTime.from ?: ""
 			, dateTo   = arguments._pastTime.to   ?: ""
 		);
-
-
 	}
 
 }

@@ -5,21 +5,17 @@
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 
-	property name="presideObjectService" inject="presideObjectService";
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="rulesEngineFilterService" inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
 		,          struct  _time
 	) {
-		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
-		var recordId     = payload[ sourceObject ].id ?: "";
-
 		return presideObjectService.dataExists(
-			  objectName   = sourceObject
-			, id           = recordId
+			  objectName   = arguments.objectName
+			, id           = payload[ arguments.objectName ].id ?: ""
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
@@ -27,42 +23,42 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix = ""
 		,          struct  _time = {}
 	){
-		var params              = {};
-		var sql                 = "";
-		var prefix              = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
-		var delim               = "";
-		var formulaPropertyName = "#prefix#.#propertyName#";
+		var suffix  = CreateUUId().lCase().replace( "-", "", "all" )
+		var params  = {};
+		var filter  = "";
+		var delim   = "";
 
 		if ( IsDate( _time.from ?: "" ) ) {
-			var fromParam = "dateFormulaPropertyInRange" & CreateUUId().lCase().replace( "-", "", "all" );
-			sql   = formulaPropertyName & " >= :#fromParam#";
+			var fromParam = "dateFormulaPropertyFrom" & suffix;
+			filter   = "#arguments.propertyName# >= :#fromParam#";
 			params[ fromParam ] = { value=_time.from, type="cf_sql_timestamp" };
 			delim = " and ";
 		}
 		if ( IsDate( _time.to ?: "" ) ) {
-			var toParam = "dateFormulaPropertyInRange" & CreateUUId().lCase().replace( "-", "", "all" );
-			sql   &= delim & formulaPropertyName & " <= :#toParam#";
+			var toParam = "dateFormulaPropertyTo" & suffix;
+			filter   &= delim & "#arguments.propertyName# <= :#toParam#";
 			params[ toParam ] = { value=_time.to, type="cf_sql_timestamp" };
 		}
 
-		if ( Len( Trim( sql ) ) ) {
-			return [ { having=sql, filterParams=params, propertyName=formulaPropertyName } ];
+		if ( Len( filter ) ) {
+			return [ rulesEngineFilterService.prepareAutoFormulaFilter(
+				  objectName   = arguments.objectName
+				, propertyName = arguments.propertyName
+				, filter       = filter
+				, filterParams = params
+			) ];
 		}
 
 		return [];
-
 	}
 
 	private string function getLabel(
-		  required string  objectName
-		, required string  propertyName
-		,          string  parentObjectName   = ""
-		,          string  parentPropertyName = ""
+		  required string objectName
+		, required string propertyName
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 

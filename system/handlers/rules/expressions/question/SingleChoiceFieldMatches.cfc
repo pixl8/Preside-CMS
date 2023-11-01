@@ -37,8 +37,6 @@ component {
 	private array function prepareFilters(
 		  required string  question
 		, required string  value
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
 	) {
 		return formBuilderFilterService.prepareFilterForSubmissionQuestionResponseMatchesChoiceOptions( argumentCollection=arguments, _all=false );
 	}

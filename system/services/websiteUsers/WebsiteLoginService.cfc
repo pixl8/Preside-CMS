@@ -142,6 +142,8 @@ component displayName="Website login service" {
 	public void function logout() autodoc=true {
 		recordLogout();
 
+		$announceInterception( "onLogout" );
+
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
 		_preventSessionFixation();
 
@@ -565,6 +567,17 @@ component displayName="Website login service" {
 		}
 
 		return false;
+	}
+
+	public void function reloadLoggedInUserDetails( string userId=getLoggedInUserId() ) {
+		var user = _getUserDao().selectData(
+			  filter   = { id=arguments.userId, active=true }
+			, useCache = false
+		);
+
+		if ( user.recordCount ) {
+			_setUserSession( $helpers.queryRowToStruct( user ) );
+		}
 	}
 
 // private helpers

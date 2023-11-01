@@ -52,10 +52,8 @@ component {
 	public array function prepareFilterForUserLatestResponseMatrixAnyRowMatches(
 		  required string question
 		, required string value
-		,          string formId             = ""
-		,          boolean _all              = false
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          string formId = ""
+		,          boolean _all  = false
 	) {
 		var paramSuffix         = _getRandomFilterParamSuffix();
 		var responseQueryAlias  = "responseCount" & paramSuffix;
@@ -73,18 +71,14 @@ component {
 			, initialParams      = params
 			, paramSuffix        = paramSuffix
 			, overallFilter      = overallFilter
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
 		);
 	}
 
 	public array function prepareFilterForUserLatestResponseMatrixAllRowsMatch(
 		  required string question
 		, required string value
-		,          string formId             = ""
-		,          boolean _all              = false
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          string formId = ""
+		,          boolean _all  = false
 	) {
 
 		var theQuestion         = _getFormBuilderService().getQuestion( question );
@@ -107,18 +101,14 @@ component {
 			, initialParams      = params
 			, paramSuffix        = paramSuffix
 			, overallFilter      = overallFilter
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
 		);
 	}
 	public array function prepareFilterForUserLatestResponseMatrixRowMatches(
  		  required string question
 		, required string row
 		, required string value
-		,          string formId             = ""
-		,          boolean _all              = false
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          string formId = ""
+		,          boolean _all  = false
 	) {
 		var paramSuffix         = _getRandomFilterParamSuffix();
 		var responseQueryAlias  = "responseCount" & paramSuffix;
@@ -138,17 +128,13 @@ component {
 			, paramSuffix        = paramSuffix
 			, overallFilter      = overallFilter
 			, row                = arguments.row
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
 		);
 	}
 	public array function prepareFilterForSubmissionQuestionMatrixRowMatches(
 		  required string question
 		, required string row
 		, required string value
-		,          boolean _all              = false
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          boolean _all = false
 	) {
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var subqueryAlias  = "responseCount" & paramSuffix;
@@ -166,17 +152,13 @@ component {
 			, paramSuffix        = paramSuffix
 			, overallFilter      = overallFilter
 			, row                = arguments.row
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
 		);
 	}
 
 	public array function prepareFilterForSubmissionQuestionMatrixAnyRowMatches(
 		  required string question
 		, required string value
-		,          boolean _all              = false
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          boolean _all = false
 	) {
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var subqueryAlias  = "responseCount" & paramSuffix;
@@ -184,23 +166,19 @@ component {
 		var params         = { "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" } };
 
 		return _prepareFilterForSubmissionQuestionMatrixMatches(
-			  value              = arguments.value
-			, _all               = arguments._all
-			, subqueryAlias      = subqueryAlias
-			, initialParams      = params
-			, paramSuffix        = paramSuffix
-			, overallFilter      = overallFilter
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  value         = arguments.value
+			, _all          = arguments._all
+			, subqueryAlias = subqueryAlias
+			, initialParams = params
+			, paramSuffix   = paramSuffix
+			, overallFilter = overallFilter
 		);
 	}
 
 	public array function prepareFilterForSubmissionQuestionMatrixAllRowsMatch(
 		  required string question
 		, required string value
-		,          boolean _all              = false
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          boolean _all = false
 	) {
 
 		var theQuestion    = _getFormBuilderService().getQuestion( question );
@@ -212,26 +190,21 @@ component {
 		var overallFilter  = "#subqueryAlias#.response_count >= #totalRows# ";
 		var params         = { "question#paramSuffix#" = { value=arguments.question, type="cf_sql_varchar" } };
 
-
 		return _prepareFilterForSubmissionQuestionMatrixMatches(
-			  value              = arguments.value
-			, _all               = arguments._all
-			, subqueryAlias      = subqueryAlias
-			, initialParams      = params
-			, paramSuffix        = paramSuffix
-			, overallFilter      = overallFilter
-			, filterPrefix       = arguments.filterPrefix
-			, parentPropertyName = arguments.parentPropertyName
+			  value         = arguments.value
+			, _all          = arguments._all
+			, subqueryAlias = subqueryAlias
+			, initialParams = params
+			, paramSuffix   = paramSuffix
+			, overallFilter = overallFilter
 		);
 	}
 
 	public array function prepareFilterForUserLatestResponseToChoiceField(
 		  required string  question
 		, required string  value
-		,          string  formId             = ""
-		,          boolean _all               = true
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          string  formId = ""
+		,          boolean _all   = true
 	) {
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var values         = arguments.value.listToArray();
@@ -298,8 +271,6 @@ component {
 		  required string  question
 		, required string  value
 		,          boolean _all               = false
-		,          string  parentPropertyName = ""
-		,
 	) {
 		var filters        = [];
 		var paramSuffix    = _getRandomFilterParamSuffix();
@@ -329,7 +300,7 @@ component {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "submission"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToTable    = "formbuilder_formsubmission"
 			, joinToColumn   = "id"
 		} ] } ];
 
@@ -413,9 +384,7 @@ component {
 
 	public array function prepareFilterForSubmissionQuestionHasResponded(
 		  required string  question
-		,          boolean _has               = true
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          boolean _has = true
 	) {
 		var filters        = [];
 		var paramSuffix    = _getRandomFilterParamSuffix();
@@ -442,7 +411,7 @@ component {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "submission"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToTable    = "formbuilder_formsubmission"
 			, joinToColumn   = "id"
 		} ] } ];
 
@@ -454,8 +423,6 @@ component {
 		  required string  question
 		, required string  filetype
 		,          boolean _is = true
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
 	) {
 		var paramSuffix       = _getRandomFilterParamSuffix();
 		var subqueryAlias     = "responseCount" & paramSuffix;
@@ -489,7 +456,7 @@ component {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "submission"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToTable    = "formbuilder_formsubmission"
 			, joinToColumn   = "id"
 		} ] } ];
 
@@ -500,8 +467,6 @@ component {
 		  required string question
 		, required string value
 		,          string _stringOperator = "contains"
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
 	) {
 		var filters        = [];
 		var paramSuffix    = _getRandomFilterParamSuffix();
@@ -562,7 +527,7 @@ component {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "submission"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToTable    = "formbuilder_formsubmission"
 			, joinToColumn   = "id"
 		} ] } ];
 
@@ -671,10 +636,8 @@ component {
 
 	public array function prepareFilterForUserHasRespondedToQuestion(
 		  required string  question
-		,          string  formId             = ""
-		,          boolean _has               = true
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          string  formId = ""
+		,          boolean _has   = true
 	) {
 		var filters        = [];
 		var paramSuffix    = _getRandomFilterParamSuffix();
@@ -724,10 +687,8 @@ component {
 	public array function prepareFilterForUserLatestResponseToTextField(
 		  required string question
 		, required string value
-		,          string formId             = ""
-		,          string _stringOperator    = "contains"
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          string formId          = ""
+		,          string _stringOperator = "contains"
 	) {
 		var filters        = [];
 		var paramSuffix    = _getRandomFilterParamSuffix();
@@ -805,10 +766,8 @@ component {
 
 	public array function prepareFilterForUserLatestResponseToDateField(
 		  required string question
-		,          string formId             = ""
-		,          struct _time              = {}
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
+		,          string formId = ""
+		,          struct _time  = {}
 	) {
 		var overallFilter      = "1=1";
 		var paramSuffix        = _getRandomFilterParamSuffix();
@@ -860,8 +819,6 @@ component {
 	public array function prepareFilterForSubmissionQuestionResponseDateComparison (
 		  required string question
 		, required struct _time
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
 	) {
 		var paramSuffix    = _getRandomFilterParamSuffix();
 		var subqueryAlias  = "responseCount" & paramSuffix;
@@ -896,10 +853,9 @@ component {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "submission"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToTable    = "formbuilder_formsubmission"
 			, joinToColumn   = "id"
 		} ] } ];
-
 
 		return response;
 	}
@@ -909,8 +865,6 @@ component {
 		, required string value
 		,          string formId             = ""
 		,          string _numericOperator   = "eq"
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
 	) {
 		var filters        = [];
 		var paramSuffix    = _getRandomFilterParamSuffix();
@@ -996,8 +950,6 @@ component {
 		  required string question
 		, required string value
 		,          string _numericOperator = "eq"
-		,          string parentPropertyName = ""
-		,          string filterPrefix       = ""
 	) {
 		var responseField = "";
 		var cast          = "int"
@@ -1077,7 +1029,7 @@ component {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "submission"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToTable    = "formbuilder_formsubmission"
 			, joinToColumn   = "id"
 		} ] } ];
 
@@ -1120,8 +1072,6 @@ component {
 		, boolean has    = true
 		, date    from
 		, date    to
-		, string  filterPrefix       = ""
-		, string  parentPropertyName = ""
 		, numeric qty
 		, string  qtyOperator
 	) {
@@ -1202,7 +1152,7 @@ component {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = subqueryAlias
 			, subQueryColumn = "submitted_by"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "website_user" )
+			, joinToTable    = "website_user"
 			, joinToColumn   = "id"
 		} ] } ];
 	}
@@ -1252,8 +1202,6 @@ component {
 		  required string value
 		, required string formId
 		, required string _all
-		, required string filterPrefix
-		, required string parentPropertyName
 		, required string responseQueryAlias
 		, required struct initialParams
 		, required string paramSuffix
@@ -1331,8 +1279,6 @@ component {
 	private array function _prepareFilterForSubmissionQuestionMatrixMatches(
 		  required string value
 		, required string _all
-		, required string filterPrefix
-		, required string parentPropertyName
 		, required string subqueryAlias
 		, required struct initialParams
 		, required string paramSuffix
@@ -1381,7 +1327,7 @@ component {
 			, subQuery       = subquery.sql
 			, subQueryAlias  = arguments.subqueryAlias
 			, subQueryColumn = "submission"
-			, joinToTable    = arguments.filterPrefix.len() ? arguments.filterPrefix : ( arguments.parentPropertyName.len() ? arguments.parentPropertyName : "formbuilder_formsubmission" )
+			, joinToTable    = "formbuilder_formsubmission"
 			, joinToColumn   = "id"
 		} ] } ];
 

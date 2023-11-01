@@ -2,32 +2,51 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @logger.inject defaultLogger
+	 * @logger.inject                defaultLogger
+	 * @defaultQueryTimeout.inject   coldbox:setting:queryTimeout.default
+	 * @defaultBgQueryTimeout.inject coldbox:setting:queryTimeout.backgroundThreadDefault
 	 */
-	public any function init( required any logger ) output=false {
+	public any function init(
+		  required any     logger
+		,          numeric defaultQueryTimeout   = 0
+		,          numeric defaultBgQueryTimeout = 0
+	) {
 		_setLogger( arguments.logger );
+		_setDefaultQueryTimeout( arguments.defaultQueryTimeout );
+		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
 	public any function runSql(
-		  required string sql
-		, required string dsn
-		,          array  params
-		,          string returntype="recordset"
-	) output=false {
+		  required string  sql
+		, required string  dsn
+		,          array   params
+		,          string  returntype = "recordset"
+		,          string  columnKey  = ""
+		,          numeric timeout    = _getDefaultTimeout()
+	) {
 		var result = "";
 		var params = {};
 		var options = { datasource=arguments.dsn, name="result" };
 
-		arguments.sql = _deObfuscate( arguments.sql );
+		arguments.sql = deObfuscateSql( arguments.sql );
 
 		_getLogger().debug( arguments.sql );
 
 		if ( arguments.returntype == "info" ) {
 			var info = "";
 			options.result = "info";
+		} else if ( arguments.returntype == "array" ) {
+			options.returntype = "array";
+		} else if ( arguments.returntype == "struct" ) {
+			options.returntype = "struct";
+			options.columnKey  = arguments.columnKey;
+		}
+
+		if ( arguments.timeout > 0 ) {
+			options.timeout = arguments.timeout;
 		}
 
 		if ( StructKeyExists( arguments, "params" ) ) {
@@ -76,6 +95,25 @@ component singleton=true {
 		}
 	}
 
+	public string function obfuscateSqlForPreside( required string sql ) {
+		return "{{base64:#toBase64( arguments.sql )#}}";
+	}
+
+	public string function deObfuscateSql( required string sql ) {
+		var matched = {};
+
+		do {
+			matched = _findNextObfuscation( arguments.sql );
+
+			if ( Len( Trim( matched.pattern ?: "" ) ) && Len( Trim( matched.decoded ?: "" ) ) ) {
+				arguments.sql = Replace( arguments.sql, matched.pattern, matched.decoded, "all" );
+			}
+
+		} while ( StructCount( matched ) );
+
+		return arguments.sql;
+	}
+
 // PRIVATE UTILITY
 	private string function _transformNullClauses( required string sql, required string paramName ) {
 		var hasClause = arguments.sql.reFindNoCase( "\swhere\s" );
@@ -93,20 +131,7 @@ component singleton=true {
 		return preClause & postClause
 	}
 
-	private string function _deObfuscate( required string sql ) {
-		var matched = {};
 
-		do {
-			matched = _findNextObfuscation( arguments.sql );
-
-			if ( Len( Trim( matched.pattern ?: "" ) ) && Len( Trim( matched.decoded ?: "" ) ) ) {
-				arguments.sql = Replace( arguments.sql, matched.pattern, matched.decoded, "all" );
-			}
-
-		} while ( StructCount( matched ) );
-
-		return arguments.sql;
-	}
 
 	private struct function _findNextObfuscation( required string sql ) {
 		var obfsPattern = "{{base64:([A-Za-z0-9\+\/=]+)}}";
@@ -121,11 +146,32 @@ component singleton=true {
 		return matched;
 	}
 
+	private numeric function _getDefaultTimeout() {
+		if ( StructKeyExists( request, "__isbgthread" ) && IsBoolean( request.__isbgthread ) && request.__isbgthread ) {
+			return _getDefaultBgQueryTimeout();
+		}
+		return _getDefaultQueryTimeout();
+	}
+
 // GETTERS AND SETTERS
 	private any function _getLogger() output=false {
 		return _logger;
 	}
 	private void function _setLogger( required any logger ) output=false {
 		_logger = arguments.logger;
+	}
+
+	private numeric function _getDefaultQueryTimeout() {
+		return _defaultQueryTimeout;
+	}
+	private void function _setDefaultQueryTimeout( required numeric defaultQueryTimeout ) {
+		_defaultQueryTimeout = arguments.defaultQueryTimeout;
+	}
+
+	private numeric function _getDefaultBgQueryTimeout() {
+		return _defaultBgQueryTimeout;
+	}
+	private void function _setDefaultBgQueryTimeout( required numeric defaultBgQueryTimeout ) {
+		_defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
 	}
 }

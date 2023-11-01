@@ -40,10 +40,8 @@ component {
 	private array function prepareFilters(
 		  required string  question
 		, required numeric value
-		,          string  formId             = ""
-		,          string  _numericOperator   = "eq"
-		,          string  parentPropertyName = ""
-		,          string  filterPrefix       = ""
+		,          string  formId           = ""
+		,          string  _numericOperator = "eq"
 	) {
 		return formBuilderFilterService.prepareFilterForUserLatestResponseToNumberField( argumentCollection=arguments );
 	}
