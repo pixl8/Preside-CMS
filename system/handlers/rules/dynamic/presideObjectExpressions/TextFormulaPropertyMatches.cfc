@@ -62,6 +62,16 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 				params[ paramName ].value = "%#arguments.value#";
 				filterSql = filterSql.replace( "${operator}", "not like" );
 			break;
+			case "oneof":
+				params[ paramName ].value = listToArray( arguments.value );
+				filterSql = filterSql.replace( "${operator}", "in", "all" );
+				filterSql = filterSql.replace( ":#paramName#", "(:#paramName#)", "all" );
+			break;
+			case "noneof":
+				params[ paramName ].value = listToArray( arguments.value );
+				filterSql = filterSql.replace( "${operator}", "not in", "all" );
+				filterSql = filterSql.replace( ":#paramName#", "(:#paramName#)", "all" );
+			break;
 		}
 
 		return [ rulesEngineFilterService.prepareAutoFormulaFilter(

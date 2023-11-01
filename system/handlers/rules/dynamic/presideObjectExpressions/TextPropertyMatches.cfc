@@ -38,7 +38,7 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 
 		if ( !isEmpty( fieldEnumName ) ) {
 			var enumFilterSql = "";
-			var enumDelim     = ArrayFind( [ "neq", "notcontains", "notstartswith", "notendsWith" ], arguments._stringOperator ) ? "and" : "or";
+			var enumDelim     = ArrayFind( [ "neq", "notcontains", "notstartswith", "notendsWith", "noneof" ], arguments._stringOperator ) ? "and" : "or";
 			var items         = enumService.listItems( fieldEnumName );
 
 			for ( var item in items ) {
@@ -60,11 +60,22 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 					case "notendsWith":
 						isMatched = Right( item.label, Len( arguments.value ) ) == arguments.value;
 					break;
+					case "oneof":
+					case "noneof":
+						isMatched = listFindNoCase(  arguments.value, item.label );
+					break;
 				}
 				if ( isMatched || item.id == arguments.value ) {
 					var enumParamName       = "enum#paramName##item.id#";
 					enumFilterSql          &= ( Len( enumFilterSql ) ? " #enumDelim# " : "" ) & "#arguments.objectName#.#propertyName#" & " ${operator} :#enumParamName#";
 					params[ enumParamName ] = { type="varchar", value=item.id };
+
+					switch ( arguments._stringOperator ) {
+						case "oneof":
+						case "noneof":
+							enumFilterSql = enumFilterSql.replace( ":#enumParamName#", "(:#enumParamName#)", "all" );;
+						break;
+					}
 				}
 			}
 			if ( Len( enumFilterSql ) ) {
@@ -102,6 +113,16 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			case "notendsWith":
 				params[ paramName ].value = "%#arguments.value#";
 				filterSql = filterSql.replace( "${operator}", "not like", "all" );
+			break;
+			case "oneof":
+				params[ paramName ].value = listToArray( arguments.value );
+				filterSql = filterSql.replace( "${operator}", "in", "all" );
+				filterSql = filterSql.replace( ":#paramName#", "(:#paramName#)", "all" );
+			break;
+			case "noneof":
+				params[ paramName ].value = listToArray( arguments.value );
+				filterSql = filterSql.replace( "${operator}", "not in", "all" );
+				filterSql = filterSql.replace( ":#paramName#", "(:#paramName#)", "all" );
 			break;
 		}
 
