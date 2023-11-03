@@ -38,7 +38,7 @@
 
 			<cfset selected = ListFindNoCase( value, simpleValue ) />
 
-			<cfif isFalse( selected )>
+			<cfif isFalse( selected ) && IsSimpleValue( availableValue )>
 				<option value="#HtmlEditFormat( simpleValue )#">
 					#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 				</option>

@@ -13,13 +13,20 @@ component {
 	 * @dataExportTemplateService.inject       dataExportTemplateService
 	 * @dataManagerCustomizationService.inject dataManagerCustomizationService
 	 * @scheduledExportService.inject          scheduledExportService
-	 *
+	 * @defaultDataExportSettings.inject       coldbox:setting:dataExport.defaults
 	 */
-	public any function init( required any dataExporterReader, required any dataExportTemplateService, required any dataManagerCustomizationService, required any scheduledExportService ) {
+	public any function init(
+		  required any    dataExporterReader
+		, required any    dataExportTemplateService
+		, required any    dataManagerCustomizationService
+		, required any    scheduledExportService
+		, required struct defaultDataExportSettings
+	) {
 		_setExporters( arguments.dataExporterReader.readExportersFromDirectories() );
 		_setDataExportTemplateService( arguments.dataExportTemplateService );
 		_setDataManagerCustomizationService( arguments.dataManagerCustomizationService );
 		_setScheduledExportService( arguments.scheduledExportService );
+		_setDefaultDataExportSettings( arguments.defaultDataExportSettings );
 		_setupExporterMap();
 
 		return this;
@@ -86,7 +93,7 @@ component {
 		var selectDataArgs            = StructCopy( arguments );
 		var cleanedSelectFields       = [];
 		var presideObjectService      = $getPresideObjectService();
-		var propertyDefinitions       = presideObjectService.getObjectProperties( arguments.objectName );
+		var propertyDefinitions       = Duplicate( presideObjectService.getObjectProperties( arguments.objectName ) );
 		var propertyRendererMap       = {};
 		var templateHasCustomRenderer = templateService.templateMethodExists( arguments.exportTemplate, "renderRecords" );
 
@@ -361,25 +368,36 @@ component {
 		return result;
 	}
 
-	public struct function getDefaultExportFieldsForObject( required string objectName ) {
+	public struct function getDefaultExportFieldsForObject( required string objectName, boolean expandNestedRelationField=true ) {
 		var titles       = {};
-		var uriRoot      = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
-		var exportFields = $getPresideObjectService().getObjectAttribute(
+		var poService    = $getPresideObjectService();
+		var uriRoot      = poService.getResourceBundleUriRoot( arguments.objectName );
+		var exportFields = poService.getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "dataExportFields"
 		).listToArray();
 
 		if ( !exportFields.len() ) {
-			var objectProperties = $getPresideObjectService().getObjectProperties( arguments.objectName );
-			var propertyNames    = $getPresideObjectService().getObjectAttribute(
+			var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
+			var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
+			var defaultExpandManyToOneField = $helpers.isTrue( _getDefaultDataExportSettings().expandManytoOneFields ?: false );
+			var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
+			    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? $helpers.isTrue( objectAllowExpandFields ) : defaultExpandManyToOneField;
+
+			var objectProperties = poService.getObjectProperties( arguments.objectName );
+			var propertyNames    = poService.getObjectAttribute(
 				  objectName    = arguments.objectName
 				, attributeName = "propertyNames"
 			);
 
+			if ( !ArrayLen( defaultExcludeFields ) ) {
+				defaultExcludeFields = _getDefaultDataExportSettings().excludeFields ?: [];
+			}
+
 			for( var propId in propertyNames ) {
 				var prop = objectProperties[ propId ];
 
-				if ( IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) {
+				if ( ArrayFindNoCase( defaultExcludeFields, propId ) && IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) {
 					continue;
 				}
 
@@ -387,6 +405,24 @@ component {
 					case "one-to-many":
 					case "many-to-many":
 						continue;
+					break;
+					case "many-to-one":
+						if ( arguments.expandNestedRelationField ) {
+							var shouldExpand = StructKeyExists( prop, "dataExportAllowExpandFields" ) ? $helpers.isTrue( prop.dataExportAllowExpandFields ) : objectAllowExpandFields;
+
+							if ( shouldExpand ) {
+								var linkedFields = getDefaultExportFieldsForObject( objectName=prop.relatedTo, expandNestedRelationField=false );
+
+								if ( ArrayLen( linkedFields.selectFields ?: [] ) ) {
+									for ( var field in linkedFields.selectFields ) {
+										ArrayAppend( exportFields, "#propId#.#field#" );
+										titles[ "#propId#.#field#" ] = linkedFields.fieldTitles[ field ] ?: "";
+									}
+
+									continue;
+								}
+							}
+						}
 					break;
 				}
 
@@ -410,19 +446,97 @@ component {
 					break;
 				}
 
-				exportFields.append( propId );
+				ArrayAppend( exportFields, propId );
 			}
 		}
 
 
 		for( var field in exportFields ) {
-			titles[ field ] = $translateResource( uri=uriRoot & "field.#field#.title", defaultValue=field );
+			titles[ field ] = titles[ field ] ?: $translateResource( uri=uriRoot & "field.#field#.title", defaultValue=field );
 		}
 
 		return {
 			  selectFields = exportFields
 			, fieldTitles  = titles
 		};
+	}
+
+	public array function getAllowExportObjectProperties(
+		  required string  objectName
+		,          boolean expandNestedRelationField = true
+		,          boolean isNested                  = false
+	) {
+		var poService = $getPresideObjectService();
+		var fields    = [];
+		var props     = poService.getObjectProperties( arguments.objectName );
+
+		var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
+		var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
+		var defaultExpandManyToOneField = $helpers.isTrue( _getDefaultDataExportSettings().expandManytoOneFields ?: false );
+		var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
+		    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? $helpers.isTrue( objectAllowExpandFields ) : defaultExpandManyToOneField;
+
+		if ( !ArrayLen( defaultExcludeFields ) ) {
+			defaultExcludeFields = _getDefaultDataExportSettings().excludeFields ?: [];
+		}
+
+		for ( var prop in props ) {
+			var shouldInclude = !ArrayFindNoCase( defaultExcludeFields, prop ) && !$helpers.isTrue( props[ prop ].excludeDataExport ?: "" );
+			if ( ArrayLen( defaultIncludeFields ) ) {
+				shouldInclude = shouldInclude && ArrayFindNoCase( shouldInclude, prop );
+			}
+
+			if ( shouldInclude && arguments.isNested ) {
+				shouldInclude = !$helpers.isTrue( props[ prop ].excludeNestedDataExport ?: "" );
+			}
+
+			if ( shouldInclude && !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) ) {
+				var hasPermission     = true;
+				var requiredRoleCheck = StructKeyExists( props[ prop ], "limitToAdminRoles" )
+				                     && ( args.context ?: "" ) == "admin"
+				                     && !$getAdminLoginService().isSystemUser();
+
+				if ( requiredRoleCheck ) {
+					hasPermission = $getAdminPermissionService().userHasAssignedRoles(
+						  userId = $getAdminLoginService().getLoggedInUserId()
+						, roles  = ListToArray( props[ prop ].limitToAdminRoles )
+					);
+				}
+
+				if ( hasPermission ) {
+					var shouldExpand = arguments.expandNestedRelationField && ( ( props[ prop ].relationship ?: "" ) == "many-to-one" );
+					if ( shouldExpand ) {
+						shouldExpand = StructKeyExists( props[ prop ], "dataExportAllowExpandFields" ) ? $helpers.isTrue( props[ prop ].dataExportAllowExpandFields ) : objectAllowExpandFields;
+					}
+
+					if ( shouldExpand ) {
+						var relatedFields   = [];
+						var relatedLabels   = [];
+						var relatedObjName  = props[ prop ].relatedTo;
+						var relatedObjProps = getAllowExportObjectProperties( objectName=relatedObjName, expandNestedRelationField=false, isNested=true );
+						var relatedI18nUri  = poService.getResourceBundleUriRoot( objectName=relatedObjName );
+
+						for ( var field in relatedObjProps ) {
+							ArrayAppend( relatedFields, field );
+							ArrayAppend( relatedLabels, $translateResource(
+								  uri          = relatedI18nUri & "field.#field#.title"
+								, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#field#.title", defaultValue=field )
+							) );
+						}
+
+						if ( ArrayLen( relatedFields ) ) {
+							ArrayAppend( fields, { "#prop#"={ fields=relatedFields, labels=relatedLabels } } );
+						} else {
+							ArrayAppend( fields, prop );
+						}
+					} else {
+						ArrayAppend( fields, prop );
+					}
+				}
+			}
+		}
+
+		return fields;
 	}
 
 	/**
@@ -602,6 +716,13 @@ component {
 	}
 	private void function _setScheduledExportService( required any scheduledExportService ) {
 		_scheduledExportService = arguments.scheduledExportService;
+	}
+
+	private struct function _getDefaultDataExportSettings() {
+		return _defaultDataExportSettings;
+	}
+	private void function _setDefaultDataExportSettings( required struct defaultDataExportSettings ) {
+		_defaultDataExportSettings = arguments.defaultDataExportSettings;
 	}
 
 	private struct function _getExporterMap() {

@@ -63,22 +63,24 @@
 
 		// SORTING ACTIONS
 		sortUpBtn.on( 'click', function(event) {
-			var moveUpSelected = $( '#' + curPanelId + '_to option:selected' );
-			var optionAtTop    = moveUpSelected.first().prev();
+			$( '#' + curPanelId + '_to option:selected' ).each(function(index, el) {
+				var optionAtTop = $(this).prev(':not(:selected)');
 
-			if ( optionAtTop.length > 0 ) {
-				moveUpSelected.detach().insertBefore( optionAtTop );
-			}
+				if ( optionAtTop.length > 0 ) {
+					$(this).detach().insertBefore( optionAtTop );
+				}
+			});
 
 			updateSelectedValues( curPanelId );
 		});
 		sortDownBtn.on( 'click', function(event) {
-			var moveDownSelected = $( '#' + curPanelId + '_to option:selected' );
-			var optionAtBottom   = moveDownSelected.last().next();
+			$( '#' + curPanelId + '_to option:selected' ).each(function(index, el) {
+				var optionAtBottom = $(this).next(':not(:selected)');
 
-			if ( optionAtBottom.length > 0 ) {
-				moveDownSelected.detach().insertAfter( optionAtBottom );
-			}
+				if ( optionAtBottom.length > 0 ) {
+					$(this).detach().insertAfter( optionAtBottom );
+				}
+			});
 
 			updateSelectedValues( curPanelId );
 		});
