@@ -372,6 +372,7 @@ component {
 		var titles       = {};
 		var poService    = $getPresideObjectService();
 		var uriRoot      = poService.getResourceBundleUriRoot( arguments.objectName );
+		var defaults     = _getDefaultDataExportSettings();
 		var exportFields = poService.getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "dataExportFields"
@@ -380,9 +381,9 @@ component {
 		if ( !exportFields.len() ) {
 			var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
 			var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
-			var defaultExpandManyToOneField = $helpers.isTrue( _getDefaultDataExportSettings().expandManytoOneFields ?: false );
+			var defaultExpandManyToOneField = IsBoolean( defaults.expandManytoOneFields ?: "" ) && defaults.expandManytoOneFields;
 			var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
-			    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? $helpers.isTrue( objectAllowExpandFields ) : defaultExpandManyToOneField;
+			    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? objectAllowExpandFields : defaultExpandManyToOneField;
 
 			var objectProperties = poService.getObjectProperties( arguments.objectName );
 			var propertyNames    = poService.getObjectAttribute(
@@ -391,7 +392,7 @@ component {
 			);
 
 			if ( !ArrayLen( defaultExcludeFields ) ) {
-				defaultExcludeFields = _getDefaultDataExportSettings().excludeFields ?: [];
+				defaultExcludeFields = defaults.excludeFields ?: [];
 			}
 
 			for( var propId in propertyNames ) {
@@ -408,7 +409,7 @@ component {
 					break;
 					case "many-to-one":
 						if ( arguments.expandNestedRelationField ) {
-							var shouldExpand = StructKeyExists( prop, "dataExportAllowExpandFields" ) ? $helpers.isTrue( prop.dataExportAllowExpandFields ) : objectAllowExpandFields;
+							var shouldExpand = IsBoolean( prop.dataExportAllowExpandFields ?: "" ) ? prop.dataExportAllowExpandFields : objectAllowExpandFields;
 
 							if ( shouldExpand ) {
 								var linkedFields = getDefaultExportFieldsForObject( objectName=prop.relatedTo, expandNestedRelationField=false );
