@@ -780,6 +780,7 @@
 			this.container.removeClass("chosen-container-active");
 			this.clear_backstroke();
 			this.show_search_field_default();
+			this.result_error_clear();
 			return this.search_field_scale();
 		};
 
@@ -1307,12 +1308,17 @@
 			return this.search_results.append(no_results_html);
 		};
 
-				UberSelect.prototype.results_error = function(terms) {
+		UberSelect.prototype.results_error = function(terms) {
 			var results_error_html;
 
 			results_error_html = $('<li class="results-error">' + this.results_error_text + '</li>');
 			return this.search_results.append(results_error_html);
 		};
+
+		UberSelect.prototype.result_error_clear = function() {
+			this.fetchError = false;
+			return this.search_results.find(".results-error").remove();
+		}
 
 		UberSelect.prototype.no_results_clear = function() {
 			return this.search_results.find(".no-results").remove();
