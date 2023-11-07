@@ -215,7 +215,9 @@
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
 		functionCallProtectedEmailLinkRegex = /^javascript:([^(]+)\(([^)]+)\)$/,
 		popupRegex = /\s*window.open\(\s*this\.href\s*,\s*(?:'([^']*)'|null)\s*,\s*'([^']*)'\s*\)\s*;\s*return\s*false;*\s*/,
-		popupFeaturesRegex = /(?:^|,)([^=]+)=(\d+|yes|no)/gi;
+		popupFeaturesRegex = /(?:^|,)([^=]+)=(\d+|yes|no)/gi,
+		bodyNewlines = /\%0D\%0A/g,
+		bodyNewlinesEncoded = /\%250D\%250A/g;
 
 	var advAttrNames = {
 		id: 'advId',
@@ -239,6 +241,10 @@
 
 	function escapeSingleQuote( str ) {
 		return str.replace( /'/g, '\\$&' );
+	}
+
+	function unescapeNewlines ( str ) {
+		return str.replace( bodyNewlinesEncoded, "%0D%0A" );
 	}
 
 	function protectEmailAddressAsEncodedString( address ) {
@@ -441,7 +447,7 @@
 					href = href.replace( encodedEmailLinkRegex, function( match, protectedAddress, rest ) {
 						return 'mailto:' +
 							String.fromCharCode.apply( String, protectedAddress.split( ',' ) ) +
-							( rest && unescapeSingleQuote( rest ) );
+							unescapeNewlines( rest ) + unescapeSingleQuote( rest );
 					} );
 				}
 				// Protected email link as function call.
@@ -613,7 +619,7 @@
 
 							// Build the e-mail parameters first.
 							subject  && argList.push( 'subject=' + subject );
-							body     && argList.push( 'body=' + body );
+							body     && argList.push( 'body=' + body.replace( bodyNewlines, "%250D%250A" ) );
 							antiSpam && argList.push( 'emailantispam=' + ( disableAntiSpam == "true" ? "1" : "0" ) );
 							argList = argList.length ? '?' + argList.join( '&' ) : '';
 
