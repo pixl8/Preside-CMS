@@ -23,26 +23,32 @@ component {
 
 // PRIVATE HELPERS
 	private void function _readExtensions( required string appMapping, required array ignoreExtensions ) {
-		appMapping = "/" & appMapping.reReplace( "^/", "" );
+		var appCacheKey = "__presideappExtensions";
 
-		var appDir        = ExpandPath( appMapping );
-		var extensionsDir = ListAppend( appDir, "extensions", _getDirDelimiter() );
-		var manifestFiles = DirectoryList( extensionsDir, true, "path", "manifest.json" );
-		var extensions    = [];
+		if ( !StructKeyExists( application, appCacheKey ) ) {
+			appMapping = "/" & appMapping.reReplace( "^/", "" );
 
-		for( var manifestFile in manifestFiles ) {
-			if ( !_isExtensionManifest( manifestFile, extensionsDir ) ) {
-				continue;
+			var appDir        = ExpandPath( appMapping );
+			var extensionsDir = ListAppend( appDir, "extensions", _getDirDelimiter() );
+			var manifestFiles = DirectoryList( extensionsDir, true, "path", "manifest.json" );
+			var extensions    = [];
+
+			for( var manifestFile in manifestFiles ) {
+				if ( !_isExtensionManifest( manifestFile, extensionsDir ) ) {
+					continue;
+				}
+
+				var extension = _parseManifest( manifestFile, appMapping );
+				if ( !ArrayFindNoCase( arguments.ignoreExtensions, extension.id ) ) {
+					ArrayAppend( extensions, extension );
+				}
 			}
 
-			var extension = _parseManifest( manifestFile, appMapping );
-			if ( !ArrayFindNoCase( arguments.ignoreExtensions, extension.id ) ) {
-				ArrayAppend( extensions, extension );
-			}
+			extensions = _sortExtensions( extensions );
+			application[ appCacheKey ] = extensions;
 		}
 
-		extensions = _sortExtensions( extensions );
-		_setExtensions( extensions );
+		_setExtensions( application[ appCacheKey ] );
 	}
 
 	private struct function _parseManifest( required string manifestFile, required string appMapping ) {
