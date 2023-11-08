@@ -268,6 +268,7 @@ component {
 				, meta                  = arguments.meta
 				, batchedRecordIterator = batchedRecordIterator
 				, objectName            = arguments.objectName
+				, propertyRendererMap   = propertyRendererMap
 			  }
 		);
 
