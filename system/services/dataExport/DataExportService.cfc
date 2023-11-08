@@ -322,6 +322,7 @@ component {
 				, meta                  = exportMeta
 				, batchedRecordIterator = batchedRecordIterator
 				, objectName            = arguments.objectName
+				, propertyRendererMap   = propertyRendererMap
 			  }
 		);
 
