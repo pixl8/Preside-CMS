@@ -23,6 +23,12 @@
 
 		&.chosen-container-single {
 			.chosen-single {
+				.edit-choice-link {
+					position: absolute;
+					right: 40px;
+					top: 9px;
+				}
+
 				.remove-choice-link {
 					top : 9px;
 				}
@@ -30,6 +36,19 @@
 				div b {
 					line-height : 39px;
 				}
+			}
+
+			&.quick-add {
+				.chosen-single {
+					.edit-choice-link,
+					.remove-choice-link {
+						top: 13px;
+					}
+				}
+			}
+
+			.chosen-single-with-deselect > span {
+				margin-right: 60px;
 			}
 		}
 	}
@@ -46,6 +65,12 @@
 
 	&.chosen-container-single {
 		.chosen-single {
+			.edit-choice-link {
+				position: absolute;
+				right: 40px;
+				top: 9px;
+			}
+
 			.remove-choice-link {
 				top : 9px;
 
@@ -53,6 +78,19 @@
 					content: "";
 				}
 			}
+		}
+
+		&.quick-add {
+			.chosen-single {
+				.edit-choice-link,
+				.remove-choice-link {
+					top: 13px;
+				}
+			}
+		}
+
+		.chosen-single-with-deselect > span {
+			margin-right: 60px;
 		}
 	}
 
