@@ -240,8 +240,8 @@ component {
 
 	private void function _clearExistingApplication() {
 		onApplicationEnd( application );
-		application.clear();
-		request.delete( "cb_requestcontext" );
+		StructClear( application );
+		StructDelete( request, "cb_requestcontext" );
 		SystemCacheClear( "template" );
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
