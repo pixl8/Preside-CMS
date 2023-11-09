@@ -9,7 +9,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="versioningService"                inject="versioningService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
-	property name="pageCache"                        inject="cachebox:PresidePageCache";
 	property name="cookieService"                    inject="cookieService";
 
 	public void function preHandler( event, rc, prc ) {
@@ -1209,16 +1208,7 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			var page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
-			var pageUrl    = event.buildLink( page=pageId ).reReplace( "^https?://.*?/", "/" );
-			var sectionUrl = pageUrl.reReplace( "\.html$", "/" );
-
-			pageCache.clearByKeySnippet( pageUrl );
-			pageCache.clearByKeySnippet( sectionUrl );
-
-			announceInterception( "onClearPageCaches", {
-				  pageUrl    = pageUrl
-				, sectionUrl = sectionUrl
-			} );
+			siteTreeService.clearPageCache( pageId );
 
 			event.audit(
 				  action   = "clear_cache_for_page"

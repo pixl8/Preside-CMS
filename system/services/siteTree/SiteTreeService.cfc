@@ -17,6 +17,7 @@ component {
 	 * @websitePermissionService.inject    websitePermissionService
 	 * @rulesEngineConditionService.inject rulesEngineConditionService
 	 * @cloningService.inject              presideObjectCloningService
+	 * @pageCache.inject                   cachebox:PresidePageCache
 	 */
 	public any function init(
 		  required any loginService
@@ -29,6 +30,7 @@ component {
 		, required any websitePermissionService
 		, required any rulesEngineConditionService
 		, required any cloningService
+		, required any pageCache
 	) {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
@@ -40,6 +42,7 @@ component {
 		_setWebsitePermissionService( arguments.websitePermissionService );
 		_setRulesEngineConditionService( arguments.rulesEngineConditionService );
 		_setCloningService( arguments.cloningService );
+		_setPageCache( arguments.pageCache );
 		_setPageSlugsAreMultilingual();
 
 		if ( $isFeatureEnabled( "sitetree" ) ) {
@@ -1354,6 +1357,18 @@ component {
 		return page.id ?: "";
 	}
 
+	public void function clearPageCache( required string pageId ) {
+		var pageUrl    = ReReplace( $getRequestContext().buildLink( page=arguments.pageId ), "^https?://.*?/", "/" );
+		var sectionUrl = ReReplace( pageUrl, "\.html$", "/" );
+
+		_getPageCache().clearByKeySnippet( pageUrl );
+		_getPageCache().clearByKeySnippet( sectionUrl );
+
+		$announceInterception( "onClearPageCaches", {
+			  pageUrl    = pageUrl
+			, sectionUrl = sectionUrl
+		} );
+	}
 
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page="", string site="" ) {
@@ -1804,6 +1819,13 @@ component {
 	}
 	private void function _setCloningService( required any cloningService ) {
 		_cloningService = arguments.cloningService;
+	}
+
+	private any function _getPageCache() {
+		return _pageCache;
+	}
+	private void function _setPageCache( required any pageCache ) {
+		_pageCache = arguments.pageCache;
 	}
 
 	private void function _setPageSlugsAreMultilingual() {
