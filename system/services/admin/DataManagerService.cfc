@@ -71,6 +71,7 @@ component {
 
 			if (   isInActiveTemplate && Len( Trim( groupId ) )
 				&& permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] )
+				&& permsService.hasPermission( permissionKey="presideobject.#objectName#.navigate" )
 				&& isOperationAllowed( objectName, "navigate" )
 			) {
 				if ( !StructKeyExists( groups, groupId ) ) {
