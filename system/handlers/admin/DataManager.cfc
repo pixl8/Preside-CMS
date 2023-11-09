@@ -18,6 +18,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="sessionStorage"                   inject="sessionStorage";
 	property name="applicationsService"              inject="applicationsService";
 	property name="loginService"                     inject="loginService";
+	property name="dataExportDefaultConfig"          inject="coldbox:setting:dataExport.defaults";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -3381,6 +3382,20 @@ component extends="preside.system.base.AdminHandler" {
 			, additionalArgs     = arguments.additionalArgs
 			, templateConfig     = dataExportTemplateService.getSubmittedConfig( exportTemplate, objectName )
 		};
+
+		var appEnableExpandExportFields = isTrue( dataExportDefaultConfig.expandManytoOneFields ?: "" );
+		var objEnableExpandExportFields = isTrue( presideObjectService.getObjectAttribute( objectName=args.objectName, attributeName="dataExportExpandManytoOneFields" ) );
+
+		args.expandNestedFields = appEnableExpandExportFields || objEnableExpandExportFields;
+		if ( !args.expandNestedFields ) {
+			for ( var field in args.selectFields ) {
+				writeDump(field);
+				if ( ListLen( field, "." ) > 1 ) {
+					args.expandNestedFields = true;
+					break;
+				}
+			}
+		}
 
 		try {
 			args.extraFilters.append( rulesEngineFilterService.prepareFilter(

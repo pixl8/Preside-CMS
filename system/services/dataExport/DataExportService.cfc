@@ -61,6 +61,7 @@ component {
 		,          string  mimetype           = ""
 		,          struct  templateConfig     = {}
 		,          string  historyExportId    = ""
+		,          boolean expandNestedFields = false
 		,          any     logger
 		,          any     progress
 	) {
@@ -104,6 +105,7 @@ component {
 		selectDataArgs.delete( "exportFilterString" );
 		selectDataArgs.delete( "exportTemplate" );
 		selectDataArgs.delete( "templateConfig" );
+		selectDataArgs.delete( "expandNestedFields" );
 		selectDataArgs.delete( "logger" );
 		selectDataArgs.delete( "progress" );
 		for( var key in selectDataArgs ) {
@@ -116,7 +118,7 @@ component {
 		selectDataArgs.startRow     = 1;
 		selectDataArgs.autoGroupBy  = true;
 		selectDataArgs.useCache     = false;
-		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
+		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields, arguments.expandNestedFields );
 		selectDataArgs.distinct     = true;
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
 		selectDataArgs.extraFilters = selectDataArgs.extraFilters ?: [];
@@ -248,7 +250,7 @@ component {
 				for( var i=1; i<=results.recordCount; i++ ) {
 					for( var field in cleanedSelectFields ) {
 						var fieldName = field;
-						if ( ListLen( fieldName, "." ) > 1 ) {
+						if ( expandNestedFields && ListLen( fieldName, "." ) > 1 ) {
 							fieldName = "#ListFirst( fieldName, "." )#_#ListLast( fieldName, "." )#";
 						}
 
@@ -267,7 +269,8 @@ component {
 			var fieldName = field.listLast( " " );
 			ArrayAppend( cleanedSelectFields, fieldName );
 
-			if ( ( ListLen( fieldName, "." ) > 1 ) &&
+			if ( arguments.expandNestedFields &&
+				 ( ListLen( fieldName, "." ) > 1 ) &&
 				 !StructKeyExists( propertyDefinitions, fieldName ) &&
 				 StructKeyExists( propertyDefinitions, ListFirst( fieldName, "." ) )
 			) {
@@ -285,7 +288,7 @@ component {
 		if ( !templateHasCustomRenderer ) {
 			for( var field in cleanedSelectFields ) {
 				var fieldName = field;
-				if ( ListLen( fieldName, "." ) > 1 ) {
+				if ( arguments.expandNestedFields && ListLen( fieldName, "." ) > 1 ) {
 					fieldName = "#ListFirst( fieldName, "." )#_#ListLast( fieldName, "." )#";
 				}
 
@@ -333,7 +336,7 @@ component {
 			, templateConfig = arguments.templateConfig
 			, selectFields   = cleanedSelectFields
 		) );
-		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles );
+		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles, arguments.expandNestedFields );
 
 		$announceInterception( "postDataExportPrepareData", arguments );
 
@@ -398,7 +401,7 @@ component {
 			for( var propId in propertyNames ) {
 				var prop = objectProperties[ propId ];
 
-				if ( ArrayFindNoCase( defaultExcludeFields, propId ) && IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) {
+				if ( ArrayFindNoCase( defaultExcludeFields, propId ) || ( IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) ) {
 					continue;
 				}
 
@@ -578,15 +581,16 @@ component {
 
 // PRIVATE HELPERS
 	private array function _expandRelationshipFields(
-		  required string objectName
-		, required array  selectFields
+		  required string  objectName
+		, required array   selectFields
+		,          boolean expandNestedFields = false
 	) {
 		var props = $getPresideObjectService().getObjectProperties( arguments.objectName );
 		var prop  = {};
 		var i     = 0;
 
 		for( var field in arguments.selectFields ) {
-			var fieldName = ListFirst( field, "." );
+			var fieldName = arguments.expandNestedFields ? ListFirst( field, "." ) : field;
 
 			i++;
 			prop = props[ fieldName ] ?: {};
@@ -598,7 +602,7 @@ component {
 				break;
 
 				case "many-to-one":
-					if ( ListLen( field, "." ) > 1 ) {
+					if ( arguments.expandNestedFields && ListLen( field, "." ) > 1 ) {
 						selectFields[ i ] = "#field# as " & "#fieldName#_#ListLast( field, "." )#";
 					} else {
 						selectFields[ i ] = "#fieldName#.${labelfield} as " & fieldName;
@@ -611,9 +615,10 @@ component {
 	}
 
 	private struct function _setDefaultFieldTitles(
-		  required string objectName
-		, required array  fieldNames
-		, required struct existingTitles
+		  required string  objectName
+		, required array   fieldNames
+		, required struct  existingTitles
+		,          boolean expandNestedFields = false
 	) {
 		var baseUri = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
 		for( var field in arguments.fieldNames ) {
@@ -625,7 +630,7 @@ component {
 					, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#fieldName#.title", defaultValue=fieldName )
 				);
 
-				if ( ListLen( field, "." ) > 1 ) {
+				if ( arguments.expandNestedFields && ListLen( field, "." ) > 1 ) {
 					var nestedField       = ListLast( field, "." );
 					var relatedObjectName = $getPresideObjectService().getObjectPropertyAttribute( arguments.objectName, fieldName, "relatedTo" );
 					    fieldKey          = "#fieldName#_#nestedField#";
