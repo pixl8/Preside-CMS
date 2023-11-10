@@ -228,7 +228,7 @@ component {
 			return IsBoolean( result ?: "" ) && result;
 		}
 
-		return getAllowedOperationsForObject( arguments.objectName ).findNoCase( arguments.operation );
+		return getAllowedOperationsForObject( arguments.objectName ).findNoCase( arguments.operation ) > 0;
 	}
 
 	public array function getAllowedOperationsForObject( required string objectName ) {
