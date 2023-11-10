@@ -21,11 +21,11 @@ component hint="Manage Preside email templates" extends="preside.system.base.Com
 			message &= writeText( "Valid operations:" );
 			message &= newLine();
 
-			message &= writeText( text="    list [template\]", type="info", bold=true );
-			message &= writeText( text=": Lists system email template.", newLine=true );
+			message &= writeText( text="    list [filter\]", type="info", bold=true );
+			message &= writeText( text=" : Lists all system email templates, or those matching the optional filter string", newLine=true );
 
 			message &= writeText( text="    reset template", type="info", bold=true );
-			message &= writeText( text=": Reset system email template to default content.", newLine=true );
+			message &= writeText( text=" : Reset system email template to default content", newLine=true );
 
 			return message;
 		}

@@ -19,8 +19,8 @@ component hint="Manage Preside features" extends="preside.system.base.Command" {
 			message &= writeText( "Valid operations:" );
 			message &= newLine();
 
-			message &= writeText( text="    list ", type="info", bold=true );
-			message &= writeText( text=": Lists all features." );
+			message &= writeText( text="    list [filter\]", type="info", bold=true );
+			message &= writeText( text=" : Lists all features, or those matching the optional filter string" );
 
 			return message;
 		}
