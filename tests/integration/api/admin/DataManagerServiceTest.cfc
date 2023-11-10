@@ -4,7 +4,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		describe( "getGroupedObjects()", function(){
 			it( "should return objects in their configured groups", function(){
 				var dataManagerService = _getService();
-				var expected = [
+				var expected           = [
 					  { title="Another group", description="Another description", icon="another-icon-class", objects=[
 						  { id="object4", title="Object 4", iconClass="fa-object-4" }
 					  ] }
@@ -13,9 +13,13 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 						, { id="object2", title="Object 2", iconClass="fa-object-2" }
 					  ] }
 				];
-				var groups   = "";
+				var groups             = "";
 
 				mockPermissionService.$( "hasPermission", true );
+				mockCustomizationService.$( "objectHasCustomization", false );
+				mockPoService.$( "objectIsVersioned", false );
+				mockCloningService.$( "isCloneable", false );
+				mockMultilingualService.$( "isMultilingual", false );
 
 				groups = dataManagerService.getGroupedObjects();
 
@@ -24,28 +28,25 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 			it( "should not contain object to which the logged in user does not have navigation permissions", function(){
 				var dataManagerService = _getService();
-				var expected = [
+				var expected           = [
 					  { title="Some group", description="Some description", icon="an-icon-class", objects=[
 						  { id="object1", title="Object 1", iconClass="fa-object-1" }
 					  ] }
 				];
-				var groups   = "";
+				var groups             = "";
 
-				mockPermissionService.$( "hasPermission" ).$args(
-					  permissionKey = "datamanager.navigate"
-					, context       = "datamanager"
-					, contextKeys   = [ "object1" ]
-				).$results( true );
-				mockPermissionService.$( "hasPermission" ).$args(
-					  permissionKey = "datamanager.navigate"
-					, context       = "datamanager"
-					, contextKeys   = [ "object2" ]
-				).$results( false );
-				mockPermissionService.$( "hasPermission" ).$args(
-					  permissionKey = "datamanager.navigate"
-					, context       = "datamanager"
-					, contextKeys   = [ "object4" ]
-				).$results( false );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ "object1" ]).$results( true );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ "object2" ]).$results( false );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ "object4" ]).$results( false );
+
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="presideobject.object1.navigate" ).$results( true );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="presideobject.object2.navigate" ).$results( false );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="presideobject.object4.navigate" ).$results( false );
+
+				mockCustomizationService.$( "objectHasCustomization", false );
+				mockPoService.$( "objectIsVersioned", false );
+				mockCloningService.$( "isCloneable", false );
+				mockMultilingualService.$( "isMultilingual", false );
 
 				groups = dataManagerService.getGroupedObjects();
 
@@ -54,8 +55,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 			it( "should not return objects that are exclusive to a site template that is not the active template", function(){
 				var dataManagerService = _getService();
-				var groups   = "";
-				var expected = [
+				var groups             = "";
+				var expected           = [
 					  { title="Another group", description="Another description", icon="another-icon-class", objects=[
 						  { id="object4", title="Object 4", iconClass="fa-object-4" }
 					  ] }
@@ -66,9 +67,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				];
 
 				mockPermissionService.$( "hasPermission", true );
+				mockCustomizationService.$( "objectHasCustomization", false );
+				mockPoService.$( "objectIsVersioned", false );
+				mockCloningService.$( "isCloneable", false );
+				mockMultilingualService.$( "isMultilingual", false );
+
 				mockPoService.$( "listObjects", [ "object1", "object2", "object3", "object4", "object5", "object6" ] );
+
 				mockPoService.$( "getObjectAttribute" ).$args( objectName="object6", attributeName="siteTemplates"   , defaultValue="*" ).$results( "sometemplate" );
 				mockPoService.$( "getObjectAttribute" ).$args( objectName="object6", attributeName="datamanagergroup", defaultValue="" ).$results( "anothergroup" );
+				mockPoService.$( "getObjectAttribute" ).$args( objectName="object6", attributeName="datamanagerAllowedOperations", defaultValue=_getDefaultOperations() ).$results( _getDefaultOperations() );
+				mockPoService.$( "getObjectAttribute" ).$args( objectName="object6", attributeName="datamanagerDisallowedOperations", defaultValue="" ).$results( "" );
+
 				mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object6:title" ).$results( "Object 6" );
 
 				mockSiteService.$( "getActiveSiteTemplate", "someotherteplate" );
@@ -80,8 +90,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 			it( "should return objects that are exclusive to the active site template", function(){
 				var dataManagerService = _getService();
-				var groups   = "";
-				var expected = [
+				var groups             = "";
+				var expected           = [
 					  { title="Another group", description="Another description", icon="another-icon-class", objects=[
 						  { id="object4", title="Object 4", iconClass="fa-object-4" }
 						, { id="object6", title="Object 6", iconClass="fa-object-6" }
@@ -93,9 +103,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				];
 
 				mockPermissionService.$( "hasPermission", true );
+				mockCustomizationService.$( "objectHasCustomization", false );
+				mockPoService.$( "objectIsVersioned", false );
+				mockCloningService.$( "isCloneable", false );
+				mockMultilingualService.$( "isMultilingual", false );
+
 				mockPoService.$( "listObjects", [ "object1", "object2", "object3", "object4", "object5", "object6" ] );
+
 				mockPoService.$( "getObjectAttribute" ).$args( objectName="object6", attributeName="siteTemplates"   , defaultValue="*" ).$results( "sometemplate" );
 				mockPoService.$( "getObjectAttribute" ).$args( objectName="object6", attributeName="datamanagergroup", defaultValue="" ).$results( "anothergroup" );
+				mockPoService.$( "getObjectAttribute" ).$args( objectName="object6", attributeName="datamanagerAllowedOperations", defaultValue=_getDefaultOperations() ).$results( _getDefaultOperations() );
+				mockPoService.$( "getObjectAttribute" ).$args( objectName="object6", attributeName="datamanagerDisallowedOperations", defaultValue="" ).$results( "" );
+
 				mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object6:title" ).$results( "Object 6" );
 
 				mockSiteService.$( "getActiveSiteTemplate", "sometemplate" );
@@ -260,6 +279,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		);
 	}
 
+	private string function _getDefaultOperations() {
+		return "navigate,read,add,edit,batchedit,delete,batchdelete";
+	}
+
 	private void function _setupMockObjectMeta() output=false {
 		mockPoService.$( "listObjects", [ "object1", "object2", "object3", "object4", "object5" ] );
 
@@ -275,6 +298,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockPoService.$( "getObjectAttribute" ).$args( objectName="object3", attributeName="siteTemplates", defaultValue="*" ).$results( "*" );
 		mockPoService.$( "getObjectAttribute" ).$args( objectName="object4", attributeName="siteTemplates", defaultValue="*" ).$results( "*" );
 		mockPoService.$( "getObjectAttribute" ).$args( objectName="object5", attributeName="siteTemplates", defaultValue="*" ).$results( "*" );
+
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object1", attributeName="datamanagerAllowedOperations", defaultValue=_getDefaultOperations() ).$results( _getDefaultOperations() );
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object2", attributeName="datamanagerAllowedOperations", defaultValue=_getDefaultOperations() ).$results( _getDefaultOperations() );
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object3", attributeName="datamanagerAllowedOperations", defaultValue=_getDefaultOperations() ).$results( _getDefaultOperations() );
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object4", attributeName="datamanagerAllowedOperations", defaultValue=_getDefaultOperations() ).$results( _getDefaultOperations() );
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object5", attributeName="datamanagerAllowedOperations", defaultValue=_getDefaultOperations() ).$results( _getDefaultOperations() );
+
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object1", attributeName="datamanagerDisallowedOperations", defaultValue="" ).$results( "" );
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object2", attributeName="datamanagerDisallowedOperations", defaultValue="" ).$results( "" );
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object3", attributeName="datamanagerDisallowedOperations", defaultValue="" ).$results( "" );
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object4", attributeName="datamanagerDisallowedOperations", defaultValue="" ).$results( "" );
+		mockPoService.$( "getObjectAttribute" ).$args( objectName="object5", attributeName="datamanagerDisallowedOperations", defaultValue="" ).$results( "" );
 
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.groups.somegroup:title" ).$results( "Some group" );
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.groups.somegroup:description" ).$results( "Some description" );
@@ -295,8 +330,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object4:iconClass", defaultValue="fa-database" ).$results( "fa-object-4" );
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object5:iconClass", defaultValue="fa-database" ).$results( "fa-object-5" );
 		mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.object6:iconClass", defaultValue="fa-database" ).$results( "fa-object-6" );
-
-
 
 		mockSiteService.$( "getActiveSiteTemplate", "" );
 	}
