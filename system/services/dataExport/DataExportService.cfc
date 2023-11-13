@@ -251,7 +251,7 @@ component {
 					for( var field in cleanedSelectFields ) {
 						var fieldName = field;
 						if ( expandNestedFields && ListLen( fieldName, "." ) > 1 ) {
-							fieldName = "#ListFirst( fieldName, "." )#_#ListLast( fieldName, "." )#";
+							fieldName = _nestedFieldName( ListFirst( fieldName, "." ), ListLast( fieldName, "." ) );
 						}
 
 						if ( ArrayFindNoCase( columns, fieldName ) ) {
@@ -277,7 +277,7 @@ component {
 				var relatedObjectName = propertyDefinitions[ ListFirst( fieldName, "." ) ].relatedTo ?: "";
 
 				if ( Len( relatedObjectName ) && presideObjectService.objectExists( objectName=relatedObjectName ) ) {
-					propertyDefinitions[ "#ListFirst( fieldName, "." )#_#ListLast( fieldName, "." )#" ] = presideObjectService.getObjectProperty(
+					propertyDefinitions[ _nestedFieldName( ListFirst( fieldName, "." ), ListLast( fieldName, "." ) ) ] = presideObjectService.getObjectProperty(
 						  objectName   = relatedObjectName
 						, propertyName = ListLast( fieldName, "." )
 					);
@@ -289,7 +289,7 @@ component {
 			for( var field in cleanedSelectFields ) {
 				var fieldName = field;
 				if ( arguments.expandNestedFields && ListLen( fieldName, "." ) > 1 ) {
-					fieldName = "#ListFirst( fieldName, "." )#_#ListLast( fieldName, "." )#";
+					fieldName = _nestedFieldName( ListFirst( fieldName, "." ), ListLast( fieldName, "." ) );
 				}
 
 				propertyRendererMap[ fieldName ] = "none";
@@ -603,7 +603,7 @@ component {
 
 				case "many-to-one":
 					if ( arguments.expandNestedFields && ListLen( field, "." ) > 1 ) {
-						selectFields[ i ] = "#field# as " & "#fieldName#_#ListLast( field, "." )#";
+						selectFields[ i ] = "#field# as " & _nestedFieldName( fieldName, ListLast( field, "." ) );
 					} else {
 						selectFields[ i ] = "#fieldName#.${labelfield} as " & fieldName;
 					}
@@ -633,7 +633,7 @@ component {
 				if ( arguments.expandNestedFields && ListLen( field, "." ) > 1 ) {
 					var nestedField       = ListLast( field, "." );
 					var relatedObjectName = $getPresideObjectService().getObjectPropertyAttribute( arguments.objectName, fieldName, "relatedTo" );
-					    fieldKey          = "#fieldName#_#nestedField#";
+					    fieldKey          = _nestedFieldName( fieldName, nestedField );
 
 					if ( Len( relatedObjectName ) && $getPresideObjectService().objectExists( relatedObjectName ) ) {
 						var nestedFieldTitle = $translateResource(
@@ -693,6 +693,10 @@ component {
 		}
 
 		return validatedOrderBy;
+	}
+
+	private string function _nestedFieldName( required string objectName, required string fieldName ) {
+		return arguments.objectName & "__" & arguments.fieldName;
 	}
 
 // GETTERS AND SETTERS
