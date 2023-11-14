@@ -1191,7 +1191,7 @@ component {
 		}];
 
 		extraFilters.append({ 
-			  filter       = "email_template_send_log_activity.link_hash != :email_template_send_log_activity.link_hash"
+			  filter       = "email_template_send_log_activity.link_hash is not null and email_template_send_log_activity.link_hash != :email_template_send_log_activity.link_hash"
 			, filterParams = { "email_template_send_log_activity.link_hash" = hash( "" ) }
 		});
 
