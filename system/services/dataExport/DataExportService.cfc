@@ -728,7 +728,7 @@ component {
 
 			if ( IsBoolean( arguments.propAttributes.dataExportExpandFields ) ) {
 				processed.shouldExpand = arguments.propAttributes.dataExportExpandFields;
-			} else if ( ListLen( arguments.propAttributes.dataExportExpandFields ) > 0 ) {
+			} else if ( ListLen( arguments.propAttributes.dataExportExpandFields ) ) {
 				processed.shouldExpand = true;
 				processed.expandFields = ListToArray( arguments.propAttributes.dataExportExpandFields );
 			}
