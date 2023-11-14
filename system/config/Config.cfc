@@ -1019,10 +1019,7 @@ component {
 		settings.dataExport = {};
 		settings.dataExport.csv = { delimiter="," };
 
-		settings.dataExport.defaults = {
-			  expandManytoOneFields = false
-			, excludeFields         = []
-		};
+		settings.dataExport.defaults = { excludeFields=[] };
 	}
 
 	private void function __setupFullPageCaching() {

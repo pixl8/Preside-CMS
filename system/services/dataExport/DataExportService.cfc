@@ -384,7 +384,7 @@ component {
 		if ( !exportFields.len() ) {
 			var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
 			var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
-			var defaultExpandManyToOneField = IsBoolean( defaults.expandManytoOneFields ?: "" ) && defaults.expandManytoOneFields;
+			var defaultExpandManyToOneField = false;
 			var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
 			    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? objectAllowExpandFields : defaultExpandManyToOneField;
 
@@ -412,13 +412,19 @@ component {
 					break;
 					case "many-to-one":
 						if ( arguments.expandNestedRelationField ) {
-							var shouldExpand = IsBoolean( prop.dataExportAllowExpandFields ?: "" ) ? prop.dataExportAllowExpandFields : objectAllowExpandFields;
+							var fieldExportDetail = _processRelatedFieldExportDetail( propAttributes=prop, objectAllowExpandFields=objectAllowExpandFields );
+							var expandFields      = fieldExportDetail.expandFields;
+							var shouldExpand      = fieldExportDetail.shouldExpand;
 
 							if ( shouldExpand ) {
 								var linkedFields = getDefaultExportFieldsForObject( objectName=prop.relatedTo, expandNestedRelationField=false );
 
 								if ( ArrayLen( linkedFields.selectFields ?: [] ) ) {
 									for ( var field in linkedFields.selectFields ) {
+										if ( ArrayLen( expandFields ) && !ArrayFindNoCase( expandFields, field ) ) {
+											continue;
+										}
+
 										ArrayAppend( exportFields, "#propId#.#field#" );
 										titles[ "#propId#.#field#" ] = linkedFields.fieldTitles[ field ] ?: "";
 									}
@@ -476,12 +482,13 @@ component {
 
 		var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
 		var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
-		var defaultExpandManyToOneField = $helpers.isTrue( _getDefaultDataExportSettings().expandManytoOneFields ?: false );
+		var defaultExportConfig         = _getDefaultDataExportSettings();
+		var defaultExpandManyToOneField = false;
 		var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
 		    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? $helpers.isTrue( objectAllowExpandFields ) : defaultExpandManyToOneField;
 
 		if ( !ArrayLen( defaultExcludeFields ) ) {
-			defaultExcludeFields = _getDefaultDataExportSettings().excludeFields ?: [];
+			defaultExcludeFields = defaultExportConfig.excludeFields ?: [];
 		}
 
 		for ( var prop in props ) {
@@ -509,8 +516,13 @@ component {
 
 				if ( hasPermission ) {
 					var shouldExpand = arguments.expandNestedRelationField && ( ( props[ prop ].relationship ?: "" ) == "many-to-one" );
+					var expandFields = [];
+
 					if ( shouldExpand ) {
-						shouldExpand = StructKeyExists( props[ prop ], "dataExportAllowExpandFields" ) ? $helpers.isTrue( props[ prop ].dataExportAllowExpandFields ) : objectAllowExpandFields;
+						var fieldExportDetail = _processRelatedFieldExportDetail( propAttributes=props[ prop ], objectAllowExpandFields=objectAllowExpandFields );
+
+						shouldExpand = fieldExportDetail.shouldExpand;
+						expandFields = fieldExportDetail.expandFields;
 					}
 
 					if ( shouldExpand ) {
@@ -521,6 +533,10 @@ component {
 						var relatedI18nUri  = poService.getResourceBundleUriRoot( objectName=relatedObjName );
 
 						for ( var field in relatedObjProps ) {
+							if ( ArrayLen( expandFields ) && !ArrayFindNoCase( expandFields, field ) ) {
+								continue;
+							}
+
 							ArrayAppend( relatedFields, field );
 							ArrayAppend( relatedLabels, $translateResource(
 								  uri          = relatedI18nUri & "field.#field#.title"
@@ -697,6 +713,31 @@ component {
 
 	private string function _nestedFieldName( required string objectName, required string fieldName ) {
 		return arguments.objectName & "__" & arguments.fieldName;
+	}
+
+	private struct function _processRelatedFieldExportDetail(
+		  required struct  propAttributes
+		,          boolean objectAllowExpandFields = false
+	) {
+		var processed = {
+			  shouldExpand = false
+			, expandFields = []
+		};
+
+		if ( StructKeyExists( arguments.propAttributes, "dataExportExpandFields" ) ) {
+
+			if ( IsBoolean( arguments.propAttributes.dataExportExpandFields ) ) {
+				processed.shouldExpand = arguments.propAttributes.dataExportExpandFields;
+			} else if ( ListLen( arguments.propAttributes.dataExportExpandFields ) > 0 ) {
+				processed.shouldExpand = true;
+				processed.expandFields = ListToArray( arguments.propAttributes.dataExportExpandFields );
+			}
+
+		} else {
+			processed.shouldExpand = arguments.objectAllowExpandFields;
+		}
+
+		return processed;
 	}
 
 // GETTERS AND SETTERS
