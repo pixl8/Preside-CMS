@@ -1,4 +1,4 @@
-component hint="Manage Preside extensions" {
+component hint="Manage Preside extensions" extends="preside.system.base.Command" {
 
 	property name="jsonRpc2Plugin"          inject="JsonRpc2";
 	property name="extensionManagerService" inject="extensionManagerService";
@@ -11,12 +11,23 @@ component hint="Manage Preside extensions" {
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
 		if ( !ArrayLen( params ) || !ArrayFindNoCase( subCommands, params[1] ) ) {
+			var message = newLine();
+
 			if ( ArrayLen( params ) && ArrayFindNoCase( deprecatedCommands, params[ 1 ] ) ) {
-				return Chr(10) & "[[b;red;]The '#params[ 1 ]#' sub-command is no longer in use (as of Preside 10.9.0). Extensions are enabled automatically by the system. To disable an extenion, simply remove it from your application." & Chr(10) & Chr(10)
+				return message & writeText( text="The '#params[ 1 ]#' sub-command is no longer in use (as of Preside 10.9.0). Extensions are enabled automatically by the system. To disable an extension, simply remove it from your application.", type="error", bold=true, newline=true );
 			}
-			return Chr(10) & "[[b;white;]Usage:] extension sub_command" & Chr(10) & Chr(10)
-			               & "Valid sub commands:" & Chr(10) & Chr(10)
-			               & "    [[b;white;]list [filter\]] : Lists all installed extensions, or those matching the optional filter string" & Chr(10);
+
+			message &= writeText( text="Usage: ", type="help", bold=true );
+			message &= writeText( text="extension <operation>", type="help", newline=true );
+			message &= newLine();
+
+			message &= writeText( text="Valid operations:", type="help", newline=true );
+			message &= newLine();
+
+			message &= writeText( text="    list [<filter>\]", type="help", bold=true );
+			message &= writeText( text=" : Lists all installed extensions, or those matching the optional filter string", type="help", newline=true );
+
+			return message;
 		}
 
 		try {
@@ -27,20 +38,20 @@ component hint="Manage Preside extensions" {
 				, eventArguments = { args={ params=params } }
 			);
 		} catch ( any e ) {
-			return Chr(10) & "[[b;red;]Error processing your request:] " & e.message & Chr(10);
+			return newLine() & writeText( text="Error processing your request: ", type="error", bold=true ) & e.message & newLine();
 		}
 	}
 
 	private any function list( event, rc, prc ) {
 		var extensions    = extensionManagerService.listExtensions();
-		var msg           = ""
+		var msg           = newLine();
 		var tableWidth    = 0;
 		var titleWidth    = 5;
 		var idWidth       = 2;
 		var versionWidth  = 7;
 		var priorityWidth = 8;
 		var filter        = args.params[ 2 ] ?: "";
-dumplog(extensions);
+
 		for( var ext in extensions ){
 			if ( Len( ext.name ) > idWidth ) {
 				idWidth = Len( ext.name );
@@ -56,21 +67,22 @@ dumplog(extensions);
 		if ( ArrayLen( extensions ) ) {
 			var titleBar = "  ID #RepeatString( ' ', idWidth-2 )#  Title #RepeatString( ' ', titleWidth-5 )#  Version #RepeatString( ' ', versionWidth-7 )#";
 
-			msg = Chr( 10 ) & titleBar & Chr( 10 )
-			    & RepeatString( "=", Len( titleBar ) ) & Chr(10);
+			msg &= writeText( text=titleBar, type="info", newline=true );
+			msg &= writeLine( character="=", length=Len( titleBar ) );
 
 			for( var ext in extensions ){
 				if ( Len( filter ) && !FindNoCase( filter, ext.name ) && !FindNoCase( filter, ext.title ) ) {
 					continue;
 				}
-				msg &= "  [[b;white;]#ext.name#] #RepeatString( ' ', idWidth-Len( ext.name ) )#"
+				msg &= writeText( text="  #ext.name#", type="info", bold=true );
+				msg &= writeText( text=" #RepeatString( ' ', idWidth-Len( ext.name ) )#"
 				     & "  #ext.title# #RepeatString( ' ', titleWidth-Len( ext.title ) )#"
-				     & "  #ext.version# #RepeatString( ' ', versionWidth-Len( ext.version ) )#" & Chr( 10 );
+				     & "  #ext.version# #RepeatString( ' ', versionWidth-Len( ext.version ) )#", type="info", newline=true );
 			}
 
-			msg &= Chr(10) & RepeatString( "-", Len( titleBar ) ) & Chr(10);
+			msg &= writeLine( Len( titleBar ) );
 		} else {
-			msg = Chr(10) & "[[b;white;]You have no extensions installed]" & Chr(10);
+			msg &= writeText( text="You have no extensions installed", type="info", bold=true, newline=true );
 		}
 
 		return msg;

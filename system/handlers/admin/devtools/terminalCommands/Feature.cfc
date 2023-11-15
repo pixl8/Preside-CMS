@@ -12,15 +12,15 @@ component hint="Manage Preside features" extends="preside.system.base.Command" {
 		if ( !ArrayLen( params ) || !ArrayFindNoCase( validOperations, params[ 1 ] ) ) {
 			var message = newLine();
 
-			message &= writeText( text="Usage: ", type="info", bold=true );
-			message &= writeText( "feature [operation]" );
+			message &= writeText( text="Usage: ", type="help", bold=true );
+			message &= writeText( text="feature <operation>", type="help", newline=true );
 			message &= newLine();
 
-			message &= writeText( "Valid operations:" );
+			message &= writeText( text="Valid operations:", type="help", newline=true );
 			message &= newLine();
 
-			message &= writeText( text="    list [filter\]", type="info", bold=true );
-			message &= writeText( text=" : Lists all features, or those matching the optional filter string" );
+			message &= writeText( text="    list [<filter>\]", type="help", bold=true );
+			message &= writeText( text=" : Lists all features, or those matching the optional filter string", type="help", newline=true );
 
 			return message;
 		}

@@ -102,6 +102,7 @@ component {
 			, error   = "red"
 			, warn    = "orange"
 			, success = "green"
+			, help    = "lightblue"
 		}
 
 		var textBold   = arguments.bold                ? "b"                            : "";

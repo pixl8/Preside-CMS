@@ -1,4 +1,4 @@
-component hint="Create various preside system entities such as widgets and page types" {
+component hint="Create various preside system entities such as widgets and page types" extends="preside.system.base.Command" {
 
 	property name="jsonRpc2Plugin"     inject="JsonRpc2";
 	property name="scaffoldingService" inject="scaffoldingService";
@@ -9,19 +9,38 @@ component hint="Create various preside system entities such as widgets and page 
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
-		if ( !params.len() || !ArrayFindNoCase( validTargets, params[1] ) ) {
-			return Chr(10) & "[[b;white;]Usage:] new target_type" & Chr(10) & Chr(10)
-			               & "Valid target types:" & Chr(10) & Chr(10)
-			               & "    [[b;white;]widget]          : Creates files for a new preside widget." & Chr(10)
-			               & "    [[b;white;]pagetype]        : Creates files for a new page type." & Chr(10)
-			               & "    [[b;white;]object]          : Creates a new preside object." & Chr(10)
-			               & "    [[b;white;]extension]       : Creates a new preside extension." & Chr(10)
-			               & "    [[b;white;]configform]      : Creates a new system config form." & Chr(10)
-			               & "    [[b;white;]formcontrol]     : Creates a new form control." & Chr(10)
-			               & "    [[b;white;]emailtemplate]   : Creates a new email template." & Chr(10)
-			               & "    [[b;white;]ruleexpression]  : Creates a new rules engine expression" & Chr(10)
-			               & "    [[b;white;]notification]    : Creates a new notification" & Chr(10)
-			               & "    [[b;white;]terminalcommand] : Creates a new terminal command!" & Chr(10);
+		if ( !ArrayLen( params ) || !ArrayFindNoCase( validTargets, params[1] ) ) {
+			var message = newLine();
+
+			message &= writeText( text="Usage: ", type="help", bold=true );
+			message &= writeText( text="new <target_type>", type="help", newline=true );
+			message &= newLine();
+
+			message &= writeText( text="Valid target types:", type="help", newline=true );
+			message &= newLine();
+
+			message &= writeText( text="    widget         ", type="help", bold=true )
+					& writeText( text=" : Creates files for a new preside widget", type="help", newline=true )
+					& writeText( text="    pagetype       ", type="help", bold=true )
+					& writeText( text=" : Creates files for a new page type", type="help", newline=true )
+					& writeText( text="    object         ", type="help", bold=true )
+					& writeText( text=" : Creates a new preside object", type="help", newline=true )
+					& writeText( text="    extension      ", type="help", bold=true )
+					& writeText( text=" : Creates a new preside extension", type="help", newline=true )
+					& writeText( text="    configform     ", type="help", bold=true )
+					& writeText( text=" : Creates a new system config form", type="help", newline=true )
+					& writeText( text="    formcontrol    ", type="help", bold=true )
+					& writeText( text=" : Creates a new form control", type="help", newline=true )
+					& writeText( text="    emailtemplate  ", type="help", bold=true )
+					& writeText( text=" : Creates a new email template", type="help", newline=true )
+					& writeText( text="    ruleexpression ", type="help", bold=true )
+					& writeText( text=" : Creates a new rules engine expression", type="help", newline=true )
+					& writeText( text="    notification   ", type="help", bold=true )
+					& writeText( text=" : Creates a new notification", type="help", newline=true )
+					& writeText( text="    terminalcommand", type="help", bold=true )
+					& writeText( text=" : Creates a new terminal command!", type="help", newline=true );
+
+			return message;
 		}
 
 		return runEvent( event="admin.devtools.terminalCommands.new.#params[1]#", private=true, prePostExempt=true );
