@@ -203,7 +203,7 @@ window.presideTerminal = ( function( $ ){
 		  , padSpaces = function( count ){ return new Array( count + 1 ).join( " " ); };
 
 		for( cmd in availableCommands ) {
-			helpText += "    [[b;lightblue;]" + cmd + padSpaces( 15 - cmd.length ) + " :] " + availableCommands[cmd] + "\n";
+			helpText += "    [[b;lightblue;]" + cmd + padSpaces( 15 - cmd.length ) + " :] [[;lightblue;]" + availableCommands[cmd] + "]\n";
 		}
 
 		helpText += "\n";
