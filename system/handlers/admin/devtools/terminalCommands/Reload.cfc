@@ -27,7 +27,7 @@ component hint="Reload all or part of your preside application" extends="preside
 			var usageMessage = newLine();
 
 			usageMessage &= writeText( text="Usage: ", type="help", bold=true );
-			usageMessage &= writeText( text="reload <#StructKeyList( validTargets, '|' )#>", type="help", newline=true );
+			usageMessage &= writeText( text="reload <type>", type="help", newline=true );
 			usageMessage &= newLine();
 
 			usageMessage &= writeText( text="Reload types:", type="help", newline=true );
