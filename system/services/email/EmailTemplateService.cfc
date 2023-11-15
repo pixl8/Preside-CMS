@@ -1212,13 +1212,19 @@ component {
 		var rawClickStatsSelectfields = [ "sendLog.click_count", "link", "link_title", "link_body" ];
 		var subQueryGroupBy           = "link_hash,link_title_hash,link_body_hash";
 		var rawClickStatsGroupBy      = "link_hash,link_title_hash,link_body_hash";
-		var dbInfo                    = _getDbInfoService().getDatabaseVersion( "preside" );
+		var adapter                   = $getPresideObject( "email_template_send_log_activity" ).getDbAdapter();
 
-		if ( dbInfo.database_productName == "Microsoft SQL Server" ) { // MSSQL is strict with select field and group by, thus we can't really fully ultilize our hash column approach.
+		if ( !adapter.supportsGroupByAnyField() ) {
+			var linkTitleField = "link_title";
+			var linkBodyField  = "link_body";
+			if ( !adapter.supportsGroupByTextField() ) {
+				linkTitleField = "cast(link_title as VARCHAR( max ) )";
+				linkBodyField  = "cast(link_body as VARCHAR( max ) )";
+			}
 			subQuerySelectFields      = [ "id" ];
-			rawClickStatsSelectfields = [ "count(1) as click_count", "link", "cast(link_title as NVARCHAR( max ) ) as link_title", "cast(link_body as NVARCHAR( max ) ) as link_body" ]; 
+			rawClickStatsSelectfields = [ "count(1) as click_count", "link", "#linkTitleField# as link_title", "#linkBodyField# as link_body" ]; 
 			subQueryGroupBy           = "id";
-			rawClickStatsGroupBy      = "link,cast(link_title as NVARCHAR( max ) ),cast(link_body as NVARCHAR( max ) )";
+			rawClickStatsGroupBy      = "link,#linkTitleField#,#linkBodyField#";
 		}
 
 		var subQuery = $getPresideObject( "email_template_send_log_activity" ).selectData(

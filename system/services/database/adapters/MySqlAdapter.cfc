@@ -272,6 +272,16 @@ component extends="BaseAdapter" {
 		return variables._supportsGroupBySingleField;
 	}
 
+	public boolean function supportsGroupByAnyField() {
+		if ( !StructKeyExists( variables, "_supportsGroupByAnyField" ) ) {
+			var result = QueryExecute( sql="select @@sql_mode as sqlmode", options={ datasource=_getDsn() } );
+
+			variables._supportsGroupByAnyField = !ListFindNoCase( result.sqlmode, "ONLY_FULL_GROUP_BY" );
+		}
+
+		return variables._supportsGroupByAnyField;
+	}
+
 
 // PRIVATE METHODS
 	private boolean function _isMySql() {

@@ -398,6 +398,14 @@ component extends="BaseAdapter" {
 	            inner join sys.objects             as o  on o.object_id = fc.referenced_object_id";
 	}
 
+	public boolean function supportsGroupByAnyField() {
+		return false;
+	}
+
+	public boolean function supportsGroupByTextField() {
+		return _getUseVarcharMaxForText();
+	}
+
 // GETTERS AND SETTERS
 	private boolean function _getUseVarcharMaxForText() {
 		return _useVarcharMaxForText;

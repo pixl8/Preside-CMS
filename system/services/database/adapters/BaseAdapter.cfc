@@ -484,6 +484,14 @@ component {
 		return false;
 	}
 
+	public boolean function supportsGroupByAnyField() {
+		return false;
+	}
+
+	public boolean function supportsGroupByTextField() {
+		return true;
+	}
+
 	public boolean function autoCreatesFkIndexes(){
 		return false;
 	}
