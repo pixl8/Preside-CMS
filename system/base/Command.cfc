@@ -4,6 +4,7 @@ component {
 		  required string  text
 		,          string  type    = ""
 		,          boolean bold    = false
+		,          boolean italic  = false
 		,          boolean newLine = false
 	) {
 		return _styleText( argumentCollection=arguments ) & ( arguments.newLine ? newLine() : "" );
@@ -16,10 +17,6 @@ component {
 		,          boolean newLine   = true
 	) {
 		return _styleText( text=RepeatString( arguments.character, arguments.length ), type=arguments.type ) & ( arguments.newLine ? newLine() : "" );
-	}
-
-	public string function newLine() {
-		return Chr( 10 );
 	}
 
 	public string function writeTable(
@@ -93,22 +90,26 @@ component {
 	}
 
 	private string function _styleText(
-		  string  text = ""
-		, string  type = ""
-		, boolean bold = false
+		  string  text   = ""
+		, string  type   = ""
+		, boolean bold   = false
+		, boolean italic = false
 	) {
+		var type   = Trim( arguments.type );
 		var styles = {
 			  info    = "white"
 			, error   = "red"
 			, warn    = "orange"
 			, success = "green"
 			, help    = "lightblue"
-		}
+		};
 
-		var textBold   = arguments.bold                ? "b"                            : "";
-		var textColour = Len( Trim( arguments.type ) ) ? ";#styles[ arguments.type ]#;" : "";
+		var textBold   = arguments.bold   ? "b" : "";
+		var textItalic = arguments.italic ? "i" : "";
+		var textColour = Len( type ) && StructKeyExists( styles, type ) ? ";#styles[ type ]#;" : "";
+		var textStyles = textBold & textItalic & textColour;
 
-		return Len( Trim( arguments.type ) ) ? "[[#textBold##textColour#]" & arguments.text & "]" : arguments.text;
+		return Len( Trim( textStyles ) ) ? "[[#textStyles#]" & arguments.text & "]" : arguments.text;
 	}
 
 }
