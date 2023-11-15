@@ -199,11 +199,11 @@ window.presideTerminal = ( function( $ ){
 	}
 
 	echoHelp = function(){
-		var helpText = "\n[[b;white;]Available commands:]\n\n"
+		var helpText = "\n[[b;lightblue;]Available commands:]\n\n"
 		  , padSpaces = function( count ){ return new Array( count + 1 ).join( " " ); };
 
 		for( cmd in availableCommands ) {
-			helpText += "    [[b;white;]" + cmd + padSpaces( 15 - cmd.length ) + ":] " + availableCommands[cmd] + "\n";
+			helpText += "    [[b;lightblue;]" + cmd + padSpaces( 15 - cmd.length ) + " :] " + availableCommands[cmd] + "\n";
 		}
 
 		helpText += "\n";
