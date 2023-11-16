@@ -20,10 +20,13 @@ component singleton=true autodoc=true displayName="Feature service" {
 	/**
 	 * Returns whether or not the passed feature is currently enabled
 	 *
-	 * @feature.hint      name of the feature to check
+	 * @feature.hint      name of the feature to check, or logical expression containing features to check, e.g. "(featurex || featurey) && featurez"
 	 * @siteTemplate.hint current active site template - can be used to check features that can be site template specific
 	 */
 	public boolean function isFeatureEnabled( required string feature, string siteTemplate ) autodoc=true {
+		if ( _isComplexExpression( Trim( arguments.feature ) ) ) {
+			return _processComplexExpression( arguments.feature, arguments.siteTemplate );
+		}
 		var features  = _getConfiguredFeatures();
 		var isEnabled = IsBoolean( features[ arguments.feature ].enabled ?: "" ) && features[ arguments.feature ].enabled;
 
@@ -72,6 +75,39 @@ component singleton=true autodoc=true displayName="Feature service" {
 		}
 
 		return "";
+	}
+
+// PRIVATE HELPERS
+	private boolean function _isComplexExpression( filter ) {
+		var evalChars        = "|&\(\)!\s";
+		var featureNameChars = "a-zA-Z0-9_\-";
+
+		// must contain one ore more special evaluation chars
+		// and must ONLY contain feature name chars + evaluation chars
+		return ReFind( "[#evalChars#]+", arguments.filter ) && ReFind( "^[#evalChars##featureNameChars#]+$", arguments.filter );
+	}
+
+	private boolean function _processComplexExpression( filter, siteTemplate ) {
+		var compiled = arguments.filter;
+		var features = ReMatch( "\b[a-zA-Z0-9_\-]+\b", arguments.filter );
+
+		ArraySort( features, function( a, b ){
+			var lena = Len( arguments.a );
+			var lenb = Len( arguments.b );
+			return lena == lenb ? 0 : ( lena < lenb ? 1 : -1 );
+		} );
+
+		for( var feature in features ) {
+			if ( feature != "not" && feature != "and" && feature != "or" ) {
+				compiled = ReplaceNoCase( compiled, feature, isFeatureEnabled( feature, arguments.siteTemplate ) ? "true" : "false", "all" );
+			}
+		}
+
+		try {
+			return Evaluate( compiled );
+		} catch( any e ) {
+			throw( type="preside.feature.bad.expression", message="The feature name expression, [#arguments.filter#], could not be evaluated. Compiler error: [#e.message#]." );
+		}
 	}
 
 // GETTERS AND SETTERS

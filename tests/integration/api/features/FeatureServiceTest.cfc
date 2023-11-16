@@ -32,6 +32,29 @@ component extends="testbox.system.BaseSpec"{
 				expect( svc.isFeatureEnabled( feature="sites", siteTemplate="" ) ) .toBeTrue();
 			} );
 
+			it( "should multi-evaluate feature expressions using parenthesis and && and || characters", function(){
+				var svc = _getService();
+
+				expect( svc.isFeatureEnabled( feature="sites || websiteUsers", siteTemplate="" ) ).toBeTrue();
+				expect( svc.isFeatureEnabled( feature="sites or websiteUsers", siteTemplate="" ) ).toBeTrue();
+				expect( svc.isFeatureEnabled( feature="sites && assetManager", siteTemplate="" ) ).toBeFalse();
+				expect( svc.isFeatureEnabled( feature="sites and websiteUsers", siteTemplate="" ) ).toBeTrue();
+				expect( svc.isFeatureEnabled( feature="(sites || what) && websiteusers", siteTemplate="" ) ).toBeTrue();
+				expect( svc.isFeatureEnabled( feature="((sites && what) && websiteusers)", siteTemplate="" ) ).toBeFalse();
+				expect( svc.isFeatureEnabled( feature="((sites && !what) && websiteusers)", siteTemplate="" ) ).toBeTrue();
+				expect( svc.isFeatureEnabled( feature="((sites and not what) and websiteusers)", siteTemplate="" ) ).toBeTrue();
+			} );
+
+			it( "should not attempt dynamic lucee execution with malicious input", function(){
+				var svc = _getService();
+
+				expect( svc.isFeatureEnabled( feature="http url='https://www.google.com';", siteTemplate="" ) ).toBeFalse();
+				expect( svc.isFeatureEnabled( feature="int( 45.0 )", siteTemplate="" ) ).toBeFalse();
+				expect( function(){
+					svc.isFeatureEnabled( feature="floor( something )", siteTemplate="" )
+				} ).toThrow( "preside.feature.bad.expression" ) ;
+			} );
+
 		} );
 
 		describe( "isFeatureDefined()", function(){
