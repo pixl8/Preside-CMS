@@ -199,14 +199,16 @@ window.presideTerminal = ( function( $ ){
 	}
 
 	echoHelp = function(){
-		var helpText = "\n[[b;lightblue;]Available commands:]\n\n"
-		  , padSpaces = function( count ){ return new Array( count + 1 ).join( " " ); };
+		var helpText  = "\n[[b;lightblue;]Available commands:]\n\n"
+		  , padSpaces = function( count ){ return new Array( count + 1 ).join( " " ); }
+		  , maxCmdLen = 0;
 
 		for( cmd in availableCommands ) {
-			helpText += "    [[b;lightblue;]" + cmd + padSpaces( 15 - cmd.length ) + " :] [[;lightblue;]" + availableCommands[cmd] + "]\n";
+			maxCmdLen = Math.max( maxCmdLen, cmd.length );
 		}
-
-		helpText += "\n";
+		for( cmd in availableCommands ) {
+			helpText += "    [[b;lightblue;]" + cmd + padSpaces( maxCmdLen - cmd.length ) + " :] [[;lightblue;]" + availableCommands[cmd] + "]\n";
+		}
 
 		terminal.echo( helpText );
 	};
