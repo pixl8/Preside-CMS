@@ -6,9 +6,9 @@ component {
 		,          string  style   = ""
 		,          boolean bold    = false
 		,          boolean italic  = false
-		,          boolean newLine = false
+		,          any     newLine = false
 	) {
-		return _styleText( argumentCollection=arguments ) & ( arguments.newLine ? newLine() : "" );
+		return _styleText( argumentCollection=arguments ) & newLines( arguments.newLine );
 	}
 
 	public string function writeLine(
@@ -16,9 +16,9 @@ component {
 		,          string  type      = ""
 		,          string  style     = ""
 		,          string  character = "-"
-		,          boolean newLine   = true
+		,          any     newLine   = true
 	) {
-		return _styleText( text=RepeatString( arguments.character, arguments.length ), type=arguments.type, style=arguments.style ) & ( arguments.newLine ? newLine() : "" );
+		return _styleText( text=RepeatString( arguments.character, arguments.length ), type=arguments.type, style=arguments.style ) & newLines( arguments.newLine );
 	}
 
 	public string function writeTable(
@@ -89,6 +89,15 @@ component {
 		textTable &= writeLine( length=Len( headerText ), character="-" );
 
 		return textTable;
+	}
+
+	public string function newLines( any newLine=true ) {
+		if ( isNumeric( arguments.newLine ) ) {
+			return RepeatString( newLine(), arguments.newLine );
+		} else if ( isBoolean( arguments.newLine ) && arguments.newLine ) {
+			return newLine();
+		}
+		return "";
 	}
 
 	private string function _styleText(

@@ -20,11 +20,9 @@ component hint="Dev helper to toggle various debugging features" extends="presid
 			var message = newLine();
 
 			message &= writeText( text="Usage: ", type="help", bold=true );
-			message &= writeText( text="debug <operation>", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="debug <operation>", type="help", newline=2 );
 
-			message &= writeText( text="Valid operations:", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="Valid operations:", type="help", newline=2 );
 
 			message &= writeText( text="    i18n", type="help", bold=true );
 			message &= writeText( text=" : Toggles i18n debugging", type="help", newline=true );

@@ -15,11 +15,9 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 			var message = newLine();
 
 			message &= writeText( text="Usage: ", type="help", bold=true );
-			message &= writeText( text="i18n <operation>", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="i18n <operation>", type="help", newline=2 );
 
-			message &= writeText( text="Valid operations:", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="Valid operations:", type="help", newline=2 );
 
 			message &= writeText( text="    object <objectName>", type="help", bold=true );
 			message &= writeText( text=" : Lists all of a Preside object's i18n properties", type="help", newLine=true );

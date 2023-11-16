@@ -13,11 +13,9 @@ component hint="Create various preside system entities such as widgets and page 
 			var message = newLine();
 
 			message &= writeText( text="Usage: ", type="help", bold=true );
-			message &= writeText( text="new <target>", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="new <target>", type="help", newline=2 );
 
-			message &= writeText( text="Valid target types:", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="Valid target types:", type="help", newline=2 );
 
 			message &= writeText( text="    widget         ", type="help", bold=true )
 					& writeText( text=" : Creates files for a new preside widget", type="help", newline=true )

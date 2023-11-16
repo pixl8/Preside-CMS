@@ -27,11 +27,9 @@ component hint="Reload all or part of your preside application" extends="preside
 			var usageMessage = newLine();
 
 			usageMessage &= writeText( text="Usage: ", type="help", bold=true );
-			usageMessage &= writeText( text="reload <type>", type="help", newline=true );
-			usageMessage &= newLine();
+			usageMessage &= writeText( text="reload <type>", type="help", newline=2 );
 
-			usageMessage &= writeText( text="Reload types:", type="help", newline=true );
-			usageMessage &= newLine();
+			usageMessage &= writeText( text="Reload types:", type="help", newline=2 );
 
 			for( var target in validTargets ) {
 				usageMessage &= writeText( text="    #target##RepeatString( ' ', 12-Len(target) )#", type="help", bold=true );

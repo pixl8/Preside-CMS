@@ -14,11 +14,9 @@ component hint="Interact with and report on system caches" extends="preside.syst
 			var message = newLine();
 
 			message &= writeText( text="Usage: ", type="help", bold=true );
-			message &= writeText( text="cache <operation>", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="cache <operation>", type="help", newline=2 );
 
-			message &= writeText( text="Valid operations:", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="Valid operations:", type="help", newline=2 );
 
 			message &= writeText( text="    stats            ", type="help", bold=true );
 			message &= writeText( text=" : Displays summary statistics of the Preside caches", type="help", newline=true );

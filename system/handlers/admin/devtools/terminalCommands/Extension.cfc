@@ -18,11 +18,9 @@ component hint="Manage Preside extensions" extends="preside.system.base.Command"
 			}
 
 			message &= writeText( text="Usage: ", type="help", bold=true );
-			message &= writeText( text="extension <operation>", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="extension <operation>", type="help", newline=2 );
 
-			message &= writeText( text="Valid operations:", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="Valid operations:", type="help", newline=2 );
 
 			message &= writeText( text="    list [<filter>\]", type="help", bold=true );
 			message &= writeText( text=" : Lists all installed extensions, or those matching the optional filter string", type="help", newline=true );

@@ -15,11 +15,9 @@ component hint="Manage Preside email templates" extends="preside.system.base.Com
 			var message = newLine();
 
 			message &= writeText( text="Usage: ", type="help", bold=true );
-			message &= writeText( text="email <operation>", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="email <operation>", type="help", newline=2 );
 
-			message &= writeText( text="Valid operations:", type="help", newline=true );
-			message &= newLine();
+			message &= writeText( text="Valid operations:", type="help", newline=2 );
 
 			message &= writeText( text="    list [<filter>\]", type="help", bold=true );
 			message &= writeText( text="  : Lists all system email templates, or those matching the optional filter string", type="help", newLine=true );
@@ -99,8 +97,7 @@ component hint="Manage Preside email templates" extends="preside.system.base.Com
 	}
 
 	private any function reset( event, rc, prc, args ) {
-		var message = newLine();
-
+		var message  = newLine();
 		var template = args.params[ 2 ] ?: "";
 
 		if ( Len( Trim( template ) ) ) {
