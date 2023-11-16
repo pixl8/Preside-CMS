@@ -5,3 +5,4 @@
 *.min.css
 *.less.css
 *.min.map
+/css/admin/ace/ace-for-preside.less
