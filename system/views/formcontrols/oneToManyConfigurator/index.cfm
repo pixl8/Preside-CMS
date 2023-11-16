@@ -32,27 +32,34 @@
 
 	extraClasses = ListAppend( extraClasses, "#addButtonClass# #editButtonClass# #removableClass# non-searchable", ' ' );
 
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
 	<input class = "#inputClass# object-configurator #extraClasses#"
-			name  = "#inputName#"
-			id    = "#inputId#"
-			<cfif disabled>disabled</cfif>
-			tabindex         = "#getNextTabIndex()#"
-			data-placeholder = "#placeholder#"
-			data-value       = "#HtmlEditFormat( value )#"
-			<cfif IsBoolean( multiple ) && multiple>
-				multiple      = "multiple"
-			</cfif>
-			<cfif IsBoolean( sortable ) && sortable>
-				data-sortable = "true"
-			</cfif>
-			data-configurator-label-url     = "#configuratorLabelUrl#"
-			data-configurator-form-url      = "#configuratorAddUrl#"
-			data-configurator-modal-title   = "#configuratorModalTitle#"
-			data-relationship-key           = "#relationshipKey#"
-			data-configurator-fields        = "#fields#"
-			data-configurator-target-fields = "#targetFields#"
+		   name  = "#inputName#"
+		   id    = "#inputId#"
+		   <cfif disabled>disabled</cfif>
+		   tabindex         = "#getNextTabIndex()#"
+		   data-placeholder = "#placeholder#"
+		   data-value       = "#HtmlEditFormat( value )#"
+		   <cfif IsBoolean( multiple ) && multiple>
+		   	multiple      = "multiple"
+		   </cfif>
+		   <cfif IsBoolean( sortable ) && sortable>
+		   	data-sortable = "true"
+		   </cfif>
+		   data-configurator-label-url     = "#configuratorLabelUrl#"
+		   data-configurator-form-url      = "#configuratorAddUrl#"
+		   data-configurator-modal-title   = "#configuratorModalTitle#"
+		   data-relationship-key           = "#relationshipKey#"
+		   data-configurator-fields        = "#fields#"
+		   data-configurator-target-fields = "#targetFields#"
+		   #htmlAttributes#
 	>
 </cfoutput>

@@ -1018,6 +1018,8 @@ component {
 	private void function __setupDataExport() {
 		settings.dataExport = {};
 		settings.dataExport.csv = { delimiter="," };
+
+		settings.dataExport.defaults = { excludeFields=[] };
 	}
 
 	private void function __setupFullPageCaching() {

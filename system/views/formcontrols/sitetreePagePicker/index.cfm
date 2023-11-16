@@ -17,29 +17,36 @@
 
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
 	value = HtmlEditFormat( value );
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
 	<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
 	<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
 	<select class="#inputClass# object-picker sitetree-page-picker"
-	        name="#inputName#"
-	        id="#inputId#"
-	        tabindex="#getNextTabIndex()#"
-	        data-placeholder="#placeholder#"
-	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
-	        data-value="#value#"
-	        data-prefetch-url="#prefetchUrl#"
-	        data-remote-url="#remoteUrl#"
-	    	data-result-template="#resultTemplateId#"
-	    	data-selected-template="#selectedTemplateId#"
-	    	data-modal-title="#translateResource( 'cms:sitetree.browser.title' )#"
-	    	<cfif !isEmpty( filterBy )>
+			name="#inputName#"
+			id="#inputId#"
+			tabindex="#getNextTabIndex()#"
+			data-placeholder="#placeholder#"
+			data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
+			data-value="#value#"
+			data-prefetch-url="#prefetchUrl#"
+			data-remote-url="#remoteUrl#"
+			data-result-template="#resultTemplateId#"
+			data-selected-template="#selectedTemplateId#"
+			data-modal-title="#translateResource( 'cms:sitetree.browser.title' )#"
+			<cfif !isEmpty( filterBy )>
 				data-filter-by='#filterBy#'
 			</cfif>
 			<cfif !isEmpty( filterByField )>
@@ -48,8 +55,9 @@
 			<cfif !isEmpty( disabledIfUnfiltered )>
 				data-disabled-if-unfiltered='#disabledIfUnfiltered#'
 			</cfif>
-	        <cfif IsBoolean( multiple ) && multiple>
-	        	multiple="multiple"
-	        </cfif>
+			<cfif IsBoolean( multiple ) && multiple>
+				multiple="multiple"
+			</cfif>
+			#htmlAttributes#
 	></select>
 </cfoutput>

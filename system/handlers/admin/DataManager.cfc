@@ -3380,6 +3380,7 @@ component extends="preside.system.base.AdminHandler" {
 			, mimetype           = exporterDetail.mimeType
 			, additionalArgs     = arguments.additionalArgs
 			, templateConfig     = dataExportTemplateService.getSubmittedConfig( exportTemplate, objectName )
+			, expandNestedFields = dataExportTemplateService.templateMethodExists( exportTemplate, "getSelectFields" ) ? false : true
 		};
 
 		try {

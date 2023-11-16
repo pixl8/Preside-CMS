@@ -11,8 +11,8 @@
 
 	if ( IsTrue( args.outputSavedValue ?: "" ) ) {
 		defaultValue = args.defaultValue ?: "";
-		value  = event.getValue( name=inputName, defaultValue=defaultValue );
-		if ( not IsSimpleValue( value ) ) {
+		value        = event.getValue( name=inputName, defaultValue=defaultValue );
+		if ( !IsSimpleValue( value ) ) {
 			value = "";
 		}
 		value = HtmlEditFormat( value );
@@ -21,8 +21,15 @@
 	}
 
 	passwordPolicyContext = args.passwordPolicyContext ?: "";
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
-	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="#inputClass# form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif><cfif isTrue( newPassword )> autocomplete="new-password"</cfif>>
+	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="#inputClass# form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif><cfif isTrue( newPassword )> autocomplete="new-password"</cfif> #htmlAttributes# />
 </cfoutput>

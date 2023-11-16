@@ -128,6 +128,7 @@
 					, reloadDb               = false
 					, throwOnLongTableName   = arguments.throwOnLongTableName
 				);
+				request[ key ].postInit();
 
 				request[ key ] = getMockbox().createMock( object=request[ key ] );
 

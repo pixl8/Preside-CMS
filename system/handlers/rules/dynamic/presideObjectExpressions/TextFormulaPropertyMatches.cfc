@@ -27,40 +27,50 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
-		var paramName = "textFormulaPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
+		var paramName = "textFormulaPropertyMatches" & Replace( LCase( CreateUUID() ), "-", "", "all" );
 		var filterSql = "#arguments.propertyName# ${operator} :#paramName#";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
 
 		switch ( _stringOperator ) {
 			case "eq":
-				filterSql = filterSql.replace( "${operator}", "=" );
+				filterSql = Replace( filterSql, "${operator}", "=" );
 			break;
 			case "neq":
-				filterSql = filterSql.replace( "${operator}", "!=" );
+				filterSql = Replace( filterSql, "${operator}", "!=" );
 			break;
 			case "contains":
 				params[ paramName ].value = "%#arguments.value#%";
-				filterSql = filterSql.replace( "${operator}", "like" );
+				filterSql = Replace( filterSql, "${operator}", "like" );
 			break;
 			case "startsWith":
 				params[ paramName ].value = "#arguments.value#%";
-				filterSql = filterSql.replace( "${operator}", "like" );
+				filterSql = Replace( filterSql, "${operator}", "like" );
 			break;
 			case "endsWith":
 				params[ paramName ].value = "%#arguments.value#";
-				filterSql = filterSql.replace( "${operator}", "like" );
+				filterSql = Replace( filterSql, "${operator}", "like" );
 			break;
 			case "notcontains":
 				params[ paramName ].value = "%#arguments.value#%";
-				filterSql = filterSql.replace( "${operator}", "not like" );
+				filterSql = Replace( filterSql, "${operator}", "not like" );
 			break;
 			case "notstartsWith":
 				params[ paramName ].value = "#arguments.value#%";
-				filterSql = filterSql.replace( "${operator}", "not like" );
+				filterSql = Replace( filterSql, "${operator}", "not like" );
 			break;
 			case "notendsWith":
 				params[ paramName ].value = "%#arguments.value#";
-				filterSql = filterSql.replace( "${operator}", "not like" );
+				filterSql = Replace( filterSql, "${operator}", "not like" );
+			break;
+			case "oneof":
+				params[ paramName ].value = ListToArray( arguments.value );
+				filterSql = Replace( filterSql, "${operator}", "in", "all" );
+				filterSql = Replace( filterSql, ":#paramName#", "(:#paramName#)", "all" );
+			break;
+			case "noneof":
+				params[ paramName ].value = ListToArray( arguments.value );
+				filterSql = Replace( filterSql, "${operator}", "not in", "all" );
+				filterSql = Replace( filterSql, ":#paramName#", "(:#paramName#)", "all" );
 			break;
 		}
 

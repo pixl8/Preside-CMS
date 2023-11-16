@@ -1,18 +1,25 @@
 <cfscript>
-		inputName      = args.name         ?: "";
-		inputId        = args.id           ?: "";
-		inputClass     = args.class        ?: "";
-		defaultValue   = args.defaultValue ?: "";
-		extraClasses   = args.extraClasses ?: "";
-		categories     = args.categories   ?: [];
+	inputName      = args.name         ?: "";
+	inputId        = args.id           ?: "";
+	inputClass     = args.class        ?: "";
+	defaultValue   = args.defaultValue ?: "";
+	extraClasses   = args.extraClasses ?: "";
+	categories     = args.categories   ?: [];
 
-		value  = event.getValue( name=inputName, defaultValue=defaultValue );
-		if ( not IsSimpleValue( value ) ) {
-				value = "";
-		}
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
+			value = "";
+	}
 
-		value = HtmlEditFormat( value );
-		valueFound = false;
+	value = HtmlEditFormat( value );
+	valueFound = false;
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
@@ -31,7 +38,9 @@
 											 value="#HtmlEditFormat( itemType.id )#"
 											 class="#inputClass# #extraClasses#"
 											 tabindex="#getNextTabIndex()#"
-											 <cfif value eq itemType.id>checked</cfif>>
+											 <cfif value eq itemType.id>checked</cfif>
+											 #htmlAttributes#
+										>
 											 <i class="fa fa-fw #itemType.iconClass#"></i> #itemType.title#
 									</label>
 								</div>

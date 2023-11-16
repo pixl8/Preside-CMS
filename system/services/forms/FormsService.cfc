@@ -41,9 +41,11 @@ component displayName="Forms service" {
 		_setConfiguredControls( arguments.configuredControls );
 		_setSiteService( arguments.siteService );
 
-		_loadForms();
-
 		return this;
+	}
+
+	public void function postInit() {
+		_loadForms();
 	}
 
 // PUBLIC API METHODS
