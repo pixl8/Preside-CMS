@@ -3,23 +3,22 @@ component {
 	public string function writeText(
 		  required string  text
 		,          string  type    = ""
+		,          string  style   = ""
 		,          boolean bold    = false
-		,          boolean newLine = false
+		,          boolean italic  = false
+		,          any     newLine = false
 	) {
-		return _styleText( argumentCollection=arguments ) & ( arguments.newLine ? newLine() : "" );
+		return _styleText( argumentCollection=arguments ) & newLines( arguments.newLine );
 	}
 
 	public string function writeLine(
 		  required numeric length
 		,          string  type      = ""
+		,          string  style     = ""
 		,          string  character = "-"
-		,          boolean newLine   = true
+		,          any     newLine   = true
 	) {
-		return _styleText( text=RepeatString( arguments.character, arguments.length ), type=arguments.type ) & ( arguments.newLine ? newLine() : "" );
-	}
-
-	public string function newLine() {
-		return Chr( 10 );
+		return _styleText( text=RepeatString( arguments.character, arguments.length ), type=arguments.type, style=arguments.style ) & newLines( arguments.newLine );
 	}
 
 	public string function writeTable(
@@ -92,22 +91,37 @@ component {
 		return textTable;
 	}
 
+	public string function newLines( any newLine=true ) {
+		if ( isNumeric( arguments.newLine ) ) {
+			return RepeatString( newLine(), arguments.newLine );
+		} else if ( isBoolean( arguments.newLine ) && arguments.newLine ) {
+			return newLine();
+		}
+		return "";
+	}
+
 	private string function _styleText(
-		  string  text = ""
-		, string  type = ""
-		, boolean bold = false
+		  string  text   = ""
+		, string  type   = ""
+		, string  style  = ""
+		, boolean bold   = false
+		, boolean italic = false
 	) {
+		var type   = Trim( arguments.type );
 		var styles = {
 			  info    = "white"
 			, error   = "red"
 			, warn    = "orange"
 			, success = "green"
-		}
+			, help    = "lightblue"
+		};
 
-		var textBold   = arguments.bold                ? "b"                            : "";
-		var textColour = Len( Trim( arguments.type ) ) ? ";#styles[ arguments.type ]#;" : "";
+		var textBold   = arguments.bold   ? "b" : "";
+		var textItalic = arguments.italic ? "i" : "";
+		var textColour = Len( type ) && StructKeyExists( styles, type ) ? ";#styles[ type ]#;" : "";
+		var textStyles = Len( arguments.style ) ? arguments.style : textBold & textItalic & textColour;
 
-		return Len( Trim( arguments.type ) ) ? "[[#textBold##textColour#]" & arguments.text & "]" : arguments.text;
+		return Len( Trim( textStyles ) ) ? "[[#textStyles#]" & arguments.text & "]" : arguments.text;
 	}
 
 }
