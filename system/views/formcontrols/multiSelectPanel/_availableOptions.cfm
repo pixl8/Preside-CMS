@@ -38,12 +38,37 @@
 			#htmlAttributes#
 	>
 		<cfloop array="#values#" index="i" item="availableValue">
-			<cfset selected = ListFindNoCase( value, availableValue ) />
+			<cfset simpleValue = availableValue />
 
-			<cfif isFalse( selected )>
-				<option value="#HtmlEditFormat( availableValue )#">
+			<cfif !IsSimpleValue( availableValue )>
+				<cfset simpleValue = StructKeyList( availableValue ) />
+			</cfif>
+
+			<cfset selected = ListFindNoCase( value, simpleValue ) />
+
+			<cfif isFalse( selected ) && IsSimpleValue( availableValue )>
+				<option value="#HtmlEditFormat( simpleValue )#">
 					#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 				</option>
+			</cfif>
+
+			<cfif !IsSimpleValue( availableValue )>
+				<optgroup id="#simpleValue#" label="#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#">
+					<cfloop array="#availableValue[ simpleValue ].fields ?: []#" index="j" item="relatedField">
+						<cfset nestedValue = "#simpleValue#.#relatedField#" />
+						<cfset selected    = ListFindNoCase( value, nestedValue ) />
+
+						<cfif isFalse( selected )>
+							<option value="#HtmlEditFormat( nestedValue )#">
+								#HtmlEditFormat( translateResource( availableValue[ simpleValue ].labels[j] ?: "", availableValue[ simpleValue ].labels[j] ?: "" ) )#
+							</option>
+						</cfif>
+					</cfloop>
+
+					<option class="multi-select-panel-no-nested-option-available" disabled>
+						<i>#translateResource( "formcontrols.multiSelectPanel:availableOptions.nested.none.label" )#</i>
+					</option>
+				</optgroup>
 			</cfif>
 		</cfloop>
 	</select>

@@ -1,15 +1,55 @@
 ( function( $ ){
-	var $mutliSelectPanel     = $( '.multi-select-panel' )
-	  , updateSelectedValues;
+	var $mutliSelectPanel            = $( '.multi-select-panel' )
+	  , $noNestedOptionAvailableHtml = $( 'option.multi-select-panel-no-nested-option-available' ).html()
+	  , $noNestedOptionSelectedHtml  = $( 'option.multi-select-panel-no-nested-option-selected' ).html()
+	  , updateSelectedValues, updateNestedOptionsEmptyMessages, processSelectionAction;
 
 	updateSelectedValues = function( selectId ) {
 		var selectedValues = [];
 
-		$( '#' + selectId + '_to option' ).each(function() {
+		$( '#' + selectId + '_to option:not(:disabled)' ).each(function() {
 			selectedValues.push( $(this).val() );
 		});
 
 		$( 'input[type=hidden]#' + selectId ).val( selectedValues.toString() );
+	};
+
+	processSelectionAction = function( panelId, origin, target ) {
+		$( '#' + panelId + origin ).each(function() {
+			var thisValField = $(this).val().split(".");
+
+			if ( !$(this).is(":disabled") ) {
+				if ( thisValField.length > 1 ) {
+					$(this).remove().appendTo( '#' + panelId + target + ' optgroup#' + thisValField[0] );
+				} else {
+					$(this).remove().appendTo( '#' + panelId + target );
+				}
+			}
+		} );
+
+		updateNestedOptionsEmptyMessages( panelId );
+	};
+
+	updateNestedOptionsEmptyMessages = function( panelId ) {
+		$( '#' + panelId + '_from optgroup' ).each(function() {
+			if ( $(this).find( 'option:not(:disabled)' ).length == 0 ) {
+				if ( $(this).find( 'option:is(:disabled)' ).length == 0 ) {
+					$(this).append( '<option disabled>' + $noNestedOptionAvailableHtml + '</option>' );
+				}
+			} else {
+				$(this).find( 'option:is(:disabled)' ).detach();
+			}
+		} );
+
+		$( '#' + panelId + '_to optgroup' ).each(function() {
+			if ( $(this).find( 'option:not(:disabled)' ).length == 0 ) {
+				if ( $(this).find( 'option:is(:disabled)' ).length == 0 ) {
+					$(this).append( '<option disabled>' + $noNestedOptionSelectedHtml + '</option>' );
+				}
+			} else {
+				$(this).find( 'option:is(:disabled)' ).detach();
+			}
+		} );
 	};
 
 	$mutliSelectPanel.each( function(event) {
@@ -23,22 +63,24 @@
 
 		// SORTING ACTIONS
 		sortUpBtn.on( 'click', function(event) {
-			var moveUpSelected = $( '#' + curPanelId + '_to option:selected' );
-			var optionAtTop    = moveUpSelected.first().prev();
+			$( '#' + curPanelId + '_to option:selected' ).each(function(index, el) {
+				var optionAtTop = $(this).prev(':not(:selected)');
 
-			if ( optionAtTop.length > 0 ) {
-				moveUpSelected.detach().insertBefore( optionAtTop );
-			}
+				if ( optionAtTop.length > 0 ) {
+					$(this).detach().insertBefore( optionAtTop );
+				}
+			});
 
 			updateSelectedValues( curPanelId );
 		});
 		sortDownBtn.on( 'click', function(event) {
-			var moveDownSelected = $( '#' + curPanelId + '_to option:selected' );
-			var optionAtBottom   = moveDownSelected.last().next();
+			$( '#' + curPanelId + '_to option:selected' ).each(function(index, el) {
+				var optionAtBottom = $(this).next(':not(:selected)');
 
-			if ( optionAtBottom.length > 0 ) {
-				moveDownSelected.detach().insertAfter( optionAtBottom );
-			}
+				if ( optionAtBottom.length > 0 ) {
+					$(this).detach().insertAfter( optionAtBottom );
+				}
+			});
 
 			updateSelectedValues( curPanelId );
 		});
@@ -47,7 +89,7 @@
 		selectAllBtn.on( 'click', function(event) {
 			event.preventDefault();
 
-			$( '#' + curPanelId + '_from option' ).remove().appendTo( '#' + curPanelId + '_to' );
+			processSelectionAction( curPanelId, "_from option", "_to" );
 			updateSelectedValues( curPanelId );
 		});
 
@@ -55,7 +97,7 @@
 		selectBtn.on( 'click', function(event) {
 			event.preventDefault();
 
-			$( '#' + curPanelId + '_from option:selected' ).remove().appendTo( '#' + curPanelId + '_to' );
+			processSelectionAction( curPanelId, "_from option:selected", "_to" );
 			updateSelectedValues( curPanelId );
 		});
 
@@ -63,7 +105,7 @@
 		deselectAllBtn.on( 'click', function(event) {
 			event.preventDefault();
 
-			$( '#' + curPanelId + '_to option' ).remove().appendTo( '#' + curPanelId + '_from' );
+			processSelectionAction( curPanelId, "_to option", "_from" );
 			updateSelectedValues( curPanelId );
 		});
 
@@ -71,8 +113,10 @@
 		deselectBtn.on( 'click', function(event) {
 			event.preventDefault();
 
-			$( '#' + curPanelId + '_to option:selected' ).remove().appendTo( '#' + curPanelId + '_from' );
+			processSelectionAction( curPanelId, "_to option:selected", "_from" );
 			updateSelectedValues( curPanelId );
 		});
+
+		updateNestedOptionsEmptyMessages( curPanelId );
 	});
 } )( presideJQuery );
