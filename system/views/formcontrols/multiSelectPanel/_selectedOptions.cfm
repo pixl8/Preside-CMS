@@ -13,21 +13,29 @@
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
 	value = HtmlEditFormat( value );
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
 	<p><small>#translateResource( "formcontrols.multiSelectPanel:selectedOptions.label" )#</small></p>
 	<select class="#inputClass# #extraClasses# to"
-	        name="#inputName#_to"
-	        id="#inputId#_to"
-	        tabindex="#getNextTabIndex()#"
-	        multiple="multiple"
-	        size="#selectSize#"
+			name="#inputName#_to"
+			id="#inputId#_to"
+			tabindex="#getNextTabIndex()#"
+			multiple="multiple"
+			size="#selectSize#"
+			#htmlAttributes#
 	>
 		<cfloop array="#values#" index="i" item="selectedValue">
 			<cfset selected = ListFindNoCase( value, selectedValue ) />

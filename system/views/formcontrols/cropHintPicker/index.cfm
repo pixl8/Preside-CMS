@@ -10,13 +10,20 @@
 	controlId      = createUUID();
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 	value = HtmlEditFormat( value );
 
 	event.include( "/css/admin/specific/cropHintPicker/" );
 	event.include( "/js/admin/specific/cropHintPicker/" );
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 
@@ -30,7 +37,7 @@
 				<i class="fa fa-ban"></i>
 				#translateResource( uri="formcontrols.cropHintPicker:clear" )#
 			</button>
-			<input type="hidden" class="#inputClass# crop-hint-input #extraClasses#" name="#inputName#" id="#inputId#" value="#value#">
+			<input type="hidden" class="#inputClass# crop-hint-input #extraClasses#" name="#inputName#" id="#inputId#" value="#value#" #htmlAttributes# />
 		</div>
 	</div>
 </cfoutput>

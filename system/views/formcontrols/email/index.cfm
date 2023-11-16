@@ -7,16 +7,23 @@
 	defaultValue = args.defaultValue ?: "";
 	multiple     = isTrue( args.multiple ?: "" );
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
 	<label>
 		<span class="block <cfif Len( Trim( icon ) )>input-icon input-icon-right</cfif>">
-			<input type="email" class="#inputClass# span12" placeholder="#placeholder#" multiple="#multiple#" name="#inputName#" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" />
+			<input type="email" class="#inputClass# span12" placeholder="#placeholder#" multiple="#multiple#" name="#inputName#" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" #htmlAttributes# />
 			<cfif Len( Trim ( icon ) )>
 				<i class="fa fa-#icon#"></i>
 			</cfif>
