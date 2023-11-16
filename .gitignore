@@ -2,3 +2,4 @@
 jmimemagic.log
 .twgit*
 .zanata-cache
+/system/assets/css/admin/ace/ace-for-preside.less
