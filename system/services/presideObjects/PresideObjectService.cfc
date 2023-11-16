@@ -65,17 +65,20 @@ component displayName="Preside Object Service" {
 		_setInstanceId( CreateObject('java','java.lang.System').identityHashCode( this ) );
 		_setDefaultQueryTimeout( arguments.defaultQueryTimeout   );
 		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
+		_setReloadDb( arguments.reloadDb );
 
+		return this;
+	}
+
+	public void function postInit() {
 		_loadObjects();
 
-		if ( arguments.reloadDb ) {
+		if ( _getReloadDb() ) {
 			dbSync();
 		}
 
 		_setSimpleLocalCache({});
 		_setCacheMap({});
-
-		return this;
 	}
 
 // PUBLIC API METHODS
@@ -4450,5 +4453,12 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setDefaultBgQueryTimeout( required numeric defaultBgQueryTimeout ) {
 		_defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
+	}
+
+	private boolean function _getReloadDb() {
+	    return _reloadDb;
+	}
+	private void function _setReloadDb( required boolean reloadDb ) {
+	    _reloadDb = arguments.reloadDb;
 	}
 }
