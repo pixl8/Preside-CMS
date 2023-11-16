@@ -38,14 +38,14 @@ component hint="Dev helper to toggle various debugging features" extends="presid
 	private function i18n( event, rc, prc ) {
 		var isDebuggingEnabled = sessionStorage.getVar( "_i18nDebugMode" );
 		var newValue           = !( IsTrue( isDebuggingEnabled ?: "" ) );
-		var type               = newValue ? "success" : "error";
-		var status             = newValue ? "ON" : "OFF";
+		var style              = newValue ? "b;white;green" : "b;white;red";
+		var status             = newValue ? " ON " : " OFF ";
 
 		sessionStorage.setVar( "_i18nDebugMode", newValue );
 
 		return newLine()
-			& writeText( "i18n debugging has been turned " )
-			& writeText( text=status, type=type, bold=true )
-			& writeText( text=". Please refresh the page.", newline=true );
+			& writeText( text="i18n debugging has been turned ", type="info" )
+			& writeText( text=status, style=style )
+			& writeText( text=". Please refresh the page.", type="info", newline=true );
 	}
 }

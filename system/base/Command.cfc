@@ -3,6 +3,7 @@ component {
 	public string function writeText(
 		  required string  text
 		,          string  type    = ""
+		,          string  style   = ""
 		,          boolean bold    = false
 		,          boolean italic  = false
 		,          boolean newLine = false
@@ -13,10 +14,11 @@ component {
 	public string function writeLine(
 		  required numeric length
 		,          string  type      = ""
+		,          string  style     = ""
 		,          string  character = "-"
 		,          boolean newLine   = true
 	) {
-		return _styleText( text=RepeatString( arguments.character, arguments.length ), type=arguments.type ) & ( arguments.newLine ? newLine() : "" );
+		return _styleText( text=RepeatString( arguments.character, arguments.length ), type=arguments.type, style=arguments.style ) & ( arguments.newLine ? newLine() : "" );
 	}
 
 	public string function writeTable(
@@ -92,6 +94,7 @@ component {
 	private string function _styleText(
 		  string  text   = ""
 		, string  type   = ""
+		, string  style  = ""
 		, boolean bold   = false
 		, boolean italic = false
 	) {
@@ -107,7 +110,7 @@ component {
 		var textBold   = arguments.bold   ? "b" : "";
 		var textItalic = arguments.italic ? "i" : "";
 		var textColour = Len( type ) && StructKeyExists( styles, type ) ? ";#styles[ type ]#;" : "";
-		var textStyles = textBold & textItalic & textColour;
+		var textStyles = Len( arguments.style ) ? arguments.style : textBold & textItalic & textColour;
 
 		return Len( Trim( textStyles ) ) ? "[[#textStyles#]" & arguments.text & "]" : arguments.text;
 	}
