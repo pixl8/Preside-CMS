@@ -298,6 +298,7 @@ component displayName="RulesEngine Expression Service" {
 		, required struct configuredFields
 	) {
 		_lazyLoadDynamicExpressions( context=arguments.context )
+
 		try {
 			var expression = _getRawExpression( expressionId );
 		} catch( any e ) {
@@ -307,30 +308,34 @@ component displayName="RulesEngine Expression Service" {
 
 		var contexts   = expression.contexts ?: [];
 
-		if ( !contexts.findNoCase( arguments.context ) && !contexts.findNoCase( "global" ) ) {
+		if ( !ArrayFindNoCase( contexts, arguments.context ) && !ArrayFindNoCase( contexts, "global" ) ) {
 			throw(
 				  type    = "preside.rule.expression.invalid.context"
 				, message = "The expression [#arguments.expressionId#] cannot be used in the [#arguments.context#] context."
 			);
 		}
 
-		var handlerAction = expression.expressionhandler ?: "rules.expressions." & arguments.expressionId & ".evaluateExpression";
-		var eventArgs     = {
-			  context = arguments.context
-			, payload = arguments.payload
-		};
+		var requestCacheKey = arguments.expressionId & arguments.context & SerializeJson( arguments.payload ) & SerializeJson( arguments.configuredFields );
 
-		eventArgs.append( expression.expressionHandlerArgs ?: {} );
-		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
+		if ( !StructKeyExists( request, "_rulesEngineEvaluateExpressionCache" ) || !StructKeyExists( request._rulesEngineEvaluateExpressionCache, requestCacheKey ) ) {
+			var handlerAction = expression.expressionhandler ?: "rules.expressions." & arguments.expressionId & ".evaluateExpression";
+			var eventArgs     = {
+				  context = arguments.context
+				, payload = arguments.payload
+			};
 
-		var result = $getColdbox().runEvent(
-			  event          = handlerAction
-			, private        = true
-			, prePostExempt  = true
-			, eventArguments = eventArgs
-		);
+			eventArgs.append( expression.expressionHandlerArgs ?: {} );
+			eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
-		return result;
+			request._rulesEngineEvaluateExpressionCache[ requestCacheKey ] = $getColdbox().runEvent(
+				  event          = handlerAction
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = eventArgs
+			);
+		}
+
+		return request._rulesEngineEvaluateExpressionCache[ requestCacheKey ];
 	}
 
 	/**
@@ -618,18 +623,24 @@ component displayName="RulesEngine Expression Service" {
 	}
 
 	private void function _lazyLoadDynamicExpressions( string context="", string filterObject="" ) {
+		var contextCacheKey = "context=#arguments.context#,filterObject=#arguments.filterObject#";
+
 		variables._lazyLoadDone = variables._lazyLoadDone ?: {};
+
+		if ( StructKeyExists( variables._lazyLoadDone, contextCacheKey ) ) {
+			return;
+		}
 
 		var objects = [];
 		var contextService = _getContextService();
 
 		if ( Len( Trim( arguments.filterObject ) ) ) {
-			objects.append( arguments.filterObject );
+			ArrayAppend( objects, arguments.filterObject );
 		}
 		if ( Len( Trim( arguments.context ) ) ) {
 			var contextObjects = contextService.getContextObject( arguments.context, true );
-			if ( contextObjects.len() ) {
-				objects.append( contextObjects, true );
+			if ( ArrayLen( contextObjects ) ) {
+				ArrayAppend( objects, contextObjects, true );
 			}
 		}
 
@@ -645,6 +656,8 @@ component displayName="RulesEngine Expression Service" {
 				variables._lazyLoadDone[ objectName ] = true;
 			}
 		}
+
+		variables._lazyLoadDone[ contextCacheKey ] = true;
 	}
 
 	private array function _getAdminUserRoles( string adminUserId=$getAdminLoginService().getLoggedInUserId() ) {

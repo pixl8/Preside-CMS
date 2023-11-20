@@ -130,15 +130,15 @@ component displayName="RulesEngine Context Service" {
 		var objects    = [];
 
 		if ( arguments.includeChildContexts ) {
-			if ( mainObject.len() ) {
-				objects.append( mainObject );
+			if ( Len( mainObject ) ) {
+				ArrayAppend( objects, mainObject );
 			}
 
 			var subContexts  = contexts[ arguments.context ].subcontexts ?: [];
 			for( var subContext in subContexts ) {
 				var subobjects = getContextObject( subContext, true );
-				if ( subobjects.len() ) {
-					objects.append( subobjects, true );
+				if ( Len( subobjects ) ) {
+					ArrayAppend( objects, subobjects, true );
 				}
 			}
 
@@ -192,24 +192,30 @@ component displayName="RulesEngine Context Service" {
 	 * @args.hint    Optional set of args to send to the context getPayload() handler
 	 */
 	public struct function getContextPayload( required string context, struct args={} ) {
-		var coldboxController = $getColdbox();
-		var expanded          = listValidExpressionContextsForParentContexts( [ arguments.context ] );
-		var payload           = {};
+		var cb       = $getColdbox();
+		var cacheKey = arguments.context & Hash( SerializeJson( args ) );
 
-		for( var cx in expanded ) {
-			var handlerAction = "rules.contexts.#cx#.getPayload";
+		if ( !StructKeyExists( request, "_rulesEngineContextPayloadCache" ) || !StructKeyExists( request._rulesEngineContextPayloadCache, cacheKey ) ) {
+			var expanded          = listValidExpressionContextsForParentContexts( [ arguments.context ] );
+			var payload           = {};
 
-			if ( coldboxController.handlerExists( handlerAction ) ) {
-				payload.append( $getColdbox().runEvent(
-					  event          = handlerAction
-					, eventArguments = arguments.args
-					, private        = true
-					, prePostExempt  = true
-				) );
+			for( var cx in expanded ) {
+				var handlerAction = "rules.contexts.#cx#.getPayload";
+
+				if ( cb.handlerExists( handlerAction ) ) {
+					StructAppend( payload, cb.runEvent(
+						  event          = handlerAction
+						, eventArguments = arguments.args
+						, private        = true
+						, prePostExempt  = true
+					) );
+				}
 			}
+
+			request._rulesEngineContextPayloadCache[ cacheKey ] = payload;
 		}
 
-		return payload;
+		return request._rulesEngineContextPayloadCache[ cacheKey ];
 	}
 
 // GETTERS AND SETTERS
