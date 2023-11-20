@@ -1,9 +1,9 @@
 <cfscript>
-	public boolean function isTrue( required any someValue ) output=false {
+	public boolean function isTrue( any someValue ) output=false {
 		return IsBoolean( arguments.someValue ) && arguments.someValue;
 	}
 
-	public boolean function isFalse( required any someValue ) output=false {
+	public boolean function isFalse( any someValue ) output=false {
 		return !IsBoolean( arguments.someValue ) || !arguments.someValue;
 	}
 </cfscript>
