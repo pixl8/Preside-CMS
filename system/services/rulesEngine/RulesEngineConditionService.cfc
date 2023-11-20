@@ -41,11 +41,14 @@ component displayName="RulesEngine Condition Service" {
 		var conditionRecord = $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
 
 		if ( conditionRecord.recordCount ) {
+			if ( IsSimpleValue( conditionRecord.expressions ) ) {
+				conditionRecord.expressions[ 1 ] = DeSerializeJson( conditionRecord.expressions ); // deliberately against a cached query to avoid doing this multiple times
+			}
 			return {
 				  id          = arguments.conditionId
 				, name        = conditionRecord.condition_name
 				, context     = conditionRecord.context
-				, expressions = DeSerializeJson( conditionRecord.expressions )
+				, expressions = conditionRecord.expressions
 			};
 		}
 
@@ -97,14 +100,14 @@ component displayName="RulesEngine Condition Service" {
 		, required string context
 		,          struct payload = {}
 	) {
-		var condition    = getCondition( arguments.conditionId );
+		var condition = getCondition( arguments.conditionId );
 
-		if ( condition.isEmpty() ) {
+		if ( StructIsEmpty( condition ) ) {
 			return false;
 		}
 
-		var finalPayload = Duplicate( arguments.payload );
-		finalPayload.append( _getContextService().getContextPayload(
+		var finalPayload = StructCopy( arguments.payload );
+		StructAppend( finalPayload, _getContextService().getContextPayload(
 			  context = arguments.context
 			, args    = arguments.payload
 		), false );
@@ -261,9 +264,10 @@ component displayName="RulesEngine Condition Service" {
 		var currentEvaluation = true;
 		var currentJoin       = "and";
 		var expressionResult  = true;
+		var arryLen           = ArrayLen( arguments.expressionArray )
 
-		for( var i=1; i<=arguments.expressionArray.len(); i++ ) {
-			var item     = arguments.expressionArray[i];
+		for( var i=1; i<=arryLen; i++ ) {
+			var item     = arguments.expressionArray[ i ];
 			var isOddRow = ( i mod 2 == 1 );
 
 			if ( isOddRow ) {
