@@ -218,6 +218,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockColdbox = createEmptyMock( "preside.system.coldboxModifications.Controller" );
 		service.$( "$getColdbox", mockColdbox );
 
+		request._rulesEngineContextPayloadCache = {};
+
 		return service;
 	}
 
