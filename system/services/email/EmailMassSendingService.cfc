@@ -106,15 +106,16 @@ component {
 			);
 		}
 
-		var poService    = $getPresideObjectService();
-		var dbAdapter    = poService.getDbAdapterForObject( "email_mass_send_queue" );
-		var nowFunction  = dbAdapter.getNowFunctionSql();
-		var extraFilters = getTemplateRecipientFilters( arguments.templateId );
-		var batchedSets  = [];
-		var records      = "";
-		var page         = 0;
-		var pageSize     = 100;
-		var queuedCount  = 0;
+		var poService     = $getPresideObjectService();
+		var dbAdapter     = poService.getDbAdapterForObject( "email_mass_send_queue" );
+		var nowFunction   = dbAdapter.getNowFunctionSql();
+		var extraFilters  = getTemplateRecipientFilters( arguments.templateId );
+		var inQueueFilter = _getDuplicateCheckFilter( recipientObject, arguments.templateId );
+		var batchedSets   = [];
+		var records       = "";
+		var page          = 0;
+		var pageSize      = 100;
+		var queuedCount   = 0;
 
 		/**
 		 * We used to do a single insertDataFromSelect() using the dynamic filters
@@ -150,7 +151,7 @@ component {
 					  objectName   = recipientObject
 					, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
 					, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
-					, extraFilters = [ { filter={ id=batch } } ]
+					, extraFilters = [ { filter={ id=batch } }, inQueueFilter ]
 				  }
 			);
 		}
