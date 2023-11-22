@@ -41,14 +41,17 @@ component displayName="RulesEngine Condition Service" {
 		var conditionRecord = $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
 
 		if ( conditionRecord.recordCount ) {
-			if ( IsSimpleValue( conditionRecord.expressions ) ) {
-				conditionRecord.expressions[ 1 ] = DeSerializeJson( conditionRecord.expressions ); // deliberately against a cached query to avoid doing this multiple times
+			// deliberately against a cached query to avoid doing this multiple times
+			// where possible
+			if ( !QueryColumnExists( conditionRecord, "serializedExpressions" ) ) {
+				QueryAddColumn( conditionRecord, "serializedExpressions", [ DeSerializeJson( conditionRecord.expressions ) ] )
 			}
+
 			return {
 				  id          = arguments.conditionId
 				, name        = conditionRecord.condition_name
 				, context     = conditionRecord.context
-				, expressions = conditionRecord.expressions
+				, expressions = conditionRecord.serializedExpressions
 			};
 		}
 
