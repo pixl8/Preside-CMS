@@ -711,6 +711,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		variables.mockI18n                   = createStub();
 		variables.mockExpressions            = arguments.expressions;
 		variables.mockColdboxController      = CreateStub();
+		variables.mockRequestContext         = createStub();
 		mockReaderService.$( "getExpressionsFromDirectories" ).$args( mockDirectories ).$results( mockExpressions );
 		mockI18n.$( "getFWLanguageCode" ).$results( "en" );
 		mockI18n.$( "getFWCountryCode" ).$results( "" );
@@ -729,12 +730,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service = createMock( object=service );
 
 		service.$( "$getColdbox", mockColdboxController );
+		service.$( "$getRequestContext", mockRequestContext );
 		service.$( "_lazyLoadDynamicExpressions" );
 		mockContextService.$( "getContextObject" ).$args( "request" ).$results( "request_object" );
 		mockContextService.$( "getContextObject" ).$args( "" ).$results( "" );
 		service.$( "translateExpressionCategory", "default" );
 		service.$( "$getAdminLoginService", mockAdminLoginService );
 		service.$( "$getAdminPermissionService", mockAdminPermissionService );
+
+		mockRequestContext.$( "isEmailRenderingContext", false );
+		mockRequestContext.$( "isBackgroundThread"     , true  );
 
 		return service;
 	}

@@ -193,11 +193,12 @@ component displayName="RulesEngine Context Service" {
 	 */
 	public struct function getContextPayload( required string context, struct args={} ) {
 		var cb       = $getColdbox();
-		var cacheKey = arguments.context & Hash( SerializeJson( args ) );
+		var noCache  = $getRequestContext().isEmailRenderingContext() || $getRequestContext().isBackgroundThread();
+		var cacheKey = noCache ? "" : arguments.context & Hash( SerializeJson( args ) );
 
-		if ( !StructKeyExists( request, "_rulesEngineContextPayloadCache" ) || !StructKeyExists( request._rulesEngineContextPayloadCache, cacheKey ) ) {
-			var expanded          = listValidExpressionContextsForParentContexts( [ arguments.context ] );
-			var payload           = {};
+		if ( noCache || ( !StructKeyExists( request, "_rulesEngineContextPayloadCache" ) || !StructKeyExists( request._rulesEngineContextPayloadCache, cacheKey ) ) ) {
+			var expanded = listValidExpressionContextsForParentContexts( [ arguments.context ] );
+			var payload  = {};
 
 			for( var cx in expanded ) {
 				var handlerAction = "rules.contexts.#cx#.getPayload";
@@ -210,6 +211,10 @@ component displayName="RulesEngine Context Service" {
 						, prePostExempt  = true
 					) );
 				}
+			}
+
+			if ( noCache ) {
+				return payload;
 			}
 
 			request._rulesEngineContextPayloadCache[ cacheKey ] = payload;

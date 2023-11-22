@@ -315,9 +315,10 @@ component displayName="RulesEngine Expression Service" {
 			);
 		}
 
-		var requestCacheKey = arguments.expressionId & arguments.context & SerializeJson( arguments.payload ) & SerializeJson( arguments.configuredFields );
+		var noCache         = $getRequestContext().isEmailRenderingContext() || $getRequestContext().isBackgroundThread();
+		var requestCacheKey = noCache ? "" : ( arguments.expressionId & arguments.context & SerializeJson( arguments.payload ) & SerializeJson( arguments.configuredFields ) );
 
-		if ( !StructKeyExists( request, "_rulesEngineEvaluateExpressionCache" ) || !StructKeyExists( request._rulesEngineEvaluateExpressionCache, requestCacheKey ) ) {
+		if ( noCache || !StructKeyExists( request, "_rulesEngineEvaluateExpressionCache" ) || !StructKeyExists( request._rulesEngineEvaluateExpressionCache, requestCacheKey ) ) {
 			var handlerAction = expression.expressionhandler ?: "rules.expressions." & arguments.expressionId & ".evaluateExpression";
 			var eventArgs     = {
 				  context = arguments.context
@@ -327,12 +328,18 @@ component displayName="RulesEngine Expression Service" {
 			eventArgs.append( expression.expressionHandlerArgs ?: {} );
 			eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
-			request._rulesEngineEvaluateExpressionCache[ requestCacheKey ] = $getColdbox().runEvent(
+			var result =  $getColdbox().runEvent(
 				  event          = handlerAction
 				, private        = true
 				, prePostExempt  = true
 				, eventArguments = eventArgs
 			);
+
+			if ( noCache ) {
+				return result;
+			}
+
+			request._rulesEngineEvaluateExpressionCache[ requestCacheKey ] = result;
 		}
 
 		return request._rulesEngineEvaluateExpressionCache[ requestCacheKey ];
