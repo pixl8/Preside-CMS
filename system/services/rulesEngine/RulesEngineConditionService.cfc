@@ -43,15 +43,15 @@ component displayName="RulesEngine Condition Service" {
 		if ( conditionRecord.recordCount ) {
 			// deliberately against a cached query to avoid doing this multiple times
 			// where possible
-			if ( !QueryColumnExists( conditionRecord, "serializedExpressions" ) ) {
-				QueryAddColumn( conditionRecord, "serializedExpressions", [ DeSerializeJson( conditionRecord.expressions ) ] )
+			if ( !QueryColumnExists( conditionRecord, "deserializedExpressions" ) ) {
+				QueryAddColumn( conditionRecord, "deserializedExpressions", [ DeSerializeJson( conditionRecord.expressions ) ] )
 			}
 
 			return {
 				  id          = arguments.conditionId
 				, name        = conditionRecord.condition_name
 				, context     = conditionRecord.context
-				, expressions = conditionRecord.serializedExpressions
+				, expressions = conditionRecord.deserializedExpressions
 			};
 		}
 
