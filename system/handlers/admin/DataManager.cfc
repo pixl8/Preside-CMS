@@ -44,7 +44,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function object( event, rc, prc ) {
-		var objectName        = prc.objectName        ?: "";
+		var objectName        = prc.objectName ?: "";
 		var objectTitle       = prc.objectTitlePlural ?: "";
 		var objectDescription = prc.objectDescription ?: "";
 		var args              = { objectName=objectName };
@@ -2105,6 +2105,19 @@ component extends="preside.system.base.AdminHandler" {
 			  objectName     = arguments.object
 			, action         = "decorateRecordsForGridListing"
 			, defaultHandler = "admin.datamanager._decorateObjectRecordsForAjaxDataTables"
+			, args           = {
+				  records         = records
+				, objectName      = arguments.object
+				, gridFields      = getRecordsArgs.gridFields
+				, useMultiActions = arguments.useMultiActions
+				, isMultilingual  = arguments.isMultilingual
+				, draftsEnabled   = arguments.draftsEnabled
+			}
+		);
+
+		customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "postDecorateRecordsForGridListing"
 			, args           = {
 				  records         = records
 				, objectName      = arguments.object
