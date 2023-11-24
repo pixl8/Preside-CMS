@@ -109,13 +109,15 @@ component {
 		var poService     = $getPresideObjectService();
 		var dbAdapter     = poService.getDbAdapterForObject( "email_mass_send_queue" );
 		var nowFunction   = dbAdapter.getNowFunctionSql();
+		var idField       = "#recipientObject#.#poService.getIdField( recipientObject )#";
 		var extraFilters  = getTemplateRecipientFilters( arguments.templateId );
 		var inQueueFilter = _getDuplicateCheckFilter( recipientObject, arguments.templateId );
 		var batchedSets   = [];
 		var records       = "";
-		var page          = 0;
 		var pageSize      = 100;
 		var queuedCount   = 0;
+		var filter        = "";
+		var filterParams  = {};
 
 		/**
 		 * We used to do a single insertDataFromSelect() using the dynamic filters
@@ -130,18 +132,23 @@ component {
 		do {
 			records = poService.selectData(
 				  objectName   = recipientObject
-				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ) ]
+				, selectFields = [ "#idField# as id" ]
+				, filter       = filter
+				, filterParams = filterParams
 				, extraFilters = extraFilters
+				, orderBy      = idField
 				, distinct     = true
 				, maxRows      = pageSize
-				, startRow     = ( (++page * pageSize) + 1 ) - pageSize
 				, useCache     = false
 			);
 
 			if ( records.recordCount ) {
 				ArrayAppend( batchedSets, ValueArray( records.id ) );
+
+				filter = "#idField# > :#idField#";
+				filterParams[ idField ] = records.id[ records.recordCount ];
 			}
-		} while( records.recordCount );
+		} while( records.recordCount == pageSize );
 
 		for( var batch in batchedSets ) {
 			queuedCount += poService.insertDataFromSelect(
@@ -149,13 +156,12 @@ component {
 				, fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
 				, selectDataArgs = {
 					  objectName   = recipientObject
-					, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
+					, selectFields = [ idField, ":template", nowFunction, nowFunction ]
 					, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
-					, extraFilters = [ { filter={ id=batch } }, inQueueFilter ]
+					, extraFilters = [ { filter={ "#idField#"=batch } }, inQueueFilter ]
 				  }
 			);
 		}
-
 		return queuedCount;
 	}
 
