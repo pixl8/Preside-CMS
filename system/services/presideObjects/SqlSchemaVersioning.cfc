@@ -15,13 +15,28 @@ component singleton=true {
 	}
 
 // PUBLIC API METHODS
+	public string function getDbVersion( required array dsns ) {
+		for( var dsn in arguments.dsns ){
+			_checkVersionsTableExistance( dsn = dsn );
+			var versionRecord = _runSql(
+				  sql = "select version_hash from _preside_generated_entity_versions where entity_type = 'db' and entity_name = 'db'"
+				, dsn = dsn
+			);
+
+			if ( versionRecord.recordCount ) {
+				return versionRecord.version_hash;
+			}
+		}
+		return "";
+	}
+
 	public struct function getVersions( required array dsns ) {
 		var dsn            = "";
 		var versions       = {};
 		var versionRecords = "";
 		var versionRecord  = "";
 
-		for( dsn in dsns ){
+		for( dsn in arguments.dsns ){
 			_checkVersionsTableExistance( dsn = dsn );
 			versionRecords = _runSql(
 				  sql = "select entity_type, entity_name, parent_entity_name, version_hash from _preside_generated_entity_versions order by entity_type, parent_entity_name"

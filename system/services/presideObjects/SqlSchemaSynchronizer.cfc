@@ -35,7 +35,8 @@ component {
 
 // PUBLIC API METHODS
 	public void function synchronize( required array dsns, required struct objects ) {
-		var versions           = _getVersionsOfDatabaseObjects( arguments.dsns );
+		var dbVersionHash      = _getSchemaVersioningService().getDbVersion( arguments.dsns );
+		var versions           = "";
 		var objName            = "";
 		var obj                = "";
 		var table              = "";
@@ -51,9 +52,11 @@ component {
 				dbVersion.append( obj.sql.table.version );
 			}
 		}
+		StructDelete( variables, "columnCache" ); // cache no longer required, release memory
 		dbVersion.sort( "text" );
 		dbVersion = Hash( dbVersion.toList() );
-		if ( ( versions.db.db ?: "" ) neq dbVersion ) {
+		if ( dbVersionHash != dbVersion ) {
+			var versions = _getVersionsOfDatabaseObjects( arguments.dsns );
 			for( objName in objects ) {
 				obj = objects[ objName ];
 
@@ -102,7 +105,7 @@ component {
 			}
 			_syncForeignKeys( objects );
 
-			for( dsn in dsns ){
+			for( var dsn in dsns ){
 				_setDatabaseObjectVersion(
 					  entityType = "db"
 					, entityName = "db"
@@ -116,15 +119,16 @@ component {
 			objects[ objName ].delete( "sql" );
 		}
 
-		var cleanupScripts = _getSchemaVersioningService().cleanupDbVersionTableEntries( versions, objects, dsns[1], _getAutoRunScripts() );
+		if ( dbVersionHash != dbVersion ) {
+			var cleanupScripts = _getSchemaVersioningService().cleanupDbVersionTableEntries( versions, objects, dsns[1], _getAutoRunScripts() );
 
-		if ( !_getAutoRunScripts() ) {
-			var scriptsToRun = _getBuiltSqlScriptArray();
-			var scriptsOutput = [];
-			var versionScriptsToRun = _getVersionTableScriptArray();
-			if ( scriptsToRun.len() || versionScriptsToRun.len() || cleanupScripts.len() ) {
-				var newLine = Chr( 10 );
-				var sql = "/**
+			if ( !_getAutoRunScripts() ) {
+				var scriptsToRun = _getBuiltSqlScriptArray();
+				var scriptsOutput = [];
+				var versionScriptsToRun = _getVersionTableScriptArray();
+				if ( scriptsToRun.len() || versionScriptsToRun.len() || cleanupScripts.len() ) {
+					var newLine = Chr( 10 );
+					var sql = "/**
  * The following commands are to make alterations to the database schema
  * in order to synchronize it with the Preside codebase.
  *
@@ -132,25 +136,26 @@ component {
  *
  * Please review the scripts before running.
  */" & newline & newline;
-				for( var script in scriptsToRun ) {
-					if ( !scriptsOutput.findNoCase( script.sql ) ) {
-						sql &= script.sql & ";" & newline;
-						scriptsOutput.append( script.sql );
+					for( var script in scriptsToRun ) {
+						if ( !scriptsOutput.findNoCase( script.sql ) ) {
+							sql &= script.sql & ";" & newline;
+							scriptsOutput.append( script.sql );
+						}
 					}
-				}
-				sql &= newline & "/* The commands below ensure that Preside's internal DB versioning tracking is up to date */" & newline & newline;
-				for( var script in versionScriptsToRun ) {
-					sql &= script.sql & ";" & newline;
-				}
-				for( var script in cleanupScripts ) {
-					sql &= script & ";" & newline;
-				}
+					sql &= newline & "/* The commands below ensure that Preside's internal DB versioning tracking is up to date */" & newline & newline;
+					for( var script in versionScriptsToRun ) {
+						sql &= script.sql & ";" & newline;
+					}
+					for( var script in cleanupScripts ) {
+						sql &= script & ";" & newline;
+					}
 
-				throw(
-					  type    = "presidecms.auto.schema.sync.disabled"
-					, message = "Code changes have been detected that require a database changes. However, auto db sync is disabled for this website. Please see the error detail for full SQL script that should be run directly on your database."
-					, detail  = sql
-				);
+					throw(
+						  type    = "presidecms.auto.schema.sync.disabled"
+						, message = "Code changes have been detected that require a database changes. However, auto db sync is disabled for this website. Please see the error detail for full SQL script that should be run directly on your database."
+						, detail  = sql
+					);
+				}
 			}
 		}
 	}
@@ -166,8 +171,8 @@ component {
 
 	) {
 		var adapter        = _getAdapter( dsn = arguments.dsn );
-		var tableExists    =  _tableExists( tableName=arguments.tableName, dsn=arguments.dsn );
-		var tableColumns   = tableExists ? valueList( _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ).COLUMN_NAME ) : "";
+		var tableExists    = NullValue();
+		var tableColumns   = NullValue();
 		var columnSql      = "";
 		var colName        = "";
 		var column         = "";
@@ -188,8 +193,12 @@ component {
 
 		for( colName in ListToArray( arguments.dbFieldList ) ) {
 			colMeta = arguments.properties[ colName ];
-			if( listFindNoCase( tableColumns, colName ) && _skipSync( colMeta ) ) {
-				continue;
+			if( _skipSync( colMeta ) ) {
+				tableExists  = tableExists  ?: _tableExists( tableName=arguments.tableName, dsn=arguments.dsn );
+				tableColumns = tableColumns ?: tableExists ? _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn ) : [];
+				if ( ArrayContainsNoCase( tableColumns, colName ) ) {
+					continue;
+				}
 			}
 			column = sql.columns[ colName ] = StructNew();
 			args = {
@@ -346,7 +355,7 @@ component {
 		, required boolean skipSync
 
 	) {
-		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
+		var columnsFromDb   = _getTableColumnsWithForeignKeys( tableName=arguments.tableName, dsn=arguments.dsn, detail=true );
 		var indexesFromDb   = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
 		var dbColumnNames   = ValueList( columnsFromDb.column_name );
 		var colsSql         = arguments.generatedSql.columns;
@@ -538,9 +547,9 @@ component {
 		for( keyName in keys ){
 			key = keys[ keyName ];
 			if ( key.fk_table eq arguments.foreignTableName and key.fk_column eq arguments.foreignColumnName ) {
-				sql = adapter.getDropForeignKeySql( tableName = key.fk_table, foreignKeyName = keyName );
+				dropSql = adapter.getDropForeignKeySql( tableName = key.fk_table, foreignKeyName = keyName );
 
-				_runSql( sql = sql, dsn = arguments.dsn );
+				_runSql( sql = dropSql, dsn = arguments.dsn );
 			}
 		}
 	}
@@ -702,7 +711,30 @@ component {
 		return variables._tableCache[ arguments.dsn ][ arguments.tableName ] ?: false;
 	}
 
-	private query function _getTableColumns() {
+	private array function _getTableColumns() {
+		try {
+			if ( _getDbInfoService().hasModernDbInfo() ){
+				// with the faster version, we can fetch the entire schema in one call.
+				if ( !StructKeyExists( variables, "columnCache" )){
+					variables.columnCache =  _getTableColumnCache( argumentCollection = arguments );
+				}
+				if ( StructKeyExists( variables.columnCache, arguments.tableName ) ) {
+					return variables.columnCache[ arguments.tableName ];
+				} else {
+					return [];
+				}
+			}
+			var tableColumns = _getDbInfoService().getTableColumns( argumentCollection = arguments );
+			return QueryColumnData( tableColumns, "COLUMN_NAME" );
+		} catch( any e ) {
+			if ( e.message contains "there is no table that match the following pattern" ) {
+				return [];
+			}
+			rethrow;
+		}
+	}
+
+	private query function _getTableColumnsWithForeignKeys() {
 		try {
 			return _getDbInfoService().getTableColumns( argumentCollection = arguments );
 		} catch( any e ) {
@@ -769,6 +801,18 @@ component {
 		for( var script in versionScripts ){
 			syncScripts.append( script );
 		}
+	}
+
+	private struct function _getTableColumnCache(){
+		var srcColumns = _getDbInfoService().getTableColumns( tableName="%", dsn=arguments.dsn, detail=false );
+		var columns = {};
+		loop query=srcColumns {
+			if ( !StructKeyExists( columns, srcColumns.table_name ) ) {
+				columns[ srcColumns.table_name ] = [];
+			}
+			ArrayAppend( columns[ srcColumns.table_name ], srcColumns.column_name );
+		}
+		return columns;
 	}
 
 

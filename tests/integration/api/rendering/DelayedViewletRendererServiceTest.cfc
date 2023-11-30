@@ -6,7 +6,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var service    = _getService();
 				var complexArg = { test="this" };
 				var dvs        = [
-					  "<!--dv:test.viewlet( arg1=#ToBase64( 'true' )#, arg2=#ToBase64( 'test' )#, arg3=#ToBase64( SerializeJson( complexArg ) )# )(private=true,prePostExempt=false)-->"
+					  "<!--dv:test.viewlet( arg1=#ToBase64( 'true' )#, arg2=#ToBase64( '33e10' )#, arg3=#ToBase64( SerializeJson( complexArg ) )# )(private=true,prePostExempt=false)-->"
 					, "<!--dv:another.test.viewlet(arg3=#ToBase64( 'false' )#)(private=true,prePostExempt=true)-->"
 					, "<!--dv:nested.viewlet()(private=false,prePostExempt=false)-->"
 				];
@@ -30,7 +30,7 @@ proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culp
 
 				mockColdbox.$( "renderViewlet" ).$args(
 					  event         = "test.viewlet"
-					, args          = { arg1=true, arg2='test', arg3=complexArg }
+					, args          = { arg1=true, arg2='33e10', arg3=complexArg }
 					, private       = true
 					, prepostExempt = false
 					, delayed       = false
