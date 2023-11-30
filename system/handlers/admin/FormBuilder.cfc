@@ -7,7 +7,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
 	property name="adHocTaskManagerService"     inject="adHocTaskManagerService";
 
-
 // PRE-HANDLER
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -849,6 +848,87 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function importFormFields( event, rc, prc, args ) {
+		prc.pageTitle = translateResource( "formbuilder:importFormFields.page.title" );
+		prc.pageIcon  = "file-import";
+
+		event.addAdminBreadCrumb(
+			  title = prc.pageTitle
+			, link  = ""
+		);
+	}
+
+	public string function importFormFieldsAction( event, rc, prc, args ) {
+		var formId = rc.id ?: "";
+
+		var formData         = event.getCollectionWithoutSystemVars()
+		var validationResult = validateForms( formData );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+
+			formData.validationResult = validationResult;
+
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importFormFields", queryString="id=#formId#" ), persistStruct=formData );
+		}
+
+		try {
+			var data = DeserializeJSON( ToString( formData.formFieldsFile.binary ?: "{}" ) );
+
+			var taskId = createTask(
+				  event             = "admin.FormBuilder.importFormFieldsInBackgroundThread"
+				, args              = { formId=formId, data=data }
+				, runNow            = true
+				, adminOwner        = event.getAdminUserId()
+				, discardOnComplete = false
+				, title             = "formbuilder:task.form.delete.title"
+				, returnUrl         = event.buildAdminLink( linkto="formbuilder.manageForm", queryString="id=#formId#" )
+			);
+
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=" & taskId
+			) );
+		} catch ( any e ) {
+			logError( e );
+
+			messageBox.error( translateResource( uri="formbuilder:importFormFields.message.error" ) );
+
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importFormFields", queryString="id=#formId#" ), persistStruct=formData );
+		}
+	}
+
+	private void function importFormFieldsInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		var canProgress = StructKeyExists( arguments, "progress" );
+
+		logMessage( logger, "info", "Start importing the form fields..." );
+
+		formBuilderService.importFormFields(
+			  formId   = args.formId ?: ""
+			, data     = args.data   ?: {}
+			, logger   = logger
+			, progress = progress
+		);
+
+		if ( canProgress ) {
+			arguments.progress.setProgress( 100 );
+		}
+
+		logMessage( logger, "info", "Finished import." );
+	}
+
+	public string function exportFormFieldsAction( event, rc, prc, args ) {
+		var fileName = formBuilderService.exportFormFields( formId=rc.id ?: "" );
+
+		if ( isEmptyString( fileName ) ) {
+			event.notFound();
+		}
+
+		header name="Content-Disposition" value="attachment; filename=""#fileName#""";
+		content reset=true file=getTempDirectory() & "/" & fileName deletefile=true type="application/xml";
+		abort;
+	}
+
 	private void function deleteFormInBgThread( event, rc, prc, args={}, logger, progress ) {
 		var logger      = arguments.logger  ?: NullValue();
 		var canProgress = StructKeyExists( arguments, "progress" );
@@ -903,6 +983,8 @@ component extends="preside.system.base.AdminHandler" {
 		args.locked      = IsTrue( args.locked ?: "" );
 		args.canLock     = hasCmsPermission( permissionKey="formbuilder.lockForm" );
 		args.canActivate = !args.locked && hasCmsPermission( permissionKey="formbuilder.activateForm" );
+		args.canEdit     = hasCmsPermission( permissionKey="formbuilder.editform" );
+		args.canDelete   = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 
 		return renderView( view="/admin/formbuilder/_statusControls", args=args );
 	}
