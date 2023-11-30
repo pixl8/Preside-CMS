@@ -2126,129 +2126,87 @@ component {
 			return "";
 		}
 
-		var fileName = $slugify( formbuilderForm.name ) & "-" & DateTimeFormat( Now(), "yyyymmdd-HHnnss" ) & ".xml";
+		var fileName = $slugify( formbuilderForm.name ) & "-" & DateTimeFormat( Now(), "yyyymmdd-HHnnss" ) & ".json";
 
-		var xml = XmlNew();
+		var json = {
+			  id      = formbuilderForm.id
+			, name    = formbuilderForm.name
+			, items   = []
+			, actions = []
+		};
 
-		xml.xmlRoot = XmlElemNew( xml, "form" );
-
-		StructAppend( xml.form.xmlAttributes, {
-			  id   = formbuilderForm.id
-			, name = formbuilderForm.name
-		} );
-
-		// Items
 		var formbuilderFormItems = getFormItems( id=arguments.formId );
-		var xmlItems             = XmlElemNew( xml, "items" );
-		var xmlQuestions         = XmlElemNew( xml, "questions" );
 		for ( var formbuilderFormItem in formbuilderFormItems ) {
-			// Item
-			var xmlItem = XmlElemNew( xml, "item" );
-			StructAppend( xmlItem.xmlAttributes, {
-				  id         = formbuilderFormItem.id
-				, itemTypeId = formbuilderFormItem.item_type
-				, questionId = formbuilderFormItem.questionId
-			} );
-
-			// Item config
-			var formbuilderFormItemConfig = $getPresideObject( "formbuilder_formitem" ).selectData(
+			var formItem = $getPresideObject( "formbuilder_formitem" ).selectData(
 				  id           = formbuilderFormItem.id
 				, selectFields = [ "configuration" ]
 			);
-			if ( IsJSON( formbuilderFormItemConfig.configuration ?: "" ) ) {
-				var xmlItemConfig = XmlElemNew( xml, "config" );
-				StructAppend( xmlItemConfig.xmlAttributes, DeserializeJSON( formbuilderFormItemConfig.configuration ) );
-				ArrayAppend( xmlItem.xmlChildren, xmlItemConfig );
+
+			var question = {};
+			var formQuestion = getQuestion( formbuilderFormItem.questionId );
+			if ( formQuestion.recordCount ) {
+				var question = {
+					  id               = formQuestion.id
+					, fieldId          = formQuestion.field_id
+					, fieldLabel       = formQuestion.field_label
+					, fullQuestionText = formQuestion.full_question_text
+					, helpText         = formQuestion.help_text
+					, config           = DeserializeJSON( formQuestion.item_type_config ?: "{}" )
+				};
 			}
 
-			ArrayAppend( xmlItems.xmlChildren, xmlItem );
-
-			// Question
-			var formbuilderQuestion = getQuestion( formbuilderFormItem.questionId );
-			if ( formbuilderQuestion.recordCount ) {
-				var xmlQuestion = XmlElemNew( xml, "question" );
-
-				StructAppend( xmlQuestion.xmlAttributes, {
-					  id               = formbuilderQuestion.id
-					, fieldId          = formbuilderQuestion.field_id
-					, fieldLabel       = formbuilderQuestion.field_label
-					, fullQuestionText = formbuilderQuestion.full_question_text
-					, helpText         = formbuilderQuestion.help_text
-				} );
-
-				// Question config
-				if ( IsJSON( formbuilderQuestion.item_type_config ) ) {
-					var xmlQuestionConfig = XmlElemNew( xml, "config" );
-					StructAppend( xmlQuestionConfig.xmlAttributes, DeserializeJSON( formbuilderQuestion.item_type_config ) );
-					ArrayAppend( xmlQuestion.xmlChildren, xmlQuestionConfig );
-				}
-
-				ArrayAppend( xmlQuestions.xmlChildren, xmlQuestion );
-			}
+			ArrayAppend( json.items, {
+				  id         = formbuilderFormItem.id
+				, itemTypeId = formbuilderFormItem.item_type
+				, questionId = formbuilderFormItem.questionId
+				, config     = DeserializeJSON( formItem.configuration ?: "{}" )
+				, question   = question
+			} );
 		}
-		ArrayAppend( xml.form.xmlChildren, xmlItems );
-		ArrayAppend( xml.form.xmlChildren, xmlQuestions );
 
-		FileWrite( "#getTempDirectory()#/#fileName#", ToString( xml ) );
+		FileWrite( "#getTempDirectory()#/#fileName#", SerializeJSON( json ) );
 
 		return fileName;
 	}
 
 	public void function importFormFields(
 		  required string formId
-		, required any    xml
+		, required struct data
 		,          any    logger
 		,          any    progress
 	) {
-		var items = XmlSearch( arguments.xml, "/form/items/item" );
+		var items = data.items ?: [];
 
 		for ( var item in items ) {
-			var itemAttributes    = item.xmlAttributes        ?: {};
-			var itemConfiguration = item.config.xmlAttributes ?: {};
+			var question   = item.question    ?: {};
+			var questionId = ""; // Empty question ID = Content/ layout e.g. spacer
 
-			var questionId  = "";
-			var xmlQuestion = XmlSearch( arguments.xml, "/form/questions/question[@id='#itemAttributes.questionId#']" );
+			if ( $helpers.isEmptyString( question.fieldId ?: "" ) ) {
+				$helpers.logMessage( logger, "info", "Import #item.itemTypeId#." );
+			} else {
+				var fieldId    = question.fieldId;
+				var oldFieldId = "";
 
-			if ( ArrayLen( xmlQuestion ) ) {
-				var question = ArrayFirst( xmlQuestion  );
+				if ( $getPresideObject( "formbuilder_question" ).dataExists( filter={ field_id=fieldId } ) ) {
+					oldFieldId = " ( #fieldId# )";
+					fieldId    = "#fieldId#_#DateTimeFormat( Now(), "yymmddHHmmss" )#";
+				}
 
-				var questionAttributes    = question.xmlAttributes        ?: {};
-				var questionConfiguration = question.config.xmlAttributes ?: {};
-
-				var existingQuestion = $getPresideObject( "formbuilder_question" ).selectData(
-					  filter       = { field_id = questionAttributes.fieldId }
-					, selectFields = [ "id" ]
+				questionId = $getPresideObject( "formbuilder_question" ).insertData(
+					data = {
+						  item_type          = item.itemTypeId
+						, field_id           = fieldId
+						, field_label        = question.fieldLabel
+						, full_question_text = question.fullQuestionText
+						, help_text          = question.helpText
+						, item_type_config   = SerializeJSON( question.config ?: "" )
+					}
 				);
 
-				if ( existingQuestion.recordCount ) {
-					questionId = existingQuestion.id;
-				} else {
-					questionId = $getPresideObject( "formbuilder_question" ).insertData(
-						data = {
-							  item_type          = itemAttributes.itemTypeId
-							, field_id           = questionAttributes.fieldId
-							, field_label        = questionAttributes.fieldLabel
-							, full_question_text = questionAttributes.fullQuestionText
-							, help_text          = questionAttributes.helpText
-							, item_type_config   = SerializeJSON( questionConfiguration )
-						}
-					);
-
-					$helpers.logMessage( logger, "warn", "Question: #questionAttributes.fieldId# not found. Created." );
-				}
+				$helpers.logMessage( logger, "info", "Import #item.itemTypeId#: #fieldId##oldFieldId#." );
 			}
 
-			if ( !$helpers.isEmptyString( questionId ) && $getPresideObject( "formbuilder_formitem" ).dataExists( filter={ form=arguments.formId, question=questionId } ) ) {
-				$helpers.logMessage( logger, "warn", "Question #questionAttributes.fieldId# found. Skipped" );
-			} else {
-				addItem( formId=arguments.formId, itemType=itemAttributes.itemTypeId, configuration=itemConfiguration, question=questionId );
-
-				if ( $helpers.isEmptyString( questionId ) ) {
-					$helpers.logMessage( logger, "info", "Field #itemAttributes.itemTypeId# added." );
-				} else {
-					$helpers.logMessage( logger, "info", "Question #questionAttributes.fieldId# added." );
-				}
-			}
+			addItem( formId=arguments.formId, itemType=item.itemTypeId, configuration=item.config, question=questionId );
 		}
 	}
 

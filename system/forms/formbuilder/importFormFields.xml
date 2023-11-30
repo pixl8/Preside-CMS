@@ -2,7 +2,7 @@
 <form i18nBaseUri="formbuilder:importFormFields.">
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
-			<field name="file" sortorder="10" required="true" control="fileupload" preprocessor="fileUpload" accept="application/xml,text/xml" />
+			<field name="formFieldsFile" sortorder="10" required="true" control="fileupload" preprocessor="fileUpload" accept="application/json,text/json" />
 		</fieldset>
 	</tab>
 </form>

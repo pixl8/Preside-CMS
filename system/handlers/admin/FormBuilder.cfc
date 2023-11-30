@@ -873,11 +873,11 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		try {
-			var xml = XmlParse( formData.file.binary );
+			var data = DeserializeJSON( ToString( formData.formFieldsFile.binary ?: "{}" ) );
 
 			var taskId = createTask(
 				  event             = "admin.FormBuilder.importFormFieldsInBackgroundThread"
-				, args              = { formId=formId, xml=xml }
+				, args              = { formId=formId, data=data }
 				, runNow            = true
 				, adminOwner        = event.getAdminUserId()
 				, discardOnComplete = false
@@ -890,6 +890,8 @@ component extends="preside.system.base.AdminHandler" {
 				, queryString = "taskId=" & taskId
 			) );
 		} catch ( any e ) {
+			logError( e );
+
 			messageBox.error( translateResource( uri="formbuilder:importFormFields.message.error" ) );
 
 			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importFormFields", queryString="id=#formId#" ), persistStruct=formData );
@@ -899,14 +901,11 @@ component extends="preside.system.base.AdminHandler" {
 	private void function importFormFieldsInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
 		var canProgress = StructKeyExists( arguments, "progress" );
 
-		var formId = args.formId ?: "";
-		var xml    = args.xml    ?: "";
-
 		logMessage( logger, "info", "Start importing the form fields..." );
 
 		formBuilderService.importFormFields(
-			  formId   = formId
-			, xml      = XmlParse( xml )
+			  formId   = args.formId ?: ""
+			, data     = args.data   ?: {}
 			, logger   = logger
 			, progress = progress
 		);

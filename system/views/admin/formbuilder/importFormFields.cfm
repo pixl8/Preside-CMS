@@ -1,5 +1,5 @@
 <cfscript>
-	id               = rc.id           ?: "";
+	id               = rc.id               ?: "";
 	validationResult = rc.validationResult ?: "";
 </cfscript>
 
@@ -16,7 +16,7 @@
 
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
-				<a href="#event.buildAdminLink( linkTo="formbuilder" )#" class="btn btn-default" data-global-key="c">
+				<a href="#event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=#id#" )#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:sitetree.cancel.btn" )#
 				</a>
