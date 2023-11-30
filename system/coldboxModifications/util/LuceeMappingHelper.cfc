@@ -1,0 +1,1 @@
+component extends="originalcoldbox.system.core.util.LuceeMappingHelper" {}

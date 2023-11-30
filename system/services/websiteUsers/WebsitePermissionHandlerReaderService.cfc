@@ -39,22 +39,21 @@ component {
 	}
 
 	public struct function getPermissionHandlerFromCfc( required string componentPath, required string rootPath ) {
-		var meta    = getComponentMetadata( arguments.componentPath );
-		var feature = meta.feature ?: "";
+		var feature = preside.system.services.helpers.ComponentMetaDataReader::getComponentAttribute( arguments.componentPath, "feature" );
 
 		if ( len( trim( feature ) ) && !$isFeatureEnabled( feature ) ) {
 			return {};
 		}
 
 		var permissions = {};
-		var functions   = meta.functions ?: [];
+		var functions   = preside.system.services.helpers.ComponentMetaDataReader::getComponentFunctions( arguments.componentPath );
 		var baseId      = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
 
-		for( var func in functions ) {
-			if ( func.name == "checkPermission" ) {
+		for( var functionName in functions ) {
+			if ( functionName == "checkPermission" ) {
 				permissions[ baseId ] = {
 					  handler    = "websitePermissions.#baseId#.checkPermission"
-					, keyPattern = func.keyPattern ?: ".*"
+					, keyPattern = functions[ functionName ].keyPattern ?: ".*"
 				};
 			}
 		}

@@ -36,7 +36,7 @@ component {
 
 			for( var handlerFile in handlerFiles ) {
 				var handlerMapping = mappingBase & "." & handlerFile.reReplace( "\.cfc$", "" );
-				var metaData       = getComponentMetadata( handlerMapping );
+				var metaData       = preside.system.services.helpers.ComponentMetaDataReader::getComponentAttributes( handlerMapping, [ "feature", "name", "exportFileExtension", "exportMimeType" ] );
 				var exporter       = readExporterFromCfcMetadata( metaData );
 
 				if ( Len( metaData.feature ?: "" ) && !$isFeatureEnabled( metaData.feature ) ) {

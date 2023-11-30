@@ -59,26 +59,8 @@ component {
 			  core          = {}
 			, sitetemplates = {}
 		};
-		var registerViewlet = function( viewletName, siteTemplate ){
-			if ( arguments.siteTemplate == "" ) {
-				viewlets.core[ arguments.viewletName ] = true;
-			} else {
-				viewlets.sitetemplates[ arguments.siteTemplate ] = viewlets.sitetemplates[ arguments.siteTemplate ] ?: {};
-				viewlets.sitetemplates[ arguments.siteTemplate ][ arguments.viewletName ] = true;
-			}
 
-			if ( arguments.viewletName.reFindNoCase( "\.index$" ) ) {
-				arguments.viewletName = arguments.viewletName.reReplaceNoCase( "\.index$", "" );
-
-				if ( arguments.siteTemplate == "" ) {
-					viewlets.core[ arguments.viewletName ] = true;
-				} else {
-					viewlets.sitetemplates[ arguments.siteTemplate ][ arguments.viewletName ] = true;
-				}
-			}
-		}
-
-		for( var directory in directories ) {
+		for( var directory in arguments.directories ) {
 			var viewsDirectory    = directory & "/views";
 			var handlersDirectory = directory & "/handlers";
 			var siteTemplate   = _getSiteTemplateFromDirectory( directory );
@@ -89,13 +71,13 @@ component {
 				var viewFiles       = DirectoryList( viewsDirectory, true, "path", "*.cfm" );
 
 				for( var viewFile in viewFiles ) {
-					var viewletName = viewFile.replace( expandedDirPath, "" );
+					var viewletName = Replace( viewFile, expandedDirPath, "" );
 
-					viewletName = viewletName.reReplaceNoCase( "^[\/\\]", "" );
-					viewletName = viewletName.reReplaceNoCase( "\.cfm$" , "" );
-					viewletName = viewletName.reReplaceNoCase( "[\/\\]" , ".", "all" );
+					viewletName = ReReplaceNoCase( viewletName, "^[\/\\]", "" );
+					viewletName = ReReplaceNoCase( viewletName, "\.cfm$" , "" );
+					viewletName = ReReplaceNoCase( viewletName, "[\/\\]" , ".", "all" );
 
-					registerViewlet( viewletName, siteTemplate );
+					_registerViewlet( viewletName, siteTemplate, viewlets );
 				}
 			}
 
@@ -104,18 +86,18 @@ component {
 				var handlerFiles    = DirectoryList( handlersDirectory, true, "path", "*.cfc" );
 
 				for( var handlerFile in handlerFiles ) {
-					var viewletNameBase = handlerFile.replace( expandedDirPath, "" ).reReplaceNoCase( "\.cfc$" , "" );
+					var viewletNameBase = ReReplaceNoCase( Replace( handlerFile, expandedDirPath, "" ), "\.cfc$" , "" );
 					var handlerCfcPath  = handlersDirectory & viewletNameBase
 
-					handlerCfcPath  = handlerCfcPath.reReplaceNoCase( "^[\/\\]", "" );
-					handlerCfcPath  = handlerCfcPath.reReplaceNoCase( "[\/\\]" , ".", "all" );
-					viewletNameBase = viewletNameBase.reReplaceNoCase( "^[\/\\]", "" );
-					viewletNameBase = viewletNameBase.reReplaceNoCase( "[\/\\]" , ".", "all" );
+					handlerCfcPath  = ReReplaceNoCase( handlerCfcPath, "^[\/\\]", "" );
+					handlerCfcPath  = ReReplaceNoCase( handlerCfcPath, "[\/\\]" , ".", "all" );
+					viewletNameBase = ReReplaceNoCase( viewletNameBase, "^[\/\\]", "" );
+					viewletNameBase = ReReplaceNoCase( viewletNameBase, "[\/\\]" , ".", "all" );
 
 					var actions = _readActionsFromHandler( handlerCfcPath );
 					for( var action in actions ) {
 						var viewletName = viewletNameBase & "." & action;
-						registerViewlet( viewletName, siteTemplate )
+						_registerViewlet( viewletName, siteTemplate, viewlets )
 					}
 				}
 
@@ -123,18 +105,37 @@ component {
 		}
 
 		for( var siteTemplate in viewlets.sitetemplates ) {
-			viewlets.sitetemplates[ siteTemplate ] = viewlets.sitetemplates[ siteTemplate ].keyArray();
+			viewlets.sitetemplates[ siteTemplate ] = StructKeyArray( viewlets.sitetemplates[ siteTemplate ] )
 
 			for( var viewlet in viewlets.sitetemplates[ siteTemplate ] ) {
 				if ( StructKeyExists( viewlets.core, viewlet ) ) {
-					viewlets.sitetemplates[ siteTemplate ].delete( viewlet );
+					ArrayDelete( viewlets.sitetemplates[ siteTemplate ], viewlet );
 				}
 			}
 		}
 
-		_setCoreViewlets( viewlets.core.keyArray() );
+		_setCoreViewlets( StructKeyArray( viewlets.core ) );
 		_setSiteTemplateViewlets( viewlets.sitetemplates );
 	}
+
+	private function _registerViewlet( viewletName, siteTemplate, viewlets ){
+			if ( arguments.siteTemplate == "" ) {
+				arguments.viewlets.core[ arguments.viewletName ] = true;
+			} else {
+				arguments.viewlets.sitetemplates[ arguments.siteTemplate ] = arguments.viewlets.sitetemplates[ arguments.siteTemplate ] ?: {};
+				arguments.viewlets.sitetemplates[ arguments.siteTemplate ][ arguments.viewletName ] = true;
+			}
+
+			if ( arguments.viewletName.reFindNoCase( "\.index$" ) ) {
+				arguments.viewletName = arguments.viewletName.reReplaceNoCase( "\.index$", "" );
+
+				if ( arguments.siteTemplate == "" ) {
+					arguments.viewlets.core[ arguments.viewletName ] = true;
+				} else {
+					arguments.viewlets.sitetemplates[ arguments.siteTemplate ][ arguments.viewletName ] = true;
+				}
+			}
+		}
 
 	private string function _getSiteTemplateFromDirectory( required string directory ) {
 		var regex = "^.*[\\/]site-templates[\\/]([^\\/]+)$";
@@ -147,27 +148,17 @@ component {
 	}
 
 	private array function _readActionsFromHandler( required string handlerCfcPath ) {
-		var actions                    = {};
-		var lifeCycleRegex             = "^(pre|post|around)";
-		var readNonLifeCycleFunctions = function( meta ){
-			var functions = arguments.meta.functions ?: [];
+		var actions         = [];
+		var lifeCycleRegex  = "^(pre|post|around)";
+		var functions       = preside.system.services.helpers.ComponentMetaDataReader::getComponentFunctions( arguments.handlerCfcPath );
 
-			if ( StructKeyExists( arguments.meta, "extends" ) ) {
-				readNonLifeCycleFunctions( arguments.meta.extends );
+		for( var functionName in functions ) {
+			if ( !ReFindNoCase( lifeCycleRegex, functionName ) ) {
+				ArrayAppend( actions, functionName );
 			}
+		}
 
-			for( var func in functions ) {
-				var functionName = func.name ?: "";
-				if ( Len( Trim( functionName ) ) && !ReFindNoCase( lifeCycleRegex, functionName ) ) {
-					actions[ functionName ] = true;
-				}
-			}
-		};
-
-
-		readNonLifeCycleFunctions( getComponentMetadata( handlerCfcPath ) );
-
-		return actions.keyArray();
+		return actions;
 	}
 
 // GETTERS AND SETTERS
