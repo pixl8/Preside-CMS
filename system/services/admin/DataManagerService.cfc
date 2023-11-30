@@ -8,8 +8,10 @@
 component {
 
 	variables._operationsCache = {};
+	variables.UNKNOWN_TOTAL = 1000000001; // a hardcoded magic number to communicate pagination unknown
 
 	property name="dataManagerDefaults" inject="coldbox:setting:dataManager.defaults";
+	property name="rowCountTimeout"     inject="coldbox:setting:queryTimeout.datamanagerRowCount";
 
 // CONSTRUCTOR
 
@@ -495,10 +497,29 @@ component {
 			result.totalRecords = result.records.recordCount;
 		} else if ( dbAdapter.supportsCountOverWindowFunction() ) {
 			result.totalRecords = result.records.recordCount ? result.records._total_recordcount : 0;
-		} else if ( Len( args.groupBy ?: "" ) ) {
-			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0, startRow=1 );
 		} else {
-			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, selectFields=[], recordCountOnly=true, maxRows=0, startRow=1 );
+			try {
+				if ( Len( args.groupBy ?: "" ) ) {
+					result.totalRecords = _getPresideObjectService().selectData(
+						  argumentCollection = args
+						, recordCountOnly    = true
+						, maxRows            = 0
+						, startRow           = 1
+						, timeout            = rowCountTimeout
+					);
+				} else {
+					result.totalRecords = _getPresideObjectService().selectData(
+						  argumentCollection = args
+						, selectFields       = []
+						, recordCountOnly    = true
+						, maxRows            = 0
+						, startRow           = 1
+						, timeout            = rowCountTimeout
+					);
+				}
+			} catch( database e ) {
+				result.totalRecords = UNKNOWN_TOTAL;
+			}
 		}
 
 		return result;
