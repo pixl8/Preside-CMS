@@ -48,6 +48,7 @@
 			  , useMultiActions          = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
 			  , $filterDiv               = $( '#' + tableId + '-filter' )
 			  , $favouritesDiv           = $( '#' + tableId + '-favourites' )
+			  , UNKNOWN_TOTAL            = 1000000001
 			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
@@ -266,6 +267,21 @@
 								$( nRow ).hide().find( "th:first" ).html( "" );
 							}
 						}
+					},
+					fnInfoCallback: function( oSettings, iStart, iEnd, iMax, iTotal, sPre ) {
+						var info = "";
+
+						if ( iTotal == UNKNOWN_TOTAL ) {
+							info = i18n.translateResource( "cms:datatables.infoCountUnknown", { data : [objectTitle], defaultValue : "" } );
+						} else {
+							info = i18n.translateResource( "cms:datatables.info", { data : [objectTitle], defaultValue : "" } );
+						}
+
+						info = info.replace( "_START_", Intl.NumberFormat().format( iStart ) );
+						info = info.replace( "_END_"  , Intl.NumberFormat().format( iEnd   ) );
+						info = info.replace( "_TOTAL_", Intl.NumberFormat().format( iTotal ) );
+
+						return info;
 					}
 				} ).fnSetFilteringDelay( searchDelay );
 
