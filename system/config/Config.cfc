@@ -735,6 +735,7 @@ component {
 		settings.queryTimeout = {
 			  default                 = Val( settings.env.QUERY_TIMEOUT ?: 0 )
 			, backgroundThreadDefault = Val( settings.env.BACKGROUND_QUERY_TIMEOUT ?: ( settings.env.QUERY_TIMEOUT ?: 0 ) )
+			, datamanagerRowCount     = Val( settings.env.DATAMANAGER_ROWCOUNT_QUERY_TIMEOUT ?: ( settings.env.QUERY_TIMEOUT ?: 3 ) )
 		};
 	}
 
