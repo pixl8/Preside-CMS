@@ -1,5 +1,10 @@
 /**
  * The page object represents the core data that is stored for all pages in the site tree, regardless of page type.
+ *
+ * @datamanagerEnabled              true
+ * @datamanagerGridFields           page_type,title,parent_page,active,datecreated,datemodified
+ * @datamanagerDefaultSortOrder     sort_order,parent_page,active,title,datecreated,datemodified
+ * @datamanagerDisallowedOperations add,delete,clone,batchedit,batchdelete
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true useDrafts=true {
 
@@ -39,11 +44,11 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="exclude_from_sitemap"                    type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="navigation_title"                        type="string"  dbtype="varchar" maxLength="200"  required=false;
 
-	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId" autofilter=false;
-	property name="_hierarchy_sort_order"            type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="sortOrder"         autofilter=false;
-	property name="_hierarchy_lineage"               type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="lineage"           autofilter=false;
-	property name="_hierarchy_child_selector"        type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none"                             autofilter=false;
-	property name="_hierarchy_depth"                 type="numeric" dbtype="int"                      required=true                                             control="none" indexes="depth";
+	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId" autofilter=false limitToAdminRoles="sysadmin";
+	property name="_hierarchy_sort_order"            type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="sortOrder"         autofilter=false limitToAdminRoles="sysadmin";
+	property name="_hierarchy_lineage"               type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="lineage"           autofilter=false limitToAdminRoles="sysadmin";
+	property name="_hierarchy_child_selector"        type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none"                             autofilter=false limitToAdminRoles="sysadmin";
+	property name="_hierarchy_depth"                 type="numeric" dbtype="int"                      required=true                                             control="none" indexes="depth"                              limitToAdminRoles="sysadmin";
 	property name="_hierarchy_slug"                  type="string"  dbtype="varchar" maxLength="2000" required=true                                             control="none"                             autofilter=false;
 
 
