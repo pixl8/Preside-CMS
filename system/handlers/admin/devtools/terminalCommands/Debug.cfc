@@ -3,15 +3,8 @@ component hint="Dev helper to toggle various debugging features" extends="presid
 	property name="jsonRpc2Plugin" inject="JsonRpc2";
 	property name="sessionStorage" inject="sessionStorage";
 
-	private any function index( event, rc, prc ) {
-		var params  = jsonRpc2Plugin.getRequestParams();
-		var cliArgs = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
-
-		return "I am a scaffolded command, please finish me off!";
-	}
-
 	private function index( event, rc, prc ) {
-		var params       = jsonRpc2Plugin.getRequestParams();
+		var params          = jsonRpc2Plugin.getRequestParams();
 		var validOperations = [ "i18n" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
