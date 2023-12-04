@@ -850,18 +850,13 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function deleteFormInBgThread( event, rc, prc, args={}, logger, progress ) {
-		var logger      = arguments.logger  ?: NullValue();
-		var canProgress = StructKeyExists( arguments, "progress" );
-
-		logMessage( logger, "info", "Start deleting the form and all its data..." );
+		logMessage( arguments.logger, "info", "Start deleting the form and all its data..." );
 
 		_deleteForm( argumentCollection=arguments, id=args.id ?: "", isBatch=false );
 
-		if ( canProgress ) {
-			arguments.progress.setProgress( 100 );
-		}
+		arguments.progress?.setProgress( 100 );
 
-		logMessage( logger, "info", "Finished delete." );
+		logMessage( arguments.logger, "info", "Finished delete." );
 	}
 
 // VIEWLETS
