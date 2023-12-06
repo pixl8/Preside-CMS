@@ -2,8 +2,8 @@
  * The page object represents the core data that is stored for all pages in the site tree, regardless of page type.
  *
  * @datamanagerEnabled              true
- * @datamanagerGridFields           page_type,title,parent_page,active,datecreated,datemodified
- * @datamanagerDefaultSortOrder     sort_order,parent_page,active,title,datecreated,datemodified
+ * @datamanagerGridFields           page_type,title,parent_page,_hierarchy_depth,active,datecreated,datemodified
+ * @datamanagerDefaultSortOrder     _hierarchy_sort_order
  * @datamanagerDisallowedOperations add,delete,clone,batchedit,batchdelete
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true useDrafts=true {
