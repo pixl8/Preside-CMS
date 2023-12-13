@@ -71,11 +71,7 @@ component {
 			var siteTemplates      = poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" );
 			var isInActiveTemplate = siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
 
-			if (   isInActiveTemplate && Len( Trim( groupId ) )
-				&& permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] )
-				&& permsService.hasPermission( permissionKey="presideobject.#objectName#.navigate" )
-				&& isOperationAllowed( objectName, "navigate" )
-			) {
+			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
 					groups[ groupId ] = {
 						  title       = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:title" )
@@ -230,7 +226,7 @@ component {
 			return IsBoolean( result ?: "" ) && result;
 		}
 
-		return getAllowedOperationsForObject( arguments.objectName ).findNoCase( arguments.operation ) > 0;
+		return getAllowedOperationsForObject( arguments.objectName ).findNoCase( arguments.operation );
 	}
 
 	public array function getAllowedOperationsForObject( required string objectName ) {

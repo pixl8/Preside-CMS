@@ -39,6 +39,16 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.objectGroups = dataManagerService.getGroupedObjects();
 
+		for ( var g=1; g<=ArrayLen(  prc.objectGroups ); g++ ) {
+			for ( var o=1; o<=ArrayLen(  prc.objectGroups[ g ].objects ); o++ ) {
+				var objectName = prc.objectGroups[ g ].objects[ o ].id ?: "";
+
+				if ( !_checkPermission( argumentCollection=arguments, object=objectName, key="navigate", throwOnError=false ) ) {
+					ArrayDeleteAt( prc.objectGroups[ g ].objects, o );
+				}
+			}
+		}
+
 		prc.pageIcon  = "database";
 		prc.pageTitle = translateResource( "cms:datamanager" );
 	}
