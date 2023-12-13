@@ -69,10 +69,7 @@ component {
 			var siteTemplates      = poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" );
 			var isInActiveTemplate = siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
 
-			if (   isInActiveTemplate && Len( Trim( groupId ) )
-				&& permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] )
-				&& isOperationAllowed( objectName, "navigate" )
-			) {
+			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
 					groups[ groupId ] = {
 						  title       = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:title" )
