@@ -1230,8 +1230,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId = rc.id ?: "";
 
 		if ( pageId.isEmpty() ) {
-			getController().getCachebox().clearAll();
-			announceInterception( "onClearCaches", {} );
+			siteTreeService.clearAllCaches();
 
 			event.audit(
 				  action = "clear_page_cache"
