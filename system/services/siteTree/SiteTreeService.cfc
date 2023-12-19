@@ -1359,7 +1359,7 @@ component {
 
 	public void function clearAllCaches() {
 		_getCachebox().clearAll();
-		announceInterception( "onClearCaches", {} );
+		$announceInterception( "onClearCaches", {} );
 	}
 
 	public void function clearPageCache( string pageId="", string pageUrl="" ) {
