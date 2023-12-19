@@ -147,6 +147,9 @@
 			} else {
 				this.default_text = this.options.placeholder_text_single || this.options.placeholder_text || UberSelect.default_single_text;
 			}
+
+			this.results_error_text = this.form_field.getAttribute("data-results_error_text") || this.options.results_error_text || UberSelect.default_result_error_text;
+
 			return this.results_none_found = this.form_field.getAttribute("data-no_results_text") || this.options.no_results_text || UberSelect.default_no_result_text;
 		};
 
@@ -269,7 +272,12 @@
 			var $uberSelect = this
 			  , searchText  = $uberSelect.get_search_text();
 
-			$uberSelect.search_engine.get( searchText, function( suggestions ){
+				$uberSelect.search_engine.get( searchText, function( suggestions ){
+				if ( $uberSelect.fetchError ) {
+					$uberSelect.clear_suggestions();
+					return $uberSelect.results_error( );
+				}
+
 				var userHasChangedSearch = searchText != $uberSelect.get_search_text()
 
 				if ( !userHasChangedSearch ){
@@ -407,14 +415,28 @@
 				this.remote_url   = remote_url;
 			}
 
+			var searchContext = this;
 			this.search_engine = new Bloodhound( {
 				  local          : this.local_options
 				, prefetch       : this.prefetch_url
-				, remote         : this.remote_url
 				, datumTokenizer : function(d) { return Bloodhound.tokenizers.nonwordandunderscore( d.text ); }
 			 	, queryTokenizer : Bloodhound.tokenizers.nonwordandunderscore
 			 	, limit          : this.display_limit
 			 	, dupDetector    : function( remote, local ){ return remote.value == local.value }
+			 	, remote         : this.remote_url==null ? null : {
+					url : this.remote_url,
+					ajax : {
+						context: searchContext,
+						error: function(jqxhr, textStatus, errorThrown) {
+							var $uberSelect = this;
+							this.fetchError = true;
+						},
+						success: function(data, textStatus, jqxhr) {
+							this.fetchError = false;
+						}
+					}
+				}
+
 			} );
 
 			( this.search_engine.initialize() ).done( function(){
@@ -758,6 +780,7 @@
 			this.container.removeClass("chosen-container-active");
 			this.clear_backstroke();
 			this.show_search_field_default();
+			this.result_error_clear();
 			return this.search_field_scale();
 		};
 
@@ -1285,6 +1308,18 @@
 			return this.search_results.append(no_results_html);
 		};
 
+		UberSelect.prototype.results_error = function(terms) {
+			var results_error_html;
+
+			results_error_html = $('<li class="results-error">' + this.results_error_text + '</li>');
+			return this.search_results.append(results_error_html);
+		};
+
+		UberSelect.prototype.result_error_clear = function() {
+			this.fetchError = false;
+			return this.search_results.find(".results-error").remove();
+		}
+
 		UberSelect.prototype.no_results_clear = function() {
 			return this.search_results.find(".no-results").remove();
 		};
@@ -1493,6 +1528,9 @@
 		UberSelect.default_single_text = "Select an Option";
 
 		UberSelect.default_no_result_text = "No results match";
+
+		UberSelect.default_result_error_text = "Error fetching results";
+
 
 		return UberSelect;
 

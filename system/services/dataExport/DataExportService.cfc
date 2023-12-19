@@ -372,7 +372,11 @@ component {
 		return result;
 	}
 
-	public struct function getDefaultExportFieldsForObject( required string objectName, boolean expandNestedRelationField=true ) {
+	public struct function getDefaultExportFieldsForObject(
+		  required string  objectName
+		,          boolean expandNestedRelationField = true
+		,          boolean isNested                  = false
+	) {
 		var titles       = {};
 		var poService    = $getPresideObjectService();
 		var uriRoot      = poService.getResourceBundleUriRoot( arguments.objectName );
@@ -406,6 +410,10 @@ component {
 					continue;
 				}
 
+				if ( arguments.isNested && $helpers.isTrue( prop.excludeNestedDataExport ?: "" ) ) {
+					continue;
+				}
+
 				switch( prop.relationship ?: "" ) {
 					case "one-to-many":
 					case "many-to-many":
@@ -418,7 +426,7 @@ component {
 							var shouldExpand      = fieldExportDetail.shouldExpand;
 
 							if ( shouldExpand ) {
-								var linkedFields = getDefaultExportFieldsForObject( objectName=prop.relatedTo, expandNestedRelationField=false );
+								var linkedFields = getDefaultExportFieldsForObject( objectName=prop.relatedTo, expandNestedRelationField=false, isNested=true );
 
 								if ( ArrayLen( linkedFields.selectFields ?: [] ) ) {
 									for ( var field in linkedFields.selectFields ) {
