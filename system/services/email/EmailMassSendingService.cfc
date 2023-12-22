@@ -199,7 +199,7 @@ component {
 			);
 			extraFilters.append( recipientFilter );
 		}
-		if ( template.recipient_filter.len() ) {
+		if ( Len( Trim( template.recipient_filter ?: "" ) ) ) {
 			var isSegmentionFilter = _getRulesEngineFilterService().isSegmentionFilter( filterid=template.recipient_filter );
 
 			if ( isSegmentionFilter ) {
@@ -214,7 +214,8 @@ component {
 					, expressionArray = filterExpression
 				);
 			}
-			extraFilters.append( recipientFilter );
+
+			ArrayAppend( extraFilters, recipientFilter )
 		}
 
 		extraFilters.append( _getDuplicateCheckFilter( recipientObject, arguments.templateId ) );
