@@ -199,13 +199,23 @@ component {
 			);
 			extraFilters.append( recipientFilter );
 		}
-		if ( template.recipient_filter.len() ) {
-			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
-			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
-				  objectName      = recipientObject
-				, expressionArray = filterExpression
-			);
-			extraFilters.append( recipientFilter );
+		if ( Len( Trim( template.recipient_filter ?: "" ) ) ) {
+			var isSegmentationFilter = _getRulesEngineFilterService().isSegmentationFilter( filterid=template.recipient_filter );
+
+			if ( isSegmentationFilter ) {
+				var recipientFilter = _getRulesEngineFilterService().prepareSegmentationFilter(
+					  objectName = recipientObject
+					, filterId   = template.recipient_filter
+				);
+			} else {
+				var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
+				var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
+					  objectName      = recipientObject
+					, expressionArray = filterExpression
+				);
+			}
+
+			ArrayAppend( extraFilters, recipientFilter )
 		}
 
 		extraFilters.append( _getDuplicateCheckFilter( recipientObject, arguments.templateId ) );
