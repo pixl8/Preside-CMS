@@ -200,11 +200,20 @@ component {
 			extraFilters.append( recipientFilter );
 		}
 		if ( template.recipient_filter.len() ) {
-			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
-			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
-				  objectName      = recipientObject
-				, expressionArray = filterExpression
-			);
+			var isSegmentionFilter = _getRulesEngineFilterService().isSegmentionFilter( filterid=template.recipient_filter );
+
+			if ( isSegmentionFilter ) {
+				var recipientFilter = _getRulesEngineFilterService().prepareSegmentationFilter(
+					  objectName = recipientObject
+					, filterId   = template.recipient_filter
+				);
+			} else {
+				var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
+				var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
+					  objectName      = recipientObject
+					, expressionArray = filterExpression
+				);
+			}
 			extraFilters.append( recipientFilter );
 		}
 
