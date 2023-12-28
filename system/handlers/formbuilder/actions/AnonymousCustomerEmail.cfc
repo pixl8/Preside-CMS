@@ -19,9 +19,10 @@ component {
 
 			if ( template.len() && address.len() ) {
 				emailService.send(
-					  template    = template
-					, recipientId = address
-					, to          = [ address ]
+					  template     = template
+					, recipientId  = address
+					, to           = [ address ]
+					, ignoreErrors = true
 				);
 			}
 		}
