@@ -34,6 +34,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, overwriteTemplateArgs = false
 					, args                  = testArgs
 					, isTest                = false
+					, ignoreErrors          = false
 				};
 
 				expectedSendArgs.append( testHandlerResult );
@@ -77,6 +78,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, recipientId           = recipientId
 					, args                  = testArgs
 					, isTest                = false
+					, ignoreErrors          = false
 				};
 				expectedPrepArgs = {
 					  template              = "notification"
@@ -96,6 +98,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, returnLogId           = false
 					, overwriteTemplateArgs = false
 					, isTest                = false
+					, ignoreErrors          = false
 				};
 
 				expectedSendArgs.append( testPreparedMessage );
@@ -141,6 +144,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, returnLogId           = false
 					, overwriteTemplateArgs = false
 					, isTest                = false
+					, ignoreErrors          = false
 				};
 
 				expectedSendArgs.append( testHandlerResult );
@@ -277,6 +281,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, overwriteTemplateArgs = false
 					, args                  = testArgs
 					, isTest                = false
+					, ignoreErrors          = false
 				};
 
 				expectedSendArgs.append( testHandlerResult );
