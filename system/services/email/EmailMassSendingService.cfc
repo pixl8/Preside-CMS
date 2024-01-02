@@ -200,9 +200,9 @@ component {
 			extraFilters.append( recipientFilter );
 		}
 		if ( Len( Trim( template.recipient_filter ?: "" ) ) ) {
-			var isSegmentionFilter = _getRulesEngineFilterService().isSegmentionFilter( filterid=template.recipient_filter );
+			var isSegmentationFilter = _getRulesEngineFilterService().isSegmentationFilter( filterid=template.recipient_filter );
 
-			if ( isSegmentionFilter ) {
+			if ( isSegmentationFilter ) {
 				var recipientFilter = _getRulesEngineFilterService().prepareSegmentationFilter(
 					  objectName = recipientObject
 					, filterId   = template.recipient_filter

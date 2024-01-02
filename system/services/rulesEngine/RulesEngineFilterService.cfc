@@ -38,7 +38,7 @@ component displayName="Rules Engine Filter Service" {
 		,          array   expressionArray
 		,          boolean ignoreSegmentation = false
 	) {
-		if ( Len( arguments.filterId ) && isSegmentionFilter( arguments.filterId ) && !arguments.ignoreSegmentation ) {
+		if ( Len( arguments.filterId ) && isSegmentationFilter( arguments.filterId ) && !arguments.ignoreSegmentation ) {
 			return prepareSegmentationFilter( arguments.objectName, arguments.filterId );
 		}
 
@@ -442,6 +442,9 @@ component displayName="Rules Engine Filter Service" {
 	}
 
 	public boolean function isSegmentionFilter( required string filterid ) {
+		return isSegmentationFilter( arguments.filterId );
+	}
+	public boolean function isSegmentationFilter( required string filterid ) {
 		return $getPresideObject( "rules_engine_condition" ).dataExists(
 			  filter = { id=arguments.filterId, is_segmentation_filter=true }
 		);
