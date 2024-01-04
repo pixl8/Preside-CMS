@@ -54,7 +54,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function object( event, rc, prc ) {
-		var objectName        = prc.objectName ?: "";
+		var objectName        = prc.objectName        ?: "";
 		var objectTitle       = prc.objectTitlePlural ?: "";
 		var objectDescription = prc.objectDescription ?: "";
 		var args              = { objectName=objectName };
