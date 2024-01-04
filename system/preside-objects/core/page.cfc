@@ -4,7 +4,7 @@
  * @datamanagerEnabled              true
  * @datamanagerGridFields           page_type,title,parent_page,_hierarchy_depth,active,datecreated,datemodified
  * @datamanagerDefaultSortOrder     _hierarchy_sort_order
- * @datamanagerDisallowedOperations add,delete,clone,batchedit,batchdelete
+ * @datamanagerDisallowedOperations read,add,delete,clone,batchedit,batchdelete
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true useDrafts=true {
 
