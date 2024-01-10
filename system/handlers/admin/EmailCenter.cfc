@@ -132,6 +132,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !_hasBasicNavPermissions() ) {
 			event.adminAccessDenied();
 		}
+
 		var templateId   = rc.id ?: "";
 		var template     = emailTemplateService.getTemplate( id=templateId );
 		var extraFilters = [ { filter={ email_template=templateId } } ];
@@ -199,5 +200,4 @@ component extends="preside.system.base.AdminHandler" {
 		return hasCmsPermission( "emailCenter.customTemplates.navigate" ) ||
 		       hasCmsPermission( "emailcenter.systemTemplates.navigate" );
 	}
-
 }
