@@ -394,10 +394,7 @@ component {
 			    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? objectAllowExpandFields : defaultExpandManyToOneField;
 
 			var objectProperties = poService.getObjectProperties( arguments.objectName );
-			var propertyNames    = poService.getObjectAttribute(
-				  objectName    = arguments.objectName
-				, attributeName = "propertyNames"
-			);
+			var propertyNames    = StructKeyArray( objectProperties );
 
 			if ( !ArrayLen( defaultExcludeFields ) ) {
 				defaultExcludeFields = defaults.excludeFields ?: [];
