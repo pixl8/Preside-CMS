@@ -1596,11 +1596,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dateTo     = "2017-07-19";
 				var stats      = { sent=4985, delivered=4980, failed=5, opened=234, queued=340, clicks=234 };
 
-				service.$( "getSentCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.sent );
-				service.$( "getDeliveredCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.delivered );
-				service.$( "getFailedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.failed );
-				service.$( "getUniqueOpenedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.opened );
-				service.$( "getClickCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true ).$results( stats.clicks );
+				service.$( "getSentCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true, stats=[] ).$results( stats.sent );
+				service.$( "getDeliveredCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true, stats=[] ).$results( stats.delivered );
+				service.$( "getFailedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true, stats=[] ).$results( stats.failed );
+				service.$( "getUniqueOpenedCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true, stats=[] ).$results( stats.opened );
+				service.$( "getClickCount" ).$args( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo, timePoints=1, uniqueOpens=true, stats=[] ).$results( stats.clicks );
 				service.$( "getQueuedCount" ).$args( templateId=templateId ).$results( stats.queued );
 
 				expect( service.getStats( templateId=templateId, dateFrom=dateFrom, dateTo=dateTo ) ).toBe( stats );
@@ -1642,6 +1642,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockTemplateCache        = createStub();
 		mockTimeSeriesUtils      = createStub();
 		mockEmailSettings        = { defaultContentExpiry=30 };
+		mockStatsService         = createEmptyMock( "preside.system.services.email.EmailStatsService" );
 
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockSendLogDao );
@@ -1654,6 +1655,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$audit" );
 		service.$( "$getRequestContext", mockRequestContext );
 		service.$( "$announceInterception", mockRequestContext );
+		service.$( "_usePerformantLogging", false );
 
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
 		mockEmailRecipientTypeService  = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
@@ -1687,6 +1689,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				, emailSettings              = mockEmailSettings
 				, templateCache              = mockTemplateCache
 				, timeSeriesUtils            = mockTimeSeriesUtils
+				, emailStatsService          = mockStatsService
 			);
 		}
 
