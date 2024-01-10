@@ -129,7 +129,9 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getFilteredRecipientsForStatsTables() {
-		// TODO: permissions checking
+		if ( !_hasBasicNavPermissions() ) {
+			event.adminAccessDenied();
+		}
 		var templateId   = rc.id ?: "";
 		var template     = emailTemplateService.getTemplate( id=templateId );
 		var extraFilters = [ { filter={ email_template=templateId } } ];
@@ -191,6 +193,11 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		return serializeJson( args );
+	}
+
+	private boolean function _hasBasicNavPermissions() {
+		return hasCmsPermission( "emailCenter.customTemplates.navigate" ) ||
+		       hasCmsPermission( "emailcenter.systemTemplates.navigate" );
 	}
 
 }
