@@ -18,11 +18,12 @@ component {
 		}
 
 		emailService.send(
-			  template = "formbuilderSubmissionNotification"
-			, args     = args
-			, to       = ListToArray( args.configuration.recipients ?: "", ";," )
-			, from     = args.configuration.send_from ?: ""
-			, replyTo  = replyTo
+			  template     = "formbuilderSubmissionNotification"
+			, args         = args
+			, to           = ListToArray( args.configuration.recipients ?: "", ";," )
+			, from         = args.configuration.send_from ?: ""
+			, replyTo      = replyTo
+			, ignoreErrors = true
 		);
 	}
 
