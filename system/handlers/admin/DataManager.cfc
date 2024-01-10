@@ -39,16 +39,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.objectGroups = dataManagerService.getGroupedObjects();
 
-		for ( var g=1; g<=ArrayLen(  prc.objectGroups ); g++ ) {
-			for ( var o=1; o<=ArrayLen(  prc.objectGroups[ g ].objects ); o++ ) {
-				var objectName = prc.objectGroups[ g ].objects[ o ].id ?: "";
-
-				if ( !_checkPermission( argumentCollection=arguments, object=objectName, key="navigate", throwOnError=false ) ) {
-					ArrayDeleteAt( prc.objectGroups[ g ].objects, o );
-				}
-			}
-		}
-
 		prc.pageIcon  = "database";
 		prc.pageTitle = translateResource( "cms:datamanager" );
 	}
@@ -3282,11 +3272,11 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
-		var operations      = [ "navigate", "read", "add", "edit", "batchedit", "delete", "batchdelete", "viewversions", "translate", "clone" ];
+		var operations      = [ "read", "add", "edit", "batchedit", "delete", "batchdelete", "viewversions", "translate", "clone" ];
 		var draftOperations = [ "addRecord", "addRecordAction", "editRecord", "editRecordAction", "translateRecord", "translateRecordAction" ];
 		var permitted       = true;
 
-		if ( arguments.checkOperations && operations.find( arguments.key ) && !isEmptyString( arguments.object ) && !datamanagerService.isOperationAllowed( arguments.object, arguments.key ) ) {
+		if ( arguments.checkOperations && operations.find( arguments.key ) && !datamanagerService.isOperationAllowed( arguments.object, arguments.key ) ) {
 			permitted = false;
 		} else if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && (!arguments.object.len() || !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) ) {
 			permitted = false;
@@ -3309,6 +3299,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !permitted && arguments.throwOnError ) {
 			event.adminAccessDenied();
 		}
+
 
 		return permitted;
 	}
