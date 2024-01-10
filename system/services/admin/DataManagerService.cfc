@@ -962,6 +962,7 @@ component {
 		var labelFieldIsRelationship = ( props[ labelField ].relationship ?: "" ) contains "-to-";
 		var replacedLabelField       = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
 		var objectHasIdField         = booleanFormat( len( trim( _getPresideObjectService().getIdField( objectName=arguments.objectName ) ) ) );
+		var additionalFields         = [];
 
 		if ( objectHasIdField ) {
 			sqlFields.delete( "id" );
@@ -1019,6 +1020,7 @@ component {
 
 				case "many-to-one":
 					sqlFields[i] = ( prop.name ?: "" ) & ".${labelfield} as " & field;
+					ArrayAppend( additionalFields, "#field# as __raw_#field#" );
 				break;
 
 				default:
@@ -1029,6 +1031,8 @@ component {
 				sqlFields.append( objName & "._version_number" );
 			}
 		}
+
+		ArrayAppend( sqlFields, additionalFields, true )
 
 		return sqlFields;
 	}

@@ -35,10 +35,10 @@
 	startDate = "";
 	endDate   = "";
 	if ( IsDate( minDate ) ) {
-		startDate = dateFormat( minDate ,"yyyy-mm-dd" );
+		startDate = DateTimeFormat( minDate ,"yyyy-mm-dd HH:nn:ss" );
 	}
 	if ( IsDate( maxDate ) ) {
-		endDate = dateFormat( maxDate ,"yyyy-mm-dd" );
+		endDate = DateTimeFormat( maxDate ,"yyyy-mm-dd HH:nn:ss" );
 	}
 
 	if ( !IsDate( defaultDate ) ) {

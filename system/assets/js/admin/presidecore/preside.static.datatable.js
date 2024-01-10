@@ -1,13 +1,31 @@
 ( function( $ ){
 	$( ".static-data-table" ).each( function(){
-		var $listingTable  = $( this )
-		  , objectTitle    = $listingTable.data( "objectTitle" ) || i18n.translateResource( "cms:datamanager.record" );
+		var $listingTable     = $( this )
+		  , objectTitle       = $listingTable.data( "objectTitle" ) || i18n.translateResource( "cms:datamanager.record" )
+		  , disableSearch     = $listingTable.data( "disableSearch" )
+		  , disableSort       = $listingTable.data( "disableSort" )
+		  , defaultPageLength = $listingTable.data( "defaultPageLength" )
+		  , paginationOptions = $listingTable.data( "paginationOptions" )
+		  , tableMarkup    = disableSearch ?
+		  		  "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>"
+		  		: "<'well'fr>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
 
+		if ( typeof defaultPageLength == "undefined" ) {
+		 	defaultPageLength = "10";
+		}
+		if ( typeof paginationOptions == "undefined" ) {
+			paginationOptions = "5,10,25,50,100";
+		}
 
 
 		$listingTable.dataTable({
-			sDom : "<'well'fr>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
+			sDom : tableMarkup,
+			bSort : !disableSort,
+			iDisplayLength: parseInt( defaultPageLength ),
+			aLengthMenu   : paginationOptions.split( "," ),
 			fnInitComplete : function( settings ){
+				if ( disableSearch ) { return; }
+
 				var $searchContainer = $( settings.aanFeatures.f[0] )
 				  , $input           = $searchContainer.find( "input" ).first();
 
