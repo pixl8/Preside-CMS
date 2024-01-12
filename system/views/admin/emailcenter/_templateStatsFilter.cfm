@@ -1,11 +1,12 @@
 <cfscript>
 	templateId = rc.id ?: ( args.templateId ?: "" );
+	containerClass = args.containerClass ?: "pull-left";
 
 	dateFrom = "<strong>#DateTimeFormat( args.dateFrom, "yyyy-mm-dd HH:nn" )#</strong>";
 	dateTo   = "<strong>#DateTimeFormat( args.dateTo  , "yyyy-mm-dd HH:nn" )#</strong>";
 
 	minDate  = IsDate( args.minDate ?: "" ) ? DateFormat( args.minDate, "yyyy-mm-dd" ) : "";
-	maxDate  = IsDate( args.maxDate ?: "" ) ? DateFormat( DateAdd( 'd', 1, args.maxDate ), "yyyy-mm-dd" ) : "";
+	maxDate  = IsDate( args.maxDate ?: "" ) ? DateFormat( DateAdd( 'd', 1, args.maxDate ), "yyyy-mm-dd" ) & " 23:59" : "";
 
 	if ( IsDate( args.dateFrom ) && IsDate( args.dateTo ) ) {
 		summary = translateResource( uri="cms:emailcenter.stats.filter.summary.from.to", data=[ dateFrom, dateTo ] );
@@ -25,7 +26,7 @@
 </cfscript>
 
 <cfoutput>
-	<div class="pull-left">
+	<div class="#containerClass#">
 		<p class="grey">
 			<i class="fa fa-fw fa-filter"></i>
 			#summary#
@@ -44,7 +45,7 @@
 					  formName       = "email.stats.filter"
 					, formId         = "stats-filter-form-form"
 					, savedData      = { dateFrom=args.dateFrom, dateTo=args.dateTo }
-					, additionalArgs = { fields={ dateFrom={ minDate=minDate, defaultDate=minDate }, dateTo={ maxDate=maxDate, defaultDate=maxDate } } }
+					, additionalArgs = { fields={ dateFrom={ minDate=minDate, maxDate=maxDate, defaultDate=minDate }, dateTo={ minDate=minDate, maxDate=maxDate, defaultDate=maxDate } } }
 				)#
 
 				<div class="row">

@@ -41,7 +41,8 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="marked_as_spam_date" type="date" dbtype="datetime" indexes="marked_as_spam_date";
 	property name="unsubscribed_date"   type="date" dbtype="datetime" indexes="unsubscribed_date";
 
-	property name="click_count" type="numeric" dbtype="int" default=0 indexes="click_count,template_click_count|2";
+	property name="click_count" type="numeric" dbtype="int" default=0 indexes="click_count";
+	property name="open_count"  type="numeric" dbtype="int" default=0 indexes="open_count";
 
 	property name="failed_reason" type="string"  dbtype="text";
 	property name="failed_code"   type="numeric" dbtype="int";
