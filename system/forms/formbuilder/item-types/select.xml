@@ -2,7 +2,8 @@
 <form i18nBaseUri="formbuilder.item-types.select:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="multiple"    control="yesnoswitch"             required="false" sortorder="32" />
+			<field name="multiple"           control="yesNoSwitch" required="false" sortorder="32" />
+			<field name="includeEmptyOption" control="yesNoSwitch" required="false" sortorder="33" />
 		</fieldset>
 	</tab>
 	<tab id="values">
