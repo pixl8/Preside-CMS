@@ -31,6 +31,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( "formbuilder:page.subtitle" );
 
 		prc.canAdd    = hasCmsPermission( permissionKey="formbuilder.addform" );
+		prc.canEdit   = hasCmsPermission( permissionKey="formbuilder.editform" );
 		prc.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 	}
 
@@ -812,6 +813,16 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		switch( action ){
+			case "batchUpdate":
+				setNextEvent(
+					  url           = event.buildAdminLink( objectName="formbuilder_form", operation="batchEditField", queryString="field=#( rc.field ?: '' )#" )
+					, persistStruct = {
+						  id           = rc.id ?: ""
+						, batchAll     = isTrue( rc.batchAll ?: "" )
+						, batchSrcArgs = ( rc.batchSrcArgs ?: "" )
+					}
+				);
+			break;
 			case "delete":
 				return deleteRecordAction( argumentCollection = arguments );
 			break;

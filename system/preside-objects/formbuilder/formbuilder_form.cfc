@@ -23,5 +23,7 @@ component displayname="Form builder: form" extends="preside.system.base.SystemPr
 
 	property name="uses_global_questions" type="boolean" dbtype="boolean" required=false default=true feature="formbuilder2";
 
+	property name="submission_remove_after" type="numeric" dbtype="int" required=false default=0;
+
 	property name="items" relationship="one-to-many" relatedto="formbuilder_formitem" relationshipKey="form";
 }
