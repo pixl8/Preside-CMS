@@ -761,13 +761,13 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		announceInterception( "preInitializeDummyPresideSiteTreePage", { page = page } );
 
-		if ( !IsNull( arguments.parentpage ?: NullValue() ) && arguments.parentPage.recordCount ) {
-			page.parent_page = arguments.parentPage.id;
+		if ( !IsNull( page.parentpage ?: NullValue() ) && page.parentPage.recordCount ) {
+			page.parent_page = page.parentPage.id;
 
-			var ancestors = sitetreeSvc.getAncestors( id = arguments.parentPage.id );
+			var ancestors = sitetreeSvc.getAncestors( id = page.parentPage.id );
 
 			page.ancestorList = ancestors.recordCount ? ValueList( ancestors.id ) : "";
-			page.ancestorList = ListAppend( page.ancestorList, arguments.parentPage.id );
+			page.ancestorList = ListAppend( page.ancestorList, page.parentPage.id );
 
 			page.permissionContext = [];
 			for( var i=ListLen( page.ancestorList ); i > 0; i-- ){
@@ -779,7 +779,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 				page.ancestors.append( ancestor );
 			}
 
-			for( var p in arguments.parentPage ){
+			for( var p in page.parentPage ){
 				addBreadCrumb( title=p.title, link=buildLink( page=p.id ), menuTitle=p.navigation_title ?: "" );
 				page.ancestors.append( p );
 			}
