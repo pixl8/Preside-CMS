@@ -138,6 +138,11 @@ component extends="preside.system.base.AdminHandler" {
 		var extraFilters = [ { filter={ email_template=templateId } } ];
 		var orderBy      = "";
 		var gridFields   = [];
+		var dateFields = {
+			  bounces      = "hard_bounced_date"
+			, unsubscribes = "unsubscribed_date"
+			, complaints   = "marked_as_spam_date"
+		};
 
 		prc.emailRecipientTypeObject = emailRecipientTypeService.getFilterObjectForRecipientType( template.recipient_type );
 		prc.emailRecipientTypeFk = emailRecipientTypeService.getRecipientIdLogPropertyForRecipientType( template.recipient_type );
@@ -159,6 +164,9 @@ component extends="preside.system.base.AdminHandler" {
 				ArrayAppend( gridFields, [ "click_count", "open_count" ], true );
 				ArrayAppend( extraFilters, { filter="click_count > 0" } );
 			break;
+		}
+		if ( StructKeyExists( dateFields, rc.statType ?: "" ) ) {
+			ArrayAppend( gridFields, dateFields[ rc.statType ] );
 		}
 
 		runEvent(

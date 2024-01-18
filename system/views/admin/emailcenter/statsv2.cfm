@@ -1,6 +1,11 @@
 <cfscript>
 	stats                = args.stats ?: {};
 	clickTrackingEnabled = stats.uniqueClickCount || isTrue( prc.record.track_clicks );
+	dateFields = {
+		  bounces      = "hard_bounced_date"
+		, unsubscribes = "unsubscribed_date"
+		, complaints   = "marked_as_spam_date"
+	};
 </cfscript>
 
 <cfoutput>
@@ -140,8 +145,8 @@
 												</a>
 												<cfif Len( args.clickReport.link_body )>
 													<em class="light-grey">(#abbreviate( args.clickReport.link_body, 30 )#)</em>
-												<cfelseif Len( args.clickReport.title )>
-													<em class="light-grey">(#abbreviate( args.clickReport.title, 30 )#)</em>
+												<cfelseif Len( args.clickReport.link_title )>
+													<em class="light-grey">(#abbreviate( args.clickReport.link_title, 30 )#)</em>
 												</cfif>
 											</td>
 											<td>
@@ -169,7 +174,7 @@
 								  objectName        = "email_template_send_log"
 								, useMultiActions   = false
 								, datasourceUrl     = event.buildAdminLink( linkTo="emailCenter.getFilteredRecipientsForStatsTables", queryString="id=#args.templateId#&statType=#stat#" )
-								, gridFields        = [ args.recipientStatField ?: "recipient" ]
+								, gridFields        = [ args.recipientStatField ?: "recipient", dateFields[ stat ] ]
 								, draftsEnabled     = false
 								, allowSearch       = false
 								, allowFilter       = false
