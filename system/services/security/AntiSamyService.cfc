@@ -1,6 +1,5 @@
 /**
  * @singleton
- * @presideservice
  *
  */
 component {
