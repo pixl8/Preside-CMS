@@ -765,6 +765,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		clearBreadCrumbs();
 
+		announceInterception( "preInitializeDummyPresideSiteTreePage", { page = page } );
+
 		if ( !IsNull( arguments.parentpage ?: NullValue() ) && arguments.parentPage.recordCount ) {
 			page.parent_page = arguments.parentPage.id;
 
