@@ -140,8 +140,8 @@
 												</a>
 												<cfif Len( args.clickReport.link_body )>
 													<em class="light-grey">(#abbreviate( args.clickReport.link_body, 30 )#)</em>
-												<cfelseif Len( args.clickReport.title )>
-													<em class="light-grey">(#abbreviate( args.clickReport.title, 30 )#)</em>
+												<cfelseif Len( args.clickReport.link_title )>
+													<em class="light-grey">(#abbreviate( args.clickReport.link_title, 30 )#)</em>
 												</cfif>
 											</td>
 											<td>
