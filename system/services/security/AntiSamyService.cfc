@@ -15,7 +15,8 @@ component {
 
 // PUBLIC API
 	public any function clean( required string input, string policy="preside" ) {
-		var antiSamyResult = _getAntiSamy().scan( arguments.input, _getPolicy( arguments.policy ) );
+		var dirtyHtml      = ReplaceNoCase( arguments.input, "&quot;", "&~~~quot;", "all" );
+		var antiSamyResult = _getAntiSamy().scan( dirtyHtml, _getPolicy( arguments.policy ) );
 		var cleanHtml      = antiSamyResult.getCleanHtml();
 
 		return _removeUnwantedCleanses( cleanHtml, arguments.policy );
@@ -71,6 +72,9 @@ component {
 		if ( cleanedAmpersand != "&" ) {
 			uncleaned = uncleaned.replace( cleanedAmpersand, "&", "all" );
 		}
+
+		uncleaned = ReplaceNoCase( uncleaned, "&quot;", """", "all" );
+		uncleaned = ReplaceNoCase( uncleaned, "&~~~quot;", "&quot;", "all" );
 
 		return uncleaned;
 	}
