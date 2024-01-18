@@ -1,5 +1,6 @@
 /**
  * @singleton
+ * @presideservice
  *
  */
 component {
@@ -15,7 +16,8 @@ component {
 
 // PUBLIC API
 	public any function clean( required string input, string policy="preside" ) {
-		var antiSamyResult = _getAntiSamy().scan( arguments.input, _getPolicy( arguments.policy ) );
+		var dirtyHtml      = ReplaceNoCase( arguments.input, "&quot;", "&~~~quot;", "all" );
+		var antiSamyResult = _getAntiSamy().scan( dirtyHtml, _getPolicy( arguments.policy ) );
 		var cleanHtml      = antiSamyResult.getCleanHtml();
 
 		return _removeUnwantedCleanses( cleanHtml, arguments.policy );
@@ -26,12 +28,12 @@ component {
 		var libPath = _getLibPath();
 
 		_setPolicyFiles ( {
-			  antisamy = libPath & '/antisamy-anythinggoes-1.4.4.xml'
-			, ebay     = libPath & '/antisamy-ebay-1.4.4.xml'
-			, myspace  = libPath & '/antisamy-myspace-1.4.4.xml'
-			, slashdot = libPath & '/antisamy-slashdot-1.4.4.xml'
-			, tinymce  = libPath & '/antisamy-tinymce-1.4.4.xml'
-			, preside  = libPath & '/antisamy-preside-1.4.4.xml'
+			  antisamy = libPath & '/antisamy-anythinggoes-1.5.3.xml'
+			, ebay     = libPath & '/antisamy-ebay-1.5.3.xml'
+			, myspace  = libPath & '/antisamy-myspace-1.5.3.xml'
+			, slashdot = libPath & '/antisamy-slashdot-1.5.3.xml'
+			, tinymce  = libPath & '/antisamy-tinymce-1.5.3.xml'
+			, preside  = libPath & '/antisamy-preside-1.5.3.xml'
 		} );
 	}
 
@@ -70,6 +72,11 @@ component {
 
 		if ( cleanedAmpersand != "&" ) {
 			uncleaned = uncleaned.replace( cleanedAmpersand, "&", "all" );
+		}
+
+		if ( FindNoCase( "&quot;", uncleaned ) ) {
+			uncleaned = ReplaceNoCase( uncleaned, "&quot;", """", "all" );
+			uncleaned = ReplaceNoCase( uncleaned, "&~~~quot;", "&quot;", "all" );
 		}
 
 		return uncleaned;

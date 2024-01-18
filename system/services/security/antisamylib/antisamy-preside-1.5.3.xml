@@ -14,8 +14,8 @@ http://www.w3.org/TR/html401/struct/global.html
 		<directive name="omitXmlDeclaration" value="true"/>
 		<directive name="omitDoctypeDeclaration" value="true"/>
 		<directive name="maxInputSize" value="200000"/>
-		<directive name="useXHTML" value="true"/>
-		<directive name="formatOutput" value="true"/>
+		<directive name="useXHTML" value="false"/>
+		<directive name="formatOutput" value="false"/>
 		<directive name="preserveSpace" value="true" />
 
 		<!--
@@ -702,6 +702,11 @@ http://www.w3.org/TR/html401/struct/global.html
 		<tag name="pre" action="validate"/>
 		<tag name="code" action="validate"/>
 		<tag name="cite" action="validate"/>
+		<tag name="acronym" action="validate"/>
+		<tag name="abbr" action="validate"/>
+		<tag name="var" action="validate"/>
+		<tag name="kbd" action="validate"/>
+		<tag name="dfn" action="validate"/>
 		<tag name="samp" action="validate"/>
 		<tag name="sub" action="validate"/>
 		<tag name="sup" action="validate"/>
@@ -2600,4 +2605,27 @@ http://www.w3.org/TR/html401/struct/global.html
 		<!--  end manual properties -->
 	</css-rules>
 
+	<allowed-empty-tags>
+        <literal-list>
+            <literal value="br"/>
+            <literal value="hr"/>
+            <literal value="a"/>
+            <literal value="img"/>
+            <literal value="link"/>
+            <literal value="iframe"/>
+            <literal value="script"/>
+            <literal value="object"/>
+            <literal value="applet"/>
+            <literal value="frame"/>
+            <literal value="base"/>
+            <literal value="param"/>
+            <literal value="meta"/>
+            <literal value="input"/>
+            <literal value="textarea"/>
+            <literal value="embed"/>
+            <literal value="basefont"/>
+            <literal value="col"/>
+            <literal value="div"/>
+        </literal-list>
+    </allowed-empty-tags>
 </anti-samy-rules>
