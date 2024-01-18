@@ -961,7 +961,7 @@ component {
 		settings.antiSamy = {
 			  enabled                 = true
 			, policy                  = "preside"
-			, bypassForAdministrators = false
+			, bypassForAdministrators = true
 		};
 
 		settings.csrf = {
