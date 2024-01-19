@@ -77,9 +77,17 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( Len( Trim( formData.allowed_sending_domains ?: "" ) ) ) {
-			var badAddresses = emailCenterValidators.existingEmailsUsingInvalidDomains( formData.allowed_sending_domains )
+			var allowedDomainErrors     = [];
+			var badAddresses            = emailCenterValidators.existingEmailsUsingInvalidDomains( formData.allowed_sending_domains );
+			var badFormbuilderAddresses = emailCenterValidators.formbuilderActionsUsingInvalidDomains( formData.allowed_sending_domains );
 			if ( ArrayLen( badAddresses ) ) {
-				validationResult.addError( "allowed_sending_domains", "cms:validation.allowedSenderEmail.existing.emails", [ ArrayToList( badAddresses, ", " ) ] );
+				ArrayAppend( allowedDomainErrors, translateResource( uri="cms:validation.allowedSenderEmail.existing.emails", data=[ ArrayToList( badAddresses, ", " ) ] ) );
+			}
+			if ( ArrayLen( badFormbuilderAddresses ) ) {
+				ArrayAppend( allowedDomainErrors, translateResource( uri="cms:validation.allowedSenderEmail.existing.formbuilder", data=[ ArrayToList( badFormbuilderAddresses, ", " ) ] ) );
+			}
+			if ( ArrayLen( allowedDomainErrors ) ) {
+				validationResult.addError( "allowed_sending_domains", ArrayToList( allowedDomainErrors, "<br>" ) );
 			}
 		}
 
