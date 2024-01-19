@@ -2,9 +2,11 @@
 <form i18nBaseUri="formbuilder.actions.email:">
 	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
-			<field name="subject"    control="textinput" required="true"  />
-			<field name="recipients" control="textinput" required="true"  />
-			<field name="send_from"  control="textinput" required="false" />
+			<field name="subject"    control="textinput" required="true" />
+			<field name="recipients" control="textinput" required="true" />
+			<field name="send_from"  control="textinput" required="false">
+				<rule validator="allowedSenderEmail" />
+			</field>
 			<field name="reply_to"   control="formBuilderFieldPicker" itemTypes="email" required="false" />
 		</fieldset>
 	</tab>
