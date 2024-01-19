@@ -228,6 +228,9 @@ component {
 
 	public void function migrateToSummaryTables() {
 		var emailTemplate = "";
+
+		_resetTmpExtensionMigration();
+
 		do {
 			emailTemplate = templateDao.selectData(
 				  selectFields       = [ "id" ]
@@ -259,6 +262,25 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private void function _resetTmpExtensionMigration() {
+		var migration = $getPresideObject( "db_migration_history" ).selectData(
+			filter={ migration_key="EmailLogPerformanceMigrateToSummaryTables-async" }
+		);
+
+		if ( migration.recordCount ) {
+			$systemOutput( "[EmailLogPerformance] Resetting previous migration from temporary performance extension..." );
+			templateDao.updateData( forceUpdateAll=true, data={
+				  stats_collection_enabled    = false
+				, stats_collection_enabled_on = ""
+			} );
+
+			$getPresideObject( "db_migration_history" ).deleteData(
+				filter={ migration_key="EmailLogPerformanceMigrateToSummaryTables-async" }
+			);
+			$systemOutput( "[EmailLogPerformance] Finished resetting previous migration from temporary performance extension. All templates will now be migrated from scratch." );
+		}
+	}
+
 	private string function _getDsn() {
 		if ( !StructKeyExists( variables, "_dsn" ) ) {
 			variables._dsn = $getPresideObject( "email_template_stats" ).getDsn();
