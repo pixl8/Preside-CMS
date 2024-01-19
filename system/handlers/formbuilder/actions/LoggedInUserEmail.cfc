@@ -8,9 +8,8 @@ component {
 
 			if ( template.len() ) {
 				emailService.send(
-					  template     = template
-					, recipientId  = getLoggedInUserId()
-					, ignoreErrors = true
+					  template    = template
+					, recipientId = getLoggedInUserId()
 				);
 			}
 		}

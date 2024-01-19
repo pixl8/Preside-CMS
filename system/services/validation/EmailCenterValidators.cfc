@@ -37,16 +37,12 @@ component {
 
 		var emailDomain = _getDomainFromEmail( arguments.value );
 		for( var allowedDomain in allowedDomains ) {
-			if ( LCase( emailDomain ) == LCase( Trim( allowedDomain ) ) ) {
+			if ( emailDomain == Trim( allowedDomain ) ) {
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	public string function allowedSenderEmail_js(){
-		return "function(){ return true; }";
 	}
 
 	public array function existingEmailsUsingInvalidDomains( required string validDomains ) {
