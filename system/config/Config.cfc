@@ -1002,6 +1002,10 @@ component {
 
 	private void function __setupFormBuilder() {
 		settings.formbuilder = _setupFormBuilder(); // << Seems silly here but keeping this for backward compat
+
+		settings.formbuilder.submissions                        = settings.formbuilder.submissions         ?: {};
+		settings.formbuilder.submissions.removal                = settings.formbuilder.submissions.removal ?: {};
+		settings.formbuilder.submissions.removal.minAllowedDays = 30;
 	}
 
 	private void function __setupRulesEngine(){

@@ -1359,7 +1359,8 @@ component {
 
 	public boolean function deleteExpiredSubmissions( any logger=NullValue() ) {
 		var formsWithRemoveConfigured = $getPresideObject( "formbuilder_form" ).selectData(
-			  filter       = "submission_remove_after IS NOT NULL AND submission_remove_after > 0"
+			  filter       = "submission_remove_enabled = :submission_remove_enabled AND submission_remove_after IS NOT NULL AND submission_remove_after > 0"
+			, filterParams = { submission_remove_enabled=true }
 			, selectFields = [ "id", "name", "submission_remove_after" ]
 		);
 
