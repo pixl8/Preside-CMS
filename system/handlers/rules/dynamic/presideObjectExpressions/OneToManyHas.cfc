@@ -39,21 +39,29 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			StructAppend( params, extraFilter.filterParams ?: {} );
 		}
 
-		var outerPk   = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
-		var exists    = arguments._is ? "exists" : "not exists";
-		var subquery  = presideObjectService.selectData(
+		var dbAdapter = getPresideObject( arguments.objectName ).getDbAdapter();
+		var subQuery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
-			, selectFields        = [ "1" ]
-			, filter              = obfuscateSqlForPreside( "#arguments.relatedTo#.#arguments.relationshipKey# = #outerPk#" )
+			, selectFields        = [ arguments.relationshipKey ]
 			, extraFilters        = subQueryExtraFilters
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 		);
 
+		var subQueryAlias      = dbAdapter.escapeEntity( "subquery_#arguments.relatedTo#" );
+		var idField            = presideObjectService.getIdField( arguments.objectName );
+		var idFieldEscapedFull = dbAdapter.escapeEntity( "#arguments.objectName#.#idField#" );
+		var exists             = arguments._is ? "exists" : "not exists";
+		var subQuerySql        = obfuscateSqlForPreside( "
+			select 1
+			from (#subQuery.sql#) as #subQueryAlias#
+			where #idFieldEscapedFull# = #subQueryAlias#.#arguments.relationshipKey#
+		" );
+
 		StructAppend( params, subquery.params );
 
 		return [ {
-			  filter = obfuscateSqlForPreside( "#exists# (#subquery.sql#)" )
+			  filter       = obfuscateSqlForPreside( "#exists# (#subQuerySql#)" )
 			, filterParams = params
 		}];
 	}

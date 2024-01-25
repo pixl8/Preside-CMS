@@ -41,25 +41,33 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 			StructAppend( params, extraFilter.filterParams ?: {} );
 		}
 
-		var outerPk       = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
-		var countOperator = rulesEngineNumericOperatorToSqlOperator( arguments._numericOperator );
-		var countParam    = "oneToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
-		var countField    = "#arguments.relatedTo#.#relationshipKey#";
-		var subquery      = presideObjectService.selectData(
+		var subquery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
-			, selectFields        = [ "1" ]
-			, filter              = obfuscateSqlForPreside( "#arguments.relatedTo#.#arguments.relationshipKey# = #outerPk#" )
+			, selectFields        = [ arguments.relationshipKey ]
 			, extraFilters        = subQueryExtraFilters
-			, having              = "count(#countField#) #countOperator# :#countParam#"
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 		);
+
+		var dbAdapter          = getPresideObject( arguments.objectName ).getDbAdapter();
+		var subQueryAlias      = dbAdapter.escapeEntity( "subquery_#arguments.relatedTo#" );
+		var idField            = presideObjectService.getIdField( arguments.objectName );
+		var idFieldEscapedFull = dbAdapter.escapeEntity( "#arguments.objectName#.#idField#" );
+		var countOperator      = rulesEngineNumericOperatorToSqlOperator( arguments._numericOperator );
+		var countParam         = "oneToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
+		var countField         = "#subQueryAlias#.#arguments.relationshipKey#";
+		var subQuerySql        = obfuscateSqlForPreside( "
+			select 1
+			from (#subQuery.sql#) as #subQueryAlias#
+			where #idFieldEscapedFull# = #countField#
+			having count(#countField#) #countOperator# :#countParam#
+		" );
 
 		params[ countParam ] = { type="cf_sql_integer", value=arguments.value };
 		StructAppend( params, subquery.params );
 
 		return [ {
-			  filter = obfuscateSqlForPreside( "exists (#subquery.sql#)" )
+			  filter = obfuscateSqlForPreside( "exists (#subQuerySql#)" )
 			, filterParams = params
 		}];
 	}
