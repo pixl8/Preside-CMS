@@ -1,9 +1,5 @@
 component extends="preside.system.base.AdminHandler" {
 
-	private string function preRenderListing( event, rc, prc, args={} ) {
-		return '<p class="alert alert-warning">This listing is an alternate view of your sitetree.</p>';
-	}
-
 	private string function buildViewRecordLink( event, rc, prc, args={} ) {
 		return buildEditRecordLink( argumentCollection=arguments );
 	}
@@ -13,8 +9,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
-			args.extraFilters = args.extraFilters ?: [];
-			args.extraFilters.append( { filter={ trashed = false } } );
+		args.extraFilters = args.extraFilters ?: [];
+		args.extraFilters.append( { filter={ trashed = false } } );
 	}
 
 	private void function postDecorateRecordsForGridListing( event, rc, prc, args={} ) {
