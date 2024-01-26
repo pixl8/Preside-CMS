@@ -772,6 +772,7 @@ component displayName="Preside Object Service" {
 		,          boolean calculateChangedData    = false
 		,          struct  changedData             = {}
 		,          numeric timeout                 = _getDefaultTimeout()
+		,          string  forceNonVersionChangesVersionNumber = ""
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -910,12 +911,13 @@ component displayName="Preside Object Service" {
 				);
 			} else if ( hasAnyFilters ) {
 				_getVersioningService().updateLatestVersionWithNonVersionedChangesWithFilters(
-					  objectName   = arguments.objectName
-					, data         = cleanedData
-					, filter       = arguments.filter
-					, filterParams = arguments.filterParams
-					, extraFilters = arguments.extraFilters
-					, savedFilters = arguments.savedFilters
+					  objectName         = arguments.objectName
+					, data               = cleanedData
+					, filter             = arguments.filter
+					, filterParams       = arguments.filterParams
+					, extraFilters       = arguments.extraFilters
+					, savedFilters       = arguments.savedFilters
+					, forceVersionNumber = arguments.forceNonVersionChangesVersionNumber
 				);
 			}
 		}
