@@ -36,7 +36,7 @@
 				#renderView( view="/admin/sitetree/_treeIndex", args=args )#
 			</div>
 			<div class="tab-pane<cfif activeTab=="listing"> active</cfif>" id="tab-page">
-				#renderView( view="/admin/sitetree/_listingIndex", args=args )#
+				#objectDataTable( objectName="page" )#
 			</div>
 		</div>
 	</div>
