@@ -267,6 +267,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onEmailDeliver"                        );
 		interceptorSettings.customInterceptionPoints.append( "onEmailClick"                          );
 		interceptorSettings.customInterceptionPoints.append( "onEmailResend"                         );
+		interceptorSettings.customInterceptionPoints.append( "onDetectEmailEventBot"                 );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForObject"     );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraQsForBuildAjaxListingLink" );
 		interceptorSettings.customInterceptionPoints.append( "postExtraRecordActionsForGridListing"  );
@@ -822,6 +823,12 @@ component {
 		settings.email = _getEmailSettings(); // seems silly, but need to keep this for backward compat
 		settings.email.smtp = {};
 		settings.email.smtp.async = IsBoolean( settings.env.SMTP_ASYNC ?: "" ) ? settings.env.SMTP_ASYNC : true;
+		settings.email.botDetection = {
+			  userAgents              = [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird", "healthcheck", "zabbix", "kube-probe" ]
+			, tooManyClicksCount      = 10
+			, tooManyClicksSeconds    = 10
+			, honeyPotTimezoneSeconds = 10
+		};
 	}
 
 	private void function __setupRicheditor() {
@@ -900,6 +907,7 @@ component {
 			, emailStyleInliner               = { enabled=true , siteTemplates=[ "*" ] }
 			, emailLinkShortener              = { enabled=true , siteTemplates=[ "*" ] }
 			, emailOverwriteDomain            = { enabled=false, siteTemplates=[ "*" ] }
+			, emailTrackingBotDetection       = { enabled=false, siteTemplates=[ "*" ] }
 			, customEmailTemplates            = { enabled=true , siteTemplates=[ "*" ] }
 			, apiManager                      = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth                   = { enabled=false, siteTemplates=[ "*" ] }
@@ -946,7 +954,7 @@ component {
 		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
 		settings.enum.segmentationFilterTimeUnit  = [ "hour", "day" ];
 		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
-		settings.enum.emailActivityType           = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail" ];
+		settings.enum.emailActivityType           = [ "send", "deliver", "open", "click", "markasspam", "unsubscribe", "fail", "honeypotclick" ];
 		settings.enum.urlStringPart               = [ "url", "domain", "path", "querystring", "protocol" ];
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed", "cancelled" ];

@@ -10,6 +10,7 @@ component extends="preside.system.base.SystemPresideObject"  {
 	property name="event"          type="string"  dbtype="varchar"  maxlength=255 required=true;
 	property name="event_args"     type="string"  dbtype="longtext"               required=false;
 	property name="retry_interval" type="string"  dbtype="longtext"               required=false;
+	property name="reference"      type="string"  dbtype="varchar"  maxlength=100 required=false indexes="reference";
 	property name="title"          type="string"  dbtype="varchar"  maxlength=255 required=false;
 	property name="title_args"     type="string"  dbtype="longtext"               required=false;
 	property name="result"         type="string"  dbtype="longtext"               required=false;
