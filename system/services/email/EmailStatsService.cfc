@@ -98,6 +98,8 @@ component {
 			, totalClickCount  = getStatCount( templateId=arguments.templateId, field="click_count"        )
 			, unsubscribeCount = getStatCount( templateId=arguments.templateId, field="unsubscribe_count"  )
 			, complaintCount   = getStatCount( templateId=arguments.templateId, field="spam_count"         )
+			, botOpenCount     = getStatCount( templateId=arguments.templateId, field="bot_open_count"     )
+			, botClickCount    = getStatCount( templateId=arguments.templateId, field="bot_click_count"    )
 		};
 
 
@@ -301,8 +303,10 @@ component {
 			var deliveryCount    = dbAdapter.escapeEntity( "delivery_count"     );
 			var openCount        = dbAdapter.escapeEntity( "open_count"         );
 			var uniqueOpenCount  = dbAdapter.escapeEntity( "unique_open_count"  );
+			var botOpenCount     = dbAdapter.escapeEntity( "bot_open_count"     );
 			var clickCount       = dbAdapter.escapeEntity( "click_count"        );
 			var uniqueClickCount = dbAdapter.escapeEntity( "unique_click_count" );
+			var botClickCount    = dbAdapter.escapeEntity( "bot_click_count" )  ;
 			var failCount        = dbAdapter.escapeEntity( "fail_count"         );
 			var spamCount        = dbAdapter.escapeEntity( "spam_count"         );
 			var unsubscribeCount = dbAdapter.escapeEntity( "unsubscribe_count"  );
@@ -311,8 +315,8 @@ component {
 
 			if ( variables._dbadapterName == "MySqlAdapter" ) {
 				variables._recordHitSql =
-					"insert into #tableName# (#hourStart#, #template#, #sendCount#, #deliveryCount#, #openCount#, #uniqueOpenCount#, #clickCount#, #uniqueClickCount#, #failCount#, #spamCount#, #unsubscribeCount#) " &
-					"values ( :hour_start, :template, :send_count, :delivery_count, :open_count, :unique_open_count, :click_count, :unique_click_count, :fail_count, :spam_count, :unsubscribe_count ) " &
+					"insert into #tableName# (#hourStart#, #template#, #sendCount#, #deliveryCount#, #openCount#, #uniqueOpenCount#, #botOpenCount#, #clickCount#, #uniqueClickCount#, #botClickCount#, #failCount#, #spamCount#, #unsubscribeCount#) " &
+					"values ( :hour_start, :template, :send_count, :delivery_count, :open_count, :unique_open_count, :bot_open_count, :click_count, :unique_click_count, :bot_click_count, :fail_count, :spam_count, :unsubscribe_count ) " &
 					"on duplicate key update {{hit_stat}} = {{hit_stat}} + :{{hit_stat_param}}";
 
 			} else {
@@ -373,8 +377,10 @@ component {
 			, { name="delivery_count"    , type="cf_sql_integer", value=arguments.hitStat == "delivery"     ? arguments.hitCount : 0 }
 			, { name="open_count"        , type="cf_sql_integer", value=arguments.hitStat == "open"         ? arguments.hitCount : 0 }
 			, { name="unique_open_count" , type="cf_sql_integer", value=arguments.hitStat == "unique_open"  ? arguments.hitCount : 0 }
+			, { name="bot_open_count"    , type="cf_sql_integer", value=arguments.hitStat == "bot_open"     ? arguments.hitCount : 0 }
 			, { name="click_count"       , type="cf_sql_integer", value=arguments.hitStat == "click"        ? arguments.hitCount : 0 }
 			, { name="unique_click_count", type="cf_sql_integer", value=arguments.hitStat == "unique_click" ? arguments.hitCount : 0 }
+			, { name="bot_click_count"   , type="cf_sql_integer", value=arguments.hitStat == "bot_click"    ? arguments.hitCount : 0 }
 			, { name="fail_count"        , type="cf_sql_integer", value=arguments.hitStat == "fail"         ? arguments.hitCount : 0 }
 			, { name="spam_count"        , type="cf_sql_integer", value=arguments.hitStat == "spam"         ? arguments.hitCount : 0 }
 			, { name="unsubscribe_count" , type="cf_sql_integer", value=arguments.hitStat == "unsubscribe"  ? arguments.hitCount : 0 }
@@ -526,6 +532,8 @@ component {
 			, "fail_count"
 			, "spam_count"
 			, "unsubscribe_count"
+			, "bot_open_count"
+			, "bot_click_count"
 		];
 
 		if ( ArrayFind( validFields, arguments.field ) ) {
