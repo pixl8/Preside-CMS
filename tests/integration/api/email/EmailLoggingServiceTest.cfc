@@ -532,6 +532,27 @@ email content
 				) ).toBe( htmlMessageWithPixel );
 
 			} );
+
+			it( "should wrap the tracking pixel in a 'honeypot' link tag when the email tracking bot detection feature is enabled", function() {
+				var service = _getService();
+				var messageId = CreateUUId();
+				var trackingUrl = CreateUUId();
+				var honeyPotUrl = CreateUUId();
+				var htmlMessage = CreateUUId();
+				var htmlMessageWithPixel = htmlMessage & "<a href=""#honeyPotUrl#""><img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" /></a>";
+				var mockRc = CreateStub();
+
+				service.$( "$getRequestContext", mockRc );
+				service.$( "$isFeatureEnabled" ).$args( "emailTrackingBotDetection" ).$results( true );
+
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.open", querystring="mid=" & messageId ).$results( trackingUrl );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.honeypot", querystring="mid=" & messageId ).$results( honeyPotUrl );
+
+				expect( service.insertTrackingPixel(
+					  messageId   = messageId
+					, messageHtml = htmlMessage
+				) ).toBe( htmlMessageWithPixel );
+			} );
 		} );
 
 		describe( "insertClickTrackingLinks", function(){
@@ -594,6 +615,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		mockRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
 		mockEmailTemplateService = createEmptyMock( "preside.system.services.email.EmailTemplateService" );
 		mockEmailStatsService    = createEmptyMock( "preside.system.services.email.EmailStatsService" );
+		mockBotDetectionService  = createEmptyMock( "preside.system.services.email.EmailBotDetectionService" );
 		mockPresideObjectService = createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockLogDao               = CreateStub();
 		mockLogActivityDao       = CreateStub();
@@ -601,10 +623,11 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		mockSqlRunner            = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
-			  recipientTypeService = mockRecipientTypeService
-			, emailTemplateService = mockEmailTemplateService
-			, emailStatsService    = mockEmailStatsService
-			, sqlRunner            = mockSqlRunner
+			  recipientTypeService     = mockRecipientTypeService
+			, emailTemplateService     = mockEmailTemplateService
+			, emailStatsService        = mockEmailStatsService
+			, emailBotDetectionService = mockBotDetectionService
+			, sqlRunner                = mockSqlRunner
 		) );
 
 		mockRecipientTypeService.$( "getRecipientId", "" );
@@ -615,6 +638,7 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 		service.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao );
 		service.$( "$isFeatureEnabled" ).$args( "emailLinkShortener" ).$results( false );
 		service.$( "$isFeatureEnabled" ).$args( "emailStyleInlinerAscii" ).$results( false );
+		service.$( "$isFeatureEnabled" ).$args( "emailTrackingBotDetection" ).$results( false );
 		service.$( "$announceInterception" );
 
 		nowish  = Now();

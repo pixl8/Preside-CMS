@@ -7,28 +7,32 @@
  */
 component {
 
-	variables._lib   = [];
-	variables._jsoup = "";
+	variables._lib       = [];
+	variables._jsoup     = "";
+	variables._oneMinute = CreateTimespan( 0, 0, 1, 0 );
 
 // CONSTRUCTOR
 	/**
-	 * @recipientTypeService.inject emailRecipientTypeService
-	 * @emailTemplateService.inject emailTemplateService
-	 * @sqlRunner.inject            sqlRunner
-	 * @emailStatsService.inject    emailStatsService
+	 * @recipientTypeService.inject     emailRecipientTypeService
+	 * @emailTemplateService.inject     emailTemplateService
+	 * @sqlRunner.inject                sqlRunner
+	 * @emailStatsService.inject        emailStatsService
+	 * @emailBotDetectionService.inject emailBotDetectionService
 	 *
 	 */
 	public any function init(
-		  required any recipientTypeService
-		, required any emailTemplateService
-		, required any sqlRunner
-		, required any emailStatsService
-
+		  required any   recipientTypeService
+		, required any   emailTemplateService
+		, required any   sqlRunner
+		, required any   emailStatsService
+		, required any   emailBotDetectionService
 	) {
 		_setRecipientTypeService( arguments.recipientTypeService );
 		_setEmailTemplateService( arguments.emailTemplateService );
 		_setSqlRunner( arguments.sqlRunner );
 		_setEmailStatsService( arguments.emailStatsService );
+		_setEmailBotDetectionService( arguments.emailBotDetectionService );
+
 		_jsoup = _new( "org.jsoup.Jsoup" );
 
 		return this;
@@ -294,6 +298,44 @@ component {
 
 	}
 
+	public void function processOpenEvent(
+		  required string messageId
+		, required string userAgent
+		, required string ipAddress
+	) {
+		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
+			markAsOpened( argumentCollection=arguments, id=arguments.messageId );
+		}
+
+		$createTask(
+			  event                = "email.tracking.processOpenEventWithBotDetection"
+			, args                 = arguments
+			, runIn                = _oneMinute
+			, discardAfterInterval = _oneMinute
+			, reference            = arguments.messageId
+		);
+	}
+
+	public void function recordBotOpen( required string id ) {
+		_processEventForStatsTables(
+			  message  = arguments.id
+			, activity = "bot_open"
+		);
+	}
+
+	public void function processOpenEventWithBotDetection(
+		  required string messageId
+		, required string userAgent
+		, required string ipAddress
+		, required date   eventDate
+	) {
+		if ( _getEmailBotDetectionService().isBot( argumentCollection=arguments ) ) {
+			recordBotOpen( arguments.messageId );
+		} else {
+			markAsOpened( argumentCollection=arguments, id=arguments.messageId );
+		}
+	}
+
 	/**
 	 * Marks the given email as opened
 	 *
@@ -309,7 +351,8 @@ component {
 			data.opened_date = _getNow();
 		}
 
-		var updated = $getPresideObject( "email_template_send_log" ).updateData(
+		var dao     = $getPresideObject( "email_template_send_log" );
+		var updated = dao.updateData(
 			  filter       = "id = :id and ( opened is null or opened = :opened )"
 			, filterParams = { id=arguments.id, opened=false }
 			, data         = data
@@ -326,6 +369,66 @@ component {
 
 		markAsDelivered( arguments.id, true );
 		recordActivity( messageId=arguments.id, activity="open", first=( updated > 0 ) );
+	}
+
+	/**
+	 * Records a "click" to a "honeypot" link for bot detection
+	 */
+	public void function recordHoneyPotHit(
+		  required string messageId
+		,          string userAgent = cgi.http_user_agent
+		,          string ipAddress = cgi.remote_addr
+	) {
+		recordActivity(
+			  messageId = arguments.messageId
+			, activity  = "honeypotclick"
+			, userIp    = arguments.ipAddress
+			, userAgent = arguments.userAgent
+		);
+	}
+
+	public void function processClickEvent(
+		  required string messageId
+		, required string link
+		,          string linkTitle = ""
+		,          string linkBody  = ""
+		,          string userAgent = cgi.http_user_agent
+		,          string ipAddress = cgi.remote_addr
+	) {
+		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
+			recordClick( argumentCollection=arguments, id=arguments.messageId );
+		}
+
+		$createTask(
+			  event                = "email.tracking.processClickEventWithBotDetection"
+			, args                 = arguments
+			, runIn                = _oneMinute
+			, discardAfterInterval = _oneMinute
+			, reference            = arguments.messageId
+		);
+	}
+
+	public void function recordBotClick( required string id ) {
+		_processEventForStatsTables(
+			  message  = arguments.id
+			, activity = "bot_click"
+		);
+	}
+
+	public void function processClickEventWithBotDetection(
+		  required string messageId
+		, required string link
+		, required date   eventDate
+		,          string linkTitle = ""
+		,          string linkBody  = ""
+		,          string userAgent = cgi.http_user_agent
+		,          string ipAddress = cgi.remote_addr
+	) {
+		if ( _getEmailBotDetectionService().isBot( argumentCollection=arguments ) ) {
+			recordBotClick( arguments.messageId );
+		} else {
+			recordClick( argumentCollection=arguments, id=arguments.messageId );
+		}
 	}
 
 	/**
@@ -498,8 +601,13 @@ component {
 		var trackingUrl   = $getRequestContext().buildLink( linkto="email.tracking.open", queryString="mid=" & arguments.messageId );
 		var trackingPixel = "<img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" />";
 
-		if ( messageHtml.findNoCase( "</body>" ) ) {
-			return messageHtml.replaceNoCase( "</body>", trackingPixel & "</body>" );
+		if ( $isFeatureEnabled( "emailTrackingBotDetection" ) ) {
+			var honeyPotUrl = $getRequestContext().buildLink( linkto="email.tracking.honeypot", queryString="mid=" & arguments.messageId );
+			trackingPixel = '<a href="#honeyPotUrl#">#trackingPixel#</a>';
+		}
+
+		if ( FindNoCase( "</body>", messageHtml ) ) {
+			return ReplaceNoCase( messageHtml, "</body>", trackingPixel & "</body>" );
 		}
 
 		return messageHtml & trackingPixel;
@@ -542,7 +650,7 @@ component {
 			attribs = link.attributes();
 			href = Trim( attribs.get( "href" ) );
 
-			if ( Len( href ) && ReFindNoCase( "^https?://", href ) ) {
+			if ( Len( href ) && ReFindNoCase( "^https?://", href ) && !ReFindNoCase( "^https?://[^/]+/e/t/h/", href ) ) {
 				if ( storeInDb ) {
 					title           = Trim( attribs.get( "title" ) );
 					body            = Trim( link.text() );
@@ -936,6 +1044,10 @@ component {
 			return;
 		}
 
+		if ( arguments.activity == "honeypotclick" ) {
+			return;
+		}
+
 		var template = $getPresideObjectService().selectData(
 			  objectName   = "email_template_send_log"
 			, selectFields = [ "email_template" ]
@@ -966,6 +1078,8 @@ component {
 		return arguments.activity;
 	}
 
+
+
 // GETTERS AND SETTERS
 	private any function _getRecipientTypeService() {
 		return _recipientTypeService;
@@ -979,6 +1093,13 @@ component {
 	}
 	private void function _setEmailTemplateService( required any emailTemplateService ) {
 		_emailTemplateService = arguments.emailTemplateService;
+	}
+
+	private any function _getEmailBotDetectionService() {
+		return _emailBotDetectionService;
+	}
+	private void function _setEmailBotDetectionService( required any emailBotDetectionService ) {
+		_emailBotDetectionService = arguments.emailBotDetectionService;
 	}
 
 	private any function _getSqlRunner() {

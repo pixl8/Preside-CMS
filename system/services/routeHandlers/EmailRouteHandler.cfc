@@ -17,15 +17,16 @@ component  {
 // route handler methods
 	public boolean function match( required string path, required any event ) {
 		var viewOnlinePattern = "^/e/v/(.*?)\.html$";
-		var trackingPatterns  = "^/e/t/(o|c)/(.*?)/$";
+		var trackingPatterns  = "^/e/t/(o|c|h)/(.*?)/$";
 
 		return ReFindNoCase( viewOnlinePattern, arguments.path ) || ReFindNoCase( trackingPatterns, arguments.path );
 	}
 
 	public void function translate( required string path, required any event ) {
-		var viewOnlinePattern    = "^/e/v/(.*?)\.html$";
-		var openTrackingPattern  = "^/e/t/o/(.*?)/$";
-		var clickTrackingPattern = "^/e/t/c/(.*?)/$";
+		var viewOnlinePattern       = "^/e/v/(.*?)\.html$";
+		var openTrackingPattern     = "^/e/t/o/(.*?)/$";
+		var clickTrackingPattern    = "^/e/t/c/(.*?)/$";
+		var honeyPotTrackingPattern = "^/e/t/h/(.*?)/$";
 
 		if ( ReFindNoCase( viewOnlinePattern, arguments.path ) ) {
 			event.setValue( "mid", ReReplaceNoCase( arguments.path, viewOnlinePattern, "\1" ) );
@@ -36,6 +37,9 @@ component  {
 		} else if ( ReFindNoCase( clickTrackingPattern, arguments.path ) ) {
 			event.setValue( "mid", ReReplaceNoCase( arguments.path, clickTrackingPattern, "\1" ) );
 			event.setValue( _getEventName(), "email.tracking.click" );
+		} else if ( ReFindNoCase( honeyPotTrackingPattern, arguments.path ) ) {
+			event.setValue( "mid", ReReplaceNoCase( arguments.path, honeyPotTrackingPattern, "\1" ) );
+			event.setValue( _getEventName(), "email.tracking.honeypot" );
 		}
 	}
 
@@ -45,6 +49,7 @@ component  {
 			  "email.viewOnline"
 			, "email.tracking.open"
 			, "email.tracking.click"
+			, "email.tracking.honeypot"
 		];
 
 		return acceptedEvents.findNoCase( linkTo ) && StructKeyExists( buildArgs, "queryString" ) && buildArgs.queryString.findNoCase( "mid=" );
@@ -65,6 +70,9 @@ component  {
 			break;
 			case "email.tracking.click":
 				link = "/e/t/c/#messageId#/";
+			break;
+			case "email.tracking.honeypot":
+				link = "/e/t/h/#messageId#/";
 			break;
 		}
 

@@ -18,8 +18,10 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="delivery_count"     type="numeric" dbtype="int" required=true default=0;
 	property name="open_count"         type="numeric" dbtype="int" required=true default=0;
 	property name="unique_open_count"  type="numeric" dbtype="int" required=true default=0;
+	property name="bot_open_count"     type="numeric" dbtype="int" required=true default=0;
 	property name="click_count"        type="numeric" dbtype="int" required=true default=0;
 	property name="unique_click_count" type="numeric" dbtype="int" required=true default=0;
+	property name="bot_click_count"    type="numeric" dbtype="int" required=true default=0;
 	property name="fail_count"         type="numeric" dbtype="int" required=true default=0;
 	property name="spam_count"         type="numeric" dbtype="int" required=true default=0;
 	property name="unsubscribe_count"  type="numeric" dbtype="int" required=true default=0;
