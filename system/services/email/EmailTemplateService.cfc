@@ -23,6 +23,7 @@ component {
 	 * @emailLayoutService.inject         emailLayoutService
 	 * @emailSendingContextService.inject emailSendingContextService
 	 * @emailStyleInliner.inject          emailStyleInliner
+	 * @emailStatsService.inject          emailStatsService
 	 * @assetManagerService.inject        assetManagerService
 	 * @emailSettings.inject              coldbox:setting:email
 	 * @templateCache.inject              cachebox:emailTemplateCache
@@ -36,6 +37,7 @@ component {
 		, required any emailSendingContextService
 		, required any assetManagerService
 		, required any emailStyleInliner
+		, required any emailStatsService
 		, required any emailSettings
 		, required any templateCache
 		, required any timeSeriesUtils
@@ -45,6 +47,7 @@ component {
 		_setEmailLayoutService( arguments.emailLayoutService );
 		_setEmailSendingContextService( arguments.emailSendingContextService );
 		_setEmailStyleInliner( arguments.emailStyleInliner );
+		_setEmailStatsService( arguments.emailStatsService );
 		_setAssetManagerService( arguments.assetManagerService );
 		_setEmailSettings( arguments.emailSettings );
 		_setTemplateCache( arguments.templateCache );
@@ -812,6 +815,15 @@ component {
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getStatCount(
+				  templateId = arguments.templateId
+				, field      = "send_count"
+				, dateFrom   = arguments.dateFrom
+				, dateTo     = arguments.dateTo
+			);
+		}
+
 		var extraFilters = [];
 
 		if ( IsDate( arguments.dateFrom ) ) {
@@ -850,6 +862,15 @@ component {
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getStatCount(
+				  templateId = arguments.templateId
+				, field      = "delivery_count"
+				, dateFrom   = arguments.dateFrom
+				, dateTo     = arguments.dateTo
+			);
+		}
+
 		var extraFilters = [];
 
 		if ( IsDate( arguments.dateFrom ) ) {
@@ -888,6 +909,15 @@ component {
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getStatCount(
+				  templateId = arguments.templateId
+				, field      = "unique_open_count"
+				, dateFrom   = arguments.dateFrom
+				, dateTo     = arguments.dateTo
+			);
+		}
+
 		var extraFilters = [];
 
 		if ( IsDate( arguments.dateFrom ) ) {
@@ -925,6 +955,15 @@ component {
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getStatCount(
+				  templateId = arguments.templateId
+				, field      = "open_count"
+				, dateFrom   = arguments.dateFrom
+				, dateTo     = arguments.dateTo
+			);
+		}
+
 		var extraFilters = [];
 
 		if ( IsDate( arguments.dateFrom ) ) {
@@ -963,6 +1002,15 @@ component {
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getStatCount(
+				  templateId = arguments.templateId
+				, field      = "click_count"
+				, dateFrom   = arguments.dateFrom
+				, dateTo     = arguments.dateTo
+			);
+		}
+
 		var extraFilters = [];
 
 		if ( IsDate( arguments.dateFrom ) ) {
@@ -1001,6 +1049,15 @@ component {
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getStatCount(
+				  templateId = arguments.templateId
+				, field      = "fail_count"
+				, dateFrom   = arguments.dateFrom
+				, dateTo     = arguments.dateTo
+			);
+		}
+
 		var extraFilters = [];
 
 		if ( IsDate( arguments.dateFrom ) ) {
@@ -1055,11 +1112,16 @@ component {
 	 */
 	public struct function getStats(
 		  required string  templateId
-		,          string  dateFrom   = getFirstStatDate( arguments.templateId )
-		,          string  dateTo     = getLastStatDate( arguments.templateId )
-		,          numeric timePoints = 1
+		,          string  dateFrom    = getFirstStatDate( arguments.templateId )
+		,          string  dateTo      = getLastStatDate( arguments.templateId )
+		,          numeric timePoints  = 1
 		,          boolean uniqueOpens = ( arguments.timePoints == 1 )
+		,          array   stats       = []
 	) {
+		if ( arguments.timePoints != 1 && _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getStatsOverTime( argumentCollection=arguments );
+		}
+
 		if ( arguments.timePoints == 1 ) {
 			return {
 				  sent      = getSentCount( argumentCollection=arguments )
@@ -1110,6 +1172,10 @@ component {
 	 *
 	 */
 	public any function getFirstStatDate( required string templateId ) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getFirstStatDate( argumentCollection=arguments );
+		}
+
 		var earliestRecord = $getPresideObject( "email_template" ).selectData(
 			  id           = arguments.templateId
 			, selectFields = [ "min( send_logs.datecreated ) as earliest" ]
@@ -1129,6 +1195,10 @@ component {
 	 *
 	 */
 	public any function getLastStatDate( required string templateId ) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getLastStatDate( argumentCollection=arguments );
+		}
+
 		var dates          = [];
 		var latestActivity = $getPresideObject( "email_template" ).selectData(
 			  id           = arguments.templateId
@@ -1183,6 +1253,10 @@ component {
 		,          string dateFrom = ""
 		,          string dateTo   = ""
 	) {
+		if ( _usePerformantLogging( arguments.templateId ) ) {
+			return _getEmailStatsService().getLinkClickStats( argumentCollection=arguments );
+		}
+
 		var extraFilters = [{
 			filter = { activity_type="click" }
 		}];
@@ -1523,6 +1597,19 @@ component {
 		return params;
 	}
 
+	private boolean function _usePerformantLogging( required string templateId ) {
+		var requestCacheKey = "_usePerformantLogging#arguments.templateId#";
+
+		if ( !StructKeyExists( request, requestCacheKey ) ) {
+			request[ requestCacheKey ] = $getPresideObject( "email_template" ).dataExists( filter={
+				  id                       = arguments.templateId
+				, stats_collection_enabled = true
+			} );
+		}
+
+		return request[ requestCacheKey ];
+	}
+
 // GETTERS AND SETTERS
 	private any function _getSystemEmailTemplateService() {
 		return _systemEmailTemplateService;
@@ -1585,5 +1672,12 @@ component {
 	}
 	private void function _setTimeSeriesUtils( required any timeSeriesUtils ) {
 	    _timeSeriesUtils = arguments.timeSeriesUtils;
+	}
+
+	private any function _getEmailStatsService() {
+	    return _emailStatsService;
+	}
+	private void function _setEmailStatsService( required any emailStatsService ) {
+	    _emailStatsService = arguments.emailStatsService;
 	}
 }

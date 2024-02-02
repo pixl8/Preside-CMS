@@ -78,6 +78,7 @@ component {
 			, "preside-ext-individual-filter"
 			, "preside-ext-vips"
 			, "preside-ext-db-perf-enhancements"
+			, "preside-ext-email-log-performance"
 		];
 
 		settings.activeExtensions = application.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
