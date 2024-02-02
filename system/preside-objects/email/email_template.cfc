@@ -45,6 +45,9 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="schedule_sent"           type="boolean" dbtype="boolean"              required=false ignoreChangesForVersioning=true cloneable=false;
 	property name="schedule_next_send_date" type="date"    dbtype="datetime"             required=false ignoreChangesForVersioning=true cloneable=false;
 
+	property name="stats_collection_enabled"    type="boolean" dbtype="boolean" default=true indexes="statscollectionenabled";
+	property name="stats_collection_enabled_on" type="numeric" dbtype="int"                  indexes="statscollectionenabledon";
+
 	property name="last_sent_date" type="date" dbtype="datetime" required=false ignoreChangesForVersioning=true cloneable=false renderer="dateTimeRelative";
 	property name="datemodified" renderer="dateTimeRelative";
 

@@ -7,18 +7,32 @@
  */
 component {
 
-	variables._lib   = [];
-	variables._jsoup = "";
+	variables._lib       = [];
+	variables._jsoup     = "";
+	variables._oneMinute = CreateTimespan( 0, 0, 1, 0 );
 
 // CONSTRUCTOR
 	/**
-	 * @recipientTypeService.inject emailRecipientTypeService
-	 * @emailTemplateService.inject emailTemplateService
+	 * @recipientTypeService.inject     emailRecipientTypeService
+	 * @emailTemplateService.inject     emailTemplateService
+	 * @sqlRunner.inject                sqlRunner
+	 * @emailStatsService.inject        emailStatsService
+	 * @emailBotDetectionService.inject emailBotDetectionService
 	 *
 	 */
-	public any function init( required any recipientTypeService, required any emailTemplateService ) {
+	public any function init(
+		  required any   recipientTypeService
+		, required any   emailTemplateService
+		, required any   sqlRunner
+		, required any   emailStatsService
+		, required any   emailBotDetectionService
+	) {
 		_setRecipientTypeService( arguments.recipientTypeService );
 		_setEmailTemplateService( arguments.emailTemplateService );
+		_setSqlRunner( arguments.sqlRunner );
+		_setEmailStatsService( arguments.emailStatsService );
+		_setEmailBotDetectionService( arguments.emailBotDetectionService );
+
 		_jsoup = _new( "org.jsoup.Jsoup" );
 
 		return this;
@@ -275,14 +289,51 @@ component {
 			, data         = data
 		);
 
-		if ( !arguments.softMark && updated ) {
-			data.delivered_date = _getNow();
+		if ( updated ) {
 			recordActivity(
 				  messageId = arguments.id
 				, activity  = "deliver"
 			);
 		}
 
+	}
+
+	public void function processOpenEvent(
+		  required string messageId
+		, required string userAgent
+		, required string ipAddress
+	) {
+		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
+			markAsOpened( argumentCollection=arguments, id=arguments.messageId );
+		}
+
+		$createTask(
+			  event                = "email.tracking.processOpenEventWithBotDetection"
+			, args                 = arguments
+			, runIn                = _oneMinute
+			, discardAfterInterval = _oneMinute
+			, reference            = arguments.messageId
+		);
+	}
+
+	public void function recordBotOpen( required string id ) {
+		_processEventForStatsTables(
+			  message  = arguments.id
+			, activity = "bot_open"
+		);
+	}
+
+	public void function processOpenEventWithBotDetection(
+		  required string messageId
+		, required string userAgent
+		, required string ipAddress
+		, required date   eventDate
+	) {
+		if ( _getEmailBotDetectionService().isBot( argumentCollection=arguments ) ) {
+			recordBotOpen( arguments.messageId );
+		} else {
+			markAsOpened( argumentCollection=arguments, id=arguments.messageId );
+		}
 	}
 
 	/**
@@ -294,22 +345,89 @@ component {
 	 *
 	 */
 	public void function markAsOpened( required string id, boolean softMark=false ) {
-		var data = { opened = true };
+		var data = { opened = true, opened_count=1 };
 
 		if ( !arguments.softMark ) {
 			data.opened_date = _getNow();
 		}
 
-		var updated = $getPresideObject( "email_template_send_log" ).updateData(
+		var dao     = $getPresideObject( "email_template_send_log" );
+		var updated = dao.updateData(
 			  filter       = "id = :id and ( opened is null or opened = :opened )"
 			, filterParams = { id=arguments.id, opened=false }
 			, data         = data
 		);
 
-		markAsDelivered( arguments.id, true );
+		if ( !updated ) {
+			_getSqlRunner().runSql(
+				  dsn        = dao.getDsn()
+				, sql        = _getRecordOpenSql()
+				, params     = _getRecordOpenParams( arguments.id )
+				, returnType = "info"
+			);
+		}
 
-		if ( !arguments.softMark && updated ) {
-			recordActivity( messageId=arguments.id, activity="open" );
+		markAsDelivered( arguments.id, true );
+		recordActivity( messageId=arguments.id, activity="open", first=( updated > 0 ) );
+	}
+
+	/**
+	 * Records a "click" to a "honeypot" link for bot detection
+	 */
+	public void function recordHoneyPotHit(
+		  required string messageId
+		,          string userAgent = cgi.http_user_agent
+		,          string ipAddress = cgi.remote_addr
+	) {
+		recordActivity(
+			  messageId = arguments.messageId
+			, activity  = "honeypotclick"
+			, userIp    = arguments.ipAddress
+			, userAgent = arguments.userAgent
+		);
+	}
+
+	public void function processClickEvent(
+		  required string messageId
+		, required string link
+		,          string linkTitle = ""
+		,          string linkBody  = ""
+		,          string userAgent = cgi.http_user_agent
+		,          string ipAddress = cgi.remote_addr
+	) {
+		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
+			recordClick( argumentCollection=arguments, id=arguments.messageId );
+		}
+
+		$createTask(
+			  event                = "email.tracking.processClickEventWithBotDetection"
+			, args                 = arguments
+			, runIn                = _oneMinute
+			, discardAfterInterval = _oneMinute
+			, reference            = arguments.messageId
+		);
+	}
+
+	public void function recordBotClick( required string id ) {
+		_processEventForStatsTables(
+			  message  = arguments.id
+			, activity = "bot_click"
+		);
+	}
+
+	public void function processClickEventWithBotDetection(
+		  required string messageId
+		, required string link
+		, required date   eventDate
+		,          string linkTitle = ""
+		,          string linkBody  = ""
+		,          string userAgent = cgi.http_user_agent
+		,          string ipAddress = cgi.remote_addr
+	) {
+		if ( _getEmailBotDetectionService().isBot( argumentCollection=arguments ) ) {
+			recordBotClick( arguments.messageId );
+		} else {
+			recordClick( argumentCollection=arguments, id=arguments.messageId );
 		}
 	}
 
@@ -318,25 +436,33 @@ component {
 	 *
 	 */
 	public void function recordClick( required string id, required string link, string linkTitle="", string linkBody="" ) {
-		var dao     = $getPresideObject( "email_template_send_log");
+		var dao           = $getPresideObject( "email_template_send_log" );
+		var updated       = false;
+		var wasFirstClick = updated = dao.updateData(
+			  filter = { id=arguments.id, click_count=0 }
+			, data   = { clicked=true, click_count=1 }
+		);
 
-		transaction {
-			var current = dao.selectData( id=arguments.id );
-
-			if ( current.recordCount ) {
-				var updated = dao.updateData( id=arguments.id, data={ click_count=Val( current.click_count )+1 } );
-
-				if ( updated ) {
-					recordActivity(
-						  messageId = arguments.id
-						, activity  = "click"
-						, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
-					);
-				}
-
-				markAsOpened( id=id, softMark=true );
-			}
+		if ( !updated ) {
+			updated = _getSqlRunner().runSql(
+				  dsn        = dao.getDsn()
+				, sql        = _getRecordClickSql()
+				, params     = _getRecordClickParams( arguments.id )
+				, returnType = "info"
+			);
+			updated =  Val( updated.recordCount ?: 0 ) > 0
 		}
+
+		if ( updated ) {
+			recordActivity(
+				  messageId = arguments.id
+				, activity  = "click"
+				, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
+				, first     = wasFirstClick
+			);
+		}
+
+		markAsOpened( id=id, softMark=true );
 	}
 
 	/**
@@ -475,8 +601,13 @@ component {
 		var trackingUrl   = $getRequestContext().buildLink( linkto="email.tracking.open", queryString="mid=" & arguments.messageId );
 		var trackingPixel = "<img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" />";
 
-		if ( messageHtml.findNoCase( "</body>" ) ) {
-			return messageHtml.replaceNoCase( "</body>", trackingPixel & "</body>" );
+		if ( $isFeatureEnabled( "emailTrackingBotDetection" ) ) {
+			var honeyPotUrl = $getRequestContext().buildLink( linkto="email.tracking.honeypot", queryString="mid=" & arguments.messageId );
+			trackingPixel = '<a href="#honeyPotUrl#">#trackingPixel#</a>';
+		}
+
+		if ( FindNoCase( "</body>", messageHtml ) ) {
+			return ReplaceNoCase( messageHtml, "</body>", trackingPixel & "</body>" );
 		}
 
 		return messageHtml & trackingPixel;
@@ -519,7 +650,7 @@ component {
 			attribs = link.attributes();
 			href = Trim( attribs.get( "href" ) );
 
-			if ( Len( href ) && ReFindNoCase( "^https?://", href ) ) {
+			if ( Len( href ) && ReFindNoCase( "^https?://", href ) && !ReFindNoCase( "^https?://[^/]+/e/t/h/", href ) ) {
 				if ( storeInDb ) {
 					title           = Trim( attribs.get( "title" ) );
 					body            = Trim( link.text() );
@@ -568,11 +699,12 @@ component {
 	 *
 	 */
 	public void function recordActivity(
-		  required string messageId
-		, required string activity
-		,          struct extraData = {}
-		,          string userIp    = cgi.remote_addr
-		,          string userAgent = cgi.http_user_agent
+		  required string  messageId
+		, required string  activity
+		,          struct  extraData = {}
+		,          string  userIp    = cgi.remote_addr
+		,          string  userAgent = cgi.http_user_agent
+		,          boolean first
 	) {
 		var fieldsToAddFromExtraData = [ "link", "code", "reason", "link_title", "link_body" ];
 		var extra = StructCopy( arguments.extraData );
@@ -584,7 +716,7 @@ component {
 		};
 
 		for( var field in extra ) {
-			if ( fieldsToAddFromExtraData.find( LCase( field ) ) ) {
+			if ( ArrayFind( fieldsToAddFromExtraData, LCase( field ) ) ) {
 				data[ field ] = extra[ field ];
 				extra.delete( field );
 			}
@@ -599,6 +731,12 @@ component {
 
 		try {
 			$getPresideObject( "email_template_send_log_activity" ).insertData( data );
+			_processEventForStatsTables(
+				  message  = data.message
+				, activity = arguments.activity
+				, data     = data
+				, first    = arguments.first
+			);
 		} catch( database e ) {
 			// ignore missing logs when recording activity - but record the error for
 			// info only
@@ -856,6 +994,92 @@ component {
 		return ListToArray( Trim( allowList ), " #chr(9)##chr(10)##chr(13)#" );
 	}
 
+
+	private function _getRecordClickSql() {
+		if ( !StructKeyExists( variables, "_recordClickSql" ) ) {
+			var dao = $getPresideObject( "email_template_send_log" );
+			var adapter = dao.getDbAdapter();
+			var tableName = adapter.escapeEntity( dao.getTableName() );
+			var countCol  = adapter.escapeEntity( "click_count" );
+			var idCol = adapter.escapeEntity( "id" );
+
+			variables._recordClickSql = "update #tableName# set #countCol# = #countCol# + 1 where #idCol# = :id";
+		}
+
+		return variables._recordClickSql;
+	}
+
+	private function _getRecordClickParams( sendLogId ) {
+		return [{
+			  type = "cf_sql_varchar"
+			, value = arguments.sendLogId
+			, name = "id"
+		}];
+	}
+
+	private function _getRecordOpenSql() {
+		if ( !StructKeyExists( variables, "_recordOpenSql" ) ) {
+			var dao = $getPresideObject( "email_template_send_log" );
+			var adapter = dao.getDbAdapter();
+			var tableName = adapter.escapeEntity( dao.getTableName() );
+			var countCol  = adapter.escapeEntity( "open_count" );
+			var idCol = adapter.escapeEntity( "id" );
+
+			variables._recordOpenSql = "update #tableName# set #countCol# = #countCol# + 1 where #idCol# = :id";
+		}
+
+		return variables._recordOpenSql;
+	}
+
+	private function _getRecordOpenParams( sendLogId ) {
+		return [{
+			  type = "cf_sql_varchar"
+			, value = arguments.sendLogId
+			, name = "id"
+		}];
+	}
+
+	private function _processEventForStatsTables( message, activity, data={}, first ) {
+		if ( !Len( arguments.message ) ) {
+			return;
+		}
+
+		if ( arguments.activity == "honeypotclick" ) {
+			return;
+		}
+
+		var template = $getPresideObjectService().selectData(
+			  objectName   = "email_template_send_log"
+			, selectFields = [ "email_template" ]
+			, forceJoins   = "inner"
+			, filter       = {
+				  id                                        = arguments.message
+				, "email_template.stats_collection_enabled" = true
+			  }
+		);
+
+		if ( Len( template.email_template ) ) {
+			_getEmailStatsService().recordHit(
+				  emailTemplateId = template.email_template
+				, hitDate         = Now()
+				, hitStat         = _activityToHitStat( arguments.activity )
+				, first           = arguments.first
+				, data            = arguments.data
+			);
+		}
+	}
+
+	private function _activityToHitStat( activity ) {
+		switch( arguments.activity ) {
+			case "deliver": return "delivery";
+			case "markasspam": return "spam";
+		}
+
+		return arguments.activity;
+	}
+
+
+
 // GETTERS AND SETTERS
 	private any function _getRecipientTypeService() {
 		return _recipientTypeService;
@@ -869,6 +1093,27 @@ component {
 	}
 	private void function _setEmailTemplateService( required any emailTemplateService ) {
 		_emailTemplateService = arguments.emailTemplateService;
+	}
+
+	private any function _getEmailBotDetectionService() {
+		return _emailBotDetectionService;
+	}
+	private void function _setEmailBotDetectionService( required any emailBotDetectionService ) {
+		_emailBotDetectionService = arguments.emailBotDetectionService;
+	}
+
+	private any function _getSqlRunner() {
+		return _sqlRunner;
+	}
+	private void function _setSqlRunner( required any sqlRunner ) {
+		_sqlRunner = arguments.sqlRunner;
+	}
+
+	private any function _getEmailStatsService() {
+		return _emailStatsService;
+	}
+	private void function _setEmailStatsService( required any emailStatsService ) {
+		_emailStatsService = arguments.emailStatsService;
 	}
 
 }

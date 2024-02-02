@@ -587,6 +587,10 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:emailcenter.customTemplates.stats.page.breadcrumb", data=[ prc.record.name ] )
 			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.stats", queryString="id=#id#" )
 		);
+
+		if ( isTrue( prc.record.stats_collection_enabled ) ) {
+			event.setView( "/admin/emailCenter/customTemplates/statsv2" );
+		}
 	}
 
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {

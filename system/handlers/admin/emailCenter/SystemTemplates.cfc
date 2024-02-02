@@ -359,7 +359,8 @@ component extends="preside.system.base.AdminHandler" {
 	public void function stats( event, rc, prc ) {
 		var templateId = rc.id ?: ( rc.template ?: "" );
 
-		prc.template = emailTemplateService.getTemplate( id=templateId );
+		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId );
+		rc.id = templateId;
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
 			event.notFound();
@@ -374,7 +375,12 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.stats.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.stats", queryString="template=" & templateId )
 		);
+
+		if ( isTrue( prc.record.stats_collection_enabled ) ) {
+			event.setView( "/admin/emailCenter/systemTemplates/statsv2" );
+		}
 	}
+
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
 		var useDistinct = len( rc.sFilterExpression ?: "" ) || len( rc.sSavedFilterExpression ?: "" );
 		var gridFields  = "recipient,subject,datecreated,sent,delivered,failed,opened,click_count";
