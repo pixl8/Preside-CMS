@@ -24,7 +24,7 @@ component extends="testbox.system.BaseSpec" {
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  event          = event
-					, eventArguments = { args=args, logger=mockLogger, progress=mockProgress }
+					, eventArguments = { args=args, logger=mockLogger, progress=mockProgress, task=taskDef }
 					, private        = true
 					, prepostExempt  = true
 				} );
@@ -237,6 +237,7 @@ component extends="testbox.system.BaseSpec" {
 					, result_url          = ""
 					, return_url          = ""
 					, next_attempt_date   = ""
+					, reference           = ""
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -266,6 +267,7 @@ component extends="testbox.system.BaseSpec" {
 					, title_data          = '["test","this"]'
 					, result_url          = "http://www.mysite.com/download/export/"
 					, return_url          = "http://www.mysite.com/download/cancelled/"
+					, reference           = ""
 				} ).$results( taskId );
 				service.$( "runTaskInThread" );
 
@@ -307,6 +309,7 @@ component extends="testbox.system.BaseSpec" {
 					, result_url          = resultUrl
 					, return_url          = ""
 					, next_attempt_date   = ""
+					, reference           = ""
 				} ).$results( taskId );
 
 				service.$( "setResultUrl" );
@@ -346,6 +349,7 @@ component extends="testbox.system.BaseSpec" {
 					, next_attempt_date   = ""
 					, result_url          = ""
 					, return_url          = ""
+					, reference           = ""
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -375,6 +379,7 @@ component extends="testbox.system.BaseSpec" {
 					, next_attempt_date   = ""
 					, result_url          = ""
 					, return_url          = ""
+					, reference           = ""
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -406,6 +411,7 @@ component extends="testbox.system.BaseSpec" {
 					, result_url          = "http://www.mysite.com/download/export/"
 					, return_url          = "http://www.mysite.com/download/cancelled/"
 					, next_attempt_date   = nextRunDate
+					, reference           = ""
 				} ).$results( taskId );
 
 				service.$( "runTaskInThread" );

@@ -6,9 +6,16 @@
 		, unsubscribes = "unsubscribed_date"
 		, complaints   = "marked_as_spam_date"
 	};
+	botsDetected = Val( stats.botOpenCount ) || Val( stats.botClickCount );
 </cfscript>
 
 <cfoutput>
+	<cfif botsDetected>
+		<p class="alert alert-warning">
+			<i class="fa fa-fw fa-info-circle"></i>
+			#translateResource( uri="cms:emailcenter.stats.bots.detected", data=[ LsNumberFormat( stats.botOpenCount ), LsNumberFormat( stats.botClickCount ) ] )#
+		</p>
+	</cfif>
 	<div class="row">
 		<div class="col-md-7">
 			<div class="row">

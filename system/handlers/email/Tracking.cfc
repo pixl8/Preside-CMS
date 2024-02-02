@@ -13,7 +13,11 @@ component {
 
 		if ( messageId.len() ) {
 			try {
-				emailLoggingService.markAsOpened( messageId );
+				emailLoggingService.processOpenEvent(
+					  messageId = messageId
+					, userAgent = event.getUserAgent()
+					, ipAddress = event.getClientIp()
+				);
 			} catch( any e ) {
 				// ignore errors that will be due to original email log no longer existing
 			}
@@ -34,11 +38,13 @@ component {
 			if ( link.recordCount ) {
 				if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link.href ) ) {
 					try {
-						emailLoggingService.recordClick(
-							  id        = messageId
+						emailLoggingService.processClickEvent(
+							  messageId = messageId
 							, link      = link.href
 							, linkTitle = link.title
 							, linkBody  = link.body
+							, userAgent = event.getUserAgent()
+							, ipAddress = event.getClientIp()
 						);
 					} catch( any e ) {
 						// ignore errors that will be due to original email log no longer existing
@@ -64,7 +70,12 @@ component {
 
 		if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link ) ) {
 			try {
-				emailLoggingService.recordClick( id=messageId, link=link );
+				emailLoggingService.processClickEvent(
+					  messageId = messageId
+					, link      = link
+					, userAgent = event.getUserAgent()
+					, ipAddress = event.getClientIp()
+				);
 			} catch( any e ) {
 				// ignore errors that will be due to original email log no longer existing
 			}
@@ -73,4 +84,22 @@ component {
 		setNextEvent( url=link );
 	}
 
+	public void function honeyPot( event, rc, prc ) {
+		emailLoggingService.recordHoneyPotHit(
+			  messageId = ( rc.mid  ?: "" )
+			, userAgent = event.getUserAgent()
+			, ipAddress = event.getClientIp()
+		);
+
+		setNextEvent( url="/" );
+	}
+
+
+// PRIVATE BACKGROUND THREAD HANDLERS
+	private function processOpenEventWithBotDetection( event, rc, prc, args={}, task={} ) {
+		emailLoggingService.processOpenEventWithBotDetection( argumentCollection=args, eventDate=task.dateCreated ?: Now() );
+	}
+	private function processClickEventWithBotDetection( event, rc, prc, args={}, task={} ) {
+		emailLoggingService.processClickEventWithBotDetection( argumentCollection=args, eventDate=task.dateCreated ?: Now() );
+	}
 }
