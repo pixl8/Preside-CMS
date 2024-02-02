@@ -1357,6 +1357,47 @@ component {
 		}
 	}
 
+	public boolean function deleteExpiredSubmissions( any logger=NullValue() ) {
+		var formsWithRemoveConfigured = $getPresideObject( "formbuilder_form" ).selectData(
+			  filter       = "submission_remove_enabled = :submission_remove_enabled AND submission_remove_after IS NOT NULL AND submission_remove_after > 0"
+			, filterParams = { submission_remove_enabled=true }
+			, selectFields = [ "id", "name", "submission_remove_after" ]
+		);
+
+		if ( formsWithRemoveConfigured.recordcount ) {
+			var formSubmissionDao = $getPresideObject( "formbuilder_formsubmission" );
+
+			for ( var formbuilderForm in formsWithRemoveConfigured ) {
+				var expiredSubmissions = formSubmissionDao.selectData(
+					  selectFields = [ "id" ]
+					, filter       = "form = :form and datecreated < :datecreated"
+					, filterParams = {
+						  form        = formbuilderForm.id
+						, datecreated = DateAdd( "d", -Val( formbuilderForm.submission_remove_after ), Now() )
+					}
+				);
+
+				if ( expiredSubmissions.recordcount ) {
+					$helpers.logMessage( logger=arguments.logger, severity="info", message="Removing [#expiredSubmissions.recordcount#] expired submissions from [#formbuilderForm.name#]..." );
+
+					for ( var submission in expiredSubmissions ) {
+						transaction {
+							formSubmissionDao.deleteData( id=submission.id );
+
+							deleteSubmissionResponses( submissionId=submission.id );
+						}
+					}
+				}
+			}
+
+			$helpers.logMessage( logger=arguments.logger, severity="info", message="All expired submissions deleted." );
+		} else {
+			$helpers.logMessage( logger=arguments.logger, severity="info", message="All forms configured to retain submissions forever." );
+		}
+
+		return true;
+	}
+
 	/**
 	 * Returns question responses in a result format that is ready
 	 * for display in grid table

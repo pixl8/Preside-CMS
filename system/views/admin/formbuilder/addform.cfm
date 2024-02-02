@@ -10,6 +10,7 @@
 			, context          = "admin"
 			, formId           = formId
 			, validationResult = ( rc.validationResult ?: "" )
+			, additionalArgs   = ( prc.additionalArgs  ?: {} )
 		)#
 
 		<div class="form-actions row">

@@ -11,6 +11,7 @@ component {
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
 	property name="assetQueueService"       inject="assetQueueService";
 	property name="batchOperationService"   inject="dataManagerBatchOperationService";
+	property name="formBuilderService"      inject="formBuilderService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -104,4 +105,17 @@ component {
 		return assetQueueService.deleteExpiredQueuedItems( arguments.logger ?: NullValue() );
 	}
 
+	/**
+	 * Delete expired form builder submissions
+	 *
+	 * @priority     10
+	 * @schedule     0 14 4 * * *
+	 * @timeout      1200
+	 * @displayName  Delete expired form builder submissions
+	 * @displayGroup Cleanup
+	 * @feature      formbuilder
+	 */
+	private boolean function deleteExpiredFormBuilderSubmissions( logger ) {
+		return formBuilderService.deleteExpiredSubmissions( arguments.logger ?: NullValue() );
+	}
 }
