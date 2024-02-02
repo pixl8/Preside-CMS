@@ -42,6 +42,13 @@ component extends="testbox.system.BaseSpec" {
 				expect( antiSamy.clean( "&" ) ).toBe( "&" );
 			} );
 
+			it( "should not replace "" characters in input", function(){
+				expect( antiSamy.clean( """" ) ).toBe( """" );
+			} );
+			it( "should retain existing &amp;quot; in input", function(){
+				expect( antiSamy.clean( "&quot;" ) ).toBe( "&quot;" );
+			} );
+
 		} );
 
 	}
