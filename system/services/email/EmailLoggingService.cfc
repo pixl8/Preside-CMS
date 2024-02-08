@@ -304,7 +304,8 @@ component {
 		, required string ipAddress
 	) {
 		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
-			return markAsOpened( argumentCollection=arguments, id=arguments.messageId );
+			markAsOpened( argumentCollection=arguments, id=arguments.messageId );
+			return;
 		}
 
 		$createTask(
@@ -409,7 +410,8 @@ component {
 		,          string ipAddress = cgi.remote_addr
 	) {
 		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
-			return recordClick( argumentCollection=arguments, id=arguments.messageId );
+			recordClick( argumentCollection=arguments, id=arguments.messageId );
+			return;
 		}
 
 		$createTask(
