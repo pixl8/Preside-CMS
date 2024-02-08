@@ -454,8 +454,8 @@ component {
 		,          string linkTitle = ""
 		,          string linkBody  = ""
 		,          date   eventDate = Now()
-		,          date   userAgent = cgi.http_user_agent
-		,          date   ipAddress = cgi.remote_addr
+		,          string userAgent = cgi.http_user_agent
+		,          string ipAddress = cgi.remote_addr
 	) {
 		var dao           = $getPresideObject( "email_template_send_log" );
 		var updated       = false;
