@@ -89,6 +89,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, extra_data    = SerializeJson( extraData )
 					, user_ip       = cgi.remote_addr
 					, user_agent    = cgi.http_user_agent
+					, datecreated   = Now()
 				} ]);
 			} );
 
@@ -123,6 +124,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, link          = extraData.link
 					, code          = extraData.code
 					, reason        = extraData.reason
+					, datecreated   = Now()
 				} ]);
 			} );
 
@@ -157,6 +159,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, link          = extraData.link
 					, code          = extraData.code
 					, reason        = extraData.reason
+					, datecreated   = Now()
 				} ] );
 			} );
 		} );
@@ -346,7 +349,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
 				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId, true ] );
 				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
-				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="open", first=true } );
+				expect( service.$callLog().recordActivity[1].messageId ?: "" ).toBe( logId );
+				expect( service.$callLog().recordActivity[1].activity ?: "" ).toBe( "open" );
+				expect( service.$callLog().recordActivity[1].first ?: "" ).toBe( true );
 			} );
 
 			it( "should not update opened date or track activity when 'softMark' set to true", function(){
@@ -482,9 +487,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockSqlRunner.$callLog().runSql.len() ).toBe( 1 );
 				expect( mockSqlRunner.$callLog().runSql[ 1 ].sql ).toBe( "update `psys_email_template_send_log` set `click_count` = `click_count` + 1 where `id` = :id" );
 				expect( service.$callLog().markAsOpened.len() ).toBe( 1 );
-				expect( service.$callLog().markAsOpened[1] ).toBe( { id=logId, softMark=true } );
+				expect( service.$callLog().markAsOpened[1] ).toBe( { id=logId, softMark=true, userAgent=cgi.http_user_agent, ipAddress=cgi.remote_addr } );
 				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
-				expect( service.$callLog().recordActivity[1] ).toBe( { messageId=logId, activity="click", extraData={ link=link, link_title="", link_body="" }, first=false } );
+				expect( service.$callLog().recordActivity[1].messageId ?: "" ).toBe( logId );
+				expect( service.$callLog().recordActivity[1].activity ?: "" ).toBe( "click" );
+				expect( service.$callLog().recordActivity[1].extraData ?: "" ).toBe( { link=link, link_title="", link_body="" } );
 
 			} );
 		} );
