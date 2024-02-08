@@ -487,7 +487,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockSqlRunner.$callLog().runSql.len() ).toBe( 1 );
 				expect( mockSqlRunner.$callLog().runSql[ 1 ].sql ).toBe( "update `psys_email_template_send_log` set `click_count` = `click_count` + 1 where `id` = :id" );
 				expect( service.$callLog().markAsOpened.len() ).toBe( 1 );
-				expect( service.$callLog().markAsOpened[1] ).toBe( { id=logId, softMark=true } );
+				expect( service.$callLog().markAsOpened[1] ).toBe( { id=logId, softMark=true, userAgent=cgi.http_user_agent, ipAddress=cgi.remote_addr } );
 				expect( service.$callLog().recordActivity.len() ).toBe( 1 );
 				expect( service.$callLog().recordActivity[1].messageId ?: "" ).toBe( logId );
 				expect( service.$callLog().recordActivity[1].activity ?: "" ).toBe( "click" );
