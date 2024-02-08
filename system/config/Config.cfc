@@ -289,6 +289,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preRenderDataManagerObjectInfoCard"    );
 		interceptorSettings.customInterceptionPoints.append( "preRenderDataManagerObjectTabs"        );
 		interceptorSettings.customInterceptionPoints.append( "postPrepareDevToolsVersions"           );
+		interceptorSettings.customInterceptionPoints.append( "preRunCustomization"                   );
+		interceptorSettings.customInterceptionPoints.append( "postRunCustomization"                  );
 	}
 
 	private void function __setupCachebox() {
