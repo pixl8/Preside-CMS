@@ -304,7 +304,7 @@ component {
 		, required string ipAddress
 	) {
 		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
-			markAsOpened( argumentCollection=arguments, id=arguments.messageId );
+			return markAsOpened( argumentCollection=arguments, id=arguments.messageId );
 		}
 
 		$createTask(
@@ -344,7 +344,13 @@ component {
 	 * @softMark.hint Used when some other action has occurred that indicates that the message was therefore opened. i.e. we may not know *when* but we do now know that it *was* opened.
 	 *
 	 */
-	public void function markAsOpened( required string id, boolean softMark=false ) {
+	public void function markAsOpened(
+		  required string  id
+		,          boolean softMark  = false
+		,          string  userAgent = cgi.http_user_agent
+		,          string  ipAddress = cgi.remote_addr
+		,          date    eventDate = Now()
+ 	) {
 		var data = { opened = true, opened_count=1 };
 
 		if ( !arguments.softMark ) {
@@ -368,7 +374,14 @@ component {
 		}
 
 		markAsDelivered( arguments.id, true );
-		recordActivity( messageId=arguments.id, activity="open", first=( updated > 0 ) );
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "open"
+			, first     = ( updated > 0 )
+			, userIp    = arguments.ipAddress
+			, userAgent = arguments.userAgent
+			, eventDate = arguments.eventDate
+		);
 	}
 
 	/**
@@ -396,7 +409,7 @@ component {
 		,          string ipAddress = cgi.remote_addr
 	) {
 		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
-			recordClick( argumentCollection=arguments, id=arguments.messageId );
+			return recordClick( argumentCollection=arguments, id=arguments.messageId );
 		}
 
 		$createTask(
@@ -435,7 +448,15 @@ component {
 	 * Records a link click for an email
 	 *
 	 */
-	public void function recordClick( required string id, required string link, string linkTitle="", string linkBody="" ) {
+	public void function recordClick(
+		  required string id
+		, required string link
+		,          string linkTitle = ""
+		,          string linkBody  = ""
+		,          date   eventDate = Now()
+		,          date   userAgent = cgi.http_user_agent
+		,          date   ipAddress = cgi.remote_addr
+	) {
 		var dao           = $getPresideObject( "email_template_send_log" );
 		var updated       = false;
 		var wasFirstClick = updated = dao.updateData(
@@ -459,6 +480,9 @@ component {
 				, activity  = "click"
 				, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
 				, first     = wasFirstClick
+				, userIp    = arguments.ipAddress
+				, userAgent = arguments.userAgent
+				, eventDate = arguments.eventDate
 			);
 		}
 
@@ -704,7 +728,8 @@ component {
 		,          struct  extraData = {}
 		,          string  userIp    = cgi.remote_addr
 		,          string  userAgent = cgi.http_user_agent
-		,          boolean first
+		,          boolean first     = false
+		,          date    eventDate = Now()
 	) {
 		var fieldsToAddFromExtraData = [ "link", "code", "reason", "link_title", "link_body" ];
 		var extra = StructCopy( arguments.extraData );
@@ -713,6 +738,7 @@ component {
 			, activity_type = arguments.activity
 			, user_ip       = arguments.userIp
 			, user_agent    = arguments.userAgent
+			, datecreated   = arguments.eventDate
 		};
 
 		for( var field in extra ) {
