@@ -375,14 +375,16 @@ component {
 		}
 
 		markAsDelivered( arguments.id, true );
-		recordActivity(
-			  messageId = arguments.id
-			, activity  = "open"
-			, first     = ( updated > 0 )
-			, userIp    = arguments.ipAddress
-			, userAgent = arguments.userAgent
-			, eventDate = arguments.eventDate
-		);
+		if ( !( arguments.softmark && !updated ) ) {
+			recordActivity(
+				  messageId = arguments.id
+				, activity  = "open"
+				, first     = ( updated > 0 )
+				, userIp    = arguments.ipAddress
+				, userAgent = arguments.userAgent
+				, eventDate = arguments.eventDate
+			);
+		}
 	}
 
 	/**
@@ -488,7 +490,7 @@ component {
 			);
 		}
 
-		markAsOpened( id=id, softMark=true );
+		markAsOpened( id=id, softMark=true, userAgent=arguments.userAgent, ipAddress=arguments.ipAddress );
 	}
 
 	/**
