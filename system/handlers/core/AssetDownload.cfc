@@ -12,14 +12,15 @@ component {
 		announceInterception( "preDownloadAsset" );
 
 		var permissionSettings = _getPermissionSettings( argumentCollection=arguments );
-		if ( permissionSettings.restricted ) {
-			_checkDownloadPermissions( argumentCollection=arguments, permissionSettings=permissionSettings );
+		var isTrashed          = IsTrue( rc.isTrashed ?: "" );
+		if ( permissionSettings.restricted || isTrashed ) {
+			_checkDownloadPermissions( argumentCollection=arguments, permissionSettings=permissionSettings, isTrashed=isTrashed );
 		}
 
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
-		var isTrashed         = IsTrue( rc.isTrashed ?: "" );
+
 		var asset             = "";
 		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
 		var passwordProtected = false;
@@ -198,7 +199,7 @@ component {
 		return assetManagerService.getAssetPermissioningSettings( assetId );
 	}
 
-	private void function _checkDownloadPermissions( event, rc, prc, permissionSettings ) {
+	private void function _checkDownloadPermissions( event, rc, prc, permissionSettings, isTrashed ) {
 		var assetId        = rc.assetId       ?: "";
 		var derivativeName = rc.derivativeId  ?: "";
 		var hasPerm        = false;
@@ -212,6 +213,9 @@ component {
 			if ( !hasPerm ) {
 				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}
+			return;
+		} else if ( arguments.isTrashed ) {
+			event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			return;
 		}
 
