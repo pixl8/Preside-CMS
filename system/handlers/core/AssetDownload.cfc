@@ -144,7 +144,7 @@ component {
 				}
 
 				header name="etag" value=etag;
-				if ( permissionSettings.restricted ) {
+				if ( permissionSettings.restricted || isTrashed ) {
 					header name="cache-control" value="private, max-age=#privateCacheAge#";
 				} else {
 					header name="cache-control" value="public, max-age=#publicCacheAge#";
