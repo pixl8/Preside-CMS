@@ -436,7 +436,7 @@ component displayName="Forms service" {
 				renderArgs.append( _getI18nTabOrFieldsetAttributes( fieldset ) );
 				renderArgs.append( arguments.additionalArgs.fieldsets[ fieldset.id ?: "" ] ?: {} );
 
-				if ( Len( Trim( renderArgs.content ) ) || $helpers.isTrue( renderArgs.alwaysShow ?: "" ) ) {
+				if ( Len( Trim( renderArgs.content ) ) || $helpers.isTrue( renderArgs.showIfEmpty ?: "" ) ) {
 					renderedFieldSets.append( coldbox.renderViewlet(
 						  event = ( fieldset.layout ?: arguments.fieldsetLayout )
 						, args  = renderArgs
