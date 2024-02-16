@@ -152,6 +152,7 @@ proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culp
 
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$isFeatureEnabled", true );
+		service.$( "$announceInterception" );
 
 		return service;
 	}
