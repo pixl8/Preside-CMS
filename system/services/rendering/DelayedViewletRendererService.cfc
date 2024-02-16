@@ -36,8 +36,9 @@ component {
 		var dvPattern        = "<!--dv:(.*?)\((#encodedArgsRegex#)\)\(private=(true|false),prePostExempt=(true|false)\)-->";
 		var cb               = $getColdbox();
 		var rendererSvc      = _getContentRendererService();
+		var interceptData    = {};
 
-		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.content, regexPattern=dvPattern, recurse=true, processor=function( captureGroups ){
+		interceptData.renderedContent =_getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.content, regexPattern=dvPattern, recurse=true, processor=function( captureGroups ){
 			var renderedViewlet = cb.renderViewlet(
 				  event         = ( arguments.captureGroups[ 2 ] ?: "" )
 				, args          = _parseArgs( Trim( arguments.captureGroups[ 3 ] ?: "" ) )
@@ -55,6 +56,10 @@ component {
 
 			return "";
 		} );
+
+		$announceInterception( "postRenderDelayedViewlets", interceptData );
+
+		return interceptData.renderedContent ?: "";
 	}
 
 	/**

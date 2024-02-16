@@ -438,10 +438,12 @@ component displayName="Forms service" {
 				renderArgs.append( _getI18nTabOrFieldsetAttributes( fieldset ) );
 				renderArgs.append( arguments.additionalArgs.fieldsets[ fieldset.id ?: "" ] ?: {} );
 
-				renderedFieldSets.append( coldbox.renderViewlet(
-					  event = ( fieldset.layout ?: arguments.fieldsetLayout )
-					, args  = renderArgs
-				) );
+				if ( Len( Trim( renderArgs.content ) ) || $helpers.isTrue( renderArgs.showIfEmpty ?: "" ) ) {
+					renderedFieldSets.append( coldbox.renderViewlet(
+						  event = ( fieldset.layout ?: arguments.fieldsetLayout )
+						, args  = renderArgs
+					) );
+				}
 			}
 
 			renderArgs         = Duplicate( tab );
