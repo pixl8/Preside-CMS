@@ -141,7 +141,9 @@
 			<cfelseif prc.adminToolbarDisplayMode eq "reveal">
 				var revealButton = document.querySelector( "##presideAdminToolbarReveal" );
 
-				revealButton.addEventListener( "click", function(){
+				revealButton.addEventListener( "click", function( event ){
+					event.preventDefault();
+					event.stopPropagation();
 					toolbarElement.classList.toggle( "preside-admin-toolbar-hidden" );
 				} );
 			</cfif>
