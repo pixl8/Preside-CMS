@@ -1,7 +1,11 @@
 @import url( 'globals.less' );
 
-html {
-	margin-top : 45px !important;
+:root {
+	--adminToolbarHeight : 45px;
+}
+
+html.admin-toolbar-fixed {
+	margin-top : var( --adminToolbarHeight ) !important;
 }
 
 .preside-admin-toolbar {
@@ -14,6 +18,8 @@ html {
 	color            : white;
 	background-color : @preside-bar-background-colour;
 	padding          : 0 10px;
+	opacity          : 1;
+	transition       : opacity 300ms ease;
 
 	h1 {
 		width       : 210px;
@@ -50,5 +56,33 @@ html {
 
 	.dropdown-menu {
 	    color : @text-color;
+	}
+}
+
+.preside-admin-toolbar-hidden {
+	top     : -100%;
+	opacity : 0;
+}
+#presideAdminToolbarReveal {
+	position            : fixed;
+	top                 : 0;
+	left                : 10px;
+	background-color    : transparent;
+	background-repeat   : no-repeat;
+	background-image    : url( ../../../images/logos/preside-logo-admin-header.png );
+	background-size     : auto;
+	background-position : left center;
+	width               : 37px;
+	height              : 45px;
+	margin              : 0;
+	padding             : 0;
+	border              : none;
+	z-index             : 110;
+	opacity             : 0.4;
+	cursor              : pointer;
+	transition          : opacity 200ms ease-in-out;
+
+	&:hover {
+		opacity : 1;
 	}
 }
