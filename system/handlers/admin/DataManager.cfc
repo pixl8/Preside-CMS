@@ -1382,7 +1382,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
-		var args = arguments;
+		var args = {
+			  objectName = objectName
+			, sortedIds  = ListToArray( rc.ordered ?: "" )
+		};
+
 		if ( customizationService.objectHasCustomization( objectName, "preSortRecordsAction" ) ) {
 			customizationService.runCustomization(
 				  objectName = objectName
@@ -1392,8 +1396,8 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		datamanagerService.saveSortedRecords(
-			  objectName = objectName
-			, sortedIds  = ListToArray( rc.ordered ?: "" )
+			  objectName = args.objectName
+			, sortedIds  = args.sortedIds
 		);
 
 		if ( customizationService.objectHasCustomization( objectName, "postSortRecordsAction" ) ) {
