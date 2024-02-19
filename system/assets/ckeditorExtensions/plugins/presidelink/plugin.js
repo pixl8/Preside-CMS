@@ -504,6 +504,9 @@
 				else if ( href && ( urlMatch = href.match( customRegex ) ) ) {
 					try{
 						retval = $.parseJSON( atob( urlMatch[ 1 ] ) );
+						for ( var r in retval ) {
+							retval[ r ] = decodeURIComponent( retval[ r ] );
+						}
 					} catch( e ){
 						retval = {};
 					}
@@ -550,7 +553,6 @@
 					retval.advName = element.data( 'cke-saved-name' );
 				}
 			}
-
 			return retval;
 		},
 
@@ -654,7 +656,11 @@
 					break;
 
 				default:
-					set[ 'data-cke-saved-href' ] = '{{custom:' + btoa( JSON.stringify( data ) ) + ':custom}}';
+					var safeData = {};
+					for ( var d in data ) {
+						safedata[ d ] = encodeURIComponent( data[ d ] );
+					}
+					set[ 'data-cke-saved-href' ] = '{{custom:' + btoa( JSON.stringify( safeData ) ) + ':custom}}';
 			}
 
 			// Popups and target.
