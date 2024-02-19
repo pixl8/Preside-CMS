@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+System config form: Admin users
+
+This form is used for managing settings for admin users, such as front-end editing options
+-->
+<form i18nBaseUri="system-config.admin-users:">
+	<tab id="default" sortorder="10">
+		<fieldset id="frontend" sortorder="10">
+			<field name="admin_toolbar_mode" control="enumRadioList" enum="adminToolbarModes" default="fixed" required="true" />
+			<field name="disable_quick_edit" control="yesNoSwitch" />
+		</fieldset>
+	</tab>
+</form>

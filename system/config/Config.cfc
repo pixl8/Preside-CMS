@@ -965,6 +965,7 @@ component {
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
 		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
+		settings.enum.adminToolbarModes           = [ "fixed", "reveal", "none" ];
 	}
 
 	private void function __setupFormValidationProviders() {
