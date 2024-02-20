@@ -35,8 +35,7 @@
 		userMenu          = renderView( "/admin/layout/userMenu" );
 		notificationsMenu = renderViewlet( "admin.notifications.notificationNavPromo" );
 		systemAlertsMenu  = renderViewlet( "admin.systemAlerts.systemAlertsMenuItem" );
-
-		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
+		ckEditorJs        = prc.adminQuickEditDisabled ? "" : renderView( "admin/layout/ckeditorjs" );
 
 		toggleLiveContentLink = event.buildAdminLink( linkTo="general.toggleNonLiveContent" );
 		editPageLink          = event.getEditPageLink();
@@ -128,25 +127,27 @@
 		</cfif>
 
 		<script>
-			var htmlElement    = document.querySelector( "html" )
-			  , bodyElement    = document.querySelector( "body" )
-			  , toolbarElement = document.querySelector( ".preside-admin-toolbar" );
+			( function(){
+				var htmlElement    = document.querySelector( "html" )
+				  , bodyElement    = document.querySelector( "body" )
+				  , toolbarElement = document.querySelector( ".preside-admin-toolbar" );
 
-			htmlElement.classList.add( "admin-toolbar-#prc.adminToolbarDisplayMode#" );
+				htmlElement.classList.add( "admin-toolbar-#prc.adminToolbarDisplayMode#" );
 
-			<cfif prc.adminToolbarDisplayMode eq "fixed">
-				[ htmlElement, bodyElement ].forEach( function( el ){
-					el.style.backgroundPositionY = "calc( " + getComputedStyle( el ).backgroundPositionY + " + var( --adminToolbarHeight ) )";
-				} );
-			<cfelseif prc.adminToolbarDisplayMode eq "reveal">
-				var revealButton = document.querySelector( "##presideAdminToolbarReveal" );
+				<cfif prc.adminToolbarDisplayMode eq "fixed">
+					[ htmlElement, bodyElement ].forEach( function( el ){
+						el.style.backgroundPositionY = "calc( " + getComputedStyle( el ).backgroundPositionY + " + var( --adminToolbarHeight ) )";
+					} );
+				<cfelseif prc.adminToolbarDisplayMode eq "reveal">
+					var revealButton = document.querySelector( "##presideAdminToolbarReveal" );
 
-				revealButton.addEventListener( "click", function( event ){
-					event.preventDefault();
-					event.stopPropagation();
-					toolbarElement.classList.toggle( "preside-admin-toolbar-hidden" );
-				} );
-			</cfif>
+					revealButton.addEventListener( "click", function( event ){
+						event.preventDefault();
+						event.stopPropagation();
+						toolbarElement.classList.toggle( "preside-admin-toolbar-hidden" );
+					} );
+				</cfif>
+			} )();
 		</script>
 
 		#ckEditorJs#
