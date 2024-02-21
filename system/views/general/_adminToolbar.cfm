@@ -139,13 +139,21 @@
 						el.style.backgroundPositionY = "calc( " + getComputedStyle( el ).backgroundPositionY + " + var( --adminToolbarHeight ) )";
 					} );
 				<cfelseif prc.adminToolbarDisplayMode eq "reveal">
-					var revealButton = document.querySelector( "##presideAdminToolbarReveal" );
+					var revealButton = document.querySelector( "##presideAdminToolbarReveal" )
+					  , toolbarTimeout;
 
 					revealButton.addEventListener( "click", function( event ){
 						event.preventDefault();
 						event.stopPropagation();
-						toolbarElement.classList.toggle( "preside-admin-toolbar-hidden" );
+						toolbarElement.classList.remove( "fade-out", "preside-admin-toolbar-hidden" );
+						toolbarElement.classList.add( "fade-in" );
+
+						toolbarTimeout = setTimeout( function() {
+							toolbarElement.classList.add( "fade-out" );
+							toolbarElement.classList.remove( "fade-in" );
+						}, 7500 );
 					} );
+
 				</cfif>
 			} )();
 		</script>

@@ -19,7 +19,6 @@ html.admin-toolbar-fixed {
 	background-color : @preside-bar-background-colour;
 	padding          : 0 10px;
 	opacity          : 1;
-	transition       : opacity 300ms ease;
 
 	h1 {
 		width       : 210px;
@@ -58,12 +57,19 @@ html.admin-toolbar-fixed {
 	.dropdown-menu {
 	    color : @text-color;
 	}
+
+	&.fade-in {
+		animation : toolbar-fade-in 300ms ease-in forwards;
+	}
+	&.fade-out:not( :focus-within, :hover ) {
+		animation : toolbar-fade-out 300ms ease-out forwards;
+	}
+	&-hidden:not( :focus-within, :hover ) {
+		top       : -100%;
+		opacity   : 0;
+	}
 }
 
-.preside-admin-toolbar-hidden {
-	top     : -100%;
-	opacity : 0;
-}
 #presideAdminToolbarReveal {
 	position            : fixed;
 	top                 : 0;
@@ -78,7 +84,7 @@ html.admin-toolbar-fixed {
 	margin              : 0;
 	padding             : 0;
 	border              : none;
-	z-index             : 110;
+	z-index             : 102;
 	opacity             : 0.4;
 	cursor              : pointer;
 	transition          : opacity 200ms ease-in-out;
@@ -86,4 +92,31 @@ html.admin-toolbar-fixed {
 	&:hover {
 		opacity : 1;
 	}
+}
+
+@keyframes toolbar-fade-in {
+  0% {
+	opacity : 0;
+	top     : -100%;
+  }
+  1% {
+	top : 0;
+  }
+  100% {
+    opacity : 1;
+  }
+}
+
+@keyframes toolbar-fade-out {
+	0% {
+		opacity : 1;
+		top     : 0;
+	}
+	99% {
+		opacity : 0;
+		top     : 0;
+	}
+	100% {
+		top : -100%;
+}
 }
