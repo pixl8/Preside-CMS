@@ -893,6 +893,19 @@
 			} else {
 				for( _i=0; _i<_data.length; _i++ ){ _addOption( _data[ _i ] ); }
 			}
+
+			var hiddenFieldValues = uberSelect.hidden_field.val();
+			if ( hiddenFieldValues.length ) {
+				hiddenFieldValues = hiddenFieldValues.split( "," ).filter(Boolean);
+
+				if ( _ref.length != hiddenFieldValues.length ) {
+					for ( var _i=0; _i<_ref.length; _i++ ) {
+						if ( !hiddenFieldValues.includes( _ref[ _i ] ) ) {
+							_addOption( uberSelect.get_option_by_value( _ref[ _i ] ) );
+						}
+					}
+				}
+			}
 		};
 
 		UberSelect.prototype.render_suggestions = function( suggestions ){
