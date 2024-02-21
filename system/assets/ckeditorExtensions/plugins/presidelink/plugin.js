@@ -504,8 +504,10 @@
 				else if ( href && ( urlMatch = href.match( customRegex ) ) ) {
 					try{
 						retval = $.parseJSON( atob( urlMatch[ 1 ] ) );
-						for ( var r in retval ) {
-							retval[ r ] = decodeURIComponent( retval[ r ] );
+						if ( retval.hasOwnProperty( "v" ) ) {
+							for ( var r in retval ) {
+								retval[ r ] = decodeURIComponent( retval[ r ] );
+							}
 						}
 					} catch( e ){
 						retval = {};
@@ -658,8 +660,9 @@
 				default:
 					var safeData = {};
 					for ( var d in data ) {
-						safedata[ d ] = encodeURIComponent( data[ d ] );
+						safeData[ d ] = encodeURIComponent( data[ d ] );
 					}
+					safeData [ "v" ] = 2; // flag for backwards compat for older content
 					set[ 'data-cke-saved-href' ] = '{{custom:' + btoa( JSON.stringify( safeData ) ) + ':custom}}';
 			}
 
