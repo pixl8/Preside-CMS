@@ -42,6 +42,9 @@
 	</cfscript>
 
 	<cfoutput>
+		<cfif prc.adminToolbarDisplayMode eq "reveal">
+			<button id="presideAdminToolbarReveal" aria-label="#translateResource( "cms:admintoolbar.toggle" )#"></button>
+		</cfif>
 		<div class="presidecms preside-admin-toolbar <cfif prc.adminToolbarDisplayMode eq "reveal">preside-admin-toolbar-hidden</cfif>">
 			<div class="preside-theme">
 				<div class="navbar navbar-default" id="preside-admin-toolbar">
@@ -122,9 +125,6 @@
 				</div>
 			</div>
 		</div>
-		<cfif prc.adminToolbarDisplayMode eq "reveal">
-			<button id="presideAdminToolbarReveal" aria-label="#translateResource( "cms:admintoolbar.toggle" )#"></button>
-		</cfif>
 
 		<script>
 			( function(){
