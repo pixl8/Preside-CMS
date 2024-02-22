@@ -24,10 +24,12 @@ component {
 		var filterBy      = args.filterBy      ?: "";
 		var filterByField = args.filterByField ?: filterBy;
 
-		args.childPage   = args.childPage ?: "";
-		args.multiple    = args.multiple ?: ( ( args.relationship ?: "" ) == "many-to-many" );
-		args.prefetchUrl = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="childPage=#args.childPage#&prefetchCacheBuster=#args.childPage##prefetchCacheBuster#&filterBy=#filterBy#&filterByField=#filterByField#" );
-		args.remoteUrl   = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="childPage=#args.childPage#&q=%QUERY&filterBy=#filterBy#&filterByField=#filterByField#" );
+		args.maxRows      = Val( args.maxRows ?: 200 );
+		args.defaultValue = args.defaultValue ?: "";
+		args.childPage    = args.childPage    ?: "";
+		args.multiple     = args.multiple     ?: ( ( args.relationship ?: "" ) == "many-to-many" );
+		args.prefetchUrl  = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="childPage=#args.childPage#&values=#args.defaultValue#&prefetchCacheBuster=#args.childPage##Hash( args.defaultValue )##prefetchCacheBuster#&filterBy=#filterBy#&filterByField=#filterByField#maxRows=#args.maxRows#" );
+		args.remoteUrl    = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="childPage=#args.childPage#&q=%QUERY&filterBy=#filterBy#&filterByField=#filterByField#&maxRows=#args.maxRows#" );
 
 		if ( !Len( Trim( args.placeholder ?: "" ) ) ) {
 			args.placeholder = translateResource(
