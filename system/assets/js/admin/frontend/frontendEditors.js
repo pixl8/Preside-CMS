@@ -10,10 +10,6 @@
 	  , setEditMode
 	  , togglePageEditMode;
 
-	$( "html,body" ).css( "background-position-y", function(){
-		return "calc( " + $( this ).css( "background-position-y" ) + " + 45px )";
-	} );
-
 	setEditorSizesAndPosition = function(){
 		$editors.each( function(){
 			var $editor           = $( this ).data( "presideeditor" )
