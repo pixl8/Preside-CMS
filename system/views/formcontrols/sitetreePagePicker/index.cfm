@@ -4,6 +4,7 @@
 	inputClass         = args.class        ?: "";
 	placeholder        = args.placeholder  ?: "";
 	defaultValue       = args.defaultValue ?: "";
+	maxRows            = args.maxRows      ?: 200;
 	remoteUrl          = args.remoteUrl    ?: "";
 	prefetchUrl        = args.prefetchUrl  ?: "";
 	sortable           = args.sortable     ?: "";
@@ -34,6 +35,7 @@
 	        data-placeholder="#placeholder#"
 	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 	        data-value="#value#"
+	        data-display-limit="#Val( maxRows )#"
 	        data-prefetch-url="#prefetchUrl#"
 	        data-remote-url="#remoteUrl#"
 	    	data-result-template="#resultTemplateId#"
