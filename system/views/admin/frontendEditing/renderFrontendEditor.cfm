@@ -6,8 +6,8 @@
 		prc.hasCmsSaveDraftPermissions = prc.hasCmsSaveDraftPermissions ?: hasCmsPermission( permissionKey="sitetree.saveDraft", context="page", contextKeys=event.getPagePermissionContext() );
 		prc.hasCmsPublishPermissions   = prc.hasCmsPublishPermissions   ?: hasCmsPermission( permissionKey="sitetree.publish", context="page", contextKeys=event.getPagePermissionContext() );
 		prc.hasCmsPageEditPermissions  = prc.hasCmsPageEditPermissions  ?: ( prc.hasCmsSaveDraftPermissions || prc.hasCmsPublishPermissions ) && hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
-		prc.adminToolbarDisplayMode    = prc.adminToolbarDisplayMode    ?: getSystemSetting( "admin-users", "admin_toolbar_mode", "fixed" );
-		prc.adminQuickEditDisabled     = prc.adminQuickEditDisabled     ?: isTrue( getSystemSetting( "admin-users", "disable_quick_edit" ) );
+		prc.adminToolbarDisplayMode    = prc.adminToolbarDisplayMode    ?: getSystemSetting( "frontend-editing", "admin_toolbar_mode", "fixed" );
+		prc.adminQuickEditDisabled     = prc.adminQuickEditDisabled     ?: isTrue( getSystemSetting( "frontend-editing", "disable_quick_edit" ) );
 	}
 </cfscript>
 
