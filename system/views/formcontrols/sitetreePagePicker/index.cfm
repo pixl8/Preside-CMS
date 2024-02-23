@@ -42,7 +42,7 @@
 			data-placeholder="#placeholder#"
 			data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 			data-value="#value#"
-			data-display-limit="Val( maxRows )"
+			data-display-limit="#Val( maxRows )#"
 			data-prefetch-url="#prefetchUrl#"
 			data-remote-url="#remoteUrl#"
 			data-result-template="#resultTemplateId#"
