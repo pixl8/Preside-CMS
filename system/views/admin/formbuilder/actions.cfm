@@ -5,6 +5,7 @@
 
 <cfoutput>
 	#renderViewlet( event="admin.formbuilder.statusControls", args=QueryRowToStruct( theForm ) )#
+	#renderViewlet( event="admin.formbuilder.removalAlert", args=QueryRowToStruct( theForm ) )#
 
 	<div class="tabbable">
 		#renderViewlet( event="admin.formbuilder.managementTabs", args={ activeTab="actions" } )#

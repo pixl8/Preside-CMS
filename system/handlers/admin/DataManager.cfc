@@ -2115,6 +2115,19 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		);
 
+		customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "postDecorateRecordsForGridListing"
+			, args           = {
+				  records         = records
+				, objectName      = arguments.object
+				, gridFields      = getRecordsArgs.gridFields
+				, useMultiActions = arguments.useMultiActions
+				, isMultilingual  = arguments.isMultilingual
+				, draftsEnabled   = arguments.draftsEnabled
+			}
+		);
+
 		if ( arguments.includeActions ) {
 			QueryAddColumn( records, "_options" , optionsCol );
 			ArrayAppend( getRecordsArgs.gridFields, "_options" );

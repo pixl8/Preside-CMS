@@ -10,6 +10,7 @@ component {
 		formControlArgs.layout                  = "";
 		formControlArgs.required                = IsTrue( args.mandatory ?: "" );
 		formControlArgs.multiple                = IsTrue( args.multiple  ?: "" );
+		formControlArgs.includeEmptyOption      = IsTrue( args.includeEmptyOption  ?: "" );
 		formControlArgs.class                   = "form-control";
 		formControlArgs.removeObjectPickerClass = true;
 
@@ -26,7 +27,6 @@ component {
 
 		return renderFormControl( argumentCollection = formControlArgs );
 	}
-
 
 	private string function renderResponse( event, rc, prc, args={} ) {
 		return ArrayToList( _renderResponses( argumentCollection=arguments, useLabel=true ), args.delim ?: "<br>" );
