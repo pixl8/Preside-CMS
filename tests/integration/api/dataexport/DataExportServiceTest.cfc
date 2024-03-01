@@ -253,6 +253,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  objectName    = objectName
 					, attributeName = "dataExportExpandManytoOneFields"
 				).$results( "" );
+				mockPresideObjectService.$( "getObjectAttribute" ).$args(
+					  objectName    = objectName
+					, attributeName = "dataExportDefaultFieldsOrder"
+				).$results( "" );
 				mockPresideObjectService.$( "getObjectProperties" ).$args( objectName ).$results( props );
 				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( uriRoot )
 
