@@ -677,6 +677,23 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
 		prc.pageIcon     = "pencil";
 
+		var args = {
+			  ids          = ids
+			, batchAll     = batchAll
+			, batchSrcArgs = batchSrcArgs
+			, recordCount  = recordCount
+			, object       = objectName
+			, field        = field
+		}
+
+		if ( customizationService.objectHasCustomization( objectName, "preRenderBatchEditRecordsForm" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "preRenderBatchEditRecordsForm"
+				, args       = args
+			);
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectTitle, fieldName ] )
 			, link  = ""
@@ -705,23 +722,36 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=listingView );
 		}
 
+		var args = {
+			  objectName         = objectName
+			, fieldName          = updateField
+			, sourceIds          = sourceIds
+			, batchAll           = batchAll
+			, batchSrcArgs       = batchSrcArgs
+			, value              = rc[ updateField ]      ?: ""
+			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+			, userId             = event.getAdminUserId()
+			, returnUrl          = listingView
+			, resultUrl          = listingView
+		};
+
+		if ( customizationService.objectHasCustomization( objectName, "preBatchEditRecordsInBgThread" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "preBatchEditRecordsInBgThread"
+				, args       = args
+			);
+		}
+
 		var taskId = createTask(
 			  event                = "admin.datamanager.batchEditInBgThread"
 			, runNow               = true
 			, adminOwner           = event.getAdminUserId()
 			, title                = "cms:datamanager.batchedit.task.title"
-			, returnUrl            = event.buildAdminLink( objectName=objectName, operation="listing" )
+			, returnUrl            = args.returnUrl
+			, resultUrl            = args.resultUrl
 			, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
-			, args       = {
-				  objectName         = objectName
-				, fieldName          = updateField
-				, sourceIds          = sourceIds
-				, batchAll           = batchAll
-				, batchSrcArgs        = batchSrcArgs
-				, value              = rc[ updateField ]      ?: ""
-				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
-				, userId             = event.getAdminUserId()
-			}
+			, args                 = args
 		);
 
 		setNextEvent( url=event.buildAdminLink(
