@@ -681,6 +681,7 @@ component {
 			, presideobject          = {
 				  security_user  = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
+				, system_alert   = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
 				, page           = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
 				, site           = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
 				, asset          = [ "navigate", "read", "add", "edit", "delete", "viewversions" ]
@@ -697,7 +698,7 @@ component {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*", "formbuilder.*", "formquestions.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.system_alert.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*", "formbuilder.*", "formquestions.*" ];
 		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "formquestions.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "emailCenter.*", "!emailCenter.queue.*" ];
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*", "formquestions.*" ];
