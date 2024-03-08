@@ -32,7 +32,6 @@ component displayName="RulesEngine Expression Service" {
 		_setAutoExpressionGenerator( arguments.autoExpressionGenerator );
 		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) );
 		_setI18n( i18n );
-		_setRulesEngineExpressionCache( {} );
 
 		return this;
 	}
@@ -53,13 +52,6 @@ component displayName="RulesEngine Expression Service" {
 		, string excludeTags  = ""
 		, array  userRoles    = _getAdminUserRoles()
 	) {
-		var cache    = _getRulesEngineExpressionCache();
-		var cachekey = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context & "_" & arguments.excludeTags & "_" & hash( serializeJSON( arguments.userRoles ) );
-
-		if ( StructKeyExists( cache, cacheKey ) ) {
-			return cache[ cacheKey ];
-		}
-
 		_lazyLoadDynamicExpressions( argumentCollection=arguments );
 
 		var allExpressions       = _getExpressions();
@@ -130,8 +122,6 @@ component displayName="RulesEngine Expression Service" {
 			}
 			return aCategory > bCategory ? 1 : -1;
 		} );
-
-		cache[ cacheKey ] = list;
 
 		return list;
 	}
@@ -558,13 +548,6 @@ component displayName="RulesEngine Expression Service" {
 		  required string objectName
 		,          string structKeyPreffix = ""
 	) {
-		var cache    = _getRulesEngineExpressionCache();
-		var cachekey = "autoExpressionRoleLimits" & "_" & arguments.structKeyPreffix & "_" & arguments.objectName;
-
-		if ( StructKeyExists( cache, cacheKey ) ) {
-			return cache[ cacheKey ];
-		}
-
 		var roleLimit  = {};
 		var properties = $getPresideObjectService().getObjectProperties( arguments.objectName );
 
@@ -589,7 +572,6 @@ component displayName="RulesEngine Expression Service" {
 			}
 		}
 
-		cache[ cacheKey ] = roleLimit;
 		return roleLimit;
 	}
 
@@ -675,13 +657,6 @@ component displayName="RulesEngine Expression Service" {
 	}
 	private void function _setContextService( required any contextService ) {
 		_contextService = arguments.contextService;
-	}
-
-	private struct function _getRulesEngineExpressionCache() {
-		return _rulesEngineExpressionCache;
-	}
-	private void function _setRulesEngineExpressionCache( required struct rulesEngineExpressionCache ) {
-		_rulesEngineExpressionCache = arguments.rulesEngineExpressionCache;
 	}
 
 	private any function _getI18n() {
