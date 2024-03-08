@@ -216,7 +216,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		) );
 
 		mockColdbox = createEmptyMock( "preside.system.coldboxModifications.Controller" );
+		mockRequestContext = createStub();
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$getRequestContext", mockRequestContext );
+
+		mockRequestContext.$( "isEmailRenderingContext", false );
+		mockRequestContext.$( "isBackgroundThread"     , true  );
 
 		return service;
 	}
