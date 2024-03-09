@@ -278,6 +278,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var object  = "usergroup";
 				var expressionIds = mockExpressions.keyArray();
 
+				service.$( "getObjectFieldsExpressionRoleLimits", {} );
+
 				for( var id in expressionIds ){
 					service.$( "getExpression" ).$args( expressionId=id, objectName=object ).$results(
 						{ id=id, label=id, text=id, fields={}, contexts=mockExpressions[id].contexts }
