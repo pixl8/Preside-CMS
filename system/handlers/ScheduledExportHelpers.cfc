@@ -1,9 +1,10 @@
 component {
-	property name="dataManagerService"       inject="DataManagerService";
-	property name="scheduledExportService"   inject="ScheduledExportService";
-	property name="dataExportService"        inject="DataExportService";
-	property name="rulesEngineFilterService" inject="RulesEngineFilterService";
-	property name="exportStorageProvider"    inject="ScheduledExportStorageProvider";
+	property name="dataManagerService"        inject="DataManagerService";
+	property name="scheduledExportService"    inject="ScheduledExportService";
+	property name="dataExportService"         inject="DataExportService";
+	property name="rulesEngineFilterService"  inject="RulesEngineFilterService";
+	property name="exportStorageProvider"     inject="ScheduledExportStorageProvider";
+	property name="dataExportTemplateService" inject="dataExportTemplateService";
 
 	private boolean function runScheduledExport( event, rc, prc, args={} ) {
 		var historyId = args.historyExportId   ?: "";
@@ -28,6 +29,7 @@ component {
 					, exportTemplate     = savedExportDetail.template
 					, templateConfig     = IsJson( savedExportDetail.template_config ) ? DeSerializeJson( savedExportDetail.template_config ) : {}
 					, historyExportId    = historyId
+					, expandNestedFields = dataExportTemplateService.templateMethodExists( savedExportDetail.template, "getSelectFields" ) ? false : true
 				};
 
 				try {

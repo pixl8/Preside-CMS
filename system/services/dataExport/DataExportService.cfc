@@ -389,21 +389,27 @@ component {
 		if ( !exportFields.len() ) {
 			var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
 			var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
+			var defaultFieldsOrder          = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultFieldsOrder" );
 			var defaultExpandManyToOneField = false;
 			var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
 			    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? objectAllowExpandFields : defaultExpandManyToOneField;
 
 			var objectProperties = poService.getObjectProperties( arguments.objectName );
-			var propertyNames    = poService.getObjectAttribute(
-				  objectName    = arguments.objectName
-				, attributeName = "propertyNames"
-			);
+			var propertyNames    = StructKeyArray( objectProperties );
+
+			if ( ListLen( defaultFieldsOrder ) ) {
+				propertyNames = ListToArray( ListRemoveDuplicates( ListAppend( defaultFieldsOrder, ArrayToList( propertyNames ) ) ) );
+			}
 
 			if ( !ArrayLen( defaultExcludeFields ) ) {
 				defaultExcludeFields = defaults.excludeFields ?: [];
 			}
 
 			for( var propId in propertyNames ) {
+				if ( !StructKeyExists( objectProperties, propId ) ) {
+					continue;
+				}
+
 				var prop = objectProperties[ propId ];
 
 				if ( ArrayFindNoCase( defaultExcludeFields, propId ) || ( IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) ) {
@@ -488,9 +494,11 @@ component {
 		var poService = $getPresideObjectService();
 		var fields    = [];
 		var props     = poService.getObjectProperties( arguments.objectName );
+		var propNames = StructKeyArray( props );
 
 		var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
 		var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
+		var defaultFieldsOrder          = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultFieldsOrder" );
 		var defaultExportConfig         = _getDefaultDataExportSettings();
 		var defaultExpandManyToOneField = false;
 		var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
@@ -500,7 +508,15 @@ component {
 			defaultExcludeFields = defaultExportConfig.excludeFields ?: [];
 		}
 
-		for ( var prop in props ) {
+		if ( ListLen( defaultFieldsOrder ) ) {
+			propNames = ListToArray( ListRemoveDuplicates( ListAppend( defaultFieldsOrder, ArrayToList( propNames ) ) ) );
+		}
+
+		for ( var prop in propNames ) {
+			if ( !StructKeyExists( props, prop ) ) {
+				continue;
+			}
+
 			var shouldInclude = !ArrayFindNoCase( defaultExcludeFields, prop ) && !$helpers.isTrue( props[ prop ].excludeDataExport ?: "" );
 			if ( ArrayLen( defaultIncludeFields ) ) {
 				shouldInclude = shouldInclude && ArrayFindNoCase( shouldInclude, prop );
