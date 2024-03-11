@@ -209,7 +209,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service    = _getService();
 				var objectName = "my_object";
 				var uriRoot    = "blah.blah.#CreateUUId()#:";
-				var props      = {
+				var props      = StructNew( 'linked' );
+				var allProps   = {
 					  id              = { type="string", dbtype="varchar", maxlength=35 }
 					, datecreated     = { type="date" }
 					, longtext        = { type="string", dbtype="text" }
@@ -236,6 +237,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, manyToOneField = "Many to one" & CreateUUId()
 				};
 
+				for ( var prop in propNames ) {
+					props[ prop ] = allProps[ prop ];
+				}
+
 				mockPresideObjectService.$( "getObjectAttribute" ).$args(
 					  objectName    = objectName
 					, attributeName = "dataExportFields"
@@ -247,6 +252,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockPresideObjectService.$( "getObjectAttribute" ).$args(
 					  objectName    = objectName
 					, attributeName = "dataExportExpandManytoOneFields"
+				).$results( "" );
+				mockPresideObjectService.$( "getObjectAttribute" ).$args(
+					  objectName    = objectName
+					, attributeName = "dataExportDefaultFieldsOrder"
 				).$results( "" );
 				mockPresideObjectService.$( "getObjectProperties" ).$args( objectName ).$results( props );
 				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( uriRoot )
