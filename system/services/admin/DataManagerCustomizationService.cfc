@@ -103,6 +103,7 @@ component {
 		,          string defaultHandler = ""
 		,          any    defaultResult
 	) {
+
 		var event = "";
 
 		if ( arguments.objectName.len() ) {
@@ -115,8 +116,14 @@ component {
 			event = defaultHandler;
 		}
 
+		var interceptionArgs = arguments;
+
+		interceptionArgs.event = event;
+
+		$announceInterception( "preRunCustomization", interceptionArgs );
+
 		if ( Len( Trim( event ) ) ) {
-			return $getColdbox().runEvent(
+			interceptionArgs.result = $getColdbox().runEvent(
 				  event          = event
 				, private        = true
 				, prePostExempt  = true
@@ -125,7 +132,13 @@ component {
 		}
 
 		if ( StructKeyExists( arguments, "defaultResult" ) ) {
-			return arguments.defaultResult;
+			interceptionArgs.result = arguments.defaultResult;
+		}
+
+		$announceInterception( "postRunCustomization", interceptionArgs );
+
+		if ( StructKeyExists( interceptionArgs, "result" ) ) {
+			return interceptionArgs.result;
 		}
 	}
 
