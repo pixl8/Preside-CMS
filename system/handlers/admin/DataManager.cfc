@@ -1362,10 +1362,31 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
-		datamanagerService.saveSortedRecords(
+		var args = {
 			  objectName = objectName
 			, sortedIds  = ListToArray( rc.ordered ?: "" )
+		};
+
+		if ( customizationService.objectHasCustomization( objectName, "preSortRecordsAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "preSortRecordsAction"
+				, args       = args
+			);
+		}
+
+		datamanagerService.saveSortedRecords(
+			  objectName = args.objectName
+			, sortedIds  = args.sortedIds
 		);
+
+		if ( customizationService.objectHasCustomization( objectName, "postSortRecordsAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "postSortRecordsAction"
+				, args       = args
+			);
+		}
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ objectTitle  ] ) );
 		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
