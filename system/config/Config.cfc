@@ -290,6 +290,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preRenderDataManagerObjectTabs"        );
 		interceptorSettings.customInterceptionPoints.append( "postPrepareDevToolsVersions"           );
 		interceptorSettings.customInterceptionPoints.append( "postRenderDelayedViewlets"             );
+		interceptorSettings.customInterceptionPoints.append( "preRunCustomization"                   );
+		interceptorSettings.customInterceptionPoints.append( "postRunCustomization"                  );
 	}
 
 	private void function __setupCachebox() {
