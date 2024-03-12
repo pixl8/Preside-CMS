@@ -39,7 +39,7 @@ component {
 
 	public string function build( required struct buildArgs, required any event ) {
 		var ruleContext = buildArgs.conditionExpressionsContext ?: "";
-		var path   = "/#i18n.getFwLocale()#/#ruleContext#/#variables._applicationCacheBuster#/";
+		var path   = "/#i18n.getFwLocale()#/#ruleContext#/#LCase( Hash( variables._applicationCacheBuster & event.getAdminUserId() ) )#/";
 
 		if ( Len( Trim( buildArgs.excludeTags ?: "" ) ) ) {
 			path &= "?excludeTags=#Trim( buildArgs.excludeTags )#";
