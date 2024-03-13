@@ -1074,7 +1074,8 @@ component {
 			return;
 		}
 
-		if ( arguments.activity == "honeypotclick" ) {
+		var ignoredActivities = [ "honeypotclick", "resend" ];
+		if ( ArrayFind( ignoredActivities, arguments.activity ) ) {
 			return;
 		}
 
