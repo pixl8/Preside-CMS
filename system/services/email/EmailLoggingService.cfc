@@ -1074,7 +1074,8 @@ component {
 			return;
 		}
 
-		if ( arguments.activity == "honeypotclick" ) {
+		var ignoredActivities = [ "honeypotclick", "resend" ];
+		if ( ArrayFind( ignoredActivities, arguments.activity ) ) {
 			return;
 		}
 
@@ -1103,7 +1104,6 @@ component {
 		switch( arguments.activity ) {
 			case "deliver": return "delivery";
 			case "markasspam": return "spam";
-			case "resend": return "send";
 		}
 
 		return arguments.activity;
