@@ -1103,6 +1103,7 @@ component {
 		switch( arguments.activity ) {
 			case "deliver": return "delivery";
 			case "markasspam": return "spam";
+			case "resend": return "send";
 		}
 
 		return arguments.activity;
