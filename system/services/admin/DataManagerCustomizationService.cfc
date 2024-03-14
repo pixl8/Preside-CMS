@@ -129,9 +129,7 @@ component {
 				, prePostExempt  = true
 				, eventArguments = { args=arguments.args }
 			);
-		}
-
-		if ( StructKeyExists( arguments, "defaultResult" ) ) {
+		} else if ( StructKeyExists( arguments, "defaultResult" ) ) {
 			interceptionArgs.result = arguments.defaultResult;
 		}
 
