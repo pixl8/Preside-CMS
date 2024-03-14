@@ -1151,7 +1151,7 @@ component {
 			, delivered = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="delivered_date"                              , extraFilters=[ { filter={ email_template=arguments.templateId, delivered=true } } ] )
 			, failed    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="failed_date"                                 , extraFilters=[ { filter={ email_template=arguments.templateId, failed=true    } } ] )
 			, opened    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="opened_date"                                 , extraFilters=[ { filter={ email_template=arguments.templateId, opened=true    } } ] )
-			, clicks    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="email_template_send_log_activity.datecreated", extraFilters=[ { filter={ "message.email_template"=arguments.templateId       } } ], sourceObject="email_template_send_log_activity" )
+			, clicks    = timeSeriesUtils.getTimeSeriesData( argumentCollection=commonArgs, timeField="email_template_send_log_activity.datecreated", extraFilters=[ { filter={ "message.email_template"=arguments.templateId, activity_type="click"  } } ], sourceObject="email_template_send_log_activity" )
 			, dates     = dates
 		};
 
