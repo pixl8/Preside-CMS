@@ -1385,13 +1385,12 @@ component extends="preside.system.base.AdminHandler" {
 		var pageTitle = EncodeForHTML( prc.page.title ?: "" );
 
 		var rendered = "";
-
-		var actions = [];
+		var actions  = [];
 		var children = [];
 
 		ArrayAppend( actions, {
-			  title     = translateResource( "cms:sitetree.back.to.tree.link" )
-			, link      = event.buildAdminLink( linkto="sitetree", querystring="selected=#pageId#" )
+			  title     = prc.backToTreeTitle ?: ""
+			, link      = prc.backToTreeLink  ?: ""
 			, iconClass = "fa-reply"
 		} );
 
