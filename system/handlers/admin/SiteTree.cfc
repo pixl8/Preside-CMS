@@ -55,6 +55,8 @@ component extends="preside.system.base.AdminHandler" {
 		] );
 
 		prc.trashCount = siteTreeService.getTrashCount();
+
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTree( argumentCollection=arguments ) );
 	}
 
 	private void function _siteTree( event, rc, prc ) {
@@ -369,7 +371,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : pageType.getPresideObject() ), id );
 		}
 
-		_pageTopRightButtons( argumentCollection=arguments );
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTreePage( argumentCollection=arguments ) );
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 	}
@@ -1256,143 +1258,59 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( "sitetree" ) );
 	}
 
-<!--- private viewlets --->
-	private string function searchBox( event, rc, prc, args={} ) {
-		var prefetchCacheBuster = datamanagerService.getPrefetchCachebusterForAjaxSelect( "page" );
+	private array function getTopRightButtonsForSiteTree( event, rc, prc ) {
+		var site = event.getSite();
 
-		args.prefetchUrl = event.buildAdminLink( linkTo="sitetree.ajaxSearch", querystring="maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#" );
-		args.remoteUrl   = event.buildAdminLink( linkTo="sitetree.ajaxSearch", querystring="q=%QUERY" );
-
-		return renderView( view="/admin/sitetree/_searchBox", args=args );
-	}
-
-<!--- private helpers --->
-	private boolean function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree.", boolean throwOnError=true ) {
-		var permitted = "";
-		var permKey   = arguments.prefix & arguments.key;
-
-		if ( Len( Trim( arguments.pageId ) ) ) {
-			permitted = hasCmsPermission( permissionKey=permKey, context="page", contextKeys=_getPagePermissionContext( argumentCollection=arguments ) );
-
-		} else {
-			permitted = hasCmsPermission( permissionKey=permKey );
-		}
-
-		if ( arguments.throwOnError && !permitted ) {
-			event.adminAccessDenied();
-		}
-
-		return permitted;
-	}
-
-	private string function _getPageTypeFormName( required any pageType, required string action ) {
-		var specificForm = "";
-		var defaultForm  = pageType.getDefaultForm();
-
-		switch( arguments.action ) {
-			case "add"      : specificForm = pageType.getAddForm(); break;
-			case "edit"     : specificForm = pageType.getEditForm(); break;
-			case "translate": specificForm = pageType.getTranslateForm(); break;
-			case "clone"    : specificForm = pageType.getCloneForm(); break;
-			default: return "";
-		}
-
-		if ( formsService.formExists( specificForm ) ) {
-			return specificForm;
-		}
-		return formsService.formExists( defaultForm ) ? defaultForm : "";
-	}
-
-	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false, setVersion=true ) {
-		var pageId  = arguments.pageId        ?: ( rc.id ?: "" );
-		var version = arguments.allowVersions ? ( rc.version ?: versioningService.getLatestVersionNumber( "page", pageId ) ) : 0;
-		var page    = siteTreeService.getPage(
-			  id              = pageId
-			, version         = Val( version )
-			, includeInactive = true
-			, includeTrash    = arguments.includeTrash
-			, allowDrafts     = true
-			, useCache        = false
-		);
-
-		if ( !page.recordCount ) {
-			messageBox.error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
-
-		if ( arguments.setVersion ) {
-			rc.version = rc.version ?: version;
-		}
-
-		return page;
-	}
-
-	private array function _getPagePermissionContext( event, rc, prc, pageId, includePageId=true ) {
-		var pageId   = arguments.pageId ?: ( rc.id ?: "" );
-		var cacheKey = "pagePermissionContext";
-
-		if ( StructKeyExists( prc, cacheKey ) ) {
-			return prc[ cacheKey ];
-		}
-
-		var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
-		var context   = ancestors.recordCount ? ListToArray( ValueList( ancestors.id ) ) : [];
-		var reversed  = [];
-
-		if ( arguments.includePageId ) {
-			context.append( pageId );
-		}
-
-		for( var i=context.len(); i>0; i-- ){
-			reversed.append( context[i] );
-		}
-
-		prc[ cacheKey ] = reversed;
-
-		return reversed;
-	}
-
-	private boolean function _isManagedPage( required string parentId, required string pageType ) {
-		var parent = siteTreeService.getPage( id=parentId, selectFields=[ "page_type" ] );
-
-		if ( !parent.recordCount ) {
-			return false;
-		}
-
-		var managedTypesForParent = pageTypesService.getPageType( parent.page_type ).getManagedChildTypes();
-
-		return managedTypesForParent.len() && ListFindNoCase( managedTypesForParent, arguments.pageType );
-	}
-
-	private void function _pageCrumbtrail( event, rc, prc, pageId, pageTitle ) {
-		var ancestors = sitetreeService.getAncestors( id=arguments.pageId, selectFields=[ "id", "title" ] );
-
-		for( var ancestor in ancestors ) {
-			event.addAdminBreadCrumb(
-				  title = ancestor.title
-				, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & ancestor.id )
-			);
-		}
-
-		event.addAdminBreadCrumb(
-			  title = arguments.pageTitle
-			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & arguments.pageId )
-		);
-	}
-
-	private void function _pageTopRightButtons( event, rc, prc, pageId, pageTitle ) {
-		var pageId    = prc.page.id ?: "";
-		var pageTitle = EncodeForHTML( prc.page.title ?: "" );
-
-		var rendered = "";
 		var actions  = [];
 		var children = [];
 
-		ArrayAppend( actions, {
-			  title     = prc.backToTreeTitle ?: ""
-			, link      = prc.backToTreeLink  ?: ""
-			, iconClass = "fa-reply"
-		} );
+		if ( hasCmsPermission( permissionKey="sites.manage" ) ) {
+			ArrayAppend( children, {
+				  title = translateResource( "cms:sitetree.edit.site.settings.btn" )
+				, link  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=#site.id#" )
+				, icon  = "fa-cogs"
+			} );
+		}
+
+		if ( isFeatureEnabled( "fullPageCaching" ) && hasCmsPermission( permissionkey="sitetree.clearcaches" ) ) {
+			if ( ArrayLen( children ) ) {
+				ArrayAppend( children, "---" );
+			}
+
+			ArrayAppend( children, {
+				  title  = translateResource( "cms:sitetree.flush.cache.btn" )
+				, link   = event.buildAdminLink( linkTo="sitetree.clearPageCacheAction" )
+				, icon   = "fa-refresh red"
+				, prompt = translateResource( "cms:sitetree.flush.cache.prompt" )
+			} );
+		}
+
+		if ( ArrayLen( children )) {
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )
+				, btnClass  = "btn-primary-default"
+				, iconClass = "fa-cog"
+				, children  = children
+			} );
+		}
+
+		return actions;
+	}
+
+	private array function getTopRightButtonsForSiteTreePage( event, rc, prc ) {
+		var pageId    = prc.page.id ?: "";
+		var pageTitle = EncodeForHTML( prc.page.title ?: "" );
+
+		var actions  = [];
+		var children = [];
+
+		if ( !isEmptyString( prc.backToTreeLink ?: "" ) ) {
+			ArrayAppend( actions, {
+				  title     = prc.backToTreeTitle ?: ""
+				, link      = prc.backToTreeLink
+				, iconClass = "fa-reply"
+			} );
+		}
 
 		ArrayAppend( actions, {
 			  title     = translateResource( "cms:sitetree.preview.page.btn" )
@@ -1530,9 +1448,139 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
-		actions = ArrayReverse( actions );
+		return actions;
+	}
 
-		for( var action in actions ) {
+<!--- private viewlets --->
+	private string function searchBox( event, rc, prc, args={} ) {
+		var prefetchCacheBuster = datamanagerService.getPrefetchCachebusterForAjaxSelect( "page" );
+
+		args.prefetchUrl = event.buildAdminLink( linkTo="sitetree.ajaxSearch", querystring="maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#" );
+		args.remoteUrl   = event.buildAdminLink( linkTo="sitetree.ajaxSearch", querystring="q=%QUERY" );
+
+		return renderView( view="/admin/sitetree/_searchBox", args=args );
+	}
+
+<!--- private helpers --->
+	private boolean function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree.", boolean throwOnError=true ) {
+		var permitted = "";
+		var permKey   = arguments.prefix & arguments.key;
+
+		if ( Len( Trim( arguments.pageId ) ) ) {
+			permitted = hasCmsPermission( permissionKey=permKey, context="page", contextKeys=_getPagePermissionContext( argumentCollection=arguments ) );
+
+		} else {
+			permitted = hasCmsPermission( permissionKey=permKey );
+		}
+
+		if ( arguments.throwOnError && !permitted ) {
+			event.adminAccessDenied();
+		}
+
+		return permitted;
+	}
+
+	private string function _getPageTypeFormName( required any pageType, required string action ) {
+		var specificForm = "";
+		var defaultForm  = pageType.getDefaultForm();
+
+		switch( arguments.action ) {
+			case "add"      : specificForm = pageType.getAddForm(); break;
+			case "edit"     : specificForm = pageType.getEditForm(); break;
+			case "translate": specificForm = pageType.getTranslateForm(); break;
+			case "clone"    : specificForm = pageType.getCloneForm(); break;
+			default: return "";
+		}
+
+		if ( formsService.formExists( specificForm ) ) {
+			return specificForm;
+		}
+		return formsService.formExists( defaultForm ) ? defaultForm : "";
+	}
+
+	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false, setVersion=true ) {
+		var pageId  = arguments.pageId        ?: ( rc.id ?: "" );
+		var version = arguments.allowVersions ? ( rc.version ?: versioningService.getLatestVersionNumber( "page", pageId ) ) : 0;
+		var page    = siteTreeService.getPage(
+			  id              = pageId
+			, version         = Val( version )
+			, includeInactive = true
+			, includeTrash    = arguments.includeTrash
+			, allowDrafts     = true
+			, useCache        = false
+		);
+
+		if ( !page.recordCount ) {
+			messageBox.error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		if ( arguments.setVersion ) {
+			rc.version = rc.version ?: version;
+		}
+
+		return page;
+	}
+
+	private array function _getPagePermissionContext( event, rc, prc, pageId, includePageId=true ) {
+		var pageId   = arguments.pageId ?: ( rc.id ?: "" );
+		var cacheKey = "pagePermissionContext";
+
+		if ( StructKeyExists( prc, cacheKey ) ) {
+			return prc[ cacheKey ];
+		}
+
+		var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
+		var context   = ancestors.recordCount ? ListToArray( ValueList( ancestors.id ) ) : [];
+		var reversed  = [];
+
+		if ( arguments.includePageId ) {
+			context.append( pageId );
+		}
+
+		for( var i=context.len(); i>0; i-- ){
+			reversed.append( context[i] );
+		}
+
+		prc[ cacheKey ] = reversed;
+
+		return reversed;
+	}
+
+	private boolean function _isManagedPage( required string parentId, required string pageType ) {
+		var parent = siteTreeService.getPage( id=parentId, selectFields=[ "page_type" ] );
+
+		if ( !parent.recordCount ) {
+			return false;
+		}
+
+		var managedTypesForParent = pageTypesService.getPageType( parent.page_type ).getManagedChildTypes();
+
+		return managedTypesForParent.len() && ListFindNoCase( managedTypesForParent, arguments.pageType );
+	}
+
+	private void function _pageCrumbtrail( event, rc, prc, pageId, pageTitle ) {
+		var ancestors = sitetreeService.getAncestors( id=arguments.pageId, selectFields=[ "id", "title" ] );
+
+		for( var ancestor in ancestors ) {
+			event.addAdminBreadCrumb(
+				  title = ancestor.title
+				, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & ancestor.id )
+			);
+		}
+
+		event.addAdminBreadCrumb(
+			  title = arguments.pageTitle
+			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & arguments.pageId )
+		);
+	}
+
+	private void function _pageTopRightButtons( event, rc, prc, actions=[] ) {
+		var rendered = "";
+
+		arguments.actions = ArrayReverse( arguments.actions );
+
+		for( var action in arguments.actions ) {
 			if ( IsSimpleValue( action ) ) {
 				rendered &= action;
 			} else {
