@@ -1399,6 +1399,7 @@ component extends="preside.system.base.AdminHandler" {
 			, link      = event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id=#pageId#" )
 			, iconClass = "fa-external-link"
 			, btnClass  = "btn-info"
+			, globalKey = "p"
 		} );
 
 		var translations = prc.translations ?: [];
@@ -1455,17 +1456,19 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( isTrue( prc.canSortChildren ?: "" ) ) {
 			ArrayAppend( children, {
-				  title = translateResource( "cms:sitetree.sort.children.dropdown" )
-				, link  = event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#pageId#" )
-				, icon  = "fa-sort-amount-asc"
+				  title     = translateResource( "cms:sitetree.sort.children.dropdown" )
+				, link      = event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#pageId#" )
+				, icon      = "fa-sort-amount-asc"
+				, globalKey = "o"
 			} );
 		}
 
 		if ( isTrue( prc.canManagePagePerms ?: "" ) ) {
 			ArrayAppend( children, {
-				  title = translateResource( "cms:sitetree.page.permissioning.dropdown" )
-				, link  = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#pageId#" )
-				, icon  = "fa-lock"
+				  title     = translateResource( "cms:sitetree.page.permissioning.dropdown" )
+				, link      = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#pageId#" )
+				, icon      = "fa-lock"
+				, globalKey = "m"
 			} );
 		}
 
@@ -1514,6 +1517,7 @@ component extends="preside.system.base.AdminHandler" {
 				, linkAttributes = { "data-has-children"=pageChildrenCount }
 				, icon           = "fa-trash-o red"
 				, prompt         = translateResource( uri="cms:sitetree.trash.child.page.link", data=[ pageTitle ] )
+				, globalKey      = "d"
 			} );
 		}
 
