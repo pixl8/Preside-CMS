@@ -98,36 +98,36 @@ component {
 	}
 
 	private array function _sortExtensions( required array extensions ) {
-		var extensionCount = extensions.len();
+		var extensionCount = Len( arguments.extensions );
 		var swapped = false;
 
 		do {
 			swapped = false;
 			for( var i=1; i<=extensionCount-1; i++ ) {
-				var extA = extensions[ i ];
-				var extB = extensions[ i+1 ];
+				var extA = arguments.extensions[ i ];
+				var extB = arguments.extensions[ i+1 ];
 
 				if ( extA.dependsOn.len() ) {
 					for( var n=i+1; n<=extensionCount; n++ ) {
-						var extC = extensions[ n ];
+						var extC = arguments.extensions[ n ];
 
 						if ( extA.dependsOn.findNoCase( extC.id ) ) {
-							arrayDeleteAt(extensions, n);
-							arrayInsertAt(extensions, i, extC);
+							arrayDeleteAt(arguments.extensions, n);
+							arrayInsertAt(arguments.extensions, i, extC);
 							swapped = true;
 							break;
 						}
 					}
 				} else if ( extA.id > extB.id && !extB.dependsOn.findNoCase( extA.id ) ) {
 					var tmp = extB;
-					extensions[ i+1 ] = extA;
-					extensions[ i ]   = tmp;
+					arguments.extensions[ i+1 ] = extA;
+					arguments.extensions[ i ]   = tmp;
 					swapped = true;
 				}
 			}
 		} while( swapped );
 
-		return extensions;
+		return arguments.extensions;
 	}
 
 	private boolean function _isExtensionManifest( required string manifestPath, required string extensionsDir ) {
