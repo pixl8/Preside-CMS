@@ -49,6 +49,22 @@ component {
 			}
 		}
 
+		if ( arguments.async ) {
+			var migrationsWithPriority = {};
+
+			for ( migration in migrations ) {
+				var priority = $runEvent(
+					  event         = "dbmigrations.#migration#.asyncPriority"
+					, private       = true
+					, prepostExempt = true
+				);
+
+				migrationsWithPriority[ migration ] = priority ?: 1;
+			}
+
+			migrations = StructSort( migrationsWithPriority, "numeric" );
+		}
+
 		return migrations;
 	}
 
