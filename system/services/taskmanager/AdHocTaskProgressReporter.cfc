@@ -63,6 +63,21 @@ component {
 	}
 
 	/**
+	 * Sets the result summary handler for your task. If using
+	 * the built-in admin monitoring UI, this rendered result will be shown after the log on successful task completion.
+	 * See also [[taskmanager-adhoctasks]].
+	 *
+	 * @autodoc   true
+	 * @resultUrl URL to which user will be redirected to on successful completion of task
+	 */
+	public void function setSummaryHandler( required string handler ) {
+		_getAdhocTaskManagerService().setSummaryHandler(
+			  handler = arguments.handler
+			, taskId  = _getTaskId()
+		);
+	}
+
+	/**
 	 * Returns true if the task has been cancelled or
 	 * is no longer valid. Call this from your task logic
 	 * to exit early from the task and cleanup gracefully

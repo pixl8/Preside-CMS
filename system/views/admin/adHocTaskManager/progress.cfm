@@ -7,6 +7,7 @@
 	log            = taskProgress.log;
 	timeTaken      = taskProgress.timeTaken;
 	lineCount      = taskProgress.lineCount;
+	summary        = prc.summary ?: "";
 
 	hideTaskLog = isTrue( rc.hideTaskLog ?: "" );
 	hideCancel  = isTrue( rc.hideCancel  ?: "" );
@@ -46,7 +47,9 @@
 			<div class="progress-bar progress-bar-#progressClass#" style="width:#progress#%;"></div>
 		</div>
 		<cfif !hideTaskLog>
-			<div class="task-log">
+			
+			<div id="task-log" class="task-log <cfif Len( summary ) >collapse</cfif>">
+				<a data-toggle="collapse" data-target="##task-log">#translateResource( "cms:adhoctaskmanager.progress.hide.log" )#</a>
 				<pre id="taskmanager-log">#log#</pre>
 			</div>
 		</cfif>
@@ -64,7 +67,12 @@
 				</span>
 			</div>
 		</div>
-
+		<div id="taskmanager-summary-area" class="<cfif !Len( summary )>hide</cfif>">
+			<a data-toggle="collapse" data-target="##task-log">#translateResource( "cms:adhoctaskmanager.progress.show.log" )#</a>
+			<div id="taskmanager-summary">
+				#summary#
+			</div>
+		</div>
 		<div class="form-actions row">
 			<cfif hasReturnUrl>
 				<a href="#task.return_url#" class="btn btn-info">

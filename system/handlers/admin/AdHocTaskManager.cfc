@@ -62,6 +62,13 @@ component extends="preside.system.base.AdminHandler" {
 			prc.taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=prc.taskProgress.timeTaken*1000, context=[ "accurate" ] );
 		}
 
+		if ( prc.task.status == "succeeded" && Len( prc.task.summary_handler ?: "" ) ) {
+			prc.summary = renderViewlet( event=prc.task.summary_handler, args={
+				  taskId = prc.task.id
+				, result = prc.task.result
+			} );
+		}
+
 		prc.canCancel = prc.task.status == "running" || prc.task.status == "pending";
 		prc.canCancel = prc.canCancel && ( prc.task.admin_owner == event.getAdminUserId() || hasCmsPermission( "adhocTaskManager.canceltask" ) );
 

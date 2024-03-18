@@ -11,6 +11,9 @@
 	  , $cancelBtn   = $( '#task-cancel-button' )
 	  , $resultBtn   = $( '#view-result-button' )
 	  , $logArea     = $( '#taskmanager-log' )
+	  , $taskLog     = $( '#task-log' )
+	  , $summaryArea = $( '#taskmanager-summary-area' )
+	  , $summary     = $( '#taskmanager-summary' )
 	  , hasLogArea   = $logArea.length
 	  , logArea      = hasLogArea ? $logArea.get(0) : null
 	  , lineCount    = cfrequest.adhocTaskLineCount || ""
@@ -61,8 +64,16 @@
 				$timeArea.parent().addClass( "red" );
 			}
 
-			if ( data.status == "succeeded" && data.resultUrl.length ) {
-				window.location = data.resultUrl;
+			if ( data.status == "succeeded" ){
+				if ( data.resultUrl.length ) {
+					window.location = data.resultUrl;
+				}
+
+				if ( data.summary.length ) {
+					$summary.html( data.summary );
+					$summaryArea.removeClass( "hide") ;
+					$taskLog.removeClass( "in" ).addClass( "collapse" );
+				}
 			}
 
 			if ( $cancelBtn.length ) {

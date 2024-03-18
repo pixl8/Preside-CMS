@@ -65,6 +65,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          array    titleData            = []
 		,          string   resultUrl            = ""
 		,          string   returnUrl            = ""
+		,          string   summaryHandler       = ""
 		,          string   reference            = ""
 	) {
 		var nextAttemptDate = "";
@@ -89,6 +90,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, title_data             = SerializeJson( arguments.titleData )
 			, result_url             = arguments.resultUrl
 			, return_url             = arguments.returnUrl
+			, summary_handler        = arguments.summaryHandler
 			, reference              = arguments.reference
 		} );
 
@@ -395,6 +397,23 @@ component displayName="Ad-hoc Task Manager Service" {
 		);
 	}
 
+
+	/**
+	 * Sets the summary handler for your task. Useful when wanting to a display a summary of the result after the log
+	 * @taskId    ID of the task
+	 * See also [[taskmanager-adhoctasks]].
+	 *
+	 * @autodoc   true
+	 * @handler   handler which will be use to render a summary on successful completion of task
+	 */
+	public void function setSummaryHandler( required  required string taskId, string handler ) {
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  id   = arguments.taskId
+			, data = { summary_handler=arguments.handler }
+		);
+	}
+
+
 	/**
 	 * Returns progress of the given task as a struct. Struct keys:
 	 * [id, progress, status, result].
@@ -422,16 +441,26 @@ component displayName="Ad-hoc Task Manager Service" {
 					timeTaken = DateDiff( 's', t.started_on, t.finished_on );
 				break;
 			}
+
+			var summary = "";
+			if ( t.status=="succeeded" && Len( t.summary_handler ?: "" ) ) {
+				summary = $renderViewlet( event=t.summary_handler, args={ 
+					  taskid = task.id
+					, result = task.result
+				} )
+			}
+			
 			return {
-				  id            = t.id
-				, status        = t.status
-				, progress      = t.progress_percentage
-				, log           = t.log
-				, resultUrl     = t.result_url
-				, returnUrl     = t.return_url
-				, result        = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
-				, timeTaken     = timeTaken
-				, timeRemaining = timeRemaining
+				  id             = t.id
+				, status         = t.status
+				, progress       = t.progress_percentage
+				, log            = t.log
+				, resultUrl      = t.result_url
+				, returnUrl      = t.return_url
+				, summary        = summary
+				, result         = IsJson( t.result ?: "" ) ? DeserializeJson( t.result ) : {}
+				, timeTaken      = timeTaken
+				, timeRemaining  = timeRemaining
 			};
 		}
 
