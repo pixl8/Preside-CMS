@@ -371,7 +371,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : pageType.getPresideObject() ), id );
 		}
 
-		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTreePage( argumentCollection=arguments ) );
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTreeEditPage( argumentCollection=arguments ) );
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 	}
@@ -1294,10 +1294,21 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTree" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTree"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
+		}
+
 		return actions;
 	}
 
-	private array function getTopRightButtonsForSiteTreePage( event, rc, prc ) {
+	private array function getTopRightButtonsForSiteTreeEditPage( event, rc, prc ) {
 		var pageId    = prc.page.id ?: "";
 		var pageTitle = EncodeForHTML( prc.page.title ?: "" );
 
@@ -1317,7 +1328,6 @@ component extends="preside.system.base.AdminHandler" {
 			, link      = event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id=#pageId#" )
 			, iconClass = "fa-external-link"
 			, btnClass  = "btn-info"
-			, globalKey = "p"
 		} );
 
 		var translations = prc.translations ?: [];
@@ -1446,6 +1456,17 @@ component extends="preside.system.base.AdminHandler" {
 				, iconClass = "fa-cog"
 				, children  = children
 			} );
+		}
+
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTreeEditPage" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTreeEditPage"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
 		}
 
 		return actions;
