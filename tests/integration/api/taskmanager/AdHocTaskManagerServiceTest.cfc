@@ -238,6 +238,7 @@ component extends="testbox.system.BaseSpec" {
 					, return_url          = ""
 					, next_attempt_date   = ""
 					, reference           = ""
+					, disable_cancel      = false
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -268,6 +269,7 @@ component extends="testbox.system.BaseSpec" {
 					, result_url          = "http://www.mysite.com/download/export/"
 					, return_url          = "http://www.mysite.com/download/cancelled/"
 					, reference           = ""
+					, disable_cancel      = false
 				} ).$results( taskId );
 				service.$( "runTaskInThread" );
 
@@ -281,6 +283,7 @@ component extends="testbox.system.BaseSpec" {
 					, titleData         = [ "test", "this" ]
 					, resultUrl         = "http://www.mysite.com/download/export/"
 					, returnUrl         = "http://www.mysite.com/download/cancelled/"
+					, disable_cancel      = false
 				);
 
 				var log = service.$callLog().runTaskInThread;
@@ -310,6 +313,7 @@ component extends="testbox.system.BaseSpec" {
 					, return_url          = ""
 					, next_attempt_date   = ""
 					, reference           = ""
+					, disable_cancel      = false
 				} ).$results( taskId );
 
 				service.$( "setResultUrl" );
@@ -350,6 +354,7 @@ component extends="testbox.system.BaseSpec" {
 					, result_url          = ""
 					, return_url          = ""
 					, reference           = ""
+					, disable_cancel      = false
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -380,6 +385,7 @@ component extends="testbox.system.BaseSpec" {
 					, result_url          = ""
 					, return_url          = ""
 					, reference           = ""
+					, disable_cancel      = false
 				} ).$results( taskId );
 
 				expect( service.createTask(
@@ -412,6 +418,7 @@ component extends="testbox.system.BaseSpec" {
 					, return_url          = "http://www.mysite.com/download/cancelled/"
 					, next_attempt_date   = nextRunDate
 					, reference           = ""
+					, disable_cancel      = false
 				} ).$results( taskId );
 
 				service.$( "runTaskInThread" );
