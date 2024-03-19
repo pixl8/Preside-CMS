@@ -49,6 +49,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @titleData            Optional array of strings that will be passed into translateResource() along with title URI to create translatable title
 	 * @resultUrl            Optional URL at which the result of this task can be viewed / downloaded. The token, `{taskId}`, within the URL will be replaced with the actual ID of the task
 	 * @returnUrl            Optional URL to which to direct users from core admin UIs when they have finished with viewing a task
+	 * @disableCancel        Optional disable cancellation of the task
 	 */
 	public string function createTask(
 		  required string   event
@@ -64,6 +65,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          array    titleData            = []
 		,          string   resultUrl            = ""
 		,          string   returnUrl            = ""
+		,          boolean  disableCancel        = false
 	) {
 		var nextAttemptDate = "";
 
@@ -87,6 +89,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, title_data             = SerializeJson( arguments.titleData )
 			, result_url             = arguments.resultUrl
 			, return_url             = arguments.returnUrl
+			, disable_cancel         = arguments.disableCancel
 		} );
 
 		if ( arguments.resultUrl.findNoCase( "{taskId}" ) ) {
@@ -488,6 +491,10 @@ component displayName="Ad-hoc Task Manager Service" {
 	 */
 	public boolean function cancelTask( required string taskId ) {
 		var task = getTask( arguments.taskId );
+
+		if ( IsBoolean( task.disable_cancel ?: "" ) && task.disable_cancel ) {
+			return false;
+		}
 
 		if ( IsBoolean( task.discard_on_complete ?: "" ) && task.discard_on_complete ) {
 			return discardTask( taskId=arguments.taskId );
