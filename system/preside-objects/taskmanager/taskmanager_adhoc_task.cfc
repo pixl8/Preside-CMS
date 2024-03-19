@@ -23,6 +23,7 @@ component extends="preside.system.base.SystemPresideObject"  {
 	property name="discard_on_complete"    type="boolean" dbtype="boolean"  required=false default=false indexes="discardoncomplete";
 	property name="discard_after_interval" type="numeric" dbtype="bigint"   required=false default=0 indexes="discardafterinterval";
 	property name="discard_expiry"         type="date"    dbtype="datetime" required=false indexes="discardexpiry";
+	property name="disable_cancel"         type="boolean" dbtype="boolean"  required=false default=false;
 
 	property name="attempt_count"     type="numeric" dbtype="int"      required=false default=0 indexes="attemptcount";
 	property name="next_attempt_date" type="date"    dbtype="datetime" required=false indexes="nextattempt";
