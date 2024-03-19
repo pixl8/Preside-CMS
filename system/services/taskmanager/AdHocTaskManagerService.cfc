@@ -50,6 +50,7 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @resultUrl            Optional URL at which the result of this task can be viewed / downloaded. The token, `{taskId}`, within the URL will be replaced with the actual ID of the task
 	 * @returnUrl            Optional URL to which to direct users from core admin UIs when they have finished with viewing a task
 	 * @reference            Optional string with which to provide a key reference for your task
+	 * @disableCancel        Optional disable cancellation of the task
 	 */
 	public string function createTask(
 		  required string   event
@@ -66,6 +67,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          string   resultUrl            = ""
 		,          string   returnUrl            = ""
 		,          string   reference            = ""
+		,          boolean  disableCancel        = false
 	) {
 		var nextAttemptDate = "";
 
@@ -90,6 +92,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			, result_url             = arguments.resultUrl
 			, return_url             = arguments.returnUrl
 			, reference              = arguments.reference
+			, disable_cancel         = arguments.disableCancel
 		} );
 
 		if ( arguments.resultUrl.findNoCase( "{taskId}" ) ) {
@@ -491,6 +494,10 @@ component displayName="Ad-hoc Task Manager Service" {
 	 */
 	public boolean function cancelTask( required string taskId ) {
 		var task = getTask( arguments.taskId );
+
+		if ( IsBoolean( task.disable_cancel ?: "" ) && task.disable_cancel ) {
+			return false;
+		}
 
 		if ( IsBoolean( task.discard_on_complete ?: "" ) && task.discard_on_complete ) {
 			return discardTask( taskId=arguments.taskId );
