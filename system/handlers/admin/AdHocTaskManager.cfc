@@ -110,6 +110,10 @@ component extends="preside.system.base.AdminHandler" {
 		var taskProgress = adHocTaskManagerService.getProgress( taskId );
 		var resultUrl    = task.return_url.len() ? task.return_url : event.buildAdminLink();
 
+		if ( isTrue ( task.disable_cancel ?: "" ) ) {
+			event.adminAccessDenied();
+		}
+
 		if ( !task.admin_owner.len() || task.admin_owner != event.getAdminUserId() ) {
 			_checkPermissions( event, "canceltask" );
 		}
