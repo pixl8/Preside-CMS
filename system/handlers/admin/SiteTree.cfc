@@ -215,7 +215,10 @@ component extends="preside.system.base.AdminHandler" {
 			prc.cancelLink = event.buildAdminLink( linkTo="sitetree" );
 		}
 
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTreeAddPage( argumentCollection=arguments ) );
+
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.addPage.title" )
 			, link  = ""
@@ -1297,6 +1300,23 @@ component extends="preside.system.base.AdminHandler" {
 		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTree" ) ) {
 			runEvent(
 				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTree"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
+		}
+
+		return actions;
+	}
+
+	private array function getTopRightButtonsForSiteTreeAddPage( event, rc, prc ) {
+		var actions = [];
+
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTreeAddPage" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTreeAddPage"
 				, prePostExempt  = true
 				, private        = true
 				, eventArguments = {
