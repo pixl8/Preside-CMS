@@ -24,7 +24,7 @@
 	</cfif>
 
 	<cfif hasDeletePermission>
-		<a class="red confirmation-prompt" href="#event.buildAdminLink( linkTo="assetmanager.trashAssetAction", queryString="asset=#args.id#")#" data-context-key="d" title="#translateResource( uri="cms:assetmanager.trash.asset.link", data=[ args.title ] )#">
+		<a class="red confirmation-prompt" href="#event.buildAdminLink( linkTo="assetmanager.trashAssetAction", queryString="asset=#args.id#")#" data-context-key="d" title="#translateResource( uri="cms:assetmanager.trash.asset.link", data=[ EncodeForURL( args.title ) ] )#">
 			<i class="fa fa-fw fa-trash-o"></i></a>
 	</cfif>
 
