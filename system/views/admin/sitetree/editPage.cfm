@@ -1,32 +1,18 @@
 <cfscript>
-	page             = prc.page            ?: QueryNew('');
+	page             = prc.page            ?: QueryNew( "" );
 	mainFormName     = prc.mainFormName    ?: "";
 	mergeFormName    = prc.mergeFormName   ?: "";
 	validationResult = rc.validationResult ?: "";
-	formId           = "editForm-" & CreateUUId();
+	formId           = "editForm-" & CreateUUID();
 	editPagePrompt    = translateResource( uri="preside-objects.page:editRecord.prompt", defaultValue="" );
 
 	prc.pageIcon     = "pencil";
 	prc.pageTitle    = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.page.title ] );
 
-	pageId     = rc.id      ?: "";
-	version    = rc.version ?: "";
-	childCount = prc.childCount ?: 0;
+	pageId  = rc.id      ?: "";
+	version = rc.version ?: "";
 
-	safeTitle = HtmlEditFormat( page.title );
-
-	topRightButtons         = prc.topRightButtons         ?: "";
-	allowableChildPageTypes = prc.allowableChildPageTypes ?: "";
-	managedChildPageTypes   = prc.managedChildPageTypes   ?: "";
-	isSystemPage            = prc.isSystemPage            ?: false;
-	canAddChildren          = prc.canAddChildren          ?: false;
-	canDeletePage           = prc.canDeletePage           ?: false;
-	canSortChildren         = prc.canSortChildren         ?: false;
-	canManagePagePerms      = prc.canManagePagePerms      ?: false;
-	canClone                = prc.canClone                ?: false;
-	canActivate             = prc.canActivate             ?: false;
-	translations            = prc.translations            ?: [];
-	translateUrlBase        = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
+	topRightButtons = prc.topRightButtons ?: "";
 
 	backToTreeLink  = prc.backToTreeLink  ?: "";
 	backToTreeTitle = prc.backToTreeTitle ?: "";
@@ -56,7 +42,7 @@
 	</cfif>
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#event.buildAdminLink( linkTo='sitetree.editPageAction' )#">
-		<input type="hidden" name="id" value="#event.getValue( name='id', defaultValue='' )#" />
+		<input type="hidden" name="id" value="#event.getValue( name="id", defaultValue="" )#" />
 
 		#renderForm(
 			  formName                = mainFormName
@@ -77,6 +63,7 @@
 			, id      = "_backToEdit"
 			, label   = translateResource( uri="cms:sitetree.editPage.backToEdit" )
 		)#
+
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
 				<a href="#backToTreeLink#" class="btn btn-default" data-global-key="c">
