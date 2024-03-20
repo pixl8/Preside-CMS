@@ -55,6 +55,8 @@ component extends="preside.system.base.AdminHandler" {
 		] );
 
 		prc.trashCount = siteTreeService.getTrashCount();
+
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTree( argumentCollection=arguments ) );
 	}
 
 	private void function _siteTree( event, rc, prc ) {
@@ -213,7 +215,10 @@ component extends="preside.system.base.AdminHandler" {
 			prc.cancelLink = event.buildAdminLink( linkTo="sitetree" );
 		}
 
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTreeAddPage( argumentCollection=arguments ) );
+
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.addPage.title" )
 			, link  = ""
@@ -368,6 +373,8 @@ component extends="preside.system.base.AdminHandler" {
 		if ( prc.canTranslate ) {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : pageType.getPresideObject() ), id );
 		}
+
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTreeEditPage( argumentCollection=arguments ) );
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 	}
@@ -1254,6 +1261,237 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( "sitetree" ) );
 	}
 
+	private array function getTopRightButtonsForSiteTree( event, rc, prc ) {
+		var site = event.getSite();
+
+		var actions  = [];
+		var children = [];
+
+		if ( hasCmsPermission( permissionKey="sites.manage" ) ) {
+			ArrayAppend( children, {
+				  title = translateResource( "cms:sitetree.edit.site.settings.btn" )
+				, link  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=#site.id#" )
+				, icon  = "fa-cogs"
+			} );
+		}
+
+		if ( isFeatureEnabled( "fullPageCaching" ) && hasCmsPermission( permissionkey="sitetree.clearcaches" ) ) {
+			if ( ArrayLen( children ) ) {
+				ArrayAppend( children, "---" );
+			}
+
+			ArrayAppend( children, {
+				  title  = translateResource( "cms:sitetree.flush.cache.btn" )
+				, link   = event.buildAdminLink( linkTo="sitetree.clearPageCacheAction" )
+				, icon   = "fa-refresh red"
+				, prompt = translateResource( "cms:sitetree.flush.cache.prompt" )
+			} );
+		}
+
+		if ( ArrayLen( children )) {
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )
+				, btnClass  = "btn-primary-default"
+				, iconClass = "fa-cog"
+				, children  = children
+			} );
+		}
+
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTree" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTree"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
+		}
+
+		return actions;
+	}
+
+	private array function getTopRightButtonsForSiteTreeAddPage( event, rc, prc ) {
+		var actions = [];
+
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTreeAddPage" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTreeAddPage"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
+		}
+
+		return actions;
+	}
+
+	private array function getTopRightButtonsForSiteTreeEditPage( event, rc, prc ) {
+		var pageId    = prc.page.id ?: "";
+		var pageTitle = EncodeForHTML( prc.page.title ?: "" );
+
+		var actions  = [];
+		var children = [];
+
+		if ( !isEmptyString( prc.backToTreeLink ?: "" ) ) {
+			ArrayAppend( actions, {
+				  title     = prc.backToTreeTitle ?: ""
+				, link      = prc.backToTreeLink
+				, iconClass = "fa-reply"
+			} );
+		}
+
+		ArrayAppend( actions, {
+			  title     = translateResource( "cms:sitetree.preview.page.btn" )
+			, link      = event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id=#pageId#" )
+			, iconClass = "fa-external-link"
+			, btnClass  = "btn-info"
+		} );
+
+		var translations = prc.translations ?: [];
+
+		if ( ArrayLen( translations ) ) {
+			var translateLink = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
+
+			for ( var language in translations ) {
+				ArrayAppend( children, {
+					  title = "#language.name# (#translateResource( "cms:multilingal.status.#language.status#" )#)"
+					, link  = "#translateLink##language.id#"
+					, icon  = "fa-pencil"
+				} );
+			}
+
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="cms:sitetree.translate.page.btn" )
+				, btnClass  = "btn-default"
+				, iconClass = "fa-globe"
+				, children  = children
+			} );
+		}
+
+		children = [];
+
+		if ( isTrue( prc.canClone ?: "" ) ) {
+			ArrayAppend( children, {
+				  title = translateResource( "cms:sitetree.clone.page.dropdown" )
+				, link  = event.buildAdminLink( linkTo="sitetree.clonePage", queryString="id=#pageId#" )
+				, icon  = "fa-copy"
+			} );
+		}
+
+		if ( isTrue( prc.canAddChildren ?: "" ) ) {
+			var allowableChildPageTypes   = prc.allowableChildPageTypes ?: "";
+			var addChildrenLinkTitle      = translateResource( uri="cms:sitetree.add.child.page.link", data=[ pageTitle ] );
+			var addChildrenLink           = "";
+			var addChildrenLinkAttributes = {};
+
+			if ( allowableChildPageTypes == "*" || ListLen( allowableChildPageTypes ) ) {
+				addChildrenLink           = event.buildAdminLink( linkTo="sitetree.pageTypeDialog", querystring="parentPage=#pageId#" );
+				addChildrenLinkAttributes = { "data-toggle"="bootbox-modal", "data-buttons"="cancel", "data-modal-class"="page-type-picker", title=addChildrenLinkTitle };
+			} else {
+				addChildrenLink = event.buildAdminLink( linkTo="sitetree.addPage", querystring="parent_page=#pageId#&page_type=#allowableChildPageTypes#" );
+			}
+
+			ArrayAppend( children, {
+				  title          = addChildrenLinkTitle
+				, link           = addChildrenLink
+				, linkAttributes = addChildrenLinkAttributes
+				, icon           = "fa-plus-circle"
+			} );
+		}
+
+		if ( isTrue( prc.canSortChildren ?: "" ) ) {
+			ArrayAppend( children, {
+				  title     = translateResource( "cms:sitetree.sort.children.dropdown" )
+				, link      = event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#pageId#" )
+				, icon      = "fa-sort-amount-asc"
+				, globalKey = "o"
+			} );
+		}
+
+		if ( isTrue( prc.canManagePagePerms ?: "" ) ) {
+			ArrayAppend( children, {
+				  title     = translateResource( "cms:sitetree.page.permissioning.dropdown" )
+				, link      = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#pageId#" )
+				, icon      = "fa-lock"
+				, globalKey = "m"
+			} );
+		}
+
+		var managedChildPageTypes = ListToArray( prc.managedChildPageTypes ?: "" );
+
+		for ( var managedPageType in managedChildPageTypes ) {
+			ArrayAppend( children, {
+				  title = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#managedPageType#:name" ) ) ] )
+				, link  = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent=#pageId#&pageType=#managedPageType#" )
+				, icon  = "fa-ellipsis-h"
+			} );
+		}
+
+		if ( isTrue( prc.canActivate ?: "" ) ) {
+			var pageActive = isTrue( prc.page.active ?: "" );
+
+			if ( ArrayLen( children ) ) {
+				ArrayAppend( children, "---" );
+			}
+
+			if ( pageActive ) {
+				ArrayAppend( children, {
+					  title = translateResource( "cms:sitetree.deactivate.page.dropdown" )
+					, link  = event.buildAdminLink( linkTo="sitetree.deactivatePageAction", queryString="id=#pageId#" )
+					, icon  = "fa-times-circle red"
+				} );
+			} else {
+				ArrayAppend( children, {
+					  title = translateResource( "cms:sitetree.activate.page.dropdown" )
+					, link  = event.buildAdminLink( linkTo="sitetree.activatePageAction", queryString="id=#pageId#" )
+					, icon  = "fa-check-circle green"
+				} );
+			}
+		}
+
+		if ( isTrue( prc.canDeletePage ?: "" ) ) {
+			var pageChildrenCount = prc.childCount ?: 0;
+
+			if ( ArrayLen( children ) ) {
+				ArrayAppend( children, "---" );
+			}
+
+			ArrayAppend( children, {
+				  title          = translateResource( "cms:sitetree.trash.page.dropdown" )
+				, link           = event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=#pageId#" )
+				, linkAttributes = { "data-has-children"=pageChildrenCount }
+				, icon           = "fa-trash-o red"
+				, prompt         = translateResource( uri="cms:sitetree.trash.child.page.link", data=[ pageTitle ] )
+				, globalKey      = "d"
+			} );
+		}
+
+		if ( ArrayLen( children )) {
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )
+				, btnClass  = "btn-primary-default"
+				, iconClass = "fa-cog"
+				, children  = children
+			} );
+		}
+
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTreeEditPage" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTreeEditPage"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
+		}
+
+		return actions;
+	}
+
 <!--- private viewlets --->
 	private string function searchBox( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = datamanagerService.getPrefetchCachebusterForAjaxSelect( "page" );
@@ -1376,6 +1614,22 @@ component extends="preside.system.base.AdminHandler" {
 			  title = arguments.pageTitle
 			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & arguments.pageId )
 		);
+	}
+
+	private void function _pageTopRightButtons( event, rc, prc, actions=[] ) {
+		var rendered = "";
+
+		arguments.actions = ArrayReverse( arguments.actions );
+
+		for( var action in arguments.actions ) {
+			if ( IsSimpleValue( action ) ) {
+				rendered &= action;
+			} else {
+				rendered &= renderView( view="/admin/datamanager/_topRightButton", args=action );
+			}
+		}
+
+		prc.topRightButtons = rendered;
 	}
 
 	private array function _getObjectFieldsForGrid( required string objectName ) {
