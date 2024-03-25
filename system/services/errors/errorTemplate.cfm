@@ -51,7 +51,7 @@
 
 <table id="-railo-err" cellpadding="4" cellspacing="2">
 	<tr>
-		<td colspan="2" class="label">Railo #server.railo.version# Error (#catch.type#)</td>
+		<td colspan="2" class="label">Lucee #server.railo.version# Error (#catch.type#)</td>
 	</tr>
 	<cfparam name="catch.message" default="">
 	<tr>

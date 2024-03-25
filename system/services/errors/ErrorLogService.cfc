@@ -30,10 +30,16 @@ component displayName="Error Log Service" {
 	 *
 	 */
 	public void function raiseError( required struct error ) {
-		var rendered = "";
-		var catch    = arguments.error;
-		var fileName = "rte-" & GetTickCount() & ".html";
-		var filePath = _getLogDirectory() & "/" & filename;
+		var rendered    = "";
+		var catch       = arguments.error;
+		var fileName    = "rte-" & GetTickCount() & ".html";
+		var filePath    = _getLogDirectory() & "/" & filename;
+		var key         = "";
+		var idx         = "";
+		var len         = "";
+		var timestamp   = "";
+		var isFirst     = "";
+		var tc          = "";
 
 		savecontent variable="rendered" {
 			include template="errorTemplate.cfm";
