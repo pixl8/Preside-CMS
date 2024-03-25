@@ -191,19 +191,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="translateObjectName" access="public" returntype="any" output="false">
-		<cfargument name="objectName"   type="string" required="true" />
-
-		<cfscript>
-			var poService    = getSingleton( "presideObjectService" );
-			var baseUri      = poService.getResourceBundleUriRoot( arguments.objectName );
-			var isPageType   = poService.isPageType( arguments.objectName );
-			var fullUri      = baseUri & ( isPageType ? "name" : "title.singular" );
-
-			return translateResource( uri=fullUri, defaultValue=arguments.objectName );
-		</cfscript>
-	</cffunction>
-
 <!--- permissioning and users --->
 	<cffunction name="hasCmsPermission" access="public" returntype="boolean" output="false">
 		<cfreturn getSingleton( "permissionService" ).hasPermission( argumentCollection=arguments ) />
