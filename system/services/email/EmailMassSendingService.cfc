@@ -118,6 +118,12 @@ component {
 		var queuedCount   = 0;
 		var filter        = "";
 		var filterParams  = {};
+		var groupBy       = "";
+		var emailField    = _getEmailRecipientTypeService().getEmailFieldForRecipientType( template.recipient_type );
+
+		if ( $helpers.isTrue( template.distinct_email ?: "" ) && Len( Trim( emailField ) ) ) {
+			groupBy = emailField;
+		}
 
 		/**
 		 * We used to do a single insertDataFromSelect() using the dynamic filters
@@ -137,6 +143,7 @@ component {
 				, filterParams = filterParams
 				, extraFilters = extraFilters
 				, orderBy      = idField
+				, groupBy      = groupBy
 				, distinct     = true
 				, maxRows      = pageSize
 				, useCache     = false
@@ -248,8 +255,15 @@ component {
 			return 0;
 		}
 
+		var selectFields = [ "id" ];
+		var emailField   = _getEmailRecipientTypeService().getEmailFieldForRecipientType( template.recipient_type );
+
+		if ( $helpers.isTrue( template.distinct_email ?: "" ) && Len( Trim( emailField ) ) ) {
+			selectFields = [ emailField ];
+		}
+
 		return $getPresideObject( recipientObject ).selectData(
-			  selectFields    = [ "id" ]
+			  selectFields    = selectFields
 			, extraFilters    = getTemplateRecipientFilters( arguments.templateId )
 			, recordCountOnly = true
 			, distinct        = true
