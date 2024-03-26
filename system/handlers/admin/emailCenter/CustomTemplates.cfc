@@ -392,10 +392,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.filterObject = rc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type ?: "" );
 		prc.anonymousOnly = !prc.filterObject.len();
 
-		if ( isEmptyString( prc.template.distinct_email ?: "" ) ) {
-			prc.template.distinct_email = true;
-		}
-
 		if ( prc.anonymousOnly ) {
 			prc.formName = "preside-objects.email_template.configure.send";
 		} else {
