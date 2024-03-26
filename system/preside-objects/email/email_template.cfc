@@ -29,6 +29,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 
 	property name="email_blueprint"  relationship="many-to-one" relatedTo="email_blueprint";
 	property name="recipient_filter" relationship="many-to-one" relatedto="rules_engine_condition" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="distinct_email"   type="boolean" dbtype="boolean" required=false;
 
 	property name="sending_method" type="string" dbtype="varchar" maxlength=20 required=false default="auto" enum="emailSendingMethod" ignoreChangesForVersioning=true renderer="emailSendingMethod";
 
