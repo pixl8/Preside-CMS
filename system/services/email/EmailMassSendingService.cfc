@@ -110,6 +110,7 @@ component {
 		var dbAdapter     = poService.getDbAdapterForObject( "email_mass_send_queue" );
 		var nowFunction   = dbAdapter.getNowFunctionSql();
 		var idField       = "#recipientObject#.#poService.getIdField( recipientObject )#";
+		var selectFields  = [ "#idField# as id" ];
 		var extraFilters  = getTemplateRecipientFilters( arguments.templateId );
 		var inQueueFilter = _getDuplicateCheckFilter( recipientObject, arguments.templateId );
 		var batchedSets   = [];
@@ -118,6 +119,13 @@ component {
 		var queuedCount   = 0;
 		var filter        = "";
 		var filterParams  = {};
+		var groupBy       = "";
+		var emailField    = _getEmailRecipientTypeService().getEmailFieldForRecipientType( template.recipient_type );
+
+		if ( $helpers.isTrue( template.distinct_email ?: "" ) && Len( Trim( emailField ) ) ) {
+			groupBy = emailField;
+			ArrayAppend( selectFields, emailField );
+		}
 
 		/**
 		 * We used to do a single insertDataFromSelect() using the dynamic filters
@@ -132,11 +140,12 @@ component {
 		do {
 			records = poService.selectData(
 				  objectName   = recipientObject
-				, selectFields = [ "#idField# as id" ]
+				, selectFields = selectFields
 				, filter       = filter
 				, filterParams = filterParams
 				, extraFilters = extraFilters
 				, orderBy      = idField
+				, groupBy      = groupBy
 				, distinct     = true
 				, maxRows      = pageSize
 				, useCache     = false
@@ -248,8 +257,15 @@ component {
 			return 0;
 		}
 
+		var selectFields = [ "id" ];
+		var emailField   = _getEmailRecipientTypeService().getEmailFieldForRecipientType( template.recipient_type );
+
+		if ( $helpers.isTrue( template.distinct_email ?: "" ) && Len( Trim( emailField ) ) ) {
+			selectFields = [ emailField ];
+		}
+
 		return $getPresideObject( recipientObject ).selectData(
-			  selectFields    = [ "id" ]
+			  selectFields    = selectFields
 			, extraFilters    = getTemplateRecipientFilters( arguments.templateId )
 			, recordCountOnly = true
 			, distinct        = true
