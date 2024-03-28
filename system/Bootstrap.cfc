@@ -636,7 +636,7 @@ component {
 		var cleanedCookies    = [];
 		var anyCookiesChanged = false;
 		var site              = cbController.getRequestContext().getSite();
-		var isSecure          = ( site.protocol ?: "http" ) == "https";
+		var isSecure          = cbController.getSetting( "forcessl" ) || ( site.protocol ?: "http" ) == "https";
 
 		for( var cooky in allCookies ) {
 			if ( !Len( Trim( cooky ) ) ) {
