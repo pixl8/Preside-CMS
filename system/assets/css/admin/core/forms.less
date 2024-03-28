@@ -10,6 +10,24 @@
 	}
 }
 
+.form-group-grid {
+	display               : grid;
+	grid-template-columns : 16% auto 30px;
+	gap                   : 15px;
+
+	.control-label {
+		justify-self : end;
+	}
+}
+
+.form-horizontal .form-group.form-group-grid {
+	margin-inline : 0;
+
+	&::after, &::before {
+		display : none;
+	}
+}
+
 .modal-dialog-layout-container {
 	.form-horizontal {
 		.form-group {
