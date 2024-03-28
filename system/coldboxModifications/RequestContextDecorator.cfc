@@ -241,6 +241,22 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		getRequestContext().removeValue( name="_overwriteDomainForBuildLink", private=true );
 	}
 
+	public void function setCanonicalUrl( required string canonicalUrl ) {
+		getRequestContext().setValue(
+			  name    = "_canonicalUrl"
+			, value   = arguments.canonicalUrl
+			, private = true
+		);
+	}
+
+	public string function getCanonicalUrl() {
+		return getRequestContext().getValue(
+			  name         = "_canonicalUrl"
+			, private      = true
+			, defaultValue = ""
+		);
+	}
+
 // REQUEST DATA
 	public struct function getCollectionWithoutSystemVars() {
 		var collection = Duplicate( getRequestContext().getCollection() );
