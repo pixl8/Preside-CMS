@@ -64,11 +64,12 @@ component extends="testbox.system.BaseSpec"{
 				var dummyRecord = QueryNew( "id,test", "varchar,varchar", [ [ CreateUUId(), CreateUUId() ] ] );
 
 				mockQueueDao.$( "selectData" ).$args(
-					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "retry_count,datecreated"
-					, filter       = "queue_status = :queue_status"
-					, filterParams = { queue_status="pending" }
-					, maxRows      = 1
+					  selectFields      = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
+					, extraselectFields = []
+					, orderBy           = "retry_count,datecreated"
+					, filter            = "queue_status = :queue_status"
+					, filterParams      = { queue_status="pending" }
+					, maxRows           = 1
 				).$results( dummyRecord );
 				mockQueueDao.$( "updateData", 1 )
 
@@ -80,11 +81,12 @@ component extends="testbox.system.BaseSpec"{
 				var dummyRecord = QueryNew( "id,test" );
 
 				mockQueueDao.$( "selectData" ).$args(
-					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "retry_count,datecreated"
-					, filter       = "queue_status = :queue_status"
-					, filterParams = { queue_status="pending" }
-					, maxRows      = 1
+					  selectFields      = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
+					, extraselectFields = []
+					, orderBy           = "retry_count,datecreated"
+					, filter            = "queue_status = :queue_status"
+					, filterParams      = { queue_status="pending" }
+					, maxRows           = 1
 				).$results( dummyRecord );
 
 
@@ -96,11 +98,12 @@ component extends="testbox.system.BaseSpec"{
 				var dummyRecord = QueryNew( "id,test", "varchar,varchar", [ [ CreateUUId(), CreateUUId() ] ] );
 
 				mockQueueDao.$( "selectData" ).$args(
-					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-					, orderBy      = "retry_count,datecreated"
-					, filter       = "queue_status = :queue_status"
-					, filterParams = { queue_status="pending" }
-					, maxRows      = 1
+					  selectFields      = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
+					, extraselectFields = []
+					, orderBy           = "retry_count,datecreated"
+					, filter            = "queue_status = :queue_status"
+					, filterParams      = { queue_status="pending" }
+					, maxRows           = 1
 				).$results( dummyRecord );
 				mockQueueDao.$( "updateData", 1 )
 
@@ -151,6 +154,7 @@ component extends="testbox.system.BaseSpec"{
 						  assetId        = assets[i].asset
 						, versionId      = assets[i].asset_version
 						, derivativeName = assets[i].derivative_name
+						, tenantId       = ""
 						, forceIfExists  = true
 					} );
 					expect( service.$callLog().removeFromQueue[i] ).toBe( [ assets[i].id ] );
@@ -163,14 +167,17 @@ component extends="testbox.system.BaseSpec"{
 	private any function _getService() {
 		mockAssetManagerService      = CreateStub();
 		mockAssetManagerServiceProxy = CreateStub();
+		mockTenancyService           = CreateStub();
 		mockQueueDao                 = CreateStub();
 		mockPoService                = CreateStub();
 
 		mockAssetManagerServiceProxy.$( "get", mockAssetManagerService );
 		mockPoService.$( "clearRelatedCaches" );
+		mockTenancyService.$( "getObjectTenant", "" );
 
 		var service = new preside.system.services.assetManager.AssetQueueService(
 			  assetManagerService = mockAssetManagerServiceProxy
+			, tenancyService      = mockTenancyService
 			, queueBatchSize      = 10
 		);
 

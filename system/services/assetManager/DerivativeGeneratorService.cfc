@@ -29,6 +29,7 @@ component {
 		, required string assetTransformationConfigHash
 		, required query  asset
 		, required string storagePath
+		,          string tenantId = ""
 	) {
 		var assetManagerService = _getAssetManagerService();
 		var signature           = arguments.derivativeSignature;
@@ -41,6 +42,7 @@ component {
 			, throwOnMissing         = true
 			, placeholderIfTooLarge  = true
 			, getFilePathIfSupported = true
+			, tenantId               = arguments.tenantId
 		);
 		var fileProperties      = {
 			  filename    = ListLast( asset.storage_path, "\/" )
@@ -102,13 +104,13 @@ component {
 				sp.putObjectFromLocalPath(
 					  localPath = tmpFile
 					, path      = fileProperties.storagePath
-					, private   = !assetManagerService.isDerivativePubliclyAccessible( arguments.derivativeName ) && assetManagerService.isAssetAccessRestricted( arguments.assetId )
+					, private   = !assetManagerService.isDerivativePubliclyAccessible( arguments.derivativeName ) && assetManagerService.isAssetAccessRestricted( id=arguments.assetId, tenantId=arguments.tenantId )
 				);
 			} else {
 				sp.putObject(
 					  object  = FileReadBinary( tmpFile )
 					, path    = fileProperties.storagePath
-					, private = !assetManagerService.isDerivativePubliclyAccessible( arguments.derivativeName ) && assetManagerService.isAssetAccessRestricted( arguments.assetId )
+					, private = !assetManagerService.isDerivativePubliclyAccessible( arguments.derivativeName ) && assetManagerService.isAssetAccessRestricted( id=arguments.assetId, tenantId=arguments.tenantId )
 				);
 			}
 		} catch( any e ) {

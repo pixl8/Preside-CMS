@@ -7,10 +7,16 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 // CONSTRUCTOR
 	/**
 	 * @assetManagerService.inject delayedInjector:assetManagerService
+	 * @tenancyService.inject      delayedInjector:tenancyService
 	 * @queueBatchSize.inject      coldbox:setting:assetManager.queue.batchSize
 	 */
-	public any function init( required any assetManagerService, required numeric queueBatchSize ) {
+	public any function init(
+		  required any     assetManagerService
+		, required any     tenancyService
+		, required numeric queueBatchSize
+	) {
 		_setAssetManagerService( arguments.assetManagerService );
+		_setTenancyService( arguments.tenancyService );
 		_setQueueBatchSize( arguments.queueBatchSize );
 
 		return this;
@@ -56,6 +62,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 		var assetManagerService = _getAssetManagerService();
 		var poService           = $getPresideObjectService();
 		var queuedAsset         = "";
+		var assetTenantField    = Trim( _getTenancyService().getObjectTenant( "asset" ) );
 
 		do {
 			queuedAsset = getNextQueuedAsset();
@@ -69,6 +76,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 					  assetId        = queuedAsset.asset
 					, versionId      = queuedAsset.asset_version
 					, derivativeName = queuedAsset.derivative_name
+					, tenantId       = Len( assetTenantField ) ? ( queuedAsset._tenant_id ?: "" ) : ""
 					, forceIfExists  = true
 				);
 
@@ -107,12 +115,14 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 		transaction {
 			var takenByOtherProcess = false;
 			var queueDao            = $getPresideObject( "asset_generation_queue" );
+			var assetTenantField    = Trim( _getTenancyService().getObjectTenant( "asset" ) );
 			var queuedAsset         = queueDao.selectData(
-				  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
-				, filter       = "queue_status = :queue_status"
-				, filterParams = { queue_status="pending" }
-				, orderby      = "retry_count,datecreated"
-				, maxRows      = 1
+				  selectFields      = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
+				, extraselectFields = Len( assetTenantField ) ? [ "asset.#assetTenantField# as _tenant_id" ] : []
+				, filter            = "queue_status = :queue_status"
+				, filterParams      = { queue_status="pending" }
+				, orderby           = "retry_count,datecreated"
+				, maxRows           = 1
 			);
 
 			for( var q in queuedAsset ) {
@@ -250,6 +260,13 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 	}
 	private void function _setAssetManagerService( required any assetManagerService ) {
 	    _assetManagerService = arguments.assetManagerService;
+	}
+
+	private any function _gettenancyService() {
+		return _tenancyService;
+	}
+	private void function _settenancyService( required any tenancyService ) {
+		_tenancyService = arguments.tenancyService;
 	}
 
 	private numeric function _getQueueBatchSize() {

@@ -20,6 +20,7 @@ component {
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
+		var tenantId          = rc.tenantId     ?: "";
 
 		var asset             = "";
 		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
@@ -40,6 +41,7 @@ component {
 					asset = assetManagerService.getAssetDerivative(
 						  assetId           = assetId
 						, versionId         = versionId
+						, tenantId          = tenantId
 						, derivativeName    = derivativeName
 						, configHash        = configHash
 						, selectFields      = assetSelectFields

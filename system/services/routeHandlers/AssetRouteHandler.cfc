@@ -4,10 +4,16 @@ component implements="iRouteHandler" singleton=true presideService=true {
 	/**
 	 * @eventName.inject coldbox:setting:eventName
 	 * @assetManagerService.inject assetManagerService
+	 * @tenancyService.inject tenancyService
 	 */
-	public any function init( required string eventName, required any assetManagerService ) output=false {
+	public any function init(
+		  required string eventName
+		, required any    assetManagerService
+		, required any    tenancyService
+	) output=false {
 		_setEventName( arguments.eventName );
 		_setAssetManagerService( arguments.assetManagerService );
+		_setTenancyService( arguments.tenancyService );
 
 		return this;
 	}
@@ -49,10 +55,16 @@ component implements="iRouteHandler" singleton=true presideService=true {
 		var trackDownload = buildArgs.trackDownload ?: false;
 		var trashed       = IsBoolean( buildArgs.trashed ?: "" ) && buildArgs.trashed;
 		var link          = "";
-		var assetType     = _getAssetManagerService().getAsset(
-			  id           = assetId
-			, selectFields = [ "asset_type" ]
-		).asset_type ?: "";
+		var tenantField   = Trim( _getTenancyService().getObjectTenant( "asset" ) );
+		var selectFields  = [ "asset_type" ];
+
+		if ( Len( tenantField ) ) {
+			ArrayAppend( selectFields, tenantField );
+		}
+
+		var assetDetail = _getAssetManagerService().getAsset( id=assetId, selectFields=selectFields );
+		var assetType   = assetDetail.asset_type ?: "";
+		var tenantId    = assetDetail[ tenantField ] ?: "";
 
 		if ( !isEmpty( assetType ) ) {
 			var assetTypeDetail = _getAssetManagerService().getAssetType( name=assetType );
@@ -93,6 +105,10 @@ component implements="iRouteHandler" singleton=true presideService=true {
 			link = event.getSiteUrl( includePath=false, includeLanguageSlug=false ) & link;
 		}
 
+		if ( Len( tenantId ) ) {
+			link &= "?tenantId=" & tenantId;
+		}
+
 		return link;
 	}
 
@@ -109,5 +125,12 @@ component implements="iRouteHandler" singleton=true presideService=true {
 	}
 	private void function _setAssetManagerService( required any assetManagerService ) output=false {
 		_assetManagerService = arguments.assetManagerService;
+	}
+
+	private any function _getTenancyService() {
+		return _tenancyService;
+	}
+	private void function _setTenancyService( required any tenancyService ) {
+		_tenancyService = arguments.tenancyService;
 	}
 }

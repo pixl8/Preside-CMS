@@ -13,6 +13,7 @@ component displayName="AssetManager Service" {
 	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @storageLocationService.inject     storageLocationService
 	 * @storageProviderService.inject     storageProviderService
+	 * @tenancyService.inject             tenancyService
 	 * @assetQueueService.inject          presidecms:dynamicservice:assetQueue
 	 * @derivativeGeneratorService.inject presidecms:dynamicservice:derivativeGenerator
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
@@ -26,6 +27,7 @@ component displayName="AssetManager Service" {
 		, required any    documentMetadataService
 		, required any    storageLocationService
 		, required any    storageProviderService
+		, required any    tenancyService
 		, required any    assetQueueService
 		, required any    derivativeGeneratorService
 		, required any    renderedAssetCache
@@ -39,6 +41,7 @@ component displayName="AssetManager Service" {
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
+		_setTenancyService( arguments.tenancyService );
 		_setAssetQueueService( arguments.assetQueueService );
 		_setDerivativeGeneratorService( arguments.derivativeGeneratorService );
 		_setRenderedAssetCache( arguments.renderedAssetCache );
@@ -1255,8 +1258,26 @@ component displayName="AssetManager Service" {
 		return groups[ arguments.groupName ] ?: [];
 	}
 
-	public query function getAsset( required string id, array selectFields=[], boolean throwOnMissing=false ) {
-		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData( id=arguments.id, selectFields=arguments.selectFields ) : QueryNew('');
+	public query function getAsset(
+		  required string  id
+		,          array   selectFields   = []
+		,          boolean throwOnMissing = false
+		,          string  tenantId       = ""
+	) {
+		var tenantIds = {};
+		if ( Len( arguments.tenantId ) ) {
+			var tenantField = Trim( _getTenancyService().getObjectTenant( "asset" ) );
+
+			if ( Len( tenantField ) ) {
+				tenantIds[ tenantField ] = arguments.tenantId;
+			}
+		}
+
+		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData(
+			  id           = arguments.id
+			, selectFields = arguments.selectFields
+			, tenantIds    = tenantIds
+		) : QueryNew('');
 
 		if ( asset.recordCount or not throwOnMissing ) {
 			return asset;
@@ -1275,13 +1296,14 @@ component displayName="AssetManager Service" {
 		,          boolean isTrashed              = false
 		,          boolean placeholderIfTooLarge  = false
 		,          boolean getFilePathIfSupported = false
+		,          string  tenantId               = ""
 	) {
 		var assetBinary = "";
 		var isPrivate   = isAssetAccessRestricted( arguments.id )
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
 			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder", "asset.width", "asset.height" ] )
-			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder", "width", "height" ] );
+			: getAsset( id=arguments.id, tenantId=arguments.tenantId, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder", "width", "height" ] );
 
 		if ( asset.recordCount ) {
 			if ( arguments.placeholderIfTooLarge && assetIsTooLargeForDerivatives( asset.width, asset.height ) ) {
@@ -1698,6 +1720,7 @@ component displayName="AssetManager Service" {
 		  required string  assetId
 		, required string  derivativeName
 		,          string  versionId         = ""
+		,          string  tenantId          = ""
 		,          string  configHash        = ""
 		,          array   selectFields      = []
 		,          boolean createIfNotExists = true
@@ -1742,7 +1765,7 @@ component displayName="AssetManager Service" {
 				var shouldRetry = arguments.createIfNotExists && Val( derivative.retry_count ) < 3 && DateDiff( "s", derivative.datecreated, Now() ) > 20;
 				if ( shouldRetry ) {
 					_getDerivativeDao().updateData( id=derivative.id, data={ asset_url="", retry_count=Val( derivative.retry_count ?: "" ) + 1 } );
-					createAssetDerivative( derivativeId=derivative.id, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+					createAssetDerivative( derivativeId=derivative.id, assetId=arguments.assetId, versionId=arguments.versionId, tenantId=arguments.tenantId, derivativeName=arguments.derivativeName );
 					return derivativeDao.selectData( id=derivative.id, selectFields=arguments.selectFields, useCache=false );
 				}
 
@@ -1762,7 +1785,7 @@ component displayName="AssetManager Service" {
 				derivativeId = createAssetDerivativeRecord( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName, configHash=arguments.configHash );
 			}
 
-			createAssetDerivative( derivativeId=derivativeId, assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+			createAssetDerivative( derivativeId=derivativeId, assetId=arguments.assetId, versionId=arguments.versionId, tenantId=arguments.tenantId, derivativeName=arguments.derivativeName );
 
 			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields, useCache=false );
 		}
@@ -1849,6 +1872,7 @@ component displayName="AssetManager Service" {
 		  required string  assetId
 		, required string  derivativeName
 		,          string  versionId       = ""
+		,          string  tenantId        = ""
 		,          array   transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
 		,          string  derivativeId    = ""
 		,          boolean forceIfExists  = false
@@ -1861,7 +1885,7 @@ component displayName="AssetManager Service" {
 		if ( Len( Trim( arguments.versionId ) ) ) {
 			asset = getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset.file_name", "asset.title", "asset_version.focal_point", "asset_version.crop_hint", "asset_version.resize_no_crop", ] );
 		} else {
-			asset = getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "file_name", "title", "storage_path", "asset_folder", "focal_point", "crop_hint", "resize_no_crop" ] );
+			asset = getAsset( id=arguments.assetId, tenantId=arguments.tenantId, throwOnMissing=true, selectFields=[ "file_name", "title", "storage_path", "asset_folder", "focal_point", "crop_hint", "resize_no_crop" ] );
 		}
 
 		var fileext         = ListLast( asset.storage_path, "." );
@@ -1907,6 +1931,7 @@ component displayName="AssetManager Service" {
 			, assetTransformationConfigHash = configHash
 			, asset                         = asset
 			, storagePath                   = storagePath
+			, tenantId                      = arguments.tenantId
 		);
 	}
 
@@ -1962,8 +1987,8 @@ component displayName="AssetManager Service" {
 		return false;
 	}
 
-	public boolean function isAssetAccessRestricted( required string id, string folderId ) {
-		var asset = getAsset( id = arguments.id, selectFields=[ "asset_folder", "access_restriction" ] );
+	public boolean function isAssetAccessRestricted( required string id, string folderId, string tenantId="" ) {
+		var asset = getAsset( id=arguments.id, tenantId=arguments.tenantId, selectFields=[ "asset_folder", "access_restriction" ] );
 
 		if ( asset.recordCount ) {
 			if ( asset.access_restriction != "inherit" ) {
@@ -2811,6 +2836,13 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setStorageProviderService( required any storageProviderService ) {
 		_storageProviderService = arguments.storageProviderService;
+	}
+
+	private any function _getTenancyService() {
+		return _tenancyService;
+	}
+	private void function _setTenancyService( required any tenancyService ) {
+		_tenancyService = arguments.tenancyService;
 	}
 
 	private any function _getRenderedAssetCache() {
