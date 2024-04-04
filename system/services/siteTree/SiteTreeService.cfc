@@ -847,7 +847,7 @@ component {
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
 				, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
-				, isDraft                 = ( pageDataHasChanged || pageTypeDataHasChanged ) ? arguments.isDraft : false
+				, isDraft                 = ( arguments.isDraft || pageDataHasChanged || pageTypeDataHasChanged ) ? arguments.isDraft : false
 			);
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
@@ -858,7 +858,7 @@ component {
 						, versionNumber           = versionNumber
 						, updateManyToManyRecords = true
 						, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
-						, isDraft                 = ( pageDataHasChanged || pageTypeDataHasChanged ) ? arguments.isDraft : false
+						, isDraft                 = ( arguments.isDraft || pageDataHasChanged || pageTypeDataHasChanged ) ? arguments.isDraft : false
 						, useVersioning           = !arguments.skipVersioning
 					);
 				} else {
