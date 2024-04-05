@@ -235,7 +235,7 @@ component {
 
 		do {
 			emailTemplate = templateDao.selectData(
-				  selectFields       = [ "id" ]
+				  selectFields       = [ "id", "_version_is_draft" ]
 				, filter             = "stats_collection_enabled is null or stats_collection_enabled = :stats_collection_enabled"
 				, filterParams       = { stats_collection_enabled=false }
 				, maxrows            = 1
@@ -245,7 +245,7 @@ component {
 			);
 
 			if ( emailTemplate.recordCount ) {
-				_migrateTemplateToSummaryTables( emailTemplate.id );
+				_migrateTemplateToSummaryTables( emailTemplate.id, $helpers.isTrue( emailTemplate._version_is_draft ) );
 			}
 		} while ( emailTemplate.recordCount );
 	}
@@ -405,7 +405,7 @@ component {
 		return DateDiff( "h", "1970-01-01 00:00:00", arguments.hitDate );
 	}
 
-	private function _migrateTemplateToSummaryTables( templateId ) {
+	private function _migrateTemplateToSummaryTables( templateId, isDraft=false ) {
 		var startms = GetTickCount();
 
 		$systemOutput( "[EmailLogPerformance] Migrating email template with id [#arguments.templateId#] to summary tables for statistics..." );
@@ -415,7 +415,7 @@ component {
 		var turnedOnDate = Now();
 		var dateFilter   = { filter="email_template_send_log_activity.datecreated <= :datecreated", filterParams={ datecreated=turnedOnDate } };
 
-		templateDao.updateData( id=arguments.templateId, data={
+		templateDao.updateData( id=arguments.templateId, isDraft=arguments.isDraft, data={
 			  stats_collection_enabled    = true
 			, stats_collection_enabled_on = turnedOnDate
 		} );
