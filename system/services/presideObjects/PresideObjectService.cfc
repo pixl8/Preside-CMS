@@ -2004,8 +2004,9 @@ component displayName="Preside Object Service" {
 	) autodoc=true {
 		if ( objectUsesDrafts( objectName=arguments.objectName ) ) {
 			return dataExists(
-				  objectName = arguments.objectName
-				, filter     = {
+				  objectName         = arguments.objectName
+				, allowDraftVersions = objectUsesDrafts( arguments.objectName )
+				, filter             = {
 					  id                  = arguments.recordId
 					, _version_has_drafts = true
 				}

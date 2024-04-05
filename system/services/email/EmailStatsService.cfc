@@ -415,10 +415,14 @@ component {
 		var turnedOnDate = Now();
 		var dateFilter   = { filter="email_template_send_log_activity.datecreated <= :datecreated", filterParams={ datecreated=turnedOnDate } };
 
-		templateDao.updateData( id=arguments.templateId, data={
-			  stats_collection_enabled    = true
-			, stats_collection_enabled_on = turnedOnDate
-		} );
+		templateDao.updateData(
+			  id      = arguments.templateId
+			, isDraft = $getPresideObjectService().objectRecordHasDraft( objectName="email_template", recordId=arguments.templateId )
+			, data    = {
+				  stats_collection_enabled    = true
+				, stats_collection_enabled_on = turnedOnDate
+			}
+		);
 
 		var activityTypes = {
 			  send        = "send"
