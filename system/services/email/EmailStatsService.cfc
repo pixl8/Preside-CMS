@@ -405,7 +405,7 @@ component {
 		return DateDiff( "h", "1970-01-01 00:00:00", arguments.hitDate );
 	}
 
-	private function _migrateTemplateToSummaryTables( templateId, isDraft ) {
+	private function _migrateTemplateToSummaryTables( templateId, isDraft=false ) {
 		var startms = GetTickCount();
 
 		$systemOutput( "[EmailLogPerformance] Migrating email template with id [#arguments.templateId#] to summary tables for statistics..." );
