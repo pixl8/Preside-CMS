@@ -69,8 +69,6 @@ component extends="preside.system.base.AdminHandler" {
 		var validationResult = validateForms( formData );
 
 		if ( validationResult.validated() ) {
-			formData.distinct_email = formData.distinct_email ?: true;
-
 			var id=emailTemplateService.saveTemplate( template=formData, isDraft=( saveAction=="savedraft" ) );
 
 			messagebox.info( translateResource( "cms:emailcenter.customTemplates.template.added.confirmation" ) );
