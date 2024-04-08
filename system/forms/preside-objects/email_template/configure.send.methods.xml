@@ -18,7 +18,6 @@
 		</fieldset>
 		<fieldset id="filter" sortorder="60">
 			<field binding="email_template.recipient_filter" control="filterPicker" sortorder="10" quickadd="true" quickedit="true" />
-			<field binding="email_template.distinct_email"                          sortorder="20" nolabel="true" switchClass="ace-checkbox-2" switchLabel="preside-objects.email_template:field.distinct_email.title" switchDesc="preside-objects.email_template:field.distinct_email.description" />
 		</fieldset>
 	</tab>
 </form>
