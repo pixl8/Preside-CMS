@@ -252,18 +252,6 @@ component displayName="Email Recipient Type Service" {
 	}
 
 	/**
-	 * Returns the configured email field for the given recipient type
-	 *
-	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type whose filter object we are to get
-	 */
-	public string function getEmailFieldForRecipientType( required string recipientType ) {
-		var types = _getConfiguredRecipientTypes();
-
-		return types[ arguments.recipientType ].emailField ?: "";
-	}
-
-	/**
 	 * Returns the configured foreign key property name on the email log table that
 	 * corresponds to this recipient type
 	 *

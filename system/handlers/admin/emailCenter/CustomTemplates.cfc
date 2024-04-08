@@ -390,10 +390,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.filterObject = rc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type ?: "" );
 		prc.anonymousOnly = !prc.filterObject.len();
 
-		if ( isEmptyString( prc.template.distinct_email ?: "" ) ) {
-			prc.template.distinct_email = true;
-		}
-
 		if ( prc.anonymousOnly ) {
 			prc.formName = "preside-objects.email_template.configure.send";
 		} else {
@@ -654,7 +650,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId, hideAlreadySent );
 		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
-		var emailField   = emailRecipientTypeService.getEmailFieldForRecipientType( prc.template.recipient_type );
 		var gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
 		var addPreviewLink = IsTrue( rc.addPreviewLink ?: "" );
 
@@ -662,11 +657,6 @@ component extends="preside.system.base.AdminHandler" {
 			var actionsView = "admin.emailCenter.customTemplates._selectPreviewUserLink";
 		} else {
 			var actionsView = "admin.emailCenter.customTemplates._noActions";
-		}
-
-		var groupBy = "";
-		if ( isTrue( prc.template.distinct_email ?: "" ) && Len( Trim( emailField ) ) ) {
-			groupBy = emailField;
 		}
 
 		runEvent(
@@ -680,7 +670,6 @@ component extends="preside.system.base.AdminHandler" {
 				, draftsEnabled = false
 				, extraFilters  = extraFilters
 				, useCache      = false
-				, groupBy       = groupBy
 			}
 		);
 	}
