@@ -20,9 +20,8 @@ component {
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
-		var assetExisted      = getPresideObject( "asset" ).dataExists( id=assetId );
 
-		if ( !assetExisted ) {
+		if ( !assetManagerService.assetExists( id=assetId ) ) {
 			event.renderData( data="404 not found", type="text", statusCode=404 );
 			return;
 		}
