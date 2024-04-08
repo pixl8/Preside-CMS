@@ -1250,6 +1250,10 @@ component displayName="AssetManager Service" {
 		return groups[ arguments.groupName ] ?: [];
 	}
 
+	public boolean function assetExists( required string id ) {
+		return _getAssetDao().dataExists( id=arguments.id );
+	}
+
 	public query function getAsset( required string id, array selectFields=[], boolean throwOnMissing=false ) {
 		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData( id=arguments.id, selectFields=arguments.selectFields ) : QueryNew('');
 
