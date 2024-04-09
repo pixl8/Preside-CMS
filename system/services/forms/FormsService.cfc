@@ -690,9 +690,10 @@ component displayName="Forms service" {
 			if ( Len( fieldValue ) ) {
 				try {
 					arguments.formData[ field ] = preProcessFormField(
-						  formName   = arguments.formName
-						, fieldName  = field
-						, fieldValue = fieldValue
+						  formName         = arguments.formName
+						, fieldName        = field
+						, fieldValue       = fieldValue
+						, validationResult = validationResult
 					);
 				} catch( any e ) {
 					validationResult.addError(
@@ -717,7 +718,7 @@ component displayName="Forms service" {
 	 * @fieldValue The submitted value that will be pre-processed
 	 *
 	 */
-	public any function preProcessFormField( required string formName, required string fieldName, required string fieldValue ) {
+	public any function preProcessFormField( required string formName, required string fieldName, required string fieldValue, required any validationResult ) {
 		var field        = getFormField( formName = arguments.formName, fieldName = arguments.fieldName );
 		var preProcessor = _getPreProcessorForField( argumentCollection = field );
 
@@ -726,7 +727,11 @@ component displayName="Forms service" {
 				  event          = preProcessor
 				, prePostExempt  = true
 				, private        = true
-				, eventArguments = { fieldName=arguments.fieldName, preProcessorArgs=field }
+				, eventArguments = {
+					  fieldName        = arguments.fieldName
+					, preProcessorArgs = field
+					, validationResult = validationResult
+				  }
 			);
 		}
 
