@@ -917,12 +917,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="sort", pageId=pageId );
 
-		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
-
+		prc.page       = _getPageAndThrowOnMissing( argumentCollection=arguments );
+		prc.pageIcon   = "fa-sort-amount-asc";
 		prc.childPages = siteTreeService.getDescendants(
-			  id       = pageId
-			, depth        = 1
-			, selectFields = [ "id", "title" ]
+			  id            = pageId
+			, depth         = 1
+			, selectFields  = [ "id", "title" ]
+			, includeHidden = true
 		);
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
@@ -1148,10 +1149,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="navigate", pageId=parentId );
 
-		prc.pageTitle    = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] );
-		prc.pageSubTitle = translateResource( uri="cms:sitetree.manage.type.subtitle", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ), prc.parentPage.title ] );;
-		prc.pageIcon     = translateResource( "page-types.#pageType#:iconClass" );
-		prc.canAddChildren = _checkPermissions( argumentCollection=arguments, key="add", pageId=parentId, throwOnError=false );
+		prc.pageTitle       = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] );
+		prc.pageSubTitle    = translateResource( uri="cms:sitetree.manage.type.subtitle", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ), prc.parentPage.title ] );;
+		prc.pageIcon        = translateResource( "page-types.#pageType#:iconClass" );
+		prc.canAddChildren  = _checkPermissions( argumentCollection=arguments, key="add", pageId=parentId, throwOnError=false );
+		prc.canSortChildren = _checkPermissions( argumentCollection=arguments, key="sort", pageId=parentId, throwOnError=false );
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentId, pageTitle=prc.parentPage.title );
 		event.addAdminBreadCrumb(
@@ -1383,7 +1385,21 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _getSortOrderForGrid( required string objectName ) {
-		return siteTreeService.getDefaultSortOrderForDataGrid( arguments.objectName );
+		var sortOrder = siteTreeService.getDefaultSortOrderForDataGrid( arguments.objectName );
+
+		if ( !Len( Trim( sortOrder ) ) ) {
+			sortOrder = dataManagerService.getDefaultSortOrderForDataGrid( arguments.objectName );
+
+			if ( !Len( Trim( sortOrder ) ) ) {
+				var pageDefaultSortOrder = dataManagerService.getDefaultSortOrderForDataGrid( "page" );
+
+				if ( Len( Trim( pageDefaultSortOrder ) ) ) {
+					sortOrder = "page.#pageDefaultSortOrder#";
+				}
+			}
+		}
+
+		return sortOrder;
 	}
 
 	private array function _cleanGridFields( required array gridFields ) {
