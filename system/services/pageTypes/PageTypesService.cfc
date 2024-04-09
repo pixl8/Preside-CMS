@@ -39,12 +39,12 @@ component singleton=true {
 		return result;
 	}
 
-	public array function listSiteTreePageTypes() {
+	public array function listSiteTreePageTypes( boolean includeHidden=false ) {
 		var pageTypes = _getRegisteredPageTypes();
 		var result    = [];
 
 		for( var id in pageTypes ) {
-			if ( pageTypes[id].showInSiteTree() ) {
+			if ( pageTypes[id].showInSiteTree() || arguments.includeHidden ) {
 				result.append( id );
 			}
 		}
