@@ -271,7 +271,7 @@ component {
 
 		if ( migration.recordCount ) {
 			$systemOutput( "[EmailLogPerformance] Resetting previous migration from temporary performance extension..." );
-			templateDao.updateData( forceUpdateAll=true, data={
+			templateDao.updateData( filter={ _version_is_draft=false }, data={
 				  stats_collection_enabled    = false
 				, stats_collection_enabled_on = ""
 			} );
