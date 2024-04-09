@@ -369,15 +369,16 @@ component {
 
 	public query function getDescendants(
 		  required string  id
-		,          numeric depth        = 0
-		,          array   selectFields = []
-		,          boolean allowDrafts  = $getRequestContext().showNonLiveContent()
+		,          numeric depth         = 0
+		,          array   selectFields  = []
+		,          boolean allowDrafts   = $getRequestContext().showNonLiveContent()
+		,          boolean includeHidden = false
 	) {
 		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
 
 		if ( page.recordCount ) {
-			var allowedPageTypes = _getPageTypesService().listSiteTreePageTypes();
+			var allowedPageTypes = _getPageTypesService().listSiteTreePageTypes( includeHidden=arguments.includeHidden );
 
 			args = {
 				  filter             = "_hierarchy_lineage like :_hierarchy_lineage and page_type in ( :page_type )"

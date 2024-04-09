@@ -3,7 +3,6 @@
 	childPages       = event.getValue( name="childPages", defaultValue=QueryNew(''), private=true );
 	formId           = "editForm-" & CreateUUId();
 
-	prc.pageIcon     = "sort-by-attributes";
 	prc.pageTitle    = translateResource( uri="cms:sitetree.reorderChildren.title", data=[ prc.page.title ] );
 </cfscript>
 
