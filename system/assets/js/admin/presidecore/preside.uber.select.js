@@ -25,7 +25,8 @@
 						disabled: option.disabled,
 						classes: option.className,
 						style: option.style.cssText,
-						active: option.active
+						active: option.active,
+						iconClass: $( option ).data( "iconclass" )
 					});
 				} else {
 					this.parsed.push({
@@ -1031,12 +1032,19 @@
 		};
 
 		UberSelect.prototype.choice_build = function(item) {
-			var choice, close_link,
+			var label, span, choice, close_link,
 				_this = this;
+				
+			label = Mustache.render( this.selected_template, item );
 
+			if ( item.iconClass.length ) {
+				label = $('<i />', { "class":item.iconClass } ).get(0).outerHTML + label;
+			}	
+			span   = $('<span />').html( label )
 			choice = $('<li />', {
 				"class": "search-choice"
-			}).html("<span>" + Mustache.render( this.selected_template, item ) + "</span>");
+			}).html( span.get(0).outerHTML );
+
 			if ( item.disabled ) {
 				choice.addClass('search-choice-disabled');
 			} else {

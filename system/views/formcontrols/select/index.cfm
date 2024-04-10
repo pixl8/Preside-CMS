@@ -15,9 +15,17 @@
 	addMissingValues        = IsTrue( args.addMissingValues   ?: "" );
 	includeEmptyOption      = IsTrue( args.includeEmptyOption ?: "" );
 	labels                  = ( structKeyExists( args, "labels") && len( args.labels ) ) ? args.labels : args.values;
+	iconClasses             = ( structKeyExists( args, "iconClasses") && len( args.iconClasses ) ) ? args.iconClasses: [];
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
+	if ( IsSimpleValue( iconClasses ) ) { iconClasses = ListToArray( iconClasses ); }
+
+	if ( !ArrayLen( iconClasses ) ) {
+		for ( var ix=1; ix<=ArrayLen( values ); ix++ ) {
+			ArrayAppend( iconClasses, "" );
+		}
+	}
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
@@ -68,6 +76,7 @@
 			<option
 				value="#selectValue#"
 				title="#label#"
+				data-iconClass="#iconClasses[i] ?: ""#"
 				<cfif selected> selected="selected"</cfif>
 			>
 				#label#
