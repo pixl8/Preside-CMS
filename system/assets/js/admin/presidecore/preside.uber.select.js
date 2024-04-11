@@ -1037,7 +1037,7 @@
 				
 			label = Mustache.render( this.selected_template, item );
 
-			if ( item.iconClass.length ) {
+			if ( item.iconClass ) {
 				label = $('<i />', { "class":item.iconClass } ).get(0).outerHTML + label;
 			}	
 			span   = $('<span />').html( label )
