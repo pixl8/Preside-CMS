@@ -35,6 +35,7 @@
 				, defaultValue       = protocolDefaultValue
 				, values             = protocolValues
 				, includeEmptyOption = true
+				, placeholder        = ""
 			)#
 		</div>
 		<div class="col-md-9">
