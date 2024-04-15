@@ -514,7 +514,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template"
-				, gridFields    = "name,sending_method,send_date,datemodified,last_sent_date,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date"
+				, gridFields    = "name,sending_method,send_date,datemodified,last_sent_date,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date,sent_count"
 				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
 				, filter        = { "email_template.is_system_email" = false }
 				, draftsEnabled = true
