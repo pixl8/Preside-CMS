@@ -25,8 +25,7 @@
 						disabled: option.disabled,
 						classes: option.className,
 						style: option.style.cssText,
-						active: option.active,
-						iconClass: $( option ).data( "iconclass" )
+						active: option.active
 					});
 				} else {
 					this.parsed.push({
@@ -92,10 +91,21 @@
 
 		UberSelect.prototype.set_rendering_templates = function(){
 			var templateId = this.form_field.getAttribute( "data-result-template" )
+			, resultTemplateFormat = this.form_field.getAttribute( "data-result-template-format" )
+			, selectedTemplateFormat = this.form_field.getAttribute( "data-selected-template-format" )
 			  , $template;
 
-			this.result_template   = "{{text}}";
-			this.selected_template = "{{text}}";
+			if ( resultTemplateFormat ) {
+				this.result_template = resultTemplateFormat;
+			} else {
+				this.result_template   = "{{text}}";
+			}
+			
+			if ( selectedTemplateFormat ) {
+				this.selected_template = selectedTemplateFormat;
+			} else {
+				this.selected_template = "{{text}}";
+			}
 
 			if ( templateId ){
 				$template = $( "#" + templateId );
@@ -1032,19 +1042,12 @@
 		};
 
 		UberSelect.prototype.choice_build = function(item) {
-			var label, span, choice, close_link,
+			var choice, close_link,
 				_this = this;
-				
-			label = Mustache.render( this.selected_template, item );
 
-			if ( item.iconClass ) {
-				label = $('<i />', { "class":item.iconClass } ).get(0).outerHTML + label;
-			}	
-			span   = $('<span />').html( label )
 			choice = $('<li />', {
 				"class": "search-choice"
-			}).html( span.get(0).outerHTML );
-
+			}).html("<span>" + Mustache.render( this.selected_template, item ) + "</span>");
 			if ( item.disabled ) {
 				choice.addClass('search-choice-disabled');
 			} else {

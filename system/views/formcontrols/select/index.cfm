@@ -10,22 +10,17 @@
 	deselectable            = args.deselectable            ?: true;
 	extraClasses            = args.extraClasses            ?: "";
 	values                  = args.values                  ?: "";
+	resultTemplate          = args.resultTemplate          ?: "";
+	selectedTemplate        = args.selectedTemplate        ?: "";
 	removeObjectPickerClass = args.removeObjectPickerClass ?: false;
 	objectPickerClass       = removeObjectPickerClass ?  "" : "object-picker";
 	addMissingValues        = IsTrue( args.addMissingValues   ?: "" );
 	includeEmptyOption      = IsTrue( args.includeEmptyOption ?: "" );
 	labels                  = ( structKeyExists( args, "labels") && len( args.labels ) ) ? args.labels : args.values;
-	iconClasses             = ( structKeyExists( args, "iconClasses") && len( args.iconClasses ) ) ? args.iconClasses: [];
+	
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
-	if ( IsSimpleValue( iconClasses ) ) { iconClasses = ListToArray( iconClasses ); }
-
-	if ( !ArrayLen( iconClasses ) ) {
-		for ( var ix=1; ix<=ArrayLen( values ); ix++ ) {
-			ArrayAppend( iconClasses, "" );
-		}
-	}
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
@@ -60,6 +55,8 @@
 		data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 		data-value="#value#"
 		data-display-limit="0"
+		data-result-template-format="#resultTemplate#"
+		data-selected-template-format="#selectedTemplate#"
 		<cfif IsBoolean( multiple ) && multiple>
 			multiple="multiple"
 		</cfif>
