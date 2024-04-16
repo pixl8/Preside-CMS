@@ -24,7 +24,10 @@ component {
 					unit    = translateResource( uri="enum.timeUnit:#unit#.label.singular" );
 				}
 
-				label = translateResource( uri="cms:emailcenter.table.scheduled.repeat", data=[ "#measure##unit#" ] );
+				label = translateResource(
+					  uri  = "enum.emailSendingMethod:scheduled.withtype"
+					, data = [ translateResource( uri="cms:emailcenter.table.scheduled.repeat", data=[ "#measure##unit#" ] ) ]
+				);
 			}
 		}
 

@@ -1,6 +1,7 @@
 <cfscript>
 	objectName          = "email_template"
 	gridFields          = [ "name", "sending_method", "send_date", "last_sent_date", "datemodified" ];
+	sortableFields      = [ "name", "sending_method", "last_sent_date", "datemodified" ];
 	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
 	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
@@ -26,6 +27,7 @@
 		, datasourceUrl   = event.buildAdminLink( linkTo="emailCenter.customTemplates.getRecordsForAjaxDataTables" )
 		, multiActionUrl  = event.buildAdminLink( linkTo='emailCenter.customTemplates.deleteAction' )
 		, gridFields      = gridFields
+		, sortableFields  = sortableFields
 		, draftsEnabled   = false
 	} )#
 </cfoutput>
