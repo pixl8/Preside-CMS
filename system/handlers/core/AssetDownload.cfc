@@ -21,6 +21,11 @@ component {
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
 
+		if ( !assetManagerService.assetExists( id=assetId ) ) {
+			event.renderData( data="404 not found", type="text", statusCode=404 );
+			return;
+		}
+
 		var asset             = "";
 		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
 		var passwordProtected = false;
