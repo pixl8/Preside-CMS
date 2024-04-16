@@ -52,16 +52,4 @@ component {
 		return formName;
 	}
 
-	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
-		args.orderBy = args.orderBy ?: "";
-
-		for ( var order in args.orderBy ) {
-			if ( FindNoCase( "send_date", order ) ) {
-				var orderType = ListLast( order, " " );
-				    orderType = ArrayFindNoCase( [ "asc", "desc" ], orderType ) ? orderType : "asc";
-
-				args.orderBy = ListAppend( args.orderBy, "sent_count #orderType#" );
-			}
-		}
-	}
 }
