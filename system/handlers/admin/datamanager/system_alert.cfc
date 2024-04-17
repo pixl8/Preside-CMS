@@ -31,7 +31,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private string function _infoCardLevel( event, rc, prc, args={} ) {
-		return translateResource( "preside-objects.system_alert:field.level.title") & ":&nbsp;" & renderField(
+		return '<i class="fa fa-fw fa-thermometer-half"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.level.title") & ":&nbsp;" & renderField(
 			  object   = prc.objectName
 			, property = "level"
 			, data     = prc.record.level
@@ -39,17 +39,17 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private string function _infoCardDateCreated( event, rc, prc, args={} ) {
-		return translateResource( "preside-objects.system_alert:field.datecreated.title") & ":&nbsp;"
+		return '<i class="fa fa-fw fa-plus"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.datecreated.title") & ":&nbsp;"
 			 & DateTimeFormat( args.record.datecreated, 'd mmm yyyy HH:nn' );
 	}
 
 	private string function _infoCardDateModified( event, rc, prc, args={} ) {
-		return translateResource( "preside-objects.system_alert:field.datemodified.title") & ":&nbsp;"
+		return '<i class="fa fa-fw fa-clock-o"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.datemodified.title") & ":&nbsp;"
 			 & DateTimeFormat( args.record.datemodified, 'd mmm yyyy HH:nn' );
 	}
 
 	private string function _infoCardContext( event, rc, prc, args={} ) {
-		return translateResource( "preside-objects.system_alert:field.context.title") & ":&nbsp;" & renderField(
+		return '<i class="fa fa-fw fa-project-diagram"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.context.title") & ":&nbsp;" & renderField(
 			  object   = prc.objectName
 			, property = "context"
 			, data     = prc.record.context
@@ -57,7 +57,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private string function _infoCardReference( event, rc, prc, args={} ) {
-		return translateResource( "preside-objects.system_alert:field.reference.title") & ":&nbsp;" & renderField(
+		return '<i class="fa fa-fw fa-code"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.reference.title") & ":&nbsp;" & renderField(
 			  object   = prc.objectName
 			, property = "reference"
 			, data     = prc.record.reference
