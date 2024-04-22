@@ -112,7 +112,7 @@ component {
 				} );
 
 				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
-				if ( type.serveAsAttachment ) {
+				if ( type.trackDownloads ) {
 					websiteUserActionService.recordAction(
 						  action     = "download"
 						, type       = "asset"
