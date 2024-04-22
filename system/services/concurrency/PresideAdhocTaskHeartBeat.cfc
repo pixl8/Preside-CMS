@@ -35,6 +35,16 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
+		try {
+			_getAdhocTaskmanagerService().processStaleLockedTasks();
+		} catch( any e ) {
+			$raiseError( e );
+		}
+		try {
+			_getAdhocTaskmanagerService().failInactiveRunningTasks();
+		} catch( any e ) {
+			$raiseError( e );
+		}
 	}
 
 
