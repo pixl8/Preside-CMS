@@ -1,21 +1,25 @@
 ( function( $ ){
 	$( ".focal-point-picker" ).each( function(){
-		var $fpPicker    = $( this )
-		  , $formInput   = $fpPicker.find( ".focal-point-input" )
-		  , $fpImage     = $fpPicker.find( ".focal-point-image" )
-		  , $clearButton = $fpPicker.find( ".focal-point-clear" )
-		  , $crosshair   = $fpPicker.find( ".focal-point-crosshair" );
+		var $fpPicker            = $( this )
+		  , $formInput           = $fpPicker.find( ".focal-point-input" )
+		  , $fpImage             = $fpPicker.find( ".focal-point-image" )
+		  , $clearButton         = $fpPicker.find( ".focal-point-clear" )
+		  , $crosshair           = $fpPicker.find( ".focal-point-crosshair" )
+		  , fpImageFetchAttempts = 0
+		  , $fpImageClone;
 
 		var init = function() {
-			var $fpImageClone = $fpImage.clone().removeAttr( "id" ).css( { position: "absolute", left: "-999em", visibility: "hidden" } ).appendTo( "body" );
+			if ( $fpImageClone == null ) {
+				$fpImageClone = $fpImage.clone().removeAttr( "id" ).css( { position: "absolute", left: "-999em", visibility: "hidden" } ).appendTo( "body" );
+			}
 
 			if ( $fpImageClone.show().height() ) {
 				placeCrosshair( $fpImageClone );
+			} else if ( ++fpImageFetchAttempts <= 20 ) {
+				setTimeout( init, 500 );
 			} else {
-				setTimeout( init, 100 );
+				$fpImageClone.remove();
 			}
-
-			$fpImageClone.remove();
 		}
 
 		var placeCrosshair = function( $image ) {
