@@ -1082,6 +1082,11 @@ component {
 
 		settings.heartbeats.taskmanager.poolSize  = Val( settings.env.TASKMANAGER_POOL_SIZE  ?: 0 );
 		settings.heartbeats.adhocTask.poolSize    = Val( settings.env.ADHOCTASK_POOL_SIZE    ?: 0 );
+
+		settings.heartbeats.adhocTask.staleLockSettings = {
+			  minAgeInMinutes = 5
+			, maxAgeInMinutes = ( 7 * 24 * 60 ) // one week (i.e. ignore stale tasks over one week old to avoid restarting very old tasks with unexpected results)
+		};
 	}
 
 	private void function __setupNotifications() {
