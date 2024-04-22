@@ -10,21 +10,27 @@ component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @siteService.inject siteService
-	 * @threadUtil.inject  threadUtil
-	 * @logger.inject      logbox:logger:adhocTaskManager
- 	 * @executor.inject    presideAdhocTaskManagerExecutor
+	 * @siteService.inject               siteService
+	 * @threadUtil.inject                threadUtil
+	 * @logger.inject                    logbox:logger:adhocTaskManager
+ 	 * @executor.inject                  presideAdhocTaskManagerExecutor
+ 	 * @minStaleLockTimeInMinutes.inject coldbox:setting:heartbeats.adhocTask.staleLockSettings.minAgeInMinutes
+ 	 * @maxStaleLockTimeInMinutes.inject coldbox:setting:heartbeats.adhocTask.staleLockSettings.maxAgeInMinutes
 	 */
 	public any function init(
 		  required any siteService
 		, required any logger
 		, required any threadUtil
 		, required any executor
+		, required any minStaleLockTimeInMinutes
+		, required any maxStaleLockTimeInMinutes
 	) {
 		_setSiteService( arguments.siteService );
 		_setLogger( arguments.logger );
 		_setThreadUtil( arguments.threadUtil );
 		_setExecutor( arguments.executor );
+		_setMinStaleLockTimeInMinutes( arguments.minStaleLockTimeInMinutes );
+		_setMaxStaleLockTimeInMinutes( arguments.maxStaleLockTimeInMinutes );
 
 		return this;
 	}
@@ -613,6 +619,21 @@ component displayName="Ad-hoc Task Manager Service" {
 		return true;
 	}
 
+	public void function unlockStaleLockedTasks() {
+		var minAge = DateAdd( "n", 0-_getMinStaleLockTimeInMinutes(), Now() );
+		var maxAge = DateAdd( "n", 0-_getMaxStaleLockTimeInMinutes(), Now() );
+
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  filter       = "status = :status and datemodified < :minAge and datemodified > :maxAge"
+			, data         = { status="pending", last_error="Task was stuck in 'locked' status. Requeued." }
+			, filterParams = {
+				  status = "locked"
+				, minAge = { type="cf_sql_datetime", value=minAge }
+				, maxAge = { type="cf_sql_datetime", value=maxAge }
+			  }
+		);
+	}
+
 // PRIVATE HELPERS
 	private any function _getTaskLogger( required string taskId ) {
 		return new TaskManagerLoggerWrapper(
@@ -728,4 +749,19 @@ component displayName="Ad-hoc Task Manager Service" {
 	private void function _setExecutor( required any executor ) {
 	    _executor = arguments.executor;
 	}
+
+	private any function _getMinStaleLockTimeInMinutes() {
+	    return _minStaleLockTimeInMinutes;
+	}
+	private void function _setMinStaleLockTimeInMinutes( required numeric minStaleLockTimeInMinutes ) {
+	    _minStaleLockTimeInMinutes = arguments.minStaleLockTimeInMinutes;
+	}
+
+	private any function _getMaxStaleLockTimeInMinutes() {
+	    return _maxStaleLockTimeInMinutes;
+	}
+	private void function _setMaxStaleLockTimeInMinutes( required numeric maxStaleLockTimeInMinutes ) {
+	    _maxStaleLockTimeInMinutes = arguments.maxStaleLockTimeInMinutes;
+	}
+
 }
