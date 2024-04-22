@@ -242,7 +242,12 @@ component {
 		onApplicationEnd( application );
 		StructClear( application );
 		StructDelete( request, "cb_requestcontext" );
-		SystemCacheClear( "template" );
+
+		if ( StructKeyExists( getFunctionList(), "inspectTemplates" ) ) {
+			InspectTemplates();
+		} else {
+			SystemCacheClear( "template" );
+		}
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
 			getPageContext().getCFMLFactory().resetPageContext();
