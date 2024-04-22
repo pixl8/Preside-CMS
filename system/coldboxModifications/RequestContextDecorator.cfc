@@ -1027,10 +1027,13 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 // HTTP Header helpers
 	public string function getClientIp() {
-		var httpHeaders = getHttpRequestData( false ).headers;
-		var clientIp    = httpHeaders[ "x-real-ip" ] ?: ( httpHeader[ "x-forwarded-for"] ?: cgi.remote_addr );
+		var prc = getRequestContext().getCollection( private=true );
 
-		return Trim( ListFirst( clientIp ) );
+		if ( !StructKeyExists( prc, "__clientIp" ) ) {
+			prc.__clientIp = _readClientIpFromHeaders();
+		}
+
+		return prc.__clientIp;
 	}
 
 	public string function getUserAgent() {
@@ -1254,5 +1257,19 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		pos = Max( pos, 1 );
 
 		return pos;
+	}
+
+	private function _readClientIpFromHeaders() {
+		var httpHeaders = getHttpRequestData( false ).headers;
+
+		if ( StructKeyExists( httpHeaders, "x-real-ip" ) && Len( httpHeaders[ "x-real-ip" ] ) ) {
+			return Trim( ListFirst( httpHeaders[ "x-real-ip" ] ) );
+		}
+
+		if ( StructKeyExists( httpHeaders, "x-forwarded-for" ) && Len( httpHeaders[ "x-forwarded-for" ] ) ) {
+			return Trim( ListFirst( httpHeaders[ "x-forwarded-for" ] ) );
+		}
+
+		return Trim( ListFirst( cgi.remote_addr ) );
 	}
 }
