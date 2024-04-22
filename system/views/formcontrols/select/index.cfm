@@ -73,7 +73,6 @@
 			<option
 				value="#selectValue#"
 				title="#label#"
-				data-iconClass="#iconClasses[i] ?: ""#"
 				<cfif selected> selected="selected"</cfif>
 			>
 				#label#
