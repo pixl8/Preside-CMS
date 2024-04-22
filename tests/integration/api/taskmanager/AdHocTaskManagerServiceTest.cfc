@@ -815,11 +815,13 @@ component extends="testbox.system.BaseSpec" {
 		nowish              = DateAdd( 'd', 1, Now() );
 
 		var service = CreateMock( object=new preside.system.services.taskmanager.AdHocTaskManagerService(
-			  taskScheduler        = mockTaskScheduler
-			, siteService          = mockSiteService
-			, logger               = mockLogBoxLogger
-			, threadUtil           = mockThreadUtil
-			, executor             = mockExecutor
+			  taskScheduler             = mockTaskScheduler
+			, siteService               = mockSiteService
+			, logger                    = mockLogBoxLogger
+			, threadUtil                = mockThreadUtil
+			, executor                  = mockExecutor
+			, minStaleLockTimeInMinutes = 5
+			, maxStaleLockTimeInMinutes = ( 60 * 24 )
 		) );
 
 		mockRequestContext.$( "setUseQueryCache" );
