@@ -47,7 +47,7 @@ component {
 		announceInterception( "onDownloadFile", args );
 
 		if ( isFalse( args.allowAccess ?: "" ) ) {
-			event.accessDenied( reason="The asset is restricted." );
+			event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 		}
 
 		_doBrowserEtagLookup( args.etag );
