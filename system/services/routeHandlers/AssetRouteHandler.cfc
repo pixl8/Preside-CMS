@@ -43,6 +43,7 @@ component implements="iRouteHandler" singleton=true presideService=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
+		var siteId        = Len( buildArgs.siteId   ?: "" ) ? buildArgs.siteId : event.getSiteId();
 		var assetId       = buildArgs.assetId       ?: "";
 		var derivative    = buildArgs.derivative    ?: "";
 		var versionId     = buildArgs.versionId     ?: "";
@@ -90,7 +91,7 @@ component implements="iRouteHandler" singleton=true presideService=true {
 		}
 
 		if ( !link.reFind( "^(https?:)?\/\/" ) ) {
-			link = event.getSiteUrl( includePath=false, includeLanguageSlug=false ) & link;
+			link = event.getSiteUrl( siteId=siteId, includeLanguageSlug=false ) & link;
 		}
 
 		return link;
