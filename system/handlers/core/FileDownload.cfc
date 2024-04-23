@@ -33,16 +33,6 @@ component {
 				, mimeType          = "application/octet-stream"
 			}
 		}
-		var etag = LCase( Hash( SerializeJson( storageProvider.getObjectInfo( path=storagePath, private=storagePrivate ) ) ) );
-
-		_doBrowserEtagLookup( etag );
-
-
-		if ( type.serveAsAttachment ) {
-			header name="Content-Disposition" value="attachment; filename=""#filename#""";
-		} else {
-			header name="Content-Disposition" value="inline; filename=""#filename#""";
-		}
 
 		announceInterception( "onDownloadFile", {
 			  storageProvider = storageProvider
@@ -55,6 +45,16 @@ component {
 
 		if ( isFalse( allowAccess ) ) {
 			event.accessDenied( reason="The asset is restricted." );
+		}
+
+		var etag = LCase( Hash( SerializeJson( storageProvider.getObjectInfo( path=storagePath, private=storagePrivate ) ) ) );
+
+		_doBrowserEtagLookup( etag );
+
+		if ( type.serveAsAttachment ) {
+			header name="Content-Disposition" value="attachment; filename=""#filename#""";
+		} else {
+			header name="Content-Disposition" value="inline; filename=""#filename#""";
 		}
 
 		header name="etag" value=etag;
