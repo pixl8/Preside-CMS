@@ -667,9 +667,9 @@ component displayName="Ad-hoc Task Manager Service" {
 
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  filter       = "status = :status and datemodified <= :datemodified"
-			, filterParams = { status="locked", dateModified=maxAge }
+			, filterParams = { status="running", dateModified=maxAge }
 			, data         = {
-				  status        = "running"
+				  status        = "failed"
 				, last_error    = '{"message":"Task marked as permanently failed as it has been in a running status for longer than the configured max age (#NumberFormat( maxAge )# minutes)" }'
 				, finished_on   = _now()
 			  }
