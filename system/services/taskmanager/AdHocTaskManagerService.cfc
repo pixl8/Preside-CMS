@@ -14,23 +14,24 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @threadUtil.inject                threadUtil
 	 * @logger.inject                    logbox:logger:adhocTaskManager
  	 * @executor.inject                  presideAdhocTaskManagerExecutor
- 	 * @minStaleLockTimeInMinutes.inject coldbox:setting:heartbeats.adhocTask.staleLockSettings.minAgeInMinutes
- 	 * @maxStaleLockTimeInMinutes.inject coldbox:setting:heartbeats.adhocTask.staleLockSettings.maxAgeInMinutes
+ 	 * @staleTaskSettings.inject         coldbox:setting:heartbeats.adhocTask.staleTaskSettings
 	 */
 	public any function init(
 		  required any siteService
 		, required any logger
 		, required any threadUtil
 		, required any executor
-		, required any minStaleLockTimeInMinutes
-		, required any maxStaleLockTimeInMinutes
+		, required any staleTaskSettings
 	) {
 		_setSiteService( arguments.siteService );
 		_setLogger( arguments.logger );
 		_setThreadUtil( arguments.threadUtil );
 		_setExecutor( arguments.executor );
-		_setMinStaleLockTimeInMinutes( arguments.minStaleLockTimeInMinutes );
-		_setMaxStaleLockTimeInMinutes( arguments.maxStaleLockTimeInMinutes );
+
+		_setMinStaleLockTimeInMinutes(       arguments.staleTaskSettings.lockedMinAgeInMinutes          ?: 5               );
+		_setMaxStaleLockTimeInMinutes(       arguments.staleTaskSettings.lockedMaxAgeInMinutes          ?: ( 7 * 24 * 60 ) );
+		_setMinInactiveRunningTimeInMinutes( arguments.staleTaskSettings.inactiveRunningMinAgeInMinutes ?: 240             );
+		_setMaxInactiveRunningTimeInMinutes( arguments.staleTaskSettings.inactiveRunningMaxAgeInMinutes ?: ( 7 * 24 * 60 ) );
 
 		return this;
 	}
@@ -619,17 +620,58 @@ component displayName="Ad-hoc Task Manager Service" {
 		return true;
 	}
 
-	public void function unlockStaleLockedTasks() {
+	public void function processStaleLockedTasks() {
 		var minAge = DateAdd( "n", 0-_getMinStaleLockTimeInMinutes(), Now() );
 		var maxAge = DateAdd( "n", 0-_getMaxStaleLockTimeInMinutes(), Now() );
 
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
 			  filter       = "status = :status and datemodified < :minAge and datemodified > :maxAge"
-			, data         = { status="pending", last_error="Task was stuck in 'locked' status. Requeued." }
 			, filterParams = {
 				  status = "locked"
 				, minAge = { type="cf_sql_datetime", value=minAge }
 				, maxAge = { type="cf_sql_datetime", value=maxAge }
+			  }
+			, data         = {
+				  status     = "pending"
+				, last_error = '{"message":"Task was stuck in \"locked\" status and has been requeued."}'
+			  }
+		);
+
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  filter       = "status = :status and datemodified <= :datemodified"
+			, filterParams = { status="locked", dateModified=maxAge }
+			, data         = {
+				  status        = "failed"
+				, last_error    = '{"message":"Task marked as failed as it has been in a locked status for longer than the configured age (#NumberFormat( maxAge )# minutes)" }'
+				, finished_on   = _now()
+			  }
+		);
+	}
+
+	public void function failInactiveRunningTasks() {
+		var minAge = DateAdd( "n", 0-_getMinInactiveRunningTimeInMinutes(), Now() );
+		var maxAge = DateAdd( "n", 0-_getMaxInactiveRunningTimeInMinutes(), Now() );
+		var tasks = $getPresideObject( "taskmanager_adhoc_task" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = "status = :status and datemodified < :minAge and datemodified > :maxAge"
+			, filterParams = {
+				  status = "running"
+				, minAge = { type="cf_sql_datetime", value=minAge }
+				, maxAge = { type="cf_sql_datetime", value=maxAge }
+			  }
+		);
+
+		for( var task in tasks ) {
+			failTask( taskId=task.id, error={ message="Task marked as running but no activity for at least #_getMinInactiveRunningTimeInMinutes# minutes. Failing task as timed out." } );
+		}
+
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  filter       = "status = :status and datemodified <= :datemodified"
+			, filterParams = { status="locked", dateModified=maxAge }
+			, data         = {
+				  status        = "running"
+				, last_error    = '{"message":"Task marked as permanently failed as it has been in a running status for longer than the configured max age (#NumberFormat( maxAge )# minutes)" }'
+				, finished_on   = _now()
 			  }
 		);
 	}
@@ -763,5 +805,21 @@ component displayName="Ad-hoc Task Manager Service" {
 	private void function _setMaxStaleLockTimeInMinutes( required numeric maxStaleLockTimeInMinutes ) {
 	    _maxStaleLockTimeInMinutes = arguments.maxStaleLockTimeInMinutes;
 	}
+
+	private any function _getMinInactiveRunningTimeInMinutes() {
+	    return _minInactiveRunningTimeInMinutes;
+	}
+	private void function _setMinInactiveRunningTimeInMinutes( required numeric minInactiveRunningTimeInMinutes ) {
+	    _minInactiveRunningTimeInMinutes = arguments.minInactiveRunningTimeInMinutes;
+	}
+
+	private any function _getMaxInactiveRunningTimeInMinutes() {
+	    return _maxInactiveRunningTimeInMinutes;
+	}
+	private void function _setMaxInactiveRunningTimeInMinutes( required numeric maxInactiveRunningTimeInMinutes ) {
+	    _maxInactiveRunningTimeInMinutes = arguments.maxInactiveRunningTimeInMinutes;
+	}
+
+
 
 }
