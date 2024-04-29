@@ -25,5 +25,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="#inputType#" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control" tabindex="#getNextTabIndex()#" <cfif isNumeric( maxlength ) and maxlength gt 0> maxlength="#maxlength#"</cfif> #htmlAttributes# />
+	<input type="#inputType#" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control" tabindex="#getNextTabIndex()#" <cfif isNumeric( maxlength ) and maxlength gt 0> maxlength="#maxlength#"</cfif><cfif multiple> multiple</cfif> #htmlAttributes# />
 </cfoutput>
