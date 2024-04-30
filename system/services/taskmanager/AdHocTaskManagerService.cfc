@@ -580,7 +580,7 @@ component displayName="Ad-hoc Task Manager Service" {
 		);
 
 		for( var task in tasks ) {
-			failTask( taskId=task.id, error={ message="Task marked as running but no activity for at least #_getMinInactiveRunningTimeInMinutes# minutes. Failing task as timed out." } );
+			failTask( taskId=task.id, error={ message="Task marked as running but no activity for at least #_getMinInactiveRunningTimeInMinutes()# minutes. Failing task as timed out." } );
 		}
 
 		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
