@@ -5,11 +5,12 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="datamanagerService"    inject="datamanagerService";
 	property name="presideObjectService"  inject="presideObjectService";
 
-	variables.tabs     = [ "default", "data" ];
-	variables.infoCol1 = [ "level" ];
-	variables.infoCol2 = [ "context", "reference" ];
-	variables.infoCol3 = [ "datecreated", "datemodified" ];
-	
+	variables.permissionBase = "presideobject.system_alert";
+	variables.tabs           = [ "default", "data" ];
+	variables.infoCol1       = [ "level" ];
+	variables.infoCol2       = [ "context", "reference" ];
+	variables.infoCol3       = [ "datecreated", "datemodified" ];
+
 	private string function _defaultTab( event, rc, prc, args={} ) {
 		var recordId = prc.recordId ?: "";
 		args.alert   = systemAlertsService.getAlert( id=recordId );
