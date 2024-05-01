@@ -630,6 +630,7 @@ component {
 
 		environments = {
 			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
+		};
 	}
 
 // ENVIRONMENT SPECIFIC
