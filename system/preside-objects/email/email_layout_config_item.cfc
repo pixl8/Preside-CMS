@@ -3,6 +3,7 @@
  *
  * @nolabel   true
  * @versioned false
+ * @feature   emailCenter
  *
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email layout configuration item"  {

@@ -1,6 +1,7 @@
 /**
  * The asset object represents the core data associated with any file uploaded into the Asset manager
  *
+ * @feature assetManager
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" displayName="Asset" {
 

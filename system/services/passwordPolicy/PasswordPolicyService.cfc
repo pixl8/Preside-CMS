@@ -53,7 +53,7 @@ component displayName="Password Policy Service" {
 	public array function listContexts() {
 		var contexts = [ "cms" ];
 
-		if ( _getFeatureService().isFeatureEnabled( "websiteUsers" ) ) {
+		if ( zisFeatureEnabled( "websiteUsers" ) ) {
 			contexts.append( "website" );
 		}
 

@@ -45,7 +45,9 @@ component displayName="Forms service" {
 	}
 
 	public void function postInit() {
-		_loadForms();
+		if ( $isFeatureEnabled( "admin || cms") ) {
+			_loadForms();
+		}
 	}
 
 // PUBLIC API METHODS

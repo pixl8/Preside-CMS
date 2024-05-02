@@ -9,15 +9,15 @@ component {
 
 	/**
 	 * @coldbox.inject                        coldbox
-	 * @presideObjectService.inject           presideObjectService
-	 * @resourceBundleService.inject          resourceBundleService
-	 * @stickerForPreside.inject              stickerForPreside
-	 * @delayedStickerRendererService.inject  delayedStickerRendererService
-	 * @delayedViewletRendererService.inject  delayedViewletRendererService
-	 * @widgetsService.inject                 widgetsService
-	 * @pageTypesService.inject               pageTypesService
-	 * @formsService.inject                   formsService
-	 * @itemTypesService.inject               formbuilderItemTypesService
+	 * @presideObjectService.inject           delayedInjector:presideObjectService
+	 * @resourceBundleService.inject          delayedInjector:resourceBundleService
+	 * @stickerForPreside.inject              delayedInjector:stickerForPreside
+	 * @delayedStickerRendererService.inject  delayedInjector:delayedStickerRendererService
+	 * @delayedViewletRendererService.inject  delayedInjector:delayedViewletRendererService
+	 * @widgetsService.inject                 delayedInjector:widgetsService
+	 * @pageTypesService.inject               delayedInjector:pageTypesService
+	 * @formsService.inject                   delayedInjector:formsService
+	 * @itemTypesService.inject               delayedInjector:formbuilderItemTypesService
 	 */
 	public any function init(
 		  required any coldbox

@@ -6,6 +6,7 @@
  * @datamanagerEnabled              true
  * @datamanagerGridFields           internal_title,type,datecreated,datemodified
  * @datamanagerDisallowedOperations delete,clone
+ * @feature                         cms
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Link" {
 

@@ -2,7 +2,8 @@
  * Pivot object for many-to-many relationship between benefits that represent
  * combined benefits (benefits that are based on a combination of other benefits)
  *
- * @nolabel
+ * @nolabel true
+ * @feature websiteBenefits
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Website user benefit" {
 

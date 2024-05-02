@@ -4,6 +4,7 @@
  *
  * @versioned          false
  * @datamanagerEnabled true
+ * @feature            rulesEngine
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Rules engine: condition" {
 	property name="label"                                       required=true maxlength=50   uniqueindexes="foldername|2";

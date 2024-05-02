@@ -5,6 +5,7 @@
  * @labelField name
  * @versioned  false
  * @useCache   false
+ * @feature    taskManager
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Taskmanager task"  {
 	property name="task_key"             type="string"  dbtype="varchar" maxlength=100 required=true uniqueindexes="taskkey";

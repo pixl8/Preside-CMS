@@ -2,13 +2,14 @@
  * A class that provides validators for Preside's validation framework
  *
  * @singleton          true
+ * @presideService     true
  * @validationProvider true
  */
 component {
 
 // CONSTRUCTOR
 	/**
-	 * @passwordPolicyService.inject passwordPolicyService
+	 * @passwordPolicyService.inject delayedInjector:passwordPolicyService
 	 */
 	public any function init( required any passwordPolicyService ) {
 		_setPasswordPolicyService( arguments.passwordPolicyService );
@@ -22,7 +23,7 @@ component {
 	 *
 	 */
 	public boolean function meetsPasswordPolicy( required string fieldName, required string passwordPolicyContext, string value="" ) {
-		if( !Len( arguments.value ) ) {
+		if( !Len( arguments.value ) || !$isFeatureEnabled( "passwordPolicyManager") ) {
 			return true;
 		}
 

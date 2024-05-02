@@ -11,7 +11,7 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @defaultHandlerAction.inject         coldbox:fwsetting:eventAction
-	 * @contentRendererService.inject       contentRendererService
+	 * @contentRendererService.inject       delayedInjector:contentRendererService
 	 * @dynamicFindAndReplaceService.inject dynamicFindAndReplaceService
 	 *
 	 */
@@ -48,10 +48,13 @@ component {
 			);
 
 			if ( !IsNull( local.renderedViewlet ) && IsSimpleValue( renderedViewlet ) ) {
-				return rendererSvc.render(
-					  renderer = "richeditor"
-					, data     = renderedViewlet
-				);
+				if ( isFeatureEnabled( "cms" ) ) {
+					return rendererSvc.render(
+						  renderer = "richeditor"
+						, data     = renderedViewlet
+					);
+				}
+				return renderedViewlet;
 			}
 
 			return "";

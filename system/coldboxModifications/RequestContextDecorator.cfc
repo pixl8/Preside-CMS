@@ -29,25 +29,25 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	*/
 	function configure(){
 
-		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( "adminObjectLinkBuilderService" );
-		instance.auditService                     = instance.wirebox.getInstance( "auditService" );
-		instance.csrfProtectionService            = instance.wirebox.getInstance( "csrfProtectionService" );
-		instance.delayedStickerRendererService    = instance.wirebox.getInstance( "delayedStickerRendererService" );
-		instance.delayedViewletRendererService    = instance.wirebox.getInstance( "delayedViewletRendererService" );
-		instance.featureService                   = instance.wirebox.getInstance( "featureService" );
-		instance.formsService                     = instance.wirebox.getInstance( "formsService" );
-		instance.i18n                             = instance.wirebox.getInstance( "i18n" );
-		instance.loginService                     = instance.wirebox.getInstance( "loginService" );
-		instance.multilingualPresideObjectService = instance.wirebox.getInstance( "multilingualPresideObjectService" );
-		instance.presideRenderer                  = instance.wirebox.getInstance( "presideRenderer" );
-		instance.rulesEngineWebRequestService     = instance.wirebox.getInstance( "rulesEngineWebRequestService" );
-		instance.sessionStorage                   = instance.wirebox.getInstance( "sessionStorage" );
-		instance.siteService                      = instance.wirebox.getInstance( "siteService" );
-		instance.sitetreeService                  = instance.wirebox.getInstance( "sitetreeService" );
-		instance.stickerForPreside                = instance.wirebox.getInstance( "stickerForPreside" );
-		instance.tenancyService                   = instance.wirebox.getInstance( "tenancyService" );
-		instance.websiteLoginService              = instance.wirebox.getInstance( "websiteLoginService" );
-		instance.websitePermissionService         = instance.wirebox.getInstance( "websitePermissionService" );
+		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( dsl="delayedInjector:adminObjectLinkBuilderService" );
+		instance.auditService                     = instance.wirebox.getInstance( dsl="delayedInjector:auditService" );
+		instance.csrfProtectionService            = instance.wirebox.getInstance( dsl="delayedInjector:csrfProtectionService" );
+		instance.delayedStickerRendererService    = instance.wirebox.getInstance( dsl="delayedInjector:delayedStickerRendererService" );
+		instance.delayedViewletRendererService    = instance.wirebox.getInstance( dsl="delayedInjector:delayedViewletRendererService" );
+		instance.featureService                   = instance.wirebox.getInstance( dsl="delayedInjector:featureService" );
+		instance.formsService                     = instance.wirebox.getInstance( dsl="delayedInjector:formsService" );
+		instance.i18n                             = instance.wirebox.getInstance( dsl="delayedInjector:i18n" );
+		instance.loginService                     = instance.wirebox.getInstance( dsl="delayedInjector:loginService" );
+		instance.multilingualPresideObjectService = instance.wirebox.getInstance( dsl="delayedInjector:multilingualPresideObjectService" );
+		instance.presideRenderer                  = instance.wirebox.getInstance( dsl="delayedInjector:presideRenderer" );
+		instance.rulesEngineWebRequestService     = instance.wirebox.getInstance( dsl="delayedInjector:rulesEngineWebRequestService" );
+		instance.sessionStorage                   = instance.wirebox.getInstance( dsl="delayedInjector:sessionStorage" );
+		instance.siteService                      = instance.wirebox.getInstance( dsl="delayedInjector:siteService" );
+		instance.sitetreeService                  = instance.wirebox.getInstance( dsl="delayedInjector:sitetreeService" );
+		instance.stickerForPreside                = instance.wirebox.getInstance( dsl="delayedInjector:stickerForPreside" );
+		instance.tenancyService                   = instance.wirebox.getInstance( dsl="delayedInjector:tenancyService" );
+		instance.websiteLoginService              = instance.wirebox.getInstance( dsl="delayedInjector:websiteLoginService" );
+		instance.websitePermissionService         = instance.wirebox.getInstance( dsl="delayedInjector:websitePermissionService" );
 	}
 
 	/**
@@ -1068,7 +1068,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			return arguments.cache;
 		}
 
-		if ( getModel( "websiteLoginService" ).isLoggedIn() && !getModel( "featureService" ).isFeatureEnabled( "fullPageCachingForLoggedInUsers" ) ) {
+		var featureService = getModel( "featureService" );
+
+		if ( featureService.isFeatureEnabled( "websiteUsers" ) && getModel( "websiteLoginService" ).isLoggedIn() && !featureService.isFeatureEnabled( "fullPageCachingForLoggedInUsers" ) ) {
 			return false;
 		}
 

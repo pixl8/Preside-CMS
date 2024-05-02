@@ -28,7 +28,7 @@ component extends="coldbox.system.Interceptor" {
 					event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
 				}
 
-				if ( Len( Trim( pageId ) ) ) {
+				if ( Len( Trim( pageId ) ) && isFeatureEnabled( "websiteUsers" ) ) {
 					websiteUserActionService.recordAction(
 						  action     = "pagevisit"
 						, type       = "request"
