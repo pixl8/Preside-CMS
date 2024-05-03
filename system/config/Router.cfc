@@ -34,7 +34,7 @@ component extends="coldbox.system.web.routing.Router" {
 
 		addRouteHandler( getModel( dsl="delayedInjector:plainStoredFileRouteHandler" ) );
 
-		if ( featureService.isFeatureEnabled( "admin" ) ) {
+		if ( featureService.isFeatureEnabled( "rulesEngine" ) ) {
 			addRouteHandler( getModel( dsl="delayedInjector:rulesEngineConditionsExpressionsJsHandler" ) );
 			addRouteHandler( getModel( dsl="delayedInjector:rulesEngineFilterExpressionsJsHandler" ) );
 		}
