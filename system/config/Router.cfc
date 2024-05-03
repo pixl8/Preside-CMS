@@ -45,7 +45,7 @@ component extends="coldbox.system.web.routing.Router" {
 			addRouteHandler( getModel( dsl="delayedInjector:emailRouteHandler" ) );
 		}
 
-		if ( featureService.isFeatureEnabled( "cms" ) ) {
+		if ( featureService.isFeatureEnabled( "siteTree" ) ) {
 			addRouteHandler( getModel( dsl="delayedInjector:defaultPresideRouteHandler" ) );
 		}
 
