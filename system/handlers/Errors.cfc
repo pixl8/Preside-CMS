@@ -1,5 +1,5 @@
 component {
-	property name="websiteLoginService" inject="delayedInjector:websiteLoginService";
+	property name="websiteLoginService" inject="featureInjector:websiteUsers:websiteLoginService";
 
 <!--- VIEWLETS --->
 	private string function notFound( event, rc, prc, args={} ) {
