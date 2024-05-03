@@ -232,9 +232,9 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 		interceptData.path    = event.getCurrentUrl( includeQueryString=true );
 		interceptData.fullUrl = event.getSiteUrl() & interceptData.path;
 
-		_announceInterception( "onPresideUrlRedirects", interceptData );
-
 		if ( featureService.isFeatureEnabled( "urlRedirects" ) ) {
+			_announceInterception( "onPresideUrlRedirects", interceptData );
+
 			urlRedirectsService.redirectOnMatch(
 				  path    = interceptData.path
 				, fullUrl = interceptData.fullUrl
