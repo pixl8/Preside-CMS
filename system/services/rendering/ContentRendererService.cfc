@@ -9,8 +9,8 @@ component {
 
 	/**
 	 * @coldbox.inject                      coldbox
-	 * @assetRendererService.inject         delayedInjector:AssetRendererService
-	 * @widgetsService.inject               delayedInjector:WidgetsService
+	 * @assetRendererService.inject         featureInjector:assetManager:AssetRendererService
+	 * @widgetsService.inject               featureInjector:cms:WidgetsService
 	 * @presideObjectService.inject         PresideObjectService
 	 * @labelRendererService.inject         labelRendererService
 	 * @renderedAssetCache.inject           cachebox:renderedAssetCache

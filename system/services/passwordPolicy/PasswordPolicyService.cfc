@@ -1,8 +1,9 @@
 /**
  * A class that provides methods for dealing with all aspects of password policies
  *
- * @singleton
- * @presideService
+ * @singleton      true
+ * @presideService true
+ * @feature        passwordPolicyManager
  */
 component displayName="Password Policy Service" {
 

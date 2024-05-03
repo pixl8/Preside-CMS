@@ -1,9 +1,10 @@
 /**
  * Provides service logic for recording user actions (auditing)
  *
- * @autodoc
- * @singleton
- * @presideService
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
+ * @feature        websiteUsers
  */
 component displayName="Website user action service" {
 

@@ -4,7 +4,7 @@ Taskmanager: Task configuration form
 
 This form is used for configuring indivual tasks in the task manager
 -->
-<form>
+<form feature="taskmanager">
 	<tab id="default">
 		<fieldset id="default">
 			<field binding="taskmanager_task.enabled" />

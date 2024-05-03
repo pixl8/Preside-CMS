@@ -2,9 +2,10 @@
  * Service that provides API methods for dealing with CMS admin permissions.
  * See [[cmspermissioning]] for a full guide to CMS users and permissions.
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        admin
  *
  */
 component displayName="Admin permissions service" {

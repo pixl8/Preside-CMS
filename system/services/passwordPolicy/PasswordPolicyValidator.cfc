@@ -4,6 +4,7 @@
  * @singleton          true
  * @presideService     true
  * @validationProvider true
+ * @feature            passwordPolicyManager
  */
 component {
 

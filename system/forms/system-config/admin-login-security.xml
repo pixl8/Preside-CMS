@@ -4,7 +4,7 @@ System config form: Admin login security
 
 This form is used for managing settings for two factor authentication, admin 'remember me', etc.
 -->
-<form i18nBaseUri="system-config.admin-login-security:">
+<form i18nBaseUri="system-config.admin-login-security:" feature="admin">
 	<tab id="rememberme" sortorder="10">
 		<fieldset id="rememberme" sortorder="10">
 			<field name="rememberme_enabled"        control="yesNoSwitch" required="false" />

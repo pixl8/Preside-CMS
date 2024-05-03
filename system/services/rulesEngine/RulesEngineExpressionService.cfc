@@ -5,6 +5,7 @@
  * @singleton      true
  * @presideservice true
  * @autodoc        true
+ * @feature        rulesEngine
  */
 component displayName="RulesEngine Expression Service" {
 

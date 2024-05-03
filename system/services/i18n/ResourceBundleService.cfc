@@ -7,7 +7,7 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @bundleDirectories.inject presidecms:directories:i18n
-	 * @siteService.inject       delayedInjector:siteService
+	 * @siteService.inject       featureInjector:sites:siteService
 	 * @defaultLocale.inject     coldbox:setting:default_locale
 	 */
 	public any function init(

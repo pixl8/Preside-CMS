@@ -104,7 +104,6 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" {
 		throw( type="preside.missing.service", message="The service, [#arguments.serviceName#], does not exist. This error was caused by a wirebox injection using DSL: [presidecms:dynamicservice:#serviceName#]." );
 	}
 
-
 // GETTERS AND SETTERS
 	private any function _getInjector() {
 		return _injector;

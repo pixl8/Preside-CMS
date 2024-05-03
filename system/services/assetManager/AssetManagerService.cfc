@@ -1,9 +1,10 @@
 /**
  * Provides APIs for programatically interacting with the Asset Manager (see [[assetmanager]] for more details)
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        assetManager
  */
 component displayName="AssetManager Service" {
 

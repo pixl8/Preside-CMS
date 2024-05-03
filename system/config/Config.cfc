@@ -43,6 +43,7 @@ component {
 		__setupFullPageCaching();
 		__setupHeartbeatsAndServices();
 		__setupNotifications();
+		__setupIgnoreFile();
 		__loadConfigurationFromExtensions();
 	}
 
@@ -53,6 +54,9 @@ component {
 
 		settings.features[ "devtools.new"       ].enabled = true;
 		settings.features[ "devtools.extension" ].enabled = true;
+
+		settings.ignoreFile.read  = true;
+		settings.ignoreFile.write = false;
 	}
 
 // SPECIFIC AREAS
@@ -565,6 +569,7 @@ component {
 			  permissionKey = "maintenanceMode.configure"
 			, buildLinkArgs = { linkTo="maintenanceMode" }
 			, activeChecks  = { handlerPatterns="^admin\.maintenanceMode\." }
+			, feature       = "maintenanceMode"
 			, icon          = "fa-medkit"
 			, title         = "cms:maintenanceMode"
 		};
@@ -885,7 +890,8 @@ component {
 	private void function __setupFeatures() {
 		settings.features = {
 			  admin                           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, cms                             = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, cms                             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, presideForms                    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, sitetree                        = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, sites                           = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
@@ -924,6 +930,7 @@ component {
 			, adminCsrfProtection             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, fullPageCaching                 = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "cms" ] }
 			, fullPageCachingForLoggedInUsers = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "websiteUsers" ] }
+			, delayedViewlets                 = { enabled=true , siteTemplates=[ "*" ] }
 			, healthchecks                    = { enabled=true , siteTemplates=[ "*" ] }
 			, emailQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "customEmailTemplates" ] }
 			, adhocTaskHeartBeat              = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "adhocTasks" ] }
@@ -936,6 +943,7 @@ component {
 			, queryCachePerObject             = { enabled=false, siteTemplates=[ "*" ] }
 			, presideBasicWorkflow            = { enabled=true, siteTemplates=[ "*" ] }
 			, dbLogAppender                   = { enabled=true, siteTemplates=[ "*" ] }
+			, maintenanceMode                 = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "admin" ] }
 			, sslInternalHttpCalls            = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls            = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, presideSessionManagement        = { enabled=_usePresideSessionManagement(), siteTemplates=[ "*" ] }
@@ -980,7 +988,15 @@ component {
 	}
 
 	private void function __setupFormValidationProviders() {
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
+		settings.validationProviders = [];
+		settings.coreValidationProviders = [
+			  "presideObjectValidators"
+			, "passwordPolicyValidator"
+			, "recaptchaValidator"
+			, "rulesEngineConditionService"
+			, "enumService"
+			, "EmailCenterValidators"
+		];
 	}
 
 	private void function __setupStaticAssetConfiguration() {
@@ -1106,6 +1122,14 @@ component {
 
 	private void function __setupDevConsole() {
 		settings.devConsoleToggleKeyCode = 96;
+	}
+
+	private void function __setupIgnoreFile(){
+		settings.ignoreFile = {
+			  read  = true
+			, write = false
+			, path  = ExpandPath( "/.presideignore.json" )
+		};
 	}
 
 	private void function __loadConfigurationFromExtensions() {

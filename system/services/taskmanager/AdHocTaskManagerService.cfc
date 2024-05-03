@@ -1,9 +1,10 @@
 /**
  * Service responsible for the business logic of running ad-hoc tasks
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        adhocTasks
  *
  */
 component displayName="Ad-hoc Task Manager Service" {

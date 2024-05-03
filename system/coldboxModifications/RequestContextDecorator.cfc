@@ -60,16 +60,20 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 // URL related
 	public void function setSite( required struct site ) {
-		getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
-		getRequestContext().setValue(
-			  name    = "_site"
-			, value   =  arguments.site
-			, private =  true
-		);
+		if ( this.getModel( "featureService" ).isFeatureEnabled( "sites" ) ) {
+			getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
+			getRequestContext().setValue(
+				  name    = "_site"
+				, value   =  arguments.site
+				, private =  true
+			);
+		}
 	}
 
 	public void function autoSetSiteByHost() {
-		setSite( getModel( "siteService" ).matchSite( this.getServerName(), this.getCurrentPresideUrlPath() ) );
+		if ( this.getModel( "featureService" ).isFeatureEnabled( "sites" ) ) {
+			setSite( getModel( "siteService" ).matchSite( this.getServerName(), this.getCurrentPresideUrlPath() ) );
+		}
 	}
 
 	public struct function getSite() {
@@ -1174,8 +1178,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		if ( this.getModel( "featureService" ).isFeatureEnabled( "delayedViewlets" ) ) {
+			contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+			contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		}
 
 		writeOutput( contentOutput );
 		getController().runEvent( event="general.requestEnd", prePostExempt=true );
@@ -1188,8 +1194,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		if ( this.getModel( "featureService" ).isFeatureEnabled( "delayedViewlets" ) ) {
+			contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+			contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		}
 
 		writeOutput( contentOutput );
 		getController().runEvent( event="general.requestEnd", prePostExempt=true );

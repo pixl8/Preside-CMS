@@ -1,9 +1,10 @@
 /**
  * Provides logic for interacting Preside's [[auditing|Audit log system]]
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        auditTrail
  */
 component displayName="Audit Service" {
 

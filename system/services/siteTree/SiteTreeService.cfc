@@ -1,6 +1,7 @@
 /**
- * @singleton
- * @presideservice
+ * @singleton      true
+ * @presideservice true
+ * @feature        sitetree
  *
  */
 component {

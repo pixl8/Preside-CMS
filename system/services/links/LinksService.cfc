@@ -1,6 +1,6 @@
 /**
- * @singleton
- *
+ * @singleton true
+ * @feature   cms
  */
 component {
 

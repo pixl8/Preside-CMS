@@ -22,10 +22,13 @@ component {
 	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
 	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
 	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
+	property name="coreValidationProviders"       inject="coldbox:setting:coreValidationProviders";
 	property name="validationEngine"              inject="validationEngine";
 	property name="systemAlertsService"           inject="delayedInjector:systemAlertsService";
 	property name="emailTemplateService"          inject="delayedInjector:emailTemplateService";
 	property name="systemEmailTemplateService"    inject="delayedInjector:systemEmailTemplateService";
+	property name="IgnoreFileService"             inject="delayedInjector:IgnoreFileService";
+	property name="formsService"                  inject="delayedInjector:formsService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -38,6 +41,7 @@ component {
 		_performDbMigrations();
 		_setupEmailTemplating();
 		_runSystemAlertChecks();
+		_writeIgnoreFile();
 
 		announceInterception( "onApplicationStart" );
 	}
@@ -262,6 +266,9 @@ component {
 		if ( isFeatureEnabled( "admin" ) ) {
 			systemAlertsService.setupSystemAlerts();
 		}
+		if ( isFeatureEnabled( "presideForms" ) ) {
+			formsService.formExists( "hack-to-ensure-service-initialised" );
+		}
 	}
 
 
@@ -318,11 +325,19 @@ component {
 	}
 
 	private void function _setupValidators() {
+		if ( IsArray( coreValidationProviders ) ) {
+			for ( var providerName in coreValidationProviders ) {
+				if ( getController().getWirebox().containsInstance( providerName ) ) {
+					validationEngine.newProvider( getModel( providerName ) );
+				}
+			}
+		}
 		if ( IsArray( configuredValidationProviders ) ) {
 			for ( var providerName in configuredValidationProviders ) {
 				validationEngine.newProvider( getModel( dsl=providerName ) );
 			}
 		}
+
 
 		for( var objName in presideObjectService.listObjects( includeGeneratedObjects=true ) ) {
 			var obj = presideObjectService.getObject( objName );
@@ -353,5 +368,9 @@ component {
 			emailTemplateService.ensureSystemTemplatesHaveDbEntries();
 			systemEmailTemplateService.applicationStart();
 		}
+	}
+
+	private void function _writeIgnoreFile() {
+		ignoreFileService.write();
 	}
 }
