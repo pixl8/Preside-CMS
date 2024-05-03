@@ -894,7 +894,8 @@ component {
 			, presideForms                    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, sitetree                        = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, sites                           = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
-			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, sticker                         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin || cms" ] }
 			, taskManager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, adhocTasks                      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, assetManager                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }

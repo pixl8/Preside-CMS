@@ -32,7 +32,7 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" {
 			return _getInjector().getInstance( "presideObjectService" ).getObject( arguments.objectName );
 		}
 
-		return;
+		return "";
 	}
 
 	private string function _processSystemSettingDsl( required string settingString ) {
