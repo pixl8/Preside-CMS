@@ -192,7 +192,7 @@
 		}
 
 		if ( StructKeyExists( arguments.meta, "extends" ) && arguments.meta.extends.count() ) {
-			return _featureDisabled( arguments.meta.extends );
+			return _containsNoWireboxInstruction( arguments.meta.extends );
 		}
 
 		return false;
