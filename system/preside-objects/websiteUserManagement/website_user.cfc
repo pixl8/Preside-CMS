@@ -5,6 +5,7 @@
  * @datamanagerEnabled                  true
  * @datamanagerTypeToConfirmDelete      true
  * @datamanagerTypeToConfirmBatchDelete true
+ * @datamanagerDefaultSortOrder         last_request_made desc
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="display_name" displayname="Website user" {
 	property name="login_id"                    type="string"   dbtype="varchar" maxLength="255" required=true uniqueindexes="login_id";
