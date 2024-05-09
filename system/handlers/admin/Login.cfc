@@ -125,6 +125,10 @@ component extends="preside.system.base.AdminHandler" {
 		var password             = rc.password ?: "";
 		var passwordConfirmation = rc.passwordConfirmation ?: "";
 
+		if ( !loginService.isUserDatabaseNotConfigured() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
+		}
+
 		if ( !Len( Trim( emailAddress ) ) || !Len( Trim( password ) ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
 				message = "EMPTY_PASSWORD"
