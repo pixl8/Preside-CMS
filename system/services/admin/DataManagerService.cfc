@@ -349,15 +349,34 @@ component {
 		return _getPresideObjectService().getLabelField( arguments.objectName );
 	}
 
-	public query function getRecordsForSorting( required string objectName ) {
+	public struct function getRecordsForSorting( required string objectName ) {
 		var idField        = _getPresideObjectService().getIdField( arguments.objectName );
 		var selectDataArgs = StructCopy( arguments );
+		var labelRenderer  = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
 
 		selectDataArgs.orderBy          = getSortField( arguments.objectName );
-		selectDataArgs.selectFields     = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", selectDataArgs.orderBy ];
 		selectDataArgs.fromVersionTable = _getPresideObjectService().objectUsesDrafts( objectName=arguments.objectName );
 
-		return _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
+		if ( Len( labelRenderer ) ) {
+			selectDataArgs.selectFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer );
+		} else {
+			selectDataArgs.selectFields = [ "${labelfield} as label" ];
+		}
+		ArrayAppend( selectDataArgs.selectFields, [ "#arguments.objectName#.#idField# as id", selectDataArgs.orderBy ], true );
+
+		var recordData = _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
+		var records    = [];
+		var ordered    = [];
+
+		for( var record in recordData ) {
+			ArrayAppend( records, {
+				  id    = record.id
+				, label = Len( labelRenderer ) ? _getLabelRendererService().renderLabel( labelRenderer, record ) : record.label
+			} );
+			ArrayAppend( ordered, record.id );
+		}
+
+		return { records=records, ordered=ArrayToList( ordered ) };
 	}
 
 	public void function saveSortedRecords( required string objectName, required array sortedIds ) {
