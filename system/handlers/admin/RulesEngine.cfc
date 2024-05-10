@@ -39,6 +39,11 @@ component extends="preside.system.base.AdminHandler" {
 			, currentValue       = fieldValue
 			, fieldConfiguration = fieldConfig
 		);
+		prc.configDescription = rulesEngineFieldTypeService.renderConfigScreenDescription(
+			  fieldType          = fieldType
+			, currentValue       = fieldValue
+			, fieldConfiguration = fieldConfig
+		);
 
 		event.setLayout( "adminModalDialog" );
 	}
