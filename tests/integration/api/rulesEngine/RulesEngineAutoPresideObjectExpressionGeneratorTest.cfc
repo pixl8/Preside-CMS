@@ -126,7 +126,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  id                    = "presideobject_stringmatches_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
 					, category              = objectName
-					, fields                = { _stringOperator={ fieldtype="operator", variety="string", required=false, default="contains" }, value={ fieldtype="text", required=false, default="" } }
+					, fields                = { _stringOperator={ fieldtype="operator", variety="string", required=false, default="eq" }, value={ fieldtype="text", required=false, default="" } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
 					, filterHandler         = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"

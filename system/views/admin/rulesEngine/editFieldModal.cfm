@@ -1,6 +1,7 @@
 <cfscript>
-	configScreen = prc.configScreen ?: "";
-	fieldType    = rc.fieldType     ?: "[not supplied]";
+	configScreen      = prc.configScreen      ?: "";
+	fieldType         = rc.fieldType          ?: "[not supplied]";
+	configDescription = prc.configDescription ?: "";
 </cfscript>
 
 <cfoutput>
@@ -10,6 +11,10 @@
 		</p>
 	<cfelse>
 		<form class="form-horizontal edit-field-form" action="#event.buildAdminLink( linkTo='rulesEngine.editFieldModalAction' )#" method="post" enctype="multipart/form-data">
+			<cfif Len( configDescription )>
+				<div class="alert alert-info">#configDescription#</div>
+			</cfif>
+
 			#configScreen#
 		</form>
 	</cfif>
