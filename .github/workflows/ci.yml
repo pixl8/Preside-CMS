@@ -30,6 +30,7 @@ jobs:
         with:
           verbose: true
           force: true
+          production: true
 
       - name: Build static assets with grunt
         if: "env.PUBLISH_PRESIDE == 'true'"
