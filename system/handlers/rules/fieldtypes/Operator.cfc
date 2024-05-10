@@ -54,4 +54,17 @@ component {
 		);
 	}
 
+	private string function renderConfigScreenDescription( string value="", struct config={} ) {
+		var variety = "string";
+
+		switch( config.variety ?: "" ) {
+			case "date":
+			case "numeric":
+			case "period":
+				variety = config.variety;
+		}
+
+		return translateResource( uri="cms:rulesEngine.operator.#variety#.config.description", defaultValue="" );
+	}
+
 }
