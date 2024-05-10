@@ -25,12 +25,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install dependencies
-        uses: pixl8/github-action-box-install@v2
-        with:
-          verbose: true
-          force: true
-
       - name: Build static assets with grunt
         if: "env.PUBLISH_PRESIDE == 'true'"
         shell: bash
