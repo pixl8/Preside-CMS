@@ -52,12 +52,7 @@ component extends="AbstractHeartBeat" {
 
 // PRIVATE HELPERS
 	private function _doCleanupRun() {
-		if ( !StructKeyExists( variables, "lastCleanupRun" ) ) {
-			variables.lastCleanupRun = Now();
-			return true;
-		}
-
-		if ( DateDiff( 'n', variables.lastCleanupRun, Now() ) >= 5 ) {
+		if ( !StructKeyExists( variables, "lastCleanupRun" ) || DateDiff( 'n', variables.lastCleanupRun, Now() ) >= 5 ) {
 			variables.lastCleanupRun = Now();
 			return true;
 		}
