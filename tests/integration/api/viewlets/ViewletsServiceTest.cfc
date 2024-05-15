@@ -119,6 +119,8 @@ component extends="testbox.system.BaseSpec"{
 
 		mockSiteService.$( "getActiveSiteTemplate", "default" );
 
+		service.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
+
 		return service;
 	}
 

@@ -52,7 +52,7 @@ component {
 			);
 
 			if ( !IsNull( local.renderedViewlet ) && IsSimpleValue( renderedViewlet ) ) {
-				if ( isFeatureEnabled( "cms" ) ) {
+				if ( $isFeatureEnabled( "cms" ) ) {
 					return rendererSvc.render(
 						  renderer = "richeditor"
 						, data     = renderedViewlet

@@ -921,6 +921,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, defaultContextName   = "index"
 			, configuredControls   = {}
 			, featureService       = mockFeatureService
+			, ignoreFileService    = _getMockIgnoreFileService()
 		) );
 
 		service.postInit();

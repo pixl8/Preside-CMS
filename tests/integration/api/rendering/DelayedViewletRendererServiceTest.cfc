@@ -134,6 +134,7 @@ proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culp
 				mockColdbox.$( "handlerExists" ).$args( viewlet ).$results( true );
 				service.$( "_getHandlerMethodMeta" ).$args( viewlet ).$results( handlerMethodMeta );
 				service.$( "$isFeatureEnabled" ).$args( "fullPageCaching" ).$results( false );
+				service.$( "$isFeatureEnabled" ).$args( "delayedViewlets" ).$results( true );
 
 				expect( service.isViewletDelayedByDefault( viewlet ) ).toBe( true );
 			} );

@@ -988,7 +988,7 @@ component displayName="Forms service" {
 	private struct function _readForm( required string filePath, required string formName ) {
 		var xml     = "";
 		var tabs    = "";
-		var theForm = { path=arguments.filePath };
+		var theForm = {};
 
 		try {
 			var xmlContent = fileread( arguments.filePath, "utf-8" );
