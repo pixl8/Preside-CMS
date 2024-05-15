@@ -2,9 +2,10 @@
  * The system configuration service provides the API layer
  * for interacting with Preside' [[editablesystemsettings]].
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        admin
  */
 component displayName="System configuration service" {
 

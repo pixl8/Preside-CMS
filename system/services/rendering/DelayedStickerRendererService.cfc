@@ -1,9 +1,11 @@
 /**
+ * Service that deals with rendering Sticker includes at runtime in cached pages
+ *
  * @singleton      true
  * @presideservice true
  * @autodoc        true
+ * @feature        delayedViewlets
  *
- * Service that deals with rendering Sticker includes at runtime in cached pages
  */
 component {
 

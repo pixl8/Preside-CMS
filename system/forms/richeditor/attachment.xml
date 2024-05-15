@@ -4,7 +4,7 @@ Richeditor: attachment form
 
 This form is used for the add/edit attachment screen in the richeditor.
 -->
-<form>
+<form feature="cms">
 	<tab id="main" sortorder="10">
 		<fieldset id="main" sortorder="10">
 			<field sortorder="10" name="asset"     control="assetPicker" required="true"  label="cms:ckeditor.attachmentpicker.asset.label" allowedtypes="document" />

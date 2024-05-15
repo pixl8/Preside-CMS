@@ -1,5 +1,7 @@
 /**
  * The asset derivative object represents a derived version of an [[presideobject-asset]], storing the file path and named derivative used to transform the initial asset.
+ *
+ * @feature assetManager
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Asset derivative" {
 

@@ -2,8 +2,9 @@
  * Object to represent an email blueprint (an email blueprint provides
  * common settings for an email to use).
  *
- * @labelfield name
+ * @labelfield         name
  * @datamanagerEnabled true
+ * @feature            emailCenter
  */
  component extends="preside.system.base.SystemPresideObject" {
 	property name="name"             type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="blueprintname";

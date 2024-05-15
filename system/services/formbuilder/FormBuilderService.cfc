@@ -1,9 +1,10 @@
 /**
  * Provides logic for interacting with form builder forms
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        formbuilder
  */
 component {
 	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";

@@ -2,6 +2,8 @@
  * The system config object is used to store system settings (see :doc:`/devguides/systemsettings`).
  *
  * See :doc:`/devguides/permissioning` for more information on permissioning.
+ *
+ * @feature systemConfiguration
  */
 component output="false" extends="preside.system.base.SystemPresideObject" labelfield="setting" displayname="System config" feature="systemConfiguration" {
 

@@ -2,7 +2,8 @@
  * The formbuilder_formitem object represents an individual item within a form builder form.
  * This could be a form control, some free text, etc.
  *
- * @nolabel
+ * @nolabel true
+ * @feature formBuilder
  */
 component displayname="Form builder: Item" extends="preside.system.base.SystemPresideObject" {
 	property name="form"     relationship="many-to-one" relatedto="formbuilder_form"     required=true  indexes="sortorder|1";

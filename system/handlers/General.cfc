@@ -1,31 +1,34 @@
 component {
-	property name="applicationReloadService"      inject="applicationReloadService";
-	property name="coreDatabaseMigrationService"  inject="coreDatabaseMigrationService";
-	property name="appDatabaseMigrationService"   inject="appDatabaseMigrationService";
-	property name="applicationsService"           inject="applicationsService";
-	property name="websiteLoginService"           inject="websiteLoginService";
-	property name="adminLoginService"             inject="loginService";
+	property name="applicationReloadService"      inject="delayedInjector:applicationReloadService";
+	property name="coreDatabaseMigrationService"  inject="delayedInjector:coreDatabaseMigrationService";
+	property name="appDatabaseMigrationService"   inject="delayedInjector:appDatabaseMigrationService";
+	property name="applicationsService"           inject="delayedInjector:applicationsService";
+	property name="websiteLoginService"           inject="delayedInjector:websiteLoginService";
+	property name="adminLoginService"             inject="delayedInjector:loginService";
 	property name="antiSamySettings"              inject="coldbox:setting:antiSamy";
 	property name="antiSamyService"               inject="delayedInjector:antiSamyService";
-	property name="presideTaskmanagerHeartBeat"   inject="presideTaskmanagerHeartBeat";
-	property name="presideSystemAlertsHeartBeat"  inject="presideSystemAlertsHeartBeat";
-	property name="cacheboxReapHeartBeat"         inject="cacheboxReapHeartBeat";
-	property name="presideAdhocTaskHeartBeat"     inject="presideAdhocTaskHeartBeat";
-	property name="presideSessionReapHeartbeat"   inject="presideSessionReapHeartbeat";
-	property name="scheduledExportHeartBeat"      inject="scheduledExportHeartBeat";
-	property name="segmentationFiltersHeartbeat"  inject="segmentationFiltersHeartbeat";
-	property name="healthcheckService"            inject="healthcheckService";
-	property name="permissionService"             inject="permissionService";
-	property name="dataExportTemplateService"     inject="dataExportTemplateService";
+	property name="presideTaskmanagerHeartBeat"   inject="delayedInjector:presideTaskmanagerHeartBeat";
+	property name="presideSystemAlertsHeartBeat"  inject="delayedInjector:presideSystemAlertsHeartBeat";
+	property name="cacheboxReapHeartBeat"         inject="delayedInjector:cacheboxReapHeartBeat";
+	property name="presideAdhocTaskHeartBeat"     inject="delayedInjector:presideAdhocTaskHeartBeat";
+	property name="presideSessionReapHeartbeat"   inject="delayedInjector:presideSessionReapHeartbeat";
+	property name="scheduledExportHeartBeat"      inject="delayedInjector:scheduledExportHeartBeat";
+	property name="segmentationFiltersHeartbeat"  inject="delayedInjector:segmentationFiltersHeartbeat";
+	property name="healthcheckService"            inject="delayedInjector:healthcheckService";
+	property name="permissionService"             inject="delayedInjector:permissionService";
+	property name="dataExportTemplateService"     inject="delayedInjector:dataExportTemplateService";
 	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
 	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queue.concurrency";
 	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
 	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
 	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
+	property name="coreValidationProviders"       inject="coldbox:setting:coreValidationProviders";
 	property name="validationEngine"              inject="validationEngine";
-	property name="systemAlertsService"           inject="systemAlertsService";
-	property name="emailTemplateService"          inject="emailTemplateService";
-	property name="systemEmailTemplateService"    inject="systemEmailTemplateService";
+	property name="systemAlertsService"           inject="delayedInjector:systemAlertsService";
+	property name="emailTemplateService"          inject="delayedInjector:emailTemplateService";
+	property name="systemEmailTemplateService"    inject="delayedInjector:systemEmailTemplateService";
+	property name="IgnoreFileService"             inject="delayedInjector:IgnoreFileService";
+	property name="formsService"                  inject="delayedInjector:formsService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -36,10 +39,9 @@ component {
 		_startHeartbeats();
 		_setupValidators();
 		_performDbMigrations();
-		systemAlertsService.runStartupChecks();
-		emailTemplateService.ensureSystemTemplatesHaveDbEntries();
-		systemEmailTemplateService.applicationStart();
-
+		_setupEmailTemplating();
+		_runSystemAlertChecks();
+		_writeIgnoreFile();
 
 		announceInterception( "onApplicationStart" );
 	}
@@ -213,8 +215,12 @@ component {
 
 	private void function _recordUserVisits( event, rc, prc ) {
 		if ( !event.isAjax() && !ReFindNoCase( "^(assetDownload|ajaxproxy|staticAssetDownload)", event.getCurrentHandler() ) ) {
-			websiteLoginService.recordVisit();
-			adminLoginService.recordVisit();
+			if ( isFeatureEnabled( "websiteUsers" ) ) {
+				websiteLoginService.recordVisit();
+			}
+			if ( isFeatureEnabled( "admin" ) ) {
+				adminLoginService.recordVisit();
+			}
 		}
 	}
 
@@ -225,11 +231,14 @@ component {
 	private void function _performDbMigrations() {
 		coreDatabaseMigrationService.migrate();
 		appDatabaseMigrationService.doMigrations();
-		createTask(
-			  event             = "general._performAsyncDbMigrations"
-			, runIn             = CreateTimespan( 0, 0, 1, 0 ) // one minute, at least
-			, discardOnComplete = true
-		);
+
+		if ( isFeatureEnabled( "adhocTasks" ) ) {
+			createTask(
+				  event             = "general._performAsyncDbMigrations"
+				, runIn             = CreateTimespan( 0, 0, 1, 0 ) // one minute, at least
+				, discardOnComplete = true
+			);
+		}
 	}
 
 	private void function _performAsyncDbMigrations() {
@@ -251,9 +260,17 @@ component {
 			i18n.setFwLocale( request.DefaultLocaleFromCookie );
 		}
 
-		dataExportTemplateService.setupTemplatesEnum();
-		systemAlertsService.setupSystemAlerts();
+		if ( isFeatureEnabled( "dataExport" ) ) {
+			dataExportTemplateService.setupTemplatesEnum();
+		}
+		if ( isFeatureEnabled( "admin" ) ) {
+			systemAlertsService.setupSystemAlerts();
+		}
+		if ( isFeatureEnabled( "presideForms" ) ) {
+			formsService.formExists( "hack-to-ensure-service-initialised" );
+		}
 	}
+
 
 	private void function _startHeartbeats() {
 		if ( isFeatureEnabled( "emailQueueHeartBeat" ) ) {
@@ -284,17 +301,17 @@ component {
 			presideSessionReapHeartbeat.start();
 		}
 
-		if ( isFeatureEnabled( "assetQueue" ) && isFeatureEnabled( "assetQueueHeartBeat" ) ) {
+		if ( isFeatureEnabled( "assetQueueHeartBeat" ) ) {
 			for( var i=1; i<=assetQueueConcurrency; i++ ) {
 				getModel( "AssetQueueHeartBeat#i#" ).start();
 			}
 		}
 
-		if ( isFeatureEnabled( "dataExport" ) && isFeatureEnabled( "scheduledExportHeartBeat" ) ) {
+		if ( isFeatureEnabled( "scheduledExportHeartBeat" ) ) {
 			scheduledExportHeartBeat.start();
 		}
 
-		if ( isFeatureEnabled( "rulesEngine" ) && isFeatureEnabled( "segmentationFiltersHeartbeat" ) ) {
+		if ( isFeatureEnabled( "segmentationFiltersHeartbeat" ) ) {
 			segmentationFiltersHeartbeat.start();
 		}
 
@@ -302,15 +319,25 @@ component {
 	}
 
 	private void function _setupCatchAllAdminUserGroup() {
-		permissionService.setupCatchAllGroup();
+		if ( isFeatureEnabled( "admin" ) ) {
+			permissionService.setupCatchAllGroup();
+		}
 	}
 
 	private void function _setupValidators() {
+		if ( IsArray( coreValidationProviders ) ) {
+			for ( var providerName in coreValidationProviders ) {
+				if ( getController().getWirebox().containsInstance( providerName ) ) {
+					validationEngine.newProvider( getModel( providerName ) );
+				}
+			}
+		}
 		if ( IsArray( configuredValidationProviders ) ) {
 			for ( var providerName in configuredValidationProviders ) {
 				validationEngine.newProvider( getModel( dsl=providerName ) );
 			}
 		}
+
 
 		for( var objName in presideObjectService.listObjects( includeGeneratedObjects=true ) ) {
 			var obj = presideObjectService.getObject( objName );
@@ -328,5 +355,22 @@ component {
 		if ( xframeOptions != "ALLOW" ) {
 			event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
 		}
+	}
+
+	private void function _runSystemAlertChecks() {
+		if ( isFeatureEnabled( "admin" ) ) {
+			systemAlertsService.runStartupChecks();
+		}
+	}
+
+	private void function _setupEmailTemplating() {
+		if ( isFeatureEnabled( "emailCenter" ) ) {
+			emailTemplateService.ensureSystemTemplatesHaveDbEntries();
+			systemEmailTemplateService.applicationStart();
+		}
+	}
+
+	private void function _writeIgnoreFile() {
+		ignoreFileService.write();
 	}
 }

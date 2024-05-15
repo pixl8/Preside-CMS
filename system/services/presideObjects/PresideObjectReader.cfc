@@ -11,13 +11,22 @@ component {
 	 * @interceptorService.inject coldbox:InterceptorService
 	 * @featureService.inject     featureService
 	 * @adapterFactory.inject     adapterFactory
+	 * @ignoreFileService.inject  ignoreFileService
 	 */
-	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService, required any adapterFactory ) {
+	public any function init(
+		  required string dsn
+		, required string tablePrefix
+		, required any    interceptorService
+		, required any    featureService
+		, required any    adapterFactory
+		, required any    ignoreFileService
+	) {
 		_setDsn( arguments.dsn );
 		_setTablePrefix( arguments.tablePrefix );
 		_setInterceptorService( arguments.interceptorService );
 		_setFeatureService( arguments.featureService );
 		_setDbAdapter( arguments.adapterFactory.getAdapter( arguments.dsn ) );
+		_setIgnoreFileService( arguments.ignoreFileService );
 
 		return this;
 	}
@@ -28,6 +37,10 @@ component {
 		var objects = {};
 
 		for( var objPath in arguments.objectPaths ){
+			if ( _getIgnoreFileService().isIgnored( "presideobject", objPath ) ) {
+				continue;
+			}
+
 			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
 
 			var objName = ListLast( objPath, "/" );
@@ -40,6 +53,7 @@ component {
 
 			obj.instance = CreateObject( "component", objPath );
 			obj.meta     = readObject( obj.instance );
+			obj.path     = objPath;
 
 			objects[ objName ] = objects[ objName ] ?: [];
 			objects[ objName ].append( obj );
@@ -138,11 +152,15 @@ component {
 		var merger = new Merger();
 
 		for( var objName in unMergedObjects ) {
+			var paths = [ unMergedObjects[ objName ][ 1 ].path ];
 			merged[ objName ] = unMergedObjects[ objName ][ 1 ];
 
 			for( var i=2; i lte unMergedObjects[ objName ].len(); i++ ) {
 				merged[ objName ] = new Merger().mergeObjects( merged[ objName ], unMergedObjects[ objName ][ i ] );
+				ArrayAppend( paths, unMergedObjects[ objName ][ i ].path );
 			}
+
+			merged[ objName ].paths = paths;
 
 			finalizeMergedObject( merged[ objName ] );
 		}
@@ -554,7 +572,10 @@ component {
 			var meta = arguments.objects[ objectName ].meta;
 
 			if ( Len( Trim( meta.feature ?: "" ) ) && !featureService.isFeatureEnabled( Trim( meta.feature ) ) ) {
-				arguments.objects.delete( objectName );
+				for( var path in arguments.objects[ objectName ].paths ) {
+					_getIgnoreFileService().ignore( "presideobject", path );
+				}
+				StructDelete( arguments.objects, objectName );
 			}
 		}
 	}
@@ -615,5 +636,12 @@ component {
 	}
 	private void function _setDbAdapter( required any dbAdapter ) {
 		_dbAdapter = arguments.dbAdapter;
+	}
+
+	private any function _getIgnoreFileService() {
+		return _ignoreFileService;
+	}
+	private void function _setIgnoreFileService( required any ignoreFileService ) {
+		_ignoreFileService = arguments.ignoreFileService;
 	}
 }

@@ -9,8 +9,8 @@ component {
 
 	/**
 	 * @coldbox.inject                      coldbox
-	 * @assetRendererService.inject         AssetRendererService
-	 * @widgetsService.inject               WidgetsService
+	 * @assetRendererService.inject         featureInjector:assetManager:AssetRendererService
+	 * @widgetsService.inject               featureInjector:cms:WidgetsService
 	 * @presideObjectService.inject         PresideObjectService
 	 * @labelRendererService.inject         labelRendererService
 	 * @renderedAssetCache.inject           cachebox:renderedAssetCache
@@ -302,6 +302,10 @@ component {
 	}
 
 	public string function renderEmbeddedImages( required string richContent, string context="richeditor", string postProcessor="", struct postProcessorArgs={} ) {
+		if ( !$isFeatureEnabled( "cms" ) ) {
+			return arguments.richContent;
+		}
+
 		var imgpattern = "\{\{image:(.*?):image\}\}";
 		var outerargs  = arguments;
 
@@ -411,6 +415,9 @@ component {
 	}
 
 	public string function renderEmbeddedWidgets( required string richContent, string context="", string postProcessor="", struct postProcessorArgs={} ) {
+		if ( !$isFeatureEnabled( "cms" ) ) {
+			return arguments.richContent;
+		}
 		var widgetPattern = "\{\{widget:([a-zA-Z\$_][a-zA-Z0-9\$_]*):(.*?):widget\}\}";
 		var outerargs     = arguments;
 

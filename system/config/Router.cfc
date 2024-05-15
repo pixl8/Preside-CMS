@@ -18,16 +18,41 @@ component extends="coldbox.system.web.routing.Router" {
 			}
 		} );
 
-		addRouteHandler( getModel( dsl="delayedInjector:errorRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:adminRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:assetRouteHandler" ) );
+		var featureService = getModel( "featureService" );
+
+		if ( featureService.isFeatureEnabled( "cms" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:errorRouteHandler" ) );
+		}
+
+		if ( featureService.isFeatureEnabled( "admin" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:adminRouteHandler" ) );
+		}
+
+		if ( featureService.isFeatureEnabled( "assetmanager" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:assetRouteHandler" ) );
+		}
+
 		addRouteHandler( getModel( dsl="delayedInjector:plainStoredFileRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:rulesEngineConditionsExpressionsJsHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:rulesEngineFilterExpressionsJsHandler" ) );
+
+		if ( featureService.isFeatureEnabled( "rulesEngine" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:rulesEngineConditionsExpressionsJsHandler" ) );
+			addRouteHandler( getModel( dsl="delayedInjector:rulesEngineFilterExpressionsJsHandler" ) );
+		}
+
 		addRouteHandler( getModel( dsl="delayedInjector:staticAssetRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:emailRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:defaultPresideRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:restRouteHandler" ) );
+
+		if ( featureService.isFeatureEnabled( "emailCenter" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:emailRouteHandler" ) );
+		}
+
+		if ( featureService.isFeatureEnabled( "siteTree" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:defaultPresideRouteHandler" ) );
+		}
+
+		if ( featureService.isFeatureEnabled( "restFramework" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:restRouteHandler" ) );
+		}
+
 		addRouteHandler( getModel( dsl="delayedInjector:standardRouteHandler" ) );
 
 		setSetting( "presideRoutes", presideRoutes );

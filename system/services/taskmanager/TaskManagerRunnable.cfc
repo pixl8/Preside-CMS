@@ -1,3 +1,6 @@
+/**
+ * @nowirebox
+ */
 component {
 
 	public any function init(

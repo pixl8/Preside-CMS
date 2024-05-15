@@ -1,6 +1,8 @@
 /**
  * The Site redirect domain object represents a single domain that will permanently redirect to the
  * default domain for a site.
+ *
+ * @feature sites
  */
 component labelfield="none" extends="preside.system.base.SystemPresideObject" displayName="Site redirect domain" {
 	property name="domain" type="string" dbtype="varchar" maxlength="255" required=true uniqueindexes="sitedomain|2";

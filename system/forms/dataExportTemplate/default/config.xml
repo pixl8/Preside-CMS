@@ -4,7 +4,7 @@ Data export: default template form
 
 Default implementation used in conjunction with the dataExport.exportConfiguration.base form for configuring data exports
 -->
-<form i18nBaseUri="cms:dataexport.config.form.">
+<form i18nBaseUri="cms:dataexport.config.form." feature="dataExport">
 	<tab id="default">
 		<fieldset id="default">
 			<field name="exportFields" control="dataExportPanelPicker" required="true" sortorder="20" />

@@ -1,5 +1,5 @@
 component {
-	property name="websiteLoginService" inject="websiteLoginService";
+	property name="websiteLoginService" inject="featureInjector:websiteUsers:websiteLoginService";
 
 <!--- VIEWLETS --->
 	private string function notFound( event, rc, prc, args={} ) {
@@ -18,8 +18,12 @@ component {
 			setNextEvent( url=event.buildLink( page="notFound" ) );
 		}
 
-		event.initializePresideSiteteePage( systemPage="notFound" );
-		return renderView( view="/errors/notFound", presideobject="notFound", id=event.getCurrentPageId(), args=args );
+		if ( isFeatureEnabled( "siteTree" ) ) {
+			event.initializePresideSiteteePage( systemPage="notFound" );
+			return renderView( view="/errors/notFound", presideobject="notFound", id=event.getCurrentPageId(), args=args );
+		}
+
+		event.renderData( data="not found", statusCode=404, type="text" );
 	}
 
 	private string function accessDeniedPageType( event, rc, prc, args={} ) {

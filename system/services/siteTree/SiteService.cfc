@@ -4,6 +4,7 @@
  * @singleton      true
  * @presideService true
  * @autdoc         true
+ * @feature        sites
  */
 component displayname="Site service" {
 

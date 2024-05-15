@@ -4,7 +4,7 @@ Data export: save export form base
 
 This form is used as a base for saving data exports.
 -->
-<form i18nBaseUri="cms:dataexport.config.form.">
+<form i18nBaseUri="cms:dataexport.config.form." feature="dataExport">
 	<tab id="filters" sortorder="20">
 		<fieldset id="filters" sortorder="20">
 			<field name="filter" control="SavedExportFilterBuilder" required="false" sortorder="20" />

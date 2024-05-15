@@ -3,6 +3,7 @@
  *
  * @nolabel   true
  * @versioned false
+ * @feature   admin
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Notification subscription" {
 	property name="security_user"           required=true  uniqueindexes="notificationSubscriber|1" relationship="many-to-one"  ondelete="cascade";

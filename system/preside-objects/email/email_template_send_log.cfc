@@ -7,6 +7,7 @@
  * @dataExportFields            email_template,recipient,activity_type,activity_date,activity_link,activity_link_title,activity_link_body,activity_code,activity_reason
  * @datamanagerEnabled          true
  * @datamanagerSearchFields     email_template,recipient,subject
+ * @feature                     emailCenter
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="email_template"  relationship="many-to-one" relatedto="email_template" required=false indexes="template,template_created|1";
@@ -14,7 +15,7 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="custom_layout"   type="string" dbtype="varchar" maxlength=200 required=false;
 	property name="datecreated" indexes="datecreated,template_created|2";
 
-	property name="website_user_recipient"  relationship="many-to-one" relatedto="website_user"  required=false;
+	property name="website_user_recipient"  relationship="many-to-one" relatedto="website_user"  required=false feature="websiteUsers";
 	property name="security_user_recipient" relationship="many-to-one" relatedto="security_user" required=false;
 
 	property name="content" relationship="many-to-one" relatedto="email_template_send_log_content" required=false feature="emailCenterResend" excludeDataExport=true;

@@ -1,9 +1,10 @@
 /**
  * Service to provide business logic for the [[datamanager]].
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        datamanager
  */
 component {
 

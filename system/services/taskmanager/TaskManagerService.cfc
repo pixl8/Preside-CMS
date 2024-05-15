@@ -1,10 +1,10 @@
 /**
  * Service responsible for the business logic for the Preside Task Manager system.
  *
- * @singleton
- * @presideService
- * @autodoc
- *
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        taskManager
  */
 component displayName="Task Manager Service" {
 

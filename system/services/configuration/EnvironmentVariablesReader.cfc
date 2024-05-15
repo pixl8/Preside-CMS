@@ -2,8 +2,8 @@
  * Service providing ability to read from the system's environment variables
  * and return meaningful configuration for preside.
  *
- * @singleton
- * @autodoc
+ * @singleton true
+ * @autodoc   true
  *
  */
 component displayName="Environment Variables Reader" {

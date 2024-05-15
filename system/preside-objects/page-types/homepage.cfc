@@ -5,5 +5,6 @@
  * @pageTypeViewlet        page-types.homepage.index
  * @parentSystemPageType   none
  * @allowedParentPageTypes none
+ * @feature                siteTree
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Page type: Homepage" {}

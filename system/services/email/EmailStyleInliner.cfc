@@ -4,6 +4,7 @@
  * @singleton      true
  * @autodoc        true
  * @presideService true
+ * @feature        emailStyleInliner
  */
 component {
 	variables._lib   = [];

@@ -3,9 +3,10 @@
  * \n
  * See also: [[websiteusersandpermissioning]]
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        websiteUsers
  */
 component displayName="Website login service" {
 

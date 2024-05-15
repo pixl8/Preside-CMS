@@ -1,10 +1,10 @@
 /**
  * Provides logic for manipulating images.
  *
- * @singleton
- * @autodoc
- * @presideservice
- *
+ * @singleton      true
+ * @autodoc        true
+ * @presideservice true
+ * @feature        assetManager
  */
 component displayname="Image Manipulation Service" {
 
