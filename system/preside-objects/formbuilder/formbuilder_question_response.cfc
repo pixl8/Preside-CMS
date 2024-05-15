@@ -1,6 +1,6 @@
 /**
  * @versioned false
- * @feature   formbuilderV2
+ * @feature   formbuilder2
  */
 component displayname="Form builder: global question response" extends="preside.system.base.SystemPresideObject" {
 	property name="label" formula="${prefix}question.field_label" adminRenderer="none";
