@@ -48,7 +48,8 @@ component singleton=true autodoc=true displayName="Feature service" {
 			}
 		}
 
-		if (    !isFeatureEnabled( "sites" )
+		if (    arguments.feature == "sites"
+			 || !isFeatureEnabled( "sites" )
 			 || !StructKeyExists( arguments, "siteTemplate" )
 			 || ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest )
 		) {

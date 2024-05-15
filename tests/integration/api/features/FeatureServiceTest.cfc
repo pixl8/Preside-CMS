@@ -22,7 +22,7 @@ component extends="testbox.system.BaseSpec"{
 			it( "should return false when feature is enabled but not for the passed site template", function(){
 				var svc = _getService();
 
-				expect( svc.isFeatureEnabled( feature="sites", siteTemplate="somesiteTemplate" ) ).toBeFalse();
+				expect( svc.isFeatureEnabled( feature="assetManager", siteTemplate="somesiteTemplate" ) ).toBeFalse();
 			} );
 
 			it( "should return true when feature has default template set and current template is blank", function(){
@@ -104,8 +104,8 @@ component extends="testbox.system.BaseSpec"{
 	private struct function _getDefaultTestConfiguration() output=false {
 		return {
 			  sitetree     = { enabled=false, siteTemplates=[ "*" ] }
-			, sites        = { enabled=true , siteTemplates=[ "tempate-x", "template-y", "default" ] }
-			, assetManager = { enabled=false, siteTemplates=[ "*" ] }
+			, sites        = { enabled=true , siteTemplates=[ "*" ] }
+			, assetManager = { enabled=false, siteTemplates=[ "tempate-x", "template-y", "default" ] }
 			, websiteUsers = { enabled=true }
 			, datamanager  = { enabled=true,  siteTemplates=[ "*" ], widgets=[ "datajazzwidget" ] }
 		};
