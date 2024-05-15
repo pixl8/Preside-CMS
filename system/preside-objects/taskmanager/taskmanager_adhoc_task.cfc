@@ -4,7 +4,7 @@
  * @nolabel
  * @versioned false
  * @useCache  false
- *
+ * @feature   adhocTasks
  */
 component extends="preside.system.base.SystemPresideObject"  {
 	property name="event"          type="string"  dbtype="varchar"  maxlength=255 required=true;
@@ -32,6 +32,6 @@ component extends="preside.system.base.SystemPresideObject"  {
 	property name="started_on"        type="date"    dbtype="datetime" required=false indexes="startedon";
 	property name="finished_on"       type="date"    dbtype="datetime" required=false indexes="finishedon";
 
-	property name="admin_owner" relationship="many-to-one" relatedto="security_user" required=false;
-	property name="web_owner"   relationship="many-to-one" relatedto="website_user"  required=false;
+	property name="admin_owner" relationship="many-to-one" relatedto="security_user" required=false feature="admin";
+	property name="web_owner"   relationship="many-to-one" relatedto="website_user"  required=false feature="websiteUsers";
 }

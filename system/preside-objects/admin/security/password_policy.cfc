@@ -2,6 +2,7 @@
  * A password policy for a given context includes simple rules around password requirements
  *
  * @labelfield  context
+ * @feature     passwordPolicyManager
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Password policy" {
 

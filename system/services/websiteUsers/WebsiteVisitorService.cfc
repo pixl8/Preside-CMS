@@ -1,9 +1,9 @@
 /**
  * Provides service logic for keeping track of website visitors
  *
- * @autodoc
- * @singleton
- * @presideService
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
  */
 component displayName="Website visitor service" {
 

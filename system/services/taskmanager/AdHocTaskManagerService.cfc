@@ -1,20 +1,21 @@
 /**
  * Service responsible for the business logic of running ad-hoc tasks
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        adhocTasks
  *
  */
 component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @siteService.inject               siteService
-	 * @threadUtil.inject                threadUtil
-	 * @logger.inject                    logbox:logger:adhocTaskManager
- 	 * @executor.inject                  presideAdhocTaskManagerExecutor
- 	 * @staleTaskSettings.inject         coldbox:setting:heartbeats.adhocTask.staleTaskSettings
+	 * @siteService.inject       featureInjector:sites:siteService
+	 * @threadUtil.inject        threadUtil
+	 * @logger.inject            logbox:logger:adhocTaskManager
+ 	 * @executor.inject          presideAdhocTaskManagerExecutor
+ 	 * @staleTaskSettings.inject coldbox:setting:heartbeats.adhocTask.staleTaskSettings
 	 */
 	public any function init(
 		  required any siteService
@@ -575,11 +576,14 @@ component displayName="Ad-hoc Task Manager Service" {
 
 	public string function getTaskRunnerUrl( required string taskId, required string siteContext ) {
 		var event                  = $getRequestContext();
-		var currentSite            = event.getSite();
-		var isDifferentSiteContext = StructIsEmpty( currentSite ) && Len( Trim( arguments.siteContext ) );
 
-		if ( isDifferentSiteContext ) {
-			event.setSite( _getSiteService().getSite( arguments.siteContext ) );
+		if ( $isFeatureEnabled( "sites" ) ) {
+			var currentSite            = event.getSite();
+			var isDifferentSiteContext = StructIsEmpty( currentSite ) && Len( Trim( arguments.siteContext ) );
+
+			if ( isDifferentSiteContext ) {
+				event.setSite( _getSiteService().getSite( arguments.siteContext ) );
+			}
 		}
 
 		return event.buildLink( linkto="taskmanager.runAdhocTask", queryString="taskId=" & arguments.taskId );
@@ -735,15 +739,17 @@ component displayName="Ad-hoc Task Manager Service" {
 	private void function _setRequestState( required struct requestState ){
 		var event = $getRequestContext();
 
-		if ( Len( Trim( requestState.site ?: "" ) ) ) {
-			event.setSite( _getSiteService().getSite( requestState.site ) );
-		} else if ( $isFeatureEnabled( "sites" ) ) {
-			var siteContext = $getPresideSetting( "taskmanager", "site_context" );
+		if ( $isFeatureEnabled( "sites" ) ) {
+			if ( Len( Trim( requestState.site ?: "" ) ) ) {
+				event.setSite( _getSiteService().getSite( requestState.site ) );
+			} else if ( $isFeatureEnabled( "sites" ) ) {
+				var siteContext = $getPresideSetting( "taskmanager", "site_context" );
 
-			if ( Len( Trim( siteContext ) ) ) {
-				event.setSite( _getSiteService().getSite( siteContext ) );
-			} else {
-				event.autoSetSiteByHost();
+				if ( Len( Trim( siteContext ) ) ) {
+					event.setSite( _getSiteService().getSite( siteContext ) );
+				} else {
+					event.autoSetSiteByHost();
+				}
 			}
 		}
 

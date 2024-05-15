@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.item-types.number:">
+<form i18nBaseUri="formbuilder.item-types.number:" feature="formbuilder">
 	<tab id="default">
 		<fieldset id="default">
 			<field name="format"       control="select"  required="false" sortorder="35" values="integer,free,price" labels="formbuilder.item-types.number:format.integer,formbuilder.item-types.number:format.free,formbuilder.item-types.number:format.price" />

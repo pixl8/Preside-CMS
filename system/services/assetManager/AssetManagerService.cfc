@@ -1,9 +1,10 @@
 /**
  * Provides APIs for programatically interacting with the Asset Manager (see [[assetmanager]] for more details)
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        assetManager
  */
 component displayName="AssetManager Service" {
 
@@ -52,6 +53,9 @@ component displayName="AssetManager Service" {
 	}
 
 	public void function postInit() {
+		if ( !$isFeatureEnabled( "assetManager" ) ) {
+			return;
+		}
 		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( _getConfiguredFolders() );
 		_setupConfiguredFileTypesAndGroups( _getConfiguredTypesByGroup() );

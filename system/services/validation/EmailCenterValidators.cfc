@@ -2,6 +2,7 @@
  * @presideService     true
  * @validationProvider true
  * @singleton          true
+ * @feature            emailCenter
  */
 component {
 

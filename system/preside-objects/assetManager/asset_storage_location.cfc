@@ -5,6 +5,7 @@
  * given storage provider in order to store and retrieve files in the correct location
  *
  * @labelfield name
+ * @feature    assetManager
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Asset storage location" {
 	property name="name"            type="string" dbtype="varchar"  maxlength=200 required=true uniqueindexes="name";

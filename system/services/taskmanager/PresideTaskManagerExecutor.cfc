@@ -1,6 +1,7 @@
 /**
  * @singleton      true
  * @presideService true
+ * @feature        taskmanager
  *
  */
 component extends="cfconcurrent.ExecutorService" {

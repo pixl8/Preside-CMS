@@ -32,50 +32,19 @@ component {
 	 *
 	 */
 	public struct function getConfig() {
-		var config        = {};
-		var envConfig     = new EnvironmentVariablesReader().getConfigFromEnvironmentVariables();
-		var envFileConfig = _readConfigFromEnvFile();
-		var remoteConfig  = _fetchConfigFromRemoteServer();
-
-		if ( remoteConfig.isEmpty() ) {
-			remoteConfig = _readConfigFromInjectedConfigFile();
-		} else {
-			_writeConfigToLocalFile( remoteConfig );
-		}
-
+		var config           = {};
+		var envConfig        = new EnvironmentVariablesReader().getConfigFromEnvironmentVariables();
+		var envFileConfig    = _readConfigFromEnvFile();
+		var injectedConfFile = _readConfigFromInjectedConfigFile();
 
 		config.append( envConfig );
 		config.append( envFileConfig );
-		config.append( remoteConfig );
+		config.append( injectedConfFile );
 
 		return config;
 	}
 
 // private helpers
-	private struct function _fetchConfigFromRemoteServer() {
-		var app              = _getApp();
-		var applicationId    = app.PRESIDE_APPLICATION_ID             ?: _getEnvironmentVariable( "PRESIDE_APPLICATION_ID"             );
-		var serverManagerUrl = app.PRESIDE_SERVER_MANAGER_URL         ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_URL"         );
-		var serverId         = app.PRESIDE_SERVER_MANAGER_SERVER_ID   ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_SERVER_ID"   );
-		var publicKey        = app.PRESIDE_SERVER_MANAGER_PUBLIC_KEY  ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_PUBLIC_KEY"  );
-		var privateKey       = app.PRESIDE_SERVER_MANAGER_PRIVATE_KEY ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_PRIVATE_KEY" );
-		var config           = {};
-
-
-		if ( Len( Trim( applicationId ) ) && Len( Trim( serverManagerUrl ) ) && Len( Trim( publicKey ) ) && Len( Trim( privateKey ) ) && Len( Trim( serverId ) ) ) {
-			config = new preside.system.services.serverManager.PresideServerManagerApiClient( endpoint=serverManagerUrl, publicKey=publicKey, privateKey=privateKey ).getConfig(
-				  applicationId = applicationId
-				, serverId      = serverId
-			);
-
-			if ( !config.isEmpty() ) {
-				_writeConfigToLocalFile( config );
-			}
-		}
-
-		return config;
-	}
-
 	private struct function _readConfigFromEnvFile() {
 		try {
 			var envFileContent = FileRead( _getEnvFilePath() );

@@ -2,9 +2,10 @@
  * Facilitates the reading of rules engine expressions from source ColdBox handler directories.
  * See [[rules-engine]] for more details.
  *
- * @autodoc
- * @singleton
- * @presideService
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
+ * @feature        rulesEngine
  */
 component displayName="RulesEngine Expression Reader Service" {
 

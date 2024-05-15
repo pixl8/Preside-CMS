@@ -791,6 +791,8 @@ component extends="testbox.system.BaseSpec" {
 				var domain      = "my.#CreateUUId()#.com";
 				var mockUrl     = CreateUUId();
 
+				service.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
+
 				mockRequestContext.$( "getSite" ).$results( {} );
 				mockRequestContext.$( "setSite" );
 				mockSiteService.$( "getSite", {} );

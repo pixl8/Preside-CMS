@@ -70,6 +70,7 @@
 					, interceptorService = arguments.interceptorService
 					, featureService = mockFeatureService
 					, adapterFactory = adapterFactory
+					, ignoreFileService = _getMockIgnoreFileService()
 				);
 				var schemaVersioning = new preside.system.services.presideObjects.sqlSchemaVersioning(
 					  adapterFactory = adapterFactory
@@ -301,6 +302,20 @@
 			  dbInfoService             = new preside.system.services.database.DbInfoService()
 			, msSqlUseVarcharMaxForText = false
 		).getAdapter( application.dsn ) />
+	</cffunction>
+
+	<cffunction name="_getMockIgnoreFileService" access="private" returntype="any" output="false">
+		<cfscript>
+			var mock = CreateEmptyMock(  "preside.system.services.utility.IgnoreFileService" );
+
+			mock.$( "read" );
+			mock.$( "write" );
+			mock.$( "ignore" );
+			mock.$( "isIgnored", false );
+			mock.$( "getIgnored", {} );
+
+			return mock;
+		</cfscript>
 	</cffunction>
 
 </cfcomponent>

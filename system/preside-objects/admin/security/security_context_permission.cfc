@@ -3,6 +3,7 @@
  *
  * See [[cmspermissioning]] for more information on permissioning.
  *
+ * @feature admin
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Context permission" noLabel="true" output="false" {
 

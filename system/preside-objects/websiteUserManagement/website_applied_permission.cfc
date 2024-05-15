@@ -1,6 +1,7 @@
 /**
  * A website applied permission records a grants or deny permission for a given user or benefit, permission key and optional context.
  *
+ * @feature websiteUsers
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Website applied permission" noLabel=true output="false" {
 

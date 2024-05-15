@@ -4,8 +4,8 @@ Notifications: preferences form
 
 This form is used for managing a user's notification preferences
 -->
-<form>
-	<tab id="basic" sortorder="10" >
+<form feature="admin">
+	<tab id="basic" sortorder="10">
 		<fieldset id="basic" sortorder="10">
 			<field sortorder="10" name="subscriptions" control="notificationTopicPicker" label="cms:notifications.preferences.form.topics.label" help="cms:notifications.preferences.form.topics.help" />
 		</fieldset>

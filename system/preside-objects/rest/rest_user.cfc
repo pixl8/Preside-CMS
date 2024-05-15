@@ -2,7 +2,7 @@
  *
  * REST User for authenticated access to REST APIs
  *
- * @feature    apiManager
+ * @feature    restTokenAuth
  * @versioned  false
  * @labelfield name
  */

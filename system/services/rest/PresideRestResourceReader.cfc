@@ -3,8 +3,9 @@
  * The metadata gleaned from the resource can then be used
  * to map incoming requests to appropriate resource handlers.
  *
- * @autodoc true
- * @singleton
+ * @autodoc   true
+ * @singleton true
+ * @feature   restFramework
  */
 component displayName="Preside REST Resource Reader" {
 

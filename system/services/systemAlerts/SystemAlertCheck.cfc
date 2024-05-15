@@ -1,5 +1,6 @@
 /**
  * @singleton false
+ * @nowirebox true
  */
 component accessors=true {
 

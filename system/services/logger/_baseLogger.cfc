@@ -1,4 +1,4 @@
-<cfcomponent displayname="Logger" hint="Provides common logging functionality" output="false">
+<cfcomponent displayname="Logger" hint="Provides common logging functionality" output="false" nowirebox="true">
 
 	<cfscript>
 		variables.loglevels = {

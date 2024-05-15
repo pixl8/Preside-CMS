@@ -2,8 +2,9 @@
  * The website user action object represents an occurence of some action
  * that the user/visitor performed. i.e. login, logout, update profile, etc.
  *
- * @nolabel
+ * @nolabel   true
  * @versioned false
+ * @feature   websiteUsers
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Website user action" {
 	property name="user" relationship="many-to-one" relatedTo="website_user"  required=false indexes="user";

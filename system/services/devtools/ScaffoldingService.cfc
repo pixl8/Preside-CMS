@@ -1,4 +1,8 @@
-component singleton=true {
+/**
+ * @singleton true
+ * @feature   admin
+ */
+component {
 
 // CONSTRUCTOR
 	/**

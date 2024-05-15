@@ -1,8 +1,9 @@
 /**
  * Provides logic for extracting XMP metadata from an image file
  *
- * @autodoc
- * @singleton
+ * @autodoc   true
+ * @singleton true
+ * @feature   assetManager
  */
 component {
 

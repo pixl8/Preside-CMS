@@ -4,7 +4,7 @@ Email center: General settings form
 
 This form is used for configuring general email settings
 -->
-<form i18nBaseUri="cms:emailcenter.settings.general.form.">
+<form i18nBaseUri="cms:emailcenter.settings.general.form." feature="emailCenter">
 	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
 			<field sortorder="10" name="default_from_address" control="textinput" required="false">

@@ -227,7 +227,7 @@
 <!--- features --->
 	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
 		<cfargument name="feature"      type="string" required="true" />
-		<cfargument name="siteTemplate" type="string" required="false" default="#getSingleton( "siteService" ).getActiveSiteTemplate()#" /><cfsilent>
+		<cfargument name="siteTemplate" type="string" required="false" default="_active" /><cfsilent>
 
 		<cfreturn getSingleton( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
 	</cfsilent></cffunction>

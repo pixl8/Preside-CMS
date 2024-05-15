@@ -3,9 +3,10 @@
  * CMS admin login and user sessions. See [[cmspermissioning]]
  * for a full guide to CMS admin users.
  *
- * @presideService
- * @singleton
- * @autodoc
+ * @presideService true
+ * @singleton      true
+ * @autodoc        true
+ * @feature        admin
  */
 component displayName="Admin login service" {
 
