@@ -19,7 +19,7 @@ component {
 	property name="dataExportTemplateService"     inject="delayedInjector:dataExportTemplateService";
 	property name="emailQueueConcurrency"         inject="coldbox:setting:email.queueConcurrency";
 	property name="assetQueueConcurrency"         inject="coldbox:setting:assetManager.queue.concurrency";
-	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
+	property name="presideObjectService"          inject="presideObjectService";
 	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
 	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
 	property name="coreValidationProviders"       inject="coldbox:setting:coreValidationProviders";
