@@ -2,8 +2,9 @@
  * Provides logic for querying viewlets that exist
  * in the system.
  *
- * @autodoc
- * @singleton
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
  */
 component {
 

@@ -84,13 +84,18 @@ component extends="coldbox.system.web.routing.Router" {
 		return uri;
 	}
 
-	public void function addRouteHandler( required any routeHandler ) {
-		ArrayAppend( variables.presideRoutes, arguments.routeHandler );
+	public void function addRouteHandler( routeHandler ) {
+		if ( !IsNull( arguments.routeHandler ) ) {
+			ArrayAppend( variables.presideRoutes, arguments.routeHandler );
+		}
 	}
 
 // overriding getModel() to ensure we always use delayed injector in our Routes.cfm which loads while the interceptors are loading
 	public any function getModel( string name, string dsl, struct initArguments={} ) {
 		if ( StructKeyExists( arguments, "name" ) ) {
+			if ( !getController().getWirebox().containsInstance( arguments.name ) ) {
+				return;
+			}
 			arguments.dsl = "delayedInjector:" & arguments.name;
 		} else if ( StructKeyExists( arguments, "dsl" ) && !arguments.dsl.reFindNoCase( "^delayedInjector:" ) && !arguments.dsl.reFindNoCase( "^provider:" ) ) {
 			arguments.dsl = "delayedInjector:" & arguments.dsl;
