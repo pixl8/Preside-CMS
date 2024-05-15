@@ -4,7 +4,7 @@ component extends="coldbox.system.Interceptor" {
 	public void function configure() {}
 
 	public void function onApplicationStart() {
-		if ( isFeatureEnabled( "formbuilderv2" ) ) {
+		if ( isFeatureEnabled( "formbuilder2" ) ) {
 			formBuilderService.updateUsesGlobalQuestions();
 		}
 	}

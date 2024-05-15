@@ -7,8 +7,8 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 
 // CONSTRUCTOR
 	/**
-	 * @assetManagerService.inject featureInjector:assetManager:assetManagerService
-	 * @siteService.inject         featureInjector:sites:siteService
+	 * @assetManagerService.inject delayedInjector:assetManager:assetManagerService
+	 * @siteService.inject         delayedInjector:sites:siteService
 	 * @queueBatchSize.inject      coldbox:setting:assetManager.queue.batchSize
 	 */
 	public any function init(

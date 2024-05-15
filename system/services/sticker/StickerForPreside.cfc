@@ -6,8 +6,8 @@
 component {
 
 	/**
-	 * @delayedStickerRendererService.inject featureInjection:delayedViewlets:delayedStickerRendererService
-	 * @delayedViewletRendererService.inject featureInjection:delayedViewlets:delayedViewletRendererService
+	 * @delayedStickerRendererService.inject featureInjector:delayedViewlets:delayedStickerRendererService
+	 * @delayedViewletRendererService.inject featureInjector:delayedViewlets:delayedViewletRendererService
 	 *
 	 */
 	public any function init(

@@ -20,7 +20,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="display_
 	property name="last_logged_out"             type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true;
 	property name="last_request_made"           type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true;
 
-	property name="benefits" relationship="many-to-many" relatedTo="website_benefit" renderer="none";
+	property name="benefits" relationship="many-to-many" relatedTo="website_benefit" renderer="none" feature="websiteBenefits";
 
 	property name="email_logs" relationship="one-to-many" relatedTo="email_template_send_log" relationshipkey="website_user_recipient" autofilter=false renderer="none" feature="emailCenter";
 	property name="actions"    relationship="one-to-many" relatedTo="website_user_action"     relationshipkey="user"                   autofilter=false renderer="none";
