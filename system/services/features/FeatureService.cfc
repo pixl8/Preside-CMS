@@ -48,10 +48,10 @@ component singleton=true autodoc=true displayName="Feature service" {
 			}
 		}
 
-		if (    arguments.feature == "sites"
-			 || !isFeatureEnabled( "sites" )
-			 || !StructKeyExists( arguments, "siteTemplate" )
+		if (    !StructKeyExists( arguments, "siteTemplate" )
 			 || ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest )
+			 || arguments.feature == "sites"
+			 || !isFeatureEnabled( "sites" )
 		) {
 			return true;
 		}
