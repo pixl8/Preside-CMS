@@ -1012,7 +1012,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 	public void function setLanguage( required string language ) {
 		getRequestContext().setValue( name="_language", value=arguments.language, private=true );
-		getModel( "multilingualPresideObjectService" ).persistUserLanguage( arguments.language );
+		if ( getModel( "featureService" ).isFeatureEnabled( "multilingual" ) ) {
+			getModel( "multilingualPresideObjectService" ).persistUserLanguage( arguments.language );
+		}
 	}
 
 	public string function getLanguageSlug() {
