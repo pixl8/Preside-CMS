@@ -294,7 +294,7 @@ component displayName="Website permissions service" {
 		};
 
 		var dbRecords = _getAppliedPermDao().selectData(
-			  selectFields = [ "user", "benefit", "granted" ]
+			  selectFields = [ "user", "granted", $isFeatureEnabled( "websiteBenefits" ) ? "benefit" : "'' as benefit" ]
 			, filter       = { context=arguments.context, context_key=arguments.contextKey, permission_key=arguments.permissionKey }
 		);
 
