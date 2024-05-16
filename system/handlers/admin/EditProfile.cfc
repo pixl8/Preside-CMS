@@ -39,6 +39,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		formData.id = userId;
 		var validationResult = validateForm( formName=formName, formData=formData );
 
+		if ( !loginService.isPasswordCorrect( formData.existing_password ?: "" ) ) {
+			validationResult.addError( "existing_password", translateResource( "cms:editProfile.password.incorrect.existing.password" ) );
+		}
+
 		if ( !validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 			var persist = formData;

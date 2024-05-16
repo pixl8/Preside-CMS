@@ -11,9 +11,9 @@
 </cfscript>
 
 <cfoutput>
-	<div class="form-group<cfif hasError> has-error</cfif>">
+	<div class="form-group form-group-grid<cfif hasError> has-error</cfif>">
 		<cfif not args.nolabel>
-			<label class="col-sm-2 control-label no-padding-right" for="#args.for#">
+			<label class="control-label no-padding-right" for="#args.for#">
 				#args.label#
 				<cfif args.required>
 					<em class="required" role="presentation">
@@ -25,9 +25,9 @@
 			</label>
 
 		<cfelse>
-			<div class="col-sm-2">&nbsp;</div>
+			<div>&nbsp;</div>
 		</cfif>
-		<div class="col-sm-9">
+		<div>
 			<div class="clearfix">
 				#args.control#
 			</div>
@@ -36,7 +36,7 @@
 			</cfif>
 		</div>
 		<cfif Len( Trim( args.help ) )>
-			<div class="col-sm-1">
+			<div>
 				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#HtmlEditFormat( args.help )#" title="#translateResource( 'cms:help.popover.title' )#"></span>
 			</div>
 		</cfif>
