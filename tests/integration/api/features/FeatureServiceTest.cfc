@@ -55,6 +55,12 @@ component extends="testbox.system.BaseSpec"{
 				} ).toThrow( "preside.feature.bad.expression" ) ;
 			} );
 
+			it( "should return false when feature is enabled but has an ancestor feature that are is not enabled", function(){
+				var svc = _getService();
+
+				expect( svc.isFeatureEnabled( "assetGrandChild" ) ).toBeFalse();
+			} );
+
 		} );
 
 		describe( "isFeatureDefined()", function(){
@@ -108,6 +114,8 @@ component extends="testbox.system.BaseSpec"{
 			, assetManager = { enabled=false, siteTemplates=[ "*" ] }
 			, websiteUsers = { enabled=true }
 			, datamanager  = { enabled=true,  siteTemplates=[ "*" ], widgets=[ "datajazzwidget" ] }
+			, assetChild   = { enabled=true, dependsOn=[ "assetManager" ] }
+			, assetGrandChild = { enabled=true, dependsOn=[ "assetChild" ] }
 		};
 	}
 }

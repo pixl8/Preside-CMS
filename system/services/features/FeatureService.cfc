@@ -6,6 +6,9 @@
  */
 component singleton=true autodoc=true displayName="Feature service" {
 
+
+	property name="siteService" inject="delayedInjector:siteService";
+
 // CONSTRUCTOR
 	/**
 	 * @configuredFeatures.inject coldbox:setting:features
@@ -32,6 +35,17 @@ component singleton=true autodoc=true displayName="Feature service" {
 
 		if ( !isEnabled ) {
 			return false;
+		}
+
+		if ( isArray( features[ arguments.feature ].dependsOn ?: "" ) ) {
+			for( var f in features[ arguments.feature ].dependsOn ) {
+				if ( !isFeatureEnabled( f, arguments.siteTemplate ) ) {
+					if ( !Len( arguments.siteTemplate ) ) {
+						features[ arguments.feature ].enabled = false; // shortcut future parent lookups
+					}
+					return false;
+				}
+			}
 		}
 
 		if ( !StructKeyExists( arguments, "siteTemplate" ) ) {
