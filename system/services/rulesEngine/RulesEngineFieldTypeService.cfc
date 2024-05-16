@@ -88,6 +88,39 @@ component displayName="RulesEngine Field Type Service" {
 	}
 
 	/**
+	 * Renders description text (e.g. usage advice) for the configuration
+	 * screen for the given field type and field configuration.
+	 * By convention, this text can simply be set in i18n, but more
+	 * advanced, context-specific help can be provided via a custom
+	 * renderConfigScreenDescription handler
+	 *
+	 * @autodoc
+	 * @fieldType.hint          Name of the fieldtype
+	 * @currentValue.hint       The current saved value for the field within the expression
+	 * @fieldConfiguration.hint Field type configuration options for the specific field
+	 */
+	public string function renderConfigScreenDescription(
+		  required string fieldType
+		, required any    currentValue
+		, required struct fieldConfiguration
+	) {
+		var handler = getHandlerForFieldType( arguments.fieldType );
+		var action  = handler & ".renderConfigScreenDescription";
+		var coldbox = $getColdbox();
+
+		if ( coldbox.handlerExists( action ) ) {
+			return $getColdbox().runEvent(
+				  event         = action
+				, private       = true
+				, prePostExempt = true
+				, eventArguments = { value=arguments.currentValue, config=arguments.fieldConfiguration }
+			);
+		}
+
+		return $translateResource( uri="cms:rulesEngine.fieldtype.#arguments.fieldType#.config.description", defaultValue="" );
+	}
+
+	/**
 	 * Processes a form config form submission for a field
 	 * using the passed field type and configuration options.
 	 * Returns the result of processing the submission (a value to
