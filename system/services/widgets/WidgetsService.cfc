@@ -12,7 +12,7 @@ component {
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @i18nPlugin.inject              i18n
 	 * @featureService.inject          featureService
-	 * @siteService.inject             siteService
+	 * @siteService.inject             featureInjector:sites:siteService
 	 */
 	public any function init(
 		  required struct configuredWidgets
@@ -327,7 +327,7 @@ component {
 		if ( widgetFeature.len() ) {
 			return featureService.isFeatureEnabled(
 				  feature       = widgetFeature
-				, siteTemplate  = ( arguments.includeSiteTemplate ? _getSiteService().getActiveSiteTemplate() : NullValue() )
+				, siteTemplate  = ( arguments.includeSiteTemplate && $isFeatureEnabled( "sites" ) ? _getSiteService().getActiveSiteTemplate() : NullValue() )
 			);
 		}
 
