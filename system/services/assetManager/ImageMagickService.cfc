@@ -4,7 +4,7 @@
  * @autodoc        true
  * @singleton      true
  * @presideservice true
- * @feature        assetManagerService
+ * @feature        assetManager
  *
  */
 component displayname="ImageMagick"  {
