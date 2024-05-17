@@ -6,13 +6,13 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="batchOperationService"            inject="dataManagerBatchOperationService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
-	property name="dataExportService"                inject="dataExportService";
-	property name="dataExportTemplateService"        inject="dataExportTemplateService";
-	property name="scheduledExportService"           inject="scheduledExportService";
+	property name="dataExportService"                inject="featureInjector:dataExport:dataExportService";
+	property name="dataExportTemplateService"        inject="featureInjector:dataExport:dataExportTemplateService";
+	property name="scheduledExportService"           inject="featureInjector:dataExport:scheduledExportService";
 	property name="formsService"                     inject="formsService";
-	property name="siteService"                      inject="siteService";
+	property name="siteService"                      inject="featureInjector:sites:siteService";
 	property name="versioningService"                inject="versioningService";
-	property name="rulesEngineFilterService"         inject="rulesEngineFilterService";
+	property name="rulesEngineFilterService"         inject="featureInjector:rulesEngine:rulesEngineFilterService";
 	property name="dtHelper"                         inject="jqueryDatatablesHelpers";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="sessionStorage"                   inject="sessionStorage";
