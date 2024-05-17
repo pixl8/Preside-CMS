@@ -4,7 +4,7 @@
  * @singleton      true
  * @presideservice true
  * @autodoc        true
- * @feature        datamanager
+ * @feature        admin
  */
 component {
 
@@ -22,7 +22,7 @@ component {
 	 * @labelRendererService.inject LabelRendererService
 	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
-	 * @siteService.inject          SiteService
+	 * @siteService.inject          featureInjector:sites:SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
 	 * @customizationService.inject datamanagerCustomizationService
 	 * @cloningService.inject       presideObjectCloningService
@@ -61,7 +61,8 @@ component {
 	public array function getGroupedObjects() {
 		var poService          = _getPresideObjectService();
 		var permsService       = _getPermissionService();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var useSites           = $isFeatureEnabled( "sites" );
+		var activeSiteTemplate = useSites ? _getSiteService().getActiveSiteTemplate() : "";
 		var i18nPlugin         = _getI18nPlugin();
 		var objectNames        = poService.listObjects();
 		var groups             = {};
@@ -69,8 +70,8 @@ component {
 
 		for( var objectName in objectNames ){
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
-			var siteTemplates      = poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" );
-			var isInActiveTemplate = siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
+			var siteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" ) : "";
+			var isInActiveTemplate = !useSites || siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
 
 			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {

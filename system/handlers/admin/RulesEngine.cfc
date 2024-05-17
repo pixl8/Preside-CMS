@@ -5,7 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineFieldTypeService"  inject="rulesEngineFieldTypeService";
 	property name="rulesEngineFilterService"     inject="rulesEngineFilterService";
 	property name="rulesEngineExpressionService" inject="rulesEngineExpressionService";
-	property name="dataManagerService"           inject="dataManagerService";
+	property name="dataManagerService"           inject="featureInjector:datamanager:dataManagerService";
 	property name="messageBox"                   inject="messagebox@cbmessagebox";
 	property name="presideObjectService"         inject="PresideObjectService";
 	property name="formsService"                 inject="formsService";

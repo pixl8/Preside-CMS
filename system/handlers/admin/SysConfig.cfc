@@ -1,7 +1,6 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="systemConfigurationService" inject="systemConfigurationService";
-	property name="siteService"                inject="siteService";
 	property name="presideObjectService"       inject="presideObjectService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
 	property name="tenancyConfig"              inject="coldbox:setting:tenancy";

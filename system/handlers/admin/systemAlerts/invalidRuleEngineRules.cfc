@@ -1,7 +1,12 @@
 component {
 	property name="validationEngine"    inject="ValidationEngine";
-	property name="conditionService"    inject="RulesEngineConditionService";
+	property name="conditionService"    inject="featureInjector:rulesEngine:RulesEngineConditionService";
 	property name="systemAlertsService" inject="SystemAlertsService";
+
+
+	private boolean function isEnabled() {
+		return isFeatureEnabled( "rulesEngine" );
+	}
 
 	private void function runCheck( required systemAlertCheck check ) {
 		var invalidRules = [];
