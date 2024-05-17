@@ -918,7 +918,7 @@ component {
 			, dataexport                      = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "datamanager"   ] }
 			, dataExporterNDJSON              = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "dataexport"   ] }
 			, twoFactorAuthentication         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin"   ] }
-			, rulesEngine                     = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ], dependsOn=[ "admin" ] }
+			, rulesEngine                     = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ], dependsOn=[ "datamanager" ] }
 			, emailCenter                     = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ]  }
 			, emailCenterResend               = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "emailCenter" ] }
 			, emailStyleInliner               = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "emailCenter" ] }
@@ -1396,17 +1396,17 @@ component {
 		var recipientTypes   = {};
 		var serviceProviders = {};
 
-		templates.cmsWelcome = { feature="cms", group="presideadmin", recipientType="adminUser", parameters=[
+		templates.cmsWelcome = { feature="admin", group="presideadmin", recipientType="adminUser", parameters=[
 			  { id="reset_password_link", required=true }
 			, { id="welcome_message", required=true }
 			, "created_by"
 			, "site_url"
 		] };
-		templates.resetCmsPassword = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetCmsPassword = { feature="admin", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetCmsPasswordForTokenExpiry = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetCmsPasswordForTokenExpiry = { feature="admin", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
@@ -1415,7 +1415,7 @@ component {
 			, { id="submission_preview"  , required=true }
 			, { id="notification_subject", required=false }
 		] };
-		templates.notification = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
+		templates.notification = { feature="admin", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="admin_link"          , required=true  }
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
@@ -1438,7 +1438,7 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetTwoFactorAuthentication = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetTwoFactorAuthentication = { feature="admin", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  "site_url"
 			, "site_admin_url"
 		] };

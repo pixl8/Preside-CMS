@@ -6,7 +6,7 @@
 	strengths    = args.strengths    ?: [];
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 

@@ -79,8 +79,10 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			var bundles = [ "cms" ];
 			var js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
 
-			for( var widget in widgetsService.getWidgets() ) {
-				ArrayAppend( bundles, "widgets." & widget );
+			if ( featureService.get().isFeatureEnabled( "cms" ) ) {
+				for( var widget in widgetsService.getWidgets() ) {
+					ArrayAppend( bundles, "widgets." & widget );
+				}
 			}
 			for( var po in presideObjectService.listObjects() ) {
 				ArrayAppend( bundles, "preside-objects." & po );

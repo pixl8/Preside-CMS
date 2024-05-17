@@ -334,10 +334,16 @@ component displayName="System configuration service" {
 				return "";
 			}
 
-			return cat.getTenancy();
+			var tenancy = cat.getTenancy();
+
+			if ( tenancy == "site" && !$isFeatureEnabled( "sites" ) ) {
+				return "";
+			}
+
+			return tenancy;
 		}
 
-		return "site";
+		return $isFeatureEnabled( "sites" ) ? "site" : "";
 	}
 
 	public string function getCurrentTenantIdForCategory( required string id ) {

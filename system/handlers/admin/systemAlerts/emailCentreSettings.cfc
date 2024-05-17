@@ -1,5 +1,9 @@
 component {
 
+	private boolean function isEnabled() {
+		return isFeatureEnabled( "emailCenter" );
+	}
+
 	private void function runCheck( required systemAlertCheck check ) {
 		var issues = [];
 
