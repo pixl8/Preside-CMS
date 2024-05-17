@@ -22,10 +22,6 @@ component extends="preside.system.base.AdminHandler" {
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
 
-		if ( !isFeatureEnabled( "datamanager" ) ) {
-			event.notFound();
-		}
-
 		_loadCommonVariables( argumentCollection=arguments );
 		if ( !ReFindNoCase( "action$", arguments.action ) ) {
 			_loadCommonBreadCrumbs( argumentCollection=arguments );

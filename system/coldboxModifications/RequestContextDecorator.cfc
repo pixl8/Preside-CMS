@@ -37,7 +37,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		instance.tenancyService                   = instance.wirebox.getInstance( dsl="tenancyService" );
 
 		instance.stickerForPreside                = instance.wirebox.getInstance( dsl="featureInjector:sticker:stickerForPreside" );
-		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( dsl="featureInjector:datamanager:adminObjectLinkBuilderService" );
+		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( dsl="featureInjector:admin:adminObjectLinkBuilderService" );
 		instance.auditService                     = instance.wirebox.getInstance( dsl="featureInjector:auditTrail:auditService" );
 		instance.delayedStickerRendererService    = instance.wirebox.getInstance( dsl="featureInjector:delayedViewlets:delayedStickerRendererService" );
 		instance.formsService                     = instance.wirebox.getInstance( dsl="featureInjector:presideForms:formsService" );
@@ -324,7 +324,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			arguments.queryString = ListAppend( arguments.queryString, "_psource=" & arguments.operationSource, "&" );
 		}
 
-		if ( StructKeyExists( arguments, "objectName" ) && this.getModel( "featureService" ).isFeatureEnabled( "datamanager" ) ) {
+		if ( StructKeyExists( arguments, "objectName" ) ) {
 			var args = {
 				  objectName = arguments.objectName
 				, recordId   = arguments.recordId  ?: ""
