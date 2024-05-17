@@ -564,6 +564,7 @@ component {
 			, icon          = "fa-link"
 			, title         = "cms:links.navigation.link"
 			, permissionKey = "presideobject.link.read"
+			, feature       = "cms"
 		};
 		settings.adminMenuItems.maintenanceMode = {
 			  permissionKey = "maintenanceMode.configure"
@@ -895,10 +896,10 @@ component {
 			, sitetree                        = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, sites                           = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, sticker                         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
-			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin || cms" ] }
+			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms" ] }
 			, taskManager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, adhocTasks                      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, assetManager                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
+			, assetManager                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, websiteUsers                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, websiteBenefits                 = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "websiteUsers" ] }
 			, datamanager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }

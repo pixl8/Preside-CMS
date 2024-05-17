@@ -23,7 +23,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="text_body"                 type="string"  dbtype="longtext";
 	property name="body_changed_from_default" type="boolean" dbtype="boolean" required=false default=false;
 
-	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment";
+	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment" feature="assetManager";
 
 	property name="variant_of"  relationship="many-to-one"  relatedto="email_template" required=false;
 	property name="is_variant"  type="boolean" formula="case when ${prefix}variant_of is null then 0 else 1 end";
