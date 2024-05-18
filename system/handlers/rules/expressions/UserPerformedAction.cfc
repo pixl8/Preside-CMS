@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User has performed some action in some time frame"
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers
  */
 component {
 

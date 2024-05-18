@@ -1,3 +1,6 @@
+/**
+ * @feature admin and rulesEngine
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="rulesEngineFilterService"    inject="RulesEngineFilterService";

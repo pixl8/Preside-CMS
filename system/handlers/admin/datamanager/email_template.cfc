@@ -1,3 +1,6 @@
+/**
+ * @feature admin and emailCenter
+ */
 component {
 
 	property name="formsService" inject="formsService";

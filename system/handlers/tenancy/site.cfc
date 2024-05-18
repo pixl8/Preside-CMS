@@ -1,3 +1,6 @@
+/**
+ * @feature sites
+ */
 component {
 	property name="siteService" inject="SiteService";
 	property name="poService"   inject="PresideObjectService";

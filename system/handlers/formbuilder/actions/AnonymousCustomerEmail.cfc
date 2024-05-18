@@ -1,3 +1,6 @@
+/**
+ * @feature formBuilder and emailCenter
+ */
 component {
 
 	property name="emailService"       inject="emailService";

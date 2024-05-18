@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'asset' type
  *
+ * @feature rulesEngine and assetManager
  */
 component {
 

@@ -1,3 +1,6 @@
+/**
+ * @feature admin and emailCenter
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="dao"                       inject="presidecms:object:email_blueprint";

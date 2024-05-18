@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and dataExport
+ */
 component extends="preside.system.handlers.formcontrols.MultiSelectPanel" {
 	property name="dataExportService" inject="DataExportService";
 

@@ -1,3 +1,7 @@
+/**
+ * @feature admin
+ */
+
 component {
 
 	property name="userDao" inject="presidecms:object:security_user";

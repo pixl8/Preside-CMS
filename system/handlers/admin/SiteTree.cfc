@@ -1,3 +1,6 @@
+/**
+ * @feature admin and siteTree
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="siteTreeService"                  inject="siteTreeService";

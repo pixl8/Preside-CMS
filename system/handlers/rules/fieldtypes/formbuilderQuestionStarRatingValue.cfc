@@ -1,5 +1,7 @@
 /**
  * Handler for rules engine to retrieve a star rating field
+ *
+ * @feature rulesEngine and formbuilder
  */
 component {
 	property name="formBuilderService"   inject="formBuilderService";

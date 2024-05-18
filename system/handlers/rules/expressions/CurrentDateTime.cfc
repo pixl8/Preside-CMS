@@ -2,6 +2,7 @@
  * Expression handler for "Current date/time"
  *
  * @expressionCategory currentdate
+ * @feature            rulesEngine
  */
 component {
 

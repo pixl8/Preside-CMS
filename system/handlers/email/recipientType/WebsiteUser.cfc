@@ -1,6 +1,7 @@
 /**
  * Handler for website user interactions
  *
+ * @feature websiteUsers
  */
 component {
 	property name="websiteUserDao" inject="presidecms:object:website_user";

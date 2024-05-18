@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'time period type'
  *
+ * @feature rulesEngine
  */
 component {
 

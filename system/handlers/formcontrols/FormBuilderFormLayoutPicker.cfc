@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and formbuilder
+ */
 component {
 	property name="formBuilderRenderingService" inject="formBuilderRenderingService";
 

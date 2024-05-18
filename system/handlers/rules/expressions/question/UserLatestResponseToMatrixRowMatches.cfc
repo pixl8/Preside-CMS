@@ -1,7 +1,7 @@
 /**
  * @expressionCategory formbuilder
  * @expressionContexts user
- * @feature            websiteusers
+ * @feature            rulesEngine and websiteusers and formbuilder
  */
 component {
 

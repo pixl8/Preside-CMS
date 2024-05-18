@@ -1,3 +1,6 @@
+/**
+ * @feature admin or cms
+ */
 component {
 
 	property name="passwordPolicyService"    inject="passwordPolicyService";

@@ -1,3 +1,6 @@
+/**
+ * @feature admin and assetManager
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="assetManagerService"              inject="assetManagerService";

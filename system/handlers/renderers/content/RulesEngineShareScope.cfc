@@ -1,3 +1,6 @@
+/**
+ * @feature rulesEngine
+ */
 component {
 
 	private string function adminDatatable( event, rc, prc, args={} ){

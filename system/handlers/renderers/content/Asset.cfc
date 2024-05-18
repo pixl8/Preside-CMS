@@ -1,3 +1,6 @@
+/**
+ * @feature assetManager
+ */
 component {
 
 	property name="presideObjectService"  inject="presideObjectService";

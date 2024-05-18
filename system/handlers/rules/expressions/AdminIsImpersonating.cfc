@@ -2,6 +2,7 @@
  * Expression handler for "Admin is/is not impersonating"
  * 
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers and admin
  */
 component {
 	

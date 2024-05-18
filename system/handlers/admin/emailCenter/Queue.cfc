@@ -1,3 +1,6 @@
+/**
+ * @feature admin and customEmailTemplates
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="emailTemplateService" inject="emailTemplateService";

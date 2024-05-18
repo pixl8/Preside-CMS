@@ -2,6 +2,7 @@
  * Expression handler for "Current date is between"
  *
  * @expressionCategory currentdate
+ * @feature            rulesEngine
  */
 component {
 

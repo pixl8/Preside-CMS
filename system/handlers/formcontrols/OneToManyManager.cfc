@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms
+ */
 component {
 
 	property name="presideObjectService" inject="presideObjectService";
