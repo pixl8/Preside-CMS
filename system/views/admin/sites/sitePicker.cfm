@@ -1,3 +1,4 @@
+<!---@feature admin and sites--->
 <cfscript>
 	param name="args.sites"       type="array";
 	param name="args.currentSite" type="struct";

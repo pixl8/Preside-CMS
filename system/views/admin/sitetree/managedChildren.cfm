@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	pageType        = rc.pageType         ?: "";
 	parentId        = rc.parent           ?: "";

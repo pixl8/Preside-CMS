@@ -1,3 +1,4 @@
+<!---@feature cms--->
 <cfscript>
 	menuItems       = args.menuItems ?: [];
 	delayRestricted = IsTrue( args.delayRestricted ?: true );

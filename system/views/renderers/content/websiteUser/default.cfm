@@ -1,3 +1,4 @@
+<!---@feature websiteUsers--->
 <cfparam name="args.userRecord" type="query" />
 
 <cfoutput>

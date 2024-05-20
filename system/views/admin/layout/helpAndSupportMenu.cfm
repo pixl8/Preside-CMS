@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfoutput>
 	<a href="#getSetting( 'presideHelpAndSupportLink' )#">
 		<i class="fa fa-life-ring"></i>

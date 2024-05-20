@@ -55,8 +55,8 @@ component {
 		settings.features[ "devtools.new"       ].enabled = true;
 		settings.features[ "devtools.extension" ].enabled = true;
 
-		settings.ignoreFile.read  = true;
-		settings.ignoreFile.write = false;
+		settings.ignoreFile.read  = false;
+		settings.ignoreFile.write = true;
 	}
 
 // SPECIFIC AREAS
@@ -1052,7 +1052,7 @@ component {
 		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
 		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
 		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
-		settings.rulesEngine.contexts.adminuser             = { object="security_user" };
+		settings.rulesEngine.contexts.adminuser             = { feature="admin", object="security_user" };
 		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
 	}
 

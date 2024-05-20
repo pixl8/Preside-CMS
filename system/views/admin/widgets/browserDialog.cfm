@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	widgets = prc.widgets ?: QueryNew('');
 	linkQs = "widgetCategories=#( rc.widgetCategories ?: '' )#&linkPickerCategory=#( rc.linkPickerCategory ?: '' )#";

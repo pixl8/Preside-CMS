@@ -70,7 +70,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
 
 				mockDao.$( "updateData" )
-					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category=category, setting="mysetting" }, data={ value="this is the value of my setting" } )
+					.$args( filter="category = :category and setting = :setting and tenant_id is null and site is null", filterParams={ category=category, setting="mysetting" }, data={ value="this is the value of my setting" } )
 					.$results( 0 );
 
 				mockDao.$( "insertData", CreateUUId() );
@@ -95,7 +95,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 
 				mockDao.$( "updateData" )
-					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category=category, setting="mysetting" }, data={ value="this is the value of my setting" } )
+					.$args( filter="category = :category and setting = :setting and tenant_id is null and site is null", filterParams={ category=category, setting="mysetting" }, data={ value="this is the value of my setting" } )
 					.$results( 1 );
 
 				mockDao.$( "insertData", CreateUUId() );
@@ -225,7 +225,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					.$results( QueryNew( 'value' ) );
 
 				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$args( filter="category = :category and setting = :setting and tenant_id is null and site is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 					.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
 
 				expect( configService.getSetting(
@@ -244,7 +244,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					.$results( QueryNew('value') );
 
 				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$args( filter="category = :category and setting = :setting and tenant_id is null and site is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 					.$results( QueryNew('value') );
 
 				expect( configService.getSetting(
@@ -263,7 +263,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					.$results( QueryNew('value') );
 
 				mockDao.$( "selectData" )
-					.$args( filter="category = :category and setting = :setting and site is null and tenant_id is null", filterParams={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
+					.$args( filter="category = :category and setting = :setting and tenant_id is null and site is null", filterParams={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
 					.$results( QueryNew('value') );
 
 				expect( configService.getSetting( category="injectedCat", setting="injectedSetting" ) ).toBe( "test value for injected settings" );
@@ -301,7 +301,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and tenant_id is null and site is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 				expect( configService.getCategorySettings( category=category ) ).toBe( {
@@ -326,7 +326,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and tenant_id is null and site is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
@@ -353,7 +353,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and tenant_id is null and site is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
@@ -377,7 +377,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ], [ "setting5", "value5" ] ] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and tenant_id is null and site is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 
@@ -405,7 +405,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					] ) );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null and tenant_id is null", filterParams={ category=category } )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and tenant_id is null and site is null", filterParams={ category=category } )
 					.$results( QueryNew( 'setting,value', 'varchar,varchar' ) );
 
 
@@ -456,6 +456,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		) );
 
 		svc.$( "$announceInterception" );
+		svc.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
 		svc.$property( propertyName="$helpers", mock=helpers );
 		helpers.$( method="isTrue", callback=function( val ){
 			return IsBoolean( arguments.val ?: "" ) && arguments.val;

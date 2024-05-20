@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'boolean type'
  *
+ * @feature rulesEngine
  */
 component {
 

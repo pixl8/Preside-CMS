@@ -1,6 +1,7 @@
 /**
  * Handler used for viewing email's online
  *
+ * @feature emailCenter
  */
 component {
 

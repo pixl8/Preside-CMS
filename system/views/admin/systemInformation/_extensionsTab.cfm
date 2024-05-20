@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	extensions = args.extensions ?: [];
 </cfscript>

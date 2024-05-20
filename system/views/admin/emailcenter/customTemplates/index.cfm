@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	objectName          = "email_template"
 	gridFields          = [ "name", "sending_method", "send_date", "last_sent_date", "datemodified" ];

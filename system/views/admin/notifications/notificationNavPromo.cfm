@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	event.include( "/js/admin/specific/notifications/" );
 

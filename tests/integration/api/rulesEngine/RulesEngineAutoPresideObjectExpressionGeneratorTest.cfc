@@ -393,6 +393,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		builder.$( "$getPresideObjectService", mockPresideObjectService );
 		builder.$( "_getBooleanVariety", "hasDoesNotHave" );
+		builder.$( "$isFeatureEnabled", true );
 
 		return builder;
 	}

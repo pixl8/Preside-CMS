@@ -1,3 +1,6 @@
+/**
+ * @feature admin and apiManager
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="dao"             inject="presidecms:object:rest_user";

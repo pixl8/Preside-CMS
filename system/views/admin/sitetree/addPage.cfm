@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	parentPage       = prc.parentPage      ?: QueryNew('');
 	mainFormName     = prc.mainFormName    ?: "";

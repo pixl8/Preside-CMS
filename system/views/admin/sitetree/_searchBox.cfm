@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfparam name="args.prefetchUrl" type="string" />
 <cfparam name="args.remoteUrl"   type="string" />
 

@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfparam name="args.responses" type="array"/>
 
 <cfif args.responses.len()>

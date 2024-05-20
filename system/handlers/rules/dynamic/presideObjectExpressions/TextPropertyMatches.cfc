@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * string property's value matches the supplied text
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

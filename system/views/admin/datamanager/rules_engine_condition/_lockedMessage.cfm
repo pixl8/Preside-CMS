@@ -1,3 +1,4 @@
+<!---@feature admin and rulesEngine--->
 <cfscript>
 	lockedReason = args.record.locked_reason ?: "";
 	unlockLink   = args.unlockLink           ?: "";

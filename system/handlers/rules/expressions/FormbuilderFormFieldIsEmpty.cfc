@@ -2,6 +2,7 @@
  * @expressionContexts  formbuilderSubmission
  * @expressionCategory  formbuilder
  * @expressionTags      formbuilderV1Form
+ * @feature             rulesEngine and formbuilder
  */
 component {
 

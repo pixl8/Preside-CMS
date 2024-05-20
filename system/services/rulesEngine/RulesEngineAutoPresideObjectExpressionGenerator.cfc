@@ -138,10 +138,10 @@ component {
 					arrayAppend( expressions, _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
 
-				if ( relatedTo == "security_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInAdminUser" ) ) {
+				if ( relatedTo == "security_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInAdminUser" ) && $isFeatureEnabled( "admin" ) ) {
 					arrayAppend( expressions, _createManyToOneMatchesLoggedInAdminUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
-				if ( relatedTo == "website_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInWebUser" ) ) {
+				if ( relatedTo == "website_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInWebUser" ) && $isFeatureEnabled( "websiteUsers" )) {
 					arrayAppend( expressions, _createManyToOneMatchesLoggedInWebUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
 				if ( !arguments.parentObjectName.len() ) {
@@ -179,7 +179,7 @@ component {
 				if ( !arrayContainsNoCase( excludedKeys, "OneToManyHas" ) ) {
 					arrayAppend( expressions, _createOneToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
-				if ( reFind( "^\_translation\_", relatedTo ) ) {
+				if ( reFind( "^\_translation\_", relatedTo ) && $isFeatureEnabled( "multilingual" ) ) {
 					arrayAppend( expressions, _createOutdatedTranslationExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 					arrayAppend( expressions, _createTranslationExistsExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}

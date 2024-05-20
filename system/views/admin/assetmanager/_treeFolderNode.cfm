@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	param name="args.id"                 type="string";
 	param name="args.access_restriction" type="string";

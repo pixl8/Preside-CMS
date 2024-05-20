@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	token         = rc.token          ?: "";
 	message       = rc.message        ?: "";

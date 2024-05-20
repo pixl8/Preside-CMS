@@ -1,3 +1,6 @@
+/**
+ * @feature websiteUsers
+ */
 component {
 
 	property name="websiteLoginService" inject="websiteLoginService";

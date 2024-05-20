@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and cms
+ */
 component {
 
 	public string function index( event, rc, prc, args={} ) {

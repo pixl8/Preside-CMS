@@ -1,3 +1,6 @@
+/**
+ * @feature sitetree
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="pageTypesService" inject="pageTypesService";

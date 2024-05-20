@@ -1,3 +1,6 @@
+/**
+ * @feature formbuilder
+ */
 component {
 
 	private struct function prepareParameters(

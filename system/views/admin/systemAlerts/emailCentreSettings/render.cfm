@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	issues       = args.data.issues ?: [];
 	settingsLink = event.buildAdminLink( linkTo="emailcenter.settings" );

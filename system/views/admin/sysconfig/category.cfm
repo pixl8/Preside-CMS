@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="prc.category"  type="ConfigCategory";
 	param name="prc.savedData" type="struct";

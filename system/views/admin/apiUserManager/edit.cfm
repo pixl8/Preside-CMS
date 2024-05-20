@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfscript>
 	recordId = rc.id ?: "";
 </cfscript>

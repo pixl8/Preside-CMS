@@ -1,3 +1,6 @@
+/**
+ * @feature formBuilder
+ */
 component {
 	property name="assetManagerService"        inject="assetManagerService";
 	property name="formBuilderStorageProvider" inject="formBuilderStorageProvider";

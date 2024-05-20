@@ -2,6 +2,7 @@
  * Handler that provides default actions for building links to admin object
  * screens.
  *
+ * @feature admin
  */
 component {
 

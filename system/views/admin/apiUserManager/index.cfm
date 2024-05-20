@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfscript>
 	objectName          = "rest_user"
 	gridFields          = ["name","description","datemodified"];

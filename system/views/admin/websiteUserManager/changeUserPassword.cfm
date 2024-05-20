@@ -1,3 +1,4 @@
+<!---@feature admin and websiteUsers--->
 <cfscript>
 	prc.pageIcon  = "key";
 	prc.pageTitle = translateResource( uri="cms:websiteUserManager.changeUserPassword.page.title", data=[ prc.record.display_name ?: "" ] );

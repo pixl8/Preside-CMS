@@ -1,3 +1,4 @@
+<!---@feature assetManager--->
 <cfscript>
 	alignment = args.alignment ?: "";
 	imgSrc    = event.buildLink( ( assetId=args.id ?: "" ), derivative=( args.derivative ?: "" ) );

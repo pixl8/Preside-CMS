@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfoutput>
 	#renderViewlet( event="admin.layout.adminMenu", args={
 		  menuItems       = [ "sitetree" ]

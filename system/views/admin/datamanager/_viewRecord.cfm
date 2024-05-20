@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	infoCard        = prc.infoCard ?: "";
 	topRightButtons = prc.topRightButtons ?: "";

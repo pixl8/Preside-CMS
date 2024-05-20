@@ -1,3 +1,6 @@
+/**
+ * @feature admin and dataExport
+ */
 component extends="preside.system.base.adminHandler" {
 	property name="presideObjectService"      inject="presideObjectService";
 	property name="loginService"              inject="loginService";

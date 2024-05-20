@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	provider   = rc.provider  ?: "filesystem";
 	formName   = prc.formName ?: "";

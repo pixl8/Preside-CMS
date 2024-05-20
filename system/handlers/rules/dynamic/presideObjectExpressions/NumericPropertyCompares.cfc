@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * numeric property's value matches compares to the given number input
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

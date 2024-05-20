@@ -1,3 +1,4 @@
+<!---@feature admin and cms--->
 <cfscript>
 	if ( event.isAdminUser() ) {
 		prc.adminToolbarDisplayMode = prc.adminToolbarDisplayMode ?: getSystemSetting( "frontend-editing", "admin_toolbar_mode", "fixed" );

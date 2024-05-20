@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfparam name="args.parent_folder" type="string" />
 
 <cfoutput>

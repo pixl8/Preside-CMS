@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and assetManager
+ */
 component {
 	property name="storageLocationDao" inject="presidecms:object:asset_storage_location";
 

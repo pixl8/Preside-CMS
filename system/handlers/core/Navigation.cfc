@@ -1,3 +1,6 @@
+/**
+ * @feature siteTree
+ */
 component {
 	property name="siteTreeSvc" inject="siteTreeService";
 

@@ -1,3 +1,4 @@
+<!---@feature admin and websiteUsers--->
 <cfscript>
 	prc.pageIcon  = "user";
 	prc.pageTitle = translateResource( uri="cms:websiteUserManager.editUser.page.title", data=[ prc.record.display_name ?: "" ] );

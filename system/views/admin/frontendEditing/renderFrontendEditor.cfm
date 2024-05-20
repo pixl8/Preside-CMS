@@ -1,3 +1,4 @@
+<!---@feature admin and cms--->
 <cfscript>
 	renderedContent  = args.renderedContent ?: "";
 	args.containerId = "_" & Left( LCase( Hash( CreateUUId() ) ), 8 );

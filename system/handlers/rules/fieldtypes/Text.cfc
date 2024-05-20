@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'text type'
  *
+ * @feature rulesEngine
  */
 component {
 

@@ -2,6 +2,7 @@
  * Expression handler for "All/Any of the following conditions are/are not true:"
  *
  * @expressionCategory conditions
+ * @feature            rulesEngine
  */
 component {
 

@@ -1,3 +1,4 @@
+<!---@feature websiteUsers and siteTree--->
 <cfparam name="args.title"                  field="page.title" editable="true" />
 <cfparam name="args.empty_password"         field="reset_password.empty_password"         default="You must supply a new password." />
 <cfparam name="args.passwords_do_not_match" field="reset_password.passwords_do_not_match" default="The passwords you supplied do not match." />

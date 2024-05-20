@@ -1,3 +1,4 @@
+<!---@feature admin and sites--->
 <cfoutput>
 	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "site"

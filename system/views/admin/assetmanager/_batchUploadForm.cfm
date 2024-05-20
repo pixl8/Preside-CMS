@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	rc.asset_folder = rc.folder ?: "";
 </cfscript>

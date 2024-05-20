@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfparam name="args.id"              type="string" />
 <cfparam name="args._version_number" type="string" />
 

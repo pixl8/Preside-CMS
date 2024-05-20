@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms
+ */
 component {
 	property name="ckeditorToolbarHelper" inject="ckeditorToolbarHelper";
 	property name="ckeditorSettings"      inject="coldbox:setting:ckeditor";

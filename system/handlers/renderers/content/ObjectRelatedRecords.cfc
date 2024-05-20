@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	public string function adminView( event, rc, prc, args={} ){

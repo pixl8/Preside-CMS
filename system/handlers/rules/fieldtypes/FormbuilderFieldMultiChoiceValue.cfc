@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'form builder field with multi choice values type'
  *
+ * @feature rulesEngine and formbuilder
  */
 component {
 

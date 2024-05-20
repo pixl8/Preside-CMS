@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	crumbs           = event.getAdminBreadCrumbs();
 	nCrumbs          = ArrayLen( crumbs );

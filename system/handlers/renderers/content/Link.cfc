@@ -1,3 +1,6 @@
+/**
+ * @feature cms
+ */
 component {
 
 	public string function default( event, rc, prc, args={} ){

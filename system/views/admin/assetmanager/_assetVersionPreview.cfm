@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfparam name="args.isCurrentVersion" 		type="boolean" />
 <cfparam name="args.id"               		type="string"  />
 <cfparam name="args.asset"            		type="string"  />

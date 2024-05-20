@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 Hi ${known_as},
 
 Your previous reset password request for your ${site_url} account: ${email_address} has timed-out and we have reset the link for you, below.

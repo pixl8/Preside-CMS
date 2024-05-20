@@ -1,3 +1,4 @@
+<!---@feature admin and rulesEngine--->
 <!---
  * This file exists purely for backward compatibility.
  * This just proxies the "new" admin menu system (https://presidecms.atlassian.net/browse/PRESIDECMS-2293)

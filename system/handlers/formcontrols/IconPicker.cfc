@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms
+ */
 component {
 
 	property name="fullIconSet" inject="coldbox:setting:formControls.iconPicker.icons";

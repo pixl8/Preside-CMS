@@ -1,3 +1,4 @@
+<!---@feature admin and cms--->
 <cfscript>
 	param name="args._version_number" type="numeric";
 	param name="args.datemodified"    type="string";

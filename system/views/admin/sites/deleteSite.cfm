@@ -1,3 +1,4 @@
+<!---@feature admin and sites--->
 <cfscript>
 	siteId           = rc.id                ?: "";
 	site             = prc.record           ?: {};

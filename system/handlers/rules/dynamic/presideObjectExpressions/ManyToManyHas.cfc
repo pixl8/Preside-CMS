@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking the number
  * of records in a many-to-many relationship
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

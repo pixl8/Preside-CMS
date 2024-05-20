@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder2--->
 <cfscript>
 	addRecordLink = prc.addRecordLink ?: "";
 	cancelLink    = prc.cancelLink ?: "";

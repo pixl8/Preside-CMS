@@ -1,6 +1,7 @@
 /**
  * Handler for the user rules engine context
  *
+ * @feature rulesEngine and websiteUsers
  */
 component {
 

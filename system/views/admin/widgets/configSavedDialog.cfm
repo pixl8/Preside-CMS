@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	prc.pageTitle    = translateResource( "cms:widget.saved" );
 	prc.pageSubTitle = translateResource( "cms:widget.saved.subtitle" );

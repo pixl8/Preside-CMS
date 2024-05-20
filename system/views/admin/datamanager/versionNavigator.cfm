@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.prevVersion"            type="numeric";
 	param name="args.nextVersion"            type="numeric";

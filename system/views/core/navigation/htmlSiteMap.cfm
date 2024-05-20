@@ -1,3 +1,4 @@
+<!---@feature cms--->
 <cfparam name="args.tree" type="array" />
 
 <cfoutput>

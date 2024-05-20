@@ -1,3 +1,4 @@
+<!---@feature admin and taskmanager--->
 <cfscript>
 	formId = "taskmanager-configuration";
 </cfscript>

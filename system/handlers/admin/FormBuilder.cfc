@@ -1,3 +1,6 @@
+/**
+ * @feature formbuilder
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="formBuilderService"          inject="formBuilderService";

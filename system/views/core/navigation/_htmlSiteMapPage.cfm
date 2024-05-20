@@ -1,3 +1,4 @@
+<!---@feature cms--->
 <cfparam name="args.children"             type="array"  />
 <cfparam name="args.id"                   type="string" />
 <cfparam name="args.title"                type="string" />

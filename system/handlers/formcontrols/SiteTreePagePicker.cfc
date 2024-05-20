@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and siteTree
+ */
 component {
 
 	property name="presideObjectService" inject="presideObjectService";

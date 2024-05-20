@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfparam name="args.providers" type="array" />
 <cfset rootLink = event.buildAdminLink( linkto="assetManager.addLocation", queryString="provider=" ) />
 
