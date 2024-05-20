@@ -236,6 +236,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$isFeatureEnabled" ).$args( "sitetree" ).$results( true );
 
 		mockCustomizationService.$( "objectHasCustomization", false );
 		mockDataManagerService.$( "isObjectAvailableInDataManager", true );

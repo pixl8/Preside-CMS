@@ -2691,6 +2691,13 @@ component displayName="AssetManager Service" {
 		_defaultStorageProvider = arguments.defaultStorageProvider;
 	}
 
+	private any function _getFileTypesService() {
+		return _fileTypesService;
+	}
+	private void function _setFileTypesService( required any fileTypesService ) {
+		_fileTypesService = arguments.fileTypesService;
+	}
+
 	private struct function _getConfiguredDerivatives() {
 		return _configuredDerivatives;
 	}
