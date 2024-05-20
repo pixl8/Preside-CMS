@@ -327,7 +327,7 @@ component {
 		if ( widgetFeature.len() ) {
 			return featureService.isFeatureEnabled(
 				  feature       = widgetFeature
-				, siteTemplate  = ( arguments.includeSiteTemplate && $isFeatureEnabled( "sites" ) ? _getSiteService().getActiveSiteTemplate() : NullValue() )
+				, siteTemplate  = ( arguments.includeSiteTemplate && featureService.isFeatureEnabled( "sites" ) ? _getSiteService().getActiveSiteTemplate() : NullValue() )
 			);
 		}
 

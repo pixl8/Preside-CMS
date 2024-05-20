@@ -76,12 +76,12 @@ component extends="preside.system.base.AdminHandler" {
 		// todo, cache this operation (per locale)
 		var unsortedOrTranslated = widgetsService.getWidgets( categories=ListToArray( arguments.categories ) );
 		var tempArray            = [];
-		var activeSiteTemplate   = $isFeatureEnabled( "sites" ) ? siteService.getActiveSiteTemplate() : "";
+		var activeSiteTemplate   = isFeatureEnabled( "sites" ) ? siteService.getActiveSiteTemplate() : "";
 
 		for( var id in unsortedOrTranslated ) {
 			var widget = Duplicate( unsortedOrTranslated[ id ] );
 
-			if ( !$isFeatureEnabled( "sites" ) || widget.siteTemplates == "*" || ListFindNoCase( widget.siteTemplates, activeSiteTemplate ) ) {
+			if ( !isFeatureEnabled( "sites" ) || widget.siteTemplates == "*" || ListFindNoCase( widget.siteTemplates, activeSiteTemplate ) ) {
 				widget.title       = translateResource( uri=widget.title      , defaultValue=widget.title );
 				widget.description = translateResource( uri=widget.description, defaultValue=widget.description );
 				widget.icon        = translateResource( uri=widget.icon       , defaultValue="fa-magic" );
