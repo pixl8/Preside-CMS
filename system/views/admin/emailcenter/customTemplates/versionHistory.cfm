@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfset id = rc.id ?: ""/>
 <cfoutput>
 	#renderView( view="/admin/datamanager/_objectVersionHistoryTable", args={

@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfoutput>
 Welcome ${known_as},
 

@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <p>Hi ${known_as},</p>
 <p>We received a request to recreate your password for your <b>${site_url}</b> account: <b>${email_address}</b>.</p>
 <p>Please follow the following link and we will guide you through the password reset process:</p>

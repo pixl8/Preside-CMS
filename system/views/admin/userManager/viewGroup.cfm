@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	prc.pageIcon  = "group";
 	prc.pageTitle = translateResource( uri="cms:usermanager.viewGroup.page.title", data=[ prc.record.label ?: "" ] );

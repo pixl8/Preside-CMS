@@ -1,3 +1,4 @@
+<!---@feature admin and urlRedirects--->
 <cfscript>
 	objectName          = "url_redirect_rule";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );

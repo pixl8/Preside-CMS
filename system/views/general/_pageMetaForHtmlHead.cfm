@@ -1,3 +1,4 @@
+<!---@feature cms--->
 <!---
 	This view outputs common html head meta tags (title, description and author)
 --->

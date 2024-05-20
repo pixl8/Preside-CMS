@@ -1,3 +1,4 @@
+<!---@feature admin and cms--->
 <cfscript>
 	rawContent      = args.rawContent      ?: "";
 	control         = args.control         ?: "";

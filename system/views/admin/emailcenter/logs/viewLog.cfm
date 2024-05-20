@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="prc.log"      type="struct" />
 <cfparam name="prc.activity" type="query"  />
 

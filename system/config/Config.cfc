@@ -55,8 +55,8 @@ component {
 		settings.features[ "devtools.new"       ].enabled = true;
 		settings.features[ "devtools.extension" ].enabled = true;
 
-		settings.ignoreFile.read  = true;
-		settings.ignoreFile.write = false;
+		settings.ignoreFile.read  = false;
+		settings.ignoreFile.write = true;
 	}
 
 // SPECIFIC AREAS

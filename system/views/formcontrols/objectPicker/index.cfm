@@ -1,3 +1,4 @@
+<!---@feature presideForms and admin--->
 <cfscript>
 	object                  = args.object           ?: "";
 	objectTitle             = translateResource( "preside-objects.#object#:title.singular" );

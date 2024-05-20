@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfset message = rc.message ?: "" />
 <cfoutput>
 	<div class="position-relative">

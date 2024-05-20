@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfparam name="args.viewQuestionResponseLink"    type="string"  />
 <cfparam name="args.viewQuestionResponseTitle"   type="string"  />
 

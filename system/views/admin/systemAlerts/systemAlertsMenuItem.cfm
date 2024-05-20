@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	levels      = args.levels      ?: [];
 	alertCounts = args.alertCounts ?: {};

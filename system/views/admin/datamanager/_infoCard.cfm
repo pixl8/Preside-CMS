@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	args.col1            = args.col1 ?: [];
 	args.col2            = args.col2 ?: [];

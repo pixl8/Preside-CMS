@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <p>Welcome ${known_as},</p>
 <p>${created_by} has invited you to be a CMS user for <b>${site_url}</b>.</p>
 

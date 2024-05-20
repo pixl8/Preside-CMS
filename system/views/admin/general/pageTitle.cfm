@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.icon"     type="string" default="";
 	param name="args.title"    type="string" default="";

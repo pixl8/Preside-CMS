@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfoutput>
 	<div class="sidebar" id="sidebar">
 		<script type="text/javascript">

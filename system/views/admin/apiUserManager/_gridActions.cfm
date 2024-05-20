@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfparam name="args.deleteRecordLink"  type="string" />
 <cfparam name="args.editRecordLink"    type="string" />
 <cfparam name="args.viewRecordLink"    type="string" />

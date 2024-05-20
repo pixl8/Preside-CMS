@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.action"          type="string" />
 <cfparam name="args.type"            type="string" />
 <cfparam name="args.email_address"   type="string" />

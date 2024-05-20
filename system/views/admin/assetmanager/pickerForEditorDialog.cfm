@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	linkType = ( ( rc.type ?: "" ) == "attachment" ) ? "attachment" : "image";
 </cfscript>

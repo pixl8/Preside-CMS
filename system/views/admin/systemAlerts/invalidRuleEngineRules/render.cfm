@@ -1,3 +1,4 @@
+<!---@feature admin and rulesEngine--->
 <cfscript>
 	invalidRules = args.data.invalidRules ?: [];
 </cfscript>

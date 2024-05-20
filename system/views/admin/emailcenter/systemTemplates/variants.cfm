@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	templateId     = rc.template  ?: ( rc.id ?: "" );
 	variants       = prc.variants ?: queryNew("");

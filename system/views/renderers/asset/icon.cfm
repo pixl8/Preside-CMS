@@ -1,3 +1,4 @@
+<!---@feature assetManager--->
 <cfscript>
 	ext     = ListLast( args.storage_path ?: "", "." );
 	iconUrl = event.buildLink( systemStaticAsset = "/images/asset-type-icons/16px/#LCase( ext )#.png" );

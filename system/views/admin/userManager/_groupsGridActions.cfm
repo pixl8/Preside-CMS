@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.id"           type="string" />
 <cfparam name="args.label"        type="string" />
 <cfparam name="args.is_catch_all" type="any" />

@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfoutput>
 <cfif Len( Trim( args.welcomeMessage ?: "" ) )>
 	<hr />

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.objectName"          type="string";
 	param name="args.batchEditableFields" type="array"   default=[];

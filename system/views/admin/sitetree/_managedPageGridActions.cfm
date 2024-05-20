@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	param name="args.title"          type="string";
 	param name="args.id"             type="string";

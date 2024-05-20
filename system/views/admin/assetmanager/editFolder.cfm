@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	prc.pageIcon     = "picture";
 	prc.pageTitle    = translateResource( "cms:assetManager" );

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	heartbeats = args.heartbeats ?: {};
 </cfscript>

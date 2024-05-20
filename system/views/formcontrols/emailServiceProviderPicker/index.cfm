@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";

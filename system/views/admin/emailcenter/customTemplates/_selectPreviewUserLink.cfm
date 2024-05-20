@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	recordId    = args.id ?: "";
 	templateId  = rc.id ?: "";

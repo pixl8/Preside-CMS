@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.translations"     type="array"  />
 <cfparam name="args.translateUrlBase" type="string" />
 

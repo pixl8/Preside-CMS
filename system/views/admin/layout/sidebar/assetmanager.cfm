@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfoutput>
 	#renderViewlet( event="admin.layout.adminMenu", args={
 		  menuItems       = [ "assetmanager" ]

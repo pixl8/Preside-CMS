@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfscript>
 	authProvider = args.authProvider ?: "";
 </cfscript>

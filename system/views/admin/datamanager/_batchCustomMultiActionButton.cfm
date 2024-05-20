@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	objectName         = args.objectName         ?: ( prc.objectName ?: "" );
 	batchCustomActions = args.batchCustomActions ?: [];

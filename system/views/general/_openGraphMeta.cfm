@@ -1,3 +1,4 @@
+<!---@feature cms--->
 <cfscript>
 	local.site         = event.getSite();
 	local.teaser       = Trim( event.getPageProperty( "teaser"             ) );

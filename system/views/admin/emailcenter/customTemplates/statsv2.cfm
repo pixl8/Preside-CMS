@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	templateId = rc.id ?: "";
 	showClicks = IsTrue( prc.showClicks ?: "" );

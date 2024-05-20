@@ -1,3 +1,4 @@
+<!---@feature admin and websiteBenefits--->
 <cfscript>
 	prc.pageIcon  = "unlock";
 	prc.pageTitle = translateResource( uri="cms:websitebenefitsManager.editBenefit.page.title", data=[ prc.record.label ?: "" ] );

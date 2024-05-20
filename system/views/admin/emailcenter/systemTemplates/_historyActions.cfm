@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="args.id"              />
 <cfparam name="args._version_number" />
 

@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter and formbuilder--->
 <cfparam name="args.submissionData" type="struct">
 
 <cfoutput>

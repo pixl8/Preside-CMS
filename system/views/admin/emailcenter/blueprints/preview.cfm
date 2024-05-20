@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	event.include( "/js/admin/specific/htmliframepreview/" );
 	event.include( "/css/admin/specific/htmliframepreview/" );

@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	stats                = args.stats ?: {};
 	clickTrackingEnabled = stats.uniqueClickCount || isTrue( prc.record.track_clicks );

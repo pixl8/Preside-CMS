@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	formId           = "configure-layout";
 	layoutId         = args.layoutId       ?: "";

@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfparam name="args.prefetchUrl" type="string" />
 <cfparam name="args.remoteUrl"   type="string" />
 

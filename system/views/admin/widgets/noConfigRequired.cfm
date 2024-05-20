@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	widget      = args.widget ?: {};
 	widgetTitle = translateResource( widget.title ?: "", widget.title ?: "" );

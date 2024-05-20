@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	activeTab       = args.activeTab ?: "manage";
 	canEdit         = IsTrue( args.canEdit ?: "" );

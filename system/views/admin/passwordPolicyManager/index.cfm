@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	formId  = "password-policy-form";
 

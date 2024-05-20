@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	templateId = rc.template ?: "";
 	ajaxUrl    = event.buildAdminLink( linkTo="emailCenter.systemTemplates.getLogsForAjaxDataTables", querystring="template=" & templateid );

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	id              = args.id                ?: "";
 	canEdit         = IsTrue( args.canEdit   ?: "" );

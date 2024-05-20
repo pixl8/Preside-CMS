@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	object     = rc.object ?: "";
 	records    = prc.records ?: QueryNew('');

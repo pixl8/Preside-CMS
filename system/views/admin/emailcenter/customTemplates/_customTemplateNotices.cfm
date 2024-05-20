@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	notices = args.notices ?: [];
 </cfscript>
