@@ -1,5 +1,5 @@
 <cfscript>
-	token         = rc.token          ?: "";
+	token         = EncodeForHTMLAttribute( rc.token ?: "" );
 	message       = rc.message        ?: "";
 	policyMessage = prc.policyMessage ?: "";
 
