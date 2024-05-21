@@ -27,7 +27,7 @@ component displayName="AssetManager Service" {
 
 	public array function expandTypeList( required array types, boolean prefixExtensionsWithPeriod=false ) {
 		var expanded = [];
-		var types    = _getTypes();
+		var types    = getTypes();
 
 		for( var typeName in arguments.types ){
 			if ( StructKeyExists( types, typeName ) ) {
@@ -49,7 +49,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public struct function getAssetType( string filename="", string name=ListLast( arguments.fileName, "." ), boolean throwOnMissing=false ) {
-		var types = _getTypes();
+		var types = getTypes();
 
 		if ( StructKeyExists( types, arguments.name ) ) {
 			return types[ arguments.name ];
@@ -63,6 +63,10 @@ component displayName="AssetManager Service" {
 			  type    = "assetManager.fileTypeNotFound"
 			, message = "The file type, [#arguments.name#], could not be found"
 		);
+	}
+
+	public struct function getTypes() {
+		return variables._types ?: {};
 	}
 
 // PRIVATE HELPERS
@@ -99,9 +103,6 @@ component displayName="AssetManager Service" {
 		_groups = arguments.groups;
 	}
 
-	private struct function _getTypes() {
-		return _types;
-	}
 	private void function _setTypes( required struct types ) {
 		_types = arguments.types;
 	}
