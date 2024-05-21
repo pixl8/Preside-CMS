@@ -194,7 +194,7 @@ component {
 
 		if ( $isFeatureEnabled( "rulesEngine" ) ) {
 			var blueprintFilter = template.blueprint_filter ?: "";
-			if ( blueprintFilter ) {
+			if ( Len( blueprintFilter ) ) {
 				var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
 				var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
 					  objectName      = recipientObject
