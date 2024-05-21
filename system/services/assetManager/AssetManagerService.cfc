@@ -537,7 +537,7 @@ component displayName="AssetManager Service" {
 		var assetDao            = _getAssetDao();
 		var filter              = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
 		var params              = { is_trashed=false, "asset_folder.hidden"=false };
-		var types               = _getTypes();
+		var types               = _getFileTypesService().getTypes();
 		var records             = "";
 		var result              = [];
 		var noPermissionFolders = _userNoPermissionAssetFolders();
