@@ -364,9 +364,9 @@ component validationProvider=true {
 	}
 
 	public boolean function queryString( required string fieldName, any value="" ) validatorMessage="cms:validation.queryString.default" {
-		return IsEmpty( arguments.value ) || ReFindNoCase( "^([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-|,]*)?)*)?$", arguments.value );
+		return IsEmpty( arguments.value ) || ReFindNoCase( "^([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-,]*)?)*)?$", arguments.value );
 	}
 	public string function queryString_js() validatorMessage="validationExtras:validation.simpleUrl.default" {
-		return "function( value, el, params ){ return !value.length || value.match( /^([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-|,]*)?)*)?$/i ) !== null }";
+		return "function( value, el, params ){ return !value.length || value.match( /^([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-,]*)?)*)?$/i ) !== null }";
 	}
 }
