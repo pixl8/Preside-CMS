@@ -3,7 +3,7 @@ on:
   push:
   pull_request:
 jobs:
-  tests:
+  - tests:
     name: Preside Test Suite
     runs-on: ubuntu-latest
     env:
@@ -77,7 +77,7 @@ jobs:
           name: test-results
           path: tests/test-results.txt
 
-  publish:
+  - publish:
     name: Setup flow variables
     needs: tests
     if: "success() && env.event.name != 'pull_request' && ( startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release-' ) ||  startsWith(github.ref, 'refs/heads/demo-' ))"
