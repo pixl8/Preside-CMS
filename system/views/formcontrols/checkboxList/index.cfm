@@ -11,13 +11,11 @@
     if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
     if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
 
-    value  = event.getValue( name=inputName, defaultValue=defaultValue );
-    if ( not IsSimpleValue( value ) ) {
-        value = "";
-    }
-
-    value = HtmlEditFormat( value );
-    valueFound = false;
+	value  = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( not IsSimpleValue( value ) ) {
+		value = "";
+	}
+	valueFound = false;
 </cfscript>
 
 <cfoutput>
