@@ -43,7 +43,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          box install --force --verbose --production
+          box install --force --verbose
 
       - name: Setup .env For Runner
         run: |
