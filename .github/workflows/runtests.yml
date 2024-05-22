@@ -1,0 +1,78 @@
+name: Run tests
+on:
+  push:
+  pull_request:
+jobs:
+  runtests:
+    name: Preside Test Suite
+    runs-on: ubuntu-latest
+    env:
+      DB_USER: root
+      DB_PASSWORD: root
+    strategy:
+      fail-fast: false
+      matrix:
+        cfengine: [ "lucee@5" ]
+        jdkVersion: [ "11" ]
+        experimental: [ false ]
+        include:
+          - cfengine: "lucee@6.1"
+            jdkVersion: "21"
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
+    if: "!contains(github.event.head_commit.message, '[twgit] Init') && github.ref != 'refs/heads/stable'"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Database and Fixtures
+        run: |
+          sudo systemctl start mysql.service
+          mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e 'CREATE DATABASE presidetestsuite;'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.jdkVersion }}
+
+      - name: Setup CommandBox CLI
+        uses: Ortus-Solutions/setup-commandbox@v2.0.1
+
+      - name: Install dependencies
+        uses: pixl8/github-action-box-install@v2
+        with:
+          verbose: true
+          force: true
+
+      - name: Setup .env For Runner
+        run: |
+          touch ${GITHUB_WORKSPACE}/tests/.env
+          printf "PRESIDETEST_DB_HOST=127.0.0.1\n" >> .env
+          printf "PRESIDETEST_DB_NAME=presidetestsuite\n" >> .env
+          printf "PRESIDETEST_DB_PORT=3306\n" >> .env
+          printf "PRESIDETEST_DB_USER=${{ env.DB_USER }}\n" >> .env
+          printf "PRESIDETEST_DB_PASSWORD=${{ env.DB_PASSWORD }}\n" >> .env
+
+     - name: Start ${{ matrix.cfengine }} Server
+       run: |
+          # Startup the Server
+          box server start directory="${GITHUB_WORKSPACE}/tests" serverConfigFile="${GITHUB_WORKSPACE}/tests/" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
+          # Test site build up
+          curl http://127.0.0.1:9999
+
+     - name: Run tests
+        run: |
+          cd tests/
+          exitcode=0
+          box testbox run --verbose > ./test-results.txt || exitcode=1
+          cat test-results.txt
+          exit $exitcode
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v1
+        with:
+          name: test-results
+          path: tests/test-results.txt
