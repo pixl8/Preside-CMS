@@ -97,10 +97,10 @@ jobs:
     name: Publish to Forgebox
     needs: runtests
     runs-on: ubuntu-latest
-    if: "success() && github.event_name != 'pull_request' && ( startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release-' ) ||  startsWith(github.ref, 'refs/heads/demo-' ))"
+    if: "success() && github.event_name != 'pull_request' && ( startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release-' ) )"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -131,12 +131,11 @@ jobs:
           IS_SNAPSHOT: ${{ steps.versiongen.outputs.semver_is_snapshot }}
         run: |
           ZIP_FILE_NAME=Preside-${RELEASE_VERSION/+/-}.zip
-          if [[ $RELEASE_VERSION == "0.0.0-DEMO"* ]] ; then
-            RELEASE_CATEGORY=demo
-          elif [[ "${IS_SNAPSHOT}" == "false" ]] ; then
+          if [[ "${IS_SNAPSHOT}" == "false" ]] ; then
             RELEASE_CATEGORY=stable
           else
             RELEASE_CATEGORY="bleeding-edge"
+            RELEASE_VERSION="be"
           fi
           echo "RELEASE_CATEGORY=$RELEASE_CATEGORY" >> $GITHUB_ENV
           echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV
