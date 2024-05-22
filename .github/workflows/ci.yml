@@ -57,7 +57,7 @@ jobs:
       - name: Start ${{ matrix.cfengine }} Server
         run: |
           # Startup the Server
-          box server start directory="${GITHUB_WORKSPACE}/tests" serverConfigFile="${GITHUB_WORKSPACE}/tests/" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
+          box server start directory="${GITHUB_WORKSPACE}/tests" serverConfigFile="${GITHUB_WORKSPACE}/tests/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
           # Test site build up
           curl http://127.0.0.1:9999
 
