@@ -135,7 +135,7 @@ jobs:
             RELEASE_CATEGORY=stable
           else
             RELEASE_CATEGORY="bleeding-edge"
-            RELEASE_VERSION="${{ steps.versiongen.outputs.semver_release_number }}-be"
+            RELEASE_VERSION="${{ steps.versiongen.outputs.semver_release_number }}-SNAPSHOT"
           fi
           echo "RELEASE_CATEGORY=$RELEASE_CATEGORY" >> $GITHUB_ENV
           echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV

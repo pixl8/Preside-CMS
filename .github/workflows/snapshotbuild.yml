@@ -3,12 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       snapshot:
-        description: 'Full snapshot version number, e.g. 10.27.0-rc1'
+        description: 'Full snapshot version number, e.g. 10.27.0-beta1'
         required: true
 jobs:
   publishsnapshot:
     name: Publish Snapshot to Forgebox
-    needs: runtests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
