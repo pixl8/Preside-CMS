@@ -120,7 +120,7 @@ jobs:
 
       - name: Generate release version number
         id: versiongen
-        uses: pixl8/github-action-twgit-release-version-generator@v1
+        uses: pixl8/github-action-twgit-release-version-generator@v3
         with:
           build_number_start: 8000
 
