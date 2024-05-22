@@ -34,12 +34,13 @@
 	<title>Preside Test Suite</title>
 </head>
 <body>
-
+	<cfoutput> 
 	<h1>
 		<img src="preside-logo.png" alt="Preside" width="138" height="48"><br>
-		Welcome to the Preside test suite
+		Welcome to the Preside test suite<br>
+		Lucee #server.lucee.version#, java #server.java.version#
 	</h1>
-
+	</cfoutput>
 	<section>
 		<h3>
 			<a href="runtests.cfm">Run the full suite now</a>
