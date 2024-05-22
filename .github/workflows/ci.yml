@@ -167,10 +167,11 @@ jobs:
           AWS_REGION: 'eu-west-2'
 
       - name: Publish to forgebox
-        uses: pixl8/github-action-box-publish@v3
+        uses: pixl8/github-action-box-publish@v5
         with:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
+          ignore_timeouts: "true"
 
       - name: Inform Slack of success
         uses: craftech-io/slack-action@v1
