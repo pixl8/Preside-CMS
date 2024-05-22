@@ -1,8 +1,12 @@
+
+
+
+
 <cfscript> 
 	reporter  = url.reporter  ?: "simple";
 	scope     = url.scope     ?: "full";
 	directory = url.directory ?: "";
-	testbox   = new testbox.system.TestBox( options={}, reporter=reporter, directory={
+	testbox   = new testbox.system.TestBox( options={ coverage={ enabled=true } }, directory={
 		  recurse  = true
 		, mapping  = Len( directory ) ? "integration.api.#directory#" : "integration"
 		, filter   = function( required path ){
@@ -25,6 +29,6 @@
 		}
 	} );
 
-	results = Trim( testbox.run() );
+	results = Trim( testbox.run( reporter=reporter ) );
 	content reset=true; echo( results ); abort;
 </cfscript>
