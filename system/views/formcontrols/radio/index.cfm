@@ -16,8 +16,6 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
-
-	value = HtmlEditFormat( value );
 	valueFound = false;
 
 	htmlAttributes = renderHtmlAttributes(
