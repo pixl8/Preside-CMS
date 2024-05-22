@@ -27,7 +27,25 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Database and Fixtures
+        run: |
+          sudo systemctl start mysql.service
+          mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e 'CREATE DATABASE presidetestsuite;'
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.jdkVersion }}
+
+      - name: Setup CommandBox CLI
+        uses: Ortus-Solutions/setup-commandbox@v2.0.1
+
+      - name: Install dependencies
+        uses: pixl8/github-action-box-install@v2
+        with:
+          verbose: true
+          force: true
 
   # publish:
   #   name: Publish to Forgebox
