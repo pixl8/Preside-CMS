@@ -64,16 +64,17 @@ jobs:
       - name: Run tests
         run: |
           cd tests/
+          mkdir -p results
           exitcode=0
-          box testbox run --verbose > ./test-results.txt || exitcode=1
-          cat test-results.txt
-          exit $exitcode
+          box testbox run --verbose outputFile=results/test-results outputFormats=json,antjunit
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v1
+      - name: Upload Test Results Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: tests/test-results.txt
+          name: preside-test-results-${{ matrix.cfengine }}-jdk${{ matrix.jdkVersion }}
+          path: |
+            tests/results/*
 
   publish:
     name: Publish to Forgebox
