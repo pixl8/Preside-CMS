@@ -285,7 +285,7 @@
 			result = testbox.getResult();
 		} // silent
 
-		public string function identifyDatasource ( struct datasource ) localmode=true {
+		public string function identifyDatasource ( string datasource ) localmode=true {
 			dbinfo type="Version" datasource="#arguments.datasource#" name="verify";
 			dbDesc = [];
 			loop list="#verify.columnlist#" item="col" {
