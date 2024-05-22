@@ -285,7 +285,14 @@
 			result = testbox.getResult();
 		} // silent
 
-		
+		public string function identifyDatasource ( struct datasource ) localmode=true {
+			dbinfo type="Version" datasource="#arguments.datasource#" name="verify";
+			dbDesc = [];
+			loop list="#verify.columnlist#" item="col" {
+				ArrayAppend( dbDesc, verify[ col ] );
+			}
+			return ArrayToList( dbDesc, ", " );
+		}
 
 		results = [];
 		results_md = ["## Preside CMS, Lucee #server.lucee.version# / Java #server.java.version#", ""];
@@ -294,6 +301,7 @@
 		arrayAppend( results, "Lucee Version: #server.lucee.version#");
 		arrayAppend( results, "Java Version: #server.java.version#");
 		arrayAppend( results, "Java Compiler Version: #server.java.javaCompilerVersion?:'unknown'#");
+		arrayAppend( results, "Database: #identifyDatasource('preside_test_suite')#");
 		arrayAppend( results, "TestBox Version: #testbox.getVersion()#");
 		arrayAppend( results, "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)");
 		arrayAppend( results, "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)");
