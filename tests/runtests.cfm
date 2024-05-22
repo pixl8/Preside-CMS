@@ -1,7 +1,3 @@
-
-
-
-
 <cfscript> 
 	reporter  = url.reporter  ?: "simple";
 	scope     = url.scope     ?: "full";

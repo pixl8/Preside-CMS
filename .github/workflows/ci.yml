@@ -76,6 +76,23 @@ jobs:
           path: |
             tests/results/*
 
+  publish_test_results:
+    name: Publish Test Results
+    needs: runtests
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+    if: always()
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: artifacts/**/*.xml
+
   publish:
     name: Publish to Forgebox
     needs: runtests
