@@ -47,8 +47,8 @@ jobs:
           verbose: true
           force: true
 
-       - name: Setup .env For Runner
-         run: |
+      - name: Setup .env For Runner
+        run: |
           touch ${GITHUB_WORKSPACE}/tests/.env
           printf "PRESIDETEST_DB_HOST=127.0.0.1\n" >> .env
           printf "PRESIDETEST_DB_NAME=presidetestsuite\n" >> .env
