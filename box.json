@@ -42,7 +42,7 @@
         "JSONPrettyPrint":"1.4.1"
     },
     "devDependencies":{
-        "testbox":"2.7.0"
+        "testbox":"5.4.0"
     },
     "installPaths":{
         "sticker":"system/externals/sticker/",
