@@ -6,11 +6,6 @@
 	labels       = !isEmptyString( args.checkboxLabel ?: "" ) ? translateResource( args.checkboxLabel ?: "", args.checkboxLabel ?: "" ) : ( args.label ?: "" );
 	value        = event.getValue( name=inputName, defaultValue=defaultValue );
 	checked      = isTrue( value );
-
-	if ( not IsSimpleValue( value ) ) {
-		value = "";
-	}
-	value = HtmlEditFormat( value );
 </cfscript>
 
 <cfoutput>
