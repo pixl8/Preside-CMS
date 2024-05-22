@@ -3,34 +3,104 @@ on:
   push:
   pull_request:
 jobs:
-  ci:
-    name: Preside CI
+  runtests:
+    name: Preside Test Suite
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[twgit] Init') && github.ref != 'refs/heads/stable'"
-    services:
-      mysql:
-          image: mysql:5.7
-          env:
-              MYSQL_ALLOW_EMPTY_PASSWORD: yes
-              MYSQL_DATABASE: preside_test
-          ports:
-              - 3306:3306
-          options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-
+    env:
+      DB_USER: root
+      DB_PASSWORD: root
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cfengine: "lucee@5.4"
+            jdkVersion: "11"
+            experimental: false
+          - cfengine: "lucee@be"
+            jdkVersion: "21"
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
     steps:
-      - name: Setup flow variables
-        run: |
-          branch=${GITHUB_REF##*/}
-          publish=false
-          if [[ "{{ env.event.name }}" != "pull_request" ]] ; then
-            if [[ $branch == release-* ]] || [[ $branch == v* ]] || [[ $branch == demo-* ]] ; then
-              publish=true
-            fi
-          fi
-          echo "PUBLISH_PRESIDE=$publish" >> $GITHUB_ENV
-
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Database and Fixtures
+        run: |
+          sudo systemctl start mysql.service
+          mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e 'CREATE DATABASE presidetestsuite;'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.jdkVersion }}
+
+      - name: Setup CommandBox CLI
+        uses: Ortus-Solutions/setup-commandbox@v2.0.1
+
+      - name: Install dependencies
+        run: |
+          box install --force --verbose
+
+      - name: Setup .env For Runner
+        run: |
+          touch ${GITHUB_WORKSPACE}/tests/.env
+          printf "PRESIDETEST_DB_HOST=127.0.0.1\n" >> .env
+          printf "PRESIDETEST_DB_NAME=presidetestsuite\n" >> .env
+          printf "PRESIDETEST_DB_PORT=3306\n" >> .env
+          printf "PRESIDETEST_DB_USER=${{ env.DB_USER }}\n" >> .env
+          printf "PRESIDETEST_DB_PASSWORD=${{ env.DB_PASSWORD }}\n" >> .env
+
+      - name: Start ${{ matrix.cfengine }} Server
+        run: |
+          # Startup the Server
+          box server start directory="${GITHUB_WORKSPACE}/tests" serverConfigFile="${GITHUB_WORKSPACE}/tests/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
+          # Test site build up
+          curl http://127.0.0.1:9999
+
+      - name: Run tests
+        run: |
+          cd tests/
+          mkdir -p results
+          exitcode=0
+          box testbox run --verbose outputFile=results/test-results outputFormats=json,antjunit
+
+      - name: Upload Test Results Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preside-test-results-${{ matrix.cfengine }}-jdk${{ matrix.jdkVersion }}
+          path: |
+            tests/results/*
+
+  publish_test_results:
+    name: Publish Test Results
+    needs: runtests
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+    if: always()
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: artifacts/**/*.xml
+
+  publish:
+    name: Publish to Forgebox
+    needs: runtests
+    runs-on: ubuntu-latest
+    if: "success() && github.event_name != 'pull_request' && ( startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release-' ) )"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -40,26 +110,7 @@ jobs:
           verbose: true
           force: true
 
-      - name: Run tests
-        uses: pixl8/github-action-box-test@v4
-        with:
-          boxjson_dir: /tests
-          test_dir: /tests
-          test_server_json: /tests/server.json
-          output_file: /tests/test-results.txt
-          verbose: false
-        env:
-          PRESIDETEST_DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          PRESIDETEST_DB_HOST: mysql
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: tests/test-results.txt
-
       - name: Build static assets with grunt
-        if: "env.PUBLISH_PRESIDE == 'true'"
         shell: bash
         run: |
           cd ./system/assets &&
@@ -68,26 +119,23 @@ jobs:
           rm -rf node_modules
 
       - name: Generate release version number
-        if: "env.PUBLISH_PRESIDE == 'true'"
         id: versiongen
-        uses: pixl8/github-action-twgit-release-version-generator@v1
+        uses: pixl8/github-action-twgit-release-version-generator@v3
         with:
           build_number_start: 8000
 
       - name: Set release variables
-        if: "env.PUBLISH_PRESIDE == 'true'"
         shell: bash
         env:
           RELEASE_VERSION: ${{ steps.versiongen.outputs.semver_release_string }}
           IS_SNAPSHOT: ${{ steps.versiongen.outputs.semver_is_snapshot }}
         run: |
           ZIP_FILE_NAME=Preside-${RELEASE_VERSION/+/-}.zip
-          if [[ $RELEASE_VERSION == "0.0.0-DEMO"* ]] ; then
-            RELEASE_CATEGORY=demo
-          elif [[ "${IS_SNAPSHOT}" == "false" ]] ; then
+          if [[ "${IS_SNAPSHOT}" == "false" ]] ; then
             RELEASE_CATEGORY=stable
           else
             RELEASE_CATEGORY="bleeding-edge"
+            RELEASE_VERSION="${{ steps.versiongen.outputs.semver_release_number }}-be"
           fi
           echo "RELEASE_CATEGORY=$RELEASE_CATEGORY" >> $GITHUB_ENV
           echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV
@@ -95,7 +143,6 @@ jobs:
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
 
       - name: Prepare files for release
-        if: "env.PUBLISH_PRESIDE == 'true'"
         shell: bash
         run: |
           echo '{ "version":"$RELEASE_VERSION" }' > version.json &&
@@ -103,18 +150,15 @@ jobs:
           mv box.json.published box.json
 
       - name: Inject version numbers
-        if: "env.PUBLISH_PRESIDE == 'true'"
         uses: dominicwatson/github-action-envsubst@v1
         with:
           files: box.json version.json system/config/Config.cfc
 
       - name: Zip up
-        if: "env.PUBLISH_PRESIDE == 'true'"
         shell: bash
         run: zip -rq $ZIP_FILE_NAME * --exclude jmimemagic.log --exclude=".*" --exclude="*.sh" --exclude="zanata.xml" --exclude="\tests/*" --exclude="\system/externals/lucee-spreadsheet/javaloader/*"
 
       - name: Push to S3
-        if: "env.PUBLISH_PRESIDE == 'true'"
         run: aws s3 cp --acl=public-read $ZIP_FILE_NAME s3://downloads.preside.org/${RELEASE_CATEGORY}/${ZIP_FILE_NAME}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -122,14 +166,13 @@ jobs:
           AWS_REGION: 'eu-west-2'
 
       - name: Publish to forgebox
-        if: "env.PUBLISH_PRESIDE == 'true'"
-        uses: pixl8/github-action-box-publish@v3
+        uses: pixl8/github-action-box-publish@v5
         with:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
+          ignore_timeouts: "true"
 
       - name: Inform Slack of success
-        if: "env.PUBLISH_PRESIDE == 'true'"
         uses: craftech-io/slack-action@v1
         with:
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
