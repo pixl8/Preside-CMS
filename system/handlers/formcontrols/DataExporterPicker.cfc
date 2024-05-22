@@ -1,5 +1,5 @@
 /**
- * @feature presideForms and dateExport
+ * @feature presideForms and dataExport
  */
 component {
 	property name="dataExportService" inject="dataExportService";
