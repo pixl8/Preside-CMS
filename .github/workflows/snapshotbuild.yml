@@ -39,7 +39,7 @@ jobs:
         env:
           RELEASE_VERSION: ${{ github.event.inputs.snapshot }}
           IS_SNAPSHOT: "true"
-          RELEASE_CATEGORY="bleeding-edge"
+          RELEASE_CATEGORY: "bleeding-edge"
         run: |
           ZIP_FILE_NAME=Preside-${RELEASE_VERSION/+/-}.zip
           echo "RELEASE_CATEGORY=$RELEASE_CATEGORY" >> $GITHUB_ENV
