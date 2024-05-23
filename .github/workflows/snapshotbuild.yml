@@ -71,15 +71,3 @@ jobs:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
           ignore_timeouts: "true"
-
-      - name: Inform Slack of success
-        uses: craftech-io/slack-action@v1
-        with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Inform Slack of failure
-        if: "failure() && env.PUBLISH_PRESIDE == 'true'"
-        uses: craftech-io/slack-action@v1
-        with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          status: failure
