@@ -1,0 +1,59 @@
+name: Cypress system tests
+on:
+  push:
+    branches:
+      - 'release-*'
+      - 'feature-build-tweaks'
+jobs:
+  runcypresstests:
+    name: Run Cypress Test suites
+    runs-on: ubuntu-latest
+    env:
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: endtoenddb
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cfengine: "lucee@5.4"
+            jdkVersion: "11"
+            experimental: false
+          - cfengine: "lucee@be"
+            jdkVersion: "21"
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Database and Fixtures
+        run: |
+          sudo systemctl start mysql.service
+          mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e 'CREATE DATABASE ${{ env.DB_NAME }};'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.jdkVersion }}
+
+      - name: Setup CommandBox CLI
+        uses: Ortus-Solutions/setup-commandbox@v2.0.1
+
+      - name: prep cfconfig
+        run: |
+
+      - name: Start ${{ matrix.cfengine }} Server
+        run: |
+          cp ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.gh.json ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.json
+          box server start directory="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp" serverConfigFile="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
+          curl http://127.0.0.1:9998
+
+      - name: Run Cypress Test
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm start
+          working-directory: tests/endtoend/cypress
