@@ -269,7 +269,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageType         = "";
 
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
-		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true, setVersion=StructKeyExists( rc, "version" ) );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
 		rc._backToEdit   = IsTrue( cookieService.getVar( "sitetree_editPage_backToEdit", "" ) );
@@ -1297,7 +1297,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
-		if ( arguments.setVersion ) {
+		if ( arguments.setVersion || isTrue( page._version_has_drafts ?: "" ) ) {
 			rc.version = rc.version ?: version;
 		}
 
