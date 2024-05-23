@@ -60,6 +60,7 @@ jobs:
       - name: Start ${{ matrix.cfengine }} Server
         run: |
           cp ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.gh.json ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.json
+          mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e 'show databases'
           box install commandbox-cfconfig
           box server start directory="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp" serverConfigFile="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
           curl http://127.0.0.1:9998
