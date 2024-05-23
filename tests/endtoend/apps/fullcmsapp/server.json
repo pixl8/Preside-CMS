@@ -1,6 +1,5 @@
 {
     "web":{
-        "webroot":"/home/dom/code/rptestbed/website/preside/tests/endtoend/apps/fullcmsapp/",
         "rewrites":{
             "config":"urlrewrite.xml",
             "enable":"true"
@@ -18,5 +17,4 @@
     "interactive":"true",
     "openbrowser":false,
     "trayEnable":false,
-    "trayIcon":"/home/dom/.CommandBox/cfml/modules/preside-commands/_resources/trayicon_hires.png"
 }

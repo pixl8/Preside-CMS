@@ -59,9 +59,9 @@ jobs:
 
       - name: Start ${{ matrix.cfengine }} Server
         run: |
-          box install commandbox-cfconfig
           cd tests/endtoend/apps/fullcmsapp/
           cp .cfconfig.gh.json .cfconfig.json
+          box install commandbox-cfconfig
           box server start serverConfigFile="server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
           curl http://127.0.0.1:9998
 
