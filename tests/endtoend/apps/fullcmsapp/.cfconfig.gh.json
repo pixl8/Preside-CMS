@@ -1,7 +1,7 @@
 {
     "datasources":{
         "preside":{
-            "host":"localhost",
+            "host":"127.0.0.1",
             "dbdriver":"mysql",
             "password":"root",
             "database":"endtoenddb",
