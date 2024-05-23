@@ -29,6 +29,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install dependencies
+        uses: pixl8/github-action-box-install@v2
+        with:
+          verbose: true
+          force: true
+
+      - name: Build static assets with grunt
+        shell: bash
+        run: |
+          cd ./system/assets &&
+          npm install &&
+          grunt all &&
+          rm -rf node_modules
+
       - name: Setup Database and Fixtures
         run: |
           sudo systemctl start mysql.service
@@ -43,9 +57,6 @@ jobs:
       - name: Setup CommandBox CLI
         uses: Ortus-Solutions/setup-commandbox@v2.0.1
 
-      - name: prep cfconfig
-        run: |
-
       - name: Start ${{ matrix.cfengine }} Server
         run: |
           cp ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.gh.json ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.json
@@ -55,5 +66,5 @@ jobs:
       - name: Run Cypress Test
         uses: cypress-io/github-action@v6
         with:
-          start: npm start
+          browser: chrome
           working-directory: tests/endtoend/cypress
