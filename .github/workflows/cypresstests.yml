@@ -62,7 +62,6 @@ jobs:
           box install commandbox-cfconfig
           cd tests/endtoend/apps/fullcmsapp/
           cp .cfconfig.gh.json .cfconfig.json
-          box cfconfig show
           box server start serverConfigFile="server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
           curl http://127.0.0.1:9998
 
