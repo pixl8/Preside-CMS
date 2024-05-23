@@ -1,14 +1,4 @@
 {
-    "datasources":{
-        "preside":{
-            "host":"localhost",
-            "dbdriver":"mysql",
-            "username":"root",
-            "password":"root",
-            "database":"endtoenddb",
-            "port":"3306"
-        }
-    },
     "cfmappings":{
         "/preside":{
             "inspectTemplate":"once",
