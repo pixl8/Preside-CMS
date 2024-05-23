@@ -76,6 +76,11 @@ jobs:
           path: |
             tests/results/*
 
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: tests/results/*.xml
+
   runcypresstests:
     name: Run Cypress Test suites
     runs-on: ubuntu-latest
@@ -142,23 +147,6 @@ jobs:
         with:
           browser: chrome
           working-directory: tests/endtoend/cypress
-
-  publish_test_results:
-    name: Publish Test Results
-    needs: runtests
-    runs-on: ubuntu-latest
-    permissions:
-      checks: write
-    if: always()
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: artifacts/**/*.xml
 
   publish:
     name: Publish to Forgebox
