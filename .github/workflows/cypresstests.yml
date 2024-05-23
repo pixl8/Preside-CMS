@@ -59,10 +59,11 @@ jobs:
 
       - name: Start ${{ matrix.cfengine }} Server
         run: |
-          cp ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.gh.json ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.json
           box install commandbox-cfconfig
+          cd tests/endtoend/apps/fullcmsapp/
+          cp .cfconfig.gh.json .cfconfig.json
           box cfconfig show
-          box server start directory="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp" serverConfigFile="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
+          box server start serverConfigFile="server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
           curl http://127.0.0.1:9998
 
       - name: Run Cypress Test
