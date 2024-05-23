@@ -61,7 +61,7 @@ jobs:
         run: |
           cp ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.gh.json ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.json
           box install commandbox-cfconfig
-          box server start debug=true directory="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp" serverConfigFile="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
+          box server start directory="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp" serverConfigFile="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
           curl http://127.0.0.1:9998
 
       - name: Run Cypress Test
