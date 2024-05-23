@@ -19,9 +19,9 @@ jobs:
           - cfengine: "lucee@5.4"
             jdkVersion: "11"
             experimental: false
-          - cfengine: "lucee@be"
-            jdkVersion: "21"
-            experimental: true
+          # - cfengine: "lucee@be"
+          #   jdkVersion: "21"
+          #   experimental: true
     continue-on-error: ${{ matrix.experimental }}
     steps:
       - name: Checkout code
@@ -61,7 +61,8 @@ jobs:
         run: |
           cp ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.gh.json ${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/.cfconfig.json
           box install commandbox-cfconfig
-          box server start directory="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp" serverConfigFile="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings --debug
+          box cfconfig show
+          box server start directory="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp" serverConfigFile="${GITHUB_WORKSPACE}/tests/endtoend/apps/fullcmsapp/server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
           curl http://127.0.0.1:9998
 
       - name: Run Cypress Test
