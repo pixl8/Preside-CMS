@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Auto test, build and publish
 on:
   push:
   pull_request:
@@ -76,26 +76,83 @@ jobs:
           path: |
             tests/results/*
 
-  publish_test_results:
-    name: Publish Test Results
-    needs: runtests
-    runs-on: ubuntu-latest
-    permissions:
-      checks: write
-    if: always()
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: artifacts/**/*.xml
+          files: tests/results/*.xml
+
+  runcypresstests:
+    name: Run Cypress Test suites
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[twgit] Init') && github.ref != 'refs/heads/stable'"
+    env:
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: endtoenddb
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cfengine: "lucee@5.4"
+            jdkVersion: "11"
+            experimental: false
+          - cfengine: "lucee@be"
+            jdkVersion: "21"
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        uses: pixl8/github-action-box-install@v2
+        with:
+          verbose: true
+          force: true
+
+      - name: Build static assets with grunt
+        shell: bash
+        run: |
+          cd ./system/assets &&
+          npm install &&
+          grunt all &&
+          rm -rf node_modules
+
+      - name: Setup Database and Fixtures
+        run: |
+          sudo systemctl start mysql.service
+          mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e 'CREATE DATABASE ${{ env.DB_NAME }};'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.jdkVersion }}
+
+      - name: Setup CommandBox CLI
+        uses: Ortus-Solutions/setup-commandbox@v2.0.1
+
+      - name: Start ${{ matrix.cfengine }} Server
+        run: |
+          cd tests/e2e/apps/fullcmsapp/
+          cp .cfconfig.gh.json .cfconfig.json
+          box install commandbox-cfconfig
+          box server start serverConfigFile="server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
+          curl http://127.0.0.1:9998
+
+      - name: Run Cypress Test
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          working-directory: tests/e2e/tests
 
   publish:
     name: Publish to Forgebox
-    needs: runtests
+    needs:
+      - runtests
+      - runcypresstests
     runs-on: ubuntu-latest
     if: "success() && github.event_name != 'pull_request' && ( startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release-' ) )"
     steps:
@@ -171,15 +228,3 @@ jobs:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
           ignore_timeouts: "true"
-
-      - name: Inform Slack of success
-        uses: craftech-io/slack-action@v1
-        with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Inform Slack of failure
-        if: "failure() && env.PUBLISH_PRESIDE == 'true'"
-        uses: craftech-io/slack-action@v1
-        with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          status: failure
