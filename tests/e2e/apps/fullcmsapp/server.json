@@ -1,0 +1,20 @@
+{
+    "web":{
+        "rewrites":{
+            "config":"urlrewrite.xml",
+            "enable":"true"
+        },
+        "http":{
+            "port":"9998"
+        }
+    },
+    "cfconfig":{
+        "file":".cfconfig.json"
+    },
+    "JVM":{
+        "heapSize":"1024"
+    },
+    "interactive":"true",
+    "openbrowser":false,
+    "trayEnable":false
+}
