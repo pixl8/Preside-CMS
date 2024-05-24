@@ -136,7 +136,7 @@ jobs:
 
       - name: Start ${{ matrix.cfengine }} Server
         run: |
-          cd tests/endtoend/apps/fullcmsapp/
+          cd tests/e2e/apps/fullcmsapp/
           cp .cfconfig.gh.json .cfconfig.json
           box install commandbox-cfconfig
           box server start serverConfigFile="server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
@@ -146,7 +146,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
-          working-directory: tests/endtoend/cypress
+          working-directory: tests/e2e/tests
 
   publish:
     name: Publish to Forgebox

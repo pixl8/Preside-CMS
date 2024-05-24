@@ -16,5 +16,5 @@
     },
     "interactive":"true",
     "openbrowser":false,
-    "trayEnable":false,
+    "trayEnable":false
 }
