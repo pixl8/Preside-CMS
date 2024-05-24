@@ -164,7 +164,7 @@ component {
 		var errorCode = Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "";
 		var updated = $getPresideObject( "email_template_send_log" ).updateData(
 			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( delivered is null or delivered = :delivered )"
-			, filterParams = { id=arguments.id, failed=false delivered=false }
+			, filterParams = { id=arguments.id, failed=false, delivered=false }
 			, data={
 				  failed        = true
 				, failed_date   = _getNow()
