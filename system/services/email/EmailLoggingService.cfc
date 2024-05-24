@@ -163,8 +163,8 @@ component {
 	public void function markAsFailed( required string id, required string reason, string code="" ) {
 		var errorCode = Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "";
 		var updated = $getPresideObject( "email_template_send_log" ).updateData(
-			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
-			, filterParams = { id=arguments.id, failed=false, opened=false }
+			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( delivered is null or delivered = :delivered )"
+			, filterParams = { id=arguments.id, failed=false delivered=false }
 			, data={
 				  failed        = true
 				, failed_date   = _getNow()
@@ -173,13 +173,11 @@ component {
 			  }
 		);
 
-		if ( updated ) {
-			recordActivity(
-				  messageId = arguments.id
-				, activity  = "fail"
-				, extraData = { reason=arguments.reason, code=errorCode }
-			);
-		}
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "fail"
+			, extraData = { reason=arguments.reason, code=errorCode }
+		);
 	}
 
 
