@@ -78,6 +78,8 @@ component {
 				}
 			}
 
+			_trimSeparators( config.subMenuItems );
+
 			if ( !ArrayLen( config.subMenuItems ) ) {
 				return {};
 			}
