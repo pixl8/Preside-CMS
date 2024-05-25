@@ -2276,7 +2276,7 @@ component displayName="Preside Object Service" {
 		}
 
 		var cache                 = _getDefaultQueryCache();
-		var idField               = getIdField( objectName );
+		var idField               = getIdField( arguments.objectName );
 		var keyPrefixes           = [ LCase( "#arguments.objectName#.complex_" ) ];
 		var recordIds             = [];
 
@@ -3087,10 +3087,10 @@ component displayName="Preside Object Service" {
 		var having   = arguments.preparedFilter.having ?: "";
 		var cacheKey = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#. Having: #having#";
 
-		for( var join in extraJoins ) {
+		for( var join in arguments.extraJoins ) {
 			cacheKey &= " ExtraJoins: #( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#";
 		}
-		for( var extraFilter in extraFilters ) {
+		for( var extraFilter in arguments.extraFilters ) {
 			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
 				for( var join in extraFilter.extraJoins ) {
 					cacheKey &= "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#";
@@ -4277,7 +4277,7 @@ component displayName="Preside Object Service" {
 	private any function _announceInterception( required string state, struct interceptData={} ) {
 		_getInterceptorService().processState( argumentCollection=arguments );
 
-		return interceptData.interceptorResult ?: {};
+		return arguments.interceptData.interceptorResult ?: {};
 	}
 
 	private string function _unescapeEntity( required string entityName ) {

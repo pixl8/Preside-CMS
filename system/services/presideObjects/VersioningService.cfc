@@ -17,8 +17,8 @@ component {
 	public void function setupVersioningForVersionedObjects( required struct objects, required string primaryDsn ) {
 		var versionedObjects = {};
 
-		for( var objectName in objects ){
-			var obj = objects[ objectName ];
+		for( var objectName in arguments.objects ){
+			var obj = arguments.objects[ objectName ];
 
 			if ( IsBoolean( obj.meta.versioned ?: "" ) && obj.meta.versioned ) {
 				var versionObjectName = "vrsn_" & objectName;
@@ -39,10 +39,10 @@ component {
 			}
 		}
 
-		StructAppend( objects, versionedObjects );
+		StructAppend( arguments.objects, versionedObjects );
 
 		if ( StructCount( versionedObjects ) ) {
-			objects[ "version_number_sequence" ] = _createVersionNumberSequenceObject( primaryDsn );
+			arguments.objects[ "version_number_sequence" ] = _createVersionNumberSequenceObject( primaryDsn );
 		}
 
 	}
@@ -533,23 +533,23 @@ component {
 
 // PRIVATE HELPERS
 	private void function _removeUniqueIndexes( required struct objMeta ) {
-		for( var ixName in objMeta.indexes ) {
-			var ix = objMeta.indexes[ ixName ];
+		for( var ixName in arguments.objMeta.indexes ) {
+			var ix = arguments.objMeta.indexes[ ixName ];
 			if ( IsBoolean( ix.unique ?: "" ) && ix.unique ) {
-				StructDelete( objMeta.indexes, ixName );
+				StructDelete( arguments.objMeta.indexes, ixName );
 			}
 		}
 	}
 
 	private void function _removeRelationships( required struct objMeta ) {
-		objMeta.relationships = objMeta.relationships ?: {};
+		arguments.objMeta.relationships = arguments.objMeta.relationships ?: {};
 
-		StructClear( objMeta.relationships );
+		StructClear( arguments.objMeta.relationships );
 	}
 
 	private void function _addIndexesForRelationships( required struct objMeta ) {
-		for( var propertyName in objMeta.properties ) {
-			var prop = objMeta.properties[ propertyName ];
+		for( var propertyName in arguments.objMeta.properties ) {
+			var prop = arguments.objMeta.properties[ propertyName ];
 			if ( ( prop.relationship ?: "" ) == "many-to-one" && !Len( prop.indexes ?: "" ) && !Len( prop.uniqueindexes ?: "" ) ) {
 				var indexName = "ix_fk_" & LCase( Hash( "#objMeta.tableName#.#propertyName#" ) );
 
@@ -559,6 +559,7 @@ component {
 	}
 
 	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string versionedObjectName, required string originalObjectName ) {
+		var objMeta = arguments.objMeta;
 		var idField = objMeta.idField ?: "id";
 		var useDrafts = IsBoolean( objMeta.useDrafts ?: "" ) && objMeta.useDrafts;
 
@@ -702,7 +703,7 @@ component {
 	}
 
 	private void function _addAdditionalVersioningPropertiesToSourceObject( required struct objMeta, required string objectName ) {
-		var useDrafts = IsBoolean( objMeta.useDrafts ?: "" ) && objMeta.useDrafts;
+		var useDrafts = IsBoolean( arguments.objMeta.useDrafts ?: "" ) && arguments.objMeta.useDrafts;
 
 		if ( useDrafts ) {
 			objMeta.properties[ "_version_is_draft" ] = objMeta.properties[ "_version_is_draft" ] ?: {};

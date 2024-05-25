@@ -44,8 +44,8 @@ component {
 		var tableExists        = "";
 		var tableVersionExists = "";
 
-		for( objName in objects ) {
-			obj       = objects[ objName ];
+		for( objName in arguments.objects ) {
+			obj       = arguments.objects[ objName ];
 
 			if ( !_skipSync( obj.meta ?: {} ) ) {
 				obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
@@ -115,8 +115,8 @@ component {
 			}
 		}
 
-		for( objName in objects ) {
-			objects[ objName ].delete( "sql" );
+		for( objName in arguments.objects ) {
+			arguments.objects[ objName ].delete( "sql" );
 		}
 
 		if ( dbVersionHash != dbVersion ) {
@@ -572,8 +572,8 @@ component {
 		var relationship           = "";
 		var dsnKeys                = {};
 
-		for( objName in objects ) {
-			obj = objects[ objName ];
+		for( objName in arguments.objects ) {
+			obj = arguments.objects[ objName ];
 			adapter = _getAdapter( obj.meta.dsn );
 			dsnKeys[ obj.meta.dsn ] = dsnKeys[ obj.meta.dsn ] ?: _getAllForeignKeys( dsn=obj.meta.dsn );
 
