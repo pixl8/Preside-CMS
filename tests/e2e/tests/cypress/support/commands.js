@@ -42,6 +42,7 @@ Cypress.Commands.add( 'ensureFrontendUserSetup', () => {
 		}
 
 		$objListingTable.find( 'tr.clickable td:contains("' + Cypress.env( 'FRONTEND_USER_EMAIL' ) +'")' ).closest( 'tr' ).find( '.action-buttons i.fa.fa-key' ).click();
+		cy.wait( 500 );
 		cy.get( 'input[ name=password  ]'         ).should( 'be.visible' ).type( Cypress.env( 'FRONTEND_USER_PASSWORD' ) );
 		cy.get( 'input[ name=confirm_password  ]' ).should( 'be.visible' ).type( Cypress.env( 'FRONTEND_USER_PASSWORD' ) );
 		cy.get( 'button.btn.btn-info' ).contains( 'Change password' ).click();
