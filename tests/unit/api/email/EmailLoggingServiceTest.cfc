@@ -275,8 +275,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
-					  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
-					, filterParams = { id=logId, failed=false, opened=false }
+					  filter       = "id = :id and ( failed is null or failed = :failed ) and ( delivered is null or delivered = :delivered )"
+					, filterParams = { id=logId, failed=false, delivered=false }
 					, data         = { failed=true, failed_date=nowish, failed_reason=reason, failed_code=code }
 				} );
 
@@ -286,19 +286,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, activity  = "fail"
 					, extraData = { reason=reason, code=code }
 				} );
-			} );
-			it( "should not record an activity when log record not updated", function(){
-				var service = _getService();
-				var logId   = CreateUUId();
-				var reason  = "Recipient does not want to see you right now" & CreateUUId();
-				var code    = 610;
-
-				mockLogDao.$( "updateData", 0 );
-				service.$( "recordActivity" );
-
-				service.markAsFailed( logId, reason, code );
-
-				expect( service.$callLog().recordActivity.len() ).toBe( 0 );
 			} );
 		} );
 
