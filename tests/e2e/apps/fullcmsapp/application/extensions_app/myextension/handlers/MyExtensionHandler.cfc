@@ -12,7 +12,13 @@ component {
 				logError( e );
 			}
 		}
-		event.renderData( data=myExtensionService.test(), type="json" );
+
+		if ( isExtensionInstalled( "myextension" ) ) {
+			event.renderData( data=myExtensionService.test(), type="json" );
+		} else {
+			event.renderData( data={ testpassed=false }, type="json" );
+		}
+
 	}
 
 }

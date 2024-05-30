@@ -9,6 +9,10 @@ component {
 	}
 
 	function test() {
-		return $getPresideObject( "my_extension_object" ).selectData( selectFields=[ "label" ], returnType="array" );
+		if ( $isExtensionInstalled( "myextension" ) ) {
+			return $getPresideObject( "my_extension_object" ).selectData( selectFields=[ "label" ], returnType="array" );
+		}
+
+		return [];
 	}
 }

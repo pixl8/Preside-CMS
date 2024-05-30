@@ -31,6 +31,7 @@ component displayName="Preside Super Class" {
 	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
 	 * @healthcheckService.inject         delayedInjector:healthcheckService
 	 * @sqlRunner.inject                  delayedInjector:sqlRunner
+	 * @extensionManagerService.inject    delayedInjector:extensionManagerService
 	 * @presideHelperClass.inject         presideHelperClass
 	 *
 	 */
@@ -58,6 +59,7 @@ component displayName="Preside Super Class" {
 		, required any htmlHelper
 		, required any healthcheckService
 		, required any sqlRunner
+		, required any extensionManagerService
 		, required any presideHelperClass
 	) {
 		$presideObjectService       = arguments.presideObjectService;
@@ -82,6 +84,7 @@ component displayName="Preside Super Class" {
 		$i18n                       = arguments.i18n;
 		$htmlHelper                 = arguments.htmlHelper;
 		$healthcheckService         = arguments.healthcheckService;
+		$extensionManagerService    = arguments.extensionManagerService;
 		$sqlRunner                  = arguments.sqlRunner;
 
 		this.$helpers = arguments.presideHelperClass;
@@ -591,6 +594,26 @@ component displayName="Preside Super Class" {
 	 */
 	public any function $isFeatureEnabled() {
 		return $getFeatureService().isFeatureEnabled( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns an instance of the [[api-extensionmanagerservice]]. This service can be used for checking
+	 * whether or not extensions are installed and finding other information about extensions.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $getExtensionManagerService() {
+		return $extensionManagerService;
+	}
+
+	/**
+	 * Returns whether or not the given extension is installed
+	 *
+	 * @autodoc
+	 */
+	public boolean function $isExtensionInstalled( required string extensionId ) {
+		return $extensionManagerService.extensionExists( extensionId=arguments.extensionId );
 	}
 
 // NOTIFICATIONS
