@@ -139,8 +139,6 @@ component {
 			manifest.dependsOn = [];
 		}
 
-		manifest.changelog = manifest.changelog ?: "";
-
 		return manifest;
 	}
 
