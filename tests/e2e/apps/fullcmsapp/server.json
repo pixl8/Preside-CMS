@@ -16,5 +16,6 @@
     },
     "interactive":"true",
     "openbrowser":false,
-    "trayEnable":false
+    "trayEnable":false,
+    "trayIcon":"/home/dom/.CommandBox/cfml/modules/preside-commands/_resources/trayicon_hires.png"
 }

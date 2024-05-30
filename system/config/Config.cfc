@@ -117,7 +117,7 @@ component {
 			, pluginsExternalLocation   = "preside.system.plugins"
 			, viewsExternalLocation     = "/preside/system/views"
 			, layoutsExternalLocation   = "/preside/system/layouts"
-			, modulesExternalLocation   = [ "/app/extensions", "/preside/system/modules" ]
+			, modulesExternalLocation   = [ "/app/extensions_app", "/app/extensions", "/preside/system/modules" ]
 			, handlersExternalLocation  = "preside.system.handlers"
 			, applicationStartHandler   = "General.applicationStart"
 			, applicationEndHandler     = "General.applicationEnd"
@@ -1137,7 +1137,7 @@ component {
 	private void function __loadConfigurationFromExtensions() {
 		for( var ext in settings.activeExtensions ){
 			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
-				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
+				var cfcPath = ext.componentPath & ".config.Config";
 
 				CreateObject( cfcPath ).configure( config=variables );
 			}

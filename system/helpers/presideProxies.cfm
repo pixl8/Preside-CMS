@@ -236,6 +236,13 @@
 		<cfreturn getSingleton( "featureService" ).isFeatureDefined( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="isExtensionInstalled" access="public" returntype="boolean" output="false">
+		<cfargument name="extensionId" type="string" required="true" /><cfsilent>
+
+		<cfreturn getSingleton( "extensionManagerService" ).extensionExists( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
+
 <!--- errors --->
 	<cffunction name="logError" access="public" returntype="void" output="false"><cfsilent>
 		<cfreturn getController().getWireBox().getInstance( "errorLogService" ).raiseError( argumentCollection=arguments ) />

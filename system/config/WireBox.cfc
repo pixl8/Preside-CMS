@@ -137,7 +137,7 @@
 		for( var i=1; i<=extensions.len(); i++ ){
 			var wireboxConfigPath = ListAppend( extensions[i].directory, "config/Wirebox.cfc", "/" );
 			if ( FileExists( wireboxConfigPath ) ) {
-				CreateObject( "#appMappingPath#.extensions.#ListLast( extensions[i].directory, '\/' )#.config.Wirebox" ).configure( binder=this );
+				CreateObject( "#extensions[ i ].componentPath#.config.Wirebox" ).configure( binder=this );
 			}
 		}
 	}

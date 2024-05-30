@@ -23,15 +23,15 @@ component extends="coldbox.system.web.services.HandlerService" {
 			_addSiteTemplateHandlerMappings( "#appMapping#/site-templates/", "#appMappingPath#.site-templates", siteTemplateHandlerMappings, ignoreFileService );
 		}
 
-		for( var i=activeExtensions.len(); i>0; i-- ) {
+		for( var i=ArrayLen( activeExtensions ); i>0; i-- ) {
 			var ext = activeExtensions[ i ];
-			var extensionHandlersPath   = ExpandPath( "#appMapping#/extensions/#ext.name#/handlers" );
-			var extensionInvocationPath = "#appMappingPath#.extensions.#ext.name#.handlers";
+			var extensionHandlersPath   = ExpandPath( "#ext.directory#/handlers" );
+			var extensionInvocationPath = ext.componentPath & ".handlers";
 
 			ArrayAppend( handlerMappings, { invocationPath=extensionInvocationPath, handlers=getHandlerListing( extensionHandlersPath, extensionInvocationPath ) } );
 
 			if ( useSiteTemplates ) {
-				_addSiteTemplateHandlerMappings( "#appMapping#/extensions/#ext.name#/site-templates/", "#appMappingPath#.extensions.#ext.name#.site-templates", siteTemplateHandlerMappings );
+				_addSiteTemplateHandlerMappings( "#ext.directory#/site-templates/", "#ext.componentPath#.site-templates", siteTemplateHandlerMappings );
 			}
 		}
 
