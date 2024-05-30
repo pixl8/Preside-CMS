@@ -161,11 +161,10 @@ component displayName="Error Log Service" {
 		).listExtensions( activeOnly=true );
 
 		for( var extension in extensions ) {
-			var listenerPath = "#_getAppMappingPath()#.extensions.#extension.name#.services.errors.ErrorHandler";
-			var filePath     = ExpandPath( "/" & Replace( listenerPath, ".", "/", "all" ) & ".cfc" );
+			var filePath = extension.directory & "/services/errors/ErrorHandler.cfc";
 
 			if ( FileExists( filePath ) ) {
-				listeners.append( listenerPath );
+				ArrayAppend( listeners, "#extension.componentPath#.services.errors.ErrorHandler" );
 			}
 		}
 
