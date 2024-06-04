@@ -1,6 +1,7 @@
 <cfscript>
 	body             = renderView();
 	navbar           = renderView( 'admin/layout/navbar' );
+	envBanner        = renderViewlet( 'admin.layout.environmentBanner' );
 	siteAlerts       = renderViewlet( 'admin.layout.siteAlerts' );
 	breadcrumbs      = renderView( 'admin/layout/breadcrumbs' );
 	sideBarNav       = renderView( '/admin/layout/sideBarNavigation' );
@@ -61,6 +62,8 @@
 	</head>
 
 	<body class="preside-theme no-skin">
+		#envBanner#
+
 		<div class="outer-container">
 			#navbar#
 			#siteAlerts#

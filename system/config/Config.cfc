@@ -57,6 +57,8 @@ component {
 
 		settings.ignoreFile.read  = false;
 		settings.ignoreFile.write = true;
+
+		settings.environmentBannerConfig = { icon="fa-code", cssClass="alert-info" };
 	}
 
 // SPECIFIC AREAS
@@ -96,7 +98,8 @@ component {
 			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
 		};
 
-		settings.environmentMessage = "";
+		settings.environmentMessage      = "";
+		settings.environmentBannerConfig = { icon="fa-desktop", cssClass="alert-danger", display=false };
 	}
 
 	private void function __setupColdbox() {
