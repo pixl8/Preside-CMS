@@ -1558,7 +1558,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
-		if ( arguments.setVersion ) {
+		if ( arguments.setVersion || isTrue( page._version_has_drafts ?: "" ) ) {
 			rc.version = rc.version ?: version;
 		}
 
