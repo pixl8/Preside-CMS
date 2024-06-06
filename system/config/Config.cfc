@@ -968,6 +968,7 @@ component {
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
 		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
+		settings.enum.adminToolbarModes           = [ "fixed", "reveal", "none" ];
 	}
 
 	private void function __setupFormValidationProviders() {
@@ -1082,6 +1083,13 @@ component {
 
 		settings.heartbeats.taskmanager.poolSize  = Val( settings.env.TASKMANAGER_POOL_SIZE  ?: 0 );
 		settings.heartbeats.adhocTask.poolSize    = Val( settings.env.ADHOCTASK_POOL_SIZE    ?: 0 );
+
+		settings.heartbeats.adhocTask.staleTaskSettings = {
+			  lockedMinAgeInMinutes          = 5
+			, lockedMaxAgeInMinutes          = ( 7 * 24 * 60 ) // one week (i.e. ignore stale tasks over one week old to avoid restarting very old tasks with unexpected results)
+			, inactiveRunningMinAgeInMinutes = 360
+			, inactiveRunningMaxAgeInMinutes = ( 7 * 24 * 60 ) // one week (i.e. ignore stale tasks over one week old to avoid restarting very old tasks with unexpected results)
+		};
 	}
 
 	private void function __setupNotifications() {

@@ -18,7 +18,7 @@ component {
 			return false;
 		}
 
-		var isMatched = arguments.dateFrom <= Now() && arguments.dateTo >= Now();
+		var isMatched = DateCompare( arguments.dateFrom, now(), "d" ) <= 0 && DateCompare( arguments.dateTo, now(), "d" ) >= 0;
 
 		return _is ? isMatched : !isMatched;
 	}

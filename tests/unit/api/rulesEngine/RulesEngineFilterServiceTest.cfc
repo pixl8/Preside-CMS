@@ -192,11 +192,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockcoldbox              = CreateEmptyMock( "preside.system.coldboxModifications.Controller" );
 		mockPresideObjectService = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockExpressionService    = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionService" );
+		mockTenancyService       = CreateStub();
 		mockDbAdapter            = CreateStub();
 		dummyObject              = CreateUUId();
 
 		var service = CreateMock( object=new preside.system.services.rulesEngine.RulesEngineFilterService(
-			expressionService = mockExpressionService
+			  expressionService = mockExpressionService
+			, tenancyService    = mockTenancyService
 		) );
 
 		service.$( "$getPresideObjectService", mockPresideObjectService );

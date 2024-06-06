@@ -362,4 +362,11 @@ component validationProvider=true {
 	public string function url_js() validatorMessage="validationExtras:validation.simpleUrl.default" {
 		return "function( value, el, params ){ return !value.length || value.match( /^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$/i ) !== null }";
 	}
+
+	public boolean function queryString( required string fieldName, any value="" ) validatorMessage="cms:validation.queryString.default" {
+		return IsEmpty( arguments.value ) || ReFindNoCase( "^([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-,]*)?)*)?$", arguments.value );
+	}
+	public string function queryString_js() validatorMessage="validationExtras:validation.simpleUrl.default" {
+		return "function( value, el, params ){ return !value.length || value.match( /^([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-,]*)?)*)?$/i ) !== null }";
+	}
 }

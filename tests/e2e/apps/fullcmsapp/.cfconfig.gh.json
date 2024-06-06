@@ -1,0 +1,13 @@
+{
+    "cfmappings":{
+        "/preside":{
+            "inspectTemplate":"once",
+            "physical":"../../../..",
+            "primary":"physical"
+        }
+    },
+    "templateCharset":"UTF-8",
+    "webCharset":"UTF-8",
+    "resourceCharset":"UTF-8",
+    "dotNotationUpperCase":false
+}

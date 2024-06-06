@@ -1,10 +1,69 @@
-component extends="preside.system.base.AdminHandler" {
+component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	property name="systemAlertsService"   inject="systemAlertsService";
 	property name="messageBox"            inject="messagebox@cbmessagebox";
 	property name="datamanagerService"    inject="datamanagerService";
 	property name="presideObjectService"  inject="presideObjectService";
 
+	variables.permissionBase = "presideobject.system_alert";
+	variables.tabs           = [ "default", "data" ];
+	variables.infoCol1       = [ "level" ];
+	variables.infoCol2       = [ "context", "reference" ];
+	variables.infoCol3       = [ "datecreated", "datemodified" ];
+
+	private string function _defaultTab( event, rc, prc, args={} ) {
+		var recordId = prc.recordId ?: "";
+		args.alert   = systemAlertsService.getAlert( id=recordId );
+
+		return renderView( view="/admin/datamanager/system_alert/_renderAlert", args=args );
+	}
+
+	private string function _dataTab( event, rc, prc, args={} ) {
+		if ( Len( prc.record.data ?: "" ) ) {
+			if ( prc.record.data != "{}" ) {
+				return renderField(
+					  object   = prc.objectName
+					, property = "data"
+					, data     = prc.record.data
+				);
+			}
+		}
+		return "";
+	}
+
+	private string function _infoCardLevel( event, rc, prc, args={} ) {
+		return '<i class="fa fa-fw fa-thermometer-half"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.level.title") & ":&nbsp;" & renderField(
+			  object   = prc.objectName
+			, property = "level"
+			, data     = prc.record.level
+		);
+	}
+
+	private string function _infoCardDateCreated( event, rc, prc, args={} ) {
+		return '<i class="fa fa-fw fa-plus"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.datecreated.title") & ":&nbsp;"
+			 & DateTimeFormat( args.record.datecreated, 'd mmm yyyy HH:nn' );
+	}
+
+	private string function _infoCardDateModified( event, rc, prc, args={} ) {
+		return '<i class="fa fa-fw fa-clock-o"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.datemodified.title") & ":&nbsp;"
+			 & DateTimeFormat( args.record.datemodified, 'd mmm yyyy HH:nn' );
+	}
+
+	private string function _infoCardContext( event, rc, prc, args={} ) {
+		return '<i class="fa fa-fw fa-project-diagram"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.context.title") & ":&nbsp;" & renderField(
+			  object   = prc.objectName
+			, property = "context"
+			, data     = prc.record.context
+		);
+	}
+
+	private string function _infoCardReference( event, rc, prc, args={} ) {
+		return '<i class="fa fa-fw fa-code"></i>&nbsp;' & translateResource( "preside-objects.system_alert:field.reference.title") & ":&nbsp;" & renderField(
+			  object   = prc.objectName
+			, property = "reference"
+			, data     = prc.record.reference
+		);
+	}
 
 	private void function extraTopRightButtonsForObject( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
@@ -54,13 +113,6 @@ component extends="preside.system.base.AdminHandler" {
 			return "";
 		}
 		return renderView( view="/admin/datamanager/system_alert/_checkFailed" );
-	}
-
-	private string function preRenderRecordLeftCol() {
-		var recordId = prc.recordId ?: "";
-		args.alert   = systemAlertsService.getAlert( id=recordId );
-
-		return renderView( view="/admin/datamanager/system_alert/_renderAlert", args=args );
 	}
 
 	public void function rerunCheck( event, rc, prc, args={}) {
