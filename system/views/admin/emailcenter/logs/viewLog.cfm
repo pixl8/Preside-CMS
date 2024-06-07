@@ -153,8 +153,8 @@
 											<cfcontinue />
 										</cfif>
 										<cfset logIcon    = "fa-exclamation-circle red" />
-										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.failed.title" ) />
-										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.failed.message", data=[ prc.activity.reason ] ) />
+										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.error.title" ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.error.message", data=[ prc.activity.reason ] ) />
 									</cfcase>
 									<cfcase value="markasspam">
 										<cfset logIcon    = "fa-exclamation-triangle red" />
