@@ -24,7 +24,7 @@ describe('The sitetree admin', () => {
 
     cy.get( 'textarea#teaser' ).should( 'be.visible' );
     cy.wait( 500 );
-    cy.get( 'textarea#teaser' ).type( 'This is a teaser' );
+    cy.get( 'textarea#teaser' ).clear().type( 'This is a teaser' );
     cy.get( 'button[value=publish]' ).click();
 
     cy.get( '.gritter-success' ).should( 'contain.text', 'Page saved successfully' )
