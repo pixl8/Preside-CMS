@@ -84,7 +84,7 @@ jobs:
           sudo chown -R runner:docker tests/testbox/system/stubs/
           # workaround https://luceeserver.atlassian.net/browse/LDEV-4881
           mkdir -p /home/runner/work/_actions/lucee/script-runner/main/temp/lucee/lucee-server/context
-          cp tests/cfconfig.json /home/runner/work/_actions/lucee/script-runner/main/temp/lucee/lucee-server/context/
+          cp tests/.cfconfig.json /home/runner/work/_actions/lucee/script-runner/main/temp/lucee/lucee-server/context/.cfconfig.json
       - name: Run Preside CMS Test Suite
         uses: lucee/script-runner@main
         with:
