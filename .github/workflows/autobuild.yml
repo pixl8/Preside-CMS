@@ -154,7 +154,7 @@ jobs:
         with:
           name: cypress-screenshots
           path: |
-            tests/cypress/screenshots/*
+            tests/e2e/tests/cypress/screenshots/
 
   publish:
     name: Publish to Forgebox
