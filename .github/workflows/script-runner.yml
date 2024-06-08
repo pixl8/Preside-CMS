@@ -51,7 +51,6 @@ jobs:
               javaVersion: 21
     env:
         luceeVersionQuery: ${{ matrix.luceeVersion }}
-    #if: "!contains(github.event.head_commit.message, '[twgit] Init') && github.ref != 'refs/heads/stable'"
     steps:
       - name: Restore pre-prepared webroot
         uses: actions/download-artifact@v4
@@ -88,7 +87,7 @@ jobs:
         with:
             webroot: ${{ github.workspace }}
             execute: /tests/runtests.cfm
-            luceeVersionQuery: ${{ matrix.luceeVersionQuery }}
+            luceeVersionQuery: ${{ env.luceeVersionQuery }}
         env:
             PRESIDETEST_DB_PORT: 3306
             PRESIDETEST_DB_HOST: localhost
