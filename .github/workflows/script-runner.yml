@@ -82,6 +82,9 @@ jobs:
         run: |
           # /home/runner/work/Preside-CMS/Preside-CMS/tests/testbox/system/stubs/ is owned by root
           sudo chown -R runner:docker tests/testbox/system/stubs/
+          # workaround https://luceeserver.atlassian.net/browse/LDEV-4881
+          mkdir -p /home/runner/work/_actions/lucee/script-runner/main/temp/lucee/lucee-server/context
+          cp .tests/cfconfig.json /home/runner/work/_actions/lucee/script-runner/main/temp/lucee/lucee-server/context/
       - name: Run Preside CMS Test Suite
         uses: lucee/script-runner@main
         with:
