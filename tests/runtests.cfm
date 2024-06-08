@@ -1,6 +1,6 @@
 <cfscript> 
 	settings = getApplicationSettings();
-	systemOutput("getApplicationSettings().dotNotationUpperCase: #settings.dotNotationUpperCase?:"unknown"#, true);
+	systemOutput("getApplicationSettings().dotNotationUpperCase: #settings.dotNotationUpperCase?:'unknown'#", true);
 
 
 	reporter  = url.reporter  ?: "raw";
