@@ -40,7 +40,11 @@ Cypress.Commands.add( 'ensureFrontendUserSetup', () => {
 
 			cy.location( 'pathname' ).should( 'eq', '/admin/websiteUserManager/' );
 		}
+	} );
 
+	cy.visit( '/admin/websiteUserManager/' );
+	cy.wait( 500 );
+	cy.get( '.object-listing-table' ).then( ( $objListingTable ) => {
 		$objListingTable.find( 'tr.clickable td:contains("' + Cypress.env( 'FRONTEND_USER_EMAIL' ) +'")' ).closest( 'tr' ).find( '.action-buttons i.fa.fa-key' ).click();
 		cy.wait( 500 );
 		cy.get( 'input[ name=password  ]'         ).should( 'be.visible' ).type( Cypress.env( 'FRONTEND_USER_PASSWORD' ) );
