@@ -214,7 +214,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var activeTab        = ArrayFind( args.availableTabs, args.currentTab ) ? args.currentTab : firstTab;
-		var activeTabContent = renderViewlet( event="admin.datamanager.#objectName#._#activeTab#Tab", args=args );
+		var activeTabContent = customizationService.runCustomization( objectName=objectName, action="_#activeTab#Tab", args=args )
 
 		if ( ArrayLen( sidebarMenuItems ) ) {
 			prc.adminSidebarItems  = sidebarMenuItems;
@@ -316,14 +316,9 @@ component extends="preside.system.base.AdminHandler" {
 			args.tabs[ i ] = {
 				  id        = tabId
 				, iconClass = translateResource( uri=i18nBase & "viewtab.#tabId#.iconclass", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.iconclass" ) )
-				, content   = renderViewlet( event="admin.datamanager.#objectName#._#tabId#Tab", args=args )
+				, content   = customizationService.runCustomization( objectName=objectName, action="_#tabId#Tab", args=args )
+				, title     = customizationService.runCustomization( objectName=objectName, action="_#tabId#TabTitle", args=args, defaultResult=translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) ) )
 			};
-
-			if ( getController().viewletExists( "admin.datamanager.#objectName#._#tabId#TabTitle" ) ) {
-				args.tabs[ i ].title = renderViewlet( event="admin.datamanager.#objectName#._#tabId#TabTitle", args=args );
-			} else {
-				args.tabs[ i ].title = translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) );
-			}
 		}
 		for( var i=args.tabs.len(); i>0; i-- ) {
 			if ( !Len( Trim( args.tabs[ i ].content ?: "" ) ) ) {
