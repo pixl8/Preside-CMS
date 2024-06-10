@@ -38,6 +38,10 @@ component {
 		}
 	}
 
+	public function reload() {
+		_initSticker();
+	}
+
 // PRIVATE HELPERS
 	private void function _initSticker() {
 		var sticker           = new sticker.Sticker();
