@@ -8,11 +8,6 @@
 	value        = event.getValue( name=inputName, defaultValue=defaultValue );
 	checked      = isTrue( value );
 
-	if ( !IsSimpleValue( value ) ) {
-		value = "";
-	}
-	value = HtmlEditFormat( value );
-
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )
 		, attribNames  = ( args.attribNames  ?: "" )

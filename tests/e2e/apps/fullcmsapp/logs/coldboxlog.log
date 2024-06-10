@@ -1,0 +1,4 @@
+"Severity","Appender","Date","Time","Category","Message"
+"Severity","Appender","Date","Time","Category","Message"
+"WARN","defaultLogAppender","05/23/2024","11:21:14","preside.system.coldboxModifications.services.ModuleService","The module (preside-ext-launcher) cannot be loaded as it does not have a ModuleConfig.cfc in its root. Path Checked: /home/dom/code/rptestbed/website/preside/tests/endtoend/apps/fullcmsapp/application/extensions/preside-ext-launcher"
+"WARN","defaultLogAppender","05/23/2024","11:21:14","preside.system.coldboxModifications.services.ModuleService","The module (preside-ext-alt-admin-theme) cannot be loaded as it does not have a ModuleConfig.cfc in its root. Path Checked: /home/dom/code/rptestbed/website/preside/tests/endtoend/apps/fullcmsapp/application/extensions/preside-ext-alt-admin-theme"
