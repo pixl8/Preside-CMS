@@ -4,10 +4,16 @@ component implements="iRouteHandler" singleton=true presideService=true {
 	/**
 	 * @eventName.inject coldbox:setting:eventName
 	 * @assetManagerService.inject assetManagerService
+	 * @presideObjectService.inject presideObjectService
 	 */
-	public any function init( required string eventName, required any assetManagerService ) output=false {
+	public any function init(
+		  required string eventName
+		, required any    assetManagerService
+		, required any    presideObjectService
+	) output=false {
 		_setEventName( arguments.eventName );
 		_setAssetManagerService( arguments.assetManagerService );
+		_setPresideObjectService( arguments.presideObjectService );
 
 		return this;
 	}
@@ -43,16 +49,32 @@ component implements="iRouteHandler" singleton=true presideService=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
+		var siteId        = buildArgs.siteId        ?: "";
 		var assetId       = buildArgs.assetId       ?: "";
 		var derivative    = buildArgs.derivative    ?: "";
 		var versionId     = buildArgs.versionId     ?: "";
 		var trackDownload = buildArgs.trackDownload ?: false;
 		var trashed       = IsBoolean( buildArgs.trashed ?: "" ) && buildArgs.trashed;
 		var link          = "";
-		var assetType     = _getAssetManagerService().getAsset(
-			  id           = assetId
-			, selectFields = [ "asset_type" ]
-		).asset_type ?: "";
+		var assetFields   = [ "asset_type" ];
+		var assetTenant   = _getPresideObjectService().getObjectAttribute( objectName="asset", attributeName="tenant" );
+		var isSiteTenant  = false;
+
+		if ( Len( Trim( assetTenant ) ) ) {
+			var tenantFieldProp = _getPresideObjectService().getObjectProperty( objectName="asset", propertyName=assetTenant );
+
+			if ( ( tenantFieldProp.relatedTo ?: "" ) == "site" ) {
+				isSiteTenant = true;
+				ArrayAppend( assetFields, assetTenant );
+			}
+		}
+
+		var assetDetail = _getAssetManagerService().getAsset( id=assetId, selectFields=assetFields );
+		var assetType   = assetDetail.asset_type ?: "";
+
+		if ( isSiteTenant ) {
+			siteId = Len( siteId ) ? siteId : ( assetDetail[ assetTenant ] ?: "" );
+		}
 
 		if ( !isEmpty( assetType ) ) {
 			var assetTypeDetail = _getAssetManagerService().getAssetType( name=assetType );
@@ -89,8 +111,12 @@ component implements="iRouteHandler" singleton=true presideService=true {
 			}
 		}
 
-		if ( !link.reFind( "^(https?:)?\/\/" ) ) {
-			link = event.getSiteUrl( includePath=false, includeLanguageSlug=false ) & link;
+		if ( !ReFind( "^(https?:)?\/\/", link ) ) {
+			link = event.getSiteUrl(
+				  siteId              = siteId
+				, includePath         = Len( siteId ) ? true : false
+				, includeLanguageSlug = false
+			) & link;
 		}
 
 		return link;
@@ -109,5 +135,12 @@ component implements="iRouteHandler" singleton=true presideService=true {
 	}
 	private void function _setAssetManagerService( required any assetManagerService ) output=false {
 		_assetManagerService = arguments.assetManagerService;
+	}
+
+	private any function _getPresideObjectService() {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) {
+		_presideObjectService = arguments.presideObjectService;
 	}
 }

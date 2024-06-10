@@ -21,6 +21,11 @@ component {
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
 
+		if ( !assetManagerService.assetExists( id=assetId ) ) {
+			event.renderData( data="404 not found", type="text", statusCode=404 );
+			return;
+		}
+
 		var asset             = "";
 		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
 		var passwordProtected = false;
@@ -107,7 +112,7 @@ component {
 				} );
 
 				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
-				if ( type.serveAsAttachment ) {
+				if ( type.trackDownloads ) {
 					websiteUserActionService.recordAction(
 						  action     = "download"
 						, type       = "asset"
@@ -122,7 +127,7 @@ component {
 				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
 					setNextEvent(
 						  url        = assetPublicUrl
-						, statusCode = type.serveAsAttachment ? 302 : 301
+						, statusCode = type.trackDownloads ? 302 : 301
 					);
 				}
 

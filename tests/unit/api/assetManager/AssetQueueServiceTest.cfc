@@ -17,6 +17,7 @@ component extends="testbox.system.BaseSpec"{
 					, config_hash     = deets.configHash
 					, retry_count     = 0
 					, queue_status    = "pending"
+					, context         = SerializeJSON( { site=NullValue() } )
 				};
 
 				mockQueueDao.$( "dataExists", false );
@@ -54,6 +55,7 @@ component extends="testbox.system.BaseSpec"{
 					, asset_version   = deets.versionId
 					, derivative_name = deets.derivativeName
 					, config_hash     = deets.configHash
+					, context         = SerializeJSON( { site=NullValue() } )
 				} );
 			} );
 		} );
@@ -64,7 +66,7 @@ component extends="testbox.system.BaseSpec"{
 				var dummyRecord = QueryNew( "id,test", "varchar,varchar", [ [ CreateUUId(), CreateUUId() ] ] );
 
 				mockQueueDao.$( "selectData" ).$args(
-					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
+					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count", "context" ]
 					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
@@ -72,7 +74,7 @@ component extends="testbox.system.BaseSpec"{
 				).$results( dummyRecord );
 				mockQueueDao.$( "updateData", 1 )
 
-				expect( service.getNextQueuedAsset() ).toBe( { id=dummyRecord.id, test=dummyRecord.test } );
+				expect( service.getNextQueuedAsset() ).toBe( { id=dummyRecord.id, test=dummyRecord.test, context={} } );
 			} );
 
 			it( "should return an empty struct when no record is returned", function(){
@@ -80,7 +82,7 @@ component extends="testbox.system.BaseSpec"{
 				var dummyRecord = QueryNew( "id,test" );
 
 				mockQueueDao.$( "selectData" ).$args(
-					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
+					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count", "context" ]
 					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
@@ -96,7 +98,7 @@ component extends="testbox.system.BaseSpec"{
 				var dummyRecord = QueryNew( "id,test", "varchar,varchar", [ [ CreateUUId(), CreateUUId() ] ] );
 
 				mockQueueDao.$( "selectData" ).$args(
-					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
+					  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count", "context" ]
 					, orderBy      = "retry_count,datecreated"
 					, filter       = "queue_status = :queue_status"
 					, filterParams = { queue_status="pending" }
@@ -104,7 +106,7 @@ component extends="testbox.system.BaseSpec"{
 				).$results( dummyRecord );
 				mockQueueDao.$( "updateData", 1 )
 
-				expect( service.getNextQueuedAsset() ).toBe( { id=dummyRecord.id, test=dummyRecord.test } );
+				expect( service.getNextQueuedAsset() ).toBe( { id=dummyRecord.id, test=dummyRecord.test, context={} } );
 
 				var updateCallLog = mockQueueDao.$callLog().updateData;
 
@@ -163,14 +165,19 @@ component extends="testbox.system.BaseSpec"{
 	private any function _getService() {
 		mockAssetManagerService      = CreateStub();
 		mockAssetManagerServiceProxy = CreateStub();
+		mockSiteService              = CreateStub();
 		mockQueueDao                 = CreateStub();
 		mockPoService                = CreateStub();
+		mockRequestContext           = CreateStub();
 
 		mockAssetManagerServiceProxy.$( "get", mockAssetManagerService );
+		mockSiteService.$( "getSite", {} );
 		mockPoService.$( "clearRelatedCaches" );
+		mockRequestContext.$( "getSiteId" );
 
 		var service = new preside.system.services.assetManager.AssetQueueService(
 			  assetManagerService = mockAssetManagerServiceProxy
+			, siteService         = mockSiteService
 			, queueBatchSize      = 10
 		);
 
@@ -179,6 +186,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getPresideObject" ).$args( "asset_generation_queue" ).$results( mockQueueDao );
 		service.$( "$getPresideObjectService", mockPoService );
 		service.$( "$isInterrupted", false );
+		service.$( "$getRequestContext", mockRequestContext );
 
 		return service;
 	}
