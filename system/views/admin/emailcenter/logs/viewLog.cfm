@@ -166,11 +166,6 @@
 										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.unsubscribe.title" ) />
 										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.unsubscribe.message" ) />
 									</cfcase>
-									<cfcase value="honeypotclick">
-										<cfset logIcon    = "fa-android orange" />
-										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.honeypotclick.title" ) />
-										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.honeypotclick.message" ) />
-									</cfcase>
 									<cfdefaultcase>
 										<cfcontinue/>
 									</cfdefaultcase>
