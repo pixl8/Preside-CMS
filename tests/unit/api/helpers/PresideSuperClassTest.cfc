@@ -7,8 +7,8 @@ component extends="testbox.system.BaseSpec" {
 			} );
 
 			it( "should replace various special characters with simple latin equivalents", function() {
-				var specials  = ["á","à","â","ä" ,"ã","å","é","è","ê","ë","í","ì","î","ï","ó","ò","ô","ö","õ","ø","ú","ù","û" ,"ü","ñ","ç","ß" ,"Á","À","Â","Ä" ,"Ã","Å","É","È","Ê","Ë","Í","Ì","Î","Ï","Ó","Ò","Ô","Ö","Õ","Ø","Ú","Ù","Û" ,"Ü","Ñ","Ç" ]
-				var slugified = ["a","a","a","ae","a","a","e","e","e","e","i","i","i","i","o","o","o","o","o","o","u","u","ue","u","n","c","ss","A","A","A","AE","A","A","E","E","E","E","I","I","I","I","O","O","O","O","O","O","U","U","UE","U","N","C" ];
+				var specials  = [ "á","à","â","ä" ,"ã","å","é","è","ê","ë","í","ì","î","ï","ó","ò","ô","ö" ,"õ","ø","ú","ù","û" ,"ü","ñ","ç","ß" ,"Á","À","Â" ,"Ä","Ã","Å","É","È","Ê","Ë","Í","Ì","Î","Ï","Ó","Ò","Ô","Ö" ,"Õ","Ø","Ú","Ù","Û" ,"Ü","Ñ","Ç" ];
+				var slugified = [ "a","a","a","ae","a","a","e","e","e","e","i","i","i","i","o","o","o","oe","o","o","u","u","ue","u","n","c","ss","A","A","A","AE","A","A","E","E","E","E","I","I","I","I","O","O","O","Oe","O","O","U","U","Ue","U","N","C" ];
 
 				expect( _getSuperClass().$slugify( str=ArrayToList( specials, "" ), preserveCase=true ) ).toBe( ArrayToList( slugified, "" ) );
 			} );
