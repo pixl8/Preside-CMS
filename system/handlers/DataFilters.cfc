@@ -3,10 +3,13 @@ component {
 	property name="permissionService" inject="permissionService";
 
 	private struct function formbuilderV1Form( event, rc, prc, args={} ) {
-		return {
-			  filter       = "formbuilder_form.uses_global_questions is null or formbuilder_form.uses_global_questions = :formbuilder_form.uses_global_questions"
-			, filterParams = { "formbuilder_form.uses_global_questions"=false }
-		};
+		if ( isFeatureEnabled( "formbuilder2" ) ) {
+			return {
+				  filter       = "formbuilder_form.uses_global_questions is null or formbuilder_form.uses_global_questions = :formbuilder_form.uses_global_questions"
+				, filterParams = { "formbuilder_form.uses_global_questions"=false }
+			};
+		}
+		return { filter="1=1" };
 	}
 
 	private struct function formbuilderSingleChoiceFields( event, rc, prc, args={} ) {
