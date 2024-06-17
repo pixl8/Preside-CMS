@@ -940,8 +940,8 @@ component {
 			, systemAlertsHeartBeat           = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, scheduledExportHeartBeat        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "dataexport"  ] }
 			, segmentationFiltersHeartbeat    = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "rulesEngine" ] }
-			, assetQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "assetmanager" ] }
-			, assetQueue                      = { enabled=false , siteTemplates=[ "*" ]                                 , dependsOn=[ "assetmanager" ] }
+			, assetQueue                      = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "assetmanager" ] }
+			, assetQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "assetQueue" ] }
 			, queryCachePerObject             = { enabled=false, siteTemplates=[ "*" ] }
 			, presideBasicWorkflow            = { enabled=true, siteTemplates=[ "*" ] }
 			, dbLogAppender                   = { enabled=true, siteTemplates=[ "*" ] }
