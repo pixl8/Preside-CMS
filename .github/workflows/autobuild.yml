@@ -17,7 +17,7 @@ jobs:
           - cfengine: "lucee@5.4"
             jdkVersion: "11"
             experimental: false
-          - cfengine: "lucee@be"
+          - cfengine: "lucee@^6.1.1-SNAPSHOT"
             jdkVersion: "21"
             experimental: true
     continue-on-error: ${{ matrix.experimental }}
