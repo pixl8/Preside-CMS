@@ -71,6 +71,21 @@ component {
 	}
 
 	/**
+	 * Retuns the default form's item select fields in array
+	 *
+	 * @autodoc    true
+	 * @id.hint    ID of the form item's form you wish to get
+	 */
+	public array function getFormItemDefaultFields( required string id ) {
+		var fields = [ "id", "item_type", "configuration", "form" ];
+		if ( isV2Form( formid=arguments.id ) ) {
+			ArrayAppend( fields, "question" );
+		}
+
+		return fields;
+	}
+
+	/**
 	 * Retuns a form's items in an ordered array
 	 *
 	 * @autodoc        true
@@ -82,13 +97,7 @@ component {
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { form=arguments.id }
 			, orderBy      = "sort_order"
-			, selectFields = [
-				  "id"
-				, "item_type"
-				, "configuration"
-				, "form"
-				, "question"
-			  ]
+			, selectFields = getFormItemDefaultFields( id=arguments.id )
 		);
 
 		for( var item in items ) {
@@ -96,13 +105,13 @@ component {
 				var preparedItem = {
 					  id            = item.id
 					, formId        = item.form
-					, questionId    = item.question
 					, item_type     = item.item_type
 					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 					, configuration = DeSerializeJson( item.configuration )
 				};
 
-				if ( Len( item.question ) ) {
+				if ( Len( item.question ?: "" ) ) {
+					preparedItem.questionId = item.question
 					StructAppend( preparedItem.configuration, _getItemConfigurationForV2Question( item.question ) );
 				}
 
@@ -125,26 +134,20 @@ component {
 		var result = {};
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { id=arguments.id }
-			, selectFields = [
-				  "id"
-				, "item_type"
-				, "configuration"
-				, "question"
-				, "form"
-			  ]
+			, selectFields = getFormItemDefaultFields( id=arguments.id )
 		);
 
 		for( var item in items ) {
 			result = {
 				  id            = item.id
 				, formId        = item.form
-				, questionId    = item.question
 				, item_type     = item.item_type
 				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 				, configuration = DeSerializeJson( item.configuration )
 			};
 
-			if ( Len( item.question ) ) {
+			if ( Len( item.question ?: "" ) ) {
+				result.questionId = item.question;
 				StructAppend( result.configuration, _getItemConfigurationForV2Question( item.question ) );
 			}
 		}
