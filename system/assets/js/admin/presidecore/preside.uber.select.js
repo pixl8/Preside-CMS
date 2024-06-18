@@ -91,10 +91,21 @@
 
 		UberSelect.prototype.set_rendering_templates = function(){
 			var templateId = this.form_field.getAttribute( "data-result-template" )
+			, resultTemplateFormat = this.form_field.getAttribute( "data-result-template-format" )
+			, selectedTemplateFormat = this.form_field.getAttribute( "data-selected-template-format" )
 			  , $template;
 
-			this.result_template   = "{{text}}";
-			this.selected_template = "{{text}}";
+			if ( resultTemplateFormat ) {
+				this.result_template = resultTemplateFormat;
+			} else {
+				this.result_template   = "{{text}}";
+			}
+			
+			if ( selectedTemplateFormat ) {
+				this.selected_template = selectedTemplateFormat;
+			} else {
+				this.selected_template = "{{text}}";
+			}
 
 			if ( templateId ){
 				$template = $( "#" + templateId );

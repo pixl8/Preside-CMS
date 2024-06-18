@@ -17,7 +17,7 @@ jobs:
           - cfengine: "lucee@5.4"
             jdkVersion: "11"
             experimental: false
-          - cfengine: "lucee@be"
+          - cfengine: "lucee@^6.1.1-SNAPSHOT"
             jdkVersion: "21"
             experimental: true
     continue-on-error: ${{ matrix.experimental }}
@@ -96,7 +96,7 @@ jobs:
           - cfengine: "lucee@5.4"
             jdkVersion: "11"
             experimental: false
-          - cfengine: "lucee@be"
+          - cfengine: "lucee@^6.1.1-SNAPSHOT"
             jdkVersion: "21"
             experimental: true
     continue-on-error: ${{ matrix.experimental }}
@@ -140,7 +140,10 @@ jobs:
           cp .cfconfig.gh.json .cfconfig.json
           box install commandbox-cfconfig
           box server start serverConfigFile="server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
-          curl http://127.0.0.1:9998
+          http_response=$(curl --max-time 120 -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9998)
+          if [ $http_response != "200" ]; then
+            exit 1
+          fi
 
       - name: Run Cypress Test
         uses: cypress-io/github-action@v6
