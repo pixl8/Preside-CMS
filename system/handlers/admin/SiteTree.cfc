@@ -330,9 +330,16 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.mainFormName  = "preside-objects.page.edit";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "edit" );
+		prc.page          = QueryRowToStruct( prc.page );
 
-		prc.page = QueryRowToStruct( prc.page );
-		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version, allowDraftVersions=true  );
+		var pageHasDraft = ( version > 0 ) || isTrue( prc.page._version_has_drafts ?: "" );
+		var savedData    = getPresideObject( pageType.getPresideObject() ).selectData(
+			  filter             = { page = pageId }
+			, fromVersionTable   = pageHasDraft
+			, specificVersion    = pageHasDraft ? versioningService.getLatestVersionNumber( pageType.getPresideObject(), pageId ) : 0
+			, allowDraftVersions = true
+		);
+
 		StructAppend( prc.page, QueryRowToStruct( savedData ) );
 
 		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
