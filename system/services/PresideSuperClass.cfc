@@ -925,8 +925,8 @@ component displayName="Preside Super Class" {
 	public string function $slugify( required str, numeric maxLength=0, allow="", preserveCase=false ) {
 		var slug = Trim( arguments.str );
 
-		var specialChars = "#chr(225)#,#chr(224)#,#chr(226)#,#chr(228)#,#chr(227)#,#chr(229)#,#chr(233)#,#chr(232)#,#chr(234)#,#chr(235)#,#chr(237)#,#chr(236)#,#chr(238)#,#chr(239)#,#chr(243)#,#chr(242)#,#chr(244)#,#chr(246)#,#chr(245)#,#chr(248)#,#chr(250)#,#chr(249)#,#chr(251)#,#chr(252)#,#chr(241)#,#chr(231)#,#chr(223)#,#chr(193)#,#chr(192)#,#chr(194)#,#chr(196)#,#chr(195)#,#chr(197)#,#chr(201)#,#chr(200)#,#chr(202)#,#chr(203)#,#chr(205)#,#chr(204)#,#chr(206)#,#chr(207)#,#chr(211)#,#chr(210)#,#chr(212)#,#chr(214)#,#chr(213)#,#chr(216)#,#chr(218)#,#chr(217)#,#chr(219)#,#chr(220)#,#chr(209)#,#chr(199)#";
-		var asciiChars   = "a,a,a,ae,a,a,e,e,e,e,i,i,i,i,o,o,o,oe,o,o,u,u,ue,u,n,c,ss,A,A,A,Ae,A,A,E,E,E,E,I,I,I,I,O,O,O,Oe,O,O,U,U,Ue,U,N,C";
+		var specialChars = "á,à,â,ä,ã,å,é,è,ê,ë,í,ì,î,ï,ó,ò,ô,ö,õ,ø,ú,ù,û,ü,ñ,ç,ß,Á,À,Â,Ä,Ã,Å,É,È,Ê,Ë,Í,Ì,Î,Ï,Ó,Ò,Ô,Ö,Õ,Ø,Ú,Ù,Û,Ü,Ñ,Ç";
+		var asciiChars   = "a,a,a,ae,a,a,e,e,e,e,i,i,i,i,o,o,o,oe,o,o,u,u,ue,u,n,c,ss,A,A,A,Ae,A,A,E,E,E,E,I,I,I,I,O,O,O,Oe,O,O,U,U,U,Ue,N,C";
 
 		slug = ReplaceList( slug, specialChars, asciiChars );
 
