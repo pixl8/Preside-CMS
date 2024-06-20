@@ -258,7 +258,7 @@ component {
 
 		expression.append( {
 			  id                = "presideobject_stringmatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
-			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
+			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="eq" }, value={ fieldType="text", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getLabel"
@@ -273,7 +273,7 @@ component {
 
 		expression.append( {
 			  id                = "presideobject_formulamatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
-			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
+			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="eq" }, value={ fieldType="text", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.getLabel"
