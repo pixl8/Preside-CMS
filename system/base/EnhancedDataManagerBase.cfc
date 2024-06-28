@@ -374,6 +374,10 @@ component extends="preside.system.base.AdminHandler" {
 		return "<p><em class=""light-grey""><i class=""fa fa-fw fa-exclamation-triangle""></i> TODO: implement your own <code>admin.datamanager.#objectName#._defaultTab</code> viewlet for your entity.</em></p>";
 	}
 
+	private string function _auditTrailTab( event, rc, prc, args={} ) {
+		return renderViewlet( event="admin.audittrail.recordTrailViewlet", args={ recordId=args.recordId ?: "" } );
+	}
+
 	private string function _getNonVersionDateCreated( required string objectName, required string recordId ) {
 		var record = presideObjectService.selectData(
 			  id               = arguments.recordId
