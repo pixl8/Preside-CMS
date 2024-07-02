@@ -925,10 +925,15 @@ component displayName="Preside Super Class" {
 	public string function $slugify( required str, numeric maxLength=0, allow="", preserveCase=false ) {
 		var slug = Trim( arguments.str );
 
+		var specialChars = "á,à,â,ä,ã,å,é,è,ê,ë,í,ì,î,ï,ó,ò,ô,ö,õ,ø,ú,ù,û,ü,ñ,ç,ß,Á,À,Â,Ä,Ã,Å,É,È,Ê,Ë,Í,Ì,Î,Ï,Ó,Ò,Ô,Ö,Õ,Ø,Ú,Ù,Û,Ü,Ñ,Ç";
+		var asciiChars   = "a,a,a,ae,a,a,e,e,e,e,i,i,i,i,o,o,o,oe,o,o,u,u,ue,u,n,c,ss,A,A,A,Ae,A,A,E,E,E,E,I,I,I,I,O,O,O,Oe,O,O,U,U,U,Ue,N,C";
+
+		slug = ReplaceList( slug, specialChars, asciiChars );
+
 		if ( !preserveCase ) {
 			slug = LCase( slug );
 		}
-		slug = ReplaceList( slug, '#chr(228)#,#chr(252)#,#chr(246)#,#chr(223)#', 'ae,ue,oe,ss' );
+
 		slug = ReReplace( slug, "[^a-zA-Z0-9-\s#arguments.allow#]", "", "all" );
 		slug = Trim( ReReplace( slug, "[\s-]+", " ", "all" ) );
 		slug = ReReplace( slug, "\s", "-", "all" );
