@@ -172,6 +172,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockLogDao.$( "updateData", 1 );
 				service.$( "recordActivity" );
+				mockEmailTemplateService.$( "templateExists" ).$args( id=templateId ).$results( true );
 				mockEmailTemplateService.$( "updateLastSentDate" ).$args( templateId=templateId, lastSentDate=nowish ).$results( 1 );
 
 				service.markAsSent( logId, templateId );
