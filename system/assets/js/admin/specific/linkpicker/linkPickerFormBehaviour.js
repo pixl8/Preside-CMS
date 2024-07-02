@@ -82,12 +82,12 @@
 
 	deactivateFieldset = function( $fieldset ){
 		$fieldset.hide();
-		$fieldset.find( "input,select:not(.object-picker),textarea" ).prop( 'disabled', true );
+		$fieldset.find( "input,select:not(.object-picker,.asset-picker),textarea" ).prop( 'disabled', true );
 	};
 
 	activateFieldset = function( $fieldset ){
 		$fieldset.show();
-		$fieldset.find( "input,select:not(.object-picker),textarea" ).prop( 'disabled', false );
+		$fieldset.find( "input,select:not(.object-picker,.asset-picker),textarea" ).prop( 'disabled', false );
 	}
 
 	autosetProtocol = function(){
