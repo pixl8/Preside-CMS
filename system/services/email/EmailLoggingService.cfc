@@ -141,7 +141,7 @@ component {
 		} );
 
 		if ( updated ) {
-			if ( !$helpers.isEmptyString( arguments.templateId ) ) {
+			if ( !$helpers.isEmptyString( arguments.templateId ) && _getEmailTemplateService().templateExists( id=arguments.templateId ) ) {
 				_getEmailTemplateService().updateLastSentDate( templateId=arguments.templateId, lastSentDate=now );
 			}
 
