@@ -5,6 +5,7 @@
  * @datamanagerEnabled                  true
  * @datamanagerTypeToConfirmDelete      true
  * @datamanagerTypeToConfirmBatchDelete true
+ * @datamanagerDefaultSortOrder         last_request_made desc
  * @feature                             websiteUsers
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="display_name" displayname="Website user" {
