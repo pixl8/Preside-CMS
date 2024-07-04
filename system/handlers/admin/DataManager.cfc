@@ -1387,7 +1387,9 @@ component extends="preside.system.base.AdminHandler" {
 			getRecordsArgs.extraFilters.append( { filter=treeFilter } );
 		}
 
-		prc.records = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
+		var recordsForSorting = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
+		prc.records           = recordsForSorting.records;
+		prc.ordered           = recordsForSorting.ordered;
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.sortRecords.breadcrumb.title" )
