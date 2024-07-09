@@ -28,6 +28,8 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
+		arguments.value = ListChangeDelims( arguments.value, ",", " , " );
+
 		var paramName     = "textPropertyMatches" & Replace( LCase( CreateUUId() ), "-", "", "all" );
 		var filterSql     = "#arguments.objectName#.#propertyName# ${operator} :#paramName#";
 		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
