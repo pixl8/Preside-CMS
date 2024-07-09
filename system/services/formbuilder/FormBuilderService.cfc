@@ -131,24 +131,31 @@ component {
 	 * @id.hint ID of the item you wish to get
 	 */
 	public struct function getFormItem( required string id ) {
-		var result = {};
-		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
+		var result   = {};
+		var formItem = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { id=arguments.id }
-			, selectFields = getFormItemDefaultFields( id=arguments.id )
+			, selectFields = [ "form" ]
 		);
 
-		for( var item in items ) {
-			result = {
-				  id            = item.id
-				, formId        = item.form
-				, item_type     = item.item_type
-				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
-				, configuration = DeSerializeJson( item.configuration )
-			};
+		if ( !$helpers.isEmptyString( formItem.form ?: "" ) ) {
+			var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
+				  filter       = { id=arguments.id }
+				, selectFields = getFormItemDefaultFields( id=formItem.form )
+			);
 
-			if ( Len( item.question ?: "" ) ) {
-				result.questionId = item.question;
-				StructAppend( result.configuration, _getItemConfigurationForV2Question( item.question ) );
+			for( var item in items ) {
+				result = {
+					  id            = item.id
+					, formId        = item.form
+					, item_type     = item.item_type
+					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
+					, configuration = DeSerializeJson( item.configuration )
+				};
+
+				if ( Len( item.question ?: "" ) ) {
+					result.questionId = item.question;
+					StructAppend( result.configuration, _getItemConfigurationForV2Question( item.question ) );
+				}
 			}
 		}
 
