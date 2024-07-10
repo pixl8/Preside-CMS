@@ -23,6 +23,10 @@ component {
 			);
 		}
 
+		if ( !isFeatureEnabled( "formbuilder2" ) && !ReFindNoCase( "formbuilderV2Form", args.excludeTags ) ) {
+			args.excludeTags = ListAppend( args.excludeTags, "formbuilderV2Form" );
+		}
+
 		var fieldId = args.id ?: "";
 		var expressionData = {
 			"filter-builder-#fieldId#" = {
