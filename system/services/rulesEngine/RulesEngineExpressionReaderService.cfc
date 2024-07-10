@@ -189,6 +189,7 @@ component displayName="RulesEngine Expression Reader Service" {
 			case "_has":
 			case "_possesses":
 			case "_did":
+			case "_does":
 			case "_was":
 			case "_will":
 			case "_are":
