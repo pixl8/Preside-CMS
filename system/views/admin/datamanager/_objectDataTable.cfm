@@ -10,7 +10,7 @@
 	param name="args.noActions"                   type="boolean" default=false;
 	param name="args.footerEnabled"               type="boolean" default=false;
 	param name="args.gridFields"                  type="array";
-	param name="ags.gridHeaderLabels"             type="struct"  default={};
+	param name="args.gridHeaderLabels"            type="struct"  default={};
 	param name="args.sortableFields"              type="array"   default=[];
 	param name="args.hiddenGridFields"            type="array"   default=[];
 	param name="args.filterContextData"           type="struct"  default={};
