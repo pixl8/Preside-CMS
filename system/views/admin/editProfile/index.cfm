@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	formId = "edit-profile-form-" & CreateUUId();
 </cfscript>

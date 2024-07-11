@@ -2,9 +2,10 @@
  * The system configuration service provides the API layer
  * for interacting with Preside' [[editablesystemsettings]].
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        admin
  */
 component displayName="System configuration service" {
 
@@ -71,7 +72,7 @@ component displayName="System configuration service" {
 				, setting  = arguments.setting
 			};
 
-			if ( tenancy == "site" ) {
+			if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
 				filter.site = tenantId;
 			} else {
 				filter.tenant_id = tenantId;
@@ -90,7 +91,7 @@ component displayName="System configuration service" {
 
 		var result = _getDao().selectData(
 			  selectFields = [ "value" ]
-			, filter       = "category = :category and setting = :setting and site is null and tenant_id is null"
+			, filter       = "category = :category and setting = :setting and #_getGlobalTenantFilter()#"
 			, filterParams = {
 				  category = arguments.category
 				, setting  = arguments.setting
@@ -141,7 +142,7 @@ component displayName="System configuration service" {
 
 		if ( !globalOnly ) {
 			var filter = { category=arguments.category };
-			if ( tenancy == "site" ) {
+			if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
 				filter.site = arguments.tenantId;
 			} else {
 				filter.tenant_id = arguments.tenantId;
@@ -159,7 +160,7 @@ component displayName="System configuration service" {
 		if ( globalOnly || arguments.includeDefaults ) {
 			var rawGlobalResult = _getDao().selectData(
 				  selectFields = [ "setting", "value" ]
-				, filter       = "category = :category and site is null and tenant_id is null"
+				, filter       = "category = :category and #_getGlobalTenantFilter()#"
 				, filterParams = { category = arguments.category }
 			);
 
@@ -222,7 +223,7 @@ component displayName="System configuration service" {
 			};
 
 			if ( Len( tenancy ) && Len( Trim( arguments.tenantId ) ) ) {
-				if ( tenancy == "site" ) {
+				if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
 					filter &= " and site = :site";
 					params.site = arguments.tenantId;
 
@@ -233,7 +234,7 @@ component displayName="System configuration service" {
 					data.tenant_id = arguments.tenantId;
 				}
 			} else {
-				filter &= " and site is null and tenant_id is null";
+				filter &= " and #_getGlobalTenantFilter()#";
 			}
 
 			result = dao.updateData(
@@ -267,7 +268,7 @@ component displayName="System configuration service" {
 		if ( Len( Trim( arguments.tenantId ) ) ) {
 			var tenancy = getConfigCategoryTenancy( arguments.category );
 
-			if ( tenancy == "site" ) {
+			if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
 				filter &= " and site = :site";
 				params.site = arguments.tenantId;
 			} else {
@@ -333,10 +334,16 @@ component displayName="System configuration service" {
 				return "";
 			}
 
-			return cat.getTenancy();
+			var tenancy = cat.getTenancy();
+
+			if ( tenancy == "site" && !$isFeatureEnabled( "sites" ) ) {
+				return "";
+			}
+
+			return tenancy;
 		}
 
-		return "site";
+		return $isFeatureEnabled( "sites" ) ? "site" : "";
 	}
 
 	public string function getCurrentTenantIdForCategory( required string id ) {
@@ -446,6 +453,15 @@ component displayName="System configuration service" {
 			reload();
 			_setLoaded( true );
 		}
+	}
+
+	private string function _getGlobalTenantFilter() {
+		var filter = "tenant_id is null";
+		if ( $isFeatureEnabled( "sites" ) ) {
+			filter &= " and site is null";
+		}
+
+		return filter;
 	}
 
 // GETTERS AND SETTERS

@@ -2,9 +2,10 @@
  * Service that provides API methods for dealing with CMS admin permissions.
  * See [[cmspermissioning]] for a full guide to CMS users and permissions.
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        admin
  *
  */
 component displayName="Admin permissions service" {
@@ -215,6 +216,39 @@ component displayName="Admin permissions service" {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Returns whether or not the user has any permission to the given
+	 * set of keys.
+	 * \n
+	 * See [[cmspermissioning]] for a full guide to CMS users and permissions.
+	 *
+	 * @autodoc
+	 * @permissionKeys.hint The permission keys as defined in `Config.cfc`
+	 * @context.hint        Optional named context
+	 * @contextKeys.hint    Array of keys for the given context (required if context supplied)
+	 * @userId.hint         ID of the user whose permissions we wish to check
+	 * @userId.docdefault   ID of logged in user
+	 *
+	 */
+	public boolean function hasAnyPermissions(
+		  required array  permissionKeys
+		,          string context       = ""
+		,          array  contextKeys   = []
+		,          string userId        = _getLoginService().getLoggedInUserId()
+	) {
+		if ( !ArrayLen( arguments.permissionKeys ) ) {
+			return true;
+		}
+
+		for ( var permissionKey in permissionKeys ) {
+			if ( hasPermission( argumentCollection=arguments, permissionKey=permissionKey ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

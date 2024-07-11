@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	templateId         = rc.template              ?: "";
 	savedTemplate      = prc.template             ?: {};

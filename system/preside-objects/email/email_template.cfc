@@ -4,6 +4,7 @@
  * @labelfield         name
  * @datamanagerEnabled true
  * @useDrafts          true
+ * @feature            emailCenter
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email template"  {
 	property name="name"                type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="templatename" renderer="emailName";
@@ -22,13 +23,13 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="text_body"                 type="string"  dbtype="longtext";
 	property name="body_changed_from_default" type="boolean" dbtype="boolean" required=false default=false;
 
-	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment";
+	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment" feature="assetManager";
 
 	property name="variant_of"  relationship="many-to-one"  relatedto="email_template" required=false;
 	property name="is_variant"  type="boolean" formula="case when ${prefix}variant_of is null then 0 else 1 end";
 
 	property name="email_blueprint"  relationship="many-to-one" relatedTo="email_blueprint";
-	property name="recipient_filter" relationship="many-to-one" relatedto="rules_engine_condition" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="recipient_filter" relationship="many-to-one" relatedto="rules_engine_condition" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check" feature="rulesEngine";
 
 	property name="sending_method" type="string" dbtype="varchar" maxlength=20 required=false default="auto" enum="emailSendingMethod" ignoreChangesForVersioning=true renderer="emailSendingMethod";
 
@@ -52,7 +53,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="datemodified" renderer="dateTimeRelative";
 
 	property name="send_logs"           relationship="one-to-many" relatedto="email_template_send_log"  relationshipKey="email_template" cloneable=false;
-	property name="queued_emails"       relationship="one-to-many" relatedto="email_mass_send_queue"    relationshipKey="template"       cloneable=false;
+	property name="queued_emails"       relationship="one-to-many" relatedto="email_mass_send_queue"    relationshipKey="template"       cloneable=false feature="customEmailTemplates";
 	property name="layout_config_items" relationship="one-to-many" relatedto="email_layout_config_item" relationshipKey="email_template" cloneable=true;
 
 	property name="queued_email_count" formula="Count( distinct ${prefix}queued_emails.id )" type="numeric";

@@ -1,9 +1,10 @@
 /**
  * The audit log object is used to store audit trail logs that are triggered by user actions in the administrator (or any other actions you wish to track).
  *
- * @nolabel
+ * @nolabel     true
  * @versioned   false
  * @displayname Audit log
+ * @feature     auditTrail
  *
  */
 component extends="preside.system.base.SystemPresideObject" {

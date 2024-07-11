@@ -1,3 +1,4 @@
+<!---@feature admin and taskmanager--->
 <cfscript>
 	taskGroups        = prc.taskGroups      ?: [];
 	activeTaskGroup   = prc.activeTaskGroup ?: 1;

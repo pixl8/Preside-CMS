@@ -245,7 +245,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		_setupMockObjectMeta();
 
-		return new preside.system.services.admin.DataManagerService(
+		var svc = CreateMock( object=new preside.system.services.admin.DataManagerService(
 			  presideObjectService = mockPoService
 			, i18nPlugin           = mockI18nPlugin
 			, contentRenderer      = contentRenderer
@@ -257,7 +257,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, cloningService       = mockCloningService
 			, multilingualService  = mockMultilingualService
 			, enumService          = enumService
-		);
+		) );
+
+		svc.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
+
+		return svc;
 	}
 
 	private void function _setupMockObjectMeta() output=false {

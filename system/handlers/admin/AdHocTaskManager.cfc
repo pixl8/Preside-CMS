@@ -1,3 +1,6 @@
+/**
+ * @feature admin and adhocTasks
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="adHocTaskManagerService" inject="adHocTaskManagerService";

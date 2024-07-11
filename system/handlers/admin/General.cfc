@@ -1,4 +1,4 @@
-component {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="loginService"         inject="loginService";
 	property name="updateManagerService" inject="updateManagerService";

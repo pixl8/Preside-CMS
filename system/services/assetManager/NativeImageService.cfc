@@ -1,9 +1,9 @@
 /**
  * Provides logic for manipulating Native images.
  *
- * @singleton
- * @autodoc
- *
+ * @singleton true
+ * @autodoc   true
+ * @feature   assetManager
  */
 component displayname="Native Image Manipulation Service" {
 

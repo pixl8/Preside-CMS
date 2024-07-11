@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	systemMenu        = renderView( "/admin/layout/systemMenu" );
 	userMenu          = renderView( "/admin/layout/userMenu" );

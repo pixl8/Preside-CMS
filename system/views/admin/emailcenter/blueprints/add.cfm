@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfoutput>
 	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "email_blueprint"

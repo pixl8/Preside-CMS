@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'select type'
  *
+ * @feature rulesEngine
  */
 component {
 

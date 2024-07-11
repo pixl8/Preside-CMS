@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	prc.pageIcon  = "history";
 	prc.pageTitle = translateResource( uri="cms:sitetree.pageHistory.title", data=[ prc.page.title ] );

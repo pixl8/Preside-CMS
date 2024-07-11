@@ -1,9 +1,13 @@
-component singleton=true {
+/**
+ * @singleton      true
+ * @presideService true
+ */
+component {
 
 // CONSTRUCTOR
 	/**
 	 * @bundleDirectories.inject presidecms:directories:i18n
-	 * @siteService.inject       siteService
+	 * @siteService.inject       featureInjector:sites:siteService
 	 * @defaultLocale.inject     coldbox:setting:default_locale
 	 */
 	public any function init(
@@ -156,7 +160,7 @@ component singleton=true {
 
 	private struct function _getBundleData( required string bundleName, string language, string country ) output=false {
 		var bundleDataCache    = _getBundleDataCache();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
+		var activeSiteTemplate = _getActiveSiteTemplate();
 		var bundleCacheKey     = activeSiteTemplate & arguments.bundleName;
 		var languageCacheKey   = "";
 		var countryCacheKey    =  "";
@@ -194,7 +198,7 @@ component singleton=true {
 	private struct function _readBundleData( required string bundleName, string language, string country ) output=false {
 		var bundleData         = {};
 		var files              = _getBundleFiles( argumentCollection=arguments );
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
+		var activeSiteTemplate = _getActiveSiteTemplate();
 
 		for( var file in files ){
 			var directory = ReReplace( getDirectoryFromPath( file ), "[\\/]$", "" );
@@ -264,7 +268,7 @@ component singleton=true {
 
 		if ( shouldWeBother ) {
 			var directories        = _getBundleDirectories();
-			var activeSiteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
+			var activeSiteTemplate = _getActiveSiteTemplate();
 			var filePattern        = ListLast( arguments.bundleName, "." );
 			var siteTemplate       = "";
 			var subDirectory       = "";
@@ -331,6 +335,10 @@ component singleton=true {
 		}
 
 		return locale == _getDefaultLocale();
+	}
+
+	private string function _getActiveSiteTemplate() {
+		return $isFeatureEnabled( "sites" ) ? _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) : "";
 	}
 
 // GETTERS AND SETTERS

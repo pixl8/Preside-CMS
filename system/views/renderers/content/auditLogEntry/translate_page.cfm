@@ -1,3 +1,4 @@
+<!---@feature admin and siteTree and multilingual--->
 <cfparam name="args.known_as"          type="string" />
 <cfparam name="args.userLink"          type="string" />
 <cfparam name="args.detail.id"         type="string" default="" />

@@ -1,3 +1,4 @@
+<!---@feature admin and rulesEngine--->
 <cfscript>
 	configScreen      = prc.configScreen      ?: "";
 	fieldType         = rc.fieldType          ?: "[not supplied]";

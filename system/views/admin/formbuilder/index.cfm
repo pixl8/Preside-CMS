@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	canAdd    = IsTrue( prc.canAdd ?: "" );
 	canDelete = IsTrue( prc.canDelete ?: "" );

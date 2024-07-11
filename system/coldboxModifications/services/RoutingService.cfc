@@ -232,13 +232,14 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 		interceptData.path    = event.getCurrentUrl( includeQueryString=true );
 		interceptData.fullUrl = event.getSiteUrl() & interceptData.path;
 
+		if ( featureService.isFeatureEnabled( "urlRedirects" ) ) {
+			_announceInterception( "onPresideUrlRedirects", interceptData );
 
-		_announceInterception( "onPresideUrlRedirects", interceptData );
-
-		urlRedirectsService.redirectOnMatch(
-			  path    = interceptData.path
-			, fullUrl = interceptData.fullUrl
-		);
+			urlRedirectsService.redirectOnMatch(
+				  path    = interceptData.path
+				, fullUrl = interceptData.fullUrl
+			);
+		}
 	}
 
 	private void function _checkRedirectDomains( event, interceptData ) {

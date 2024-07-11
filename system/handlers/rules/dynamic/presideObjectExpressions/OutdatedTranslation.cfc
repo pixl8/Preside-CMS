@@ -1,6 +1,7 @@
 /**
  * Dynamic expression handler for checking outdated translations of multi-lingual object records
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

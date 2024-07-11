@@ -522,6 +522,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, interceptorService = _getMockInterceptorService()
 			, featureService     = mockFeatureService
 			, adapterFactory     = mockAdapterFactory
+			, ignoreFileService  = _getMockIgnoreFileService()
 		);
 	}
 

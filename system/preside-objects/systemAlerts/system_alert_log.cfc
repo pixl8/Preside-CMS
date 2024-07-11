@@ -3,6 +3,7 @@
  * @noDateCreated
  * @noDateModified
  * @versioned  false
+ * @feature    admin
  */
 
 component extends="preside.system.base.SystemPresideObject" {

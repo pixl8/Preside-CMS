@@ -6,6 +6,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	property name="presideObjectService"  inject="delayedInjector:presideObjectService";
 	property name="controller"            inject="delayedInjector:coldbox";
 	property name="sessionStorage"        inject="delayedInjector:sessionStorage";
+	property name="featureService"        inject="delayedInjector:featureService";
 	property name="adminLanguages"        inject="coldbox:setting:adminLanguages";
 	property name="unknownTranslation"    inject="coldbox:setting:unknownTranslation";
 
@@ -78,8 +79,10 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			var bundles = [ "cms" ];
 			var js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
 
-			for( var widget in widgetsService.getWidgets() ) {
-				ArrayAppend( bundles, "widgets." & widget );
+			if ( featureService.get().isFeatureEnabled( "cms" ) ) {
+				for( var widget in widgetsService.getWidgets() ) {
+					ArrayAppend( bundles, "widgets." & widget );
+				}
 			}
 			for( var po in presideObjectService.listObjects() ) {
 				ArrayAppend( bundles, "preside-objects." & po );
@@ -109,8 +112,10 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			var bundles = [ "cms" ];
 			var content = "";
 
-			for( var widget in widgetsService.getWidgets() ) {
-				ArrayAppend( bundles, "widgets." & widget );
+			if ( featureService.get().isFeatureEnabled( "cms" ) ) {
+				for( var widget in widgetsService.getWidgets() ) {
+					ArrayAppend( bundles, "widgets." & widget );
+				}
 			}
 			for( var po in presideObjectService.listObjects() ) {
 				ArrayAppend( bundles, "preside-objects." & po );

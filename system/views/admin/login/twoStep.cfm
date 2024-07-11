@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	postLoginUrl      = EncodeForHTMLAttribute( event.getValue( name="postLoginUrl", defaultValue=event.buildAdminLink( linkto=getSetting( "adminDefaultEvent" ) ) ) );
 	message           = rc.message ?: "";

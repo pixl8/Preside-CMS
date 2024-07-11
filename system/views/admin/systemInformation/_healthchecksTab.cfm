@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	healthchecks = args.healthchecks ?: {};
 </cfscript>

@@ -8,6 +8,7 @@
  * @singleton      true
  * @presideService true
  * @autodoc        true
+ * @feature        emailCenter
  */
 component {
 

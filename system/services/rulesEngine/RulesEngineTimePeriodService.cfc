@@ -1,9 +1,9 @@
 /**
  * Provides methods for converting a saved time period into a date range
  *
- * @autodoc
- * @singleton
- *
+ * @autodoc   true
+ * @singleton true
+ * @feature   rulesEngine
  */
 component displayName="RulesEngine Time Period Service" {
 

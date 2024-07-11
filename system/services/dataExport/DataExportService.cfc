@@ -1,9 +1,10 @@
 /**
+ * Service that provides data export logic
+ *
  * @singleton      true
  * @autodoc        true
  * @presideservice true
- *
- * Service that provides data export logic
+ * @feature        dataExport
  */
 component {
 

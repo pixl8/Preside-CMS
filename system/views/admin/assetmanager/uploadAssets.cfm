@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	uploadCompleteView = prc.uploadCompleteView ?: '/admin/assetmanager/_batchUploadCompleteMessaging';
 

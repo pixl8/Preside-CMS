@@ -1,4 +1,4 @@
-<cfcomponent output="false" extends="_baseLogger">
+<cfcomponent output="false" extends="_baseLogger" nowirebox="true">
 
 <!--- constructor --->
 	<cffunction name="init" access="public" returntype="any" output="false">

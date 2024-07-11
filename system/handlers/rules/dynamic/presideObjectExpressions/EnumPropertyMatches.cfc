@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * enum property's value matches the supplied enum option
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

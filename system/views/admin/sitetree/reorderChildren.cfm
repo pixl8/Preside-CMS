@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	page             = event.getValue( name="page", defaultValue=QueryNew(''), private=true );
 	childPages       = event.getValue( name="childPages", defaultValue=QueryNew(''), private=true );

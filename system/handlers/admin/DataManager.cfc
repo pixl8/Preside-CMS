@@ -6,13 +6,13 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="batchOperationService"            inject="dataManagerBatchOperationService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
-	property name="dataExportService"                inject="dataExportService";
-	property name="dataExportTemplateService"        inject="dataExportTemplateService";
-	property name="scheduledExportService"           inject="scheduledExportService";
+	property name="dataExportService"                inject="featureInjector:dataExport:dataExportService";
+	property name="dataExportTemplateService"        inject="featureInjector:dataExport:dataExportTemplateService";
+	property name="scheduledExportService"           inject="featureInjector:dataExport:scheduledExportService";
 	property name="formsService"                     inject="formsService";
-	property name="siteService"                      inject="siteService";
+	property name="siteService"                      inject="featureInjector:sites:siteService";
 	property name="versioningService"                inject="versioningService";
-	property name="rulesEngineFilterService"         inject="rulesEngineFilterService";
+	property name="rulesEngineFilterService"         inject="featureInjector:rulesEngine:rulesEngineFilterService";
 	property name="dtHelper"                         inject="jqueryDatatablesHelpers";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="sessionStorage"                   inject="sessionStorage";
@@ -21,10 +21,6 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
-
-		if ( !isFeatureEnabled( "datamanager" ) ) {
-			event.notFound();
-		}
 
 		_loadCommonVariables( argumentCollection=arguments );
 		if ( !ReFindNoCase( "action$", arguments.action ) ) {
@@ -1391,7 +1387,9 @@ component extends="preside.system.base.AdminHandler" {
 			getRecordsArgs.extraFilters.append( { filter=treeFilter } );
 		}
 
-		prc.records = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
+		var recordsForSorting = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
+		prc.records           = recordsForSorting.records;
+		prc.ordered           = recordsForSorting.ordered;
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.sortRecords.breadcrumb.title" )

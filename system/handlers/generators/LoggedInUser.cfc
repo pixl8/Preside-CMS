@@ -1,6 +1,7 @@
 /**
  * Gets the id of the Logged in user
  *
+ * @feature websiteUsers
  */
 component {
 	property name="loginService"                     inject="loginService";

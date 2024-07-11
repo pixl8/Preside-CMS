@@ -1,6 +1,7 @@
 /**
  * Handler for the formbuilder submission rules engine context
  *
+ * @feature rulesEngine and formBuilder
  */
 component {
 

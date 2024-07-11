@@ -2,9 +2,10 @@
  * Service that provides API methods for dealing with website user permissions.
  * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        websiteUsers
  *
  */
 component displayName="Website permissions service" {
@@ -293,7 +294,7 @@ component displayName="Website permissions service" {
 		};
 
 		var dbRecords = _getAppliedPermDao().selectData(
-			  selectFields = [ "user", "benefit", "granted" ]
+			  selectFields = [ "user", "granted", $isFeatureEnabled( "websiteBenefits" ) ? "benefit" : "'' as benefit" ]
 			, filter       = { context=arguments.context, context_key=arguments.contextKey, permission_key=arguments.permissionKey }
 		);
 

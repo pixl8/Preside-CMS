@@ -3,6 +3,7 @@
  *
  * @labelfield name
  * @datamanagerEnabled true
+ * @feature            formBuilder
  */
 component displayname="Form builder: form" extends="preside.system.base.SystemPresideObject" {
 	property name="name"                   type="string"  dbtype="varchar" maxlength=255 required=true uniqueindexes="formname";

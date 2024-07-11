@@ -5,7 +5,7 @@
  * @autodoc        true
  * @presideService true
  * @singleton      true
- *
+ * @feature        rulesEngine
  */
 component displayName="Rules Engine Filter Service" {
 

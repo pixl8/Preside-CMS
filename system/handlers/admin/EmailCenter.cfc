@@ -1,6 +1,7 @@
 /**
  * Global actions/viewlets for email center functionality
  *
+ * @feature admin and emailCenter
  */
 component extends="preside.system.base.AdminHandler" {
 

@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	imgSrc     = event.buildLink( assetId=args.id ?: "", derivative='adminThumbnail', versionId=args.versionId ?: "" );
 	imgTitle   = HtmlEditFormat( args.label ?: '' );

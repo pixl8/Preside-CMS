@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	prc.pageIcon  = "user";
 	prc.pageTitle = translateResource( "cms:usermanager.addUser.page.title" );

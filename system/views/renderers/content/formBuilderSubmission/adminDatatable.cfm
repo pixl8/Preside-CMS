@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfparam name="args.renderedSubmission" type="string" />
 
 <cfoutput>

@@ -5,6 +5,7 @@
  * i.e. to get the file details of the active version of a given asset, one simply has to query the asset itself. This has
  * also been done to make upgrades easier as this asset version feature has been added later.
  *
+ * @feature assetManager
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" displayName="Asset version" {
 

@@ -5,6 +5,7 @@
  * @autodoc        true
  * @singleton      true
  * @presideService true
+ * @feature        emailCenter
  */
 component {
 

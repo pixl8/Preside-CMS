@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	page             = event.getValue( name="page", defaultValue=QueryNew(''), private=true );
 	validationResult = event.getValue( name="validationResult", defaultValue="" );

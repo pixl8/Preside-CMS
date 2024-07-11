@@ -1,3 +1,6 @@
+/**
+ * @feature admin and dataExport
+ */
 component {
 	property name="presideObjectService"      inject="presideObjectService";
 	property name="scheduledExportService"    inject="scheduledExportService";

@@ -1,3 +1,4 @@
+<!---@feature emailCenter and websiteUsers--->
 Hi ${display_name},
 
 We received a request to recreate your password for your ${site_url} account: ${email_address}.

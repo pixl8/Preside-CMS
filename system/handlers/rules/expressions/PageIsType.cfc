@@ -3,6 +3,7 @@
  *
  * @expressionContexts page
  * @expressionCategory page
+ * @feature            rulesEngine and siteTree
  */
 component {
 

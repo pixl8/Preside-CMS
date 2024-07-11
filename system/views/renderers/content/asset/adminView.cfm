@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfparam name="args.recordLink"  default="" />
 <cfparam name="args.renderedAsset" default="" />
 

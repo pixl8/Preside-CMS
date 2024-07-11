@@ -1,3 +1,6 @@
+/**
+ * @feature admin and taskManager
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {

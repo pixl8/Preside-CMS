@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.active"     type="boolean" default="false" />
 <cfparam name="args.link"       type="string"  default="" />
 <cfparam name="args.title"      type="string"  default="" />

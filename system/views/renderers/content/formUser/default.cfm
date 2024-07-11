@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	userRecord = args.userRecord ?: {};
 </cfscript>

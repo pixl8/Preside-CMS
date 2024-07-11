@@ -2,6 +2,7 @@
  * Proxy expression executor for use with
  * auto-generated rules using relationship properties
  *
+ * @feature rulesEngine
  */
 component {
 

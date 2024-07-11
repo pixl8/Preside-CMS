@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.saveAction"           type="string";
 	param name="args.cancelAction"         type="string";

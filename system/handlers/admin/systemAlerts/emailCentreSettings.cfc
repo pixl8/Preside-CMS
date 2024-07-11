@@ -1,3 +1,6 @@
+/**
+ * @feature admin and emailCenter
+ */
 component {
 
 	private void function runCheck( required systemAlertCheck check ) {

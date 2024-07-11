@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.item-types.select:">
+<form i18nBaseUri="formbuilder.item-types.select:" feature="formbuilder">
 	<tab id="default">
 		<fieldset id="default">
 			<field name="multiple"           control="yesNoSwitch" required="false" sortorder="32" />

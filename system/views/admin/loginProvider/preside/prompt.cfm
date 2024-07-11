@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	postLoginUrl           = args.postLoginUrl ?: "";
 	message                = rc.message ?: "";

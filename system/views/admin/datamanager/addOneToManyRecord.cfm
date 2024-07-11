@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	objectName      = rc.object          ?: "";
 	parentId        = rc.parentId        ?: "";

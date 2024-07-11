@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	groupedTemplates = prc.groupedTemplates ?: [];
 	resettableBody   = prc.resettableBody ?: [];

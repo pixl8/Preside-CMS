@@ -200,6 +200,10 @@
 		<cfreturn getSingleton( "permissionService" ).hasPermissions( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="hasAnyCmsPermissions" access="public" returntype="boolean" output="false"><cfsilent>
+		<cfreturn getSingleton( "permissionService" ).hasAnyPermissions( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false"><cfsilent>
 		<cfreturn getSingleton( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
@@ -227,7 +231,7 @@
 <!--- features --->
 	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
 		<cfargument name="feature"      type="string" required="true" />
-		<cfargument name="siteTemplate" type="string" required="false" default="#getSingleton( "siteService" ).getActiveSiteTemplate()#" /><cfsilent>
+		<cfargument name="siteTemplate" type="string" required="false" default="_active" /><cfsilent>
 
 		<cfreturn getSingleton( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
@@ -235,6 +239,13 @@
 	<cffunction name="isFeatureDefined" access="public" returntype="boolean" output="false"><cfsilent>
 		<cfreturn getSingleton( "featureService" ).isFeatureDefined( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
+
+	<cffunction name="isExtensionInstalled" access="public" returntype="boolean" output="false">
+		<cfargument name="extensionId" type="string" required="true" /><cfsilent>
+
+		<cfreturn getSingleton( "extensionManagerService" ).extensionExists( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 
 <!--- errors --->
 	<cffunction name="logError" access="public" returntype="void" output="false"><cfsilent>

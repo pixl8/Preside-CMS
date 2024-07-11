@@ -1,3 +1,4 @@
+<!---@feature admin and multilingual--->
 <cfscript>
 	language = prc.language ?: {};
 	object   = prc.objectName ?: "";

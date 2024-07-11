@@ -1,4 +1,7 @@
-component output="false" displayname=""  {
+/**
+ * @feature presideForms
+ */
+component {
 
 	property name="resourceBundleService"  inject="resourceBundleService";
 	property name="i18n"                   inject="i18n";

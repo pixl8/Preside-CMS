@@ -1,13 +1,14 @@
 /**
  * @presideService true
  * @singleton      true
+ * @feature        assetManager
  */
 component implements="preside.system.services.assetManager.IAssetQueue" {
 
 // CONSTRUCTOR
 	/**
-	 * @assetManagerService.inject delayedInjector:assetManagerService
-	 * @siteService.inject         delayedInjector:siteService
+	 * @assetManagerService.inject delayedInjector:assetManager:assetManagerService
+	 * @siteService.inject         delayedInjector:sites:siteService
 	 * @queueBatchSize.inject      coldbox:setting:assetManager.queue.batchSize
 	 */
 	public any function init(

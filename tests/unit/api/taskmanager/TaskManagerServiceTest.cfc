@@ -646,9 +646,12 @@ component extends="testbox.system.BaseSpec" {
 		tm.$( "$getRequestContext", mockRc );
 		tm.$( "$getErrorLogService", mockErrorLogService );
 		tm.$( "$isFeatureEnabled" ).$args( "sslInternalHttpCalls" ).$results( true );
+		tm.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
 		tm.$( "_setActiveSite" );
 		mockRc.$( "setUseQueryCache" );
 		mockRc.$( "isBackgroundThread", false );
+
+
 
 		return tm.init(
 			  configWrapper                = configWrapper

@@ -9,6 +9,7 @@
  *
  *  @dataExportFields   id,label,priority,description,datecreated,datemodified
  *  @datamanagerEnabled true
+ *  @feature            websiteBenefits
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Website user benefit" {
 	property name="label" uniqueindexes="benefit_name";

@@ -1,6 +1,7 @@
 /**
  * @presideService true
  * @singleton      true
+ * @feature        assetManager
  */
 component {
 

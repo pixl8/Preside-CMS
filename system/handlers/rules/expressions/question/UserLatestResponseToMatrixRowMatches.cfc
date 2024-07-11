@@ -2,7 +2,7 @@
  * @expressionCategory formbuilder
  * @expressionContexts user
  * @expressionTags     formbuilderV2Form
- * @feature            websiteusers
+ * @feature            rulesEngine and websiteusers and formbuilder
  */
 component {
 

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <div class="ace-settings-container" id="ace-settings-container">
 	<div class="btn btn-app btn-xs btn-warning ace-settings-btn" id="ace-settings-btn">
 		<i class="fa fa-cog bigger-150"></i>

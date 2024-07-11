@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	message = rc.message ?: "";
 	loginId = EncodeForHTMLAttribute( rc.loginId ?: "" );

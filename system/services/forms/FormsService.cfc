@@ -1,7 +1,8 @@
 /**
- * @singleton
- * @autodoc
- * @presideService
+ * @singleton      true
+ * @autodoc        true
+ * @presideService true
+ * @feature        presideForms
  */
 component displayName="Forms service" {
 
@@ -9,12 +10,13 @@ component displayName="Forms service" {
 	/**
 	 * @formDirectories.inject           presidecms:directories:forms
 	 * @presideObjectService.inject      PresideObjectService
-	 * @siteService.inject               SiteService
-	 * @validationEngine.inject          ValidationEngine
+	 * @siteService.inject               featureInjector:sites:siteService
+	 * @validationEngine.inject          validationEngine
 	 * @i18n.inject                      i18n
 	 * @coldbox.inject                   coldbox
-	 * @presideFieldRuleGenerator.inject PresideFieldRuleGenerator
+	 * @presideFieldRuleGenerator.inject presideFieldRuleGenerator
 	 * @featureService.inject            featureService
+	 * @ignoreFileService.inject         ignoreFileService
 	 * @defaultContextName.inject        coldbox:fwSetting:EventAction
 	 * @configuredControls.inject        coldbox:setting:formControls
 	 */
@@ -27,6 +29,7 @@ component displayName="Forms service" {
 		, required any    coldbox
 		, required any    presideFieldRuleGenerator
 		, required any    featureService
+		, required any    ignoreFileService
 		, required string defaultContextName
 		, required struct configuredControls
 	) {
@@ -37,6 +40,7 @@ component displayName="Forms service" {
 		_setFormDirectories( arguments.formDirectories );
 		_setPresideFieldRuleGenerator( arguments.presideFieldRuleGenerator );
 		_setFeatureService( arguments.featureService );
+		_setIgnoreFileService( arguments.ignoreFileService );
 		_setDefaultContextName( arguments.defaultContextName );
 		_setConfiguredControls( arguments.configuredControls );
 		_setSiteService( arguments.siteService );
@@ -923,8 +927,12 @@ component displayName="Forms service" {
 					formName = ListPrepend( formName, prefix, "." );
 				}
 
+				if ( _getIgnoreFileService().isIgnored( "form", formName ) ) {
+					continue;
+				}
+
 				forms[ formName ] = forms[ formName ] ?: [];
-				forms[ formName ].append( _readForm( filePath=file ) );
+				forms[ formName ].append( _readForm( filePath=file, formName=formName ) );
 			}
 		}
 
@@ -937,12 +945,18 @@ component displayName="Forms service" {
 					, form2 = forms[ formName ][ i ]
 				);
 			}
+
 			forms[ formName ] = frm;
 		}
+
 		for( formName in forms ) {
 			frm = resolveExtensions( formName, forms[ formName ], forms );
 
-			if ( _registerForm( formName, frm ) ) {
+			if ( _itemBelongsToDisabledFeature( frm ) ) {
+				_getIgnoreFileService().ignore( "form", formName );
+			} else if ( _formRelatesToNonExistantObject( formName ) ) {
+				_getIgnoreFileService().ignore( "form", formName );
+			} else if ( _registerForm( formName, frm ) ) {
 				_applyDefaultLabellingToForm( formName );
 			}
 		}
@@ -971,10 +985,10 @@ component displayName="Forms service" {
 		return false;
 	}
 
-	private struct function _readForm( required string filePath ) {
-		var xml            = "";
-		var tabs           = "";
-		var theForm        = {};
+	private struct function _readForm( required string filePath, required string formName ) {
+		var xml     = "";
+		var tabs    = "";
+		var theForm = {};
 
 		try {
 			var xmlContent = fileread( arguments.filePath, "utf-8" );
@@ -984,7 +998,6 @@ component displayName="Forms service" {
 				  type = "FormsService.BadFormXml"
 				, message = "The form definition file, [#ListLast( arguments.filePath, '\/' )#], does not contain valid XML"
 				, detail = e.message
-
 			);
 		}
 
@@ -994,53 +1007,51 @@ component displayName="Forms service" {
 		}
 		theForm.tabs = [];
 
-		if ( !_itemBelongsToDisabledFeature( theForm ) ) {
-			tabs = XmlSearch( xml, "/form/tab" );
+		tabs = XmlSearch( xml, "/form/tab" );
 
-			for ( var i=1; i lte ArrayLen( tabs ); i++ ) {
-				var attribs = tabs[i].xmlAttributes;
+		for ( var i=1; i lte ArrayLen( tabs ); i++ ) {
+			var attribs = tabs[i].xmlAttributes;
 
-				var tab = {
-					  title       = attribs.title       ?: ""
-					, description = attribs.description ?: ""
-					, id          = attribs.id          ?: ""
-					, fieldsets   = []
-				}
-				StructAppend( tab, attribs, false );
-
-				if ( StructKeyExists( tabs[i], "fieldset" ) ) {
-					for( var n=1; n lte ArrayLen( tabs[i].fieldset ); n++ ){
-						attribs = tabs[i].fieldset[n].xmlAttributes;
-
-						var fieldset = {
-							  title       = attribs.title       ?: ""
-							, description = attribs.description ?: ""
-							, id          = attribs.id          ?: ""
-							, fields      = []
-						};
-						StructAppend( fieldset, attribs, false );
-
-						if ( StructKeyExists( tabs[i].fieldset[n], "field" ) ) {
-							for( var x=1; x lte ArrayLen( tabs[i].fieldset[n].field ); x++ ){
-								var field = {};
-
-								for( var key in tabs[i].fieldset[n].field[x].xmlAttributes ){
-									field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
-								}
-
-								_bindAttributesFromPresideObjectField( field );
-								field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
-
-								ArrayAppend( fieldset.fields, field );
-							}
-						}
-
-						ArrayAppend( tab.fieldsets, fieldset );
-					}
-				}
-
-				ArrayAppend( theForm.tabs, tab );
+			var tab = {
+				  title       = attribs.title       ?: ""
+				, description = attribs.description ?: ""
+				, id          = attribs.id          ?: ""
+				, fieldsets   = []
 			}
+			StructAppend( tab, attribs, false );
+
+			if ( StructKeyExists( tabs[i], "fieldset" ) ) {
+				for( var n=1; n lte ArrayLen( tabs[i].fieldset ); n++ ){
+					attribs = tabs[i].fieldset[n].xmlAttributes;
+
+					var fieldset = {
+						  title       = attribs.title       ?: ""
+						, description = attribs.description ?: ""
+						, id          = attribs.id          ?: ""
+						, fields      = []
+					};
+					StructAppend( fieldset, attribs, false );
+
+					if ( StructKeyExists( tabs[i].fieldset[n], "field" ) ) {
+						for( var x=1; x lte ArrayLen( tabs[i].fieldset[n].field ); x++ ){
+							var field = {};
+
+							for( var key in tabs[i].fieldset[n].field[x].xmlAttributes ){
+								field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
+							}
+
+							_bindAttributesFromPresideObjectField( field );
+							field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
+
+							ArrayAppend( fieldset.fields, field );
+						}
+					}
+
+					ArrayAppend( tab.fieldsets, fieldset );
+				}
+			}
+
+			ArrayAppend( theForm.tabs, tab );
 		}
 
 		return theForm;
@@ -1421,12 +1432,18 @@ component displayName="Forms service" {
 	}
 
 	private string function _getSiteTemplatePrefix() {
-		var siteTemplate = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true );
+		var siteTemplate = _getFeatureService().isFeatureEnabled( "sites" ) ? _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) : "";
 		return Len( Trim( siteTemplate ) ) ? ( "site-template::" & sitetemplate & "." ) : "";
 	}
 
 	private boolean function _itemBelongsToDisabledFeature( required struct itemDefinition ) {
 		return Len( Trim( itemDefinition.feature ?: "" ) ) && !_getFeatureService().isFeatureEnabled( Trim( itemDefinition.feature ) );
+	}
+
+	private boolean function _formRelatesToNonExistantObject( required string formName ) {
+		var objName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+
+		return Len( objName ) && !_getPresideObjectService().objectExists( objName );
 	}
 
 	private void function _stripDisabledFeatures( required struct formDefinition ) {
@@ -1464,7 +1481,7 @@ component displayName="Forms service" {
 		}
 
 		var presideObjectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
-		if ( Len( Trim( presideObjectName ) ) ) {
+		if ( Len( Trim( presideObjectName ) ) && _getPresideObjectService().objectExists( presideObjectName ) ) {
 			var presideObjectName = _getPresideObjectService().getObjectAttribute( presideObjectName, "derivedFrom", presideObjectName );
 			if ( _getPresideObjectService().getObjectAttribute( presideObjectName, "isPageType", false ) ) {
 				return "page-types.#presideObjectName#:";
@@ -1654,6 +1671,13 @@ component displayName="Forms service" {
 	}
 	private void function _setFeatureService( required any featureService ) {
 		_featureService = arguments.featureService;
+	}
+
+	private any function _getIgnoreFileService() {
+		return _ignoreFileService;
+	}
+	private void function _setIgnoreFileService( required any ignoreFileService ) {
+		_ignoreFileService = arguments.ignoreFileService;
 	}
 
 	private any function _getSiteService() {

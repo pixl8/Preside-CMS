@@ -5,9 +5,10 @@
  * \n
  * See [[rules-engine]] for more details.
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        rulesEngine
  *
  */
 component displayName="RulesEngine Field Type Service" {

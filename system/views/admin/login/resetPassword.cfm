@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	token         = EncodeForHTMLAttribute( rc.token ?: "" );
 	message       = rc.message        ?: "";

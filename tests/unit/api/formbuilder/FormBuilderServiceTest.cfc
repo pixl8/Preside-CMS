@@ -29,6 +29,7 @@ component extends="testbox.system.BaseSpec"{
 				var service = getService();
 				var formId  = CreateUUId();
 
+				service.$( "isV2Form", true );
 				mockFormItemDao.$( "selectData" ).$args(
 					  filter       = { form=formId }
 					, orderBy      = "sort_order"
@@ -74,6 +75,7 @@ component extends="testbox.system.BaseSpec"{
 					, { id="item7", type=types.b, formId=formId, questionId=questionId, item_type="typeb", configuration={ name="some_field", label="A long question", help="some help" } }
 				];
 
+				service.$( "isV2Form", true );
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typeb" ).$results( types.b );
 				mockQuestionDao.$( "selectData" ).$args( id=questionId ).$results( mockQuestionQuery );
@@ -100,6 +102,7 @@ component extends="testbox.system.BaseSpec"{
 				] );
 				var expectedResult = { cat="dog", test=true };
 
+				service.$( "isV2Form", true );
 				mockItemTypesService.$( "getItemTypeConfig", {} );
 				mockFormItemDao.$( "selectData" ).$args(
 					  filter       = { form=formId }
@@ -136,16 +139,18 @@ component extends="testbox.system.BaseSpec"{
 					, c = { test=true, something=CreateUUId() }
 				};
 				var expectedResult = [
-					  { id="item1", type=types.a, formId=formId, questionId="", item_type="typea", configuration={} }
-					, { id="item5", type=types.a, formId=formId, questionId="", item_type="typea", configuration={} }
-					, { id="item6", type=types.a, formId=formId, questionId="", item_type="typea", configuration={} }
-					, { id="item7", type=types.c, formId=formId, questionId="", item_type="typec", configuration={} }
+					  { id="item1", type=types.a, formId=formId, item_type="typea", configuration={} }
+					, { id="item5", type=types.a, formId=formId, item_type="typea", configuration={} }
+					, { id="item6", type=types.a, formId=formId, item_type="typea", configuration={} }
+					, { id="item7", type=types.c, formId=formId, item_type="typec", configuration={} }
 				];
 
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typeb" ).$results( types.b );
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typec" ).$results( types.c );
 
+				service.$( "isV2Form", true );
+				mockFormItemDao.$( "dataExists" ).$args( filter={ id=formId, uses_global_questions=true } ).$results( true );
 				mockFormItemDao.$( "selectData" ).$args(
 					  filter       = { form=formId }
 					, orderBy      = "sort_order"

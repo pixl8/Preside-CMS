@@ -1,9 +1,10 @@
 /**
  * Provides logic around actions in form builder
  *
- * @autodoc
- * @singleton
- * @presideservice
+ * @autodoc        true
+ * @singleton      true
+ * @presideservice true
+ * @feature        formbuilder
  */
 component {
 

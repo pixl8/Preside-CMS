@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	topLevel       = args.topLevel ?: Querynew('');
 	gridFields     = args.gridFields ?: [];

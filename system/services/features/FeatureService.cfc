@@ -6,6 +6,9 @@
  */
 component singleton=true autodoc=true displayName="Feature service" {
 
+
+	property name="siteService" inject="delayedInjector:siteService";
+
 // CONSTRUCTOR
 	/**
 	 * @configuredFeatures.inject coldbox:setting:features
@@ -34,14 +37,36 @@ component singleton=true autodoc=true displayName="Feature service" {
 			return false;
 		}
 
-		if ( !StructKeyExists( arguments, "siteTemplate" ) ) {
+		if ( isArray( features[ arguments.feature ].dependsOn ?: "" ) ) {
+			for( var f in features[ arguments.feature ].dependsOn ) {
+				if ( !isFeatureEnabled( f, arguments.siteTemplate ) ) {
+					if ( !Len( arguments.siteTemplate ) ) {
+						features[ arguments.feature ].enabled = false; // shortcut future parent lookups
+					}
+					return false;
+				}
+			}
+		}
+
+		if (    !StructKeyExists( arguments, "siteTemplate" )
+			 || ( IsBoolean( request._isPresideReloadRequest ?: "" ) && request._isPresideReloadRequest )
+			 || arguments.feature == "sites"
+			 || !isFeatureEnabled( "sites" )
+		) {
 			return true;
 		}
 
-		var activeSiteTemplate   = Len( Trim( arguments.siteTemplate ) ) ? arguments.siteTemplate : "default";
 		var availableToTemplates = features[ arguments.feature ].siteTemplates ?: [ "*" ];
+		if ( !IsArray( availableToTemplates ) || ArrayFind( availableToTemplates, "*" ) ) {
+			return true;
+		}
 
-		return !IsArray( availableToTemplates ) || availableToTemplates.find( "*" ) || availableToTemplates.find( activeSiteTemplate );
+		var activeSiteTemplate  = Len( Trim( arguments.siteTemplate ) ) ? arguments.siteTemplate : "default";
+		if ( activeSiteTemplate == "_active" ) {
+			activeSiteTemplate = siteService.getActiveSiteTemplate();
+		}
+
+		return ArrayFind( availableToTemplates, activeSiteTemplate );
 	}
 
 	/**

@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	queueSummary  = prc.queueSummary ?: QueryNew( '' );
 	hasClearPerms = IsTrue( prc.hasClearPerms ?: "" )

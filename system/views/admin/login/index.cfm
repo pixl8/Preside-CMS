@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	loginProviders        = prc.loginProviders    ?: [];
 	renderedProviders     = prc.renderedProviders ?: {};

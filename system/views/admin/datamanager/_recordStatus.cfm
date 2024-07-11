@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	isDraft   = IsTrue( args._version_is_draft );
 	hasDrafts = IsTrue( args._version_has_drafts );

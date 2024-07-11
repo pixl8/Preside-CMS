@@ -2,7 +2,7 @@
  * @singleton      true
  * @presideService true
  * @autodoc        true
- *
+ * @feature        emailCenter
  */
 component {
 
@@ -24,7 +24,7 @@ component {
 	 * @emailSendingContextService.inject emailSendingContextService
 	 * @emailStyleInliner.inject          emailStyleInliner
 	 * @emailStatsService.inject          emailStatsService
-	 * @assetManagerService.inject        assetManagerService
+	 * @assetManagerService.inject        featureInjector:assetManager:assetManagerService
 	 * @emailSettings.inject              coldbox:setting:email
 	 * @templateCache.inject              cachebox:emailTemplateCache
 	 * @timeSeriesUtils.inject            timeSeriesUtils
@@ -775,6 +775,10 @@ component {
 		,          boolean allowDrafts      = false
 		,          boolean fromVersionTable = arguments.allowDrafts
   	) {
+  		if ( !$isFeatureEnabled( "assetManager" ) ) {
+  			return [];
+  		}
+
 		var assetManagerService = _getAssetManagerService()
 		var attachments         = [];
 		var assets              = $getPresideObject( "email_template" ).selectData(

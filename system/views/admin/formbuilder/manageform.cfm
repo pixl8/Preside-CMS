@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	formId  = ( rc.id ?: "" );
 	theForm = prc.form ?: QueryNew('');

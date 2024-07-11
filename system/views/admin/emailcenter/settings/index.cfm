@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	formId       = "email-general-settings";
 	formAction   = event.buildAdminLink( linkto="emailcenter.settings.saveGeneralSettingsAction" );

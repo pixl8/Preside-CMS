@@ -1,6 +1,7 @@
 /**
  * Core tasks for the task manager
  *
+ * @feature taskManager
  */
 component {
 

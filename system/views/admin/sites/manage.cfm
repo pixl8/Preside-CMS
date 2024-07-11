@@ -1,3 +1,4 @@
+<!---@feature admin and sites--->
 <cfscript>
 	objectName          = "site";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );

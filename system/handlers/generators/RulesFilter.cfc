@@ -1,6 +1,7 @@
 /**
  * Value generator helpers for rules engine filters
  *
+ * @feature rulesEngine
  */
 component {
 

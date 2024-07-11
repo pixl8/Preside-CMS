@@ -1,3 +1,6 @@
+/**
+ * @feature admin and formbuilder
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="datamanagerService"          inject="datamanagerService";

@@ -19,7 +19,7 @@ component extends="coldbox.system.Interceptor" {
 				event.checkPageAccess();
 				event.setXFrameOptionsHeader();
 				event.setHTTPHeader( name="X-Cache", value="HIT" );
-				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
+				var viewletsRendered = isFeatureEnabled( "delayedViewlets" ) ? delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" ) : ( cached.body ?: "" );
 				var contentType      = cached.contentType ?: "";
 				var pageId           = event.getCurrentPageId();
 				var xframeOptions    = prc.xframeoptions ?: "DENY";
@@ -28,7 +28,7 @@ component extends="coldbox.system.Interceptor" {
 					event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
 				}
 
-				if ( Len( Trim( pageId ) ) ) {
+				if ( Len( Trim( pageId ) ) && isFeatureEnabled( "websiteUsers" ) ) {
 					websiteUserActionService.recordAction(
 						  action     = "pagevisit"
 						, type       = "request"
@@ -41,7 +41,7 @@ component extends="coldbox.system.Interceptor" {
 				if ( len( contentType ) ) {
 					content type=contentType;
 				}
-				echo( delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered ) );
+				echo( isFeatureEnabled( "delayedViewlets" ) ? delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered ) : viewletsRendered );
 				abort;
 			}
 		}
@@ -66,8 +66,10 @@ component extends="coldbox.system.Interceptor" {
 			event.setHTTPHeader( name="X-Cache", value="MISS" );
 		}
 
-		var viewletsRendered          = delayedViewletRendererService.renderDelayedViewlets( content );
-		interceptData.renderedContent = delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered );
+		if ( isFeatureEnabled( "delayedViewlets" ) ) {
+			var viewletsRendered          = delayedViewletRendererService.renderDelayedViewlets( content );
+			interceptData.renderedContent = delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered );
+		}
 	}
 
 	public void function postUpdateObjectData( event, interceptData ) {

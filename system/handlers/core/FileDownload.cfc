@@ -1,6 +1,6 @@
 component {
 
-	property name="assetManagerService"    inject="assetManagerService";
+	property name="fileTypesService"       inject="fileTypesService";
 	property name="storageProviderService" inject="storageProviderService";
 
 	public function index( event, rc, prc ) output=false {
@@ -26,7 +26,7 @@ component {
 			event.notFound();
 		}
 
-		var type = assetManagerService.getAssetType( name=ListLast( filename, "." ) );
+		var type = fileTypesService.getAssetType( name=ListLast( filename, "." ) );
 		if( StructIsEmpty( type ) ){
 			type = {
 				  serveAsAttachment = true

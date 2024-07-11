@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	locationId = rc.id ?: "";
 	location   = prc.location ?: {};

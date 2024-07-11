@@ -1,5 +1,6 @@
 /**
  * @versioned false
+ * @feature   formbuilder2
  */
 component displayname="Form builder: global question response" extends="preside.system.base.SystemPresideObject" {
 	property name="label" formula="${prefix}question.field_label" adminRenderer="none";
@@ -33,8 +34,8 @@ component displayname="Form builder: global question response" extends="preside.
 
 	// response possibly related to these
 	property name="submission"   relationship="many-to-one" relatedto="formbuilder_formsubmission" required=false excludeDataExport=true onDelete="cascade";
-	property name="website_user" relationship="many-to-one" relatedto="website_user"               required=false excludeDataExport=true adminRenderer="none";
-	property name="admin_user"   relationship="many-to-one" relatedto="security_user"              required=false excludeDataExport=true adminRenderer="none";
+	property name="website_user" relationship="many-to-one" relatedto="website_user"               required=false excludeDataExport=true adminRenderer="none" feature="websiteUsers";
+	property name="admin_user"   relationship="many-to-one" relatedto="security_user"              required=false excludeDataExport=true adminRenderer="none" feature="admin";
 
 	property name="is_website_user" type="boolean" dbtype="boolean" formula="case when ${prefix}website_user is not null then 1 else 0 end"  adminRenderer="none";
 	property name="is_admin_user"   type="boolean" dbtype="boolean" formula="case when ${prefix}admin_user is not null then 1 else 0 end"  adminRenderer="none";

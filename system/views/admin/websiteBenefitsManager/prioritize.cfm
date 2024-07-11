@@ -1,3 +1,4 @@
+<!---@feature admin and websiteBenefits--->
 <cfscript>
 	benefits = prc.benefits ?: QueryNew('');
 

@@ -4,7 +4,7 @@ Richeditor: link form
 
 This form is used for the add/edit link screen in the richeditor.
 -->
-<form>
+<form feature="cms">
 	<tab id="basic" sortorder="10" title="cms:ckeditor.linkpicker.basic.tab">
 		<!-- we will show/hide these fieldsets depending on the selected link type -->
 		<fieldset id="sitetree" sortorder="10">

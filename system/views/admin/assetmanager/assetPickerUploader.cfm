@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	addAssetsUrl      = event.buildAdminLink( linkTo = "assetManager.addAssetsInPicker"    );
 	uploadTempFileUrl = event.buildAdminLink( linkTo = "assetManager.uploadTempFileAction" );

@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and cms
+ */
 component {
 
     property name="presideObjectService" inject="presideObjectService";

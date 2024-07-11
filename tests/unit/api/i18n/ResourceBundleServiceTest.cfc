@@ -248,8 +248,11 @@
 		<cfscript>
 			mockSiteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
 			mockSiteService.$( "getActiveSiteTemplate", "" );
+			var svc = CreateMock( object=new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories, siteService=mockSiteService, defaultLocale=arguments.defaultLocale ) );
 
-			return new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories, siteService=mockSiteService, defaultLocale=arguments.defaultLocale );
+			svc.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
+
+			return svc;
 		</cfscript>
 	</cffunction>
 

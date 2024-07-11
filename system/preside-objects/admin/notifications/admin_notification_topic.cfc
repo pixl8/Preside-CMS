@@ -3,6 +3,7 @@
  *
  * @noLabel   true
  * @versioned false
+ * @feature   admin
  */
 component output="false" extends="preside.system.base.SystemPresideObject" displayname="Notification topic" {
 	property name="topic"                 type="string"  dbtype="varchar" maxlength=200 required=true uniqueindex="topic";

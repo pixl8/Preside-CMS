@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	templateId     = rc.id ?: "";
 	cancelLink     = event.buildAdminLink( linkto="emailcenter.customTemplates.preview", queryString="id=" & templateId );

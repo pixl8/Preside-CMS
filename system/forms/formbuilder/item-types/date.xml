@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.item-types.date:">
+<form i18nBaseUri="formbuilder.item-types.date:" feature="formbuilder">
 	<tab id="validation">
 		<fieldset id="fixed">
 			<field name="minDate"                       control="datePicker"  required="false"  sortorder="10" />

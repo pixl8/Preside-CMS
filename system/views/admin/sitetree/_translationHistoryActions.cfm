@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfparam name="args._version_number" type="string" />
 
 <cfset language = rc.language ?: "" />

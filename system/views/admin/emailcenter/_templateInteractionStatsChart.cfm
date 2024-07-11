@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	interactionStats = args.interactionStats ?: {};
 	statsAvailable   = isTrue( args.statsAvailable ?: "" );

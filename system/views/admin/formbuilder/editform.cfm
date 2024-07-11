@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	formId = "editForm-" & CreateUUId();
 	formAction = event.buildAdminLink( 'formbuilder.editFormAction' );

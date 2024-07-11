@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	renderedTab = prc.renderedTab;
 	tabs        = prc.tabs ?: [];

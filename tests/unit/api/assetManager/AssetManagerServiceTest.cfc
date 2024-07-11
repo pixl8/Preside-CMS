@@ -535,8 +535,8 @@ component extends="testbox.system.BaseSpec"{
 		mockAssetMetaDao               = CreateStub();
 		assetCache                     = CreateStub();
 		mockDerivativeGeneratorService = CreateStub();
+		mockfileTypesService           = CreateStub();
 		configuredDerivatives          = {};
-		configuredTypesByGroup         = {};
 		configuredFolders              = {};
 
 		var service = CreateObject( "preside.system.services.assetManager.AssetManagerService" );
@@ -550,6 +550,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getPresideObject" ).$args( "asset_meta"       ).$results( mockAssetMetaDao       );
 		service.$( "_setupSystemFolders" );
 		service.$( "_migrateFromLegacyRecycleBinApproach" );
+		service.$( "$isFeatureEnabled" ).$args( "assetManager" ).$results( true );
 
 		assetCache.$( "clearByKeySnippet" );
 
@@ -561,7 +562,7 @@ component extends="testbox.system.BaseSpec"{
 			, assetQueueService          = mockAssetQueueService
 			, derivativeGeneratorService = mockDerivativeGeneratorService
 			, configuredDerivatives      = configuredDerivatives
-			, configuredTypesByGroup     = configuredTypesByGroup
+			, fileTypesService           = mockFileTypesService
 			, configuredFolders          = configuredFolders
 			, renderedAssetCache         = assetCache
 		);

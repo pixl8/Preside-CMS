@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	param name="args.folderId"       type="string";
 	param name="args.folderTitle"    type="string";

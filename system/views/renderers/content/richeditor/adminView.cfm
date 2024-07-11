@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	rawContent = args.data ?: "";
 </cfscript>

@@ -1,6 +1,7 @@
 /**
  * Handler used for tracking email opens, clicks, etc.
  *
+ * @feature emailCenter
  */
 component {
 

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	link      = args.link      ?: "";
 	globalKey = args.globalKey ?: "";
@@ -37,22 +38,14 @@
 
 			<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
 				<cfloop array="#children#" item="child" index="i">
-					<cfset childLinkAttributes=renderHtmlAttributes( attribs=( child.linkAttributes ?: {} ), attribPrefix=( child.linkAttributePrefix ?: "" ) ) />
 					<cfif IsSimpleValue( child )>
-						<cfif child eq "---">
+						<cfif ReFind( "^-+$", child )> <!--- e.g. "-", "---", etc. --->
 							<li class="divider"></li>
 						<cfelse>
 							#child#
 						</cfif>
 					<cfelse>
-						<li>
-							<a href="#( child.link ?: "" )#"<cfif Len( child.target ?: "" )> target="#target#"</cfif> class="<cfif Len( child.prompt ?: "" ) > confirmation-prompt</cfif>" <cfif Len( child.prompt ?: "")> title="#HtmlEditFormat( child.prompt )#"</cfif> <cfif Len( child.match ?: "")> data-confirmation-match="#child.match#"</cfif> #childLinkAttributes#>
-								<cfif Len( child.icon ?: "" )>
-									<i class="fa fa-fw #( child.icon ?: '' )#"></i>&nbsp;
-								</cfif>
-								#( child.title ?: "" )#
-							</a>
-						</li>
+						#renderView( view="/admin/datamanager/_topRightButtonChildItem", args=child )#
 					</cfif>
 				</cfloop>
 			</ul>

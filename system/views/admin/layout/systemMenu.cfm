@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	settingsMenu = renderViewlet( event="admin.layout.adminMenu", args={
 		  menuItems       = getSetting( "adminConfigurationMenuItems" )

@@ -4,6 +4,7 @@
  * @autodoc        true
  * @singleton      true
  * @presideService true
+ * @feature        customEmailTemplates
  *
  */
 component {
@@ -24,7 +25,7 @@ component {
 	 * @emailTemplateService.inject      emailTemplateService
 	 * @emailRecipientTypeService.inject emailRecipientTypeService
 	 * @emailService.inject              emailService
-	 * @rulesEngineFilterService.inject  rulesEngineFilterService
+	 * @rulesEngineFilterService.inject  featureInjector:rulesEngine:rulesEngineFilterService
 	 *
 	 */
 	public any function init(
@@ -190,32 +191,35 @@ component {
 			, unit          = template.sending_limit_unit
 			, measure       = template.sending_limit_measure
 		) : [];
-		var blueprintFilter = template.blueprint_filter ?: "";
-		if ( blueprintFilter.len() ) {
-			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
-			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
-				  objectName      = recipientObject
-				, expressionArray = filterExpression
-			);
-			extraFilters.append( recipientFilter );
-		}
-		if ( Len( Trim( template.recipient_filter ?: "" ) ) ) {
-			var isSegmentationFilter = _getRulesEngineFilterService().isSegmentationFilter( filterid=template.recipient_filter );
 
-			if ( isSegmentationFilter ) {
-				var recipientFilter = _getRulesEngineFilterService().prepareSegmentationFilter(
-					  objectName = recipientObject
-					, filterId   = template.recipient_filter
-				);
-			} else {
-				var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
+		if ( $isFeatureEnabled( "rulesEngine" ) ) {
+			var blueprintFilter = template.blueprint_filter ?: "";
+			if ( Len( blueprintFilter ) ) {
+				var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
 				var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
 					  objectName      = recipientObject
 					, expressionArray = filterExpression
 				);
+				extraFilters.append( recipientFilter );
 			}
+			if ( Len( Trim( template.recipient_filter ?: "" ) ) ) {
+				var isSegmentationFilter = _getRulesEngineFilterService().isSegmentationFilter( filterid=template.recipient_filter );
 
-			ArrayAppend( extraFilters, recipientFilter )
+				if ( isSegmentationFilter ) {
+					var recipientFilter = _getRulesEngineFilterService().prepareSegmentationFilter(
+						  objectName = recipientObject
+						, filterId   = template.recipient_filter
+					);
+				} else {
+					var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
+					var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
+						  objectName      = recipientObject
+						, expressionArray = filterExpression
+					);
+				}
+
+				ArrayAppend( extraFilters, recipientFilter )
+			}
 		}
 
 		extraFilters.append( _getDuplicateCheckFilter( recipientObject, arguments.templateId ) );

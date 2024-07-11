@@ -577,6 +577,7 @@
 				, interceptorService = _getMockInterceptorService()
 				, featureService     = mockFeatureService
 				, adapterFactory     = mockAdapterFactory
+				, ignoreFileService  = _getMockIgnoreFileService()
 			);
 
 			return new preside.system.services.presideObjects.RelationshipGuidance(

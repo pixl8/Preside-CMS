@@ -1,9 +1,10 @@
 /**
  * Service to provide business logic for the [[datamanager]].
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        admin
  */
 component {
 
@@ -21,7 +22,7 @@ component {
 	 * @labelRendererService.inject LabelRendererService
 	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
-	 * @siteService.inject          SiteService
+	 * @siteService.inject          featureInjector:sites:SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
 	 * @customizationService.inject datamanagerCustomizationService
 	 * @cloningService.inject       presideObjectCloningService
@@ -60,7 +61,8 @@ component {
 	public array function getGroupedObjects() {
 		var poService          = _getPresideObjectService();
 		var permsService       = _getPermissionService();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var useSites           = $isFeatureEnabled( "sites" );
+		var activeSiteTemplate = useSites ? _getSiteService().getActiveSiteTemplate() : "";
 		var i18nPlugin         = _getI18nPlugin();
 		var objectNames        = poService.listObjects();
 		var groups             = {};
@@ -68,8 +70,8 @@ component {
 
 		for( var objectName in objectNames ){
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
-			var siteTemplates      = poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" );
-			var isInActiveTemplate = siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
+			var siteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" ) : "";
+			var isInActiveTemplate = !useSites || siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
 
 			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
@@ -349,15 +351,34 @@ component {
 		return _getPresideObjectService().getLabelField( arguments.objectName );
 	}
 
-	public query function getRecordsForSorting( required string objectName ) {
+	public struct function getRecordsForSorting( required string objectName ) {
 		var idField        = _getPresideObjectService().getIdField( arguments.objectName );
 		var selectDataArgs = StructCopy( arguments );
+		var labelRenderer  = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
 
 		selectDataArgs.orderBy          = getSortField( arguments.objectName );
-		selectDataArgs.selectFields     = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", selectDataArgs.orderBy ];
 		selectDataArgs.fromVersionTable = _getPresideObjectService().objectUsesDrafts( objectName=arguments.objectName );
 
-		return _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
+		if ( Len( labelRenderer ) ) {
+			selectDataArgs.selectFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer );
+		} else {
+			selectDataArgs.selectFields = [ "${labelfield} as label" ];
+		}
+		ArrayAppend( selectDataArgs.selectFields, [ "#arguments.objectName#.#idField# as id", selectDataArgs.orderBy ], true );
+
+		var recordData = _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
+		var records    = [];
+		var ordered    = [];
+
+		for( var record in recordData ) {
+			ArrayAppend( records, {
+				  id    = record.id
+				, label = Len( labelRenderer ) ? _getLabelRendererService().renderLabel( labelRenderer, record ) : record.label
+			} );
+			ArrayAppend( ordered, record.id );
+		}
+
+		return { records=records, ordered=ArrayToList( ordered ) };
 	}
 
 	public void function saveSortedRecords( required string objectName, required array sortedIds ) {

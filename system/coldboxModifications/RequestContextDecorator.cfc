@@ -28,26 +28,26 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	* Override to provide a pseudo-constructor for your decorator
 	*/
 	function configure(){
+		instance.csrfProtectionService            = instance.wirebox.getInstance( dsl="csrfProtectionService" );
+		instance.delayedViewletRendererService    = instance.wirebox.getInstance( dsl="delayedViewletRendererService" );
+		instance.featureService                   = instance.wirebox.getInstance( dsl="featureService" );
+		instance.i18n                             = instance.wirebox.getInstance( dsl="i18n" );
+		instance.presideRenderer                  = instance.wirebox.getInstance( dsl="presideRenderer" );
+		instance.sessionStorage                   = instance.wirebox.getInstance( dsl="sessionStorage" );
+		instance.tenancyService                   = instance.wirebox.getInstance( dsl="tenancyService" );
 
-		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( "adminObjectLinkBuilderService" );
-		instance.auditService                     = instance.wirebox.getInstance( "auditService" );
-		instance.csrfProtectionService            = instance.wirebox.getInstance( "csrfProtectionService" );
-		instance.delayedStickerRendererService    = instance.wirebox.getInstance( "delayedStickerRendererService" );
-		instance.delayedViewletRendererService    = instance.wirebox.getInstance( "delayedViewletRendererService" );
-		instance.featureService                   = instance.wirebox.getInstance( "featureService" );
-		instance.formsService                     = instance.wirebox.getInstance( "formsService" );
-		instance.i18n                             = instance.wirebox.getInstance( "i18n" );
-		instance.loginService                     = instance.wirebox.getInstance( "loginService" );
-		instance.multilingualPresideObjectService = instance.wirebox.getInstance( "multilingualPresideObjectService" );
-		instance.presideRenderer                  = instance.wirebox.getInstance( "presideRenderer" );
-		instance.rulesEngineWebRequestService     = instance.wirebox.getInstance( "rulesEngineWebRequestService" );
-		instance.sessionStorage                   = instance.wirebox.getInstance( "sessionStorage" );
-		instance.siteService                      = instance.wirebox.getInstance( "siteService" );
-		instance.sitetreeService                  = instance.wirebox.getInstance( "sitetreeService" );
-		instance.stickerForPreside                = instance.wirebox.getInstance( "stickerForPreside" );
-		instance.tenancyService                   = instance.wirebox.getInstance( "tenancyService" );
-		instance.websiteLoginService              = instance.wirebox.getInstance( "websiteLoginService" );
-		instance.websitePermissionService         = instance.wirebox.getInstance( "websitePermissionService" );
+		instance.stickerForPreside                = instance.wirebox.getInstance( dsl="featureInjector:sticker:stickerForPreside" );
+		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( dsl="featureInjector:admin:adminObjectLinkBuilderService" );
+		instance.auditService                     = instance.wirebox.getInstance( dsl="featureInjector:auditTrail:auditService" );
+		instance.delayedStickerRendererService    = instance.wirebox.getInstance( dsl="featureInjector:delayedViewlets:delayedStickerRendererService" );
+		instance.formsService                     = instance.wirebox.getInstance( dsl="featureInjector:presideForms:formsService" );
+		instance.loginService                     = instance.wirebox.getInstance( dsl="featureInjector:admin:loginService" );
+		instance.multilingualPresideObjectService = instance.wirebox.getInstance( dsl="featureInjector:multilingual:multilingualPresideObjectService" );
+		instance.rulesEngineWebRequestService     = instance.wirebox.getInstance( dsl="featureInjector:rulesEngine:rulesEngineWebRequestService" );
+		instance.siteService                      = instance.wirebox.getInstance( dsl="featureInjector:sites:siteService" );
+		instance.sitetreeService                  = instance.wirebox.getInstance( dsl="featureInjector:siteTree:sitetreeService" );
+		instance.websiteLoginService              = instance.wirebox.getInstance( dsl="featureInjector:websiteUsers:websiteLoginService" );
+		instance.websitePermissionService         = instance.wirebox.getInstance( dsl="featureInjector:websiteUsers:websitePermissionService" );
 	}
 
 	/**
@@ -60,16 +60,20 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 // URL related
 	public void function setSite( required struct site ) {
-		getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
-		getRequestContext().setValue(
-			  name    = "_site"
-			, value   =  arguments.site
-			, private =  true
-		);
+		if ( this.getModel( "featureService" ).isFeatureEnabled( "sites" ) ) {
+			getModel( "tenancyService" ).setTenantId( tenant="site", id=( site.id ?: "" ) );
+			getRequestContext().setValue(
+				  name    = "_site"
+				, value   =  arguments.site
+				, private =  true
+			);
+		}
 	}
 
 	public void function autoSetSiteByHost() {
-		setSite( getModel( "siteService" ).matchSite( this.getServerName(), this.getCurrentPresideUrlPath() ) );
+		if ( this.getModel( "featureService" ).isFeatureEnabled( "sites" ) ) {
+			setSite( getModel( "siteService" ).matchSite( this.getServerName(), this.getCurrentPresideUrlPath() ) );
+		}
 	}
 
 	public struct function getSite() {
@@ -1008,7 +1012,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 	public void function setLanguage( required string language ) {
 		getRequestContext().setValue( name="_language", value=arguments.language, private=true );
-		getModel( "multilingualPresideObjectService" ).persistUserLanguage( arguments.language );
+		if ( getModel( "featureService" ).isFeatureEnabled( "multilingual" ) ) {
+			getModel( "multilingualPresideObjectService" ).persistUserLanguage( arguments.language );
+		}
 	}
 
 	public string function getLanguageSlug() {
@@ -1068,7 +1074,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			return arguments.cache;
 		}
 
-		if ( getModel( "websiteLoginService" ).isLoggedIn() && !getModel( "featureService" ).isFeatureEnabled( "fullPageCachingForLoggedInUsers" ) ) {
+		var featureService = getModel( "featureService" );
+
+		if ( featureService.isFeatureEnabled( "websiteUsers" ) && getModel( "websiteLoginService" ).isLoggedIn() && !featureService.isFeatureEnabled( "fullPageCachingForLoggedInUsers" ) ) {
 			return false;
 		}
 
@@ -1172,8 +1180,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		if ( this.getModel( "featureService" ).isFeatureEnabled( "delayedViewlets" ) ) {
+			contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+			contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		}
 
 		writeOutput( contentOutput );
 		getController().runEvent( event="general.requestEnd", prePostExempt=true );
@@ -1186,8 +1196,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		var contentOutput = getModel( "presideRenderer" ).renderLayout();
 
-		contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
-		contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		if ( this.getModel( "featureService" ).isFeatureEnabled( "delayedViewlets" ) ) {
+			contentOutput = getModel( "delayedViewletRendererService" ).renderDelayedViewlets(        contentOutput );
+			contentOutput = getModel( "delayedStickerRendererService" ).renderDelayedStickerIncludes( contentOutput );
+		}
 
 		writeOutput( contentOutput );
 		getController().runEvent( event="general.requestEnd", prePostExempt=true );

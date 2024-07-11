@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'enum' field type
  *
+ * @feature rulesEngine
  */
 component {
 
