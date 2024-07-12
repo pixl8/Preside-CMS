@@ -7,7 +7,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="presideObjectService"             inject="presideObjectService";
 	property name="formsService"                     inject="formsService";
 	property name="pageTypesService"                 inject="pageTypesService";
-	property name="websitePermissionService"         inject="websitePermissionService";
+	property name="websitePermissionService"         inject="featureInjector:websiteUsers:websitePermissionService";
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="versioningService"                inject="versioningService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
@@ -270,15 +270,17 @@ component extends="preside.system.base.AdminHandler" {
 
 		newId = siteTreeService.addPage( argumentCollection = formData, isDraft=saveAsDraft );
 
-		websitePermissionService.syncContextPermissions(
-			  context       = "page"
-			, contextKey    = newId
-			, permissionKey = "pages.access"
-			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-		);
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			websitePermissionService.syncContextPermissions(
+				  context       = "page"
+				, contextKey    = newId
+				, permissionKey = "pages.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
+		}
 
 
 		messageBox.info( translateResource( uri="cms:sitetree.pageAdded.confirmation" ) );
@@ -342,15 +344,17 @@ component extends="preside.system.base.AdminHandler" {
 
 		StructAppend( prc.page, QueryRowToStruct( savedData ) );
 
-		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
-			  context       = "page"
-			, contextKey    = pageId
-			, permissionKey = "pages.access"
-		);
-		prc.page.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
-		prc.page.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
-		prc.page.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
-		prc.page.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			var contextualAccessPerms = websitePermissionService.getContextualPermissions(
+				  context       = "page"
+				, contextKey    = pageId
+				, permissionKey = "pages.access"
+			);
+			prc.page.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
+			prc.page.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
+			prc.page.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
+			prc.page.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+		}
 
 		prc.allowableChildPageTypes = getAllowableChildPageTypes( prc.page.page_type );
 		prc.managedChildPageTypes   = getManagedChildPageTypes( prc.page.page_type );
@@ -434,15 +438,17 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
 		}
 
-		websitePermissionService.syncContextPermissions(
-			  context       = "page"
-			, contextKey    = pageId
-			, permissionKey = "pages.access"
-			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-		);
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			websitePermissionService.syncContextPermissions(
+				  context       = "page"
+				, contextKey    = pageId
+				, permissionKey = "pages.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
+		}
 
 		messageBox.info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
 		cookieService.setVar( name="sitetree_editPage_backToEdit", value=false );
