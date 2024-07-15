@@ -348,7 +348,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $isWebsiteUserLoggedIn() {
-		return $getWebsiteLoginService().isLoggedIn( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) && $getWebsiteLoginService().isLoggedIn( argumentCollection=arguments );
 	}
 
 	/**
@@ -367,7 +367,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $isWebsiteUserImpersonated() {
-		return $getWebsiteLoginService().isImpersonated( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) && $getWebsiteLoginService().isImpersonated( argumentCollection=arguments );
 	}
 
 	/**
@@ -384,7 +384,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $getWebsiteLoggedInUserDetails() {
-		return $getWebsiteLoginService().getLoggedInUserDetails( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) ? $getWebsiteLoginService().getLoggedInUserDetails( argumentCollection=arguments ) : {};
 	}
 
 	/**
@@ -401,7 +401,9 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $reloadWebsiteLoggedInUserDetails() {
-		return $getWebsiteLoginService().reloadLoggedInUserDetails( argumentCollection=arguments );
+		if ( $isFeatureEnabled( "websiteUsers" ) ) {
+			return $getWebsiteLoginService().reloadLoggedInUserDetails( argumentCollection=arguments );
+		}
 	}
 
 	/**
@@ -418,7 +420,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $getWebsiteLoggedInUserId() {
-		return $getWebsiteLoginService().getLoggedInUserId( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) ? $getWebsiteLoginService().getLoggedInUserId( argumentCollection=arguments ) : "";
 	}
 
 	/**
@@ -437,7 +439,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $hasWebsitePermission() {
-		return $getWebsitePermissionService().hasPermission( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) && $getWebsitePermissionService().hasPermission( argumentCollection=arguments );
 	}
 
 	/**
@@ -452,7 +454,7 @@ component displayName="Preside Super Class" {
 	 * @autodoc
 	 */
 	public any function $recordWebsiteUserAction( string userId=$getWebsiteLoggedInUserId() ) {
-		return $websiteUserActionService.recordAction( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) ? $websiteUserActionService.recordAction( argumentCollection=arguments ) : "";
 	}
 
 // EMAIL SERVICE
