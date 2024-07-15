@@ -5,7 +5,7 @@ component {
 
 	property name="assetManagerService"          inject="assetManagerService";
 	property name="assetQueueService"            inject="presidecms:dynamicservice:assetQueue";
-	property name="websiteUserActionService"     inject="websiteUserActionService";
+	property name="websiteUserActionService"     inject="featureInjector:websiteUsers:websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 	property name="queueMaxWaitAttempts"         inject="coldbox:setting:assetManager.queue.downloadWaitSeconds";
 	property name="publicCacheAge"               inject="coldbox:setting:assetManager.cacheExpiry.public";
@@ -116,12 +116,14 @@ component {
 
 				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
 				if ( type.trackDownloads ) {
-					websiteUserActionService.recordAction(
-						  action     = "download"
-						, type       = "asset"
-						, userId     = getLoggedInUserId()
-						, identifier = assetId
-					);
+					if ( isFeatureEnabled( "websiteUsers" ) ) {
+						websiteUserActionService.recordAction(
+							  action     = "download"
+							, type       = "asset"
+							, userId     = getLoggedInUserId()
+							, identifier = assetId
+						);
+					}
 					header name="Content-Disposition" value="attachment; filename=""#filename#""";
 				} else {
 					header name="Content-Disposition" value="inline; filename=""#filename#""";
