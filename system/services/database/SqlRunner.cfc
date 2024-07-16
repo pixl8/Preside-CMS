@@ -5,15 +5,21 @@ component singleton=true {
 	 * @logger.inject                defaultLogger
 	 * @defaultQueryTimeout.inject   coldbox:setting:queryTimeout.default
 	 * @defaultBgQueryTimeout.inject coldbox:setting:queryTimeout.backgroundThreadDefault
+	 * @connectionRetries.inject     coldbox:setting:datasourceConnection.retries
+	 * @connectionRetryPause.inject  coldbox:setting:datasourceConnection.retryPause
 	 */
 	public any function init(
 		  required any     logger
 		,          numeric defaultQueryTimeout   = 0
 		,          numeric defaultBgQueryTimeout = 0
+		,          numeric connectionRetries     = 0
+		,          numeric connectionRetryPause  = 100
 	) {
 		_setLogger( arguments.logger );
 		_setDefaultQueryTimeout( arguments.defaultQueryTimeout );
 		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
+		_setConnectionRetries( arguments.connectionRetries );
+		_setConnectionRetryPause( arguments.connectionRetryPause );
 
 		return this;
 	}
@@ -86,7 +92,29 @@ component singleton=true {
 			}
 		}
 
-		result = QueryExecute( sql=arguments.sql, params=params, options=options );
+		var connectionAttempts   = 0;
+		var connectionRetries    = _getConnectionRetries();
+		var connectionRetryPause = _getConnectionRetryPause();
+
+		do {
+			try {
+				result = QueryExecute(
+					  sql     = arguments.sql
+					, params  = params
+					, options = options
+				);
+				break;
+			} catch( database e ) {
+				if ( e.message contains "Communications link failure" ) {
+					if ( connectionAttempts >= connectionRetries ) {
+						rethrow;
+					}
+					sleep( connectionRetryPause );
+				} else {
+					rethrow;
+				}
+			}
+		} while( ++connectionAttempts <= connectionRetries );
 
 		if ( arguments.returntype eq "info" ) {
 			return info;
@@ -154,24 +182,38 @@ component singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getLogger() output=false {
-		return _logger;
+	private any function _getLogger() {
+	    return _logger;
 	}
-	private void function _setLogger( required any logger ) output=false {
-		_logger = arguments.logger;
+	private void function _setLogger( required any logger ) {
+	    _logger = arguments.logger;
 	}
 
 	private numeric function _getDefaultQueryTimeout() {
-		return _defaultQueryTimeout;
+	    return _defaultQueryTimeout;
 	}
 	private void function _setDefaultQueryTimeout( required numeric defaultQueryTimeout ) {
-		_defaultQueryTimeout = arguments.defaultQueryTimeout;
+	    _defaultQueryTimeout = arguments.defaultQueryTimeout;
 	}
 
 	private numeric function _getDefaultBgQueryTimeout() {
-		return _defaultBgQueryTimeout;
+	    return _defaultBgQueryTimeout;
 	}
 	private void function _setDefaultBgQueryTimeout( required numeric defaultBgQueryTimeout ) {
-		_defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
+	    _defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
+	}
+
+	private numeric function _getConnectionRetries() {
+	    return _connectionRetries;
+	}
+	private void function _setConnectionRetries( required numeric connectionRetries ) {
+	    _connectionRetries = arguments.connectionRetries;
+	}
+
+	private numeric function _getConnectionRetryPause() {
+	    return _connectionRetryPause;
+	}
+	private void function _setConnectionRetryPause( required numeric connectionRetryPause ) {
+	    _connectionRetryPause = arguments.connectionRetryPause;
 	}
 }

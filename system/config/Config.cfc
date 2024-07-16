@@ -748,6 +748,10 @@ component {
 		settings.autoRestoreDeprecatedFields = true;
 		settings.useQueryCacheDefault        = true;
 		settings.mssql = { useVarcharMaxForText = false }
+		settings.datasourceConnection = {
+			  retries    = Val( settings.env.DATASOURCE_CONNECTION_RETRIES     ?: 0   )
+			, retryPause = Val( settings.env.DATASOURCE_CONNECTION_RETRY_PAUSE ?: 100 )
+		};
 
 		settings.queryTimeout = {
 			  default                 = Val( settings.env.QUERY_TIMEOUT ?: 0 )
