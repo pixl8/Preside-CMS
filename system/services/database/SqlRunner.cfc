@@ -105,10 +105,7 @@ component singleton=true {
 				);
 				break;
 			} catch( database e ) {
-				if ( e.message contains "Communications link failure" ) {
-					if ( connectionAttempts >= connectionRetries ) {
-						rethrow;
-					}
+				if ( e.message contains "Communications link failure" && connectionAttempts < connectionRetries ) {
 					sleep( connectionRetryPause );
 				} else {
 					rethrow;
