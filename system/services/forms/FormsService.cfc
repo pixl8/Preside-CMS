@@ -276,6 +276,41 @@ component displayName="Forms service" {
 	}
 
 	/**
+	 * Returns an array of field names of text or varchar fields
+	 *
+	 * @autodoc
+	 * @formName.hint Name of the form whose text and varchar fields you wish to list.
+	 */
+	public array function listTextFields( required string formName, stripPermissionedFields=true, string permissionContext="", array permissionContextKeys=[], array suppressFields =[] ) {
+		var frm            = getForm( argumentCollection=arguments );
+		var ignoreControls = [ "readonly" ];
+		var textTypes      = [ "varchar", "text", "mediumtext", "longtext" ]
+		var fields         = [];
+
+		for( var tab in frm.tabs ){
+			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
+				continue;
+			}
+			for( var fieldset in tab.fieldsets ) {
+				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
+					continue;
+				}
+				for( var field in fieldset.fields ) {
+					var control         = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
+					var deleted         = IsBoolean( field.deleted         ?: "" ) && field.deleted;
+
+					if ( ignoreControls.findNoCase( control ) || deleted || !ArrayFind( textTypes, field.dbtype ?: "" ) ) {
+						continue;
+					}
+					ArrayAppend( fields, field.name );
+				}
+			}
+		}
+
+		return fields;
+	}
+
+	/**
 	 * Returns a default form definition for the given
 	 * Preside object name
 	 *
