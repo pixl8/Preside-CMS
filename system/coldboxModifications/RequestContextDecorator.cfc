@@ -289,6 +289,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		for( var name in formNames ) {
 			var formFields     = formsService.listFields( argumentCollection=arguments, formName=name );
 			var autoTrimFields = formsService.listAutoTrimFields( argumentCollection=arguments, formName=name );
+			var textFields     = formsService.listTextFields( argumentCollection=arguments, formName=name );
 
 			for( var field in formFields ){
 				var fieldName = arguments.fieldNamePrefix & field & arguments.fieldNameSuffix;
@@ -296,6 +297,9 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 					collection[ field ] = trim( rc[ fieldName ] ?: "" );
 				} else {
 					collection[ field ] = ( rc[ fieldName ] ?: "" );
+				}
+				if ( ArrayFind( textFields, field ) ) {
+					collection[ field ] = Replace( collection[ fieldName ], Chr(13) & Chr(10), Chr(10), "all" );
 				}
 			}
 		}
