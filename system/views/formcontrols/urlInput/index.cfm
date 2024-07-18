@@ -14,7 +14,7 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	} else if ( REFindNoCase( "^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$", value ) ) {
-		protocolDefaultValue = ArrayFirst( REMatch( "^https?:\/\/", value ) );
+		protocolDefaultValue = ArrayFirst( ReMatchNoCase( "^https?:\/\/", value ) );
 		addressDefaultValue = ReplaceNoCase( value, protocolDefaultValue, "" );
 	}
 
