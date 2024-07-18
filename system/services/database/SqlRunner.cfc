@@ -2,24 +2,27 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @logger.inject                defaultLogger
-	 * @defaultQueryTimeout.inject   coldbox:setting:queryTimeout.default
-	 * @defaultBgQueryTimeout.inject coldbox:setting:queryTimeout.backgroundThreadDefault
-	 * @connectionRetries.inject     coldbox:setting:datasourceConnection.retries
-	 * @connectionRetryPause.inject  coldbox:setting:datasourceConnection.retryPause
+	 * @logger.inject                 defaultLogger
+	 * @defaultQueryTimeout.inject    coldbox:setting:queryTimeout.default
+	 * @defaultBgQueryTimeout.inject  coldbox:setting:queryTimeout.backgroundThreadDefault
+	 * @connectionRetries.inject      coldbox:setting:datasourceConnection.retries
+	 * @connectionRetryPause.inject   coldbox:setting:datasourceConnection.retryPause
+	 * @connectionFailureRegex.inject coldbox:setting:datasourceConnection.failureRegex
 	 */
 	public any function init(
 		  required any     logger
-		,          numeric defaultQueryTimeout   = 0
-		,          numeric defaultBgQueryTimeout = 0
-		,          numeric connectionRetries     = 0
-		,          numeric connectionRetryPause  = 100
+		,          numeric defaultQueryTimeout    = 0
+		,          numeric defaultBgQueryTimeout  = 0
+		,          numeric connectionRetries      = 0
+		,          numeric connectionRetryPause   = 100
+		,          string  connectionFailureRegex = "Communications link failure"
 	) {
 		_setLogger( arguments.logger );
 		_setDefaultQueryTimeout( arguments.defaultQueryTimeout );
 		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
 		_setConnectionRetries( arguments.connectionRetries );
 		_setConnectionRetryPause( arguments.connectionRetryPause );
+		_setConnectionFailureRegex( arguments.connectionFailureRegex );
 
 		return this;
 	}
@@ -105,7 +108,7 @@ component singleton=true {
 				);
 				break;
 			} catch( database e ) {
-				if ( e.message contains "Communications link failure" && connectionAttempts < connectionRetries ) {
+				if ( ReFindNoCase( _getConnectionFailureRegex(), e.message ) && connectionAttempts < connectionRetries ) {
 					sleep( connectionRetryPause );
 				} else {
 					rethrow;
@@ -212,5 +215,12 @@ component singleton=true {
 	}
 	private void function _setConnectionRetryPause( required numeric connectionRetryPause ) {
 	    _connectionRetryPause = arguments.connectionRetryPause;
+	}
+
+	private string function _getConnectionFailureRegex() {
+	    return _connectionFailureRegex;
+	}
+	private void function _setConnectionFailureRegex( required string connectionFailureRegex ) {
+	    _connectionFailureRegex = arguments.connectionFailureRegex;
 	}
 }
