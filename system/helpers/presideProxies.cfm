@@ -205,26 +205,35 @@
 	</cfsilent></cffunction>
 
 	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false"><cfsilent>
-		<cfreturn getSingleton( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
+		<cfreturn isFeatureEnabled( "websiteUsers" ) && getSingleton( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="isLoggedIn" access="public" returntype="boolean" output="false"><cfsilent>
-		<cfreturn getSingleton( "websiteLoginService" ).isLoggedIn( argumentCollection=arguments ) />
+		<cfreturn isFeatureEnabled( "websiteUsers" ) && getSingleton( "websiteLoginService" ).isLoggedIn( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="isAutoLoggedIn" access="public" returntype="boolean" output="false"><cfsilent>
-		<cfreturn getSingleton( "websiteLoginService" ).isAutoLoggedIn( argumentCollection=arguments ) />
+		<cfreturn isFeatureEnabled( "websiteUsers" ) && getSingleton( "websiteLoginService" ).isAutoLoggedIn( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="getLoggedInUserId" access="public" returntype="string" output="false"><cfsilent>
+		<cfif !isFeatureEnabled( "websiteUsers" )>
+			<cfreturn "" />
+		</cfif>
 		<cfreturn getSingleton( "websiteLoginService" ).getLoggedInUserId( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="getLoggedInUserDetails" access="public" returntype="struct" output="false"><cfsilent>
+		<cfif !isFeatureEnabled( "websiteUsers" )>
+			<cfreturn {} />
+		</cfif>
 		<cfreturn getSingleton( "websiteLoginService" ).getLoggedInUserDetails( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="reloadLoggedInUserDetails" access="public" returntype="void" output="false"><cfsilent>
+		<cfif !isFeatureEnabled( "websiteUsers" )>
+			<cfreturn />
+		</cfif>
 		<cfreturn getSingleton( "websiteLoginService" ).reloadLoggedInUserDetails( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
