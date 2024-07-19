@@ -589,7 +589,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public boolean function isWebUserImpersonated() {
-		return getModel( "websiteLoginService" ).isImpersonated();
+		return getModel( "featureService" ).isFeatureEnabled( "websiteUsers" ) && getModel( "websiteLoginService" ).isImpersonated();
 	}
 
 	public string function renderIncludes( string type, string group="default" ) {
@@ -823,7 +823,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public void function checkPageAccess() {
-		if ( !getCurrentPageId().len() ) {
+		if ( !getCurrentPageId().len() || !getModel( "featureService" ).isFeatureEnabled( "websiteUsers" ) ) {
 			return;
 		}
 
@@ -891,7 +891,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public boolean function canPageBeCached() {
-		if ( getModel( "websiteLoginService" ).isLoggedIn() || this.isAdminUser() ) {
+		if ( ( getModel( "featureService" ).isFeatureEnabled( "websiteUsers" ) && getModel( "websiteLoginService" ).isLoggedIn() ) || this.isAdminUser() ) {
 			return false;
 		}
 

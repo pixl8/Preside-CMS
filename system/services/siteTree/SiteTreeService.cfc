@@ -15,7 +15,7 @@ component {
 	 * @coldboxController.inject           coldbox
 	 * @presideObjectService.inject        presideObjectService
 	 * @versioningService.inject           versioningService
-	 * @websitePermissionService.inject    websitePermissionService
+	 * @websitePermissionService.inject    featureInjector:websiteUsers:websitePermissionService
 	 * @rulesEngineConditionService.inject rulesEngineConditionService
 	 * @cloningService.inject              presideObjectCloningService
 	 * @cachebox.inject                    cachebox
