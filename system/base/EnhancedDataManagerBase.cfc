@@ -96,9 +96,9 @@ component extends="preside.system.base.AdminHandler" {
 		var firstTab    = variables.tabs[ 1 ] ?: "";
 
 		if ( IsStruct( firstTab ) ) {
-            firstTab = firstTab.id;
-        }
-		
+			firstTab = firstTab.id;
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
 			, link  = event.buildAdminLink( objectName=objectName, recordId=recordId )
