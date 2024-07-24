@@ -95,6 +95,10 @@ component extends="preside.system.base.AdminHandler" {
 		var currentTab  = rc.tab ?: "";
 		var firstTab    = variables.tabs[ 1 ] ?: "";
 
+		if ( IsStruct( firstTab ) ) {
+			firstTab = firstTab.id;
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
 			, link  = event.buildAdminLink( objectName=objectName, recordId=recordId )
@@ -204,7 +208,7 @@ component extends="preside.system.base.AdminHandler" {
 			menuItem = _buildSidebarMenuItem( argumentCollection=arguments, tabId=tabId );
 			if ( StructCount( menuItem ) ) {
 				if ( firstTab == "" ) {
-					firstTab = tabId;
+					firstTab = IsStruct( tabId ) ? tabId.id : tabId;
 				}
 				if ( args.currentTab == "" && arrayIsEmpty( sidebarMenuItems ) ) {
 					menuItem.active = true;
