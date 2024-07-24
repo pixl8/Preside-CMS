@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           echo '{ "version":"$RELEASE_VERSION" }' > version.json &&
-          echo 'Built on: $( date )' > "Preside-$RELEASE_VERSION-$RELEASE_CATEGORY.txt" &&
+          echo "Built on: $( date )" > "Preside-$RELEASE_VERSION-$RELEASE_CATEGORY.txt" &&
           mv box.json.published box.json
 
       - name: Inject version numbers
