@@ -58,6 +58,7 @@ component {
 			, recordId              = prc.recordid   ?: ""
 			, additionalQueryString = ""
 		};
+		
 		announceInterception( "onEmailTemplateGetAdditionalQueryStringForBuildAjaxListingLink", interceptArgs );
 	
 		return interceptArgs.additionalQueryString;
@@ -69,10 +70,6 @@ component {
 			, rc   = arguments.rc
 		}
 
-		variables?.sendLiveDebuggingMsg( name="ET preFetch", args=interceptArgs );
-		
 		announceInterception( "onEmailTemplatePreFetchRecordsForGridListing", interceptArgs );
-
-		
 	}
 }
