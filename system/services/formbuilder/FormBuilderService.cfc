@@ -2127,6 +2127,7 @@ component {
 		}
 
 		var fileName = $slugify( formbuilderForm.name ) & "-" & DateTimeFormat( Now(), "yyyymmdd-HHnnss" ) & ".json";
+		var filePath = "#getTempDirectory()##fileName#";
 
 		var json = {
 			  id      = formbuilderForm.id
@@ -2164,9 +2165,9 @@ component {
 			} );
 		}
 
-		FileWrite( "#getTempDirectory()#/#fileName#", SerializeJSON( json ) );
+		FileWrite( filePath, SerializeJSON( json ) );
 
-		return fileName;
+		return filePath;
 	}
 
 	public void function importFormFields(

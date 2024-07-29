@@ -918,14 +918,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public string function exportFormFieldsAction( event, rc, prc, args ) {
-		var fileName = formBuilderService.exportFormFields( formId=rc.id ?: "" );
+		var filePath = formBuilderService.exportFormFields( formId=rc.id ?: "" );
 
-		if ( isEmptyString( fileName ) ) {
+		if ( isEmptyString( filePath ) ) {
 			event.notFound();
 		}
 
+		var fileName = ListLast( filePath, "/" );
+
 		header name="Content-Disposition" value="attachment; filename=""#fileName#""";
-		content reset=true file=getTempDirectory() & "/" & fileName deletefile=true type="application/xml";
+		content reset=true file=filePath deletefile=true type="application/json";
 		abort;
 	}
 
