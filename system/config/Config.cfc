@@ -870,7 +870,7 @@ component {
 				, autoGrow_onStartup              = true
 				, emailProtection                 = 'encode'
 				, removePlugins                   = 'iframe,wsc,scayt'
-				, disallowedContent               = 'font; *[align]; *{line-height,margin*}'
+				, disallowedContent               = 'font; *[align,contenteditable]; *{line-height,margin*}'
 				, scayt_sLang                     = "en_GB"
 				, pasteFromWordDisallow           = [
 					  "span"  // Strip all span elements
