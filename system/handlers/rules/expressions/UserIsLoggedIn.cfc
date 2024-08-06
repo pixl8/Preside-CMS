@@ -3,7 +3,7 @@
  *
  * @expressionContexts webrequest
  * @expressionCategory website_user
- * @feature            rulesEnging and websiteUsers
+ * @feature            rulesEngine and websiteUsers
  */
 component {
 
