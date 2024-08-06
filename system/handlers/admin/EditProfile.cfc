@@ -39,7 +39,7 @@ component extends="preside.system.base.AdminHandler" {
 		formData.id = userId;
 		var validationResult = validateForm( formName=formName, formData=formData );
 
-		if ( !loginService.isPasswordCorrect( formData.existing_password ?: "" ) ) {
+		if ( StructKeyExists( formData, "existing_password" ) && !loginService.isPasswordCorrect( formData.existing_password ) ) {
 			validationResult.addError( "existing_password", translateResource( "cms:editProfile.password.incorrect.existing.password" ) );
 		}
 
