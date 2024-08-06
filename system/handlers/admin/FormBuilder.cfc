@@ -141,7 +141,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( validationResult.validated() && formBuilderService.isV2Form( formId ) ) {
 			var formItems = formBuilderService.getFormItems( formId );
 			for ( var item in formItems ) {
-				if ( itemId != item.id && questionId == item.questionId ?: "" ) {
+				if ( itemId != item.id && questionId == (item.questionId ?: "") ) {
 					validationResult.addError(
 						  fieldName = "question"
 						, message   = translateResource( uri="preside-objects.formbuilder_formitem:field.question.duplicate.error" )
