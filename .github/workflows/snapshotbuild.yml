@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           DATE_BUILT=$(date)
-          echo '{ "version":"$RELEASE_VERSION", "buildDate":"$DATE_BUILT" }' > version.json &&
+          echo "{ \"version\":\"$RELEASE_VERSION\", \"buildDate\":\"$DATE_BUILT\" }" > version.json &&
           echo "Built on: $DATE_BUILT" > "Preside-$RELEASE_VERSION-$RELEASE_CATEGORY.txt" &&
           mv box.json.published box.json
 
