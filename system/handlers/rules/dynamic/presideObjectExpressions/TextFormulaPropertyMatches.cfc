@@ -28,7 +28,11 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
-		arguments.value = ListChangeDelims( arguments.value, ",", " , " );
+		switch ( arguments._stringOperator ) {
+			case "oneof":
+			case "noneof":
+				arguments.value = ListItemTrim( arguments.value );
+		}
 
 		var paramName = "textFormulaPropertyMatches" & Replace( LCase( CreateUUID() ), "-", "", "all" );
 		var filterSql = "#arguments.propertyName# ${operator} :#paramName#";
