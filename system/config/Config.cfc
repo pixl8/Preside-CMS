@@ -263,6 +263,10 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailMessage"               );
 		interceptorSettings.customInterceptionPoints.append( "preRenderEmailLayout"                  );
 		interceptorSettings.customInterceptionPoints.append( "postRenderEmailLayout"                 );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailParameters"             );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailParameters"            );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailPreviewParameters"      );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailPreviewParameters"     );
 		interceptorSettings.customInterceptionPoints.append( "preRenderContent"                      );
 		interceptorSettings.customInterceptionPoints.append( "postRenderContent"                     );
 		interceptorSettings.customInterceptionPoints.append( "onGenerateEmailUnsubscribeLink"        );
