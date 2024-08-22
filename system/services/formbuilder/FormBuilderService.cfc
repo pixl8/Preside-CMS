@@ -846,7 +846,7 @@ component {
 
 		responses = {};
 		for( var item in itemTypes ) {
-			if ( Len( item.questionId ) ) {
+			if ( Len( item.questionId ?: "" ) ) {
 				if ( StructKeyExists( responsesByQuestion, item.questionId ) ) {
 					responses[ item.questionId ] = responsesByQuestion[ item.questionId ];
 				} else {
