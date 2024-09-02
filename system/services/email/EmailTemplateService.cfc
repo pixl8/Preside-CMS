@@ -569,6 +569,8 @@ component {
 		,          array  styles = []
 		,          array  detectedParams
 	) {
+		$announceInterception( "prePrepareEmailParameters", arguments );
+
 		var anythingToDo = !StructKeyExists( arguments, "detectedParams" ) || ArrayLen( arguments.detectedParams );
 		if ( !anythingToDo ) {
 			return {};
@@ -599,6 +601,8 @@ component {
 			}
 		}
 
+		$announceInterception( "postPrepareEmailParameters", params );
+
 		return params;
 	}
 
@@ -614,6 +618,8 @@ component {
 		  required string template
 		, required string recipientType
 	) {
+		$announceInterception( "prePrepareEmailPreviewParameters", arguments );
+
 		var params = _getEmailRecipientTypeService().getPreviewParameters(
 			recipientType = arguments.recipientType
 		);
@@ -622,6 +628,8 @@ component {
 				template = arguments.template
 			) );
 		}
+
+		$announceInterception( "postPrepareEmailPreviewParameters", params );
 
 		return params;
 	}
