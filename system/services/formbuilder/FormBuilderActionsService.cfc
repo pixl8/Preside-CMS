@@ -320,12 +320,18 @@ component {
 			var allowedToFire = !Len( Trim( savedAction.condition ?: "" ) ) || conditionService.evaluateCondition(
 				  conditionId = savedAction.condition
 				, context     = "formbuilderSubmission"
+				, payload     = {
+					formbuilderSubmission = {
+						  fomId        = submissionData.form ?: ""
+						, submissionId = submissionData.id   ?: ""
+					}
+				  }
 			);
 
 			if ( allowedToFire ) {
 				coldbox.runEvent(
 					  event          = savedAction.action.submissionHandler
-					, eventArguments = { args={ configuration = savedAction.configuration, submissionData=arguments.submissionData } }
+					, eventArguments = { args={ configuration=savedAction.configuration, submissionData=arguments.submissionData } }
 					, private        = true
 					, prePostExempt  = true
 				);
