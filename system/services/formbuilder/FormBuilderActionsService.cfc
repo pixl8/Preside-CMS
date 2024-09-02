@@ -323,7 +323,7 @@ component {
 				, context     = "formbuilderSubmission"
 				, payload     = {
 					formbuilderSubmission = {
-						  fomId        = submissionData.form ?: ""
+						  formId       = submissionData.form ?: ""
 						, submissionId = submissionData.id   ?: ""
 					}
 				  }
