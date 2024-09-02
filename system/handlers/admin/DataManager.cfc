@@ -146,6 +146,13 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			}
 
+			args.gridHeaderLabels = {};
+			customizationService.runCustomization(
+				  objectName     = args.objectName ?: ""
+				, action         = "getListingHeaderFields"
+				, args           = args
+			);
+
 			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
 

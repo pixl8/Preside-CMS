@@ -10,6 +10,7 @@
 	param name="args.noActions"                   type="boolean" default=false;
 	param name="args.footerEnabled"               type="boolean" default=false;
 	param name="args.gridFields"                  type="array";
+	param name="args.gridHeaderLabels"            type="struct"  default={};
 	param name="args.sortableFields"              type="array"   default=[];
 	param name="args.hiddenGridFields"            type="array"   default=[];
 	param name="args.filterContextData"           type="struct"  default={};
@@ -201,8 +202,11 @@
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
 						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>" data-field="#ListLast( fieldName, '.' )#">
-							#translatePropertyName( args.objectName, fieldName, "listing" )#
-
+							<cfif structKeyExists( args.gridHeaderLabels, fieldName ) >
+								#args.gridHeaderLabels[ fieldName ]#
+							<cfelse>
+								#translatePropertyName( args.objectName, fieldName, "listing" )#
+							</cfif>
 							<cfset help = translateResource( uri=getResourceBundleUriRoot( args.objectName ) & "field.#fieldName#.listing.help", defaultValue="" ) />
 
 							<cfif !isEmpty( help )>
