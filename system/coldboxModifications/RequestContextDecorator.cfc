@@ -35,6 +35,8 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		instance.presideRenderer                  = instance.wirebox.getInstance( dsl="presideRenderer" );
 		instance.sessionStorage                   = instance.wirebox.getInstance( dsl="sessionStorage" );
 		instance.tenancyService                   = instance.wirebox.getInstance( dsl="tenancyService" );
+		instance.systemConfigurationService       = instance.wirebox.getInstance( dsl="systemConfigurationService" );
+
 
 		instance.stickerForPreside                = instance.wirebox.getInstance( dsl="featureInjector:sticker:stickerForPreside" );
 		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( dsl="featureInjector:admin:adminObjectLinkBuilderService" );
@@ -118,9 +120,20 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		}
 
 		if ( arguments.includeLanguageSlug ) {
-			var languageSlug = this.getLanguageSlug();
-			if ( Len( Trim( languageSlug ) ) ) {
-				siteUrl = ReReplace( siteUrl, "/$", "" ) & "/" & languageSlug;
+			if ( this.getModel( "featureService" ).isFeatureEnabled( "multilingual" ) ) {
+				var multilingualSettings = getModel( "systemConfigurationService" ).getCategorySettings( 
+					  category = "multilingual"
+					, tenantId = arguments.siteId
+				);
+
+				arguments.includeLanguageSlug = multilingualSettings.urls_enabled ?: true;
+			}	
+
+			if ( IsBoolean( arguments.includeLanguageSlug ) && arguments.includeLanguageSlug ) {
+				var languageSlug = this.getLanguageSlug();
+				if ( Len( Trim( languageSlug ) ) ) {
+					siteUrl = ReReplace( siteUrl, "/$", "" ) & "/" & languageSlug;
+				}
 			}
 		}
 
