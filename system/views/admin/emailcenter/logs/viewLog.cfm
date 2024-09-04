@@ -25,7 +25,7 @@
 		<h2>#prc.log.subject#</h2>
 		<dl class="dl-horizontal">
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.to.label" )#</dt>
-			<dd>#prc.log.recipient#</dd>
+			<dd>#( prc.log.recipients ?: prc.log.recipient )#</dd>
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.from.label" )#</dt>
 			<dd>#prc.log.sender#</dd>
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.template.label" )#</dt>

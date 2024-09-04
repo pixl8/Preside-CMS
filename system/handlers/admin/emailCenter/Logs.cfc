@@ -39,6 +39,11 @@ component extends="preside.system.base.AdminHandler" {
 		prc.hasSavedTextBody = resendEnabled && len( prc.log.text_body ?: "" ) > 0;
 		prc.hasSavedContent  = prc.hasSavedHtmlBody || prc.hasSavedTextBody;
 
+		if ( ( prc.log.email_template ?: "" ) == "formbuilderSubmissionNotification" ) {
+			var sendArgs       = DeserializeJSON( prc.log.send_args );
+			prc.log.recipients = sendArgs.configuration.recipients ?: "";
+		}
+
 		event.noLayout();
 	}
 
