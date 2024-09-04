@@ -126,7 +126,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 					, tenantId = arguments.siteId
 				);
 
-				arguments.includeLanguageSlug = multilingualSettings.urls_enabled ?: true;
+				arguments.includeLanguageSlug = multilingualSettings.urls_enabled ?: false;
 			}	
 
 			if ( IsBoolean( arguments.includeLanguageSlug ) && arguments.includeLanguageSlug ) {
