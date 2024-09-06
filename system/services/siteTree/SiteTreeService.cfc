@@ -614,8 +614,10 @@ component {
 				    fetchChildren = fetchChildren && !Val( child.exclude_children_from_navigation );
 				    fetchChildren = fetchChildren && ( expandAllSiblings || activeTree.find( child.id ) );
 
-				if (  fetchChildren  ) {
-					child.children = getNavChildren( child.id, currentDepth+1, getManagedChildTypesForParentType( child.page_type ) );
+				if ( fetchChildren ) {
+					if ( _getPageTypesService().pageTypeExists( child.page_type ) ) {
+						child.children = getNavChildren( child.id, currentDepth+1, getManagedChildTypesForParentType( child.page_type ) );
+					}
 				}
 
 				var page = {
