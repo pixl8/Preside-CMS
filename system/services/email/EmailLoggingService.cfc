@@ -802,6 +802,7 @@ component {
 			, "email_template_send_log.email_template"
 			, "email_template_send_log.datecreated"
 			, "email_template_send_log.resend_of"
+			, "email_template_send_log.send_args"
 			, "email_template.name"
 			, "email_template.recipient_type"
 		];
