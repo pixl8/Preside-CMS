@@ -1,7 +1,7 @@
 <cfoutput>
 Welcome ${known_as},
 
-${created_by} has invited you to be a CMS user for ${site_url}.
+${created_by} has invited you to be a CMS user for ${site_url}
 
 ${welcome_message}
 
