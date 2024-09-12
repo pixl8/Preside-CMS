@@ -28,7 +28,6 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	* Override to provide a pseudo-constructor for your decorator
 	*/
 	function configure(){
-
 		instance.adminObjectLinkBuilderService    = instance.wirebox.getInstance( "adminObjectLinkBuilderService" );
 		instance.auditService                     = instance.wirebox.getInstance( "auditService" );
 		instance.csrfProtectionService            = instance.wirebox.getInstance( "csrfProtectionService" );
@@ -48,6 +47,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		instance.tenancyService                   = instance.wirebox.getInstance( "tenancyService" );
 		instance.websiteLoginService              = instance.wirebox.getInstance( "websiteLoginService" );
 		instance.websitePermissionService         = instance.wirebox.getInstance( "websitePermissionService" );
+		instance.systemConfigurationService       = instance.wirebox.getInstance( "systemConfigurationService" );
 	}
 
 	/**
@@ -114,9 +114,20 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		}
 
 		if ( arguments.includeLanguageSlug ) {
-			var languageSlug = this.getLanguageSlug();
-			if ( Len( Trim( languageSlug ) ) ) {
-				siteUrl = ReReplace( siteUrl, "/$", "" ) & "/" & languageSlug;
+			if ( this.getModel( "featureService" ).isFeatureEnabled( "multilingual" ) ) {
+				var multilingualSettings = getModel( "systemConfigurationService" ).getCategorySettings(
+					  category = "multilingual"
+					, tenantId = arguments.siteId
+				);
+
+				arguments.includeLanguageSlug = multilingualSettings.urls_enabled ?: false;
+			}
+
+			if ( IsBoolean( arguments.includeLanguageSlug ) && arguments.includeLanguageSlug ) {
+				var languageSlug = this.getLanguageSlug();
+				if ( Len( Trim( languageSlug ) ) ) {
+					siteUrl = ReReplace( siteUrl, "/$", "" ) & "/" & languageSlug;
+				}
 			}
 		}
 
