@@ -282,10 +282,6 @@ component extends="preside.system.base.AdminHandler" {
 			StructDelete( rc, "active" ); // ensure user cannot deactivate themselves!
 		}
 
-		if ( IsBoolean( rc.resend_welcome ?: "" ) && rc.resend_welcome ) {
-			loginService.sendWelcomeEmail( userId, event.getAdminUserDetails().known_as, rc.welcome_message ?: "" );
-		}
-
 		runEvent(
 			  event          = "admin.dataManager._editRecordAction"
 			, private        = true
