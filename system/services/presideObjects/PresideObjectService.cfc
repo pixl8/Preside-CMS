@@ -448,6 +448,17 @@ component displayName="Preside Object Service" {
 			return sqlAndParams;
 		}
 
+		var obfuscations = [];
+		var obfsPattern  = "{{base64:([A-Za-z0-9\+\/=]+)}}";
+		var matches      = ReFindNoCase( obfsPattern, sqlAndParams.sql, 1, true, "all" );
+
+		for ( var matched in matches ) {
+			ArrayAppend( obfuscations, {
+				  encoded = matched.match[1]
+				, decoded = ToString( ToBinary( ReReplace( matched.match[1], obfsPattern, "\1" ) ) )
+			} );
+		}
+
 		for( param in sqlAndParams.params ) {
 			if ( IsStruct( param ) ) {
 				key        = param.name;
@@ -459,6 +470,14 @@ component displayName="Preside Object Service" {
 			}
 
 			sqlAndParams.sql = ReReplaceNoCase( sqlAndParams.sql, ":#key#(\b)", ":#arguments.prefix##key#\1", "all" );
+
+			for ( var obfuscation in obfuscations ) {
+				obfuscation.decoded = ReReplaceNoCase( obfuscation.decoded, ":#key#(\b)", ":#arguments.prefix##key#\1", "all" );
+			}
+		}
+
+		for ( var obfuscation in obfuscations ) {
+			sqlAndParams.sql = ReReplaceNoCase( sqlAndParams.sql, obfuscation.encoded, obfuscation.decoded, "all" );
 		}
 
 		return sqlAndParams;
