@@ -448,6 +448,8 @@ component displayName="Preside Object Service" {
 			return sqlAndParams;
 		}
 
+		var obfuscations = _getObfuscationsInSql( sqlAndParams.sql );
+		
 		for( param in sqlAndParams.params ) {
 			if ( IsStruct( param ) ) {
 				key        = param.name;
@@ -459,9 +461,72 @@ component displayName="Preside Object Service" {
 			}
 
 			sqlAndParams.sql = ReReplaceNoCase( sqlAndParams.sql, ":#key#(\b)", ":#arguments.prefix##key#\1", "all" );
+
+			for ( var obfuscation in obfuscations ) {
+				_applyPrefixToObfuscatedSql( obfuscation=obfuscation, prefix=arguments.prefix, key=key );
+			}
+		}
+
+		for ( var obfuscation in obfuscations ) {
+			_applyNewObfuscatedSql( obfuscation );
+
+			sqlAndParams.sql = ReReplaceNoCase(
+				  sqlAndParams.sql
+				, obfuscation.encoded
+				, $obfuscateSqlForPreside( obfuscation.decoded )
+				, "all"
+			);
 		}
 
 		return sqlAndParams;
+	}
+
+	private array function _getObfuscationsInSql( 
+		  required string sql
+	) {
+		var obfuscations = [];
+		var obfsPattern  = "{{base64:([A-Za-z0-9\+\/=]+)}}";
+		var matches      = ReFindNoCase( obfsPattern, arguments.sql, 1, true, "all" );
+
+		for ( var matched in matches ) {
+			if ( !Len( matched.match[1] ) ) {
+				continue;
+			}
+			
+			var decoded = ToString( ToBinary( ReReplace( matched.match[1], obfsPattern, "\1" ) ) );
+			ArrayAppend( obfuscations, {
+				  encoded      = matched.match[1]
+				, decoded      = decoded
+				, obfuscations = _getObfuscationsInSql( decoded )
+			} );
+		}
+
+		return obfuscations;
+	}
+
+	private void function _applyPrefixToObfuscatedSql(
+		  required struct obfuscation
+		, required string prefix
+		, required string key
+	) {
+		arguments.obfuscation.decoded = ReReplaceNoCase( arguments.obfuscation.decoded, ":#key#(\b)", ":#arguments.prefix##arguments.key#\1", "all" );
+
+		for ( var subObfuscation in arguments.obfuscation.obfuscations ?: [] ) {
+			_applyPrefixToObfuscatedSql( obfuscation=subObfuscation, prefix=arguments.prefix, key=arguments.key );
+		}
+	}
+
+	private void function _applyNewObfuscatedSql( required struct obfuscation ) {
+		for ( var subObfuscation in arguments.obfuscation.obfuscations ) {
+			_applyNewObfuscatedSql( subObfuscation );
+			
+			arguments.obfuscation.decoded = ReReplaceNoCase( 
+				  arguments.obfuscation.decoded
+				, subObfuscation.encoded
+				, $obfuscateSqlForPreside( subObfuscation.decoded )
+				, "all"
+			);
+		}
 	}
 
 	private function _formatParams( required array rawParams ) {
