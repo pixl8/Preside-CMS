@@ -497,7 +497,7 @@ component displayName="Preside Object Service" {
 			ArrayAppend( obfuscations, {
 				  encoded      = matched.match[1]
 				, decoded      = decoded
-				, obfuscations = _getObfuscationsInSql( decoded, arguments.cnt+1 )
+				, obfuscations = _getObfuscationsInSql( decoded )
 			} );
 		}
 
