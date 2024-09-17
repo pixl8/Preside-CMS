@@ -3893,6 +3893,64 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test110_prefixSqlAndParams_shouldRecursivelyApplyPrefixesToObfuscatedSql" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithFormulas" ] );
+			var sqlRunner = CreateMock( object=new preside.system.services.database.SqlRunner(
+				logger = _getTestLogger()
+			) );
+
+			var aIds      = [];
+			var bIds      = [];
+			var cIds      = [];
+
+			poService.dbSync();
+
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			aIds.append( poService.insertData( objectName="object_a", data={ label="a 4" } ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 1", lots_of_a="#aIds[1]#,#aIds[3]#,#aIds[4]#" }, insertManyToManyRecords=true ) );
+			bIds.append( poService.insertData( objectName="object_b", data={ label="b 2", lots_of_a="#aIds[2]#" }, insertManyToManyRecords=true ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 1", obj_b=bIds[1] } ) );
+			cIds.append( poService.insertData( objectName="object_c", data={ label="c 2", obj_b=bIds[2] } ) );
+			
+			var queryA = poService.selectData(
+				  objectName          = "object_a"
+				, filter              = { label = "a 1" }
+				, selectFields        = [ "id" ] 
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+			);
+
+			var queryB = poService.selectData(
+				  objectName          = "object_b"
+				, filter              = { label = "b 1" }
+				, extraFilters        = [ {
+					filter = sqlRunner.obfuscateSqlForPreside( "exists (#queryA.sql#) " )
+				} ]
+				, selectFields        = [ "id" ] 
+				, getSqlAndParamsOnly = true
+				, formatSqlParams     = true
+			);
+
+			var params = queryA.params;
+			StructAppend( params, queryB.params, true );
+			
+			var queryWithParams = poService.selectData(
+				  objectName         = "object_c"
+				, selectFields       = [ "id" ]
+				, filter             = sqlRunner.obfuscateSqlForPreside( "exists (#queryB.sql#)" )
+				, filterParams       = params
+				, sqlAndParamsPrefix = "testprefix"
+				, getSqlAndParamsOnly = true
+			);
+
+			var result = sqlRunner.runSql( sql=queryWithParams.sql, params=queryWithParams.params, dsn=application.dsn );
+
+			super.assertEquals( result.recordCount, 2 , "Expected record count mismatch" );
+		</cfscript>
+	</cffunction>
 
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
