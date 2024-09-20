@@ -9,6 +9,7 @@
 	param name="args.draftsEnabled"               type="boolean" default=false;
 	param name="args.noActions"                   type="boolean" default=false;
 	param name="args.footerEnabled"               type="boolean" default=false;
+	param name="args.footerWrapWithRow"           type="boolean" default=true;
 	param name="args.gridFields"                  type="array";
 	param name="args.gridHeaderLabels"            type="struct"  default={};
 	param name="args.sortableFields"              type="array"   default=[];
@@ -227,9 +228,11 @@
 			</thead>
 			<cfif args.footerEnabled>
 				<tfoot>
-					<tr>
-						<th colspan="#colCount#"></th>
-					</tr>
+					<cfif args.footerWrapWithRow >
+						<tr>
+							<th colspan="#colCount#"></th>
+						</tr>
+					</cfif>
 				</tfoot>
 			</cfif>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">
