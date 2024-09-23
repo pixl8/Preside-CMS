@@ -227,11 +227,14 @@
 				</tr>
 			</thead>
 			<cfif args.footerEnabled>
-				<tfoot>
 					<cfif args.footerWrapWithRow >
-						<tr>
-							<th colspan="#colCount#"></th>
-						</tr>
+						<tfoot>
+							<tr>
+								<th colspan="#colCount#"></th>
+							</tr>
+						</foot>
+					<cfelse>
+						<tfoot class="multi-column-footer">
 					</cfif>
 				</tfoot>
 			</cfif>

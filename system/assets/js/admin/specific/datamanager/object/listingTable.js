@@ -261,18 +261,18 @@
 					},
 					fnFooterCallback: function ( nFoot, aaData, iStart, iEnd, aiDisplay ) {
 						if ( $( nFoot ).length ) {
-							if ( $( nFoot ).children('tr').length ) {
+							if ( $( nFoot ).hasClass( "multi-column-footer" ) ) {
+								if ( lastAjaxResult && typeof lastAjaxResult.sFooter !== "undefined" && lastAjaxResult.sFooter.length ) {
+									$( nFoot ).html( lastAjaxResult.sFooter );
+								} else {
+									$( nFoot ).html( "" );
+								}
+							} else {
 								var nRow = $( nFoot ).children('tr')[0];
 								if ( lastAjaxResult && typeof lastAjaxResult.sFooter !== "undefined" && lastAjaxResult.sFooter.length ) {
 									$( nRow ).show().find( "th:first" ).html( lastAjaxResult.sFooter );
 								} else {
 									$( nRow ).hide().find( "th:first" ).html( "" );
-								}
-							} else {
-								if ( lastAjaxResult && typeof lastAjaxResult.sFooter !== "undefined" && lastAjaxResult.sFooter.length ) {
-									$( nFoot ).html( lastAjaxResult.sFooter );
-								} else {
-									$( nFoot ).html( "" );
 								}
 							}
 						}
