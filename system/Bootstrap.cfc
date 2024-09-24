@@ -34,6 +34,7 @@ component {
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 		this.bufferOutput                            = arguments.bufferOutput;
 		this.allowPingRequests                       = arguments.allowPingRequests;
+		this.functionPaths                           = [ "/preside/system/flds", "/preside/system/flds/.scratch" ];
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();

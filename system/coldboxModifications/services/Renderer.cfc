@@ -705,6 +705,12 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		return locateView( arguments.view );
 	}
 
+	public function getViewPathForPresideViewInclude( view ) {
+		var viewPathInfo = discoverViewPaths( view=arguments.view );
+
+		return viewPathInfo.viewPath & ".cfm";
+	}
+
 	/************************************** PRIVATE *********************************************/
 
 	/**
