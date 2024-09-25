@@ -14,7 +14,7 @@
 		<li class="rules-engine-expression-group">
 			<ul class="rules-engine-expressions-read-only-sub-expressions" data-depth="#depth+1#">
 				<cfloop array="#expression#" index="n" item="exp">
-					#renderView( view="/renderers/content/rulesEngineConditionReadOnly/_expression", args={
+					#outputView( view="/renderers/content/rulesEngineConditionReadOnly/_expression", args={
 						  expression = exp
 						, depth      = depth+1
 					} )#

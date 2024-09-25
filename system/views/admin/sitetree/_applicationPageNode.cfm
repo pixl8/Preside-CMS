@@ -50,6 +50,6 @@
 		<cfset child.depth     = args.depth+1 />
 		<cfset child.parent_id = args.id      />
 
-		#renderView( view="/admin/sitetree/_applicationPageNode", args=child )#
+		#outputView( view="/admin/sitetree/_applicationPageNode", args=child )#
 	</cfloop>
 </cfoutput>

@@ -5,5 +5,5 @@
 </cfscript>
 
 <cfoutput>
-	#renderView( view="/formcontrols/urlInput/index", args=args )#
+	#outputView( view="/formcontrols/urlInput/index", args=args )#
 </cfoutput>

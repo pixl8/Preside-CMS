@@ -28,20 +28,20 @@
 	<cfif !isEmpty( values )>
 		<div class="row multi-select-panel" id="#inputId#">
 			<div class="col-xs-4">
-				#renderView( view="/formcontrols/multiSelectPanel/_availableOptions", args=args )#
+				#outputView( view="/formcontrols/multiSelectPanel/_availableOptions", args=args )#
 			</div>
 
 			<div class="col-xs-3 action-buttons">
-				#renderView( view="/formcontrols/multiSelectPanel/_actionButtons", args=args )#
+				#outputView( view="/formcontrols/multiSelectPanel/_actionButtons", args=args )#
 			</div>
 
 			<div class="col-xs-<cfif isTrue( sortable )>4<cfelse>5</cfif>">
-				#renderView( view="/formcontrols/multiSelectPanel/_selectedOptions", args=args )#
+				#outputView( view="/formcontrols/multiSelectPanel/_selectedOptions", args=args )#
 			</div>
 
 			<cfif isTrue( sortable )>
 				<div class="col-xs-1 sorting-buttons">
-					#renderView( view="/formcontrols/multiSelectPanel/_sortingPanel", args=args )#
+					#outputView( view="/formcontrols/multiSelectPanel/_sortingPanel", args=args )#
 				</div>
 			</cfif>
 		</div>

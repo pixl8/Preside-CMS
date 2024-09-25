@@ -364,7 +364,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		var event             = getRequestContext();
 		var moduleArgs        = {
 			  template          = "RendererEncapsulator.cfm"
-			, rendererVariables = ( isNull( attributes.rendererVariables ) ? _getRendererVariables() : attributes.rendererVariables )
+			, rendererVariables = ( isNull( attributes.rendererVariables ) ? getRendererVariables() : attributes.rendererVariables )
 			, event             = event
 			, rc                = event.getCollection()
 			, prc               = event.getPrivateCollection()
@@ -705,12 +705,6 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		return locateView( arguments.view );
 	}
 
-	public function getViewPathForPresideViewInclude( view ) {
-		var viewPathInfo = discoverViewPaths( view=arguments.view );
-
-		return viewPathInfo.viewPath & ".cfm";
-	}
-
 	/************************************** PRIVATE *********************************************/
 
 	/**
@@ -914,24 +908,28 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		return isFeatureDisabled;
 	}
 
-	private function _getRendererVariables() {
-		return {
-			  appMapping              = variables.appMapping
-			, cacheBox                = variables.cacheBox
-			, controller              = variables.controller
-			, flash                   = variables.flash
-			, isDiscoveryCaching      = variables.isDiscoveryCaching
-			, isViewsHelperIncluded   = variables.isViewsHelperIncluded
-			, layoutsConvention       = variables.layoutsConvention
-			, layoutsExternalLocation = variables.layoutsExternalLocation
-			, modulesConfig           = variables.modulesConfig
-			, renderedHelpers         = variables.renderedHelpers
-			, threadUtil              = variables.threadUtil
-			, viewCaching             = variables.viewCaching
-			, viewsConvention         = variables.viewsConvention
-			, viewsExternalLocation   = variables.viewsExternalLocation
-			, viewsHelper             = variables.viewsHelper
-			, wireBox                 = variables.wireBox
+	public function getRendererVariables() {
+		if ( areLuceeGlobalUdfsAvailable() ) {
+			return {
+				  appMapping              = variables.appMapping
+				, cacheBox                = variables.cacheBox
+				, controller              = variables.controller
+				, flash                   = variables.flash
+				, isDiscoveryCaching      = variables.isDiscoveryCaching
+				, isViewsHelperIncluded   = variables.isViewsHelperIncluded
+				, layoutsConvention       = variables.layoutsConvention
+				, layoutsExternalLocation = variables.layoutsExternalLocation
+				, modulesConfig           = variables.modulesConfig
+				, renderedHelpers         = variables.renderedHelpers
+				, threadUtil              = variables.threadUtil
+				, viewCaching             = variables.viewCaching
+				, viewsConvention         = variables.viewsConvention
+				, viewsExternalLocation   = variables.viewsExternalLocation
+				, viewsHelper             = variables.viewsHelper
+				, wireBox                 = variables.wireBox
+			}
 		}
+
+		return variables;
 	}
 }

@@ -14,7 +14,7 @@
 	<cfelse>
 		<ul class="rules-engine-expressions-read-only">
 			<cfloop array="#expressions#" index="i" item="expression">
-				#renderView( view="/renderers/content/rulesEngineConditionReadOnly/_expression", args={
+				#outputView( view="/renderers/content/rulesEngineConditionReadOnly/_expression", args={
 					  expression   = expression
 					, ruleContext  = ruleContext
 					, filterObject = filterObject

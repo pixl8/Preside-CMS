@@ -43,7 +43,7 @@
 
 			<br>
 
-			#renderView( view="/admin/datamanager/_objectDataTable", args={
+			#outputView( view="/admin/datamanager/_objectDataTable", args={
 				  objectName      = filterObject
 				, useMultiActions = false
 				, datasourceUrl   = event.buildAdminLink( linkTo="emailCenter.customTemplates.getRecipientListForAjaxDataTables", queryString="id=" & templateId )

@@ -42,7 +42,7 @@
 			<cfelseif args.subMenuItems.len()>
 				<ul class="submenu">
 					<cfloop array="#args.subMenuItems#" item="item" index="i">
-						#renderView( view="/admin/layout/sidebar/_subMenuItem", args=item )#
+						#outputView( view="/admin/layout/sidebar/_subMenuItem", args=item )#
 					</cfloop>
 				</ul>
 			</cfif>

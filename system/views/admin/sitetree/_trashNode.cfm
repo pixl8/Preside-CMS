@@ -60,7 +60,7 @@
 		<cfloop array="#args.children#" index="child">
 			<cfset child.permission_context = duplicate( args.permission_context ) />
 
-			#renderView( view="/admin/sitetree/_trashNode", args=child )#
+			#outputView( view="/admin/sitetree/_trashNode", args=child )#
 		</cfloop>
 	</cfoutput>
 </cfif>

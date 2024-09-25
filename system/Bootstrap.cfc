@@ -34,7 +34,6 @@ component {
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 		this.bufferOutput                            = arguments.bufferOutput;
 		this.allowPingRequests                       = arguments.allowPingRequests;
-		this.functionPaths                           = [ "/preside/system/flds", "/preside/system/flds/.scratch" ];
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -114,6 +113,13 @@ component {
 		if ( StructKeyExists( application, "cbBootstrap" ) ) {
 			return application.cbBootstrap.onMissingTemplate( argumentCollection=arguments );
 		}
+	}
+	public function onMissingFunction( functionName, functionArguments ) {
+		if ( arguments.functionName == "testOnMissingFunctionAvailability" ) {
+			return true;
+		}
+
+		return application.presidehelperClass[ arguments.functionName ]( argumentCollection=functionArguments );
 	}
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
@@ -268,6 +274,7 @@ component {
 		bootstrap.loadColdbox();
 
 		application.cbBootstrap = bootstrap;
+		application.presideHelperClass = bootstrap.getController().getWirebox().getInstance( "presideHelperClass" );
 	}
 
 	private boolean function _reloadRequired() {

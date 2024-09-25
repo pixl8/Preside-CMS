@@ -24,5 +24,5 @@
 		</form>
 	</cfsavecontent>
 
-	#renderView( view="/admin/widgets/_dialogLayout", args={ body=body } )#
+	#outputView( view="/admin/widgets/_dialogLayout", args={ body=body } )#
 </cfoutput>

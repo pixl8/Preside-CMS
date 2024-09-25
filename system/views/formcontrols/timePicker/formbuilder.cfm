@@ -9,5 +9,5 @@
 </cfscript>
 
 <cfoutput>
-	#renderView( view="/formcontrols/timePicker/index", args=args )#
+	#outputView( view="/formcontrols/timePicker/index", args=args )#
 </cfoutput>

@@ -9,7 +9,7 @@
 </cfscript>
 
 <cfoutput>
-	#renderView( view="admin/general/pageTitle", args={
+	#outputView( view="admin/general/pageTitle", args={
 		  title    = translateResource( "cms:linkpicker.title" )
 		, subTitle = translateResource( "cms:linkpicker.subTitle" )
 		, icon     = "link"
@@ -18,7 +18,7 @@
 	<div class="row">
 		<div class="col-sm-2">
 			<div class="link-type-menu">
-				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ allowedTypes=linkTypes, selectedType=linkType } )#
+				#outputView( view="admin/linkPicker/_linkTypeMenu", args={ allowedTypes=linkTypes, selectedType=linkType } )#
 			</div>
 		</div>
 		<div class="col-sm-10">

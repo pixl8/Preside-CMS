@@ -1,10 +1,13 @@
 <cfif thisTag.executionMode == "start"><cfsilent>
-	<cfparam name="attributes.view" type="string" />
+	<cfparam name="attributes.view" type="string" required="true" />
 
 	<cfscript>
-		viewpath = getModel( "presideRenderer" ).getViewPathForPresideViewInclude(
+		StructAppend( variables, caller.rendererVariables ?: ( caller.attributes.rendererVariables ?: {} ) );
+
+		viewpath = getModel( "presideRenderer" ).locateView(
 			view=reReplace( attributes.view, "^(\\|/)", "" )
-		);
+		) & ".cfm";
+
 		variables.args  = attributes.args ?: {};
 		variables.event = caller.event;
 		variables.rc    = event.getCollection();

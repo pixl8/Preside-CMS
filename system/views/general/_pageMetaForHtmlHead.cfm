@@ -60,6 +60,6 @@
 
 	<meta name="robots" content="#local.robots#" />
 
-	#renderView( "/general/_openGraphMeta" )#
+	#outputView( "/general/_openGraphMeta" )#
 </cfoutput>
 

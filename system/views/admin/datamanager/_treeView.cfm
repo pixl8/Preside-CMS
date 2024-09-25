@@ -30,7 +30,7 @@
 			<cfloop query="topLevel">
 				<cfset args.record = QueryRowToStruct( topLevel, topLevel.currentRow ) />
 
-				#renderView( view="/admin/datamanager/_treeNode", args=args )#
+				#outputView( view="/admin/datamanager/_treeNode", args=args )#
 			</cfloop>
 		</tbody>
 	</table>

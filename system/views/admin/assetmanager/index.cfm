@@ -18,7 +18,7 @@
 
 	<div class="top-right-button-group title-and-actions-container clearfix">
 		<cfif !isTrashFolder>
-			#renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=folder, folderTitle=folderTitle, isSystemFolder=isSystemFolder } )#
+			#outputView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=folder, folderTitle=folderTitle, isSystemFolder=isSystemFolder } )#
 		</cfif>
 	</div>
 	<div id="browse" class="row">
@@ -26,7 +26,7 @@
 			<div class="navigation-tree-container">
 				<div class="preside-tree-nav tree tree-unselectable" data-nav-list="1" data-nav-list-child-selector=".tree-folder-header,.tree-item">
 					<cfloop array="#folderTree#" index="node">
-						#renderView( view="/admin/assetmanager/_treeFolderNode", args=node )#
+						#outputView( view="/admin/assetmanager/_treeFolderNode", args=node )#
 					</cfloop>
 
 					<div class="tree-node tree-item<cfif isTrashFolder> selected</cfif>" data-folder-id="trash">
@@ -39,10 +39,10 @@
 			</div>
 		</div>
 		<div class="col-sm-7 col-md-8 col-lg-8">
-			#renderView( "/admin/assetmanager/listingtable" )#
+			#outputView( "/admin/assetmanager/listingtable" )#
 		</div>
 	</div>
 
-	#renderView( '/admin/assetmanager/_moveOrRestoreAssetsForm' )#
+	#outputView( '/admin/assetmanager/_moveOrRestoreAssetsForm' )#
 </cfoutput>
 

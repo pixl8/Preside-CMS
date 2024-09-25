@@ -5,7 +5,7 @@
 </cfscript>
 
 <cfoutput>
-	#renderView( view="/admin/datamanager/_addRecordForm", args={
+	#outputView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "website_benefit"
 		, addRecordAction       = event.buildAdminLink( linkTo='websitebenefitsmanager.addBenefitAction' )
 		, allowAddAnotherSwitch = true

@@ -60,7 +60,7 @@
 
 	<cfif logs.recordcount>
 		<div class="timeline-container" id="audit-trail">
-			#renderView( view="/admin/auditTrail/_logs", args={ logs=logs } )#
+			#outputView( view="/admin/auditTrail/_logs", args={ logs=logs } )#
 		</div>
 		<div class="load-more text-center">
 			<a class="load-more-logs btn btn-primary" data-load-more-target="audit-trail" data-href="#loadMoreUrl#"><i class="fa fa-plus-circle"></i> #translateResource( uri='cms:auditTrail.loadMore' )#</a>

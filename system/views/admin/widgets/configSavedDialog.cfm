@@ -5,5 +5,5 @@
 </cfscript>
 
 <cfoutput>
-	#renderView( view="/admin/widgets/_dialogLayout", args={ body=translateResource( "cms:widget.saved.message" ) } )#
+	#outputView( view="/admin/widgets/_dialogLayout", args={ body=translateResource( "cms:widget.saved.message" ) } )#
 </cfoutput>

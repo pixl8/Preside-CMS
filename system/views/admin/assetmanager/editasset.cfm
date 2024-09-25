@@ -102,7 +102,7 @@
 			<br>
 			<div class="collapse" id="full-error-detail">
 				<div class="well">
-					#renderView( view="/general/_errorDetail", args={ error=DeserializeJson( failedQueue.last_error ) } )#
+					#outputView( view="/general/_errorDetail", args={ error=DeserializeJson( failedQueue.last_error ) } )#
 				</div>
 			</div>
 		</div>
@@ -150,7 +150,7 @@
 							<cfset version.isCurrentVersion = version.id == asset.active_version />
 							<cfset version.hasDownloadPermission = hasDownloadPermission>
 							<cfset version.hasDeletePermission = hasDeletePermission>
-							#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
+							#outputView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
 						</cfloop>
 					</div>
 				<cfelse>
@@ -162,7 +162,7 @@
 					<cfset version.hasDownloadPermission = hasDownloadPermission>
 					<cfset version.hasDeletePermission = hasDeletePermission>
 
-					#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
+					#outputView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
 				</cfif>
 		</div>
 	</div>

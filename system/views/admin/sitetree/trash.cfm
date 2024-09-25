@@ -19,7 +19,7 @@
 			</thead>
 			<tbody data-nav-list-child-selector="tr" data-nav-list="1">
 				<cfloop array="#treeTrash#" index="node">
-					#renderView( view="/admin/sitetree/_trashNode", args=node )#
+					#outputView( view="/admin/sitetree/_trashNode", args=node )#
 				</cfloop>
 			</tbody>
 		</table>

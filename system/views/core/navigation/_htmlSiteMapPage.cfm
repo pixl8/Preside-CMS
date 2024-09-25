@@ -12,7 +12,7 @@
 			<cfif args.children.len()>
 				<ul class="list-unstyled">
 					<cfloop array="#args.children#" item="page" index="i">
-						#renderView( view="/core/navigation/_htmlSiteMapPage", args=page )#
+						#outputView( view="/core/navigation/_htmlSiteMapPage", args=page )#
 					</cfloop>
 				</ul>
 			</cfif>

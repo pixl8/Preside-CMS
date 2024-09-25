@@ -21,7 +21,7 @@
 		</cfif>
 	</div>
 
-	#renderView( view="/admin/datamanager/_objectDataTable", args={
+	#outputView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
 		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=userManager.getUsersForAjaxDataTables" )

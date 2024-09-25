@@ -12,7 +12,7 @@
 
 <cfoutput>
 	<cfif isLocked>
-		#renderView(
+		#outputView(
 			  view = "/admin/datamanager/rules_engine_condition/_lockedMessage"
 			, args = { record=prc.record }
 		)#

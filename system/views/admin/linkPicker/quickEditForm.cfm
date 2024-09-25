@@ -14,7 +14,7 @@
 	<div class="row link-picker">
 		<div class="col-sm-2">
 			<div class="link-type-menu">
-				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ selectedType=linkType, allowedTypes=linkTypes } )#
+				#outputView( view="admin/linkPicker/_linkTypeMenu", args={ selectedType=linkType, allowedTypes=linkTypes } )#
 			</div>
 		</div>
 		<div class="col-sm-10">
