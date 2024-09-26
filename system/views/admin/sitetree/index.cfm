@@ -34,7 +34,7 @@
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane<cfif activeTab=="sitetree"> active</cfif>" id="tab-sitetree">
-				#outputView( view="/admin/sitetree/_treeIndex", args=args )#
+				#renderView( view="/admin/sitetree/_treeIndex", args=args )#
 			</div>
 			<div class="tab-pane<cfif activeTab=="listing"> active</cfif>" id="tab-page">
 				#objectDataTable( objectName="page" )#

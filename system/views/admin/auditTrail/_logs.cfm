@@ -7,7 +7,7 @@
 
 <cfoutput>
 	<cfif !prevLogDate.len()>
-		#outputView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
+		#renderView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
 	</cfif>
 	<div class="timeline-items">
 		<cfloop query="args.logs">
@@ -35,11 +35,11 @@
 			<cfif DateDiff( "d", auditTrailData.logDate, logDate )>
 				<cfset logDate = auditTrailData.logDate />
 				</div>
-				#outputView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
+				#renderView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
 				<div class="timeline-items">
 			</cfif>
 
-			#outputView( view="/admin/auditTrail/_log", args=auditTrailData )#
+			#renderView( view="/admin/auditTrail/_log", args=auditTrailData )#
 		</cfloop>
 	</div>
 </cfoutput>

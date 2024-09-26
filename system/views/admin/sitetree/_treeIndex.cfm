@@ -29,7 +29,7 @@
 		</thead>
 		<tbody data-nav-list-child-selector="tr" data-nav-list="1">
 			<cfloop array="#activeTree#" item="node" index="i">
-				#outputView( view="/admin/sitetree/_node", args=node )#
+				#renderView( view="/admin/sitetree/_node", args=node )#
 			</cfloop>
 		</tbody>
 	</table>

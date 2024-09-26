@@ -45,7 +45,7 @@
 							#child#
 						</cfif>
 					<cfelse>
-						#outputView( view="/admin/datamanager/_topRightButtonChildItem", args=child )#
+						#renderView( view="/admin/datamanager/_topRightButtonChildItem", args=child )#
 					</cfif>
 				</cfloop>
 			</ul>

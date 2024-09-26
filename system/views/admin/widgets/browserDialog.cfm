@@ -52,5 +52,5 @@
 		</cfif>
 	</cfsavecontent>
 
-	#outputView( view="/admin/widgets/_dialogLayout", args={ body=body } )#
+	#renderView( view="/admin/widgets/_dialogLayout", args={ body=body } )#
 </cfoutput>

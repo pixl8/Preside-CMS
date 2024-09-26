@@ -15,7 +15,7 @@
 
 
 <cfoutput>
-	#outputView( view="/admin/datamanager/_addRecordForm", args={
+	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "asset_folder"
 		, addRecordAction       = event.buildAdminLink( linkTo='assetmanager.addFolderAction', queryString=folderQS )
 		, allowAddAnotherSwitch = true

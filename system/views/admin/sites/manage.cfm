@@ -14,7 +14,7 @@
 		</a>
 	</div>
 
-	#outputView( view="/admin/datamanager/_objectDataTable", args={
+	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
 		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=sites.getSitesForAjaxDataTables" )

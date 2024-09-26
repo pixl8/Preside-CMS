@@ -44,7 +44,7 @@
 				<div class="main-content">
 					<div class="page-content">
 						<cfif Len( Trim( prc.pageTitle ?: "" ) )>
-							#outputView( view="admin/general/pageTitle", args={
+							#renderView( view="admin/general/pageTitle", args={
 								  title    = ( prc.pageTitle    ?: "" )
 								, subTitle = ( prc.pageSubTitle ?: "" )
 								, icon     = ( prc.pageIcon     ?: "" )

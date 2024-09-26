@@ -33,7 +33,6 @@
 			     .includeData( { devConsoleToggleKeyCode=getSetting( "devConsoleToggleKeyCode" ) } );
 		}
 
-		userMenu          = renderView( "/admin/layout/userMenu" );
 		notificationsMenu = renderViewlet( "admin.notifications.notificationNavPromo" );
 		systemAlertsMenu  = renderViewlet( "admin.systemAlerts.systemAlertsMenuItem" );
 		ckEditorJs        = prc.adminQuickEditDisabled ? "" : renderView( "admin/layout/ckeditorjs" );
@@ -120,7 +119,7 @@
 							</cfif>
 							#systemAlertsMenu#
 							<li>#notificationsMenu#</li>
-							<li>#userMenu#</li>
+							<li>#renderView( "/admin/layout/userMenu" )#</li>
 						</ul>
 					</div>
 				</div>

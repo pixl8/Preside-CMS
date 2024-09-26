@@ -13,7 +13,7 @@
 </cfscript>
 
 <cfoutput>
-	#outputView( view="/admin/datamanager/_editRecordForm", args={
+	#renderView( view="/admin/datamanager/_editRecordForm", args={
 		  object            = "asset_folder"
 		, id                = rc.folder  ?: ""
 		, record            = prc.record ?: {}

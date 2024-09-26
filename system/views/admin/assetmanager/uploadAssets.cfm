@@ -9,7 +9,7 @@
 
 <cfoutput>
 	<form id="add-assets-form" class="form-horizontal batch-add-assets-form" action="#event.buildAdminLink( linkto="assetmanager.uploadAssetAction" )#" method="post">
-		#outputView( view="/admin/assetmanager/_uploadSteps", args={ activeStep=1 } )#
+		#renderView( view="/admin/assetmanager/_uploadSteps", args={ activeStep=1 } )#
 
 		<div class="row">
 			<div class="col-md-5">
@@ -18,22 +18,22 @@
 				</h3>
 
 				<div class="upload-options">
-					#outputView( '/admin/assetmanager/_batchUploadForm' )#
+					#renderView( '/admin/assetmanager/_batchUploadForm' )#
 				</div>
 				<div class="hide upload-progress">
-					#outputView( '/admin/assetmanager/_batchUploadProgressBar' )#
+					#renderView( '/admin/assetmanager/_batchUploadProgressBar' )#
 				</div>
 				<div class="hide upload-results">
-					#outputView( uploadCompleteView )#
+					#renderView( uploadCompleteView )#
 				</div>
 			</div>
 			<div class="col-md-7">
-				#outputView( '/admin/assetmanager/_uploadTableAndDropzone' )#
+				#renderView( '/admin/assetmanager/_uploadTableAndDropzone' )#
 			</div>
 		</div>
 
 		<script type="text/template" id="file-preview-template">
-			#outputView( "/admin/assetmanager/_uploadPreviewTemplate" )#
+			#renderView( "/admin/assetmanager/_uploadPreviewTemplate" )#
 		</script>
 	</form>
 </cfoutput>

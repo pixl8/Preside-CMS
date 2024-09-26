@@ -233,7 +233,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		// Render collection views
 		if( structKeyExists( arguments, "collection" ) ){
 			// render collection in next context
-			iData.renderedView = getRenderer().renderViewCollection(arguments.view, viewLocations.viewPath, viewLocations.viewHelperPath, arguments.args, arguments.collection, arguments.collectionAs, arguments.collectionStartRow, arguments.collectionMaxRows, arguments.collectionDelim);
+			iData.renderedView = renderViewCollection(arguments.view, viewLocations.viewPath, viewLocations.viewHelperPath, arguments.args, arguments.collection, arguments.collectionAs, arguments.collectionStartRow, arguments.collectionMaxRows, arguments.collectionDelim);
 		}
 		// Render simple composite view
 		else{
@@ -349,6 +349,76 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		}
 
 		return buffer.toString();
+	}
+
+	function outputView(
+		  view
+		, args = {}
+		, rendererVariables = {}
+	) output=true {
+		if ( StructKeyExists( arguments, "cache" ) && arguments.cache == true ) {
+			echo( renderView( argumentCollection=arguments ) );// caching means intermediary variables no matter what
+			return;
+		}
+		if ( StructKeyExists( arguments, "collection" ) ) {
+			outputViewCollection( argumentCollection=arguments );
+			return;
+		}
+		silent {
+			var event             = getRequestContext();
+			var moduleArgs        = {
+				  template          = "RendererEncapsulator.cfm"
+				, rendererVariables = ( isNull( attributes.rendererVariables ) ? getRendererVariables() : attributes.rendererVariables )
+				, event             = event
+				, rc                = event.getCollection()
+				, prc               = event.getPrivateCollection()
+				, viewPath          = locateView( arguments.view )
+			};
+			StructAppend( moduleArgs, arguments, false );
+			StructAppend( moduleArgs.rendererVariables, arguments.rendererVariables );
+		}
+
+		module attributeCollection=moduleArgs;
+	}
+
+	function outputViewCollection(
+		view,
+		args,
+		collection,
+		collectionAs,
+		numeric collectionStartRow=1,
+		numeric collectionMaxRows=0,
+		collectionDelim=""
+	) output=true {
+		silent {
+			var coll   = IsArray( arguments.collection ) ? arguments.collection : queryToArray( arguments.collection );
+			var recLen = ArrayLen( coll );
+
+			// Determine the collectionAs key
+			if ( !len( arguments.collectionAs ) ) {
+				arguments.collectionAs = listLast( arguments.view, "/" );
+			}
+			if ( arguments.collectionStartRow > 1 ) {
+				recLen = max( 0, recLen - arguments.collectionStartRow + 1 );
+			}
+			// is max rows passed?
+			if ( arguments.collectionMaxRows != 0 && arguments.collectionMaxRows <= recLen ) {
+				recLen = arguments.collectionMaxRows;
+			}
+
+			var viewArgs = { _items=recLen };
+		}
+		for( var x=arguments.collectionStartRow; x<=recLen; x++ ){
+			silent {
+				viewArgs._counter = x;
+				viewArgs[ arguments.collectionAs ] = coll[ x ];
+			}
+			if ( x != arguments.collectionStartRow && Len( arguments.collectionDelim ) ) {
+				echo( arguments.collectionDelim );
+			}
+			outputView( view=arguments.view, args=arguments.args, rendererVariables=viewArgs );
+		}
+		return;
 	}
 
 	/**

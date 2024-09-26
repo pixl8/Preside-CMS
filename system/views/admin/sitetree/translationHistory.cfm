@@ -6,7 +6,7 @@
 </cfscript>
 
 <cfoutput>
-	#outputView( view="/admin/datamanager/_objectVersionHistoryTable", args={
+	#renderView( view="/admin/datamanager/_objectVersionHistoryTable", args={
 		  objectName    = object
 		, datasourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=sitetree.getPageTranslationHistoryForAjaxDataTables&id=#id#&language=#languageId#" )
 	} )#

@@ -5,7 +5,7 @@
 </cfscript>
 
 <cfoutput>
-	#outputView( view="/admin/datamanager/_editRecordForm", args={
+	#renderView( view="/admin/datamanager/_editRecordForm", args={
 		  object           = "site"
 		, id               = rc.id      ?: ""
 		, record           = prc.record ?: {}

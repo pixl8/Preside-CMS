@@ -27,7 +27,7 @@
 			<a class="<cfif item.active>#aCurrentClass#</cfif><cfif hasChildren> #aHasChildrenClass#</cfif>" href="#event.buildLink( page=item.id )#" <cfif hasChildren>#aHasChildrenAttributes#</cfif>>#item.title#<cfif hasChildren> <span class="caret"></span></cfif></a>
 			<cfif hasChildren>
 				<ul class="#ulNestedClass#">
-					#outputView( view='/core/navigation/mainNavigation', args={
+					#renderView( view='/core/navigation/mainNavigation', args={
 						  menuItems               = item.children
 						, ulNestedClass           = ulNestedClass
 						, liHasChildrenClass      = liHasChildrenClass

@@ -21,7 +21,7 @@
 		</cfif>
 	</div>
 
-	#outputView( view="/admin/datamanager/_objectDataTable", args={
+	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName          = objectName
 		, useMultiActions     = canDelete
 		, datasourceUrl       = event.buildAdminLink( linkTo="emailCenter.Blueprints.getRecordsForAjaxDataTables" )

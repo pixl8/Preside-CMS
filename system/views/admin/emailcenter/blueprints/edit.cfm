@@ -15,7 +15,7 @@
 			, allVersionsUrl = event.buildAdminLink( linkto="emailCenter.Blueprints.versionHistory", queryString="id=#recordId#" )
 		} )#
 
-		#outputView( view="/admin/datamanager/_editRecordForm", args={
+		#renderView( view="/admin/datamanager/_editRecordForm", args={
 			  object           = "email_blueprint"
 			, id               = rc.id      ?: ""
 			, record           = prc.record ?: {}

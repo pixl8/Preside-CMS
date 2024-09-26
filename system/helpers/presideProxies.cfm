@@ -27,6 +27,8 @@
 		<cfreturn getController().renderViewlet( argumentCollection = arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="outputViewlet" access="public" returntype="any" output="true"><cfreturn getController().outputViewlet( argumentCollection = arguments ) /></cffunction>
+
 	<cffunction name="renderView" access="public" returntype="any" output="false"><cfsilent>
 		<cfreturn getSingleton( "presideRenderer" ).renderView( argumentCollection = arguments ) />
 	</cfsilent></cffunction>
@@ -49,9 +51,7 @@
 
 	<cffunction name="outputView" access="public" returntype="any" output="true">
 		<cfargument name="view" type="string" required="true" />
-		<cfset var event = getRequestContext() />
-		<cfset var rendererVariables = getSingleton( "presideRenderer" ).getRendererVariables() />
-		<cf_includePresideView attributeCollection="#arguments#" />
+		<cfreturn getSingleton( "presideRenderer" ).outputView( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="renderContent" access="public" returntype="any" output="false"><cfsilent>

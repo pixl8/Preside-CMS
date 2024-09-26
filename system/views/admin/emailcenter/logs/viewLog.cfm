@@ -73,9 +73,9 @@
 		</cfif>
 
 						<div class="timeline-container">
-							#outputView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
+							#renderView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
 
-							#outputView( view="/admin/emailcenter/logs/_logActivity", args={
+							#renderView( view="/admin/emailcenter/logs/_logActivity", args={
 								  logDate         = prc.log.datecreated
 								, emailAddress    = prc.log.recipient
 								, datecreated     = prc.log.datecreated
@@ -85,7 +85,7 @@
 							} )#
 
 							<cfif IsTrue( prc.log.sent )>
-								#outputView( view="/admin/emailcenter/logs/_logActivity", args={
+								#renderView( view="/admin/emailcenter/logs/_logActivity", args={
 									  logDate         = prc.log.sent_date
 									, emailAddress    = prc.log.recipient
 									, datecreated     = prc.log.sent_date
@@ -96,7 +96,7 @@
 							</cfif>
 
 							<cfif IsTrue( prc.log.failed )>
-								#outputView( view="/admin/emailcenter/logs/_logActivity", args={
+								#renderView( view="/admin/emailcenter/logs/_logActivity", args={
 									  logDate         = prc.log.failed_date
 									, emailAddress    = prc.log.recipient
 									, datecreated     = prc.log.failed_date
@@ -109,7 +109,7 @@
 							<cfif IsTrue( prc.log.delivered )>
 								<cfset deliveredDate = IsDate( prc.log.delivered_date ) ? prc.log.delivered_date : prc.log.sent_date />
 
-								#outputView( view="/admin/emailcenter/logs/_logActivity", args={
+								#renderView( view="/admin/emailcenter/logs/_logActivity", args={
 									  logDate         = deliveredDate
 									, emailAddress    = prc.log.recipient
 									, datecreated     = deliveredDate
@@ -124,7 +124,7 @@
 								<cfif DateDiff( "d", prc.activity.datecreated, logDate )>
 									<cfset logDate = DateFormat( prc.activity.datecreated, "yyyy-mm-dd" ) />
 									</div>
-									#outputView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
+									#renderView( view="/admin/auditTrail/_logDateBanner", args={ logDate = logDate } )#
 									<div class="timeline-items">
 								</cfif>
 
@@ -177,7 +177,7 @@
 									</cfdefaultcase>
 								</cfswitch>
 
-								#outputView( view="/admin/emailcenter/logs/_logActivity", args={
+								#renderView( view="/admin/emailcenter/logs/_logActivity", args={
 									  logDate         = prc.activity.datecreated
 									, emailAddress    = prc.log.recipient
 									, datecreated     = prc.activity.datecreated

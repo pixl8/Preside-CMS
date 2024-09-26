@@ -38,7 +38,7 @@
 				</div>
 				<div class="tree-folder-content">
 					<cfloop array="#args.children#" index="child">
-						#outputView( view="/admin/assetmanager/_treeFolderNode", args=child )#
+						#renderView( view="/admin/assetmanager/_treeFolderNode", args=child )#
 					</cfloop>
 				</div>
 			</div>

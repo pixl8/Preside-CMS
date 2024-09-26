@@ -108,7 +108,7 @@
 								</h4>
 							</div>
 							<div class="panel-body">
-								#outputView( view="/admin/datamanager/_objectDataTable", args={
+								#renderView( view="/admin/datamanager/_objectDataTable", args={
 									  objectName        = "email_template_send_log"
 									, useMultiActions   = false
 									, datasourceUrl     = event.buildAdminLink( linkTo="emailCenter.getFilteredRecipientsForStatsTables", queryString="id=#args.templateId#&statType=mostActive" )
@@ -178,7 +178,7 @@
 							</h4>
 						</div>
 						<div class="panel-body">
-							#outputView( view="/admin/datamanager/_objectDataTable", args={
+							#renderView( view="/admin/datamanager/_objectDataTable", args={
 								  objectName        = "email_template_send_log"
 								, useMultiActions   = false
 								, datasourceUrl     = event.buildAdminLink( linkTo="emailCenter.getFilteredRecipientsForStatsTables", queryString="id=#args.templateId#&statType=#stat#" )

@@ -7,7 +7,7 @@
 			<a href="#event.buildLink( page=args.tree[1].id )#">#args.tree[1].title#</a>
 		</li>
 		<cfloop array="#args.tree[1].children#" item="page" index="i">
-			#outputView( view="/core/navigation/_htmlSitemapPage", args=page )#
+			#renderView( view="/core/navigation/_htmlSitemapPage", args=page )#
 		</cfloop>
 	</ul>
 </cfoutput>

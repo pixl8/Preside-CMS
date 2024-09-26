@@ -6,7 +6,7 @@
 </cfscript>
 
 <cfoutput>
-	#outputView( view="/admin/datamanager/_addOneToManyRecordForm", args={
+	#renderView( view="/admin/datamanager/_addOneToManyRecordForm", args={
 		  objectName            = objectName
 		, parentId              = parentId
 		, relationshipKey       = relationshipKey

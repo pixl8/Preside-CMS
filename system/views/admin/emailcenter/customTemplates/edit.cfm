@@ -20,7 +20,7 @@
 
 		<div class="row">
 			<div class="col-md-10 col-lg-9 col-sm-12">
-				#outputView( view="/admin/datamanager/_editRecordForm", args={
+				#renderView( view="/admin/datamanager/_editRecordForm", args={
 					  object           = "email_template"
 					, id               = rc.id      ?: ""
 					, record           = prc.record ?: {}

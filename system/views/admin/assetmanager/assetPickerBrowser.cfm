@@ -35,7 +35,7 @@
 </cfscript>
 
 <cfoutput>
-	#outputView( 'admin/layout/breadcrumbs' )#
+	#renderView( 'admin/layout/breadcrumbs' )#
 	<table id="asset-listing-table" class="table table-striped table-bordered table-hover asset-listing-table" data-multiple="#multiple#">
 		<thead>
 			<tr>
@@ -45,7 +45,7 @@
 		</thead>
 		<tbody data-nav-list="1" data-nav-list-child-selector="> tr" id="loadmorecontainer">
 			<cfif activeFolder neq rootFolder>
-				#outputView( view="admin/assetManager/_folderBrowserListingUpOneLevelForPicker", presideObject="asset_folder", id=activeFolder )#
+				#renderView( view="admin/assetManager/_folderBrowserListingUpOneLevelForPicker", presideObject="asset_folder", id=activeFolder )#
 			</cfif>
 			#folders#
 			#assets#

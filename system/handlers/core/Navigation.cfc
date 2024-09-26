@@ -6,9 +6,10 @@ component {
 
 <!--- VIEWLETS --->
 
-	private string function mainNavigation( event, rc, prc, args={} ) {
+	private function mainNavigation( event, rc, prc, args={}, bufferedViewlet=false ) {
 		var activeTree = ListToArray( event.getPageProperty( "ancestorList" ) );
-		    activeTree.append( event.getCurrentPageId() );
+
+		ArrayAppend( activeTree, event.getCurrentPageId() );
 
 		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
 			  rootPage        = args.rootPage     ?: siteTreeSvc.getSiteHomepage().id
@@ -18,10 +19,13 @@ component {
 			, activeTree      = activeTree
 		);
 
-		return renderView( view="core/navigation/mainNavigation", args=args );
+
+		if ( !arguments.bufferedViewlet ) {
+			return renderView( view="core/navigation/mainNavigation", args=args );
+		}
 	}
 
-	private string function subNavigation( event, rc, prc, args={} ) {
+	private function subNavigation( event, rc, prc, args={}, bufferedViewlet=false ) {
 		var startLevel = args.startLevel ?: 2;
 		var activeTree = ListToArray( event.getPageProperty( "ancestorList" ) );
 		    activeTree.append( event.getCurrentPageId() );
@@ -48,7 +52,11 @@ component {
 			, isSubMenu         = true
 		);
 
-		return renderView( view=( args.view ?: "/core/navigation/subNavigation" ) , args=args );
+		if ( !arguments.bufferedViewlet ) {
+			return renderView( view=( args.view ?: "/core/navigation/subNavigation" ) , args=args );
+		}
+
+		event.setViewletView( args.view ?: "/core/navigation/subNavigation" );
 	}
 
 	private string function htmlSiteMap( event, rc, prc, args={} ) {

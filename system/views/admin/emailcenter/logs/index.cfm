@@ -12,7 +12,7 @@
 	event.include( "/css/admin/specific/htmliframepreview/" );
 </cfscript>
 <cfoutput>
-	#outputView( view="/admin/datamanager/_objectDataTable", args={
+	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = "email_template_send_log"
 		, useMultiActions = false
 		, datasourceUrl   = ajaxUrl

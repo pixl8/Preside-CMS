@@ -21,7 +21,7 @@
 		#args.renderedItems#
 
 		<cfif IsTrue( args.configuration.use_captcha ?: "" )>
-			#outputView( '/formbuilder/general/captcha' )#
+			#renderView( '/formbuilder/general/captcha' )#
 		</cfif>
 
 		<div class="form-group">

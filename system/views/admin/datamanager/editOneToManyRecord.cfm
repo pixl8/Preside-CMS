@@ -8,7 +8,7 @@
 </cfscript>
 
 <cfoutput>
-	#outputView( view="/admin/datamanager/_editOneToManyRecordForm", args={
+	#renderView( view="/admin/datamanager/_editOneToManyRecordForm", args={
 		  object          = object
 		, id              = id
 		, parentId        = parentId

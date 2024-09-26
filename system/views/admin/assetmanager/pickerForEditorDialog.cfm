@@ -4,7 +4,7 @@
 </cfscript>
 <cfoutput>
 	<div class="page-content">
-		#outputView( view="admin/general/pageTitle", args={
+		#renderView( view="admin/general/pageTitle", args={
 			  title    = translateResource( "cms:ckeditor.#linkType#picker.title" )
 			, subTitle = translateResource( "cms:ckeditor.#linkType#picker.subtitle" )
 			, icon     = "picture-o"

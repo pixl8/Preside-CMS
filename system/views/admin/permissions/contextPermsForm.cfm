@@ -38,7 +38,7 @@
 
 							<div class="groups-list">
 								<div class="pull-left">
-									#outputView( view="admin/permissions/_editableGroupsList", args={
+									#renderView( view="admin/permissions/_editableGroupsList", args={
 										  savedPerms     = savedGrants
 										, inheritedPerms = inheritedGrants
 										, savedOpposites = savedDenials
@@ -46,7 +46,7 @@
 										, icon           = "check-circle"
 									} )#
 
-									#outputView( view="admin/permissions/_editableGroupsList", args={
+									#renderView( view="admin/permissions/_editableGroupsList", args={
 										  savedPerms     = savedDenials
 										, savedOpposites = savedGrants
 										, inheritedPerms = inheritedDenials
@@ -62,14 +62,14 @@
 								<div class="row">
 									<div class="col-sm-11">
 										<div class="row">
-											#outputView( view="admin/permissions/_editableGroupsInput", args={
+											#renderView( view="admin/permissions/_editableGroupsInput", args={
 												  controlName    = "grant.#key#"
 												, savedPerms     = savedGrants
 												, inheritedPerms = inheritedGrants
 												, title          = grantTitle
 											} )#
 
-											#outputView( view="admin/permissions/_editableGroupsInput", args={
+											#renderView( view="admin/permissions/_editableGroupsInput", args={
 												  controlName    = "deny.#key#"
 												, savedPerms     = savedDenials
 												, inheritedPerms = inheritedDenials

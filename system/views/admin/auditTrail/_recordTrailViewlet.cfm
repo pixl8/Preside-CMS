@@ -8,7 +8,7 @@
 <cfoutput>
 	<cfif logs.recordcount>
 		<div class="timeline-container" id="audit-trail">
-			#outputView( view="/admin/auditTrail/_logs", args={ logs=logs } )#
+			#renderView( view="/admin/auditTrail/_logs", args={ logs=logs } )#
 		</div>
 		<cfif hasMore>
 			<div class="load-more text-center">

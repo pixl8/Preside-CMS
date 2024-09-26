@@ -2,7 +2,7 @@
 <cfset contextId = rc.context ?: "" />
 
 <cfoutput>
-	#outputView( view="/admin/datamanager/_addRecordForm", args={
+	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "rules_engine_condition"
 		, addRecordAction       = event.buildAdminLink( linkTo='rulesEngine.addConditionAction' )
 		, allowAddAnotherSwitch = true

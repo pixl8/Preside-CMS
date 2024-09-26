@@ -31,6 +31,6 @@
 			</tbody>
 		</table>
 
-		#outputView( view="/admin/assetmanager/_listingTableMultiActions" )#
+		#renderView( view="/admin/assetmanager/_listingTableMultiActions" )#
 	</form>
 </cfoutput>

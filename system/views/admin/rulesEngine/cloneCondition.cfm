@@ -1,6 +1,6 @@
 <!---@feature admin and rulesEngine--->
 <cfoutput>
-	#outputView( view="/admin/datamanager/_cloneRecordForm", args={
+	#renderView( view="/admin/datamanager/_cloneRecordForm", args={
 		  object            = "rules_engine_condition"
 		, id                = rc.id      ?: ""
 		, cloneableData     = prc.record ?: {}

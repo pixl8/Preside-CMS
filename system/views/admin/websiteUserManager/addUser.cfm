@@ -5,7 +5,7 @@
 </cfscript>
 
 <cfoutput>
-	#outputView( view="/admin/datamanager/_addRecordForm", args={
+	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "website_user"
 		, addRecordAction       = event.buildAdminLink( linkTo='websiteusermanager.addUserAction' )
 		, allowAddAnotherSwitch = true

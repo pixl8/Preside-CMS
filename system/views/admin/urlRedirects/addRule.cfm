@@ -1,6 +1,6 @@
 <!---@feature admin and urlRedirects--->
 <cfoutput>
-	#outputView( view="/admin/datamanager/_addRecordForm", args={
+	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "url_redirect_rule"
 		, addRecordAction       = event.buildAdminLink( linkTo='urlRedirects.addRuleAction' )
 		, allowAddAnotherSwitch = true
