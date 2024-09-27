@@ -104,6 +104,7 @@ component extends="coldbox.system.web.Controller" {
 		,          string  cacheLastAccessTimeout = ""
 		,          string  cacheSuffix            = ""
 		,          string  cacheProvider          = "template"
+		,          boolean throwOnMissing         = true
 	) {
 		if ( arguments.delayed && _getDelayedViewletRendererService().isDelayableContext() ) {
 			return _getDelayedViewletRendererService().renderDelayedViewletTag(
@@ -180,10 +181,10 @@ component extends="coldbox.system.web.Controller" {
 		var vwExists = viewExists( view )
 		if ( !vwExists ) {
 			view = ListAppend( view, defaultAction, "/" );
-			vwExists = !hndlrExists || viewExists( view ); // slightly odd logic - backwards compat fix so that we only check if a view exists when a handler based viewlet returns null
+			vwExists = viewExists( view );
 		}
 
-		if ( !vwExists ) {
+		if ( !vwExists && ( !arguments.throwOnMissing || hndlrExists ) ) {
 			return "";
 		}
 
@@ -197,6 +198,7 @@ component extends="coldbox.system.web.Controller" {
 		  required string  event
 		,          struct  args = {}
 		,          boolean delayed = _getDelayedViewletRendererService().isViewletDelayedByDefault( arguments.event )
+		,          boolean throwOnMissing = false
 		,          boolean cache = false
 	) output=true {
 		if ( arguments.cache || ( arguments.delayed && _getDelayedViewletRendererService().isDelayableContext() ) ) {
@@ -246,7 +248,9 @@ component extends="coldbox.system.web.Controller" {
 		} else if ( Len( Trim( deferredViewlet ) ) ) {
 			outputViewlet( event=deferredViewlet, args=viewletArgs );
 		} else if ( Len( view ) ) {
-			getRenderer().outputView( view=view, args=viewletArgs );
+			if ( arguments.throwOnMissing || viewExists( view ) ) {
+				getRenderer().outputView( view=view, args=viewletArgs );
+			}
 		}
 	}
 
