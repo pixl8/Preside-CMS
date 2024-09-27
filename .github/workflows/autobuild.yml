@@ -140,8 +140,13 @@ jobs:
           cp .cfconfig.gh.json .cfconfig.json
           box install commandbox-cfconfig
           box server start serverConfigFile="server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
-          http_response=$(curl --max-time 120 -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9998)
+          http_response=$(curl --max-time 120 -s -o /tmp/output.html -w "%{http_code}" http://127.0.0.1:9998)
           if [ $http_response != "200" ]; then
+            echo "Website startup exited with error: $http_response"
+            echo "Full output:"
+            echo "============"
+            echo
+            cat /tmp/output.html
             exit 1
           fi
 
