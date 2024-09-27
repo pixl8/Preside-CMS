@@ -1002,4 +1002,22 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 
 		return variables;
 	}
+
+	function initLuceeGlobalUdfAvailabilityCheck() {
+		try {
+			setLuceeGlobalUdfsAvailable( testOnMissingFunctionAvailability() );
+		} catch( any e ) {
+			setLuceeGlobalUdfsAvailable( false );
+		}
+
+		return variables._luceeGlobalUdfsAvailable;
+	}
+
+	function setLuceeGlobalUdfsAvailable( available ) {
+		variables._luceeGlobalUdfsAvailable = arguments.available;
+	}
+
+	function areLuceeGlobalUdfsAvailable( available ) {
+		return variables._luceeGlobalUdfsAvailable ?: initLuceeGlobalUdfAvailabilityCheck();
+	}
 }
