@@ -12,6 +12,7 @@ component extends="coldbox.system.FrameworkSupertype" accessors=true {
 		variables.controller = arguments.controller;
 
 		super.loadApplicationHelpers();
+		initLuceeGlobalUdfAvailabilityCheck();
 
 		return this;
 	}
@@ -22,6 +23,24 @@ component extends="coldbox.system.FrameworkSupertype" accessors=true {
 
 			return variables[ arguments.missingMethodName ]( argumentCollection=arguments.missingMethodArguments );
 		}
+	}
+
+	function initLuceeGlobalUdfAvailabilityCheck() {
+		try {
+			setLuceeGlobalUdfsAvailable( testOnMissingFunctionAvailability() );
+		} catch( any e ) {
+			setLuceeGlobalUdfsAvailable( false );
+		}
+
+		return variables._luceeGlobalUdfsAvailable;
+	}
+
+	function setLuceeGlobalUdfsAvailable( available ) {
+		variables._luceeGlobalUdfsAvailable = arguments.available;
+	}
+
+	function areLuceeGlobalUdfsAvailable( available ) {
+		return variables._luceeGlobalUdfsAvailable ?: initLuceeGlobalUdfAvailabilityCheck();
 	}
 
 }
