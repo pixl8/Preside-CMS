@@ -1222,6 +1222,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		viewletCtx.view = arguments.view;
 	}
 
+	public function noViewletView() {
+		setViewletView( "" );
+	}
+
 	public function deferViewlet( required string deferredViewlet ) {
 		var viewletCtx = getViewletContext();
 
