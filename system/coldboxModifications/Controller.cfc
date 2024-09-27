@@ -104,6 +104,7 @@ component extends="coldbox.system.web.Controller" {
 		,          string  cacheLastAccessTimeout = ""
 		,          string  cacheSuffix            = ""
 		,          string  cacheProvider          = "template"
+		,          boolean throwOnMissing         = true
 	) {
 		if ( arguments.delayed && _getDelayedViewletRendererService().isDelayableContext() ) {
 			return _getDelayedViewletRendererService().renderDelayedViewletTag(
@@ -133,11 +134,13 @@ component extends="coldbox.system.web.Controller" {
 			return rendered;
 		}
 
-		var result        = "";
-		var view          = "";
-		var handler       = arguments.event;
-		var defaultAction = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
-		var hndlrExists   = handlerExists( handler );
+		var result          = "";
+		var view            = ListChangeDelims( arguments.event, "/", "." );
+		var deferredViewlet = "";
+		var viewletArgs     = arguments.args;
+		var handler         = arguments.event;
+		var defaultAction   = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
+		var hndlrExists     = handlerExists( handler );
 
 		if ( !hndlrExists ) {
 			handler = ListAppend( handler, defaultAction, "." );
@@ -145,23 +148,110 @@ component extends="coldbox.system.web.Controller" {
 		}
 
 		if ( hndlrExists ) {
-			return runEvent(
+			var requestContext = getRequestContext();
+			requestContext.pushViewletContext( view );
+
+			var result = runEvent(
 				  event          = handler
 				, prepostExempt  = arguments.prepostExempt
 				, private        = arguments.private
-				, eventArguments = { args = arguments.args }
+				, eventArguments = { args = viewletArgs }
 			);
+
+			if ( IsNull( local.result ) ) {
+				view            = requestContext.getViewletView();
+				deferredViewlet = requestContext.getDeferredViewlet();
+				viewletArgs     = requestContext.getViewletArgs( viewletArgs );
+			}
+			requestContext.popViewletContext();
+
+			if ( !IsNull( local.result ) ) {
+				return result;
+			}
+
+			if ( Len( Trim( deferredViewlet ) ) ) {
+				return renderViewlet( event=deferredViewlet, args=viewletArgs );
+			}
+			if ( !Len( Trim( view ) ) ) {
+				return "";
+			}
 		}
 
-		view = ListChangeDelims( arguments.event, "/", "." );
-		if ( !viewExists( view ) ) {
+
+		var vwExists = viewExists( view )
+		if ( !vwExists ) {
 			view = ListAppend( view, defaultAction, "/" );
+			vwExists = viewExists( view );
+		}
+
+		if ( !vwExists && ( !arguments.throwOnMissing || hndlrExists ) ) {
+			return "";
 		}
 
 		return getRenderer().renderView(
 			  view = view
-			, args = arguments.args
+			, args = viewletArgs
 		);
+	}
+
+	public void function outputViewlet(
+		  required string  event
+		,          struct  args = {}
+		,          boolean delayed = _getDelayedViewletRendererService().isViewletDelayedByDefault( arguments.event )
+		,          boolean throwOnMissing = false
+		,          boolean cache = false
+	) output=true {
+		if ( arguments.cache || ( arguments.delayed && _getDelayedViewletRendererService().isDelayableContext() ) ) {
+			echo( renderViewlet( argumentCollection=arguments ) );
+			return;
+		}
+		silent {
+			var view            = "";
+			var handler         = arguments.event;
+			var defaultAction   = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
+			var hndlrExists     = handlerExists( handler );
+			var requestContext  = getRequestContext();
+			var view            = ListChangeDelims( arguments.event, "/", "." );
+			var deferredViewlet = "";
+			var viewletArgs     = {};
+
+			if ( !hndlrExists ) {
+				handler = ListAppend( handler, defaultAction, "." );
+				hndlrExists = handlerExists( handler );
+			}
+
+			if ( hndlrExists ) {
+				requestContext.pushViewletContext( view );
+				var handlerResult = runEvent(
+					  event          = handler
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { args=arguments.args, bufferedViewlet=true }
+				);
+				if ( !IsSimpleValue( local.handlerResult ?: "" ) ) {
+					handlerResult = NullValue();
+				} else {
+					view            = requestContext.getViewletView();
+					deferredViewlet = requestContext.getDeferredViewlet();
+					viewletArgs     = requestContext.getViewletArgs( args );
+				}
+				requestContext.popViewletContext();
+			}
+
+			if ( IsNull( local.handlerResult ) && Len( view ) && !viewExists( view ) ) {
+				view = ListAppend( view, defaultAction, "/" );
+			}
+		}
+
+		if ( !IsNull( handlerResult ) ) {
+			echo( handlerResult );
+		} else if ( Len( Trim( deferredViewlet ) ) ) {
+			outputViewlet( event=deferredViewlet, args=viewletArgs );
+		} else if ( Len( view ) ) {
+			if ( arguments.throwOnMissing || viewExists( view ) ) {
+				getRenderer().outputView( view=view, args=viewletArgs );
+			}
+		}
 	}
 
 	public any function getRequestContext() {
