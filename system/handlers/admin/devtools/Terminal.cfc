@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component acessors=true extends="preside.system.base.JsonRpc2Handler" {
 
 // terminal controller (all methods come through here)

@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	actions = args.actions ?: [];
 	formid  = rc.id        ?: "";

@@ -2,6 +2,9 @@
  * The Site object represents a site / microsite that is managed by the CMS.
  *
  * Each site will have its own tree of [[presideobject-page]] records.
+ *
+ * @defaultFilters nonDeletedSites
+ * @feature        sites
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="name" displayName="Site"  {
 	property name="name"     type="string" dbtype="varchar" maxlength="200" required=true  uniqueindexes="sitename";

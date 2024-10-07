@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	hasRightCol = Len( Trim( prc.policyMessage ?: "" ) );
 	formId      = "edit-profile-form-" & CreateUUId();

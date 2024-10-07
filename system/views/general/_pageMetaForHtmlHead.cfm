@@ -1,3 +1,4 @@
+<!---@feature cms--->
 <!---
 	This view outputs common html head meta tags (title, description and author)
 --->
@@ -31,6 +32,8 @@
 
 	local.title = Trim( local.titlePrefix & " " & local.title & " " & local.titleSuffix );
 
+	local.canonicalUrl = event.getCanonicalUrl();
+
 	if ( !event.canPageBeCached() ) {
 		event.preventPageCache();
 	}
@@ -49,6 +52,10 @@
 
 	<cfif Len( local.author )>
 		<meta name="author" content="#HtmlEditFormat( local.author )#" />
+	</cfif>
+
+	<cfif Len( local.canonicalUrl )>
+		<link rel="canonical" href="#local.canonicalUrl#" />
 	</cfif>
 
 	<meta name="robots" content="#local.robots#" />

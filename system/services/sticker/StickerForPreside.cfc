@@ -1,13 +1,13 @@
 /**
  * @presideService true
  * @singleton      true
- *
+ * @feature        sticker
  */
 component {
 
 	/**
-	 * @delayedStickerRendererService.inject delayedStickerRendererService
-	 * @delayedViewletRendererService.inject delayedViewletRendererService
+	 * @delayedStickerRendererService.inject featureInjector:delayedViewlets:delayedStickerRendererService
+	 * @delayedViewletRendererService.inject featureInjector:delayedViewlets:delayedViewletRendererService
 	 *
 	 */
 	public any function init(
@@ -30,12 +30,16 @@ component {
 	public any function includeData()    { return _getSticker().includeData   ( argumentCollection=arguments ); }
 	public any function includeUrl()     { return _getSticker().includeUrl    ( argumentCollection=arguments ); }
 
-	public any function renderIncludes( boolean delayed=_getDelayedViewletRendererService().isDelayableContext() ) {
-		if ( arguments.delayed ) {
+	public any function renderIncludes( boolean delayed=_isDelayableContext() ) {
+		if ( arguments.delayed && $isFeatureEnabled( "delayedViewlets" ) ) {
 			return _getDelayedStickerRendererService().renderDelayedStickerTag( argumentCollection=arguments, memento=_getSticker().getMemento() );
 		} else {
 			return _getSticker().renderIncludes( argumentCollection=arguments );
 		}
+	}
+
+	public function reload() {
+		_initSticker();
 	}
 
 // PRIVATE HELPERS
@@ -64,6 +68,10 @@ component {
 		sticker.load();
 
 		_setSticker( sticker );
+	}
+
+	private function _isDelayableContext() {
+		return $isFeatureEnabled( "delayedViewlets" ) && _getDelayedViewletRendererService().isDelayableContext()
 	}
 
 // GETTERS AND SETTERS

@@ -1,3 +1,4 @@
+<!---@feature admin and websiteBenefits--->
 <cfparam name="args.id"    type="string" />
 <cfparam name="args.label" type="string" />
 

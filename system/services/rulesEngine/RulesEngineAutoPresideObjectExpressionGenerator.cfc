@@ -5,6 +5,7 @@
  * @autodoc        true
  * @singleton      true
  * @presideService true
+ * @feature        rulesEngine
  *
  */
 component {
@@ -137,10 +138,10 @@ component {
 					arrayAppend( expressions, _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
 
-				if ( relatedTo == "security_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInAdminUser" ) ) {
+				if ( relatedTo == "security_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInAdminUser" ) && $isFeatureEnabled( "admin" ) ) {
 					arrayAppend( expressions, _createManyToOneMatchesLoggedInAdminUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
-				if ( relatedTo == "website_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInWebUser" ) ) {
+				if ( relatedTo == "website_user" && !arrayContainsNoCase( excludedKeys, "ManyToOneMatchLoggedInWebUser" ) && $isFeatureEnabled( "websiteUsers" )) {
 					arrayAppend( expressions, _createManyToOneMatchesLoggedInWebUserExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
 				if ( !arguments.parentObjectName.len() ) {
@@ -178,7 +179,7 @@ component {
 				if ( !arrayContainsNoCase( excludedKeys, "OneToManyHas" ) ) {
 					arrayAppend( expressions, _createOneToManyHasExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
-				if ( reFind( "^\_translation\_", relatedTo ) ) {
+				if ( reFind( "^\_translation\_", relatedTo ) && $isFeatureEnabled( "multilingual" ) ) {
 					arrayAppend( expressions, _createOutdatedTranslationExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 					arrayAppend( expressions, _createTranslationExistsExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 				}
@@ -258,7 +259,7 @@ component {
 
 		expression.append( {
 			  id                = "presideobject_stringmatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
-			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
+			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="eq" }, value={ fieldType="text", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getLabel"
@@ -273,7 +274,7 @@ component {
 
 		expression.append( {
 			  id                = "presideobject_formulamatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
-			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
+			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="eq" }, value={ fieldType="text", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.getLabel"

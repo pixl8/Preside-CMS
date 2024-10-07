@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="prc.log"      type="struct" />
 <cfparam name="prc.activity" type="query"  />
 
@@ -25,7 +26,7 @@
 		<h2>#prc.log.subject#</h2>
 		<dl class="dl-horizontal">
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.to.label" )#</dt>
-			<dd>#prc.log.recipient#</dd>
+			<dd>#( prc.log.recipients ?: prc.log.recipient )#</dd>
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.from.label" )#</dt>
 			<dd>#prc.log.sender#</dd>
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.template.label" )#</dt>
@@ -134,19 +135,42 @@
 										<cfset logMessage = translateResource( "cms:mailcenter.logs.action.opened.message" ) />
 									</cfcase>
 									<cfcase value="click">
-										<cfset logIcon    = "fa-mouse-pointer" />
-										<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.clicked.title" ) />
-										<cfset renderedLink       = Trim( renderEmailTrackingLink( prc.activity.link ?: "", prc.activity.link_title ?: "", prc.activity.link_body ?: "" ) ) />
-										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ renderedLink ] ) />
+										<cfset logIcon      = "fa-mouse-pointer" />
+										<cfset logTitle     = translateResource( "cms:mailcenter.logs.action.clicked.title" ) />
+										<cfset renderedLink = Trim( renderEmailTrackingLink( prc.activity.link ?: "", prc.activity.link_title ?: "", prc.activity.link_body ?: "" ) ) />
+										<cfset logMessage   = translateResource( uri="cms:mailcenter.logs.action.clicked.message", data=[ renderedLink ] ) />
 									</cfcase>
 									<cfcase value="resend">
-										<cfset logIcon    = "fa-refresh" />
-										<cfset linkTitle  = translateResource( "cms:mailcenter.logs.action.resend.link.title" ) />
-										<cfset data       = DeserializeJson( prc.activity.extra_data ) />
-										<cfset resendType = data.resendType ?: "rebuild" />
-										<cfset renderedLink       = '<a class="load-in-place" href="#event.buildAdminLink( linkTo="emailCenter.logs.viewLog", queryString="id=#data.resentMessageId#" )#">#linkTitle#</a>' />
-										<cfset logTitle   = translateResource( "cms:mailcenter.logs.action.resend.title" ) />
-										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.resend.#resendType#.message", data=[ renderedLink ] ) />
+										<cfset logIcon      = "fa-refresh" />
+										<cfset linkTitle    = translateResource( "cms:mailcenter.logs.action.resend.link.title" ) />
+										<cfset data         = DeserializeJson( prc.activity.extra_data ) />
+										<cfset resendType   = data.resendType ?: "rebuild" />
+										<cfset renderedLink = '<a class="load-in-place" href="#event.buildAdminLink( linkTo="emailCenter.logs.viewLog", queryString="id=#data.resentMessageId#" )#">#linkTitle#</a>' />
+										<cfset logTitle     = translateResource( "cms:mailcenter.logs.action.resend.title" ) />
+										<cfset logMessage   = translateResource( uri="cms:mailcenter.logs.action.resend.#resendType#.message", data=[ renderedLink ] ) />
+									</cfcase>
+									<cfcase value="fail">
+										<cfif isTrue( prc.log.failed ) and !DateDiff( "s", prc.activity.datecreated, prc.log.failed_date )>
+											<cfcontinue />
+										</cfif>
+										<cfset logIcon    = "fa-exclamation-circle red" />
+										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.error.title" ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.error.message", data=[ prc.activity.reason ] ) />
+									</cfcase>
+									<cfcase value="markasspam">
+										<cfset logIcon    = "fa-exclamation-triangle red" />
+										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.markasspam.title" ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.markasspam.message" ) />
+									</cfcase>
+									<cfcase value="unsubscribe">
+										<cfset logIcon    = "fa-sign-out red" />
+										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.unsubscribe.title" ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.unsubscribe.message" ) />
+									</cfcase>
+									<cfcase value="honeypotclick">
+										<cfset logIcon    = "fa-android orange" />
+										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.honeypotclick.title" ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.honeypotclick.message" ) />
 									</cfcase>
 									<cfdefaultcase>
 										<cfcontinue/>
@@ -162,7 +186,7 @@
 									, message         = logMessage
 									, ipAddress       = prc.activity.user_ip
 									, userAgent       = prc.activity.user_agent
-									, showAuditTrail  = prc.activity.activity_type != "resend"
+									, showAuditTrail  = ArrayFindNoCase( [ "open", "click" ], prc.activity.activity_type )
 								} )#
 							</cfloop>
 						</div>

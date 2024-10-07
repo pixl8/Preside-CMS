@@ -5,6 +5,7 @@
  * @singleton      true
  * @presideservice true
  * @autodoc        true
+ * @feature        rulesEngine
  */
 component displayName="RulesEngine Expression Service" {
 
@@ -51,31 +52,21 @@ component displayName="RulesEngine Expression Service" {
 		  string context      = ""
 		, string filterObject = ""
 		, string excludeTags  = ""
+		, struct roleLimits   = getObjectFieldsExpressionRoleLimits( arguments.filterObject )
 		, array  userRoles    = _getAdminUserRoles()
 	) {
-		var cache    = _getRulesEngineExpressionCache();
-		var cachekey = arguments.filterObject & "_" & _getI18n().getFWLanguageCode() & "_" & _getI18n().getFWCountryCode() & "_" & arguments.context & "_" & arguments.excludeTags & "_" & hash( serializeJSON( arguments.userRoles ) );
-
-		if ( StructKeyExists( cache, cacheKey ) ) {
-			return cache[ cacheKey ];
-		}
-
 		_lazyLoadDynamicExpressions( argumentCollection=arguments );
 
-		var allExpressions       = _getExpressions();
-		var list                 = [];
-		var hasExclusions        = len( arguments.excludeTags ) > 0;
-		var filterOnContext      = len( arguments.context ) > 0;
-		var filterOnObject       = arguments.filterObject.len();
-		var expressionsRoleLimit = {};
-
-		if ( filterOnObject && arrayLen( userRoles ) ) {
-			expressionsRoleLimit = getObjectFieldsExpressionRoleLimits( objectName=arguments.filterObject );
-		}
+		var allExpressions  = _getExpressions();
+		var list            = [];
+		var hasExclusions   = Len( arguments.excludeTags ) > 0;
+		var filterOnContext = Len( arguments.context ) > 0;
+		var filterOnObject  = Len( arguments.filterObject ) > 0;
 
 		for( var expressionId in allExpressions ) {
-			var contexts = allExpressions[ expressionId ].contexts ?: [];
-			var tags     = allExpressions[ expressionId ].tags     ?: [];
+			var contexts     = allExpressions[ expressionId ].contexts ?: [];
+			var tags         = allExpressions[ expressionId ].tags     ?: [];
+			var roleLimitKey = filterOnObject ? ( arguments.filterObject & "." & ListLast( expressionId, "." ) ) : "";
 
 			if ( hasExclusions && _findListItemInArray( tags, arguments.excludeTags ) ) {
 				continue;
@@ -87,21 +78,15 @@ component displayName="RulesEngine Expression Service" {
 				continue;
 			}
 
-			if ( len( arguments.filterObject ) ) {
-				var roleLimitKey = arguments.filterObject & "." & listLast( expressionId, "." );
-			} else {
-				var roleLimitKey = listLast( listFirst( expressionId, "." ), "_" ) & "." & listLast( expressionId, "." );
-			}
-
-			if ( filterOnObject && arrayLen( userRoles ) && structKeyExists( expressionsRoleLimit, roleLimitKey ) ) {
+			if ( filterOnObject && ArrayLen( arguments.userRoles ) && StructKeyExists( arguments.roleLimits, roleLimitKey ) ) {
 				var expressionHandler    = allExpressions[ expressionId ].expressionHandler ?: "";
-				var expressionIdentifier = ( listLen( expressionHandler, "." ) eq 5 ) ? listGetAt( expressionHandler, 4, "." ) : "";
+				var expressionIdentifier = ( ListLen( expressionHandler, "." ) eq 5 ) ? ListGetAt( expressionHandler, 4, "." ) : "";
 				var hasPermission        = false;
-				var propertyRoleLimit    = expressionsRoleLimit[ roleLimitKey ];
+				var propertyRoleLimit    = arguments.roleLimits[ roleLimitKey ];
 
 				for ( var role in arguments.userRoles ) {
-					if ( structKeyExists( propertyRoleLimit, role ) ) {
-						hasPermission = hasPermission || arrayContainsNoCase( propertyRoleLimit[ role ], expressionIdentifier );
+					if ( StructKeyExists( propertyRoleLimit, role ) ) {
+						hasPermission = hasPermission || ArrayContainsNoCase( propertyRoleLimit[ role ], expressionIdentifier );
 					}
 				}
 
@@ -118,10 +103,10 @@ component displayName="RulesEngine Expression Service" {
 				getExpressionArgs.objectName = arguments.filterObject;
 			}
 
-			list.append( getExpression( argumentCollection=getExpressionArgs ) );
+			ArrayAppend( list, getExpression( argumentCollection=getExpressionArgs ) );
 		}
 
-		list.sort( function( a, b ){
+		ArraySort( list, function( a, b ){
 			var aCategory = a.category ?: "";
 			var bCategory = b.category ?: "";
 
@@ -130,8 +115,6 @@ component displayName="RulesEngine Expression Service" {
 			}
 			return aCategory > bCategory ? 1 : -1;
 		} );
-
-		cache[ cacheKey ] = list;
 
 		return list;
 	}
@@ -532,21 +515,27 @@ component displayName="RulesEngine Expression Service" {
 	 *
 	 */
 	public string function getExpressionsFile( string context="", string filterObject="", string excludeTags="" ) {
-		var fileName = "";
-		var filePath = GetTempDirectory();
-		var locale   = $i18n.getFwLocale();
-		var suffix   = hash( arguments.excludeTags & serializeJSON( _getAdminUserRoles() ) );
+		var fileName   = "";
+		var filePath   = GetTempDirectory();
+		var locale     = $i18n.getFwLocale();
+		var roleLimits = getObjectFieldsExpressionRoleLimits( arguments.filterObject );
+		var userRoles  = StructCount( roleLimits ) ? _getAdminUserRoles() : [];
+		var suffix     = arguments.excludeTags;
+
+		if ( StructCount( roleLimits ) && ArrayLen( userRoles ) ) {
+			suffix &= ArrayToList( userRoles );
+		}
 
 		if ( Len( arguments.context ) ) {
-			fileName = "conditionexpressions-#locale#-#arguments.context#-#suffix#.json"
+			fileName = "conditionexpressions-#locale#-#arguments.context#-#Hash( suffix )#.json"
 		} else {
-			fileName = "filterexpressions-#locale#-#arguments.filterObject#-#suffix#.json"
+			fileName = "filterexpressions-#locale#-#arguments.filterObject#-#Hash( suffix )#.json"
 		}
 		filePath &= fileName;
 
 		variables._generatedExpressionFiles = variables._generatedExpressionFiles ?: {};
 		if ( !StructKeyExists( variables._generatedExpressionFiles, fileName ) || !FileExists( filePath ) ) {
-			var expressions = listExpressions( argumentCollection=arguments );
+			var expressions = listExpressions( argumentCollection=arguments, roleLimits=roleLimits, userRoles=userRoles );
 			FileWrite( filePath, SerializeJson( expressions ) );
 			variables._generatedExpressionFiles[ fileName ] = true;
 		}
@@ -558,6 +547,10 @@ component displayName="RulesEngine Expression Service" {
 		  required string objectName
 		,          string structKeyPreffix = ""
 	) {
+		if ( !Len( Trim( arguments.objectName ) ) ) {
+			return {};
+		}
+
 		var cache    = _getRulesEngineExpressionCache();
 		var cachekey = "autoExpressionRoleLimits" & "_" & arguments.structKeyPreffix & "_" & arguments.objectName;
 

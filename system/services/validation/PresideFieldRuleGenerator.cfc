@@ -4,7 +4,7 @@ component output="false" singleton=true {
 	/**
 	 * @resourceBundleService.inject ResourceBundleService
 	 * @presideObjectService.inject  PresideObjectService
-	 * @assetManagerService.inject   AssetManagerService
+	 * @assetManagerService.inject   delayedInjector:AssetManagerService
 	 * @interceptorService.inject    coldbox:InterceptorService
 	 */
 	public any function init(

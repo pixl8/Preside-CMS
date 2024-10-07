@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.objectName"              type="string"  default=(rc.object ?: '' );
 	param name="args.formName"                type="string"  default=( prc.formName ?: '' );

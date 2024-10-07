@@ -5,6 +5,7 @@
  * @nolabel                     true
  * @datamanagerDefaultSortOrder datecreated
  * @datamanagerSearchFields     message.recipient,message$email_template.name,activity_type,link,link_title,link_body,reason
+ * @feature                     emailCenter
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="message" relationship="many-to-one" relatedto="email_template_send_log" required=true indexes="message,logdatecreated|1,logactivitytype|1";

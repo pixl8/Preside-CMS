@@ -1,11 +1,12 @@
 /**
  * Handler for rules engine 'operator type'
  *
+ * @feature rulesEngine
  */
 component {
 
 	_varietyMappings = {};
-	_varietyMappings[ "string"  ] = [ "eq", "neq", "contains", "notcontains", "startswith", "notstartswith", "endswith", "notendswith" ];
+	_varietyMappings[ "string"  ] = [ "eq", "neq", "contains", "notcontains", "startswith", "notstartswith", "endswith", "notendswith", "oneof", "noneof" ];
 	_varietyMappings[ "numeric" ] = [ "eq", "neq", "gt", "gte", "lt", "lte" ];
 	_varietyMappings[ "date"    ] = [ "eq", "neq", "gt", "gte", "lt", "lte" ];
 	_varietyMappings[ "period"  ] = [ "eq", "gt", "gte", "lt", "lte" ];
@@ -52,6 +53,19 @@ component {
 			, defaultValue = arguments.value
 			, required     = true
 		);
+	}
+
+	private string function renderConfigScreenDescription( string value="", struct config={} ) {
+		var variety = "string";
+
+		switch( config.variety ?: "" ) {
+			case "date":
+			case "numeric":
+			case "period":
+				variety = config.variety;
+		}
+
+		return translateResource( uri="cms:rulesEngine.operator.#variety#.config.description", defaultValue="" );
 	}
 
 }

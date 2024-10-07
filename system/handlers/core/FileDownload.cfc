@@ -1,6 +1,6 @@
 component {
 
-	property name="assetManagerService"    inject="assetManagerService";
+	property name="fileTypesService"       inject="fileTypesService";
 	property name="storageProviderService" inject="storageProviderService";
 
 	public function index( event, rc, prc ) output=false {
@@ -26,50 +26,51 @@ component {
 			event.notFound();
 		}
 
-		var type = assetManagerService.getAssetType( name=ListLast( filename, "." ) );
-		if( structIsEmpty( type ) ){
+		var type = fileTypesService.getAssetType( name=ListLast( filename, "." ) );
+		if( StructIsEmpty( type ) ){
 			type = {
 				  serveAsAttachment = true
 				, mimeType          = "application/octet-stream"
 			}
 		}
+
 		var etag = LCase( Hash( SerializeJson( storageProvider.getObjectInfo( path=storagePath, private=storagePrivate ) ) ) );
-
-		_doBrowserEtagLookup( etag );
-
-
-		if ( type.serveAsAttachment ) {
-			header name="Content-Disposition" value="attachment; filename=""#filename#""";
-		} else {
-			header name="Content-Disposition" value="inline; filename=""#filename#""";
-		}
-
-		announceInterception( "onDownloadFile", {
+		var args = {
 			  storageProvider = storageProvider
 			, storagePath     = storagePath
 			, storagePrivate  = storagePrivate
 			, filename        = filename
 			, type            = type
 			, allowAccess     = allowAccess
-		} );
+			, etag            = etag
+		};
+		announceInterception( "onDownloadFile", args );
 
-		if ( isFalse( allowAccess ) ) {
-			event.accessDenied( reason="The asset is restricted." );
+		if ( isFalse( args.allowAccess ?: "" ) ) {
+			event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 		}
 
-		header name="etag" value=etag;
+		_doBrowserEtagLookup( args.etag );
+
+		if ( args.type.serveAsAttachment ) {
+			header name="Content-Disposition" value="attachment; filename=""#args.filename#""";
+		} else {
+			header name="Content-Disposition" value="inline; filename=""#args.filename#""";
+		}
+
+		header name="etag" value=args.etag;
 		header name="cache-control" value="max-age=31536000";
 
-		if ( storageProviderService.providerSupportsFileSystem( storageProvider ) ) {
+		if ( storageProviderService.providerSupportsFileSystem( args.storageProvider ) ) {
 			content
 				reset = true
-				file  = storageProvider.getObjectLocalPath( path=storagePath, private=storagePrivate )
-				type  = type.mimeType;
+				file  = args.storageProvider.getObjectLocalPath( path=args.storagePath, private=args.storagePrivate )
+				type  = args.type.mimeType;
 		} else {
 			content
 				reset    = true
-				variable = storageProvider.getObject( path=storagePath, private=storagePrivate )
-				type     = type.mimeType;
+				variable = args.storageProvider.getObject( path=args.storagePath, private=args.storagePrivate )
+				type     = args.type.mimeType;
 		}
 
 		abort;

@@ -1,3 +1,6 @@
+/**
+ * @feature admin and formbuilder
+ */
 component {
 
 	private string function buildListingLink( event, rc, prc, args={} ) {
@@ -37,4 +40,23 @@ component {
 		return arguments.queryString;
 	}
 
+	private void function preAddRecordAction( event, rc, prc, args={} ){
+		_processFormData( argumentCollection=arguments );
+	}
+	private void function preEditRecordAction( event, rc, prc, args={} ){
+		_processFormData( argumentCollection=arguments );
+	}
+	private void function _processFormData( event, rc, prc, args={} ) {
+		if ( isFalse( args.formData.submission_remove_enabled ?: "" ) && Len( Trim( args.formData.submission_remove_after ?: "" ) ) ) {
+			args.formData.submission_remove_after = "";
+		} else if ( isTrue( args.formData.submission_remove_enabled ?: "" ) && !Len( Trim( args.formData.submission_remove_after ?: "" ) ) ) {
+			args.validationResult.addError(
+				  fieldName = "submission_remove_after"
+				, message   = translateResource(
+					  uri  = "preside-objects.formbuilder_form:validation.removal.fields.required"
+					, data = [ translateResource( uri="preside-objects.formbuilder_form:field.submission_remove_after.title" ) ]
+				)
+			);
+		}
+	}
 }

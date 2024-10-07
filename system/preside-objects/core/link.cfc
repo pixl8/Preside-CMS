@@ -6,6 +6,7 @@
  * @datamanagerEnabled              true
  * @datamanagerGridFields           internal_title,type,datecreated,datemodified
  * @datamanagerDisallowedOperations delete,clone
+ * @feature                         cms
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Link" {
 
@@ -13,6 +14,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Link" {
 	property name="type"              type="string"  dbtype="varchar" maxlength="20"  required=false default="external"  enum="linkType";
 	property name="title"             type="string"  dbtype="varchar" maxlength="200" required=false;
 	property name="page_anchor"       type="string"  dbtype="varchar" maxlength="30"  required=false;
+	property name="query_string"      type="string"  dbtype="varchar" maxlength="500" required=false;
 	property name="target"            type="string"  dbtype="varchar" maxlength="20"  required=false enum="linkTarget";
 	property name="nofollow"          type="boolean" dbtype="boolean"                 required=false default=false;
 	property name="referrer_policy"   type="string"  dbtype="varchar" enum="linkReferrerPolicy"  required=false default="";

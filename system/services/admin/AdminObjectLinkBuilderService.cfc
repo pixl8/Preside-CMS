@@ -5,6 +5,7 @@
  * @autodoc        true
  * @presideService true
  * @singleton      true
+ * @feature        admin
  */
 component {
 
@@ -41,7 +42,7 @@ component {
 		,          string recordId   = ""
 		,          struct args       = {}
 	) {
-		if ( $getPresideObjectService().isPageType( arguments.objectName ) ) {
+		if ( $isFeatureEnabled( "sitetree" ) && $getPresideObjectService().isPageType( arguments.objectName ) ) {
 			arguments.objectName = "page";
 		}
 

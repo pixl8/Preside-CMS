@@ -1,8 +1,11 @@
+/**
+ * @feature assetManager
+ */
 component {
 
 	property name="assetManagerService"          inject="assetManagerService";
 	property name="assetQueueService"            inject="presidecms:dynamicservice:assetQueue";
-	property name="websiteUserActionService"     inject="websiteUserActionService";
+	property name="websiteUserActionService"     inject="featureInjector:websiteUsers:websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 	property name="queueMaxWaitAttempts"         inject="coldbox:setting:assetManager.queue.downloadWaitSeconds";
 	property name="publicCacheAge"               inject="coldbox:setting:assetManager.cacheExpiry.public";
@@ -12,14 +15,20 @@ component {
 		announceInterception( "preDownloadAsset" );
 
 		var permissionSettings = _getPermissionSettings( argumentCollection=arguments );
-		if ( permissionSettings.restricted ) {
-			_checkDownloadPermissions( argumentCollection=arguments, permissionSettings=permissionSettings );
+		var isTrashed          = IsTrue( rc.isTrashed ?: "" );
+		if ( permissionSettings.restricted || isTrashed ) {
+			_checkDownloadPermissions( argumentCollection=arguments, permissionSettings=permissionSettings, isTrashed=isTrashed );
 		}
 
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
-		var isTrashed         = IsTrue( rc.isTrashed ?: "" );
+
+		if ( !assetManagerService.assetExists( id=assetId ) ) {
+			event.renderData( data="404 not found", type="text", statusCode=404 );
+			return;
+		}
+
 		var asset             = "";
 		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
 		var passwordProtected = false;
@@ -106,13 +115,15 @@ component {
 				} );
 
 				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
-				if ( type.serveAsAttachment ) {
-					websiteUserActionService.recordAction(
-						  action     = "download"
-						, type       = "asset"
-						, userId     = getLoggedInUserId()
-						, identifier = assetId
-					);
+				if ( type.trackDownloads ) {
+					if ( isFeatureEnabled( "websiteUsers" ) ) {
+						websiteUserActionService.recordAction(
+							  action     = "download"
+							, type       = "asset"
+							, userId     = getLoggedInUserId()
+							, identifier = assetId
+						);
+					}
 					header name="Content-Disposition" value="attachment; filename=""#filename#""";
 				} else {
 					header name="Content-Disposition" value="inline; filename=""#filename#""";
@@ -121,7 +132,7 @@ component {
 				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
 					setNextEvent(
 						  url        = assetPublicUrl
-						, statusCode = type.serveAsAttachment ? 302 : 301
+						, statusCode = type.trackDownloads ? 302 : 301
 					);
 				}
 
@@ -143,7 +154,7 @@ component {
 				}
 
 				header name="etag" value=etag;
-				if ( permissionSettings.restricted ) {
+				if ( permissionSettings.restricted || isTrashed ) {
 					header name="cache-control" value="private, max-age=#privateCacheAge#";
 				} else {
 					header name="cache-control" value="public, max-age=#publicCacheAge#";
@@ -198,7 +209,7 @@ component {
 		return assetManagerService.getAssetPermissioningSettings( assetId );
 	}
 
-	private void function _checkDownloadPermissions( event, rc, prc, permissionSettings ) {
+	private void function _checkDownloadPermissions( event, rc, prc, permissionSettings, isTrashed ) {
 		var assetId        = rc.assetId       ?: "";
 		var derivativeName = rc.derivativeId  ?: "";
 		var hasPerm        = false;
@@ -212,6 +223,9 @@ component {
 			if ( !hasPerm ) {
 				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}
+			return;
+		} else if ( arguments.isTrashed ) {
+			event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			return;
 		}
 

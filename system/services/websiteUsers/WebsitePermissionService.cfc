@@ -2,9 +2,10 @@
  * Service that provides API methods for dealing with website user permissions.
  * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        websiteUsers
  *
  */
 component displayName="Website permissions service" {
@@ -293,7 +294,7 @@ component displayName="Website permissions service" {
 		};
 
 		var dbRecords = _getAppliedPermDao().selectData(
-			  selectFields = [ "user", "benefit", "granted" ]
+			  selectFields = [ "user", "granted", $isFeatureEnabled( "websiteBenefits" ) ? "benefit" : "'' as benefit" ]
 			, filter       = { context=arguments.context, context_key=arguments.contextKey, permission_key=arguments.permissionKey }
 		);
 
@@ -438,17 +439,18 @@ component displayName="Website permissions service" {
 		, required string context
 		, required array  contextKeys
 	) {
-		var cntext       = arguments.context;
-		var cache        = _getCacheProvider();
-		var cacheKey     = "Context perms for context: " & arguments.context;
-		var contextPerms = cache.get( cacheKey );
+		var cntext          = arguments.context;
+		var cache           = _getCacheProvider();
+		var cacheKey        = "Context perms for context: " & arguments.context;
+		var contextPerms    = cache.get( cacheKey );
+		var benefitsEnabled = $isFeatureEnabled( "websiteBenefits" );
 
 		if ( IsNull( local.contextPerms ) ) {
 			contextPerms = {};
 
 			var permsFromDb  = _getAppliedPermDao().selectData(
-				  selectFields = [ "granted", "context_key", "permission_key", "benefit", "user" ]
-				, filter       = "context = :context and ( benefit is not null or user is not null )"
+				  selectFields = [ "granted", "context_key", "permission_key", benefitsEnabled ? "benefit" : "'' as benefit", "user" ]
+				, filter       = "context = :context and ( #( benefitsEnabled ? "benefit is not null or " : "" )# user is not null )"
 				, filterParams = { context = cntext }
 			);
 

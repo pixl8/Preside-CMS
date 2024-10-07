@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	topRightButtons        = prc.topRightButtons ?: "";
 	useSegmentationFilters = IsTrue( prc.useSegmentationFilters ?: "" );

@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	object              = rc.object        ?: "";
 	currentLanguage     = prc.language     ?: {};

@@ -14,18 +14,16 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 		if ( !ArrayLen( params ) || !ArrayFindNoCase( validOperations, params[ 1 ] ) ) {
 			var message = newLine();
 
-			message &= writeText( text="Usage: ", type="info", bold=true );
-			message &= writeText( "i18n [operation]" );
-			message &= newLine();
+			message &= writeText( text="Usage: ", type="help", bold=true );
+			message &= writeText( text="i18n <operation>", type="help", newline=2 );
 
-			message &= writeText( "Valid operations:" );
-			message &= newLine();
+			message &= writeText( text="Valid operations:", type="help", newline=2 );
 
-			message &= writeText( text="    object ", type="info", bold=true );
-			message &= writeText( text=": Lists all i18n of an object properties.", newLine=true );
+			message &= writeText( text="    object <objectName>", type="help", bold=true );
+			message &= writeText( text=" : Lists all of a Preside object's i18n properties", type="help", newLine=true );
 
-			message &= writeText( text="    enum   ", type="info", bold=true );
-			message &= writeText( text=": Lists all i18n of an enum keys.", newLine=true );
+			message &= writeText( text="    enum <enum>        ", type="help", bold=true );
+			message &= writeText( text=" : Lists all i18n keys of an enum", type="help", newLine=true );
 
 			return message;
 		}
@@ -48,6 +46,10 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 
 		var objectName = args.params[ 2 ] ?: "";
 		var context    = isEmptyString( args.params[ 3 ] ?: "" ) ? "" : "." & args.params[ 3 ] ;
+
+		if ( !Len( objectName ) ) {
+			return message & writeText( text="You must provide an objectName", type="error", newLine=true )
+		}
 
 		try {
 			var rows  = [];
@@ -109,6 +111,10 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 
 		var enumName = args.params[ 2 ] ?: "";
 
+		if ( !Len( enumName ) ) {
+			return message & writeText( text="You must provide an objectName", type="error", newLine=true )
+		}
+
 		try {
 			var rows  = [];
 			var enums = enum[ enumName ] ?: [];
@@ -141,7 +147,7 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 					, rows   = rows
 				);
 			} else {
-				message &= writeText( text="No enums found.", newLine=true );
+				message &= writeText( text="Enum [#enumName#] does not exist", newLine=true );
 			}
 		} catch ( any e ) {
 			message &= writeText( text=( e.message ?: "" ), newLine=true );

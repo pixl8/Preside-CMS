@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.actions.loggedInUserEmail:">
+<form i18nBaseUri="formbuilder.actions.loggedInUserEmail:" feature="formbuilder">
 	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
 			<field name="emailTemplate" control="emailTemplatePicker" required="true" custom="true" recipientType="websiteUser" />

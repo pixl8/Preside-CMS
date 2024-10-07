@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfparam name="rc.parentPage" type="string" default="" />
 <cfparam name="prc.pageTypes" type="array"  />
 

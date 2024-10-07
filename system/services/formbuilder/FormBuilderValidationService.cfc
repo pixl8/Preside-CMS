@@ -1,9 +1,10 @@
 /**
  * Provides logic for validating form builder forms
  *
- * @autodoc
- * @singleton
- * @presideservice
+ * @autodoc        true
+ * @singleton      true
+ * @presideservice true
+ * @feature        formbuilder
  */
 component {
 

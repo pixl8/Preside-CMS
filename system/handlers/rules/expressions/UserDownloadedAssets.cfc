@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User has downloaded any/all of the following assets"
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers and assetManager
  */
 component {
 

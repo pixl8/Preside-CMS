@@ -1,4 +1,4 @@
-component hint="Reload all or part of your preside application" {
+component hint="Reload all or part of your preside application" extends="preside.system.base.Command" {
 
 	property name="jsonRpc2Plugin"           inject="JsonRpc2";
 	property name="applicationReloadService" inject="applicationReloadService";
@@ -24,11 +24,16 @@ component hint="Reload all or part of your preside application" {
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
 		if ( !params.len() || !StructKeyExists( validTargets, params[1] ) ) {
-			var usageMessage = Chr(10) & "[[b;white;]Usage:] reload [#StructKeyList( validTargets, '|' )#]" & Chr(10) & Chr(10)
-			                           & "Reload types:" & Chr(10) & Chr(10);
+			var usageMessage = newLine();
+
+			usageMessage &= writeText( text="Usage: ", type="help", bold=true );
+			usageMessage &= writeText( text="reload <type>", type="help", newline=2 );
+
+			usageMessage &= writeText( text="Reload types:", type="help", newline=2 );
 
 			for( var target in validTargets ) {
-				usageMessage &= "    [[b;white;]#target#]#RepeatString( ' ', 12-Len(target) )#: #validTargets[ target ].description#" & Chr(10);
+				usageMessage &= writeText( text="    #target##RepeatString( ' ', 12-Len(target) )#", type="help", bold=true );
+				usageMessage &= writeText( text=": #validTargets[ target ].description#", type="help", newline=true );
 			}
 
 			return usageMessage;
@@ -38,18 +43,22 @@ component hint="Reload all or part of your preside application" {
 		var forceFlag = ( params[2] ?: "" ) == "--force";
 
 		if ( environment == "production" && ( target.flagRequiredInProduction ?: false ) && !forceFlag ) {
-			return Chr(10) & "[[b;red;]--force flag is required to perform this action in a production environment]" & Chr(10);
+			return newLine() & writeText( text="--force flag is required to perform this action in a production environment", type="error", bold=true, newline=true );
 		}
 
 		if ( target.isMajorReload && isBoolean( disableMajorReloads ) && disableMajorReloads ) {
-			return Chr(10) & "[[b;red;]Major reloads are disallowed]" & Chr(10);
+			return newLine() & writeText( text="Major reloads are disallowed", type="error", bold=true, newline=true );
 		}
 
 		var start = GetTickCount();
 		applicationReloadService[ target.reloadMethod ]();
 		var timeTaken = GetTickCount() - start;
 
-		return Chr(10) & "[[b;white;]Reload completed with message: ]" & target.successMessage & Chr(10)
-		               & "[[b;white;]Time taken:] #NumberFormat( timeTaken )# ms" & Chr( 10 );
+		var message = newLine();
+		message &= writeText( text="Reload completed with message: ", type="info", bold=true );
+		message &= writeText( text=target.successMessage, type="info", newline=true );
+		message &= writeText( text="Time taken: ", type="info", bold=true );
+		message &= writeText( text="#NumberFormat( timeTaken )# ms", type="info", newline=true );
+		return message;
 	}
 }

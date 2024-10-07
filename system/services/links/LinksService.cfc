@@ -1,6 +1,6 @@
 /**
- * @singleton
- *
+ * @singleton true
+ * @feature   cms
  */
 component {
 
@@ -73,8 +73,10 @@ component {
 	}
 
 	private string function _buildSitetreelinkHref( required query link ) {
-		var anchor = len( link.page_anchor ?: "" ) ? "##" & link.page_anchor : "";
-		return _getRequestContext().buildLink( page=link.page ) & anchor;
+		var qs     = Len( Trim( link.query_string ?: "" ) ) ? "?#link.query_string#" : "";
+		var anchor = Len( link.page_anchor ?: "" ) ? "##" & link.page_anchor : "";
+
+		return _getRequestContext().buildLink( page=link.page ) & qs & anchor;
 	}
 
 	private string function _buildAssetlinkHref( required query link ) {

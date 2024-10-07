@@ -1,3 +1,6 @@
+/**
+ * @feature admin and taskManager
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="taskManagerService"         inject="taskManagerService";

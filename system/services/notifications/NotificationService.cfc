@@ -1,8 +1,9 @@
 /**
  * The notifications service provides an API to the Preside administrator [[notifications|notifications system]].
  *
- * @singleton
- * @presideService
+ * @singleton      true
+ * @presideService true
+ * @feature        admin
  */
 component autodoc=true displayName="Notification Service" {
 

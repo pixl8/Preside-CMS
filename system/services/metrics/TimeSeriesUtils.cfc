@@ -2,6 +2,7 @@
  *
  * @presideService true
  * @singleton      true
+ * @feature        admin
  */
 component {
 
@@ -25,16 +26,19 @@ component {
 		  required string  sourceObject
 		, required date    startDate
 		, required date    endDate
-		,          struct  timeResolution      = calculateTimeResolution( arguments.startDate, arguments.endDate )
-		,          array   expectedTimes       = getExpectedTimes( timeResolution, arguments.startDate, arguments.endDate )
-		,          string  groupBy             = ""
-		,          string  secondaryGroupBy    = ""
-		,          string  aggregateFunction   = "count"
-		,          string  aggregateOver       = "1"
-		,          string  timeField           = "datecreated"
-		,          string  decimalPrecision    = ""
-		,          array   extraFilters        = []
-		,          boolean valuesOnly          = false
+		,          string  minResolution     = "s"
+		,          struct  timeResolution    = calculateTimeResolution( arguments.startDate, arguments.endDate, arguments.epochResolution )
+		,          array   expectedTimes     = getExpectedTimes( timeResolution, arguments.startDate, arguments.endDate )
+		,          string  groupBy           = ""
+		,          string  secondaryGroupBy  = ""
+		,          string  aggregateFunction = "count"
+		,          string  aggregateOver     = "1"
+		,          string  timeField         = "datecreated"
+		,          string  decimalPrecision  = ""
+		,          array   extraFilters      = []
+		,          boolean valuesOnly        = false
+		,          boolean timeFieldIsEpoch  = false
+		,          string  epochResolution   = "s"
 	) {
 		var fullTimeSeries = { labels=[], datasets=[] };
 
@@ -42,16 +46,19 @@ component {
 			arguments.timeField = $getPresideObjectService().getDateCreatedField( arguments.sourceObject );
 		}
 
-		var timeValue      = "from_unixtime(floor(UNIX_TIMESTAMP(#arguments.timeField#)/#timeResolution.seconds#)*#timeResolution.seconds#) as _time";
+		var timeValue      = _calculateTimeValue( argumentCollection=arguments );
 		var aggOver        = arguments.aggregateFunction == "count" ? "1" : arguments.aggregateOver;
 		var valueField     = "";
 		var mapped         = StructNew( "linked" );
 		var groupedValues  = {};
 		var grouped        = Len( Trim( arguments.groupBy ) ) > 0;
+		var timeFieldType  = arguments.timeFieldIsEpoch ? "cf_sql_integer" : "cf_sql_timestamp";
+		var start          = arguments.timeFieldIsEpoch ? _epochTime( arguments.startDate, arguments.epochResolution ) : arguments.startDate;
+		var end            = arguments.timeFieldIsEpoch ? _epochTime( arguments.endDate  , arguments.epochResolution ) : arguments.endDate;
 		var selectDataArgs = {
 			  selectFields = [ timeValue ]
-			, filter       = "#timeField# > :start and #timeField# < :end"
-			, filterParams = { start={ type="cf_sql_timestamp", value=arguments.startDate }, end={ type="cf_sql_timestamp", value=arguments.endDate } }
+			, filter       = "#timeField# >= :start and #timeField# <= :end"
+			, filterParams = { start={ type=timeFieldType, value=start }, end={ type=timeFieldType, value=end } }
 			, groupBy      = "_time"
 			, orderBy      = "_time"
 			, extraFilters = Duplicate( arguments.extraFilters )
@@ -120,7 +127,7 @@ component {
 		return fullTimeSeries;
 	}
 
-	public struct function calculateTimeResolution( startDate, endDate ) {
+	public struct function calculateTimeResolution( startDate, endDate, resolution="s" ) {
 		var daysDiff  = DateDiff( 'd', arguments.startDate, arguments.endDate );
 		var hoursDiff = DateDiff( 'h', arguments.startDate, arguments.endDate );
 		var minsDiff  = DateDiff( 'n', arguments.startDate, arguments.endDate );
@@ -137,7 +144,7 @@ component {
 			return { seconds=variables._DAY * 2, hourStep=24, minStep=60 };
 		}
 
-		if ( daysDiff > 7 ) {
+		if ( daysDiff > 7 || arguments.resolution == "d" ) {
 			return { seconds=variables._DAY, hourStep=24, minStep=60 };
 		}
 
@@ -153,7 +160,7 @@ component {
 			return { seconds=variables._HOUR * 2, hourStep=2, minStep=60 };
 		}
 
-		if ( hoursDiff > 10 ) {
+		if ( hoursDiff > 10 || arguments.resolution == "h") {
 			return { seconds=variables._HOUR, hourStep=1, minStep=60 };
 		}
 
@@ -264,5 +271,40 @@ component {
 		}
 
 		return arguments.value;
+	}
+
+// helpers
+	private string function _calculateTimeValue( timefield, timeResolution, timeFieldIsEpoch, epochResolution ) {
+		if ( !arguments.timeFieldIsEpoch ) {
+			return  "from_unixtime(floor(UNIX_TIMESTAMP(#arguments.timeField#)/#timeResolution.seconds#)*#timeResolution.seconds#) as _time";
+		}
+
+		var divider    = arguments.timeResolution.seconds;
+		var multiplier = divider;
+
+		switch( arguments.epochResolution ) {
+			case "d":
+				divider = arguments.timeResolution.seconds / 60 / 60 / 24;
+				multiplier = divider * ( 60 * 60 * 24 );
+			break;
+			case "h":
+				divider = arguments.timeResolution.seconds / 60 / 60;
+				multiplier = divider * ( 60 * 60 );
+			break;
+			case "n":
+				divider = arguments.timeResolution.seconds / 60;
+				multiplier = divider * ( 60 );
+			break;
+			case "s":
+				divider = arguments.timeResolution.seconds;
+				multiplier = divider;
+			break;
+		}
+
+		return "from_unixtime( floor( #arguments.timeField# / #divider# ) * #multiplier# ) as _time"
+	}
+
+	private numeric function _epochTime( adate, resolution ) {
+		return DateDiff( arguments.resolution, "1970-01-01 00:00:00", arguments.adate );
 	}
 }

@@ -4,6 +4,7 @@
  * @autodoc        true
  * @singleton      true
  * @presideService true
+ * @feature        customEmailTemplates
  *
  */
 component {
@@ -24,7 +25,7 @@ component {
 	 * @emailTemplateService.inject      emailTemplateService
 	 * @emailRecipientTypeService.inject emailRecipientTypeService
 	 * @emailService.inject              emailService
-	 * @rulesEngineFilterService.inject  rulesEngineFilterService
+	 * @rulesEngineFilterService.inject  featureInjector:rulesEngine:rulesEngineFilterService
 	 *
 	 */
 	public any function init(
@@ -106,15 +107,18 @@ component {
 			);
 		}
 
-		var poService    = $getPresideObjectService();
-		var dbAdapter    = poService.getDbAdapterForObject( "email_mass_send_queue" );
-		var nowFunction  = dbAdapter.getNowFunctionSql();
-		var extraFilters = getTemplateRecipientFilters( arguments.templateId );
-		var batchedSets  = [];
-		var records      = "";
-		var page         = 0;
-		var pageSize     = 100;
-		var queuedCount  = 0;
+		var poService     = $getPresideObjectService();
+		var dbAdapter     = poService.getDbAdapterForObject( "email_mass_send_queue" );
+		var nowFunction   = dbAdapter.getNowFunctionSql();
+		var idField       = "#recipientObject#.#poService.getIdField( recipientObject )#";
+		var extraFilters  = getTemplateRecipientFilters( arguments.templateId );
+		var inQueueFilter = _getDuplicateCheckFilter( recipientObject, arguments.templateId );
+		var batchedSets   = [];
+		var records       = "";
+		var pageSize      = 100;
+		var queuedCount   = 0;
+		var filter        = "";
+		var filterParams  = {};
 
 		/**
 		 * We used to do a single insertDataFromSelect() using the dynamic filters
@@ -129,18 +133,23 @@ component {
 		do {
 			records = poService.selectData(
 				  objectName   = recipientObject
-				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ) ]
+				, selectFields = [ "#idField# as id" ]
+				, filter       = filter
+				, filterParams = filterParams
 				, extraFilters = extraFilters
+				, orderBy      = idField
 				, distinct     = true
 				, maxRows      = pageSize
-				, startRow     = ( (++page * pageSize) + 1 ) - pageSize
 				, useCache     = false
 			);
 
 			if ( records.recordCount ) {
 				ArrayAppend( batchedSets, ValueArray( records.id ) );
+
+				filter = "#idField# > :#idField#";
+				filterParams[ idField ] = records.id[ records.recordCount ];
 			}
-		} while( records.recordCount );
+		} while( records.recordCount == pageSize );
 
 		for( var batch in batchedSets ) {
 			queuedCount += poService.insertDataFromSelect(
@@ -148,13 +157,12 @@ component {
 				, fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
 				, selectDataArgs = {
 					  objectName   = recipientObject
-					, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
+					, selectFields = [ idField, ":template", nowFunction, nowFunction ]
 					, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
-					, extraFilters = [ { filter={ id=batch } } ]
+					, extraFilters = [ { filter={ "#idField#"=batch } }, inQueueFilter ]
 				  }
 			);
 		}
-
 		return queuedCount;
 	}
 
@@ -183,22 +191,35 @@ component {
 			, unit          = template.sending_limit_unit
 			, measure       = template.sending_limit_measure
 		) : [];
-		var blueprintFilter = template.blueprint_filter ?: "";
-		if ( blueprintFilter.len() ) {
-			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
-			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
-				  objectName      = recipientObject
-				, expressionArray = filterExpression
-			);
-			extraFilters.append( recipientFilter );
-		}
-		if ( template.recipient_filter.len() ) {
-			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
-			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
-				  objectName      = recipientObject
-				, expressionArray = filterExpression
-			);
-			extraFilters.append( recipientFilter );
+
+		if ( $isFeatureEnabled( "rulesEngine" ) ) {
+			var blueprintFilter = template.blueprint_filter ?: "";
+			if ( Len( blueprintFilter ) ) {
+				var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
+				var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
+					  objectName      = recipientObject
+					, expressionArray = filterExpression
+				);
+				extraFilters.append( recipientFilter );
+			}
+			if ( Len( Trim( template.recipient_filter ?: "" ) ) ) {
+				var isSegmentationFilter = _getRulesEngineFilterService().isSegmentationFilter( filterid=template.recipient_filter );
+
+				if ( isSegmentationFilter ) {
+					var recipientFilter = _getRulesEngineFilterService().prepareSegmentationFilter(
+						  objectName = recipientObject
+						, filterId   = template.recipient_filter
+					);
+				} else {
+					var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
+					var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
+						  objectName      = recipientObject
+						, expressionArray = filterExpression
+					);
+				}
+
+				ArrayAppend( extraFilters, recipientFilter )
+			}
 		}
 
 		extraFilters.append( _getDuplicateCheckFilter( recipientObject, arguments.templateId ) );

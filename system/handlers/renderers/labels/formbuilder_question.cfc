@@ -1,3 +1,6 @@
+/**
+ * @feature formbuilder2
+ */
 component {
 
 	private array function _selectFields( event, rc, prc ) {

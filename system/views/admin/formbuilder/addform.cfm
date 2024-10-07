@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	formId = "addForm-" & CreateUUId();
 	formAction = event.buildAdminLink( 'formbuilder.addFormAction' );
@@ -10,6 +11,7 @@
 			, context          = "admin"
 			, formId           = formId
 			, validationResult = ( rc.validationResult ?: "" )
+			, additionalArgs   = ( prc.additionalArgs  ?: {} )
 		)#
 
 		<div class="form-actions row">

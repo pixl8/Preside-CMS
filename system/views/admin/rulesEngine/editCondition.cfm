@@ -1,3 +1,4 @@
+<!---@feature admin and rulesEngine--->
 <cfscript>
 	isFilter    = Len( Trim( prc.record.filter_object ?: "" ) );
 	isNonGlobal = Len( Trim( prc.record.owner ?: "" ) );

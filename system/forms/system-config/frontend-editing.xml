@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+System config form: Front-end editing
+
+This form is used for managing front-end editing settings for admin users
+-->
+<form i18nBaseUri="system-config.frontend-editing:" feature="cms">
+	<tab id="default" sortorder="10">
+		<fieldset id="frontend" sortorder="10">
+			<field name="admin_toolbar_mode" control="enumRadioList" enum="adminToolbarModes" default="fixed" required="true" />
+			<field name="disable_quick_edit" control="yesNoSwitch" />
+		</fieldset>
+	</tab>
+</form>

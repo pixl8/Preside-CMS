@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfparam name="prc.submission" type="query">
 
 <cfoutput>

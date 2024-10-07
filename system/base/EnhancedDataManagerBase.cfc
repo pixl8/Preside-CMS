@@ -95,6 +95,10 @@ component extends="preside.system.base.AdminHandler" {
 		var currentTab  = rc.tab ?: "";
 		var firstTab    = variables.tabs[ 1 ] ?: "";
 
+		if ( IsStruct( firstTab ) ) {
+			firstTab = firstTab.id;
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
 			, link  = event.buildAdminLink( objectName=objectName, recordId=recordId )
@@ -204,7 +208,7 @@ component extends="preside.system.base.AdminHandler" {
 			menuItem = _buildSidebarMenuItem( argumentCollection=arguments, tabId=tabId );
 			if ( StructCount( menuItem ) ) {
 				if ( firstTab == "" ) {
-					firstTab = tabId;
+					firstTab = IsStruct( tabId ) ? tabId.id : tabId;
 				}
 				if ( args.currentTab == "" && arrayIsEmpty( sidebarMenuItems ) ) {
 					menuItem.active = true;
@@ -214,7 +218,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var activeTab        = ArrayFind( args.availableTabs, args.currentTab ) ? args.currentTab : firstTab;
-		var activeTabContent = renderViewlet( event="admin.datamanager.#objectName#._#activeTab#Tab", args=args );
+		var activeTabContent = customizationService.runCustomization( objectName=objectName, action="_#activeTab#Tab", args=args )
 
 		if ( ArrayLen( sidebarMenuItems ) ) {
 			prc.adminSidebarItems  = sidebarMenuItems;
@@ -316,14 +320,9 @@ component extends="preside.system.base.AdminHandler" {
 			args.tabs[ i ] = {
 				  id        = tabId
 				, iconClass = translateResource( uri=i18nBase & "viewtab.#tabId#.iconclass", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.iconclass" ) )
-				, content   = renderViewlet( event="admin.datamanager.#objectName#._#tabId#Tab", args=args )
+				, content   = customizationService.runCustomization( objectName=objectName, action="_#tabId#Tab", args=args )
+				, title     = customizationService.runCustomization( objectName=objectName, action="_#tabId#TabTitle", args=args, defaultResult=translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) ) )
 			};
-
-			if ( getController().viewletExists( "admin.datamanager.#objectName#._#tabId#TabTitle" ) ) {
-				args.tabs[ i ].title = renderViewlet( event="admin.datamanager.#objectName#._#tabId#TabTitle", args=args );
-			} else {
-				args.tabs[ i ].title = translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) );
-			}
 		}
 		for( var i=args.tabs.len(); i>0; i-- ) {
 			if ( !Len( Trim( args.tabs[ i ].content ?: "" ) ) ) {
@@ -377,6 +376,10 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = args.objectName ?: "";
 
 		return "<p><em class=""light-grey""><i class=""fa fa-fw fa-exclamation-triangle""></i> TODO: implement your own <code>admin.datamanager.#objectName#._defaultTab</code> viewlet for your entity.</em></p>";
+	}
+
+	private string function _auditTrailTab( event, rc, prc, args={} ) {
+		return renderViewlet( event="admin.audittrail.recordTrailViewlet", args={ recordId=args.recordId ?: "" } );
 	}
 
 	private string function _getNonVersionDateCreated( required string objectName, required string recordId ) {

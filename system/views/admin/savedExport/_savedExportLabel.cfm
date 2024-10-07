@@ -1,3 +1,4 @@
+<!---@feature admin and dataExport--->
 <cfscript>
 	icon        = args.icon        ?: "fa-database";
 	label       = args.label       ?: "";

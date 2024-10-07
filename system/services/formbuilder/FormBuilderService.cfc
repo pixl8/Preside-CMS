@@ -1,9 +1,10 @@
 /**
  * Provides logic for interacting with form builder forms
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        formbuilder
  */
 component {
 	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
@@ -70,6 +71,21 @@ component {
 	}
 
 	/**
+	 * Retuns the default form's item select fields in array
+	 *
+	 * @autodoc    true
+	 * @id.hint    ID of the form item's form you wish to get
+	 */
+	public array function getFormItemDefaultFields( required string id ) {
+		var fields = [ "id", "item_type", "configuration", "form" ];
+		if ( isV2Form( formid=arguments.id ) ) {
+			ArrayAppend( fields, "question" );
+		}
+
+		return fields;
+	}
+
+	/**
 	 * Retuns a form's items in an ordered array
 	 *
 	 * @autodoc        true
@@ -81,13 +97,7 @@ component {
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { form=arguments.id }
 			, orderBy      = "sort_order"
-			, selectFields = [
-				  "id"
-				, "item_type"
-				, "configuration"
-				, "form"
-				, "question"
-			  ]
+			, selectFields = getFormItemDefaultFields( id=arguments.id )
 		);
 
 		for( var item in items ) {
@@ -95,13 +105,13 @@ component {
 				var preparedItem = {
 					  id            = item.id
 					, formId        = item.form
-					, questionId    = item.question
 					, item_type     = item.item_type
 					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 					, configuration = DeSerializeJson( item.configuration )
 				};
 
-				if ( Len( item.question ) ) {
+				if ( Len( item.question ?: "" ) ) {
+					preparedItem.questionId = item.question
 					StructAppend( preparedItem.configuration, _getItemConfigurationForV2Question( item.question ) );
 				}
 
@@ -121,30 +131,31 @@ component {
 	 * @id.hint ID of the item you wish to get
 	 */
 	public struct function getFormItem( required string id ) {
-		var result = {};
-		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
+		var result   = {};
+		var formItem = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { id=arguments.id }
-			, selectFields = [
-				  "id"
-				, "item_type"
-				, "configuration"
-				, "question"
-				, "form"
-			  ]
+			, selectFields = [ "form" ]
 		);
 
-		for( var item in items ) {
-			result = {
-				  id            = item.id
-				, formId        = item.form
-				, questionId    = item.question
-				, item_type     = item.item_type
-				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
-				, configuration = DeSerializeJson( item.configuration )
-			};
+		if ( !$helpers.isEmptyString( formItem.form ?: "" ) ) {
+			var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
+				  filter       = { id=arguments.id }
+				, selectFields = getFormItemDefaultFields( id=formItem.form )
+			);
 
-			if ( Len( item.question ) ) {
-				StructAppend( result.configuration, _getItemConfigurationForV2Question( item.question ) );
+			for( var item in items ) {
+				result = {
+					  id            = item.id
+					, formId        = item.form
+					, item_type     = item.item_type
+					, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
+					, configuration = DeSerializeJson( item.configuration )
+				};
+
+				if ( Len( item.question ?: "" ) ) {
+					result.questionId = item.question;
+					StructAppend( result.configuration, _getItemConfigurationForV2Question( item.question ) );
+				}
 			}
 		}
 
@@ -846,7 +857,7 @@ component {
 
 		responses = {};
 		for( var item in itemTypes ) {
-			if ( Len( item.questionId ) ) {
+			if ( Len( item.questionId ?: "" ) ) {
 				if ( StructKeyExists( responsesByQuestion, item.questionId ) ) {
 					responses[ item.questionId ] = responsesByQuestion[ item.questionId ];
 				} else {
@@ -1355,6 +1366,47 @@ component {
 		for ( var submission in submissions ) {
 			deleteSubmissionResponses( submissionId=submission.id );
 		}
+	}
+
+	public boolean function deleteExpiredSubmissions( any logger=NullValue() ) {
+		var formsWithRemoveConfigured = $getPresideObject( "formbuilder_form" ).selectData(
+			  filter       = "submission_remove_enabled = :submission_remove_enabled AND submission_remove_after IS NOT NULL AND submission_remove_after > 0"
+			, filterParams = { submission_remove_enabled=true }
+			, selectFields = [ "id", "name", "submission_remove_after" ]
+		);
+
+		if ( formsWithRemoveConfigured.recordcount ) {
+			var formSubmissionDao = $getPresideObject( "formbuilder_formsubmission" );
+
+			for ( var formbuilderForm in formsWithRemoveConfigured ) {
+				var expiredSubmissions = formSubmissionDao.selectData(
+					  selectFields = [ "id" ]
+					, filter       = "form = :form and datecreated < :datecreated"
+					, filterParams = {
+						  form        = formbuilderForm.id
+						, datecreated = DateAdd( "d", -Val( formbuilderForm.submission_remove_after ), Now() )
+					}
+				);
+
+				if ( expiredSubmissions.recordcount ) {
+					$helpers.logMessage( logger=arguments.logger, severity="info", message="Removing [#expiredSubmissions.recordcount#] expired submissions from [#formbuilderForm.name#]..." );
+
+					for ( var submission in expiredSubmissions ) {
+						transaction {
+							formSubmissionDao.deleteData( id=submission.id );
+
+							deleteSubmissionResponses( submissionId=submission.id );
+						}
+					}
+				}
+			}
+
+			$helpers.logMessage( logger=arguments.logger, severity="info", message="All expired submissions deleted." );
+		} else {
+			$helpers.logMessage( logger=arguments.logger, severity="info", message="All forms configured to retain submissions forever." );
+		}
+
+		return true;
 	}
 
 	/**

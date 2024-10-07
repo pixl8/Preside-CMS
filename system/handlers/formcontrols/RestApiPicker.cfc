@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and restFramework
+ */
 component {
 	property name="presideRestService" inject="presideRestService";
 

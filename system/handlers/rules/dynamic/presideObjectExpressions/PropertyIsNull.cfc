@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * property value is null
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

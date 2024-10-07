@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.actions" type="array" />
 
 <cfif args.actions.len()>

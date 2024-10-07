@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User has submitted any/all of the following form builder forms"
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers and formBuilder
  */
 component {
 

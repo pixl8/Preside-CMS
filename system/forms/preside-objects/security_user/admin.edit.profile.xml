@@ -10,6 +10,7 @@ This form is used for the "edit my profile" form
 			<field binding="security_user.email_address" required="true" control="emailinput" />
 			<field binding="security_user.known_as" />
 			<field binding="security_user.user_language" control="localePicker" adminLocales="true" />
+			<field name="existing_password" control="password" required="true" />
 		</fieldset>
 	</tab>
 </form>

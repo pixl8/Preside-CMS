@@ -63,6 +63,20 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	// VIEWLETS
+	private string function recordTrailViewlet( event, rc, prc, args={} ) {
+		args.logs = auditService.getTrail(
+			  page     = 1
+			, pageSize = 10
+			, recordId = args.recordId ?: ""
+		);
+		args.hasMore = args.logs.recordCount == 10;
+
+		event.include( "/js/admin/specific/auditTrail/" )
+
+		return renderView( view="/admin/auditTrail/_recordTrailViewlet", args=args );
+	}
+
 	// PRIVATE UTILITY
 	private void function _permissionsCheck( required string key, required any event ) {
 		var permKey   = "auditTrail." & arguments.key;

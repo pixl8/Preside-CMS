@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'number type'
  *
+ * @feature rulesEngine
  */
 component {
 	property name="formBuilderService"   inject="formBuilderService";

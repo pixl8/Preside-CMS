@@ -1,10 +1,13 @@
+/**
+ * @feature formBuilder
+ */
 component {
 
 	property name="formBuilderService"           inject="formBuilderService";
 	property name="formBuilderValidationService" inject="formBuilderValidationService";
 	property name="validationEngine"             inject="validationEngine";
 	property name="rulesEngineWebRequestService" inject="RulesEngineWebRequestService";
-	property name="websiteLoginService"          inject="websiteLoginService";
+	property name="websiteLoginService"          inject="featureInjector:websiteUsers:websiteLoginService";
 
 	public any function submitAction( event, rc, prc ) {
 		var formId       = rc.form ?: "";

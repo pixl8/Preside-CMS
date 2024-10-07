@@ -7,6 +7,7 @@
  *
  * @singleton true
  * @autodoc   true
+ * @feature   assetManager
  */
 component displayName="Document metadata service" {
 

@@ -1,3 +1,4 @@
+<!---@feature presideForms and assetManager--->
 <cfscript>
 	inputName      = args.name            ?: "";
 	inputId        = args.id              ?: "";
@@ -10,13 +11,20 @@
 	controlId      = createUUID();
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 	value = HtmlEditFormat( value );
 
 	event.include( "/css/admin/specific/focalPointPicker/" );
 	event.include( "/js/admin/specific/focalPointPicker/" );
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 
@@ -31,7 +39,7 @@
 				<i class="fa fa-ban"></i>
 				#translateResource( uri="formcontrols.focalPointPicker:clear" )#
 			</button>
-			<input type="hidden" class="#inputClass# focal-point-input #extraClasses#" name="#inputName#" id="#inputId#" value="#value#">
+			<input type="hidden" class="#inputClass# focal-point-input #extraClasses#" name="#inputName#" id="#inputId#" value="#value#" #htmlAttributes# />
 		</div>
 	</div>
 </cfoutput>

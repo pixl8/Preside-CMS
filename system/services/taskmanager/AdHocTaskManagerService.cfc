@@ -1,30 +1,38 @@
 /**
  * Service responsible for the business logic of running ad-hoc tasks
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        adhocTasks
  *
  */
 component displayName="Ad-hoc Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @siteService.inject siteService
-	 * @threadUtil.inject  threadUtil
-	 * @logger.inject      logbox:logger:adhocTaskManager
- 	 * @executor.inject    presideAdhocTaskManagerExecutor
+	 * @siteService.inject       featureInjector:sites:siteService
+	 * @threadUtil.inject        threadUtil
+	 * @logger.inject            logbox:logger:adhocTaskManager
+ 	 * @executor.inject          presideAdhocTaskManagerExecutor
+ 	 * @staleTaskSettings.inject coldbox:setting:heartbeats.adhocTask.staleTaskSettings
 	 */
 	public any function init(
 		  required any siteService
 		, required any logger
 		, required any threadUtil
 		, required any executor
+		, required any staleTaskSettings
 	) {
 		_setSiteService( arguments.siteService );
 		_setLogger( arguments.logger );
 		_setThreadUtil( arguments.threadUtil );
 		_setExecutor( arguments.executor );
+
+		_setMinStaleLockTimeInMinutes(       arguments.staleTaskSettings.lockedMinAgeInMinutes          ?: 5               );
+		_setMaxStaleLockTimeInMinutes(       arguments.staleTaskSettings.lockedMaxAgeInMinutes          ?: ( 7 * 24 * 60 ) );
+		_setMinInactiveRunningTimeInMinutes( arguments.staleTaskSettings.inactiveRunningMinAgeInMinutes ?: 240             );
+		_setMaxInactiveRunningTimeInMinutes( arguments.staleTaskSettings.inactiveRunningMaxAgeInMinutes ?: ( 7 * 24 * 60 ) );
 
 		return this;
 	}
@@ -49,6 +57,8 @@ component displayName="Ad-hoc Task Manager Service" {
 	 * @titleData            Optional array of strings that will be passed into translateResource() along with title URI to create translatable title
 	 * @resultUrl            Optional URL at which the result of this task can be viewed / downloaded. The token, `{taskId}`, within the URL will be replaced with the actual ID of the task
 	 * @returnUrl            Optional URL to which to direct users from core admin UIs when they have finished with viewing a task
+	 * @reference            Optional string with which to provide a key reference for your task
+	 * @disableCancel        Optional disable cancellation of the task
 	 */
 	public string function createTask(
 		  required string   event
@@ -64,6 +74,8 @@ component displayName="Ad-hoc Task Manager Service" {
 		,          array    titleData            = []
 		,          string   resultUrl            = ""
 		,          string   returnUrl            = ""
+		,          string   reference            = ""
+		,          boolean  disableCancel        = false
 	) {
 		var nextAttemptDate = "";
 
@@ -87,6 +99,8 @@ component displayName="Ad-hoc Task Manager Service" {
 			, title_data             = SerializeJson( arguments.titleData )
 			, result_url             = arguments.resultUrl
 			, return_url             = arguments.returnUrl
+			, reference              = arguments.reference
+			, disable_cancel         = arguments.disableCancel
 		} );
 
 		if ( arguments.resultUrl.findNoCase( "{taskId}" ) ) {
@@ -140,7 +154,7 @@ component displayName="Ad-hoc Task Manager Service" {
 			try {
 				success = $getColdbox().runEvent(
 					  event          = task.event
-					, eventArguments = { args=args, logger=logger, progress=progress }
+					, eventArguments = { args=args, logger=logger, progress=progress, task=task }
 					, private        = true
 					, prepostExempt  = true
 				);
@@ -489,6 +503,10 @@ component displayName="Ad-hoc Task Manager Service" {
 	public boolean function cancelTask( required string taskId ) {
 		var task = getTask( arguments.taskId );
 
+		if ( IsBoolean( task.disable_cancel ?: "" ) && task.disable_cancel ) {
+			return false;
+		}
+
 		if ( IsBoolean( task.discard_on_complete ?: "" ) && task.discard_on_complete ) {
 			return discardTask( taskId=arguments.taskId );
 		}
@@ -558,11 +576,14 @@ component displayName="Ad-hoc Task Manager Service" {
 
 	public string function getTaskRunnerUrl( required string taskId, required string siteContext ) {
 		var event                  = $getRequestContext();
-		var currentSite            = event.getSite();
-		var isDifferentSiteContext = StructIsEmpty( currentSite ) && Len( Trim( arguments.siteContext ) );
 
-		if ( isDifferentSiteContext ) {
-			event.setSite( _getSiteService().getSite( arguments.siteContext ) );
+		if ( $isFeatureEnabled( "sites" ) ) {
+			var currentSite            = event.getSite();
+			var isDifferentSiteContext = StructIsEmpty( currentSite ) && Len( Trim( arguments.siteContext ) );
+
+			if ( isDifferentSiteContext ) {
+				event.setSite( _getSiteService().getSite( arguments.siteContext ) );
+			}
 		}
 
 		return event.buildLink( linkto="taskmanager.runAdhocTask", queryString="taskId=" & arguments.taskId );
@@ -601,6 +622,62 @@ component displayName="Ad-hoc Task Manager Service" {
 		}
 
 		return true;
+	}
+
+	public void function processStaleLockedTasks() {
+		var minAge = DateAdd( "n", 0-_getMinStaleLockTimeInMinutes(), Now() );
+		var maxAge = DateAdd( "n", 0-_getMaxStaleLockTimeInMinutes(), Now() );
+
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  filter       = "status = :status and datemodified < :minAge and datemodified > :maxAge"
+			, filterParams = {
+				  status = "locked"
+				, minAge = { type="cf_sql_datetime", value=minAge }
+				, maxAge = { type="cf_sql_datetime", value=maxAge }
+			  }
+			, data         = {
+				  status     = "pending"
+				, last_error = '{"message":"Task was stuck in \"locked\" status and has been requeued."}'
+			  }
+		);
+
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  filter       = "status = :status and datemodified <= :datemodified"
+			, filterParams = { status="locked", dateModified=maxAge }
+			, data         = {
+				  status        = "failed"
+				, last_error    = '{"message":"Task marked as failed as it has been in a locked status for longer than the configured age (#NumberFormat( maxAge )# minutes)" }'
+				, finished_on   = _now()
+			  }
+		);
+	}
+
+	public void function failInactiveRunningTasks() {
+		var minAge = DateAdd( "n", 0-_getMinInactiveRunningTimeInMinutes(), Now() );
+		var maxAge = DateAdd( "n", 0-_getMaxInactiveRunningTimeInMinutes(), Now() );
+		var tasks = $getPresideObject( "taskmanager_adhoc_task" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = "status = :status and datemodified < :minAge and datemodified > :maxAge"
+			, filterParams = {
+				  status = "running"
+				, minAge = { type="cf_sql_datetime", value=minAge }
+				, maxAge = { type="cf_sql_datetime", value=maxAge }
+			  }
+		);
+
+		for( var task in tasks ) {
+			failTask( taskId=task.id, error={ message="Task marked as running but no activity for at least #_getMinInactiveRunningTimeInMinutes()# minutes. Failing task as timed out." } );
+		}
+
+		$getPresideObject( "taskmanager_adhoc_task" ).updateData(
+			  filter       = "status = :status and datemodified <= :datemodified"
+			, filterParams = { status="running", dateModified=maxAge }
+			, data         = {
+				  status        = "failed"
+				, last_error    = '{"message":"Task marked as permanently failed as it has been in a running status for longer than the configured max age (#NumberFormat( maxAge )# minutes)" }'
+				, finished_on   = _now()
+			  }
+		);
 	}
 
 // PRIVATE HELPERS
@@ -662,15 +739,17 @@ component displayName="Ad-hoc Task Manager Service" {
 	private void function _setRequestState( required struct requestState ){
 		var event = $getRequestContext();
 
-		if ( Len( Trim( requestState.site ?: "" ) ) ) {
-			event.setSite( _getSiteService().getSite( requestState.site ) );
-		} else if ( $isFeatureEnabled( "sites" ) ) {
-			var siteContext = $getPresideSetting( "taskmanager", "site_context" );
+		if ( $isFeatureEnabled( "sites" ) ) {
+			if ( Len( Trim( requestState.site ?: "" ) ) ) {
+				event.setSite( _getSiteService().getSite( requestState.site ) );
+			} else if ( $isFeatureEnabled( "sites" ) ) {
+				var siteContext = $getPresideSetting( "taskmanager", "site_context" );
 
-			if ( Len( Trim( siteContext ) ) ) {
-				event.setSite( _getSiteService().getSite( siteContext ) );
-			} else {
-				event.autoSetSiteByHost();
+				if ( Len( Trim( siteContext ) ) ) {
+					event.setSite( _getSiteService().getSite( siteContext ) );
+				} else {
+					event.autoSetSiteByHost();
+				}
 			}
 		}
 
@@ -718,4 +797,35 @@ component displayName="Ad-hoc Task Manager Service" {
 	private void function _setExecutor( required any executor ) {
 	    _executor = arguments.executor;
 	}
+
+	private any function _getMinStaleLockTimeInMinutes() {
+	    return _minStaleLockTimeInMinutes;
+	}
+	private void function _setMinStaleLockTimeInMinutes( required numeric minStaleLockTimeInMinutes ) {
+	    _minStaleLockTimeInMinutes = arguments.minStaleLockTimeInMinutes;
+	}
+
+	private any function _getMaxStaleLockTimeInMinutes() {
+	    return _maxStaleLockTimeInMinutes;
+	}
+	private void function _setMaxStaleLockTimeInMinutes( required numeric maxStaleLockTimeInMinutes ) {
+	    _maxStaleLockTimeInMinutes = arguments.maxStaleLockTimeInMinutes;
+	}
+
+	private any function _getMinInactiveRunningTimeInMinutes() {
+	    return _minInactiveRunningTimeInMinutes;
+	}
+	private void function _setMinInactiveRunningTimeInMinutes( required numeric minInactiveRunningTimeInMinutes ) {
+	    _minInactiveRunningTimeInMinutes = arguments.minInactiveRunningTimeInMinutes;
+	}
+
+	private any function _getMaxInactiveRunningTimeInMinutes() {
+	    return _maxInactiveRunningTimeInMinutes;
+	}
+	private void function _setMaxInactiveRunningTimeInMinutes( required numeric maxInactiveRunningTimeInMinutes ) {
+	    _maxInactiveRunningTimeInMinutes = arguments.maxInactiveRunningTimeInMinutes;
+	}
+
+
+
 }

@@ -1,15 +1,18 @@
 /**
  * Service to provide business logic for the [[datamanager]].
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        admin
  */
 component {
 
 	variables._operationsCache = {};
+	variables.UNKNOWN_TOTAL = 1000000001; // a hardcoded magic number to communicate pagination unknown
 
 	property name="dataManagerDefaults" inject="coldbox:setting:dataManager.defaults";
+	property name="rowCountTimeout"     inject="coldbox:setting:queryTimeout.datamanagerRowCount";
 
 // CONSTRUCTOR
 
@@ -19,7 +22,7 @@ component {
 	 * @labelRendererService.inject LabelRendererService
 	 * @i18nPlugin.inject           i18n
 	 * @permissionService.inject    PermissionService
-	 * @siteService.inject          SiteService
+	 * @siteService.inject          featureInjector:sites:SiteService
 	 * @relationshipGuidance.inject relationshipGuidance
 	 * @customizationService.inject datamanagerCustomizationService
 	 * @cloningService.inject       presideObjectCloningService
@@ -58,7 +61,8 @@ component {
 	public array function getGroupedObjects() {
 		var poService          = _getPresideObjectService();
 		var permsService       = _getPermissionService();
-		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var useSites           = $isFeatureEnabled( "sites" );
+		var activeSiteTemplate = useSites ? _getSiteService().getActiveSiteTemplate() : "";
 		var i18nPlugin         = _getI18nPlugin();
 		var objectNames        = poService.listObjects();
 		var groups             = {};
@@ -66,8 +70,8 @@ component {
 
 		for( var objectName in objectNames ){
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
-			var siteTemplates      = poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" );
-			var isInActiveTemplate = siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
+			var siteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" ) : "";
+			var isInActiveTemplate = !useSites || siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
 
 			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
@@ -347,15 +351,34 @@ component {
 		return _getPresideObjectService().getLabelField( arguments.objectName );
 	}
 
-	public query function getRecordsForSorting( required string objectName ) {
+	public struct function getRecordsForSorting( required string objectName ) {
 		var idField        = _getPresideObjectService().getIdField( arguments.objectName );
 		var selectDataArgs = StructCopy( arguments );
+		var labelRenderer  = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelRenderer" )
 
 		selectDataArgs.orderBy          = getSortField( arguments.objectName );
-		selectDataArgs.selectFields     = [ "#arguments.objectName#.#idField# as id", "${labelfield} as label", selectDataArgs.orderBy ];
 		selectDataArgs.fromVersionTable = _getPresideObjectService().objectUsesDrafts( objectName=arguments.objectName );
 
-		return _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
+		if ( Len( labelRenderer ) ) {
+			selectDataArgs.selectFields = _getLabelRendererService().getSelectFieldsForLabel( labelRenderer );
+		} else {
+			selectDataArgs.selectFields = [ "${labelfield} as label" ];
+		}
+		ArrayAppend( selectDataArgs.selectFields, [ "#arguments.objectName#.#idField# as id", selectDataArgs.orderBy ], true );
+
+		var recordData = _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
+		var records    = [];
+		var ordered    = [];
+
+		for( var record in recordData ) {
+			ArrayAppend( records, {
+				  id    = record.id
+				, label = Len( labelRenderer ) ? _getLabelRendererService().renderLabel( labelRenderer, record ) : record.label
+			} );
+			ArrayAppend( ordered, record.id );
+		}
+
+		return { records=records, ordered=ArrayToList( ordered ) };
 	}
 
 	public void function saveSortedRecords( required string objectName, required array sortedIds ) {
@@ -491,10 +514,29 @@ component {
 			result.totalRecords = result.records.recordCount;
 		} else if ( dbAdapter.supportsCountOverWindowFunction() ) {
 			result.totalRecords = result.records.recordCount ? result.records._total_recordcount : 0;
-		} else if ( Len( args.groupBy ?: "" ) ) {
-			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0, startRow=1 );
 		} else {
-			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, selectFields=[], recordCountOnly=true, maxRows=0, startRow=1 );
+			try {
+				if ( Len( args.groupBy ?: "" ) ) {
+					result.totalRecords = _getPresideObjectService().selectData(
+						  argumentCollection = args
+						, recordCountOnly    = true
+						, maxRows            = 0
+						, startRow           = 1
+						, timeout            = rowCountTimeout
+					);
+				} else {
+					result.totalRecords = _getPresideObjectService().selectData(
+						  argumentCollection = args
+						, selectFields       = []
+						, recordCountOnly    = true
+						, maxRows            = 0
+						, startRow           = 1
+						, timeout            = rowCountTimeout
+					);
+				}
+			} catch( database e ) {
+				result.totalRecords = UNKNOWN_TOTAL;
+			}
 		}
 
 		return result;
@@ -941,6 +983,7 @@ component {
 		var labelFieldIsRelationship = ( props[ labelField ].relationship ?: "" ) contains "-to-";
 		var replacedLabelField       = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
 		var objectHasIdField         = booleanFormat( len( trim( _getPresideObjectService().getIdField( objectName=arguments.objectName ) ) ) );
+		var additionalFields         = [];
 
 		if ( objectHasIdField ) {
 			sqlFields.delete( "id" );
@@ -998,6 +1041,7 @@ component {
 
 				case "many-to-one":
 					sqlFields[i] = ( prop.name ?: "" ) & ".${labelfield} as " & field;
+					ArrayAppend( additionalFields, "#field# as __raw_#field#" );
 				break;
 
 				default:
@@ -1008,6 +1052,8 @@ component {
 				sqlFields.append( objName & "._version_number" );
 			}
 		}
+
+		ArrayAppend( sqlFields, additionalFields, true )
 
 		return sqlFields;
 	}

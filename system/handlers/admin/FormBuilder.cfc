@@ -1,3 +1,6 @@
+/**
+ * @feature formbuilder
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="formBuilderService"          inject="formBuilderService";
@@ -6,6 +9,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="actionsService"              inject="formBuilderActionsService";
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
 	property name="adHocTaskManagerService"     inject="adHocTaskManagerService";
+	property name="submissionRemovalMinDays"    inject="coldbox:setting:formbuilder.submissions.removal.minAllowedDays";
 
 // PRE-HANDLER
 	public void function preHandler( event, action, eventArguments ) {
@@ -30,15 +34,18 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( "formbuilder:page.subtitle" );
 
 		prc.canAdd    = hasCmsPermission( permissionKey="formbuilder.addform" );
+		prc.canEdit   = hasCmsPermission( permissionKey="formbuilder.editform" );
 		prc.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 	}
 
 	public void function addForm( event, rc, prc ) {
 		_permissionsCheck( "addform", event );
 
-		prc.pageTitle    = translateResource( "formbuilder:add.form.page.title" );
-		prc.pageSubtitle = translateResource( "formbuilder:add.form.page.subtitle" );
+		prc.pageTitle      = translateResource( "formbuilder:add.form.page.title" );
+		prc.pageSubtitle   = translateResource( "formbuilder:add.form.page.subtitle" );
+		prc.additionalArgs = { fields={ submission_remove_after={ minValue=submissionRemovalMinDays } } };
 
+		event.include( "/js/admin/specific/formbuilder/form/" );
 		event.addAdminBreadCrumb(
 			  title = translateResource( "formbuilder:addform.breadcrumb.title" )
 			, link  = event.buildAdminLink( linkTo="formbuilder.addform" )
@@ -139,7 +146,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( validationResult.validated() && formBuilderService.isV2Form( formId ) && itemTypeConfig.isFormField ) {
 			var formItems = formBuilderService.getFormItems( formId );
 			for ( var item in formItems ) {
-				if ( itemId != item.id && questionId == item.questionId ?: "" ) {
+				if ( itemId != item.id && questionId == (item.questionId ?: "") ) {
 					validationResult.addError(
 						  fieldName = "question"
 						, message   = translateResource( uri="preside-objects.formbuilder_formitem:field.question.duplicate.error" )
@@ -292,9 +299,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.form = QueryRowToStruct( prc.form );
 
-		prc.pageTitle    = translateResource( uri="formbuilder:edit.form.page.title"   , data=[ prc.form.name ] );
-		prc.canEdit      = hasCmsPermission( permissionKey="formbuilder.editform" );
+		prc.pageTitle      = translateResource( uri="formbuilder:edit.form.page.title"   , data=[ prc.form.name ] );
+		prc.canEdit        = hasCmsPermission( permissionKey="formbuilder.editform" );
+		prc.additionalArgs = { fields={ submission_remove_after={ minValue=submissionRemovalMinDays } } };
 
+		event.include( "/js/admin/specific/formbuilder/form/" );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="formbuilder:manageform.breadcrumb.title", data=[ prc.form.name ] )
 			, link  = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & prc.form.id )
@@ -932,21 +941,40 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function deleteFormInBgThread( event, rc, prc, args={}, logger, progress ) {
-		var logger      = arguments.logger  ?: NullValue();
-		var canProgress = StructKeyExists( arguments, "progress" );
-
-		logMessage( logger, "info", "Start deleting the form and all its data..." );
+		logMessage( arguments.logger, "info", "Start deleting the form and all its data..." );
 
 		_deleteForm( argumentCollection=arguments, id=args.id ?: "", isBatch=false );
 
-		if ( canProgress ) {
-			arguments.progress.setProgress( 100 );
-		}
+		arguments.progress?.setProgress( 100 );
 
-		logMessage( logger, "info", "Finished delete." );
+		logMessage( arguments.logger, "info", "Finished delete." );
 	}
 
 // VIEWLETS
+	private string function removalAlert( event, rc, prc, args ) {
+		if ( isTrue( args.submission_remove_enabled ?: "" ) ) {
+			args.submissionRemovalNextRun = getPresideObject( "taskmanager_task" ).selectData(
+				  filter       = { task_key="deleteExpiredFormBuilderSubmissions" }
+				, selectFields = [ "next_run" ]
+				, returntype   = "singleValue"
+				, columnKey    = "next_run"
+			);
+
+			args.submissionToBeRemovedCount = getPresideObject( "formbuilder_formsubmission" ).selectData(
+				  recordCountOnly = true
+				, filter          = "form = :form and datecreated < :datecreated"
+				, filterParams    = {
+					  form        = args.id
+					, datecreated = DateAdd( "d", -Val( args.submission_remove_after ), Now() )
+				}
+			);
+
+			return renderView( view="/admin/formbuilder/_removalAlert", args=args );
+		}
+
+		return "";
+	}
+
 	private string function formDataTableGridFields( event, rc, prc, args ) {
 		args.canEdit   = hasCmsPermission( permissionKey="formbuilder.editform" );
 		args.canDelete = hasCmsPermission( permissionKey="formbuilder.deleteform" );

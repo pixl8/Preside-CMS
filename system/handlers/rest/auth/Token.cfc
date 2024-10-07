@@ -1,6 +1,7 @@
 /**
  * Handler for authenticating with token authentication
  *
+ * @feature restTokenAuth
  */
 component {
 

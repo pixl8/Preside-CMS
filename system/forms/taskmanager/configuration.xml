@@ -4,7 +4,7 @@ Task manager: Settings form
 
 This form is used for general configuration of the task manager
 -->
-<form i18nBaseUri="cms:taskmanager.configform.">
+<form i18nBaseUri="cms:taskmanager.configform." feature="taskmanager">
 	<tab id="default">
 		<fieldset id="default">
 			<field name="scheduledtasks_enabled" control="yesnoswitch"  required="false"             />

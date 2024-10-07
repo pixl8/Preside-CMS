@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and dataExport
+ */
 component {
 	property name="dataExportService"    inject="dataExportService";
 	property name="presideObjectService" inject="presideObjectService";

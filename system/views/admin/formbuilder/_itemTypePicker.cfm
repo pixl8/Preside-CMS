@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	itemTypesByCategory = args.itemTypesByCategory ?: [];
 	formId              = args.formId              ?: "";

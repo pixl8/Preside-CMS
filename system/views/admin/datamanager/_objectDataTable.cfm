@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.objectName"                  type="string";
 	param name="args.multiActions"                type="string"  default="";
@@ -9,6 +10,7 @@
 	param name="args.noActions"                   type="boolean" default=false;
 	param name="args.footerEnabled"               type="boolean" default=false;
 	param name="args.gridFields"                  type="array";
+	param name="args.gridHeaderLabels"            type="struct"  default={};
 	param name="args.sortableFields"              type="array"   default=[];
 	param name="args.hiddenGridFields"            type="array"   default=[];
 	param name="args.filterContextData"           type="struct"  default={};
@@ -46,7 +48,7 @@
 	instanceId = LCase( Hash( serializeJSON( args.filterContextData ) & CallStackGet( "string" ) & args.datasourceUrl ) );
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
-	args.allowFilter  = IsTrue( args.allowFilter ?: "" );
+	args.allowFilter  = IsTrue( args.allowFilter ?: "" ) && isFeatureEnabled( "rulesEngine" );
 
 	if ( args.allowFilter ) {
 		favourites = renderViewlet( event="admin.rulesEngine.dataGridFavourites", args={ objectName=args.objectName } );
@@ -200,8 +202,11 @@
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
 						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>" data-field="#ListLast( fieldName, '.' )#">
-							#translatePropertyName( args.objectName, fieldName, "listing" )#
-
+							<cfif structKeyExists( args.gridHeaderLabels, fieldName ) >
+								#args.gridHeaderLabels[ fieldName ]#
+							<cfelse>
+								#translatePropertyName( args.objectName, fieldName, "listing" )#
+							</cfif>
 							<cfset help = translateResource( uri=getResourceBundleUriRoot( args.objectName ) & "field.#fieldName#.listing.help", defaultValue="" ) />
 
 							<cfif !isEmpty( help )>

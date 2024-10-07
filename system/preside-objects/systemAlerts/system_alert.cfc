@@ -6,6 +6,7 @@
  * @datamanagerGridFields        level,type,context,reference,datecreated,datemodified
  * @datamanagerAllowedOperations navigate,read
  * @dataManagerExportEnabled     false
+ * @feature                      admin
  */
 
 component extends="preside.system.base.SystemPresideObject" {

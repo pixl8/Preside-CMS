@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	promptMessage = prc.promptMessage ?: "";
 	templateId    = rc.template ?: "";

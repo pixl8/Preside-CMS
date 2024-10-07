@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.item-types.matrix:">
+<form i18nBaseUri="formbuilder.item-types.matrix:" feature="formbuilder">
 	<tab id="default">
 		<fieldset id="default">
 			<field name="multiple" control="yesnoswitch" required="false" sortorder="32" />

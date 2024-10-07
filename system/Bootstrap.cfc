@@ -242,7 +242,12 @@ component {
 		onApplicationEnd( application );
 		StructClear( application );
 		StructDelete( request, "cb_requestcontext" );
-		SystemCacheClear( "template" );
+
+		if ( StructKeyExists( getFunctionList(), "inspectTemplates" ) ) {
+			InspectTemplates();
+		} else {
+			SystemCacheClear( "template" );
+		}
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
 			getPageContext().getCFMLFactory().resetPageContext();
@@ -636,7 +641,7 @@ component {
 		var cleanedCookies    = [];
 		var anyCookiesChanged = false;
 		var site              = cbController.getRequestContext().getSite();
-		var isSecure          = ( site.protocol ?: "http" ) == "https";
+		var isSecure          = cbController.getSetting( "forcessl" ) || ( site.protocol ?: "http" ) == "https";
 
 		for( var cooky in allCookies ) {
 			if ( !Len( Trim( cooky ) ) ) {

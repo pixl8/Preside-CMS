@@ -1,3 +1,6 @@
+/**
+ * @feature sites
+ */
 component {
 	property name="siteService" inject="SiteService";
 	property name="poService"   inject="PresideObjectService";
@@ -8,7 +11,6 @@ component {
 		if ( isEmptyString( activeSiteId ) ) {
 			var siteQuery = poService.selectData(
 				  objectName   = "site"
-				, savedFilters = [ "nonDeletedSites" ]
 				, selectFields = [ "id" ]
 				, orderBy      = poService.getDateCreatedField( objectName="site" )
 				, maxRows      = 1

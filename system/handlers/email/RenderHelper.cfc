@@ -1,3 +1,7 @@
+/**
+ *
+ * @feature emailCenter
+ */
 component {
 	property name="emailTemplateService" inject="emailTemplateService";
 

@@ -1,3 +1,4 @@
+<!---@feature presideForms and admin--->
 <cfscript>
 	object                  = args.object           ?: "";
 	objectTitle             = translateResource( "preside-objects.#object#:title.singular" );
@@ -37,7 +38,7 @@
 	selectedTemplateId      = Len( Trim( selectedTemplate ) )            ? "selected_template_" & CreateUUId() : "";
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
@@ -78,6 +79,13 @@
 	filterByField        = args.filterByField        ?: filterBy;
 	disabledIfUnfiltered = args.disabledIfUnfiltered ?: false;
 	includePlaceholder   = args.includePlaceholder   ?: true;
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
@@ -134,6 +142,7 @@
 				data-super-quick-add-url="#superQuickAddUrl#"
 				data-quick-add-text="#superQuickAddText#"
 			</cfif>
+			#htmlAttributes#
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>
 			<cfif includePlaceholder and !( IsBoolean( multiple ) && multiple )>

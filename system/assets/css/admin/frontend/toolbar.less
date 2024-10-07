@@ -1,7 +1,11 @@
 @import url( 'globals.less' );
 
-html {
-	margin-top : 45px !important;
+:root {
+	--adminToolbarHeight : 45px;
+}
+
+html.admin-toolbar-fixed {
+	margin-top : var( --adminToolbarHeight ) !important;
 }
 
 .preside-admin-toolbar {
@@ -14,6 +18,7 @@ html {
 	color            : white;
 	background-color : @preside-bar-background-colour;
 	padding          : 0 10px;
+	opacity          : 1;
 
 	h1 {
 		width       : 210px;
@@ -26,6 +31,7 @@ html {
 
 	a, span, p, li, label {
 		font-size : 13px;
+		color     : inherit;
 	}
 
 	.nav {
@@ -51,4 +57,66 @@ html {
 	.dropdown-menu {
 	    color : @text-color;
 	}
+
+	&.fade-in {
+		animation : toolbar-fade-in 300ms ease-in forwards;
+	}
+	&.fade-out:not( :focus-within, :hover ) {
+		animation : toolbar-fade-out 300ms ease-out forwards;
+	}
+	&-hidden:not( :focus-within, :hover ) {
+		top       : -100%;
+		opacity   : 0;
+	}
+}
+
+#presideAdminToolbarReveal {
+	position            : fixed;
+	top                 : 0;
+	left                : 10px;
+	background-color    : transparent;
+	background-repeat   : no-repeat;
+	background-image    : url( ../../../images/logos/preside-logo-admin-header.png );
+	background-size     : auto;
+	background-position : left center;
+	width               : 37px;
+	height              : 45px;
+	margin              : 0;
+	padding             : 0;
+	border              : none;
+	z-index             : 102;
+	opacity             : 0.4;
+	cursor              : pointer;
+	transition          : opacity 200ms ease-in-out;
+
+	&:hover {
+		opacity : 1;
+	}
+}
+
+@keyframes toolbar-fade-in {
+  0% {
+	opacity : 0;
+	top     : -100%;
+  }
+  1% {
+	top : 0;
+  }
+  100% {
+    opacity : 1;
+  }
+}
+
+@keyframes toolbar-fade-out {
+	0% {
+		opacity : 1;
+		top     : 0;
+	}
+	99% {
+		opacity : 0;
+		top     : 0;
+	}
+	100% {
+		top : -100%;
+}
 }

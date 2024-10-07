@@ -1,9 +1,10 @@
 /**
  * Provides logic around filters in form builder
  *
- * @autodoc
- * @singleton
- * @presideservice
+ * @autodoc        true
+ * @singleton      true
+ * @presideservice true
+ * @feature        formbuilder
  */
 component {
 
@@ -308,35 +309,36 @@ component {
 	}
 
 	public boolean function evaluateQuestionSubmissionResponseMatch(
-			  required string userId
-			, required array extraFilters
+			  required array  extraFilters
+			,          string userId
 			,          string formId
 			,          string submissionId
 
 	) {
 		var submissionsDao = $getPresideObject( "formbuilder_formsubmission" );
+		var filter         = {};
 
-		var filter = {
-			submitted_by = arguments.userId
-	  	}
+		if ( Len( arguments.userId ) ) {
+			filter.submitted_by = arguments.userId;
+		}
 
-	  	if ( len( arguments.formId ) ) {
-	  		filter.form = arguments.formId;
-	  	}
+		if ( Len( arguments.formId ) ) {
+			filter.form = arguments.formId;
+		}
 
-	  	if ( len( arguments.submissionId ) ) {
-	  		filter.id = arguments.submissionId;
-	  	}
+		if ( Len( arguments.submissionId ) ) {
+			filter.id = arguments.submissionId;
+		}
 
 		result.records = submissionsDao.selectData(
 			  filter       = filter
 			, extraFilters = arguments.extraFilters
 			, selectFields = [
-				  "formbuilder_formsubmission.id"
-			]
+				"formbuilder_formsubmission.id"
+			 ]
 		);
 
-		return len (result.records );
+		return Len(result.records );
 	}
 
 	public boolean function evaluateQuestionUserLatestResponseMatch(

@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfoutput>
 	<div class="table-responsive">
 		<table class="table table-hover">

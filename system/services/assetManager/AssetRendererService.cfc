@@ -1,9 +1,9 @@
 /**
  * Provides logic for rendering assets. See [[assetmanager]] for more detailed documentation on working with assets.
  *
- * @autodoc
- * @singleton
- *
+ * @autodoc    true
+ * @singleton  true
+ * @feature    assetManager
  */
 component displayname="Asset Renderer Service" {
 

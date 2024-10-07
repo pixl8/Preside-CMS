@@ -30,10 +30,16 @@ component displayName="Error Log Service" {
 	 *
 	 */
 	public void function raiseError( required struct error ) {
-		var rendered = "";
-		var catch    = arguments.error;
-		var fileName = "rte-" & GetTickCount() & ".html";
-		var filePath = _getLogDirectory() & "/" & filename;
+		var rendered    = "";
+		var catch       = arguments.error;
+		var fileName    = "rte-" & GetTickCount() & ".html";
+		var filePath    = _getLogDirectory() & "/" & filename;
+		var key         = "";
+		var idx         = "";
+		var len         = "";
+		var timestamp   = "";
+		var isFirst     = "";
+		var tc          = "";
 
 		savecontent variable="rendered" {
 			include template="errorTemplate.cfm";
@@ -155,11 +161,10 @@ component displayName="Error Log Service" {
 		).listExtensions( activeOnly=true );
 
 		for( var extension in extensions ) {
-			var listenerPath = "#_getAppMappingPath()#.extensions.#extension.name#.services.errors.ErrorHandler";
-			var filePath     = ExpandPath( "/" & Replace( listenerPath, ".", "/", "all" ) & ".cfc" );
+			var filePath = extension.directory & "/services/errors/ErrorHandler.cfc";
 
 			if ( FileExists( filePath ) ) {
-				listeners.append( listenerPath );
+				ArrayAppend( listeners, "#extension.componentPath#.services.errors.ErrorHandler" );
 			}
 		}
 

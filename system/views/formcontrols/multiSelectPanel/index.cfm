@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -13,7 +14,7 @@
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 

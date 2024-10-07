@@ -1,5 +1,11 @@
 /**
  * The page object represents the core data that is stored for all pages in the site tree, regardless of page type.
+ *
+ * @datamanagerEnabled              true
+ * @datamanagerGridFields           page_type,title,parent_page,_hierarchy_depth,active,datecreated,datemodified
+ * @datamanagerDefaultSortOrder     _hierarchy_sort_order
+ * @datamanagerDisallowedOperations read,add,delete,clone,batchedit,batchdelete
+ * @feature                         sitetree
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" displayname="Sitetree Page" siteFiltered=true useDrafts=true {
 
@@ -15,10 +21,10 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="trashed"      type="boolean" dbtype="boolean"                  required=false default=false control="none";
 	property name="old_slug"     type="string"  dbtype="varchar" maxLength="50"   required=false;
 
-	property name="main_image"       relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="main_image"       relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check" feature="assetManager";
 	property name="parent_page"      relationship="many-to-one" relatedTo="page"                    required=false                     uniqueindexes="slug|1" control="none"  ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="created_by"       relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"       relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="LoggedInUser.loggedInUserId" generate="insert" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="LoggedInUser.loggedInUserId" generate="always" onupdate="cascade-if-no-cycle-check";
 	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition"  required=false control="conditionPicker" ruleContext="webrequest";
 
 	property name="internal_search_access"                  type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" enum="internalSearchAccess";
@@ -39,11 +45,11 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="exclude_from_sitemap"                    type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="navigation_title"                        type="string"  dbtype="varchar" maxLength="200"  required=false;
 
-	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId" autofilter=false;
-	property name="_hierarchy_sort_order"            type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="sortOrder"         autofilter=false;
-	property name="_hierarchy_lineage"               type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="lineage"           autofilter=false;
-	property name="_hierarchy_child_selector"        type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none"                             autofilter=false;
-	property name="_hierarchy_depth"                 type="numeric" dbtype="int"                      required=true                                             control="none" indexes="depth";
+	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId" autofilter=false limitToAdminRoles="sysadmin";
+	property name="_hierarchy_sort_order"            type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="sortOrder"         autofilter=false limitToAdminRoles="sysadmin";
+	property name="_hierarchy_lineage"               type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="lineage"           autofilter=false limitToAdminRoles="sysadmin";
+	property name="_hierarchy_child_selector"        type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none"                             autofilter=false limitToAdminRoles="sysadmin";
+	property name="_hierarchy_depth"                 type="numeric" dbtype="int"                      required=true                                             control="none" indexes="depth"                              limitToAdminRoles="sysadmin";
 	property name="_hierarchy_slug"                  type="string"  dbtype="varchar" maxLength="2000" required=true                                             control="none"                             autofilter=false;
 
 

@@ -2,6 +2,7 @@
  * @presideService     true
  * @validationProvider true
  * @singleton          true
+ * @feature            emailCenter
  */
 component {
 
@@ -45,6 +46,10 @@ component {
 		return false;
 	}
 
+	public string function allowedSenderEmail_js() {
+		return "function(){ return true; }";
+	}
+
 	public array function existingEmailsUsingInvalidDomains( required string validDomains ) {
 		var delims    = ", #Chr( 10 )##Chr( 13 )#";
 		var domains   = ListToArray( Trim( arguments.validDomains ), delims );
@@ -65,6 +70,35 @@ component {
 				} else {
 					ArrayAppend( badaddresses, address.from_address );
 				}
+			}
+		}
+
+		return badaddresses;
+	}
+
+	public array function formbuilderActionsUsingInvalidDomains( required string validDomains ) {
+		var delims       = ", #Chr( 10 )##Chr( 13 )#";
+		var domains      = ListToArray( Trim( arguments.validDomains ), delims );
+		var formactions  = $getPresideObject( "formbuilder_formaction" ).selectData(
+			  distinct     = true
+			, filter       = { action_type="email" }
+			, selectFields = [ "configuration" ]
+		);
+		var badaddresses = [];
+
+		for( var formaction in formactions ) {
+			var config   = formaction.configuration;
+			if ( !IsJSON( config ) ) {
+				continue;
+			}
+			config       = DeserializeJSON( config );
+			var sendFrom = Trim( config.send_from ?: "" );
+			if ( !Len( sendFrom ) ) {
+				continue;
+			}
+			var domain   = _getDomainFromEmail( sendFrom );
+			if ( !ArrayFindNoCase( domains, domain ) && !ArrayFindNoCase( badaddresses, sendFrom ) ) {
+				ArrayAppend( badaddresses, sendFrom );
 			}
 		}
 

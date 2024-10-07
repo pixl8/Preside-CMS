@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="args.deleteRecordLink"  type="string" />
 <cfparam name="args.editRecordLink"    type="string" />
 <cfparam name="args.previewRecordLink"    type="string" />

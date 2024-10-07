@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	formId = "editForm-" & CreateUUId();
 	formAction = event.buildAdminLink( 'formbuilder.editFormAction' );
@@ -6,6 +7,7 @@
 
 <cfoutput>
 	#renderViewlet( event="admin.formbuilder.statusControls", args=theForm )#
+	#renderViewlet( event="admin.formbuilder.removalAlert", args=theForm )#
 
 	<div class="tabbable">
 		#renderViewlet( event="admin.formbuilder.managementTabs", args={ activeTab="settings" } )#
@@ -21,6 +23,7 @@
 						, formId           = formId
 						, savedData        = theForm
 						, validationResult = ( rc.validationResult ?: "" )
+						, additionalArgs   = ( prc.additionalArgs  ?: {} )
 					)#
 
 					<div class="form-actions row">

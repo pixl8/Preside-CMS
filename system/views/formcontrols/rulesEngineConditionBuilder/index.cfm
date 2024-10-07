@@ -1,3 +1,4 @@
+<!---@feature presideForms and rulesEngine--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -11,7 +12,7 @@
 	object       = args.object ?: "";
 	compact      = IsTrue( args.compact ?: "" );
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}

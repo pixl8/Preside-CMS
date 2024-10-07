@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User has performed action a number of times "
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers
  */
 component {
 

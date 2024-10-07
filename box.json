@@ -30,8 +30,8 @@
         }
     ],
     "dependencies":{
-        "sticker":"1.3.2",
-        "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v2.12.0",
+        "sticker":"1.3.3",
+        "lucee-spreadsheet":"2.12.0",
         "presidecmseditor":"github:pixl8/Preside-Editor#4.17.1",
         "cbi18n":"1.3.1+56",
         "cbmessagebox":"2.2.0+10",
@@ -42,7 +42,7 @@
         "JSONPrettyPrint":"1.4.1"
     },
     "devDependencies":{
-        "testbox":"2.7.0"
+        "testbox":"5.4.0"
     },
     "installPaths":{
         "sticker":"system/externals/sticker/",

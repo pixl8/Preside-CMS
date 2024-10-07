@@ -1,7 +1,10 @@
+/**
+ * @feature siteTree
+ */
 component {
 
 	property name="pageTypesService"              inject="pageTypesService";
-	property name="websiteUserActionService"      inject="websiteUserActionService";
+	property name="websiteUserActionService"      inject="featureInjector:websiteUsers:websiteUserActionService";
 	property name="delayedViewletRendererService" inject="delayedViewletRendererService";
 
 	public function index( event, rc, prc ) output=false {
@@ -25,12 +28,14 @@ component {
 			event.notFound();
 		}
 
-		websiteUserActionService.recordAction(
-			  action     = "pagevisit"
-			, type       = "request"
-			, identifier = pageId
-			, userId     = getLoggedInUserId()
-		);
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			websiteUserActionService.recordAction(
+				  action     = "pagevisit"
+				, type       = "request"
+				, identifier = pageId
+				, userId     = getLoggedInUserId()
+			);
+		}
 
 		event.checkPageAccess();
 

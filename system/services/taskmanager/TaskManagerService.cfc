@@ -1,10 +1,10 @@
 /**
  * Service responsible for the business logic for the Preside Task Manager system.
  *
- * @singleton
- * @presideService
- * @autodoc
- *
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        taskManager
  */
 component displayName="Task Manager Service" {
 
@@ -17,7 +17,7 @@ component displayName="Task Manager Service" {
 	 * @systemConfigurationService.inject  systemConfigurationService
 	 * @logger.inject                      logbox:logger:taskmanager
 	 * @errorLogService.inject             errorLogService
-	 * @siteService.inject                 siteService
+	 * @siteService.inject                 featureInjector:sites:siteService
 	 * @threadUtil.inject                  threadUtil
 	 * @executor.inject                    presideTaskManagerExecutor
 	 *
@@ -512,13 +512,16 @@ component displayName="Task Manager Service" {
 	public struct function runScheduledTasks() {
 		var settings              = _getSystemConfigurationService().getCategorySettings( "taskmanager" );
 		var scheduledTasksEnabled = settings.scheduledtasks_enabled ?: false;
-		var site_context          = settings.site_context           ?: "";
-		var siteSvc               = _getSiteService();
-		var activeSite            = siteSvc.getActiveSiteId();
 
-		if ( !Len( Trim( activeSite ) ) ) {
-			$getRequestContext().setSite( siteSvc.getSite( site_context ) );
-			activeSite = siteSvc.getActiveSiteId();
+		if ( $isFeatureEnabled( "sites" ) ) {
+			var site_context          = settings.site_context           ?: "";
+			var siteSvc               = _getSiteService();
+			var activeSite            = siteSvc.getActiveSiteId();
+
+			if ( !Len( Trim( activeSite ) ) ) {
+				$getRequestContext().setSite( siteSvc.getSite( site_context ) );
+				activeSite = siteSvc.getActiveSiteId();
+			}
 		}
 
 		if ( !IsBoolean( scheduledTasksEnabled ) || !scheduledTasksEnabled ) {
@@ -762,14 +765,6 @@ component displayName="Task Manager Service" {
 			return "disabled";
 		}
 		return CreateObject( "java", "net.redhogs.cronparser.CronExpressionDescriptor", _getLib() ).getDescription( arguments.expression );
-	}
-
-	private string function _getScheduledTaskUrl( required string siteId ) {
-		var siteSvc    = _getSiteService();
-		var site       = siteSvc.getSite( Len( Trim( arguments.siteId ) ) ? arguments.siteId : siteSvc.getActiveSiteId() );
-		var serverName = ( site.domain ?: cgi.server_name );
-
-		return "http://" & serverName & "/taskmanager/runtasks/";
 	}
 
 	private array function _getLib() {

@@ -1,4 +1,4 @@
-component output="false" extends="preside.system.base.AdminHandler" {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="userDao"               inject="presidecms:object:security_user";
 	property name="messageBox"            inject="messagebox@cbmessagebox";
@@ -38,6 +38,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		formData.id = userId;
 		var validationResult = validateForm( formName=formName, formData=formData );
+
+		if ( StructKeyExists( formData, "existing_password" ) && !loginService.isPasswordCorrect( formData.existing_password ) ) {
+			validationResult.addError( "existing_password", translateResource( "cms:editProfile.password.incorrect.existing.password" ) );
+		}
 
 		if ( !validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );

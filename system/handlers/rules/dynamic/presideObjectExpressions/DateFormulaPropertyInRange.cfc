@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * formula property value is within a given date range
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

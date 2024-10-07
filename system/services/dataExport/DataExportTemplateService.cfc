@@ -1,9 +1,11 @@
 /**
+ * Service that discovers and reads available data export templates within a Preside application
+ *
  * @singleton      true
  * @autodoc        true
  * @presideservice true
+ * @feature        dataExport
  *
- * Service that discovers and reads available data export templates within a Preside application
  */
 component {
 

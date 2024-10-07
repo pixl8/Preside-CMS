@@ -1,3 +1,6 @@
+/**
+ * @feature admin and formbuilder
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="datamanagerService"          inject="datamanagerService";
@@ -245,13 +248,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function preBatchDeleteRecordsAction( event, rc, prc, args={} ) {
-		var logger               = args.logger  ?: NullValue();
 		var questionsAll         = args.records ?: QueryNew( "" );
 		var questionsAreNotInUse = QueryNew( "id,label" );
 
 		for ( var question in questionsAll ) {
 			if ( formBuilderQuestionService.questionIsInUse( questionId=question.id ) ) {
-				logMessage( logger, "warn", translateResource( uri="preside-objects.formbuilder_question:batchAction.question.in.use.warning", data=[ question.label ] ) );
+				logMessage( args?.logger, "warn", translateResource( uri="preside-objects.formbuilder_question:batchAction.question.in.use.warning", data=[ question.label ] ) );
 			} else {
 				QueryAddRow( questionsAreNotInUse, question );
 			}

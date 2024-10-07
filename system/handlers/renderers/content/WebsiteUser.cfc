@@ -1,3 +1,6 @@
+/**
+ * @feature websiteUsers
+ */
 component {
 
 	property name="userDao" inject="presidecms:object:website_user";

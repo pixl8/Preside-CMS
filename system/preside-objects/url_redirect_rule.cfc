@@ -4,6 +4,7 @@
  *
  * @dataExportFields   id,label,source_url_pattern,redirect_type,exact_match_only,keep_query_string,redirect_to_link,datecreated,datemodified
  * @datamanagerEnabled true
+ * @feature            urlRedirects
  */
 component extends="preside.system.base.SystemPresideObject" displayName="URL Redirect rule" {
 	property name="label" uniqueindexes="redirectUrlLabel";

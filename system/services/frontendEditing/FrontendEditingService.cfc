@@ -1,7 +1,7 @@
 /**
- * @singleton
- * @presideservice
- *
+ * @singleton      true
+ * @presideservice true
+ * @feature        cms
  */
 component {
 

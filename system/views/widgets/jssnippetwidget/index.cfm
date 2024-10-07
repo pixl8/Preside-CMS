@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.source_url"    default=""   />
 <cfparam name="args.async"         default="no" />
 <cfparam name="args.defer"         default="no" />

@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfparam name="args.id"            type="string" />
 <cfparam name="args.action"        type="struct" />
 <cfparam name="args.configuration" type="struct" />

@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	formId      = args.id ?: "";
 	canLock     = IsTrue( args.canLock     ?: "" );

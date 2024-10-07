@@ -2,9 +2,10 @@
  * Service to provide batch operation logic. i.e. logic for batch record
  * operations kicked off from datamanager datatables.
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        admin
  */
 component displayName="Data manager batch operation service" {
 

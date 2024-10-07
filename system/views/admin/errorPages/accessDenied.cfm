@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	prc.pageTitle    = translateResource( "cms:accessdenied.page.title"    );
 	prc.pageSubTitle = translateResource( "cms:accessdenied.page.subtitle" );

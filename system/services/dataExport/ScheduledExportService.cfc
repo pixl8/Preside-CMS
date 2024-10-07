@@ -1,6 +1,7 @@
 /**
  * @singleton      true
  * @presideService true
+ * @feature        dataExport
  */
 component {
 	/**

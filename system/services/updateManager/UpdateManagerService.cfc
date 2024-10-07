@@ -33,6 +33,29 @@ component {
 		return versionInfo.version ?: "unknown";
 	}
 
+	public string function getCurrentVersionAndBuildDate() {
+		var versionFile = ListAppend( _getPresidePath(), "version.json", "/" );
+		var versionInfo = "";
+
+		if ( !FileExists( versionFile ) ) {
+			return "unknown";
+		}
+
+		try {
+			versionInfo = DeSerializeJson( FileRead( versionFile ) );
+		} catch ( any e ) {
+			return "unknown";
+		}
+
+		var versionString = versionInfo.version ?: "unknown";
+		var buildDate     = Trim( versionInfo.buildDate ?: "" );
+		if ( Len( buildDate ) ) {
+			versionString &= " (#buildDate#)";
+		}
+
+		return versionString;
+	}
+
 	public string function getCurrentVersionFromBoxFile() {
 		var boxFile = ListAppend( _getPresidePath(), "box.json", "/" );
 		var boxFileContent = "";

@@ -14,18 +14,16 @@ component hint="Manage Preside email templates" extends="preside.system.base.Com
 		if ( !ArrayLen( params ) || !ArrayFindNoCase( validOperations, params[ 1 ] ) ) {
 			var message = newLine();
 
-			message &= writeText( text="Usage: ", type="info", bold=true );
-			message &= writeText( "email [operation]" );
-			message &= newLine();
+			message &= writeText( text="Usage: ", type="help", bold=true );
+			message &= writeText( text="email <operation>", type="help", newline=2 );
 
-			message &= writeText( "Valid operations:" );
-			message &= newLine();
+			message &= writeText( text="Valid operations:", type="help", newline=2 );
 
-			message &= writeText( text="    list [template\]", type="info", bold=true );
-			message &= writeText( text=": Lists system email template.", newLine=true );
+			message &= writeText( text="    list [<filter>\]", type="help", bold=true );
+			message &= writeText( text="  : Lists all system email templates, or those matching the optional filter string", type="help", newLine=true );
 
-			message &= writeText( text="    reset template", type="info", bold=true );
-			message &= writeText( text=": Reset system email template to default content.", newLine=true );
+			message &= writeText( text="    reset <template>", type="help", bold=true );
+			message &= writeText( text=" : Reset system email template to default content", type="help", newLine=true );
 
 			return message;
 		}
@@ -99,8 +97,7 @@ component hint="Manage Preside email templates" extends="preside.system.base.Com
 	}
 
 	private any function reset( event, rc, prc, args ) {
-		var message = newLine();
-
+		var message  = newLine();
 		var template = args.params[ 2 ] ?: "";
 
 		if ( Len( Trim( template ) ) ) {

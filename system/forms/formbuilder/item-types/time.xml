@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.item-types.time:">
+<form i18nBaseUri="formbuilder.item-types.time:" feature="formbuilder">
 	<tab id="validation">
 		<fieldset id="fixed">
 			<field name="minTime"                       control="timePicker"  required="false"  sortorder="10" />

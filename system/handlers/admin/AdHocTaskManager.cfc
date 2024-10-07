@@ -1,3 +1,6 @@
+/**
+ * @feature admin and adhocTasks
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="adHocTaskManagerService" inject="adHocTaskManagerService";
@@ -62,9 +65,13 @@ component extends="preside.system.base.AdminHandler" {
 			prc.taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=prc.taskProgress.timeTaken*1000, context=[ "accurate" ] );
 		}
 
-		prc.canCancel = prc.task.status == "running" || prc.task.status == "pending";
-		prc.canCancel = prc.canCancel && ( prc.task.admin_owner == event.getAdminUserId() || hasCmsPermission( "adhocTaskManager.canceltask" ) );
-
+		if ( isTrue( prc.task.disable_cancel ?: "" ) ) {
+			prc.canCancel = false;
+		} else {
+			prc.canCancel = prc.task.status == "running" || prc.task.status == "pending";
+			prc.canCancel = prc.canCancel && ( prc.task.admin_owner == event.getAdminUserId() || hasCmsPermission( "adhocTaskManager.canceltask" ) );
+		}
+		
 		prc.pageTitle    = translateResource( uri="cms:adhoctaskmanager.progress.page.title", data=[ taskTitle ] );
 		prc.pageSubtitle = translateResource( uri="cms:adhoctaskmanager.progress.page.subtitle", data=[ taskTitle ] );
 
@@ -105,6 +112,10 @@ component extends="preside.system.base.AdminHandler" {
 		var task         = adHocTaskManagerService.getTask( taskId );
 		var taskProgress = adHocTaskManagerService.getProgress( taskId );
 		var resultUrl    = task.return_url.len() ? task.return_url : event.buildAdminLink();
+
+		if ( isTrue ( task.disable_cancel ?: "" ) ) {
+			event.adminAccessDenied();
+		}
 
 		if ( !task.admin_owner.len() || task.admin_owner != event.getAdminUserId() ) {
 			_checkPermissions( event, "canceltask" );

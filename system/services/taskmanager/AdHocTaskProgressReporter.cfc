@@ -4,6 +4,7 @@
  * to report progress of the running of the task
  *
  * @autodoc
+ * @feature adhocTasks && admin
  */
 component {
 

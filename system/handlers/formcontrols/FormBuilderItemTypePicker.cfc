@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and formbuilder
+ */
 component {
 
 	property name="formBuilderItemTypesService" inject="formBuilderItemTypesService";

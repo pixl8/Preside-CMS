@@ -5,6 +5,22 @@
 
 	select.form-control[multiple] {
 		height: 25em;
+
+		optgroup {
+			padding: 0px 4px;
+		}
+		optgroup option {
+			padding-left: 10px;
+		}
+		optgroup option:first-child {
+			padding-top: 5px;
+		}
+		optgroup option:disabled {
+			font-style: italic;
+		}
+		optgroup option:not(:disabled)::before {
+			content: '\279D ';
+		}
 	}
 
 	.action-buttons {

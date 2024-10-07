@@ -31,6 +31,7 @@ component displayName="Preside Super Class" {
 	 * @htmlHelper.inject                 delayedInjector:HTMLHelper@coldbox
 	 * @healthcheckService.inject         delayedInjector:healthcheckService
 	 * @sqlRunner.inject                  delayedInjector:sqlRunner
+	 * @extensionManagerService.inject    delayedInjector:extensionManagerService
 	 * @presideHelperClass.inject         presideHelperClass
 	 *
 	 */
@@ -58,6 +59,7 @@ component displayName="Preside Super Class" {
 		, required any htmlHelper
 		, required any healthcheckService
 		, required any sqlRunner
+		, required any extensionManagerService
 		, required any presideHelperClass
 	) {
 		$presideObjectService       = arguments.presideObjectService;
@@ -82,6 +84,7 @@ component displayName="Preside Super Class" {
 		$i18n                       = arguments.i18n;
 		$htmlHelper                 = arguments.htmlHelper;
 		$healthcheckService         = arguments.healthcheckService;
+		$extensionManagerService    = arguments.extensionManagerService;
 		$sqlRunner                  = arguments.sqlRunner;
 
 		this.$helpers = arguments.presideHelperClass;
@@ -345,7 +348,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $isWebsiteUserLoggedIn() {
-		return $getWebsiteLoginService().isLoggedIn( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) && $getWebsiteLoginService().isLoggedIn( argumentCollection=arguments );
 	}
 
 	/**
@@ -364,7 +367,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $isWebsiteUserImpersonated() {
-		return $getWebsiteLoginService().isImpersonated( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) && $getWebsiteLoginService().isImpersonated( argumentCollection=arguments );
 	}
 
 	/**
@@ -381,7 +384,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $getWebsiteLoggedInUserDetails() {
-		return $getWebsiteLoginService().getLoggedInUserDetails( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) ? $getWebsiteLoginService().getLoggedInUserDetails( argumentCollection=arguments ) : {};
 	}
 
 	/**
@@ -398,7 +401,9 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $reloadWebsiteLoggedInUserDetails() {
-		return $getWebsiteLoginService().reloadLoggedInUserDetails( argumentCollection=arguments );
+		if ( $isFeatureEnabled( "websiteUsers" ) ) {
+			return $getWebsiteLoginService().reloadLoggedInUserDetails( argumentCollection=arguments );
+		}
 	}
 
 	/**
@@ -415,7 +420,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $getWebsiteLoggedInUserId() {
-		return $getWebsiteLoginService().getLoggedInUserId( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) ? $getWebsiteLoginService().getLoggedInUserId( argumentCollection=arguments ) : "";
 	}
 
 	/**
@@ -434,7 +439,7 @@ component displayName="Preside Super Class" {
 	 *
 	 */
 	public any function $hasWebsitePermission() {
-		return $getWebsitePermissionService().hasPermission( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) && $getWebsitePermissionService().hasPermission( argumentCollection=arguments );
 	}
 
 	/**
@@ -449,7 +454,7 @@ component displayName="Preside Super Class" {
 	 * @autodoc
 	 */
 	public any function $recordWebsiteUserAction( string userId=$getWebsiteLoggedInUserId() ) {
-		return $websiteUserActionService.recordAction( argumentCollection=arguments );
+		return $isFeatureEnabled( "websiteUsers" ) ? $websiteUserActionService.recordAction( argumentCollection=arguments ) : "";
 	}
 
 // EMAIL SERVICE
@@ -591,6 +596,26 @@ component displayName="Preside Super Class" {
 	 */
 	public any function $isFeatureEnabled() {
 		return $getFeatureService().isFeatureEnabled( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns an instance of the [[api-extensionmanagerservice]]. This service can be used for checking
+	 * whether or not extensions are installed and finding other information about extensions.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $getExtensionManagerService() {
+		return $extensionManagerService;
+	}
+
+	/**
+	 * Returns whether or not the given extension is installed
+	 *
+	 * @autodoc
+	 */
+	public boolean function $isExtensionInstalled( required string extensionId ) {
+		return $extensionManagerService.extensionExists( extensionId=arguments.extensionId );
 	}
 
 // NOTIFICATIONS
@@ -925,10 +950,15 @@ component displayName="Preside Super Class" {
 	public string function $slugify( required str, numeric maxLength=0, allow="", preserveCase=false ) {
 		var slug = Trim( arguments.str );
 
+		var specialChars = "á,à,â,ä,ã,å,é,è,ê,ë,í,ì,î,ï,ó,ò,ô,ö,õ,ø,ú,ù,û,ü,ñ,ç,ß,Á,À,Â,Ä,Ã,Å,É,È,Ê,Ë,Í,Ì,Î,Ï,Ó,Ò,Ô,Ö,Õ,Ø,Ú,Ù,Û,Ü,Ñ,Ç";
+		var asciiChars   = "a,a,a,ae,a,a,e,e,e,e,i,i,i,i,o,o,o,oe,o,o,u,u,ue,u,n,c,ss,A,A,A,Ae,A,A,E,E,E,E,I,I,I,I,O,O,O,Oe,O,O,U,U,U,Ue,N,C";
+
+		slug = ReplaceList( slug, specialChars, asciiChars );
+
 		if ( !preserveCase ) {
 			slug = LCase( slug );
 		}
-		slug = ReplaceList( slug, '#chr(228)#,#chr(252)#,#chr(246)#,#chr(223)#', 'ae,ue,oe,ss' );
+
 		slug = ReReplace( slug, "[^a-zA-Z0-9-\s#arguments.allow#]", "", "all" );
 		slug = Trim( ReReplace( slug, "[\s-]+", " ", "all" ) );
 		slug = ReReplace( slug, "\s", "-", "all" );

@@ -1,0 +1,74 @@
+name: Snapshot build
+on:
+  workflow_dispatch:
+    inputs:
+      snapshot:
+        description: 'Full snapshot version number, e.g. 10.27.0-beta1'
+        required: true
+jobs:
+  publishsnapshot:
+    name: Publish Snapshot to Forgebox
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        uses: pixl8/github-action-box-install@v2
+        with:
+          verbose: true
+          force: true
+
+      - name: Build static assets with grunt
+        shell: bash
+        run: |
+          cd ./system/assets &&
+          npm install &&
+          grunt all &&
+          rm -rf node_modules
+
+      - name: Set release variables
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.snapshot }}
+          IS_SNAPSHOT: "true"
+          RELEASE_CATEGORY: "bleeding-edge"
+        run: |
+          ZIP_FILE_NAME=Preside-${RELEASE_VERSION/+/-}.zip
+          echo "RELEASE_CATEGORY=$RELEASE_CATEGORY" >> $GITHUB_ENV
+          echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_ENV
+          echo "DOWNLOAD_LOCATION=https://downloads.preside.org/$RELEASE_CATEGORY/$ZIP_FILE_NAME" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+
+      - name: Prepare files for release
+        shell: bash
+        run: |
+          DATE_BUILT=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          echo "{ \"version\":\"$RELEASE_VERSION\", \"buildDate\":\"$DATE_BUILT\" }" > version.json &&
+          echo "Built on: $DATE_BUILT" > "Preside-$RELEASE_VERSION-$RELEASE_CATEGORY.txt" &&
+          mv box.json.published box.json
+
+      - name: Inject version numbers
+        uses: dominicwatson/github-action-envsubst@v1
+        with:
+          files: box.json version.json system/config/Config.cfc
+
+      - name: Zip up
+        shell: bash
+        run: zip -rq $ZIP_FILE_NAME * --exclude jmimemagic.log --exclude=".*" --exclude="*.sh" --exclude="zanata.xml" --exclude="\tests/*" --exclude="\system/externals/lucee-spreadsheet/javaloader/*"
+
+      - name: Push to S3
+        run: aws s3 cp --acl=public-read $ZIP_FILE_NAME s3://downloads.preside.org/${RELEASE_CATEGORY}/${ZIP_FILE_NAME}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-west-2'
+
+      - name: Publish to forgebox
+        uses: pixl8/github-action-box-publish@v5
+        with:
+          forgebox_user: pixl8
+          forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
+          ignore_timeouts: "true"

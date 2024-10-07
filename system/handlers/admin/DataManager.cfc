@@ -6,13 +6,13 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="batchOperationService"            inject="dataManagerBatchOperationService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
-	property name="dataExportService"                inject="dataExportService";
-	property name="dataExportTemplateService"        inject="dataExportTemplateService";
-	property name="scheduledExportService"           inject="scheduledExportService";
+	property name="dataExportService"                inject="featureInjector:dataExport:dataExportService";
+	property name="dataExportTemplateService"        inject="featureInjector:dataExport:dataExportTemplateService";
+	property name="scheduledExportService"           inject="featureInjector:dataExport:scheduledExportService";
 	property name="formsService"                     inject="formsService";
-	property name="siteService"                      inject="siteService";
+	property name="siteService"                      inject="featureInjector:sites:siteService";
 	property name="versioningService"                inject="versioningService";
-	property name="rulesEngineFilterService"         inject="rulesEngineFilterService";
+	property name="rulesEngineFilterService"         inject="featureInjector:rulesEngine:rulesEngineFilterService";
 	property name="dtHelper"                         inject="jqueryDatatablesHelpers";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
 	property name="sessionStorage"                   inject="sessionStorage";
@@ -21,10 +21,6 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
-
-		if ( !isFeatureEnabled( "datamanager" ) ) {
-			event.notFound();
-		}
 
 		_loadCommonVariables( argumentCollection=arguments );
 		if ( !ReFindNoCase( "action$", arguments.action ) ) {
@@ -149,6 +145,13 @@ component extends="preside.system.base.AdminHandler" {
 					, args       = args
 				);
 			}
+
+			args.gridHeaderLabels = {};
+			customizationService.runCustomization(
+				  objectName     = args.objectName ?: ""
+				, action         = "getListingHeaderFields"
+				, args           = args
+			);
 
 			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
 		}
@@ -697,6 +700,23 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
 		prc.pageIcon     = "pencil";
 
+		var args = {
+			  ids          = ids
+			, batchAll     = batchAll
+			, batchSrcArgs = batchSrcArgs
+			, recordCount  = recordCount
+			, object       = objectName
+			, field        = field
+		}
+
+		if ( customizationService.objectHasCustomization( objectName, "preRenderBatchEditRecordsForm" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "preRenderBatchEditRecordsForm"
+				, args       = args
+			);
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectTitle, fieldName ] )
 			, link  = ""
@@ -725,23 +745,36 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=listingView );
 		}
 
+		var args = {
+			  objectName         = objectName
+			, fieldName          = updateField
+			, sourceIds          = sourceIds
+			, batchAll           = batchAll
+			, batchSrcArgs       = batchSrcArgs
+			, value              = rc[ updateField ]      ?: ""
+			, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+			, userId             = event.getAdminUserId()
+			, returnUrl          = listingView
+			, resultUrl          = listingView
+		};
+
+		if ( customizationService.objectHasCustomization( objectName, "preBatchEditRecordsInBgThread" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "preBatchEditRecordsInBgThread"
+				, args       = args
+			);
+		}
+
 		var taskId = createTask(
 			  event                = "admin.datamanager.batchEditInBgThread"
 			, runNow               = true
 			, adminOwner           = event.getAdminUserId()
 			, title                = "cms:datamanager.batchedit.task.title"
-			, returnUrl            = event.buildAdminLink( objectName=objectName, operation="listing" )
+			, returnUrl            = args.returnUrl
+			, resultUrl            = args.resultUrl
 			, discardAfterInterval = CreateTimeSpan( 0, 0, 5, 0 )
-			, args       = {
-				  objectName         = objectName
-				, fieldName          = updateField
-				, sourceIds          = sourceIds
-				, batchAll           = batchAll
-				, batchSrcArgs        = batchSrcArgs
-				, value              = rc[ updateField ]      ?: ""
-				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
-				, userId             = event.getAdminUserId()
-			}
+			, args                 = args
 		);
 
 		setNextEvent( url=event.buildAdminLink(
@@ -1361,7 +1394,9 @@ component extends="preside.system.base.AdminHandler" {
 			getRecordsArgs.extraFilters.append( { filter=treeFilter } );
 		}
 
-		prc.records = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
+		var recordsForSorting = datamanagerService.getRecordsForSorting( argumentCollection=getRecordsArgs );
+		prc.records           = recordsForSorting.records;
+		prc.ordered           = recordsForSorting.ordered;
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.sortRecords.breadcrumb.title" )
@@ -1382,10 +1417,31 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
-		datamanagerService.saveSortedRecords(
+		var args = {
 			  objectName = objectName
 			, sortedIds  = ListToArray( rc.ordered ?: "" )
+		};
+
+		if ( customizationService.objectHasCustomization( objectName, "preSortRecordsAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "preSortRecordsAction"
+				, args       = args
+			);
+		}
+
+		datamanagerService.saveSortedRecords(
+			  objectName = args.objectName
+			, sortedIds  = args.sortedIds
 		);
+
+		if ( customizationService.objectHasCustomization( objectName, "postSortRecordsAction" ) ) {
+			customizationService.runCustomization(
+				  objectName = objectName
+				, action     = "postSortRecordsAction"
+				, args       = args
+			);
+		}
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ objectTitle  ] ) );
 		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
@@ -2105,6 +2161,19 @@ component extends="preside.system.base.AdminHandler" {
 			  objectName     = arguments.object
 			, action         = "decorateRecordsForGridListing"
 			, defaultHandler = "admin.datamanager._decorateObjectRecordsForAjaxDataTables"
+			, args           = {
+				  records         = records
+				, objectName      = arguments.object
+				, gridFields      = getRecordsArgs.gridFields
+				, useMultiActions = arguments.useMultiActions
+				, isMultilingual  = arguments.isMultilingual
+				, draftsEnabled   = arguments.draftsEnabled
+			}
+		);
+
+		customizationService.runCustomization(
+			  objectName     = arguments.object
+			, action         = "postDecorateRecordsForGridListing"
 			, args           = {
 				  records         = records
 				, objectName      = arguments.object
@@ -3380,6 +3449,7 @@ component extends="preside.system.base.AdminHandler" {
 			, mimetype           = exporterDetail.mimeType
 			, additionalArgs     = arguments.additionalArgs
 			, templateConfig     = dataExportTemplateService.getSubmittedConfig( exportTemplate, objectName )
+			, expandNestedFields = dataExportTemplateService.templateMethodExists( exportTemplate, "getSelectFields" ) ? false : true
 		};
 
 		try {

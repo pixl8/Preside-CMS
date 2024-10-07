@@ -841,8 +841,9 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	}
 
 	private struct function _getViewMappings() {
-		var site     = getRequestContext().getSite();
-		var cacheKey = "viewsFullMappings" & ( site.template ?: "" );
+		var site          = getRequestContext().getSite();
+		var cacheKey      = "viewsFullMappings" & ( site.template ?: "" );
+		var ignoreFileSvc = getModel( "ignoreFileService" );
 
 		lock name="#lockName#" type="readonly" timeout="15" throwontimeout="true" {
 			if ( controller.settingExists( cacheKey ) ) {
@@ -858,6 +859,11 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 			var viewFiles   = DirectoryList( fullDirPath, true, "path", "*.cfm" );
 
 			for ( var filePath in viewFiles ) {
+				if ( ignoreFileSvc.isIgnored( "view", filePath ) || ( ignoreFileSvc.getWrite() && _isViewFeatureDisabled( filePath ) ) ) {
+					ignoreFileSvc.ignore( "view", filePath );
+					continue;
+				}
+
 				var mapping = ReReplaceNoCase( filePath, "\.cfm$", "" );
 					mapping = Replace( mapping, "\", "/", "all" );
 					mapping = Replace( mapping, fullDirPath, "" );
@@ -876,5 +882,29 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 
 	private string function _getAppMapping() {
 		return "/" & controller.getSetting( name="appMapping", defaultValue="/app" ).reReplace( "^/", "" );
+	}
+
+	private function _isViewFeatureDisabled( filePath ) {
+		var cfmFile           = FileOpen( arguments.filePath, "read" );
+		var isFeatureDisabled = false;
+		var featureRegex      = "^<!---@feature (.*)--->$";
+
+		try {
+			while( !FileIsEoF( cfmFile ) ) {
+				var featureLine = FileReadLine( cfmFile );
+				if ( ReFindNoCase( featureRegex, featureLine ) ) {
+					var feature = ReReplaceNoCase( featureLine, featureRegex, "\1" );
+					isFeatureDisabled = !isFeatureEnabled( Trim( feature ) );
+				}
+				break;
+			}
+		} catch( any e ) {
+			rethrow;
+			isFeatureDisabled = false;
+		} finally {
+			FileClose( cfmFile );
+		}
+
+		return isFeatureDisabled;
 	}
 }

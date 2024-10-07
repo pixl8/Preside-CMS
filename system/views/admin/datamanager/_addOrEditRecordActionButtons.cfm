@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	buttons = args.actionButtons ?: [];
 </cfscript>

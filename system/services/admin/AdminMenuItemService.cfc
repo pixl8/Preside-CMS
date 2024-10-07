@@ -5,6 +5,7 @@
  * @presideService true
  * @singleton      true
  * @autodoc        true
+ * @feature        admin
  */
 component {
 
@@ -77,10 +78,6 @@ component {
 					}
 				}
 			}
-
-			if ( !ArrayLen( config.subMenuItems ) ) {
-				return {};
-			}
 		}
 
 		config.active = itemIsActive( itemId, config );
@@ -95,6 +92,10 @@ component {
 
 		if ( IsArray( config.subMenuItems ?: "" ) && ArrayLen( config.subMenuItems ) ) {
 			_trimSeparators( config.subMenuItems );
+
+			if ( !ArrayLen( config.subMenuItems ) ) {
+				return {};
+			}
 		}
 
 		return config;

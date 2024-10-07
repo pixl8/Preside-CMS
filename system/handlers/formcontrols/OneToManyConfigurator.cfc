@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms
+ */
 component {
 
 	property name="presideObjectService" inject="PresideObjectService";
@@ -9,14 +12,26 @@ component {
 		var hasSortOrder   = StructKeyExists( presideObjectService.getObjectProperties( targetObject ), sortOrderField );
 
 		args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
-		args.defaultValue  = args.savedValue = presideObjectService.getOneToManyConfiguratorJsonString(
-			  sourceObject    = args.sourceObject
-			, sourceId        = args.savedData[ sourceIdField ] ?: ""
-			, relatedTo       = args.relatedTo                  ?: nullValue()
-			, relationshipKey = args.relationshipKey            ?: nullValue()
-			, labelRenderer   = args.labelRenderer
-			, specificVersion = rc.version                      ?: nullValue()
-		);
+
+		args.defaultValue = args.defaultValue ?: "";
+		args.savedValue   = args.savedValue   ?: "";
+
+		try {
+			var sourceProperty = presideObjectService.getObjectProperty( objectName=args.sourceObject, propertyName=args.name );
+		} catch ( any e ) {
+			logError( e );
+		}
+
+		if ( isTrue( sourceProperty.cloneable ?: true ) ) {
+			args.defaultValue  = args.savedValue = presideObjectService.getOneToManyConfiguratorJsonString(
+				  sourceObject    = args.sourceObject
+				, sourceId        = args.savedData[ sourceIdField ] ?: ""
+				, relatedTo       = args.relatedTo                  ?: NullValue()
+				, relationshipKey = args.relationshipKey            ?: NullValue()
+				, specificVersion = rc.version                      ?: NullValue()
+				, labelRenderer   = args.labelRenderer
+			);
+		}
 
 		args.object        = targetObject;
 		args.multiple      = args.multiple ?: true;

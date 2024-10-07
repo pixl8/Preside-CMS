@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'enum' field type
  *
+ * @feature rulesEngine
  */
 component {
 
@@ -30,7 +31,7 @@ component {
 		return renderFormControl(
 			  argumentCollection = config
 			, name               = "value"
-			, type               = "enumSelect"
+			, type               = arguments.config.control ?: "enumSelect"
 			, multiple           = IsTrue( arguments.config.multiple ?: true )
 			, label              = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.enum.config.label" )
 			, savedValue         = arguments.value

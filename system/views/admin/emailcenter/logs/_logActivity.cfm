@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="args.logDate"                    />
 <cfparam name="args.emailAddress"    default="" />
 <cfparam name="args.datecreated"     default="" />

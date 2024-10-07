@@ -1,15 +1,17 @@
+/**
+ * @feature admin and siteTree
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="siteTreeService"                  inject="siteTreeService";
 	property name="presideObjectService"             inject="presideObjectService";
 	property name="formsService"                     inject="formsService";
 	property name="pageTypesService"                 inject="pageTypesService";
-	property name="websitePermissionService"         inject="websitePermissionService";
+	property name="websitePermissionService"         inject="featureInjector:websiteUsers:websitePermissionService";
 	property name="dataManagerService"               inject="dataManagerService";
 	property name="versioningService"                inject="versioningService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="messageBox"                       inject="messagebox@cbmessagebox";
-	property name="pageCache"                        inject="cachebox:PresidePageCache";
 	property name="cookieService"                    inject="cookieService";
 
 	public void function preHandler( event, rc, prc ) {
@@ -56,6 +58,36 @@ component extends="preside.system.base.AdminHandler" {
 		] );
 
 		prc.trashCount = siteTreeService.getTrashCount();
+
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTree( argumentCollection=arguments ) );
+	}
+
+	private void function _siteTree( event, rc, prc ) {
+		if ( ( rc.selected ?: "" ).len() ) {
+			prc.selectedAncestors = sitetreeService.getAncestors( id=rc.selected, selectFields=[ "id" ] );
+			prc.selectedAncestors = prc.selectedAncestors.recordCount ? ValueArray( prc.selectedAncestors.id ) : [];
+			event.includeData( { selectedNode = rc.selected } );
+		}
+		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", maxDepth=0, selectFields=[
+			  "page.id"
+			, "page.parent_page"
+			, "page.title"
+			, "page.slug"
+			, "page.main_image"
+			, "page.active"
+			, "page.page_type"
+			, "page.datecreated"
+			, "page.datemodified"
+			, "page._hierarchy_slug as full_slug"
+			, "page.trashed"
+			, "page.access_restriction"
+			, "page._version_is_draft as is_draft"
+			, "page._version_has_drafts as has_drafts"
+			, "Count( child_pages.id ) as child_count"
+		] );
+
+		prc.trashCount = siteTreeService.getTrashCount();
+		renderView( view="/admin/sitetree/index", args=args );
 	}
 
 	public void function ajaxChildNodes( event, rc, prc ) {
@@ -186,7 +218,10 @@ component extends="preside.system.base.AdminHandler" {
 			prc.cancelLink = event.buildAdminLink( linkTo="sitetree" );
 		}
 
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTreeAddPage( argumentCollection=arguments ) );
+
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.addPage.title" )
 			, link  = ""
@@ -235,15 +270,17 @@ component extends="preside.system.base.AdminHandler" {
 
 		newId = siteTreeService.addPage( argumentCollection = formData, isDraft=saveAsDraft );
 
-		websitePermissionService.syncContextPermissions(
-			  context       = "page"
-			, contextKey    = newId
-			, permissionKey = "pages.access"
-			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-		);
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			websitePermissionService.syncContextPermissions(
+				  context       = "page"
+				, contextKey    = newId
+				, permissionKey = "pages.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
+		}
 
 
 		messageBox.info( translateResource( uri="cms:sitetree.pageAdded.confirmation" ) );
@@ -267,9 +304,10 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId           = rc.id               ?: "";
 		var validationResult = rc.validationResult ?: "";
 		var pageType         = "";
+		var tab              = rc.tab              ?: "";
 
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
-		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true, setVersion=StructKeyExists( rc, "version" ) );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
 		rc._backToEdit   = IsTrue( cookieService.getVar( "sitetree_editPage_backToEdit", "" ) );
@@ -294,20 +332,29 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.mainFormName  = "preside-objects.page.edit";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "edit" );
+		prc.page          = QueryRowToStruct( prc.page );
 
-		prc.page = QueryRowToStruct( prc.page );
-		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version, allowDraftVersions=true  );
+		var pageHasDraft = ( version > 0 ) || isTrue( prc.page._version_has_drafts ?: "" );
+		var savedData    = getPresideObject( pageType.getPresideObject() ).selectData(
+			  filter             = { page = pageId }
+			, fromVersionTable   = pageHasDraft
+			, specificVersion    = pageHasDraft ? versioningService.getLatestVersionNumber( pageType.getPresideObject(), pageId ) : 0
+			, allowDraftVersions = true
+		);
+
 		StructAppend( prc.page, QueryRowToStruct( savedData ) );
 
-		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
-			  context       = "page"
-			, contextKey    = pageId
-			, permissionKey = "pages.access"
-		);
-		prc.page.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
-		prc.page.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
-		prc.page.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
-		prc.page.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			var contextualAccessPerms = websitePermissionService.getContextualPermissions(
+				  context       = "page"
+				, contextKey    = pageId
+				, permissionKey = "pages.access"
+			);
+			prc.page.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
+			prc.page.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
+			prc.page.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
+			prc.page.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+		}
 
 		prc.allowableChildPageTypes = getAllowableChildPageTypes( prc.page.page_type );
 		prc.managedChildPageTypes   = getManagedChildPageTypes( prc.page.page_type );
@@ -332,11 +379,16 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			prc.backToTreeTitle = translateResource( "cms:sitetree.back.to.tree.link" );
 			prc.backToTreeLink = event.buildAdminLink( linkto="sitetree", querystring="selected=" & prc.page.id );
+			if ( Len( tab ) ) {
+				prc.backToTreeLink &= "&tab=#tab#";
+			}
 		}
 
 		if ( prc.canTranslate ) {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : pageType.getPresideObject() ), id );
 		}
+
+		_pageTopRightButtons( argumentCollection=arguments, actions=getTopRightButtonsForSiteTreeEditPage( argumentCollection=arguments ) );
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 	}
@@ -386,15 +438,17 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
 		}
 
-		websitePermissionService.syncContextPermissions(
-			  context       = "page"
-			, contextKey    = pageId
-			, permissionKey = "pages.access"
-			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-		);
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			websitePermissionService.syncContextPermissions(
+				  context       = "page"
+				, contextKey    = pageId
+				, permissionKey = "pages.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
+		}
 
 		messageBox.info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
 		cookieService.setVar( name="sitetree_editPage_backToEdit", value=false );
@@ -886,12 +940,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="sort", pageId=pageId );
 
-		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
-
+		prc.page       = _getPageAndThrowOnMissing( argumentCollection=arguments );
+		prc.pageIcon   = "fa-sort-amount-asc";
 		prc.childPages = siteTreeService.getDescendants(
-			  id       = pageId
-			, depth        = 1
-			, selectFields = [ "id", "title" ]
+			  id            = pageId
+			, depth         = 1
+			, selectFields  = [ "id", "title" ]
+			, includeHidden = true
 		);
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
@@ -1117,10 +1172,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="navigate", pageId=parentId );
 
-		prc.pageTitle    = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] );
-		prc.pageSubTitle = translateResource( uri="cms:sitetree.manage.type.subtitle", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ), prc.parentPage.title ] );;
-		prc.pageIcon     = translateResource( "page-types.#pageType#:iconClass" );
-		prc.canAddChildren = _checkPermissions( argumentCollection=arguments, key="add", pageId=parentId, throwOnError=false );
+		prc.pageTitle       = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] );
+		prc.pageSubTitle    = translateResource( uri="cms:sitetree.manage.type.subtitle", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ), prc.parentPage.title ] );;
+		prc.pageIcon        = translateResource( "page-types.#pageType#:iconClass" );
+		prc.canAddChildren  = _checkPermissions( argumentCollection=arguments, key="add", pageId=parentId, throwOnError=false );
+		prc.canSortChildren = _checkPermissions( argumentCollection=arguments, key="sort", pageId=parentId, throwOnError=false );
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentId, pageTitle=prc.parentPage.title );
 		event.addAdminBreadCrumb(
@@ -1199,8 +1255,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageId = rc.id ?: "";
 
 		if ( pageId.isEmpty() ) {
-			getController().getCachebox().clearAll();
-			announceInterception( "onClearCaches", {} );
+			siteTreeService.clearAllCaches();
 
 			event.audit(
 				  action = "clear_page_cache"
@@ -1209,16 +1264,7 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			var page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
-			var pageUrl    = event.buildLink( page=pageId ).reReplace( "^https?://.*?/", "/" );
-			var sectionUrl = pageUrl.reReplace( "\.html$", "/" );
-
-			pageCache.clearByKeySnippet( pageUrl );
-			pageCache.clearByKeySnippet( sectionUrl );
-
-			announceInterception( "onClearPageCaches", {
-				  pageUrl    = pageUrl
-				, sectionUrl = sectionUrl
-			} );
+			siteTreeService.clearPageCache( pageId );
 
 			event.audit(
 				  action   = "clear_cache_for_page"
@@ -1231,6 +1277,237 @@ component extends="preside.system.base.AdminHandler" {
 		messagebox.info( translateResource( "cms:sitetree.flush.cache.confirmation" ) );
 
 		setNextEvent( url=event.buildAdminLink( "sitetree" ) );
+	}
+
+	private array function getTopRightButtonsForSiteTree( event, rc, prc ) {
+		var site = event.getSite();
+
+		var actions  = [];
+		var children = [];
+
+		if ( hasCmsPermission( permissionKey="sites.manage" ) ) {
+			ArrayAppend( children, {
+				  title = translateResource( "cms:sitetree.edit.site.settings.btn" )
+				, link  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=#site.id#" )
+				, icon  = "fa-cogs"
+			} );
+		}
+
+		if ( isFeatureEnabled( "fullPageCaching" ) && hasCmsPermission( permissionkey="sitetree.clearcaches" ) ) {
+			if ( ArrayLen( children ) ) {
+				ArrayAppend( children, "---" );
+			}
+
+			ArrayAppend( children, {
+				  title  = translateResource( "cms:sitetree.flush.cache.btn" )
+				, link   = event.buildAdminLink( linkTo="sitetree.clearPageCacheAction" )
+				, icon   = "fa-refresh red"
+				, prompt = translateResource( "cms:sitetree.flush.cache.prompt" )
+			} );
+		}
+
+		if ( ArrayLen( children )) {
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )
+				, btnClass  = "btn-primary-default"
+				, iconClass = "fa-cog"
+				, children  = children
+			} );
+		}
+
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTree" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTree"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
+		}
+
+		return actions;
+	}
+
+	private array function getTopRightButtonsForSiteTreeAddPage( event, rc, prc ) {
+		var actions = [];
+
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTreeAddPage" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTreeAddPage"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
+		}
+
+		return actions;
+	}
+
+	private array function getTopRightButtonsForSiteTreeEditPage( event, rc, prc ) {
+		var pageId    = prc.page.id ?: "";
+		var pageTitle = EncodeForHTML( prc.page.title ?: "" );
+
+		var actions  = [];
+		var children = [];
+
+		if ( !isEmptyString( prc.backToTreeLink ?: "" ) ) {
+			ArrayAppend( actions, {
+				  title     = prc.backToTreeTitle ?: ""
+				, link      = prc.backToTreeLink
+				, iconClass = "fa-reply"
+			} );
+		}
+
+		ArrayAppend( actions, {
+			  title     = translateResource( "cms:sitetree.preview.page.btn" )
+			, link      = event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id=#pageId#" )
+			, iconClass = "fa-external-link"
+			, btnClass  = "btn-info"
+		} );
+
+		var translations = prc.translations ?: [];
+
+		if ( ArrayLen( translations ) ) {
+			var translateLink = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
+
+			for ( var language in translations ) {
+				ArrayAppend( children, {
+					  title = "#language.name# (#translateResource( "cms:multilingal.status.#language.status#" )#)"
+					, link  = "#translateLink##language.id#"
+					, icon  = "fa-pencil"
+				} );
+			}
+
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="cms:sitetree.translate.page.btn" )
+				, btnClass  = "btn-default"
+				, iconClass = "fa-globe"
+				, children  = children
+			} );
+		}
+
+		children = [];
+
+		if ( isTrue( prc.canClone ?: "" ) ) {
+			ArrayAppend( children, {
+				  title = translateResource( "cms:sitetree.clone.page.dropdown" )
+				, link  = event.buildAdminLink( linkTo="sitetree.clonePage", queryString="id=#pageId#" )
+				, icon  = "fa-copy"
+			} );
+		}
+
+		if ( isTrue( prc.canAddChildren ?: "" ) ) {
+			var allowableChildPageTypes   = prc.allowableChildPageTypes ?: "";
+			var addChildrenLinkTitle      = translateResource( uri="cms:sitetree.add.child.page.link", data=[ pageTitle ] );
+			var addChildrenLink           = "";
+			var addChildrenLinkAttributes = {};
+
+			if ( allowableChildPageTypes == "*" || ListLen( allowableChildPageTypes ) ) {
+				addChildrenLink           = event.buildAdminLink( linkTo="sitetree.pageTypeDialog", querystring="parentPage=#pageId#" );
+				addChildrenLinkAttributes = { "data-toggle"="bootbox-modal", "data-buttons"="cancel", "data-modal-class"="page-type-picker", title=addChildrenLinkTitle };
+			} else {
+				addChildrenLink = event.buildAdminLink( linkTo="sitetree.addPage", querystring="parent_page=#pageId#&page_type=#allowableChildPageTypes#" );
+			}
+
+			ArrayAppend( children, {
+				  title          = addChildrenLinkTitle
+				, link           = addChildrenLink
+				, linkAttributes = addChildrenLinkAttributes
+				, icon           = "fa-plus-circle"
+			} );
+		}
+
+		if ( isTrue( prc.canSortChildren ?: "" ) ) {
+			ArrayAppend( children, {
+				  title     = translateResource( "cms:sitetree.sort.children.dropdown" )
+				, link      = event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#pageId#" )
+				, icon      = "fa-sort-amount-asc"
+				, globalKey = "o"
+			} );
+		}
+
+		if ( isTrue( prc.canManagePagePerms ?: "" ) ) {
+			ArrayAppend( children, {
+				  title     = translateResource( "cms:sitetree.page.permissioning.dropdown" )
+				, link      = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#pageId#" )
+				, icon      = "fa-lock"
+				, globalKey = "m"
+			} );
+		}
+
+		var managedChildPageTypes = ListToArray( prc.managedChildPageTypes ?: "" );
+
+		for ( var managedPageType in managedChildPageTypes ) {
+			ArrayAppend( children, {
+				  title = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#managedPageType#:name" ) ) ] )
+				, link  = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent=#pageId#&pageType=#managedPageType#" )
+				, icon  = "fa-ellipsis-h"
+			} );
+		}
+
+		if ( isTrue( prc.canActivate ?: "" ) ) {
+			var pageActive = isTrue( prc.page.active ?: "" );
+
+			if ( ArrayLen( children ) ) {
+				ArrayAppend( children, "---" );
+			}
+
+			if ( pageActive ) {
+				ArrayAppend( children, {
+					  title = translateResource( "cms:sitetree.deactivate.page.dropdown" )
+					, link  = event.buildAdminLink( linkTo="sitetree.deactivatePageAction", queryString="id=#pageId#" )
+					, icon  = "fa-times-circle red"
+				} );
+			} else {
+				ArrayAppend( children, {
+					  title = translateResource( "cms:sitetree.activate.page.dropdown" )
+					, link  = event.buildAdminLink( linkTo="sitetree.activatePageAction", queryString="id=#pageId#" )
+					, icon  = "fa-check-circle green"
+				} );
+			}
+		}
+
+		if ( isTrue( prc.canDeletePage ?: "" ) ) {
+			var pageChildrenCount = prc.childCount ?: 0;
+
+			if ( ArrayLen( children ) ) {
+				ArrayAppend( children, "---" );
+			}
+
+			ArrayAppend( children, {
+				  title          = translateResource( "cms:sitetree.trash.page.dropdown" )
+				, link           = event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=#pageId#" )
+				, linkAttributes = { "data-has-children"=pageChildrenCount }
+				, icon           = "fa-trash-o red"
+				, prompt         = translateResource( uri="cms:sitetree.trash.child.page.link", data=[ pageTitle ] )
+				, globalKey      = "d"
+			} );
+		}
+
+		if ( ArrayLen( children )) {
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )
+				, btnClass  = "btn-primary-default"
+				, iconClass = "fa-cog"
+				, children  = children
+			} );
+		}
+
+		if ( getController().handlerExists( "admin.SiteTree.extraTopRightButtonsForSiteTreeEditPage" ) ) {
+			runEvent(
+				  event          = "admin.SiteTree.extraTopRightButtonsForSiteTreeEditPage"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					actions = actions
+				  }
+			);
+		}
+
+		return actions;
 	}
 
 <!--- private viewlets --->
@@ -1297,7 +1574,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
-		if ( arguments.setVersion ) {
+		if ( arguments.setVersion || isTrue( page._version_has_drafts ?: "" ) ) {
 			rc.version = rc.version ?: version;
 		}
 
@@ -1357,12 +1634,42 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	private void function _pageTopRightButtons( event, rc, prc, actions=[] ) {
+		var rendered = "";
+
+		arguments.actions = ArrayReverse( arguments.actions );
+
+		for( var action in arguments.actions ) {
+			if ( IsSimpleValue( action ) ) {
+				rendered &= action;
+			} else {
+				rendered &= renderView( view="/admin/datamanager/_topRightButton", args=action );
+			}
+		}
+
+		prc.topRightButtons = rendered;
+	}
+
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return siteTreeService.listGridFields( arguments.objectName );
 	}
 
 	private string function _getSortOrderForGrid( required string objectName ) {
-		return siteTreeService.getDefaultSortOrderForDataGrid( arguments.objectName );
+		var sortOrder = siteTreeService.getDefaultSortOrderForDataGrid( arguments.objectName );
+
+		if ( !Len( Trim( sortOrder ) ) ) {
+			sortOrder = dataManagerService.getDefaultSortOrderForDataGrid( arguments.objectName );
+
+			if ( !Len( Trim( sortOrder ) ) ) {
+				var pageDefaultSortOrder = dataManagerService.getDefaultSortOrderForDataGrid( "page" );
+
+				if ( Len( Trim( pageDefaultSortOrder ) ) ) {
+					sortOrder = "page.#pageDefaultSortOrder#";
+				}
+			}
+		}
+
+		return sortOrder;
 	}
 
 	private array function _cleanGridFields( required array gridFields ) {

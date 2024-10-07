@@ -1,3 +1,6 @@
+/**
+ * @feature admin and multilingual
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="languageDao" inject="presidecms:object:multilingual_language";

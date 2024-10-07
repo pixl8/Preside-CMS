@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	recordId                = rc.id                    ?: "";
 	version                 = rc.version               ?: "";

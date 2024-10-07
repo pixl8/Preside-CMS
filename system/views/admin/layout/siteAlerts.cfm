@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.inMaintenanceMode" type="boolean" />
 
 <cfoutput>

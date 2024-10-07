@@ -1,32 +1,27 @@
 /**
- * @expressionContexts  webrequest
- * @expressionCategory  formbuilder
- * @expressionTags      formbuilderV2Form
+ * @expressionContexts webrequest
+ * @expressionCategory formbuilder
+ * @expressionTags     formbuilderV2Form
+ * @feature            rulesEngine and formbuilder
  */
 component {
 
 	property name="formBuilderFilterService" inject="formBuilderFilterService";
 
 	 /**
-	 * @question.fieldtype      formbuilderQuestion
-	 * @question.objectFilters  formbuilderSingleChoiceFields
-	 * @value.fieldtype         formbuilderQuestionChoiceValue
+	 * @question.fieldtype     formbuilderQuestion
+	 * @question.objectFilters formbuilderSingleChoiceFields
+	 * @value.fieldtype        formbuilderQuestionChoiceValue
 	 */
 	private boolean function evaluateExpression(
 		  required string question
 		, required string value
 	) {
-		var userId = payload.user.id ?: "";
-
-		if ( !userId.len() ) {
-			return false;
-		}
-
 		return formBuilderFilterService.evaluateQuestionSubmissionResponseMatch(
 			  argumentCollection = arguments
-			, userId             = userId
-			, formId             = payload.formId ?: ""
-			, submissionId       = payload.submissionId ?: ""
+			, userId             = payload.user.id                            ?: ""
+			, formId             = payload.formbuilderSubmission.formId       ?: ""
+			, submissionId       = payload.formbuilderSubmission.submissionId ?: ""
 			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
 	}

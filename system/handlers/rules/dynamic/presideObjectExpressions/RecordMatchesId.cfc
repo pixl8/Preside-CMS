@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * record matches one or more specific Ids
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

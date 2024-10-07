@@ -1,3 +1,6 @@
+/**
+ * @feature admin and customEmailTemplates
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="emailTemplateService"       inject="emailTemplateService";
@@ -514,7 +517,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object        = "email_template"
-				, gridFields    = "name,sending_method,send_date,datemodified,last_sent_date,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date"
+				, gridFields    = "name,sending_method,send_date,datecreated,datemodified,last_sent_date,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date"
 				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
 				, filter        = { "email_template.is_system_email" = false }
 				, draftsEnabled = true
@@ -587,6 +590,10 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:emailcenter.customTemplates.stats.page.breadcrumb", data=[ prc.record.name ] )
 			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.stats", queryString="id=#id#" )
 		);
+
+		if ( isTrue( prc.record.stats_collection_enabled ) ) {
+			event.setView( "/admin/emailCenter/customTemplates/statsv2" );
+		}
 	}
 
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	alert    = args.alert     ?: {};
 	rendered = alert.rendered ?: "";

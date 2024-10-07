@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	batchEditWarning          = args.batchEditWarning          ?: "";
 	multiEditBehaviourControl = args.multiEditBehaviourControl ?: "";

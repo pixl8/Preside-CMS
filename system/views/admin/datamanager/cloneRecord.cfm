@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	cloneRecordForm  = prc.cloneRecordForm  ?: "";
 </cfscript>

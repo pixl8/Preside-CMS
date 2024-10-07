@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * many-to-many relationships match the selected related records
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 
@@ -32,19 +33,29 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 	){
 		var paramName = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var valuePk   = presideObjectService.getIdField( arguments.relatedto );
-		var outerPk   = "#arguments.objectName#.#presideObjectService.getIdField( arguments.objectName )#";
-		var exists    = arguments._is ? "exists" : "not exists";
 		var subquery  = presideObjectService.selectData(
 			  objectName          = arguments.relatedTo
-			, selectFields        = [ "1" ]
-			, filter              = obfuscateSqlForPreside( "#arguments.relationshipKey# = #outerPk# and #arguments.relatedTo#.#valuePk# in (:#paramName#)" )
-			, filterParams        = { "#paramName#" = { type="cf_sql_varchar", value=arguments.value, list=true } }
+			, selectFields        = [ valuePk, arguments.relationshipKey ]
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 		);
 
+		var dbAdapter          = getPresideObject( arguments.objectName ).getDbAdapter();
+		var subQueryAlias      = dbAdapter.escapeEntity( "subquery_#arguments.relatedTo#" );
+		var idField            = presideObjectService.getIdField( arguments.objectName );
+		var idFieldEscapedFull = dbAdapter.escapeEntity( "#arguments.objectName#.#idField#" );
+		var exists             = arguments._is ? "exists" : "not exists";
+		var subQuerySql        = obfuscateSqlForPreside( "
+			select 1
+			from (#subQuery.sql#) as #subQueryAlias#
+			where #idFieldEscapedFull# = #subQueryAlias#.#arguments.relationshipKey#
+			and #subQueryAlias#.#valuePk# in (:#paramName#)
+		" );
+
+		subquery.params[ paramName ] = { type="cf_sql_varchar", value=arguments.value, list=true };
+
 		return [ {
-			  filter = obfuscateSqlForPreside( "#exists# (#subquery.sql#)" )
+			  filter = obfuscateSqlForPreside( "#exists# (#subquerySql#)" )
 			, filterParams = subquery.params
 		}];
 	}

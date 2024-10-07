@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	maxTabs = args.maxTabs ?: 6;
 	tabs = args.tabs ?: [];

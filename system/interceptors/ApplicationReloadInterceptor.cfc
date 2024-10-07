@@ -15,4 +15,10 @@ component extends="coldbox.system.Interceptor" {
 			logger.warn( "Application reload complete" );
 		}
 	}
+
+	public void function afterInstanceAutowire( event, interceptData ) {
+		if ( StructKeyExists( arguments.interceptData.target, "postInit" ) ) {
+			arguments.interceptData.target.postInit();
+		}
+	}
 }

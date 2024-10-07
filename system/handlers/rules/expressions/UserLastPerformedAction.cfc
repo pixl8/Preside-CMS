@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User has performed some action within the last x days"
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers
  */
 component {
 

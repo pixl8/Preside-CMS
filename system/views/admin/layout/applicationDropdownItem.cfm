@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	link        = args.link        ?: "";
 	iconClass   = args.iconClass   ?: "";

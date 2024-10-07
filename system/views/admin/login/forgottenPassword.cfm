@@ -1,4 +1,8 @@
-<cfset message = rc.message ?: "" />
+<!---@feature admin--->
+<cfscript>
+	message = rc.message ?: "";
+	loginId = EncodeForHTMLAttribute( rc.loginId ?: "" );
+</cfscript>
 <cfoutput>
 	<div class="position-relative">
 		<div id="forgot-box" class="forgot-box visible widget-box no-border">
@@ -41,7 +45,7 @@
 						<fieldset>
 							<label class="block clearfix">
 								<span class="block input-icon input-icon-right">
-									<input type="text" class="form-control" placeholder="#translateResource( 'cms:forgotpassword.loginIdOrEmail.placeholder' )#" name="loginId" value="#event.getValue( name="loginId", defaultValue="" )#" />
+									<input type="text" class="form-control" placeholder="#translateResource( 'cms:forgotpassword.loginIdOrEmail.placeholder' )#" name="loginId" value="#loginId#" />
 									<i class="fa fa-user"></i>
 								</span>
 							</label>

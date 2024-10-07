@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	viewHelper = getModel( "adminDataViewsService" );
 	objectName = args.objectName ?: "";

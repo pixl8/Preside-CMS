@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	property name="presideObjectService"       inject="presideObjectService";
@@ -5,8 +8,7 @@ component {
 	property name="taskmanagerService"         inject="taskmanagerService";
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailLayoutService"         inject="emailLayoutService";
-	property name="formBuilderService"         inject="formBuilderService";
-	property name="formBuilderActionsService"  inject="FormBuilderActionsService";
+	property name="formBuilderService"         inject="featureInjector:formbuilder:formBuilderService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
@@ -239,6 +241,10 @@ component {
 	}
 
 	private string function formbuilder( event, rc, prc, args={} ) {
+		if ( !isFeatureEnabled( "formbuilder" ) ) {
+			return "";
+		}
+
 		var action = args.action ?: "";
 
 		var userHtml = '<a href="#( args.userLink ?: "" )#">#( args.known_as ?: "" )#</a>';

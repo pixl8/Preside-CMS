@@ -4,6 +4,7 @@
  * @singleton      true
  * @presideService true
  * @autdoc         true
+ * @feature        sites
  */
 component displayname="Site service" {
 
@@ -40,7 +41,7 @@ component displayname="Site service" {
 	 * Returns a query of all the registered sites
 	 */
 	public query function listSites() output=false autodoc=true {
-		return _getSiteDao().selectData( orderBy = "name", savedFilters=[ "nonDeletedSites" ] );
+		return _getSiteDao().selectData( orderBy="name" );
 	}
 
 	/**
@@ -49,7 +50,7 @@ component displayname="Site service" {
 	 * @id.hint ID of the site to get
 	 */
 	public struct function getSite( required string id ) output=false autodoc=true {
-		var site = _getSiteDao().selectData( id=arguments.id, savedFilters=[ "nonDeletedSites" ] );
+		var site = _getSiteDao().selectData( id=arguments.id );
 
 		for( var s in site ){
 			return s;
@@ -87,7 +88,6 @@ component displayname="Site service" {
 			  filter       = "( domain = '*' or domain = :domain )"
 			, filterParams = { domain = arguments.domain }
 			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'domain' )# desc, #dbAdapter.getLengthFunctionSql( 'path' )# desc"
-			, savedFilters = [ "nonDeletedSites" ]
 		);
 
 		for( var match in possibleMatches ){
@@ -100,7 +100,6 @@ component displayname="Site service" {
 			  selectFields = [ "site" ]
 			, filter       = "( site_alias_domain.domain = '*' or site_alias_domain.domain = :domain )"
 			, filterParams = { domain = arguments.domain }
-			, savedFilters = [ "nonDeletedSites" ]
 			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'site_alias_domain.domain' )# desc"
 		);
 
@@ -146,7 +145,6 @@ component displayname="Site service" {
 			  filter       = "( domain = '*' or domain = :domain )"
 			, filterParams = { domain = arguments.domain }
 			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'domain' )# desc, #dbAdapter.getLengthFunctionSql( 'path' )#"
-			, savedFilters = [ "nonDeletedSites" ]
 		);
 
 
@@ -165,7 +163,7 @@ component displayname="Site service" {
 	 * Sets the current active admin site id
 	 */
 	public void function setActiveAdminSite( required string siteId ) output=false autodoc=true {
-		var site = _getSiteDao().selectData( id=arguments.siteId, savedFilters=[ "nonDeletedSites" ] );
+		var site = _getSiteDao().selectData( id=arguments.siteId );
 
 		for( var s in site ) { // little query to struct hack
 			if ( _getPermissionService().hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ s.id ] ) ) {
@@ -259,7 +257,6 @@ component displayname="Site service" {
 		return _getSiteRedirectDomainDao().selectData(
 			  selectFields = [ "site.id", "site.protocol", "site.domain" ]
 			, filter       = { domain = arguments.domain }
-			, savedFilters = [ "nonDeletedSites" ]
 		);
 	}
 

@@ -14,6 +14,9 @@ This form is used to a add a link through general "manage links" screens
 		<!-- we will show/hide these fieldsets depending on the selected link type -->
 		<fieldset id="sitetreelink" sortorder="20" class="link-type-group">
 			<field sortorder="10" binding="link.page"        />
+			<field sortorder="15" binding="link.query_string" control="textinput">
+				<rule validator="queryString" />
+			</field>
 			<field sortorder="20" binding="link.page_anchor" />
 		</fieldset>
 

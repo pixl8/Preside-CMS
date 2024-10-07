@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	property name="maintenanceModeService"   inject="maintenanceModeService";
@@ -5,8 +8,30 @@ component {
 	property name="adminMenuItemService"     inject="adminMenuItemService";
 	property name="adminLanguages"           inject="coldbox:setting:adminLanguages";
 	property name="adminSideBarItems"        inject="coldbox:setting:adminSideBarItems";
+	property name="environmentBannerConfig"  inject="coldbox:setting:environmentBannerConfig";
+	property name="environmentMessage"       inject="coldbox:setting:environmentMessage";
 	property name="applicationsService"      inject="applicationsService";
 	property name="i18n"                     inject="i18n";
+
+	private string function environmentBanner( event, rc, prc, args={} ) {
+		var shouldDisplay = isTrue( environmentBannerConfig.display ?: true );
+
+		if ( !shouldDisplay ) {
+			return "";
+		}
+
+		var environment   = controller.getConfigSettings().environment;
+		var envDefaultMsg = translateResource(
+			  uri          = "cms:environment.#environment#.label"
+			, defaultValue = translateResource( uri="cms:environment.default.label", data=[ UCase( environment ) ] )
+		);
+
+		args.iconClass = environmentBannerConfig.icon     ?: "";
+		args.cssClass  = environmentBannerConfig.cssClass ?: "alert-danger";
+		args.message   = Len( Trim( environmentMessage ) ) ? environmentMessage : ( environmentBannerConfig.message ?: envDefaultMsg );
+
+		return renderView( view="/admin/layout/environmentBanner", args=args );
+	}
 
 	private string function siteAlerts( event, rc, prc, args={} ) {
 		args.inMaintenanceMode = maintenanceModeService.isMaintenanceModeActive();

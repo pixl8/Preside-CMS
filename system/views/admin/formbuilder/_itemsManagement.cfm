@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	formId = args.formId ?: "";
 	items  = args.items ?: [];

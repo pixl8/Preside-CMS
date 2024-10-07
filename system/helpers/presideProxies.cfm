@@ -191,19 +191,6 @@
 		</cfscript>
 	</cfsilent></cffunction>
 
-	<cffunction name="translateObjectName" access="public" returntype="any" output="false">
-		<cfargument name="objectName"   type="string" required="true" /><cfsilent>
-
-		<cfscript>
-			var poService    = getSingleton( "presideObjectService" );
-			var baseUri      = poService.getResourceBundleUriRoot( arguments.objectName );
-			var isPageType   = poService.isPageType( arguments.objectName );
-			var fullUri      = baseUri & ( isPageType ? "name" : "title.singular" );
-
-			return translateResource( uri=fullUri, defaultValue=arguments.objectName );
-		</cfscript>
-	</cfsilent></cffunction>
-
 <!--- permissioning and users --->
 	<cffunction name="hasCmsPermission" access="public" returntype="boolean" output="false"><cfsilent>
 		<cfreturn getSingleton( "permissionService" ).hasPermission( argumentCollection=arguments ) />
@@ -213,34 +200,47 @@
 		<cfreturn getSingleton( "permissionService" ).hasPermissions( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="hasAnyCmsPermissions" access="public" returntype="boolean" output="false"><cfsilent>
+		<cfreturn getSingleton( "permissionService" ).hasAnyPermissions( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false"><cfsilent>
-		<cfreturn getSingleton( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
+		<cfreturn isFeatureEnabled( "websiteUsers" ) && getSingleton( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="isLoggedIn" access="public" returntype="boolean" output="false"><cfsilent>
-		<cfreturn getSingleton( "websiteLoginService" ).isLoggedIn( argumentCollection=arguments ) />
+		<cfreturn isFeatureEnabled( "websiteUsers" ) && getSingleton( "websiteLoginService" ).isLoggedIn( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="isAutoLoggedIn" access="public" returntype="boolean" output="false"><cfsilent>
-		<cfreturn getSingleton( "websiteLoginService" ).isAutoLoggedIn( argumentCollection=arguments ) />
+		<cfreturn isFeatureEnabled( "websiteUsers" ) && getSingleton( "websiteLoginService" ).isAutoLoggedIn( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="getLoggedInUserId" access="public" returntype="string" output="false"><cfsilent>
+		<cfif !isFeatureEnabled( "websiteUsers" )>
+			<cfreturn "" />
+		</cfif>
 		<cfreturn getSingleton( "websiteLoginService" ).getLoggedInUserId( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="getLoggedInUserDetails" access="public" returntype="struct" output="false"><cfsilent>
+		<cfif !isFeatureEnabled( "websiteUsers" )>
+			<cfreturn {} />
+		</cfif>
 		<cfreturn getSingleton( "websiteLoginService" ).getLoggedInUserDetails( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="reloadLoggedInUserDetails" access="public" returntype="void" output="false"><cfsilent>
+		<cfif !isFeatureEnabled( "websiteUsers" )>
+			<cfreturn />
+		</cfif>
 		<cfreturn getSingleton( "websiteLoginService" ).reloadLoggedInUserDetails( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 <!--- features --->
 	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
 		<cfargument name="feature"      type="string" required="true" />
-		<cfargument name="siteTemplate" type="string" required="false" default="#getSingleton( "siteService" ).getActiveSiteTemplate()#" /><cfsilent>
+		<cfargument name="siteTemplate" type="string" required="false" default="_active" /><cfsilent>
 
 		<cfreturn getSingleton( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
@@ -248,6 +248,13 @@
 	<cffunction name="isFeatureDefined" access="public" returntype="boolean" output="false"><cfsilent>
 		<cfreturn getSingleton( "featureService" ).isFeatureDefined( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
+
+	<cffunction name="isExtensionInstalled" access="public" returntype="boolean" output="false">
+		<cfargument name="extensionId" type="string" required="true" /><cfsilent>
+
+		<cfreturn getSingleton( "extensionManagerService" ).extensionExists( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 
 <!--- errors --->
 	<cffunction name="logError" access="public" returntype="void" output="false"><cfsilent>

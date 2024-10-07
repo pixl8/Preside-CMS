@@ -1,17 +1,17 @@
 /**
+ * Service that deals with replacing 'delayed viewlet' markup in content with live evaluated
+ * viewlet renders.
+ *
  * @singleton      true
  * @presideservice true
  * @autodoc        true
- *
- * Service that deals with replacing 'delayed viewlet' markup in content with live evaluated
- * viewlet renders.
  */
 component {
 
 // CONSTRUCTOR
 	/**
 	 * @defaultHandlerAction.inject         coldbox:fwsetting:eventAction
-	 * @contentRendererService.inject       contentRendererService
+	 * @contentRendererService.inject       delayedInjector:contentRendererService
 	 * @dynamicFindAndReplaceService.inject dynamicFindAndReplaceService
 	 *
 	 */
@@ -32,12 +32,17 @@ component {
 	 *
 	 */
 	public string function renderDelayedViewlets( required string content ) {
+		if ( !$isFeatureEnabled( "delayedViewlets" ) ) {
+			return arguments.content;
+		}
+
 		var encodedArgsRegex = "[a-zA-Z0-9%=,_\$\s\+\/]*"
 		var dvPattern        = "<!--dv:(.*?)\((#encodedArgsRegex#)\)\(private=(true|false),prePostExempt=(true|false)\)-->";
 		var cb               = $getColdbox();
 		var rendererSvc      = _getContentRendererService();
+		var interceptData    = {};
 
-		return _getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.content, regexPattern=dvPattern, recurse=true, processor=function( captureGroups ){
+		interceptData.renderedContent =_getDynamicFindAndReplaceService().dynamicFindAndReplace( source=arguments.content, regexPattern=dvPattern, recurse=true, processor=function( captureGroups ){
 			var renderedViewlet = cb.renderViewlet(
 				  event         = ( arguments.captureGroups[ 2 ] ?: "" )
 				, args          = _parseArgs( Trim( arguments.captureGroups[ 3 ] ?: "" ) )
@@ -47,14 +52,21 @@ component {
 			);
 
 			if ( !IsNull( local.renderedViewlet ) && IsSimpleValue( renderedViewlet ) ) {
-				return rendererSvc.render(
-					  renderer = "richeditor"
-					, data     = renderedViewlet
-				);
+				if ( $isFeatureEnabled( "cms" ) ) {
+					return rendererSvc.render(
+						  renderer = "richeditor"
+						, data     = renderedViewlet
+					);
+				}
+				return renderedViewlet;
 			}
 
 			return "";
 		} );
+
+		$announceInterception( "postRenderDelayedViewlets", interceptData );
+
+		return interceptData.renderedContent ?: "";
 	}
 
 	/**
@@ -98,6 +110,10 @@ component {
 	 *
 	 */
 	public boolean function isViewletDelayedByDefault( required string viewlet, boolean defaultValue=false ) {
+		if ( !$isFeatureEnabled( "delayedViewlets" ) ) {
+			return false;
+		}
+
 		variables._viewletDelayedLookupCache = variables._viewletDelayedLookupCache ?: {};
 
 		var cacheKey  = arguments.viewlet & ":default:" & arguments.defaultValue;
@@ -136,6 +152,10 @@ component {
 	 *
 	 */
 	public boolean function isDelayableContext() {
+		if ( !$isFeatureEnabled( "delayedViewlets" ) ) {
+			return false;
+		}
+
 		var event = $getRequestContext();
 
 		if ( event.isAdminRequest() || event.isEmailRenderingContext() || event.isBackgroundThread() || event.isApiRequest()  ) {

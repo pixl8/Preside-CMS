@@ -4,8 +4,8 @@
  * bean but with the addition of some helper methods to make
  * interacting with the result intuitive for the developer.
  *
- * @autodoc
- *
+ * @autodoc   true
+ * @nowirebox true
  */
 component accessors=true displayname="Validation result" {
 

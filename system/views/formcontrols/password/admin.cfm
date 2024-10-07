@@ -1,3 +1,4 @@
+<!---@feature presideForms and admin--->
 <cfscript>
 	inputName    = args.name        ?: "";
 	inputId      = args.id          ?: "";
@@ -11,8 +12,8 @@
 
 	if ( IsTrue( args.outputSavedValue ?: "" ) ) {
 		defaultValue = args.defaultValue ?: "";
-		value  = event.getValue( name=inputName, defaultValue=defaultValue );
-		if ( not IsSimpleValue( value ) ) {
+		value        = event.getValue( name=inputName, defaultValue=defaultValue );
+		if ( !IsSimpleValue( value ) ) {
 			value = "";
 		}
 		value = HtmlEditFormat( value );
@@ -25,6 +26,13 @@
 	}
 
 	passwordPolicyContext = args.passwordPolicyContext ?: "";
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
@@ -32,7 +40,7 @@
 		<span class="block input-icon input-icon-right">
 	</cfif>
 
-		<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="#inputClass# form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif><cfif isTrue( newPassword )> autocomplete="new-password"</cfif>>
+		<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="#inputClass# form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif><cfif isTrue( newPassword )> autocomplete="new-password"</cfif> #htmlAttributes# />
 		<cfif IsTrue( args.allowShowHidePassword ?: "" )>
 			<i data-target="###inputId#" class="fa fa-fw fa-eye toggle-password" title="#translateResource( 'cms:help.popover.title' )#" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#translateResource( 'cms:help.password_reveal.title' )#"></i>
 		</cfif>

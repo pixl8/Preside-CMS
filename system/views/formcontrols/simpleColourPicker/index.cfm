@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName      = args.name            ?: "";
 	inputId        = args.id              ?: "";
@@ -13,7 +14,7 @@
 	controlId      = createUUID();
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 	value = HtmlEditFormat( value );
@@ -38,6 +39,13 @@
 
 	event.include( "/css/admin/specific/simpleColourPicker/" );
 	event.include( "/js/admin/specific/simpleColourPicker/" );
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 
@@ -56,7 +64,7 @@
 		<div class="selected-colour<cfif showInput> show-selected-colour-input</cfif>">
 			<span class="selected-colour-swatch<cfif !len( value )> unselected</cfif>"<cfif len( value )> style="background-color:#formatCssColour( value, colourFormat )#;"</cfif>>
 			</span>
-			<input <cfif showInput>type="text" readonly<cfelse>type="hidden"</cfif> class="#inputClass# selected-colour-input" name="#inputName#" id="#inputId#" value="#value#">
+			<input <cfif showInput>type="text" readonly<cfelse>type="hidden"</cfif> class="#inputClass# selected-colour-input" name="#inputName#" id="#inputId#" value="#value#" #htmlAttributes# />
 		</div>
 		<div class="available-colours hidden">
 			<cfloop array="#colours#" index="i" item="colour">

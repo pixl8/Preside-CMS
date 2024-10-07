@@ -1,16 +1,23 @@
 /**
  * @presideService true
  * @singleton      true
+ * @feature        assetManager
  */
 component implements="preside.system.services.assetManager.IAssetQueue" {
 
 // CONSTRUCTOR
 	/**
 	 * @assetManagerService.inject delayedInjector:assetManagerService
+	 * @siteService.inject         delayedInjector:siteService
 	 * @queueBatchSize.inject      coldbox:setting:assetManager.queue.batchSize
 	 */
-	public any function init( required any assetManagerService, required numeric queueBatchSize ) {
+	public any function init(
+		  required any     assetManagerService
+		, required any     siteService
+		, required numeric queueBatchSize
+	) {
 		_setAssetManagerService( arguments.assetManagerService );
+		_setSiteService( arguments.siteService );
 		_setQueueBatchSize( arguments.queueBatchSize );
 
 		return this;
@@ -23,12 +30,14 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 		,          string derivativeName = ""
 		,          string configHash     = ""
 	) {
+		var assetContext  = SerializeJson( { site=$getRequestContext().getSiteId() } );
 		var alreadyExists = $getPresideObject( "asset_generation_queue" ).dataExists(
 			  filter = {
 				  asset           = arguments.assetId
 				, asset_version   = arguments.versionId
 				, derivative_name = arguments.derivativeName
 				, config_hash     = arguments.configHash
+				, context         = assetContext
 			  }
 			, extraFilters = [ {
 				  filter       = "datecreated > :datecreated"
@@ -43,6 +52,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 					, asset_version   = arguments.versionId
 					, derivative_name = arguments.derivativeName
 					, config_hash     = arguments.configHash
+					, context         = assetContext
 					, retry_count     = 0
 					, queue_status    = "pending"
 				} );
@@ -51,6 +61,8 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 	}
 
 	public void function processQueue() {
+		var event               = $getRequestContext();
+		var currentSiteId       = event.getSiteId();
 		var batchSize           = _getQueueBatchSize();
 		var processedCount      = 0;
 		var assetManagerService = _getAssetManagerService();
@@ -65,6 +77,10 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 			}
 
 			try {
+				if ( Len( Trim( queuedAsset.context.site ?: "" ) ) && ( queuedAsset.context.site != currentSiteId ) ) {
+					event.setSite( _getSiteService().getSite( queuedAsset.context.site ) );
+				}
+
 				assetManagerService.createAssetDerivative(
 					  assetId        = queuedAsset.asset
 					, versionId      = queuedAsset.asset_version
@@ -108,7 +124,7 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 			var takenByOtherProcess = false;
 			var queueDao            = $getPresideObject( "asset_generation_queue" );
 			var queuedAsset         = queueDao.selectData(
-				  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count" ]
+				  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count", "context" ]
 				, filter       = "queue_status = :queue_status"
 				, filterParams = { queue_status="pending" }
 				, orderby      = "retry_count,datecreated"
@@ -123,6 +139,8 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 				);
 
 				if ( updated ) {
+					q.context = IsJSON( q.context ?: "" ) ? DeserializeJSON( q.context ) : {};
+
 					return q;
 				}
 
@@ -250,6 +268,13 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 	}
 	private void function _setAssetManagerService( required any assetManagerService ) {
 	    _assetManagerService = arguments.assetManagerService;
+	}
+
+	private any function _getSiteService() {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) {
+		_siteService = arguments.siteService;
 	}
 
 	private numeric function _getQueueBatchSize() {

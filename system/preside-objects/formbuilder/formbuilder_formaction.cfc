@@ -2,7 +2,8 @@
  * The formbuilder_formaction object represents an individual action that is executed when an instance of a form is submitted.
  * This could be an action to send an email, POST to a webhook, etc.
  *
- * @nolabel
+ * @nolabel true
+ * @feature formBuilder
  */
 component displayname="Form builder: Action" extends="preside.system.base.SystemPresideObject" {
 	property name="form"      relationship="many-to-one" relatedto="formbuilder_form"       required=true indexes="form,sortorder|1";

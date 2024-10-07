@@ -1,3 +1,4 @@
+<!---@feature assetManager--->
 <cfscript>
 	imgSrc     = event.buildLink( assetId=args.id ?: "", derivative='Icon' );
 	imgTitle   = HtmlEditFormat( args.label ?: '' );

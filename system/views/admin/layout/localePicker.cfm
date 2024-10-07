@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.locales"        type="array" />
 <cfparam name="args.selectedLocale" type="struct" />
 <cfparam name="args.baseUrl"        type="string" />

@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -13,7 +14,7 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	} else if ( REFindNoCase( "^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$", value ) ) {
-		protocolDefaultValue = ArrayFirst( REMatch( "^https?:\/\/", value ) );
+		protocolDefaultValue = ArrayFirst( ReMatchNoCase( "^https?:\/\/", value ) );
 		addressDefaultValue = ReplaceNoCase( value, protocolDefaultValue, "" );
 	}
 
@@ -35,6 +36,7 @@
 				, defaultValue       = protocolDefaultValue
 				, values             = protocolValues
 				, includeEmptyOption = true
+				, placeholder        = ""
 			)#
 		</div>
 		<div class="col-md-9">

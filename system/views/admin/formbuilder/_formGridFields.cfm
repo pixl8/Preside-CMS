@@ -1,9 +1,5 @@
-<cfparam name="args.id" type="string" />
-
-<cfscript>
-	canEdit   = IsTrue( args.canEdit   ?: "" );
-	canDelete = IsTrue( args.canDelete ?: "" );
-</cfscript>
+<!---@feature admin and formbuilder--->
+<cfparam name="args.id"      type="string" />
 
 <cfoutput>
 	<cfif canEdit>

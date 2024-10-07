@@ -2,8 +2,8 @@
  * The workflow_state object saves the state and status of a single workflow item
  *
  * @nolabel true
+ * @feature presideBasicWorkflow
  */
-
 component extends="preside.system.base.SystemPresideObject" displayName="Workflow: State" {
 
 	property name="workflow"  type="string" dbtype="varchar" maxlength=50 required=true uniqueindexes="workflowstate|1";

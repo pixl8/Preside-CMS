@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfparam name="args.canDelete"             type="boolean" />
 <cfparam name="args.viewSubmissionLink"    type="string"  />
 <cfparam name="args.viewSubmissionTitle"   type="string"  />

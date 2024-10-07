@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	layouts = prc.layouts ?: [];
 </cfscript>

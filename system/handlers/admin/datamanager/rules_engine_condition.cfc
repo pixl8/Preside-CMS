@@ -1,3 +1,6 @@
+/**
+ * @feature admin and rulesEngine
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="rulesEngineFilterService"    inject="RulesEngineFilterService";
@@ -132,7 +135,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( IsTrue( rc.segmentationFilters ?: "" ) || IsTrue( args.treeView ?: "" ) ) {
 			ArrayAppend( args.extraFilters, { filter={ is_segmentation_filter=true } } );
 		} else {
-			ArrayAppend( args.extraFilters, { filter = "is_segmentation_filter is null or is_segmentation_filter = :is_segmentation_filter", filterParams={ is_segmentation_filter=false } } );
+			ArrayAppend( args.extraFilters, { filter = "rules_engine_condition.is_segmentation_filter is null or rules_engine_condition.is_segmentation_filter = :is_segmentation_filter", filterParams={ is_segmentation_filter=false } } );
 		}
 	}
 

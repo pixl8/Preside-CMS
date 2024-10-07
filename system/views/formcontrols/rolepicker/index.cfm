@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -8,13 +9,20 @@
 
 	arraySort( groups, "textnocase" );
 
-	value  = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( not IsSimpleValue( value ) ) {
+	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
 	event.include( "/js/admin/specific/rolepicker/"  )
 	     .include( "/css/admin/specific/rolepicker/" );
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
@@ -31,12 +39,11 @@
 
 				<div class="collapsible-content hide group-#group#" data-parent-group-id="#group#">
 			</cfif>
-
-					<cfset roles = groupedRoles[ group ] />
+					<cfset roles=groupedRoles[ group ] />
 					<cfloop array="#roles#" index="role">
 						<div class="checkbox role-picker-checkbox">
 							<label>
-								<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#role#" type="checkbox" value="#HtmlEditFormat( role )#"<cfif ListFindNoCase( value, role )> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
+								<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#role#" type="checkbox" value="#HtmlEditFormat( role )#"<cfif ListFindNoCase( value, role )> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# />
 								<span class="lbl">
 									<span class="role-title bigger">
 										#translateResource( uri="roles:#role#.title" )#

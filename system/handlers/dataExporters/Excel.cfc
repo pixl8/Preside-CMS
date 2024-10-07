@@ -1,7 +1,7 @@
 /**
  * @exportFileExtension xlsx
  * @exportMimeType      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
- *
+ * @feature             dataExport
  */
 component {
 
@@ -13,6 +13,7 @@ component {
 		, required any    batchedRecordIterator
 		, required struct meta
 		, required string objectName
+		, required struct propertyRendererMap
 	) {
 		var tmpFile       = getTempFile( getTempDirectory(), "ExcelExport" );
 		var workbook      = spreadsheetLib.new( xmlformat=true, streamingXml=true );
@@ -32,7 +33,7 @@ component {
 		do {
 			data         = arguments.batchedRecordIterator();
 			dataCols     = ListToArray( data.columnList );
-			dataColTypes = _getColumnDataTypes( data );
+			dataColTypes = _getColumnDataTypes( data, arguments.propertyRendererMap );
 
 			if ( row == 1 ) {
 				for( var i=1; i <= dataCols.len(); i++ ){
@@ -68,7 +69,7 @@ component {
 		return name;
 	}
 
-	private array function _getColumnDataTypes( required query data ) {
+	private array function _getColumnDataTypes( required query data, required struct propertyRendererMap ) {
 		var mappingBehaviour = getSystemSetting( "data-export", "excel_data_types" );
 		var metadata         = getMetaData( arguments.data );
 		var dataTypes        = [];
@@ -78,7 +79,11 @@ component {
 		}
 
 		for( var colDef in metadata ) {
-			switch( LCase( colDef.typeName ?: "" ) ) {
+			var typeName = colDef.typeName ?: "";
+			if ( ( arguments.propertyRendererMap[ colDef.name ] ?: "none" ) != "none" ) {
+				typeName = arguments.propertyRendererMap[ colDef.name ];
+			}
+			switch( LCase( typeName ) ) {
 				case "double":
 				case "float":
 				case "decimal":
@@ -95,6 +100,7 @@ component {
 					break;
 				case "timestamp":
 				case "date":
+				case "datetime":
 					ArrayAppend( dataTypes, "date" );
 					break;
 				case "time":

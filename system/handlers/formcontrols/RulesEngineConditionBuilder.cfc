@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and rulesEngine
+ */
 component {
 
 	property name="expressionService" inject="rulesEngineExpressionService";
@@ -21,6 +24,10 @@ component {
 				, private        = true
 				, prePostExempt  = true
 			);
+		}
+
+		if ( !isFeatureEnabled( "formbuilder2" ) && !ReFindNoCase( "formbuilderV2Form", args.excludeTags ) ) {
+			args.excludeTags = ListAppend( args.excludeTags, "formbuilderV2Form" );
 		}
 
 		var fieldId = args.id ?: "";

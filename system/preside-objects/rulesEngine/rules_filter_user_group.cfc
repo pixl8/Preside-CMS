@@ -4,6 +4,7 @@
  * @noDateCreated    true
  * @noDateModified   true
  * @versioned        false
+ * @feature          rulesEngine
  */
 component {
 	property name="rules_engine_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=true ondelete="cascade" uniqueindexes="rulesgroup|1" adminRenderer="none";

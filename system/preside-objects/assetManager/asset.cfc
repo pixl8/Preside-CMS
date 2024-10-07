@@ -1,6 +1,7 @@
 /**
  * The asset object represents the core data associated with any file uploaded into the Asset manager
  *
+ * @feature assetManager
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" displayName="Asset" {
 
@@ -33,6 +34,6 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" d
 	property name="grantaccess_to_all_logged_in_users"   type="boolean" dbtype="boolean"               required=false default=false;
 
 	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="created_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId"  ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId"  ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUser.loggedInUserId" generate="insert" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUser.loggedInUserId" generate="always" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 }

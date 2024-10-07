@@ -5,6 +5,7 @@
  * @autodoc        true
  * @presideService true
  * @singleton      true
+ * @feature        admin
  */
 component {
 
@@ -103,6 +104,7 @@ component {
 		,          string defaultHandler = ""
 		,          any    defaultResult
 	) {
+
 		var event = "";
 
 		if ( arguments.objectName.len() ) {
@@ -115,17 +117,27 @@ component {
 			event = defaultHandler;
 		}
 
+		var interceptionArgs = arguments;
+
+		interceptionArgs.event = event;
+
+		$announceInterception( "preRunCustomization", interceptionArgs );
+
 		if ( Len( Trim( event ) ) ) {
-			return $getColdbox().runEvent(
+			interceptionArgs.result = $getColdbox().runEvent(
 				  event          = event
 				, private        = true
 				, prePostExempt  = true
 				, eventArguments = { args=arguments.args }
 			);
+		} else if ( StructKeyExists( arguments, "defaultResult" ) ) {
+			interceptionArgs.result = arguments.defaultResult;
 		}
 
-		if ( StructKeyExists( arguments, "defaultResult" ) ) {
-			return arguments.defaultResult;
+		$announceInterception( "postRunCustomization", interceptionArgs );
+
+		if ( StructKeyExists( interceptionArgs, "result" ) ) {
+			return interceptionArgs.result;
 		}
 	}
 

@@ -4,6 +4,7 @@
  * @autodoc        true
  * @singleton      true
  * @presideService true
+ * @feature        emailCenter
  */
 component displayName="Email service" {
 

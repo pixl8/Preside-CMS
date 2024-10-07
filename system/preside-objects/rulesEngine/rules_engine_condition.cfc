@@ -9,6 +9,7 @@
  * @datamanagerDisallowedOperations read,viewversions,batchdelete,batchedit
  * @datamanagerTreeView             true
  * @datamanagerTreeParentProperty   parent_segmentation_filter
+ * @feature                         rulesEngine
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Rules engine: condition" {
 	property name="condition_name"   type="string"  dbtype="varchar"  required=true  maxlength=200  uniqueindexes="contextname|2,filterobjectname|2";

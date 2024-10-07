@@ -1,6 +1,8 @@
 /**
  * The site templates service provides methods for discovering and listing out
  * site templates which are self contained sets of widgets, page types, objects, etc. See [[workingwithmultiplesites]].
+ *
+ * @feature sites
  */
 component singleton=true displayname="Site Templates service" autodoc=true {
 

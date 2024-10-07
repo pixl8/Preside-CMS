@@ -1,34 +1,29 @@
 /**
  * Expression handler for "Date {question} matches"
  *
- * @expressionContexts  webrequest
- * @expressionCategory  formbuilder
- * @expressionTags      formbuilderV2Form
+ * @expressionContexts webrequest
+ * @expressionCategory formbuilder
+ * @expressionTags     formbuilderV2Form
+ * @feature            rulesEngine and formbuilder
  */
 component {
 
 	property name="formBuilderFilterService" inject="formBuilderFilterService";
 
 	/**
-	 * @question.fieldtype  formbuilderQuestion
-	 * @question.item_type  date
+	 * @question.fieldtype formbuilderQuestion
+	 * @question.item_type date
 	 * @_time.isDate
 	 */
 	private boolean function evaluateExpression(
 		  required string question
 		,          struct _time = {}
 	) {
-		var userId = payload.user.id ?: "";
-
-		if ( !userId.len() ) {
-			return false;
-		}
-
 		return formBuilderFilterService.evaluateQuestionSubmissionResponseMatch(
 			  argumentCollection = arguments
-			, userId             = userId
-			, formId             = payload.formId ?: ""
-			, submissionId       = payload.submissionId ?: ""
+			, userId             = payload.user.id                            ?: ""
+			, formId             = payload.formbuilderSubmission.formId       ?: ""
+			, submissionId       = payload.formbuilderSubmission.submissionId ?: ""
 			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
 	}

@@ -1,9 +1,10 @@
 /**
+ * Service that provides data export logic
+ *
  * @singleton      true
  * @autodoc        true
  * @presideservice true
- *
- * Service that provides data export logic
+ * @feature        dataExport
  */
 component {
 
@@ -13,13 +14,20 @@ component {
 	 * @dataExportTemplateService.inject       dataExportTemplateService
 	 * @dataManagerCustomizationService.inject dataManagerCustomizationService
 	 * @scheduledExportService.inject          scheduledExportService
-	 *
+	 * @defaultDataExportSettings.inject       coldbox:setting:dataExport.defaults
 	 */
-	public any function init( required any dataExporterReader, required any dataExportTemplateService, required any dataManagerCustomizationService, required any scheduledExportService ) {
+	public any function init(
+		  required any    dataExporterReader
+		, required any    dataExportTemplateService
+		, required any    dataManagerCustomizationService
+		, required any    scheduledExportService
+		, required struct defaultDataExportSettings
+	) {
 		_setExporters( arguments.dataExporterReader.readExportersFromDirectories() );
 		_setDataExportTemplateService( arguments.dataExportTemplateService );
 		_setDataManagerCustomizationService( arguments.dataManagerCustomizationService );
 		_setScheduledExportService( arguments.scheduledExportService );
+		_setDefaultDataExportSettings( arguments.defaultDataExportSettings );
 		_setupExporterMap();
 
 		return this;
@@ -54,6 +62,7 @@ component {
 		,          string  mimetype           = ""
 		,          struct  templateConfig     = {}
 		,          string  historyExportId    = ""
+		,          boolean expandNestedFields = false
 		,          any     logger
 		,          any     progress
 	) {
@@ -86,7 +95,7 @@ component {
 		var selectDataArgs            = StructCopy( arguments );
 		var cleanedSelectFields       = [];
 		var presideObjectService      = $getPresideObjectService();
-		var propertyDefinitions       = presideObjectService.getObjectProperties( arguments.objectName );
+		var propertyDefinitions       = Duplicate( presideObjectService.getObjectProperties( arguments.objectName ) );
 		var propertyRendererMap       = {};
 		var templateHasCustomRenderer = templateService.templateMethodExists( arguments.exportTemplate, "renderRecords" );
 
@@ -97,6 +106,7 @@ component {
 		selectDataArgs.delete( "exportFilterString" );
 		selectDataArgs.delete( "exportTemplate" );
 		selectDataArgs.delete( "templateConfig" );
+		selectDataArgs.delete( "expandNestedFields" );
 		selectDataArgs.delete( "logger" );
 		selectDataArgs.delete( "progress" );
 		for( var key in selectDataArgs ) {
@@ -109,7 +119,7 @@ component {
 		selectDataArgs.startRow     = 1;
 		selectDataArgs.autoGroupBy  = true;
 		selectDataArgs.useCache     = false;
-		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields );
+		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields, arguments.expandNestedFields );
 		selectDataArgs.distinct     = true;
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
 		selectDataArgs.extraFilters = selectDataArgs.extraFilters ?: [];
@@ -240,8 +250,13 @@ component {
 				var columns = ListToArray( results.columnList );
 				for( var i=1; i<=results.recordCount; i++ ) {
 					for( var field in cleanedSelectFields ) {
-						if ( ArrayFindNoCase( columns, field ) ) {
-							results[ field ][ i ] = simpleFormatField( field, results[ field ][ i ] );
+						var fieldName = field;
+						if ( expandNestedFields && ListLen( fieldName, "." ) > 1 ) {
+							fieldName = _nestedFieldName( ListFirst( fieldName, "." ), ListLast( fieldName, "." ) );
+						}
+
+						if ( ArrayFindNoCase( columns, fieldName ) ) {
+							results[ fieldName ][ i ] = simpleFormatField( fieldName, results[ fieldName ][ i ] );
 						}
 					}
 				}
@@ -252,40 +267,61 @@ component {
 
 
 		for( var field in arguments.selectFields ) {
-			cleanedSelectFields.append( field.listLast( " " ) );
+			var fieldName = field.listLast( " " );
+			ArrayAppend( cleanedSelectFields, fieldName );
+
+			if ( arguments.expandNestedFields &&
+				 ( ListLen( fieldName, "." ) > 1 ) &&
+				 !StructKeyExists( propertyDefinitions, fieldName ) &&
+				 StructKeyExists( propertyDefinitions, ListFirst( fieldName, "." ) )
+			) {
+				var relatedObjectName = propertyDefinitions[ ListFirst( fieldName, "." ) ].relatedTo ?: "";
+
+				if ( Len( relatedObjectName ) && presideObjectService.objectExists( objectName=relatedObjectName ) ) {
+					propertyDefinitions[ _nestedFieldName( ListFirst( fieldName, "." ), ListLast( fieldName, "." ) ) ] = presideObjectService.getObjectProperty(
+						  objectName   = relatedObjectName
+						, propertyName = ListLast( fieldName, "." )
+					);
+				}
+			}
 		}
 
 		if ( !templateHasCustomRenderer ) {
 			for( var field in cleanedSelectFields ) {
-				propertyRendererMap[ field ] = "none";
+				var fieldName = field;
+				if ( arguments.expandNestedFields && ListLen( fieldName, "." ) > 1 ) {
+					fieldName = _nestedFieldName( ListFirst( fieldName, "." ), ListLast( fieldName, "." ) );
+				}
 
-				if ( StructKeyExists( propertyDefinitions, field ) ) {
-					if ( StructKeyExists( propertyDefinitions[ field ], "dataExportRenderer" ) && Len( propertyDefinitions[ field ].dataExportRenderer )  ) {
-						propertyRendererMap[ field ] = "renderer";
+				propertyRendererMap[ fieldName ] = "none";
+
+				if ( StructKeyExists( propertyDefinitions, fieldName ) ) {
+					if ( StructKeyExists( propertyDefinitions[ fieldName ], "dataExportRenderer" ) && Len( propertyDefinitions[ fieldName ].dataExportRenderer )  ) {
+						propertyRendererMap[ fieldName ] = "renderer";
 						continue;
 					}
 
-					if ( StructKeyExists( propertyDefinitions[ field ], "type" ) && Len( propertyDefinitions[ field ].type )  ) {
-						switch( propertyDefinitions[ field ].type ?: "" ) {
+					if ( StructKeyExists( propertyDefinitions[ fieldName ], "type" ) && Len( propertyDefinitions[ fieldName ].type )  ) {
+						switch( propertyDefinitions[ fieldName ].type ?: "" ) {
 							case "boolean":
-								propertyRendererMap[ field ] = "boolean";
+								propertyRendererMap[ fieldName ] = "boolean";
 								continue;
 							case "date":
 							case "time":
-								switch( propertyDefinitions[ field ].dbtype ?: "" ) {
+								switch( propertyDefinitions[ fieldName ].dbtype ?: "" ) {
 									case "date":
-										propertyRendererMap[ field ] = "date";
+										propertyRendererMap[ fieldName ] = "date";
 										continue;
 									case "time":
-										propertyRendererMap[ field ] = "time";
+										propertyRendererMap[ fieldName ] = "time";
 										continue;
 									default:
-										propertyRendererMap[ field ] = "datetime";
+										propertyRendererMap[ fieldName ] = "datetime";
 										continue;
 								}
 							case "string":
-								if ( Len( Trim( propertyDefinitions[ field ].enum ?: "" ) ) ) {
-									propertyRendererMap[ field ] = "enum";
+								if ( Len( Trim( propertyDefinitions[ fieldName ].enum ?: "" ) ) ) {
+									propertyRendererMap[ fieldName ] = "enum";
 									continue;
 								}
 								break;
@@ -301,7 +337,7 @@ component {
 			, templateConfig = arguments.templateConfig
 			, selectFields   = cleanedSelectFields
 		) );
-		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles );
+		arguments.fieldTitles = _setDefaultFieldTitles( arguments.objectname, cleanedSelectFields, arguments.fieldTitles, arguments.expandNestedFields );
 
 		$announceInterception( "postDataExportPrepareData", arguments );
 
@@ -322,6 +358,7 @@ component {
 				, meta                  = exportMeta
 				, batchedRecordIterator = batchedRecordIterator
 				, objectName            = arguments.objectName
+				, propertyRendererMap   = propertyRendererMap
 			  }
 		);
 
@@ -336,25 +373,51 @@ component {
 		return result;
 	}
 
-	public struct function getDefaultExportFieldsForObject( required string objectName ) {
+	public struct function getDefaultExportFieldsForObject(
+		  required string  objectName
+		,          boolean expandNestedRelationField = true
+		,          boolean isNested                  = false
+	) {
 		var titles       = {};
-		var uriRoot      = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
-		var exportFields = $getPresideObjectService().getObjectAttribute(
+		var poService    = $getPresideObjectService();
+		var uriRoot      = poService.getResourceBundleUriRoot( arguments.objectName );
+		var defaults     = _getDefaultDataExportSettings();
+		var exportFields = poService.getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "dataExportFields"
 		).listToArray();
 
 		if ( !exportFields.len() ) {
-			var objectProperties = $getPresideObjectService().getObjectProperties( arguments.objectName );
-			var propertyNames    = $getPresideObjectService().getObjectAttribute(
-				  objectName    = arguments.objectName
-				, attributeName = "propertyNames"
-			);
+			var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
+			var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
+			var defaultFieldsOrder          = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultFieldsOrder" );
+			var defaultExpandManyToOneField = false;
+			var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
+			    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? objectAllowExpandFields : defaultExpandManyToOneField;
+
+			var objectProperties = poService.getObjectProperties( arguments.objectName );
+			var propertyNames    = StructKeyArray( objectProperties );
+
+			if ( ListLen( defaultFieldsOrder ) ) {
+				propertyNames = ListToArray( ListRemoveDuplicates( ListAppend( defaultFieldsOrder, ArrayToList( propertyNames ) ) ) );
+			}
+
+			if ( !ArrayLen( defaultExcludeFields ) ) {
+				defaultExcludeFields = defaults.excludeFields ?: [];
+			}
 
 			for( var propId in propertyNames ) {
+				if ( !StructKeyExists( objectProperties, propId ) ) {
+					continue;
+				}
+
 				var prop = objectProperties[ propId ];
 
-				if ( IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) {
+				if ( ArrayFindNoCase( defaultExcludeFields, propId ) || ( IsBoolean( prop.excludeDataExport ?: "" ) && prop.excludeDataExport ) ) {
+					continue;
+				}
+
+				if ( arguments.isNested && $helpers.isTrue( prop.excludeNestedDataExport ?: "" ) ) {
 					continue;
 				}
 
@@ -362,6 +425,30 @@ component {
 					case "one-to-many":
 					case "many-to-many":
 						continue;
+					break;
+					case "many-to-one":
+						if ( arguments.expandNestedRelationField ) {
+							var fieldExportDetail = _processRelatedFieldExportDetail( propAttributes=prop, objectAllowExpandFields=objectAllowExpandFields );
+							var expandFields      = fieldExportDetail.expandFields;
+							var shouldExpand      = fieldExportDetail.shouldExpand;
+
+							if ( shouldExpand ) {
+								var linkedFields = getDefaultExportFieldsForObject( objectName=prop.relatedTo, expandNestedRelationField=false, isNested=true );
+
+								if ( ArrayLen( linkedFields.selectFields ?: [] ) ) {
+									for ( var field in linkedFields.selectFields ) {
+										if ( ArrayLen( expandFields ) && !ArrayFindNoCase( expandFields, field ) ) {
+											continue;
+										}
+
+										ArrayAppend( exportFields, "#propId#.#field#" );
+										titles[ "#propId#.#field#" ] = linkedFields.fieldTitles[ field ] ?: "";
+									}
+
+									continue;
+								}
+							}
+						}
 					break;
 				}
 
@@ -385,19 +472,117 @@ component {
 					break;
 				}
 
-				exportFields.append( propId );
+				ArrayAppend( exportFields, propId );
 			}
 		}
 
 
 		for( var field in exportFields ) {
-			titles[ field ] = $translateResource( uri=uriRoot & "field.#field#.title", defaultValue=field );
+			titles[ field ] = titles[ field ] ?: $translateResource( uri=uriRoot & "field.#field#.title", defaultValue=field );
 		}
 
 		return {
 			  selectFields = exportFields
 			, fieldTitles  = titles
 		};
+	}
+
+	public array function getAllowExportObjectProperties(
+		  required string  objectName
+		,          boolean expandNestedRelationField = true
+		,          boolean isNested                  = false
+	) {
+		var poService = $getPresideObjectService();
+		var fields    = [];
+		var props     = poService.getObjectProperties( arguments.objectName );
+		var propNames = StructKeyArray( props );
+
+		var defaultIncludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultIncludeFields" ) );
+		var defaultExcludeFields        = ListToArray( poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultExcludeFields" ) );
+		var defaultFieldsOrder          = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportDefaultFieldsOrder" );
+		var defaultExportConfig         = _getDefaultDataExportSettings();
+		var defaultExpandManyToOneField = false;
+		var objectAllowExpandFields     = poService.getObjectAttribute( objectName=arguments.objectName, attributeName="dataExportExpandManytoOneFields" );
+		    objectAllowExpandFields     = IsBoolean( objectAllowExpandFields ) ? $helpers.isTrue( objectAllowExpandFields ) : defaultExpandManyToOneField;
+
+		if ( !ArrayLen( defaultExcludeFields ) ) {
+			defaultExcludeFields = defaultExportConfig.excludeFields ?: [];
+		}
+
+		if ( ListLen( defaultFieldsOrder ) ) {
+			propNames = ListToArray( ListRemoveDuplicates( ListAppend( defaultFieldsOrder, ArrayToList( propNames ) ) ) );
+		}
+
+		for ( var prop in propNames ) {
+			if ( !StructKeyExists( props, prop ) ) {
+				continue;
+			}
+
+			var shouldInclude = !ArrayFindNoCase( defaultExcludeFields, prop ) && !$helpers.isTrue( props[ prop ].excludeDataExport ?: "" );
+			if ( ArrayLen( defaultIncludeFields ) ) {
+				shouldInclude = shouldInclude && ArrayFindNoCase( shouldInclude, prop );
+			}
+
+			if ( shouldInclude && arguments.isNested ) {
+				shouldInclude = !$helpers.isTrue( props[ prop ].excludeNestedDataExport ?: "" );
+			}
+
+			if ( shouldInclude && !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) ) {
+				var hasPermission     = true;
+				var requiredRoleCheck = StructKeyExists( props[ prop ], "limitToAdminRoles" )
+				                     && ( args.context ?: "" ) == "admin"
+				                     && !$getAdminLoginService().isSystemUser();
+
+				if ( requiredRoleCheck ) {
+					hasPermission = $getAdminPermissionService().userHasAssignedRoles(
+						  userId = $getAdminLoginService().getLoggedInUserId()
+						, roles  = ListToArray( props[ prop ].limitToAdminRoles )
+					);
+				}
+
+				if ( hasPermission ) {
+					var shouldExpand = arguments.expandNestedRelationField && ( ( props[ prop ].relationship ?: "" ) == "many-to-one" );
+					var expandFields = [];
+
+					if ( shouldExpand ) {
+						var fieldExportDetail = _processRelatedFieldExportDetail( propAttributes=props[ prop ], objectAllowExpandFields=objectAllowExpandFields );
+
+						shouldExpand = fieldExportDetail.shouldExpand;
+						expandFields = fieldExportDetail.expandFields;
+					}
+
+					if ( shouldExpand ) {
+						var relatedFields   = [];
+						var relatedLabels   = [];
+						var relatedObjName  = props[ prop ].relatedTo;
+						var relatedObjProps = getAllowExportObjectProperties( objectName=relatedObjName, expandNestedRelationField=false, isNested=true );
+						var relatedI18nUri  = poService.getResourceBundleUriRoot( objectName=relatedObjName );
+
+						for ( var field in relatedObjProps ) {
+							if ( ArrayLen( expandFields ) && !ArrayFindNoCase( expandFields, field ) ) {
+								continue;
+							}
+
+							ArrayAppend( relatedFields, field );
+							ArrayAppend( relatedLabels, $translateResource(
+								  uri          = relatedI18nUri & "field.#field#.title"
+								, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#field#.title", defaultValue=field )
+							) );
+						}
+
+						if ( ArrayLen( relatedFields ) ) {
+							ArrayAppend( fields, { "#prop#"={ fields=relatedFields, labels=relatedLabels } } );
+						} else {
+							ArrayAppend( fields, prop );
+						}
+					} else {
+						ArrayAppend( fields, prop );
+					}
+				}
+			}
+		}
+
+		return fields;
 	}
 
 	/**
@@ -438,25 +623,32 @@ component {
 
 // PRIVATE HELPERS
 	private array function _expandRelationshipFields(
-		  required string objectName
-		, required array  selectFields
+		  required string  objectName
+		, required array   selectFields
+		,          boolean expandNestedFields = false
 	) {
 		var props = $getPresideObjectService().getObjectProperties( arguments.objectName );
 		var prop  = {};
 		var i     = 0;
 
 		for( var field in arguments.selectFields ) {
+			var fieldName = arguments.expandNestedFields ? ListFirst( field, "." ) : field;
+
 			i++;
-			prop = props[ field ] ?: {};
+			prop = props[ fieldName ] ?: {};
 
 			switch( prop.relationship ?: "none" ) {
 				case "one-to-many":
 				case "many-to-many":
-					selectFields[ i ] = "'' as " & field;
+					selectFields[ i ] = "'' as " & fieldName;
 				break;
 
 				case "many-to-one":
-					selectFields[ i ] = "#field#.${labelfield} as " & field;
+					if ( arguments.expandNestedFields && ListLen( field, "." ) > 1 ) {
+						selectFields[ i ] = "#field# as " & _nestedFieldName( fieldName, ListLast( field, "." ) );
+					} else {
+						selectFields[ i ] = "#fieldName#.${labelfield} as " & fieldName;
+					}
 				break;
 			}
 		}
@@ -465,16 +657,38 @@ component {
 	}
 
 	private struct function _setDefaultFieldTitles(
-		  required string objectName
-		, required array  fieldNames
-		, required struct existingTitles
+		  required string  objectName
+		, required array   fieldNames
+		, required struct  existingTitles
+		,          boolean expandNestedFields = false
 	) {
 		var baseUri = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
 		for( var field in arguments.fieldNames ) {
-			arguments.existingTitles[ field ] = arguments.existingTitles[ field ] ?: $translateResource(
-				  uri          = baseUri & "field.#field#.title"
-				, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#field#.title", defaultValue=field )
-			);
+			if ( !StructKeyExists( arguments.existingTitles, field ) ) {
+				var fieldKey   = field;
+				var fieldName  = ListFirst( field, "." );
+				var fieldTitle = $translateResource(
+					  uri          = baseUri & "field.#fieldName#.title"
+					, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#fieldName#.title", defaultValue=fieldName )
+				);
+
+				if ( arguments.expandNestedFields && ListLen( field, "." ) > 1 ) {
+					var nestedField       = ListLast( field, "." );
+					var relatedObjectName = $getPresideObjectService().getObjectPropertyAttribute( arguments.objectName, fieldName, "relatedTo" );
+					    fieldKey          = _nestedFieldName( fieldName, nestedField );
+
+					if ( Len( relatedObjectName ) && $getPresideObjectService().objectExists( relatedObjectName ) ) {
+						var nestedFieldTitle = $translateResource(
+							  uri          = $getPresideObjectService().getResourceBundleUriRoot( relatedObjectName ) & "field.#nestedField#.title"
+							, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#nestedField#.title", defaultValue=nestedField )
+						);
+
+						fieldTitle = $translateResource( uri="cms:dataexport.expanded.field.title.default", data=[ fieldTitle, nestedFieldTitle ] );
+					}
+				}
+
+				arguments.existingTitles[ fieldKey ] = fieldTitle;
+			}
 		}
 
 		return arguments.existingTitles;
@@ -523,6 +737,35 @@ component {
 		return validatedOrderBy;
 	}
 
+	private string function _nestedFieldName( required string objectName, required string fieldName ) {
+		return arguments.objectName & "__" & arguments.fieldName;
+	}
+
+	private struct function _processRelatedFieldExportDetail(
+		  required struct  propAttributes
+		,          boolean objectAllowExpandFields = false
+	) {
+		var processed = {
+			  shouldExpand = false
+			, expandFields = []
+		};
+
+		if ( StructKeyExists( arguments.propAttributes, "dataExportExpandFields" ) ) {
+
+			if ( IsBoolean( arguments.propAttributes.dataExportExpandFields ) ) {
+				processed.shouldExpand = arguments.propAttributes.dataExportExpandFields;
+			} else if ( ListLen( arguments.propAttributes.dataExportExpandFields ) ) {
+				processed.shouldExpand = true;
+				processed.expandFields = ListToArray( arguments.propAttributes.dataExportExpandFields );
+			}
+
+		} else {
+			processed.shouldExpand = arguments.objectAllowExpandFields;
+		}
+
+		return processed;
+	}
+
 // GETTERS AND SETTERS
 	private array function _getExporters() {
 		return _exporters;
@@ -550,6 +793,13 @@ component {
 	}
 	private void function _setScheduledExportService( required any scheduledExportService ) {
 		_scheduledExportService = arguments.scheduledExportService;
+	}
+
+	private struct function _getDefaultDataExportSettings() {
+		return _defaultDataExportSettings;
+	}
+	private void function _setDefaultDataExportSettings( required struct defaultDataExportSettings ) {
+		_defaultDataExportSettings = arguments.defaultDataExportSettings;
 	}
 
 	private struct function _getExporterMap() {

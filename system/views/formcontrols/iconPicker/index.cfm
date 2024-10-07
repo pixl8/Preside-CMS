@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -23,6 +24,13 @@
 	value = EncodeForHTML( value );
 
 	icons = args.icons ?: [];
+
+	htmlAttributes = renderHtmlAttributes(
+		  attribs      = ( args.attribs      ?: {} )
+		, attribNames  = ( args.attribNames  ?: "" )
+		, attribValues = ( args.attribValues ?: "" )
+		, attribPrefix = ( args.attribPrefix ?: "" )
+	);
 </cfscript>
 
 <cfoutput>
@@ -37,6 +45,7 @@
 			data-result-template="#resultTemplateId#"
 			data-selected-template="#selectedTemplateId#"
 			data-display-limit="#ArrayLen( icons )#"
+			#htmlAttributes#
 	>
 		<cfloop item="icon" array="#icons#">
 			<cfset selected=ListFind( value, icon ) />

@@ -19,12 +19,12 @@
 	h1 img {
 		margin : 2em 0;
 	}
-	div {
+	section {
 		border  : 1px solid #999;
 		margin  : 2em 0;
 		padding : 1em;
 	}
-	div > :first-child, div > :last-child {
+	section > :first-child, section > :last-child {
 		margin : 0;
 	}
 </style>
@@ -34,19 +34,20 @@
 	<title>Preside Test Suite</title>
 </head>
 <body>
-
+	<cfoutput> 
 	<h1>
 		<img src="preside-logo.png" alt="Preside" width="138" height="48"><br>
-		Welcome to the Preside test suite
+		Welcome to the Preside test suite<br>
+		Lucee #server.lucee.version#, java #server.java.version#
 	</h1>
-
-	<div>
+	</cfoutput>
+	<section>
 		<h3>
 			<a href="runtests.cfm">Run the full suite now</a>
 		</h3>
-	</div>
+	</section>
 
-	<div>
+	<section>
 		<h3>
 			<a href="runtests.cfm?scope=quick">Run quick test</a>
 		</h3>
@@ -60,9 +61,9 @@
 				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=integration.api.sitetree.SiteServiceTest">sitetree.SiteServiceTest</a></li>
 			</ul>
 		</p>
-	</div>
+	</section>
 
-	<div>
+	<section>
 		<h3>Run tests from chosen directory:</h3>
 
 		<form action="runtests.cfm" method="get">
@@ -78,7 +79,7 @@
 				</p>
 			</cfoutput>
 		</form>
-	</div>
+	</section>
 
 
 </body>
