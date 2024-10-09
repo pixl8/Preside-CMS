@@ -1,10 +1,20 @@
 <!---@feature admin--->
 <cfscript>
-	object     = rc.object ?: "";
+	object     = rc.object   ?: "";
 	records    = prc.records ?: [];
 	ordered    = prc.ordered ?: "";
 	formId     = "sortForm-" & CreateUUId();
 	cancelLink = event.buildAdminLink( objectName=object, operation="listing" );
+
+	if ( records.recordCount ?: 0 ) {
+		var r = [];
+
+		for ( var record in records ) {
+			ArrayAppend( r, record );
+		}
+
+		records = r;
+	}
 </cfscript>
 
 <cfoutput>
