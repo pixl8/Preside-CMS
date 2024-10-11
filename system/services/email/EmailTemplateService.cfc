@@ -427,8 +427,14 @@ component {
 	 * @autodoc true
 	 * @id.hint ID of the template to check
 	 */
-	public boolean function templateExists( required string id ) {
-		return $getPresideObject( "email_template" ).dataExists( id=arguments.id );
+	public boolean function templateExists( required string id ){
+		var cacheKey = "_emailTemplateExists#arguments.id#";
+
+		if ( !StructKeyExists( request, cacheKey ) ) {
+			request[ cacheKey ] = $getPresideObject( "email_template" ).dataExists( id=arguments.id, usecache=true );
+		}
+
+		return request[ cacheKey ];
 	}
 
 	/**
@@ -446,31 +452,50 @@ component {
 		,          numeric version           = 0
 		,          boolean fromVersionTable  = ( arguments.allowDrafts || arguments.version )
 		,          array   extraSelectFields = []
+		,          boolean useRequestCache   = true
 	){
-		var template = $getPresideObject( "email_template" ).selectData(
-			  id                 = arguments.id
-			, allowDraftVersions = arguments.allowDrafts
-			, fromversionTable   = arguments.fromVersionTable
-			, specificVersion    = arguments.version
-			, extraSelectFields  = arguments.extraSelectFields
-			, useCache           = false
-		);
-
-		for( var t in template ) {
-			if ( ( t.email_blueprint ?: "" ).len() ) {
-				var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=t.email_blueprint );
-				if ( blueprint.recordCount ) {
-					t.layout           = blueprint.layout;
-					t.recipient_type   = blueprint.recipient_type;
-					t.blueprint_filter = blueprint.recipient_filter;
-					t.service_provider = blueprint.service_provider;
-				}
-			}
-
-			return t;
+		if ( arguments.useRequestCache ) {
+			var cacheKey = "_emailTemplate#Hash( SerializeJson( arguments ) )#";
 		}
 
-		return {};
+		if ( !arguments.useRequestCache || !StructKeyExists( request, cacheKey ) ) {
+			var template = $getPresideObject( "email_template" ).selectData(
+				  id                 = arguments.id
+				, allowDraftVersions = arguments.allowDrafts
+				, fromversionTable   = arguments.fromVersionTable
+				, specificVersion    = arguments.version
+				, extraSelectFields  = arguments.extraSelectFields
+				, useCache           = false
+			);
+
+			if ( !template.recordCount ) {
+				if ( arguments.useRequestCache ) {
+					request[ cacheKey ] = {};
+				}
+
+				return {};
+			}
+
+			for( var t in template ) {
+				if ( ( t.email_blueprint ?: "" ).len() ) {
+					var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=t.email_blueprint );
+					if ( blueprint.recordCount ) {
+						t.layout           = blueprint.layout;
+						t.recipient_type   = blueprint.recipient_type;
+						t.blueprint_filter = blueprint.recipient_filter;
+						t.service_provider = blueprint.service_provider;
+					}
+				}
+
+				if ( arguments.useRequestCache ) {
+					request[ cacheKey ] = t;
+				}
+
+				return t;
+			}
+		}
+
+		return arguments.useRequestCache ? request[ cacheKey ] : {};
 	}
 
 	/**
@@ -706,18 +731,21 @@ component {
 		return saveTemplate( id=arguments.templateId, template=updatedData, isDraft=( template._version_is_draft ?: false ) );
 	}
 
-/**
+	/**
 	 * Update the date of last email sent
 	 *
 	 * @autodoc           true
 	 * @templateId.hint   ID of the template to update
 	 * @lastSentDate.hint The date of last sent
 	 */
-	public string function updateLastSentDate(
+	public any function updateLastSentDate(
 		  required string templateId
-		, required string lastSentDate
+		, required any    lastSentDate
 	) {
-		return saveTemplate( id=arguments.templateId, template={ last_sent_date=arguments.lastSentDate } );
+		return $getPresideObject( "email_template" ).updateData(
+			  id      = arguments.id
+			, data    = { last_sent_date=arguments.lastSentDate }
+		);
 	}
 
 	/**
