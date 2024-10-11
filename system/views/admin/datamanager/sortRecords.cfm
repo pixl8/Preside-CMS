@@ -1,7 +1,7 @@
 <!---@feature admin--->
 <cfscript>
-	object     = rc.object ?: "";
-	records    = prc.records ?: [];
+	object     = rc.object   ?: "";
+	records    = IsQuery( prc.records ?: "" ) ? queryToArray( prc.records ) : ( prc.records ?: [] );
 	ordered    = prc.ordered ?: "";
 	formId     = "sortForm-" & CreateUUId();
 	cancelLink = event.buildAdminLink( objectName=object, operation="listing" );
