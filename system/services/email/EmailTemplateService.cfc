@@ -471,6 +471,14 @@ component {
 				, useCache           = false
 			);
 
+			if ( !template.recordCount ) {
+				if ( arguments.useRequestCache ) {
+					request[ cacheKey ] = {};
+				}
+
+				return {};
+			}
+
 			for( var t in template ) {
 				if ( ( t.email_blueprint ?: "" ).len() ) {
 					var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=t.email_blueprint );
