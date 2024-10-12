@@ -746,7 +746,7 @@ component {
 		, required any    lastSentDate
 	) {
 		return $getPresideObject( "email_template" ).updateData(
-			  id      = arguments.id
+			  id      = arguments.templateId
 			, data    = { last_sent_date=arguments.lastSentDate }
 		);
 	}
