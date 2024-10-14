@@ -43,6 +43,7 @@ component {
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
+		_prefetchCheck( argumentCollection = arguments );
 	}
 
 	public void function requestEnd( event, rc, prc ) {
@@ -194,6 +195,14 @@ component {
 		if ( !event.isAjax() && !ReFindNoCase( "^(assetDownload|ajaxproxy|staticAssetDownload)", event.getCurrentHandler() ) ) {
 			websiteLoginService.recordVisit();
 			adminLoginService.recordVisit();
+		}
+	}
+
+	private void function _prefetchCheck( event, rc, prc ) {
+		if ( event.isActionRequest() && event.isPrefetchRequest() ) {
+			content reset=true;
+			header statuscode="400" statustext="Not allowed";
+			abort;
 		}
 	}
 
