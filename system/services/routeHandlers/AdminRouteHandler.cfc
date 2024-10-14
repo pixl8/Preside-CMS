@@ -53,13 +53,18 @@ component implements="iRouteHandler" {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var link = "/#_getAdminPath()#/#ListChangeDelims( ListRest( buildArgs.linkTo, "." ), "/", "." )#/";
+		var link   = "/#_getAdminPath()#/#ListChangeDelims( ListRest( buildArgs.linkTo, "." ), "/", "." )#/";
+		var siteId = "";
 
 		if ( Len( Trim( buildArgs.queryString ?: "" ) ) ) {
 			link &= "?" & buildArgs.queryString;
 		}
 
-		return event.getSiteUrl( includePath=false, includeLanguageSlug=false ) & link;
+		if ( ( buildArgs.forceDomain ?: false ) == true ){
+			siteId = buildArgs.siteId ?: "";
+		}
+
+		return event.getSiteUrl( siteId=siteId, includePath=false, includeLanguageSlug=false ) & link;
 	}
 
 // private helpers
