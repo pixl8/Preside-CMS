@@ -121,13 +121,13 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		if ( arguments.includeLanguageSlug ) {
 			if ( this.getModel( "featureService" ).isFeatureEnabled( "multilingual" ) ) {
-				var multilingualSettings = getModel( "systemConfigurationService" ).getCategorySettings( 
+				var multilingualSettings = getModel( "systemConfigurationService" ).getCategorySettings(
 					  category = "multilingual"
 					, tenantId = arguments.siteId
 				);
 
 				arguments.includeLanguageSlug = multilingualSettings.urls_enabled ?: false;
-			}	
+			}
 
 			if ( IsBoolean( arguments.includeLanguageSlug ) && arguments.includeLanguageSlug ) {
 				var languageSlug = this.getLanguageSlug();
@@ -701,6 +701,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 	public boolean function isStatelessRequest() {
 		return IsBoolean( request._sessionSettings.statelessRequest ?: "" ) && request._sessionSettings.statelessRequest;
+	}
+
+	public boolean function isPrefetchRequest() {
+		return getHTTPHeader( "sec-purpose" ) == "prefetch";
 	}
 
 	public void function setXFrameOptionsHeader( string value ) {
