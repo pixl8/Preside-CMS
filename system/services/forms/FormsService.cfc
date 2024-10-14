@@ -514,6 +514,12 @@ component displayName="Forms service" {
 
 		interceptorArgs.rendered = coldbox.renderViewlet( event=arguments.formLayout, args=formArgs );
 
+		
+		var formDefinition = getForm( mergedFormName );
+		for ( var asset in ListToArray( formDefinition.assets ?: "" ) ) {
+			$getRequestContext().include( asset );
+		}
+		
 		$announceInterception( "postRenderForm", arguments );
 
 		return interceptorArgs.rendered;
