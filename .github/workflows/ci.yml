@@ -53,7 +53,7 @@ jobs:
           PRESIDETEST_DB_HOST: mysql
 
       - name: Upload test results
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: tests/test-results.txt
