@@ -182,12 +182,13 @@ component {
 
 		var fields               = [];
 		var propertyNames        = _getPresideObjectService().getObjectAttribute( objectName=objectName, attributeName="propertyNames" );
+		var batchEditableDefault = _getPresideObjectService().getObjectAttribute( objectName=objectName, attributeName="batchEditableDefault", defaultValue=true );
 		var props                = _getPresideObjectService().getObjectProperties( objectName );
 		var dao                  = _getPresideObjectService().getObject( objectName );
 		var forbiddenFields      = [ dao.getIdField(), dao.getLabelField(), dao.getDateCreatedField(), dao.getDateModifiedField(), dao.getFlagField() ];
 		var isFieldBatchEditable = function( propertyName, attributes ) {
 			if ( forbiddenFields.findNoCase( propertyName ) ) {
-				return false
+				return false;
 			}
 			if ( attributes.relationship == "one-to-many" ) {
 				return false;
@@ -201,11 +202,11 @@ component {
 			if ( propertyName.reFind( "^_" ) ) {
 				return false;
 			}
-			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
-				return false;
+			if ( IsBoolean( attributes.batcheditable ?: "" ) ) {
+				return attributes.batcheditable;
 			}
 
-			return true;
+			return batchEditableDefault;
 		}
 
 		for( var propertyName in propertyNames ) {
