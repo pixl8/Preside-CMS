@@ -2954,6 +2954,14 @@ component displayName="Preside Object Service" {
 
 				if ( objectExists( objName ) ) {
 					cols = _getObject( objName ).meta.properties;
+
+					if ( !structKeyExists( cols, ListLast( key, ". ") ) ) {
+						cols = arguments.columnDefinitions;
+					} else {
+						if ( objName!=arguments.objectName && structKeyExists( arguments.columnDefinitions, ListLast( key, "." ) ) ) {
+							throw( type="PresideObjectService.columnDuplicated", message="Unable to resolve column [#ListLast( key, "." )#] as it exists in both [#arguments.objectName#] and [#arguments.objectName#.#objName# ]" );
+						}
+					}
 				}
 			} else {
 				cols = arguments.columnDefinitions;
