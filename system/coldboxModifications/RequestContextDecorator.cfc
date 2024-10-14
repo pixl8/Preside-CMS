@@ -658,6 +658,10 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return IsBoolean( appSettings.statelessRequest ?: "" ) && appSettings.statelessRequest;
 	}
 
+	public boolean function isPrefetchRequest() {
+		return getHTTPHeader( "sec-purpose" ) == "prefetch";
+	}
+
 	public void function setXFrameOptionsHeader( string value ) {
 		if ( !StructKeyExists( arguments, "value" ) ) {
 			var setting = getPageProperty( propertyName="iframe_restriction", cascading=true );
