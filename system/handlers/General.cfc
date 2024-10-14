@@ -55,6 +55,7 @@ component {
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
 		_setLocale( argumentCollection = arguments );
+		_prefetchCheck( argumentCollection = arguments );
 	}
 
 	public void function requestEnd( event, rc, prc ) {
@@ -220,6 +221,14 @@ component {
 
 	private void function _setLocale( event, rc, prc ) {
 		SetLocale( getModel( "i18n" ).getFwLocale() );
+	}
+
+	private void function _prefetchCheck( event, rc, prc ) {
+		if ( event.isActionRequest() && event.isPrefetchRequest() ) {
+			content reset=true;
+			header statuscode="400" statustext="Not allowed";
+			abort;
+		}
 	}
 
 	private void function _performDbMigrations() {
