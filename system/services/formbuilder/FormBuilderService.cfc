@@ -2169,6 +2169,107 @@ component {
 		return false;
 	}
 
+	public string function exportFormFields(
+		  required string formId
+	) {
+		var formbuilderForm = getForm( id=arguments.formId );
+
+		if ( $helpers.isEmptyString( formbuilderForm.name ?: "" ) ) {
+			return "";
+		}
+
+		var fileName = $slugify( formbuilderForm.name ) & "-" & DateTimeFormat( Now(), "yyyymmdd-HHnnss" ) & ".json";
+		var filePath = "#getTempDirectory()##fileName#";
+
+		var json = {
+			  id      = formbuilderForm.id
+			, name    = formbuilderForm.name
+			, items   = []
+			, actions = []
+		};
+
+		var formbuilderFormItems = getFormItems( id=arguments.formId );
+		for ( var formbuilderFormItem in formbuilderFormItems ) {
+			var formItem = $getPresideObject( "formbuilder_formitem" ).selectData(
+				  id           = formbuilderFormItem.id
+				, selectFields = [ "configuration" ]
+			);
+
+			var question = {};
+			var formQuestion = getQuestion( formbuilderFormItem.questionId );
+			if ( formQuestion.recordCount ) {
+				var question = {
+					  id               = formQuestion.id
+					, fieldId          = formQuestion.field_id
+					, fieldLabel       = formQuestion.field_label
+					, fullQuestionText = formQuestion.full_question_text
+					, helpText         = formQuestion.help_text
+					, config           = DeserializeJSON( formQuestion.item_type_config ?: "{}" )
+				};
+			}
+
+			ArrayAppend( json.items, {
+				  id         = formbuilderFormItem.id
+				, itemTypeId = formbuilderFormItem.item_type
+				, questionId = formbuilderFormItem.questionId
+				, config     = DeserializeJSON( formItem.configuration ?: "{}" )
+				, question   = question
+			} );
+		}
+
+		FileWrite( filePath, SerializeJSON( json ) );
+
+		return filePath;
+	}
+
+	public void function importFormFields(
+		  required string formId
+		, required struct data
+		,          any    logger
+		,          any    progress
+	) {
+		var items = data.items ?: [];
+
+		for ( var item in items ) {
+			var question   = item.question    ?: {};
+			var questionId = ""; // Empty question ID = Content/ layout e.g. spacer
+
+			if ( $helpers.isEmptyString( question.fieldId ?: "" ) ) {
+				$helpers.logMessage( logger, "info", "Import #item.itemTypeId#." );
+			} else {
+				var fieldId    = question.fieldId;
+				var oldFieldId = "";
+
+				if ( $getPresideObject( "formbuilder_question" ).dataExists( filter={ field_id=fieldId } ) ) {
+					oldFieldId = " ( #fieldId# )";
+
+					var timestamp = DateTimeFormat( Now(), "yymmddHHmmss" );
+
+					if ( REFind("(_\d+)$", fieldId) ) {
+						fieldId = REReplace( fieldId, "(_\d+)$", "_#timestamp#", "all" );
+					} else {
+						fieldId = "#fieldId#_#timestamp#";
+					}
+				}
+
+				questionId = $getPresideObject( "formbuilder_question" ).insertData(
+					data = {
+						  item_type          = item.itemTypeId
+						, field_id           = fieldId
+						, field_label        = question.fieldLabel
+						, full_question_text = question.fullQuestionText
+						, help_text          = question.helpText
+						, item_type_config   = SerializeJSON( question.config ?: "" )
+					}
+				);
+
+				$helpers.logMessage( logger, "info", "Import #item.itemTypeId#: #fieldId##oldFieldId#." );
+			}
+
+			addItem( formId=arguments.formId, itemType=item.itemTypeId, configuration=item.config, question=questionId );
+		}
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId

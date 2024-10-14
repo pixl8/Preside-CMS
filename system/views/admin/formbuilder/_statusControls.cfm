@@ -5,6 +5,8 @@
 	canActivate = IsTrue( args.canActivate ?: "" );
 	active      = IsTrue( args.active      ?: "" );
 	locked      = IsTrue( args.locked      ?: "" );
+	canEdit     = IsTrue( args.canEdit     ?: "" );
+	canDelete   = IsTrue( args.canDelete   ?: "" );
 
 	activeClass    = ( active ? "green"    : "grey" ) & " " & ( canActivate ? "enabled" : "disabled" );
 	activeIcon     = active ? "fa-check" : "fa-times";
@@ -57,15 +59,32 @@
 					)#
 				</cfif>
 			</label>
-
-			<label>
-				<a href="#event.buildAdminLink( linkto='formbuilder.exportSubmissions', queryString='formid=' & formId )#" title="#HtmlEditFormat( translateResource( 'formbuilder:excel.download.link' ) )#">
-					<span class="fa-stack fa-lg green">
-						<i class="fa fa-circle fa-stack-2x"></i>
-						<i class="fa fa-cloud-download fa-stack-1x"></i>
-					</span>
-				</a>
-			</label>
 		</div>
+
+		<cfif canEdit or canDelete>
+			<div class="btn-group pull-right">
+				<button data-toggle="dropdown" class="btn btn-sm btn-default inline">
+					<span class="fa fa-caret-down"></span>
+					Form options
+				</button>
+
+				<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+					<cfif canEdit>
+						<li><a href="#event.buildAdminLink( linkto="formbuilder.exportFormFieldsAction", queryString="id=#formId#" )#"><i class="fa fa-fw fa-file-export"></i>&nbsp; #translateResource( "formbuilder:action.fields.export.title" )#</a></li>
+					</cfif>
+					<cfif canDelete>
+						<li class="divider"></li>
+						<li><a href="#event.buildAdminLink( linkto="formbuilder.deleteRecordAction", queryString="id=#formId#" )#" title="#translateResource( "formbuilder:action.form.delete.prompt" )#" class="red confirmation-prompt"><i class="fa fa-fw fa-trash-o"></i>&nbsp; #translateResource( "formbuilder:action.form.delete.title" )#</a></li>
+					</cfif>
+				</ul>
+			</div>
+		</cfif>
+
+		<a class="pull-right inline" href="#event.buildAdminLink( linkto="formbuilder.exportSubmissions", queryString="formid=#formId#" )#">
+			<button class="btn btn-success btn-sm">
+				<i class="fa fa-cloud-download"></i>
+				#translateResource( "formbuilder:action.submission.download.title" )#
+			</button>
+		</a>
 	</div>
 </cfoutput>
