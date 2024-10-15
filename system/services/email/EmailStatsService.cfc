@@ -102,6 +102,9 @@ component {
 			, botClickCount    = getStatCount( templateId=arguments.templateId, field="bot_click_count"    )
 		};
 
+		if ( ( stats.bounceCount + stats.deliveryCount ) > stats.sendCount ) {
+			stats.bounceCount = stats.sendCount - stats.deliveryCount; // rough adjustment to avoid confusion when emails soft bounce and then become delivered (https://presidecms.atlassian.net/browse/PRESIDECMS-2951)
+		}
 
 		stats.deliveryRate     = stats.sendCount        ? ( ( stats.deliveryCount    / stats.sendCount       ) * 100 ) : 0;
 		stats.bounceRate       = stats.sendCount        ? ( ( stats.bounceCount      / stats.sendCount       ) * 100 ) : 0;
