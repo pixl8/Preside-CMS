@@ -749,7 +749,7 @@ component {
 			, tablePrefix = "_"
 			, versioned   = false
 			, properties  = {
-				  id            = { name="id"         , type="numeric", dbtype="int"      , control="none", maxLength=0, generator="increment", relationship="none", relatedTo="none", required=true, pk=true }
+				  id            = { name="id"         , type="numeric", dbtype="bigint"   , control="none", maxLength=0, generator="increment", relationship="none", relatedTo="none", required=true, pk=true }
 				, datecreated   = { name="datecreated", type="date"   , dbtype="timestamp", control="none", maxLength=0, generator="none"     , relationship="none", relatedto="none", required=true }
 			}
 		} };
