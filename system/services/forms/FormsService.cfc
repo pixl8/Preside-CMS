@@ -79,7 +79,7 @@ component displayName="Forms service" {
 	public boolean function formExists( required string formName, boolean checkSiteTemplates=true ) {
 		var forms = _getForms();
 		var existsInMemory = StructKeyExists( forms, arguments.formName ) || ( arguments.checkSiteTemplates && StructKeyExists( forms, _getSiteTemplatePrefix() & arguments.formName ) );
-		var isDynamic = !existsInMemory && ReFindNoCase( "^dynamicform\-", arguments.formName );
+		var isDynamic = !existsInMemory && ReFindNoCase( "^dynamicform\-[a-z0-9]$", arguments.formName );
 
 		if ( isDynamic ) {
 			return _lazyLoadOldDynamicForm( arguments.formName );
