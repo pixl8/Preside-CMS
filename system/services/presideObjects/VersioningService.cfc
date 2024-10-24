@@ -522,7 +522,7 @@ component {
 			  name         = "_version_number"
 			, required     = true
 			, type         = "numeric"
-			, dbtype       = "int"
+			, dbtype       = "bigint"
 			, indexes      = ""
 			, control      = "none"
 			, maxLength    = 0
