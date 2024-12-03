@@ -37,7 +37,7 @@ component displayName="Cron util" {
 			return "disabled";
 		}
 
-		var locale     = CreateObject( "java", "java.util.Locale" ).of( UCase( ListFirst( arguments.locale, "-" ) ) );
+		var locale     = CreateObject( "java", "java.util.Locale" ).forLanguageTag( UCase( ListFirst( arguments.locale, "-" ) ) );
 		var cronObj    = _getCrontabExpressionObject( arguments.crontabExpression );
 		var descriptor = CreateObject( "java", "com.cronutils.descriptor.CronDescriptor", _getLib() ).instance( locale );
 
