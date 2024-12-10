@@ -312,7 +312,7 @@ component extends="testbox.system.BaseSpec" {
 
 				var nextRun = tm.getNextRunDate( taskKey, lastRun );
 
-				expect( nextRun ).toBe( "2014-10-24T09:05" );
+				expect( nextRun ).toBe( "2014-10-24T09:05:00" );
 			} );
 
 			it( "shoud use the current date when no last run date passed", function(){
@@ -342,7 +342,7 @@ component extends="testbox.system.BaseSpec" {
 
 				var nextRun = tm.getNextRunDate( taskKey, lastRun );
 
-				expect( nextRun ).toBe( "2014-10-24T09:10" );
+				expect( nextRun ).toBe( "2014-10-24T09:10:00" );
 			} );
 
 			it( "should return an empty string when task is not a scheduled task", function(){
