@@ -29,7 +29,7 @@ component displayName="Cron util" {
 		var cronTabExpression = _getCrontabExpressionObject( arguments.crontabExpression );
 		var executionTimeObj  = CreateObject( "java", "com.cronutils.model.time.ExecutionTime", _getLib() ).forCron( cronTabExpression );
 
-		return executionTimeObj.nextExecution( _createJavaZonedTimeObject( arguments.lastRun ) ).get().toString();
+		return executionTimeObj.nextExecution( _createJavaZonedTimeObject( arguments.lastRun ) ).get().format( variables._dateTimeFormat );
 	}
 
 	public string function describeCronTabExression( required string crontabExpression, required string locale ) {
@@ -94,6 +94,7 @@ component displayName="Cron util" {
 		if ( Left( variables._timezoneOffset, "1" ) != "-" ) {
 			variables._timezoneOffset = "+" & variables._timezoneOffset;
 		}
+		variables._dateTimeFormat = CreateObject( "java", "java.time.format.DateTimeFormatter" ).ISO_LOCAL_DATE_TIME;
 	}
 
 }
