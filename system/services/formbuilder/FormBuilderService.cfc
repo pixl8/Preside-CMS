@@ -1599,7 +1599,6 @@ component {
 					itemsToRender.append( formItems[i] );
 					itemColumnMap[ formItems[ i ].id ] = columns;
 					headers.append( columns, true );
-
 				}
 			}
 		}
@@ -1608,12 +1607,14 @@ component {
 		headers.append( "User agent" );
 
 		spreadsheetLib.renameSheet( workbook, $translateResource( uri="formbuilder:spreadsheet.main.sheet.title", data=[ formDefinition.name ] ), 1 );
-		for( var i=1; i <= headers.len(); i++ ){
+
+		for ( var i=1; i <= headers.len(); i++ ) {
 			spreadsheetLib.setCellValue( workbook, headers[i], 1, i, "string" );
 		}
 
-		var row = 1;
-		for( var submission in submissions ) {
+		var extraCols = {};
+		var row       = 1;
+		for ( var submission in submissions ) {
 			var column = 4;
 			row++;
 			spreadsheetLib.setCellValue( workbook, submission.id, row, 1, "string" );
@@ -1639,10 +1640,18 @@ component {
 					var mappedColumns = itemColumnMap[ item.id ];
 
 					for( var i=1; i<=mappedColumns.len(); i++ ) {
+						++column;
+
 						if ( itemColumns.len() >= i ) {
-							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column, "string" );
+							if ( Len( itemColumns[ i ] ) >= 32767 ) {
+								extraCols[ column ][ row ] = Mid( itemColumns[ i ], 32768 );
+
+								spreadsheetLib.setCellValue( workbook, Left( itemColumns[ i ], 32767 ), row, column, "string" );
+							} else {
+								spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, column, "string" );
+							}
 						} else {
-							spreadsheetLib.setCellValue( workbook, "", row, ++column );
+							spreadsheetLib.setCellValue( workbook, "", row, column );
 						}
 					}
 				}
@@ -1663,6 +1672,19 @@ component {
 				}
 			}
 		}
+
+		if ( StructCount( extraCols ) ) {
+			for ( var col in extraCols ) {
+				var data = [ "" ];
+
+				for ( var row=1; row<=submissions.recordCount; row++ ) {
+					ArrayAppend( data, extraCols[ col ][ row + 1 ] ?: "" );
+				}
+
+				spreadsheetLib.addColumn( workbook=workbook, data=data, startColumn=Val( col ) + 1, insert=true );
+			}
+		}
+
 
 		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
 		spreadsheetLib.addFreezePane( workbook, 0, 1 );
