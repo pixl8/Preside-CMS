@@ -1615,7 +1615,7 @@ component {
 		var extraCols = {};
 		var row       = 1;
 		for ( var submission in submissions ) {
-			var column = 4;
+			var column = 5;
 			row++;
 			spreadsheetLib.setCellValue( workbook, submission.id, row, 1, "string" );
 			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2, "string" );
@@ -1640,8 +1640,6 @@ component {
 					var mappedColumns = itemColumnMap[ item.id ];
 
 					for( var i=1; i<=mappedColumns.len(); i++ ) {
-						++column;
-
 						if ( itemColumns.len() >= i ) {
 							if ( Len( itemColumns[ i ] ) >= 32767 ) {
 								extraCols[ column ][ row ] = Mid( itemColumns[ i ], 32768 );
@@ -1653,6 +1651,8 @@ component {
 						} else {
 							spreadsheetLib.setCellValue( workbook, "", row, column );
 						}
+
+						column++;
 					}
 				}
 			}
