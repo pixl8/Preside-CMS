@@ -13,5 +13,6 @@ component extends="preside.system.base.SystemPresideObject" displayName="User 2F
 
 	property name="ip_address"     type="string"   dbtype="varchar" maxLength="50"  required=true uniqueindexes="user_machine|2";
 	property name="user_agent"     type="string"   dbtype="varchar" maxLength="255" required=true uniqueindexes="user_machine|3";
+	property name="cookie"         type="string"   dbtype="varchar" maxLength="255";
 	property name="logged_in_date" type="datetime" dbtype="datetime"                required=false;
 }
