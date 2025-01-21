@@ -17,7 +17,6 @@ This form is used for managing settings for two factor authentication, admin 're
 			<field name="tfa_app_name"     control="textinput"     required="false" />
 			<field name="tfa_enforced"     control="yesNoSwitch"   required="false" />
 			<field name="tfa_trust_period" control="spinner"       required="false" defaultvalue="7" minValue="0"/>
-			<field name="tfa_auth_method"  control="enumRadioList" required="false" enum="twoFactorAuthMethod" default="ipAddress" />
 		</fieldset>
 	</tab>
 </form>

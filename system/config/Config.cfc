@@ -999,7 +999,6 @@ component {
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
 		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
 		settings.enum.adminToolbarModes           = [ "fixed", "reveal", "none" ];
-		settings.enum.twoFactorAuthMethod         = [ "ipAddress", "cookie" ];
 	}
 
 	private void function __setupFormValidationProviders() {

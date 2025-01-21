@@ -20,7 +20,6 @@ component displayName="Admin login service" {
 	 * @cookieService.inject       cookieService
 	 * @googleAuthenticator.inject googleAuthenticator
 	 * @qrCodeGenerator.inject     qrCodeGenerator
-	 * @twoFactorAuthMethod.inject coldbox:setting:enum.twoFactorAuthMethod
 	 */
 	public any function init(
 		  required any    sessionStorage
@@ -31,7 +30,6 @@ component displayName="Admin login service" {
 		, required any    cookieService
 		, required any    googleAuthenticator
 		, required any    qrCodeGenerator
-		, required any    twoFactorAuthMethod
 		,          string sessionKey      = "admin_user"
 		,          string twoFaSessionKey = "admin_user_authenticated_with_2fa"
 	) {
@@ -45,9 +43,8 @@ component displayName="Admin login service" {
 		_setEmailService( arguments.emailService );
 		_setCookieService( arguments.cookieService );
 		_setQrCodeGenerator( arguments.qrCodeGenerator );
-		_setTwoFactorAuthMethod( arguments.twoFactorAuthMethod );
 		_setRememberMeCookieKey( "_presidecms-admin-persist" );
-		_setTwoFactorAuthCookieKey( "_presidecms-admin-tfa" );
+		_setTwoFactorAuthCookiePersistKey( "_presidecms-admin-tfa-persist" );
 
 		return this;
 	}
@@ -525,30 +522,13 @@ component displayName="Admin login service" {
 			return false;
 		}
 
-		var loginRecordFilter = {
-			  security_user = getLoggedInUserId()
-			, user_agent    = arguments.userAgent
-		};
-		var tfaAuthMethod = getTfaAuthMethod();
-
-		if ( tfaAuthMethod == "cookie" ) {
-			loginRecordFilter.cookie = _getCookieService().getVar(
-				  name    = _getTwoFactorAuthCookieKey()
-				, default = ""
-			);
-
-			if ( !Len( loginRecordFilter.cookie ) ) {
-				return false;
-			}
-		}
-
-		if ( tfaAuthMethod == "ipAddress" ) {
-			loginRecordFilter.ip_address = arguments.ipAddress;
-		}
-
 		var tfaLoginRecord = $getPresideObject( "security_user_two_factor_login_record" ).selectData(
 			  selectFields = [ "logged_in_date" ]
-			, filter       = loginRecordFilter
+			, filter       = {
+				  security_user = getLoggedInUserId()
+				, user_agent    = arguments.userAgent
+				, cookie        = _getCookieService().getVar( name=_getTwoFactorAuthCookiePersistKey(), default="" )
+			}
 		);
 
 		if ( !tfaLoginRecord.recordCount ) {
@@ -698,30 +678,16 @@ component displayName="Admin login service" {
 				two_step_auth_key_in_use = true
 			} );
 
-			var tfaAuthMethod     = getTfaAuthMethod();
-			var loginRecordFilter = {
-				  security_user = userId
-				, user_agent    = arguments.userAgent
-			};
-			var loginRecordData = { logged_in_date=Now() };
+			var authMethodCookieValue = CreateUUID();
+			var loginRecordData       = { logged_in_date=Now(), cookie=authMethodCookieValue };
 
-			if ( tfaAuthMethod == "cookie" ) {
-				var authMethodCookieValue = CreateUUID();
-
-				_getCookieService().setVar(
-					  name  = _getTwoFactorAuthCookieKey()
-					, value = authMethodCookieValue
-				);
-
-				loginRecordData.cookie = authMethodCookieValue;
-			}
-
-			if ( tfaAuthMethod == "ipAddress" ) {
-				loginRecordFilter.ip_address = arguments.ipAddress;
-			}
+			_getCookieService().setVar( name=_getTwoFactorAuthCookiePersistKey(), value=authMethodCookieValue );
 
 			var loginRecordDao = $getPresideObject( "security_user_two_factor_login_record" );
-			var updated        = loginRecordDao.updateData( filter=loginRecordFilter, data=loginRecordData );
+			var updated        = loginRecordDao.updateData(
+				  data   = loginRecordData
+				, filter = { security_user=userId, user_agent=arguments.userAgent }
+			);
 
 			if ( !updated ) {
 				loginRecordData.security_user = userId;
@@ -807,16 +773,6 @@ component displayName="Admin login service" {
 		arguments.data.email_address = arguments.data.email_address ?: arguments.loginId;
 
 		return _getUserDao().insertData( arguments.data );
-	}
-
-	public string function getTfaAuthMethod(){
-		var tfaAuthMethod = $getPresideSetting( "admin-login-security", "tfa_auth_method", "ipAddress" );
-
-		if ( ArrayFindNoCase( _getTwoFactorAuthMethod(), tfaAuthMethod ) ) {
-			return tfaAuthMethod;
-		}
-
-		return "ipAddress";
 	}
 
 // PRIVATE HELPERS
@@ -1104,20 +1060,12 @@ component displayName="Admin login service" {
 		_rememberMeCookieKey = arguments.rememberMeCookieKey;
 	}
 
-	private any function _getTwoFactorAuthCookieKey(){
+	private any function _getTwoFactorAuthCookiePersistKey(){
 		return variables._twoFactorAuthCookieKey;
 	}
 
-	private void function _setTwoFactorAuthCookieKey( required any twoFactorAuthCookieKey ){
+	private void function _setTwoFactorAuthCookiePersistKey( required any twoFactorAuthCookieKey ){
 		variables._twoFactorAuthCookieKey = arguments.twoFactorAuthCookieKey;
-	}
-
-	private any function _getTwoFactorAuthMethod(){
-		return variables._twoFactorAuthMethod;
-	}
-
-	private void function _setTwoFactorAuthMethod( required any twoFactorAuthMethod ){
-		variables._twoFactorAuthMethod = arguments.twoFactorAuthMethod;
 	}
 
 }

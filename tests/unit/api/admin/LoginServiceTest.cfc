@@ -22,7 +22,6 @@
 				, cookieService       = mockCookieService
 				, googleAuthenticator = mockGoogleAuthenticator
 				, qrCodeGenerator     = mockQrCodeGenerator
-				, twoFactorAuthMethod = [ "ipAddress", "cookie" ]
 			);
 
 			loginService = getMockBox().createMock( object=loginService );
