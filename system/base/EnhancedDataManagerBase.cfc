@@ -62,6 +62,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		_overrideAdminLayout( argumentCollection=arguments );
 		event.setView( "/admin/datamanager/_viewRecord" );
+
+		if ( IsTrue( rc.modalView ?: "" ) ) {
+			event.setLayout( "adminAjaxModal" );
+		}
 	}
 
 // CUSTOMIZATIONS
@@ -124,6 +128,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( Len( Trim( queryString ) ) ) {
 			qs &= "&#queryString#";
+		}
+
+		if ( IsTrue( args.modalView ?: "" ) ) {
+			qs &= "&modalView=true";
 		}
 
 		return event.buildAdminLink( linkto="datamanager.#objectName#.viewRecord", queryString=qs );
