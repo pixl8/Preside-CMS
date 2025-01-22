@@ -319,7 +319,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			args.tabs[ i ] = {
 				  id        = tabId
-				, iconClass = translateResource( uri=i18nBase & "viewtab.#tabId#.iconclass", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.iconclass" ) )
+				, iconClass = translateResource( uri=i18nBase & "viewtab.#tabId#.iconclass", defaultValue=translateResource( uri=i18nDefaultBase & "viewtab.#tabId#.iconclass", defaultValue="" ) )
 				, content   = customizationService.runCustomization( objectName=objectName, action="_#tabId#Tab", args=args )
 				, title     = customizationService.runCustomization( objectName=objectName, action="_#tabId#TabTitle", args=args, defaultResult=translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) ) )
 			};
