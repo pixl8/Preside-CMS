@@ -4,7 +4,7 @@
 		prc.adminToolbarDisplayMode = prc.adminToolbarDisplayMode ?: getSystemSetting( "frontend-editing", "admin_toolbar_mode", "fixed" );
 	}
 </cfscript>
-<cfif event.isAdminUser() and !getModel( "loginService" ).twoFactorAuthenticationRequired( ipAddress=event.getClientIp(), userAgent=event.getUserAgent() ) and prc.adminToolbarDisplayMode neq "none">
+<cfif event.isAdminUser() and !getModel( "loginService" ).twoFactorAuthenticationRequired() and prc.adminToolbarDisplayMode neq "none">
 	<cfscript>
 		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
 		prc.adminQuickEditDisabled    = prc.adminQuickEditDisabled    ?: isTrue( getSystemSetting( "frontend-editing", "disable_quick_edit" ) );
@@ -162,4 +162,3 @@
 		#ckEditorJs#
 	</cfoutput>
 </cfif>
-

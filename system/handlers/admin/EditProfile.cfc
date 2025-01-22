@@ -161,11 +161,7 @@ component extends="preside.system.base.AdminHandler" {
 		var authToken        = formData.oneTimeToken ?: "";
 
 		if ( validationResult.validated() ) {
-			var authVerified = loginService.attemptTwoFactorAuthentication(
-				  token     = authToken
-				, ipAddress = event.getClientIp()
-				, userAgent = event.getUserAgent()
-			);
+			var authVerified = loginService.attemptTwoFactorAuthentication( token=authToken );
 
 			if ( authVerified ) {
 				loginService.enableTwoFactorAuthenticationForUser();
