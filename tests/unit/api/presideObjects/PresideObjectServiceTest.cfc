@@ -3914,11 +3914,11 @@
 			bIds.append( poService.insertData( objectName="object_b", data={ label="b 2", lots_of_a="#aIds[2]#" }, insertManyToManyRecords=true ) );
 			cIds.append( poService.insertData( objectName="object_c", data={ label="c 1", obj_b=bIds[1] } ) );
 			cIds.append( poService.insertData( objectName="object_c", data={ label="c 2", obj_b=bIds[2] } ) );
-			
+
 			var queryA = poService.selectData(
 				  objectName          = "object_a"
 				, filter              = { label = "a 1" }
-				, selectFields        = [ "id" ] 
+				, selectFields        = [ "id" ]
 				, getSqlAndParamsOnly = true
 				, formatSqlParams     = true
 			);
@@ -3929,14 +3929,14 @@
 				, extraFilters        = [ {
 					filter = sqlRunner.obfuscateSqlForPreside( "exists (#queryA.sql#) " )
 				} ]
-				, selectFields        = [ "id" ] 
+				, selectFields        = [ "id" ]
 				, getSqlAndParamsOnly = true
 				, formatSqlParams     = true
 			);
 
 			var params = queryA.params;
 			StructAppend( params, queryB.params, true );
-			
+
 			var queryWithParams = poService.selectData(
 				  objectName         = "object_c"
 				, selectFields       = [ "id" ]
@@ -3952,18 +3952,91 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test111_selectData_shouldWorkWithDeepNestedSelectDataViews" returntype="void">
+		<cfscript>
+			var poService = _getService(
+				  objectDirectories = [ "/tests/resources/PresideObjectService/objectsWithNestedSelectDataViews" ]
+				, delayInit         = true
+			);
+			var sqlRunner = CreateMock( object=new preside.system.services.database.SqlRunner(
+				logger = _getTestLogger()
+			) );
+
+			mockSelectDataViewService.$( "getViewArgs", {
+				  objectname   = "object_d"
+				, selectFields = [ "object_c", "sum( value ) as total_value" ]
+				, groupBy      = "object_c"
+			} );
+			mockSelectDataViewService.$( "$getPresideObjectService", poService );
+			poService.postInit();
+
+			var aIds = [];
+			var bIds = [];
+			var cIds = [];
+			var dIds = [];
+
+			poService.dbSync();
+
+			ArrayAppend( aIds, poService.insertData( objectName="object_a", data={ label="a 1" } ) );
+			ArrayAppend( aIds, poService.insertData( objectName="object_a", data={ label="a 2" } ) );
+			ArrayAppend( aIds, poService.insertData( objectName="object_a", data={ label="a 3" } ) );
+			ArrayAppend( bIds, poService.insertData( objectName="object_b", data={ label="b 1", object_a=aIds[1] } ) );
+			ArrayAppend( bIds, poService.insertData( objectName="object_b", data={ label="b 2", object_a=aIds[2] } ) );
+			ArrayAppend( bIds, poService.insertData( objectName="object_b", data={ label="b 3", object_a=aIds[3] } ) );
+			ArrayAppend( cIds, poService.insertData( objectName="object_c", data={ label="c 1", object_b=bIds[1] } ) );
+			ArrayAppend( cIds, poService.insertData( objectName="object_c", data={ label="c 2", object_b=bIds[2] } ) );
+			ArrayAppend( cIds, poService.insertData( objectName="object_c", data={ label="c 3", object_b=bIds[3] } ) );
+			ArrayAppend( cIds, poService.insertData( objectName="object_c", data={ label="c 4", object_b=bIds[3] } ) );
+
+			ArrayAppend( dIds, poService.insertData( objectName="object_d", data={ label="d 1", object_c=cIds[1], value=5 } ) );
+			ArrayAppend( dIds, poService.insertData( objectName="object_d", data={ label="d 2", object_c=cIds[1], value=9 } ) );
+			ArrayAppend( dIds, poService.insertData( objectName="object_d", data={ label="d 3", object_c=cIds[2], value=8 } ) );
+			ArrayAppend( dIds, poService.insertData( objectName="object_d", data={ label="d 4", object_c=cIds[2], value=4 } ) );
+			ArrayAppend( dIds, poService.insertData( objectName="object_d", data={ label="d 5", object_c=cIds[3], value=3 } ) );
+			ArrayAppend( dIds, poService.insertData( objectName="object_d", data={ label="d 6", object_c=cIds[3], value=1 } ) );
+			ArrayAppend( dIds, poService.insertData( objectName="object_d", data={ label="d 7", object_c=cIds[4], value=15 } ) );
+			ArrayAppend( dIds, poService.insertData( objectName="object_d", data={ label="d 8", object_c=cIds[4], value=10 } ) );
+
+			var queryA = poService.selectData(
+				  objectName   = "object_a"
+				, selectFields = [ "object_a.label", "object_bs$object_cs$object_ds.total_value" ]
+				, filter       = { "object_a.id" = aIds[1] }
+			);
+
+			var queryB = poService.selectData(
+				  objectName   = "object_a"
+				, selectFields = [ "object_a.label", "object_bs$object_cs$object_ds.total_value" ]
+				, filter       = { "object_a.id" = aIds[2] }
+			);
+
+			var queryC = poService.selectData(
+				  objectName   = "object_a"
+				, selectFields = [ "object_a.label", "object_bs$object_cs$object_ds.total_value" ]
+				, filter       = { "object_a.id" = aIds[3] }
+			);
+
+			super.assertEquals( queryA.total_value, 14, "Expected total value mismatch" );
+			super.assertEquals( queryB.total_value, 12, "Expected total value mismatch" );
+			super.assertEquals( queryC.recordCount, 2, "Expected record count mismatch" );
+			super.assertEquals( ArraySum( QueryColumnData( queryC, "total_value" ) ), 29, "Expected total value mismatch" );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories"    type="array"   required="true" />
 		<cfargument name="defaultPrefix"        type="string"  required="false" default="ptest_" />
 		<cfargument name="throwOnLongTableName" type="boolean" required="false" />
+		<cfargument name="delayInit"            type="boolean" required="false" />
 
 		<cfscript>
 			cachebox                  = _getCachebox( forceNewInstance = true );
 			mockColdbox               = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 			mockColdboxEvent          = getMockbox().createStub();
 			mockInterceptorService    = _getMockInterceptorService();
-			mockSelectDataViewService = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectSelectDataViewService" );
+
+			var selectDataViewService = new preside.system.services.presideObjects.PresideObjectSelectDataViewService();
+			mockSelectDataViewService = getMockbox().prepareMock( selectDataViewService );
 
 			mockColdboxEvent.$( "isAdminUser", true );
 			mockColdboxEvent.$( "getAdminUserId", "" );
@@ -3978,6 +4051,7 @@
 				, interceptorService    = mockInterceptorService
 				, selectDataViewService = mockSelectDataViewService
 				, throwOnLongTableName  = arguments.throwOnLongTableName ?: false
+				, delayInit             = arguments.delayInit
 			)
 		</cfscript>
 	</cffunction>
