@@ -461,7 +461,7 @@ component singleton=true {
 				case "select-data-view":
 					join.append({
 						  selectDataView = relationship.selectDataView
-						, subQueryAlias  = relationship.alias
+						, subQueryAlias  = joinAlias
 						, subQueryColumn = relationship.pk
 						, joinToTable    = Len( currentAlias ) ? currentAlias : currentSource
 						, joinToColumn   = relationship.fk
