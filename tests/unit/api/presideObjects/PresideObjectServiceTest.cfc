@@ -4015,9 +4015,6 @@
 				, filter       = { "object_a.id" = aIds[3] }
 			);
 
-			// WriteDump( queryA );
-			// WriteDump( queryB );
-			// WriteDump( queryC ); abort;
 			super.assertEquals( queryA.total_value, 14, "Expected total value mismatch" );
 			super.assertEquals( queryB.total_value, 12, "Expected total value mismatch" );
 			super.assertEquals( queryC.recordCount, 2, "Expected record count mismatch" );
