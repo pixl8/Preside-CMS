@@ -522,7 +522,7 @@ component displayName="Admin login service" {
 			  selectFields = [ "logged_in_date" ]
 			, filter       = {
 				  security_user = getLoggedInUserId()
-				, cookie        = _getCookieService().getVar( name=_getTwoFactorAuthCookiePersistKey(), default="" )
+				, id            = _getCookieService().getVar( name=_getTwoFactorAuthCookiePersistKey(), default="" )
 			}
 		);
 
@@ -671,15 +671,12 @@ component displayName="Admin login service" {
 				two_step_auth_key_in_use = true
 			} );
 
-			var cookieValue = CreateUUID();
-
-			_getCookieService().setVar( name=_getTwoFactorAuthCookiePersistKey(), value=cookieValue );
-
-			$getPresideObject( "security_user_two_factor_login_record" ).insertData( {
+			var loginRecordId = $getPresideObject( "security_user_two_factor_login_record" ).insertData( {
 				  security_user  = userId
 				, logged_in_date = Now()
-				, cookie         = cookieValue
 			} );
+
+			_getCookieService().setVar( name=_getTwoFactorAuthCookiePersistKey(), value=loginRecordId );
 
 			$audit(
 				  userId = userId
