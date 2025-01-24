@@ -1,8 +1,6 @@
 <cfparam name="args.actions" type="array" />
 
 <cfoutput>
-	#renderViewlet( event="admin.datamanager._selectAllControl", args=args )#
-
 	<cfloop array="#args.actions#" index="i" item="action">
 		<cfif IsSimpleValue( action )>
 			#action#

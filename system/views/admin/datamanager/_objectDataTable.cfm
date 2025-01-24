@@ -232,6 +232,8 @@
 		</table>
 		<cfif args.useMultiActions>
 				<div class="form-actions multi-action-buttons" id="multi-action-buttons-#instanceId#">
+					#renderViewlet( event="admin.datamanager._selectAllControl", args=args )#
+
 					<cfif Len( Trim( args.multiActions ) )>
 						#args.multiActions#
 					<cfelse>
