@@ -9,7 +9,7 @@
  * @feature   twoFactorAuthentication
  */
 component extends="preside.system.base.SystemPresideObject" displayName="User 2FA Login record" {
-	property name="security_user" relationship="many-to-one" relatedTo="security_user" required=true uniqueindexes="user_machine";
+	property name="security_user" relationship="many-to-one" relatedTo="security_user" required=true;
 
 	property name="logged_in_date" type="datetime" dbtype="datetime" required=false;
 }
