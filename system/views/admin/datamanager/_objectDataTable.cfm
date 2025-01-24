@@ -12,6 +12,8 @@
 	param name="args.gridFields"                  type="array";
 	param name="args.gridHeaderLabels"            type="struct"  default={};
 	param name="args.sortableFields"              type="array"   default=[];
+	param name="args.centerAlignFields"           type="array"   default=[];
+	param name="args.rightAlignFields"            type="array"   default=[];
 	param name="args.hiddenGridFields"            type="array"   default=[];
 	param name="args.filterContextData"           type="struct"  default={};
 	param name="args.allowSearch"                 type="boolean" default=true;
@@ -201,7 +203,10 @@
 						</th>
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
-						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>" data-field="#ListLast( fieldName, '.' )#">
+						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>"
+							data-field="#ListLast( fieldName, '.' )#"
+							data-class="<cfif ArrayFindNoCase( args.centerAlignFields, fieldName )>dt-align-center<cfelseif ArrayFindNoCase( args.rightAlignFields, fieldName )>dt-align-right<cfelse></cfif>"
+						>
 							<cfif structKeyExists( args.gridHeaderLabels, fieldName ) >
 								#args.gridHeaderLabels[ fieldName ]#
 							<cfelse>

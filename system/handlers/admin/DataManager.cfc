@@ -59,6 +59,8 @@ component extends="preside.system.base.AdminHandler" {
 				  objectName          = objectName
 				, gridFields          = prc.gridFields          ?: _getObjectFieldsForGrid( objectName )
 				, sortableFields      = prc.sortableFields      ?: _getObjectSortableFields( objectName )
+				, centerAlignFields   = prc.centerAlignFields   ?: _getObjectCenterAlignFields( objectName )
+				, rightAlignFields    = prc.rightAlignFields    ?: _getObjectRightAlignFields( objectName )
 				, hiddenGridFields    = prc.hiddenGridFields    ?: []
 				, batchEditableFields = prc.batchEditableFields ?: []
 				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
@@ -90,6 +92,8 @@ component extends="preside.system.base.AdminHandler" {
 			  gridFields          = args.gridFields          ?: _getObjectFieldsForGrid( objectName )
 			, hiddenGridFields    = args.hiddenGridFields    ?: _getObjectHiddenFieldsForGrid( objectName )
 			, sortableFields      = args.sortableFields      ?:  _getObjectSortableFields( objectName )
+			, centerAlignFields   = args.centerAlignFields   ?: _getObjectCenterAlignFields( objectName )
+			, rightAlignFields    = args.rightAlignFields    ?: _getObjectRightAlignFields( objectName )
 			, batchEditableFields = args.batchEditableFields ?: dataManagerService.listBatchEditableFields( objectName )
 			, isMultilingual      = IsTrue( args.isMultilingual ?: multilingualPresideObjectService.isMultilingual( objectName ) )
 			, draftsEnabled       = IsTrue( args.draftsEnabled  ?: datamanagerService.areDraftsEnabledForObject( objectName ) )
@@ -4073,6 +4077,22 @@ component extends="preside.system.base.AdminHandler" {
 		return listToArray( presideObjectService.getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerSortableFields"
+			, defaultValue  = ""
+		) );
+	}
+
+	private array function _getObjectCenterAlignFields( required string objectName ) {
+		return listToArray( presideObjectService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerCenterAlignFields"
+			, defaultValue  = ""
+		) );
+	}
+
+	private array function _getObjectRightAlignFields( required string objectName ) {
+		return listToArray( presideObjectService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerRightAlignFields"
 			, defaultValue  = ""
 		) );
 	}
