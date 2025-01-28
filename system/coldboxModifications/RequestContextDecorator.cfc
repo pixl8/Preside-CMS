@@ -562,7 +562,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		announceInterception( "onAdminLoginSuccess" );
 
-		if ( getModel( "loginService" ).twoFactorAuthenticationRequired( ipAddress = getClientIp(), userAgent = getUserAgent() ) ) {
+		if ( getModel( "loginService" ).twoFactorAuthenticationRequired() ) {
 			getController().relocate( url=buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
 		}
 
