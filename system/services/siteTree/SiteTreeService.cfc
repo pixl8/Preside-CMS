@@ -847,6 +847,10 @@ component {
 				pageTypeDataHasChanged = _getVersioningService().dataHasChanged( objectName=pageType.getPresideObject(), recordId=arguments.id, newData=arguments );
 			}
 
+			if ( !pageDataHasChanged && !pageTypeDataHasChanged ) {
+				return updated;
+			}
+
 			updated = pobj.updateData(
 				  data                    = data
 				, id                      = arguments.id

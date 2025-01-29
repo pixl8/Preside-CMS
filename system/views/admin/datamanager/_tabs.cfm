@@ -28,7 +28,9 @@
 				</cfif>
 				<li<cfif tab.id eq activeTab> class="active"</cfif>>
 					<a href="##tab-#tab.id#" data-toggle="tab" >
-						<i class="fa fa-fw #tab.iconClass#" title="#HtmlEditFormat( tab.title )#"></i>&nbsp;
+						<cfif Len( tab.iconClass )>
+							<i class="fa fa-fw #tab.iconClass#" title="#HtmlEditFormat( tab.title )#"></i>&nbsp;
+						</cfif>
 
 						<span class="hidden-xs">
 							#tab.title#
