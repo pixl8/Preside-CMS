@@ -54,11 +54,11 @@
 
 		<p>Quick test excludes the following long-running tests. Click to run them individually:</p>
 			<ul>
-				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=integration.api.admin.AuditServiceTest">admin.AuditServiceTest</a></li>
-				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=integration.api.admin.LoginServiceTest">admin.LoginServiceTest</a></li>
-				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=integration.api.presideObjects.PresideObjectServiceTest">presideObjects.PresideObjectServiceTest</a></li>
-				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=integration.api.security.CsrfProtectionServiceTest">security.CsrfProtectionServiceTest</a></li>
-				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=integration.api.sitetree.SiteServiceTest">sitetree.SiteServiceTest</a></li>
+				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=unit.api.admin.AuditServiceTest">admin.AuditServiceTest</a></li>
+				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=unit.api.admin.LoginServiceTest">admin.LoginServiceTest</a></li>
+				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=unit.api.presideObjects.PresideObjectServiceTest">presideObjects.PresideObjectServiceTest</a></li>
+				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=unit.api.security.CsrfProtectionServiceTest">security.CsrfProtectionServiceTest</a></li>
+				<li><a href="runtests.cfm?method=runRemote&directory=&testBundles=unit.api.sitetree.SiteServiceTest">sitetree.SiteServiceTest</a></li>
 			</ul>
 		</p>
 	</section>
