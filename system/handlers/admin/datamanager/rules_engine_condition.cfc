@@ -45,7 +45,7 @@ component extends="preside.system.base.AdminHandler" {
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var objectName = "rules_engine_condition";
 
-		if ( Len( Trim( rc.filterobject ?: "" ) ) ) {
+		if ( Len( Trim( rc.filterobject ?: "" ) ) && ( rc.filterobject != "rules_engine_condition" ) ) {
 			_checkProxyPermissionForObjectFilters( argumentCollection=arguments );
 		}
 
@@ -257,7 +257,7 @@ component extends="preside.system.base.AdminHandler" {
 		var operationSource = event.getAdminOperationSource();
 		var filterObject    = prc.record.filter_object ?: ( rc.filterObject ?: "" );
 
-		if ( Len( filterObject ) && ( operationSource == "manageObjectFilters" || operationSource == "manageSegmentationFilters" ) ) {
+		if ( Len( filterObject ) && ( filterObject != "rules_engine_condition" ) && ( operationSource == "manageObjectFilters" || operationSource == "manageSegmentationFilters" ) ) {
 			customizationService.runCustomization(
 				  objectName     = filterObject
 				, action         = "objectBreadcrumb"
