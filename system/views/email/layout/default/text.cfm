@@ -1,4 +1,3 @@
-<!---@feature cms--->
 <cfparam name="args.body"           default="">
 <cfparam name="args.signature_text" default="">
 
