@@ -921,7 +921,7 @@ component {
 			, batchOperationSelectAll         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, useDistinctForDatatables        = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, systemConfiguration             = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
-			, cmsUserManager                  = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
+			, cmsUserManager                  = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, errorLogs                       = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, redirectErrorPages              = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, auditTrail                      = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
@@ -1464,7 +1464,7 @@ component {
 			, filterObject           = "security_user"
 			, gridFields             = [ "known_as", "email_address" ]
 			, recipientIdLogProperty = "security_user_recipient"
-			, feature                = "cms"
+			, feature                = "admin"
 		};
 		recipientTypes.websiteUser = {
 			  parameters             = [ "display_name", "login_id", "email_address" ]
