@@ -5,11 +5,11 @@
  */
 component extends="preside.system.base.adminHandler" {
 
-	property name="adminDataViewsService"   inject="adminDataViewsService";
+	property name="adminDataViewsService"   inject="featureInjector:admin:adminDataViewsService";
 	property name="presideObjectService"    inject="presideObjectService";
-	property name="dataExportService"       inject="dataExportService";
-	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
-	property name="customizationService"    inject="dataManagerCustomizationService";
+	property name="dataExportService"       inject="featureInjector:dataExport:dataExportService";
+	property name="adhocTaskManagerService" inject="featureInjector:adhocTasks:adhocTaskManagerService";
+	property name="customizationService"    inject="featureInjector:admin:dataManagerCustomizationService";
 
 
 	/**
