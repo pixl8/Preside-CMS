@@ -105,7 +105,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( variables.sidebarNavigation && Len( currentTab ) && currentTab != firstTab ) {
-			var tabTitle = translateResource( uri="preside-objects.#objectName#:viewtab.#currentTab#.title", defaultValue=translateResource( uri="adminui:viewtab.#currentTab#.title", default="" ) );
+			var tabTitle = translateResource( uri="preside-objects.#objectName#:viewtab.#currentTab#.title", defaultValue=translateResource( uri="adminui:viewtab.#currentTab#.title", defaultValue="" ) );
 			if ( Len( tabTitle ) ) {
 				event.addAdminBreadCrumb(
 					  title = tabTitle
