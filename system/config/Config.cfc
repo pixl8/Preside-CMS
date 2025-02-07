@@ -927,7 +927,7 @@ component {
 			, passwordPolicyManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, formbuilder                     = { enabled=true , siteTemplates=[ "*" ], widgets=[ "formbuilderform" ]   , dependsOn=[ "cms" ] }
 			, formbuilder2                    = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "formbuilder"   ] }
-			, multilingual                    = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
+			, multilingual                    = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, dataexport                      = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "datamanager"   ] }
 			, dataExporterNDJSON              = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "dataexport"   ] }
 			, twoFactorAuthentication         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin"   ] }
