@@ -34,12 +34,12 @@ component {
 	 * @autodoc   true
 	 * @html.hint the original HTML
 	 */
-	public string function inlineStyles( required string html, array styles ) {
+	public string function inlineStyles( required string html, array styles, string cacheSuffix="" ) {
  		if ( !$helpers.hasTags( arguments.html ) ) {
 			return arguments.html;
 		}
 
-		var cacheKey = "htmlInlineStyles-#Hash( arguments.html )#";
+		var cacheKey = "htmlInlineStyles-#Hash( arguments.html )#" & arguments.cacheSuffix;
 		var fromCache = _getTemplateCache().get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
