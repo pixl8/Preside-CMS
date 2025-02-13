@@ -42,7 +42,7 @@ component {
 
 		if ( !loginExcempt ) {
 			var isAdminUser     = event.isAdminUser();
-			var isAuthenticated = isAdminUser && !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() );
+			var isAuthenticated = isAdminUser && !loginService.twoFactorAuthenticationRequired();
 
 			if ( !isAuthenticated ) {
 				if ( event.isAjax() ) {
