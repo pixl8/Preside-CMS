@@ -278,7 +278,7 @@ component displayName="Preside Object Service" {
 
 		args.adapter     = adapter;
 		args.objMeta     = objMeta;
-		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter, args.filterParams, args.extraJoins );
+		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter, args.filterParams, args.extraJoins, args.selectFields );
 		args.groupBy     = _autoPrefixBareProperty( args.objectName, args.groupBy, args.adapter );
 		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
 			args.groupBy = _autoCalculateGroupBy( args.selectFields, args.objectName, args.adapter );
@@ -3518,8 +3518,20 @@ component displayName="Preside Object Service" {
 				, joinToTable    = joinToTable
 				, joinToColumn   = joinToColumn
 				, type           = "left"
+				, aggJoinFor     = alias
 			} );
 		}
+	}
+
+	private boolean function _aggJoinExists( joins, propertyName, dbAdapter ) {
+		var escapedPropName = arguments.dbAdapter.escapeEntity( arguments.propertyName );
+		for( var join in arguments.joins ) {
+			if ( StructKeyExists( join, "aggJoinFor" ) && ( join.aggJoinFor == escapedPropName || join.aggJoinFor == arguments.propertyName ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private string function _optimiseAggregateFunctions( required string formula ) {
@@ -3790,8 +3802,8 @@ component displayName="Preside Object Service" {
 		return REReplaceNoCase( Trim( text ), '\bas\b\s+(\w+)(?!\s*[`\"\[])$', "as #dbAdapter.escapeEntity( "\1" )#" );
 	}
 
-	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins ) {
-		var items         = arguments.orderBy.listToArray();
+	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins, required array selectFields ) {
+		var items         = ListToArray( arguments.orderBy );
 		var rebuilt       = [];
 		var aliased       = "";
 		var propertyName  = "";
@@ -3803,22 +3815,28 @@ component displayName="Preside Object Service" {
 			direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
 
 			if ( left( propertyName, 4 ) == "agg:" ) {
-				aggregateArgs = {
-					  selectFields = [ "#propertyName# as _placeholder" ]
-					, objectName   = arguments.objectName
-					, filterParams = arguments.filterParams
-					, extraJoins   = arguments.extraJoins
-				};
-				_prepareAggregateFormulaFields( aggregateArgs );
+				var rawPropName = Trim( ListFirst( item, " " ) );
 
-				propertyName = ReReplaceNoCase( aggregateArgs.selectFields[ 1 ], " as _placeholder$", "" );
-				item         = propertyName & direction;
+				if ( _aggJoinExists( arguments.extraJoins, rawPropName, dbAdapter ) ) {
+					item = rawPropName & direction;
+				} else {
+					aggregateArgs = {
+						  selectFields = [ "#propertyName# as _placeholder" ]
+						, objectName   = arguments.objectName
+						, filterParams = arguments.filterParams
+						, extraJoins   = arguments.extraJoins
+					};
+					_prepareAggregateFormulaFields( aggregateArgs );
+					propertyName = ReReplaceNoCase( aggregateArgs.selectFields[ 1 ], " as _placeholder$", "" );
+					item = propertyName & direction;
+				}
+
 			} else {
 				aliased = _autoPrefixBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
 				item    = aliased & direction;
 			}
 
-			rebuilt.append( Trim( item ) );
+			ArrayAppend( rebuilt, Trim( item ) );
 		}
 
 		return rebuilt.toList( ", " );
