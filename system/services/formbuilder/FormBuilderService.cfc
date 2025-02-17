@@ -2302,7 +2302,14 @@ component {
 
 				if ( $getPresideObject( "formbuilder_question" ).dataExists( filter={ field_id=fieldId } ) ) {
 					oldFieldId = " ( #fieldId# )";
-					fieldId    = "#fieldId#_#DateTimeFormat( Now(), "yymmddHHmmss" )#";
+
+					var timestamp = DateTimeFormat( Now(), "yymmddHHmmss" );
+
+					if ( REFind("(_\d+)$", fieldId) ) {
+						fieldId = REReplace( fieldId, "(_\d+)$", "_#timestamp#", "all" );
+					} else {
+						fieldId = "#fieldId#_#timestamp#";
+					}
 				}
 
 				questionId = $getPresideObject( "formbuilder_question" ).insertData(
