@@ -304,6 +304,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postRenderDelayedViewlets"             );
 		interceptorSettings.customInterceptionPoints.append( "preRunCustomization"                   );
 		interceptorSettings.customInterceptionPoints.append( "postRunCustomization"                  );
+		interceptorSettings.customInterceptionPoints.append( "onEmailTemplateGetAdditionalQueryStringForBuildAjaxListingLink" );
+		interceptorSettings.customInterceptionPoints.append( "onEmailTemplatePreFetchRecordsForGridListing" );
 	}
 
 	private void function __setupCachebox() {
