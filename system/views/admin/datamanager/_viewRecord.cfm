@@ -1,7 +1,9 @@
 <cfscript>
-	infoCard        = prc.infoCard ?: "";
-	topRightButtons = prc.topRightButtons ?: "";
-	tabs            = prc.tabs     ?: "";
+	infoCard              = prc.infoCard              ?: "";
+	topRightButtons       = prc.topRightButtons       ?: "";
+	tabs                  = prc.tabs                  ?: "";
+	preViewRecordContent  = prc.preViewRecordContent  ?: "";
+	postViewRecordContent = prc.postViewRecordContent ?: "";
 </cfscript>
 
 <cfoutput>
@@ -11,6 +13,8 @@
 		</div>
 	</cfif>
 
+	#preViewRecordContent#
 	#infoCard#
 	#tabs#
+	#postViewRecordContent#
 </cfoutput>
