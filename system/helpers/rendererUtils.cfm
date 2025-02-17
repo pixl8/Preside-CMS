@@ -12,12 +12,12 @@
 </cfsilent></cffunction>
 
 <cffunction name="autoLoadMore" access="public" returntype="string" output="false">
-	<cfargument name="content"       type="string" required="true" />
+	<cfargument name="content"       type="string"  required="true" />
 	<cfargument name="maxRows"       type="numeric" required="false" default="3" />
-	<cfargument name="showMoreLabel" type="string" required="false" default="" />
-	<cfargument name="showLessLabel" type="string" required="false" default="" />
-	<cfargument name="showMoreClass" type="string" required="false" default="" />
-	<cfargument name="showLessClass" type="string" required="false" default="" />
+	<cfargument name="showMoreLabel" type="string"  required="false" default="" />
+	<cfargument name="showLessLabel" type="string"  required="false" default="" />
+	<cfargument name="showMoreClass" type="string"  required="false" default="" />
+	<cfargument name="showLessClass" type="string"  required="false" default="" />
 
 	<cfscript>
 		var attrs = [ 'data-read-all="true"', 'data-read-all-rows="#arguments.maxRows#"' ];
