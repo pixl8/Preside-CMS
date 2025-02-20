@@ -232,7 +232,7 @@ component displayName="Preside Object Service" {
 
 		var filterService = _getFilterService();
 
-		for( var savedFilter in arguments.savedFilters ){
+		for( var savedFilter in args.savedFilters ){
 			ArrayAppend( args.savedFilterList, filterService.getFilter( savedFilter ) );
 		}
 
