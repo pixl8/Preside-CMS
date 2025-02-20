@@ -12,9 +12,9 @@ This form is used for general configuration of the task manager
 			<field name="site_context"           control="objectpicker" required="true" object="site" feature="sites" />
 		</fieldset>
 		<fieldset id="overrunalerts" sortorder="20">
-			<field name="overrun_percentage"             control="spinner" sortorder="10" required="false" defaultvalue="50" />
-			<field name="overrun_previous_runs_required" control="spinner" sortorder="20" required="false" defaultValue="5"  />
-			<field name="overrun_minimum_runtime"        control="spinner" sortorder="30" required="false" defaultvalue="5"  />
+			<field name="overrun_percentage"             control="spinner" sortorder="10" required="false" />
+			<field name="overrun_previous_runs_required" control="spinner" sortorder="20" required="false" />
+			<field name="overrun_minimum_runtime"        control="spinner" sortorder="30" required="false" />
 		</fieldset>
 	</tab>
 </form>
