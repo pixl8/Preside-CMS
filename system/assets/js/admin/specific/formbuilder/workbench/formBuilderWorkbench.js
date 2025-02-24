@@ -43,7 +43,7 @@
 		});
 
 		$itemsContainer.sortable( {
-			  placeholder : "sortable-placeholder form-item"
+			  placeholder : "sortable-placeholder item-type"
 			, handle      : ".sort-link"
 			, items       : ".form-item"
 			, helper      : function( event, ui ) {
