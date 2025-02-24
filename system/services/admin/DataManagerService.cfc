@@ -297,6 +297,15 @@ component {
 		);
 	}
 
+	public boolean function usesModalViewRecord( required string objectName ) {
+		var modalView = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerModalView"
+		);
+
+		return IsBoolean( modalView ) && modalView;
+	}
+
 	public boolean function usesTreeView( required string objectName ) {
 		var treeView = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName

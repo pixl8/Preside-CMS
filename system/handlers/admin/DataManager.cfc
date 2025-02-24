@@ -291,6 +291,10 @@ component extends="preside.system.base.AdminHandler" {
 			, defaultHandler = "admin.dataHelpers.viewRecord"
 			, args           = { objectName= objectName, recordId=recordId, version=version }
 		);
+
+		if ( IsTrue( rc.modalView ?: "" ) ) {
+			event.setLayout( "adminAjaxModal" );
+		}
 	}
 
 	public void function addRecord( event, rc, prc ) {
@@ -2258,9 +2262,10 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			var canFlagRecord          = canEdit && isFlaggingEnabled( objectName=objectName );
+			var modalView              = canView && dataManagerService.usesModalViewRecord( objectName );
 			var addChildRecordLink     = canAdd && isTreeView  ? event.buildAdminLink( objectName=objectName, operation="addRecord", queryString="#parentProperty#={id}" ) : "";
 			var sortChildrenRecordLink = canEdit && isTreeView ? event.buildAdminLink( objectName=objectName, operation="sortRecords", queryString="#parentProperty#={id}" ) : "";
-			var viewRecordLink         = canView               ? event.buildAdminLink( objectName=objectName, recordId="{id}" )                                                       : "";
+			var viewRecordLink         = canView               ? event.buildAdminLink( objectName=objectName, recordId="{id}", args={ modalView=modalView } ) : "";
 			var cloneRecordLink        = canClone              ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="cloneRecord" )                              : "";
 			var editRecordLink         = canEdit               ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="editRecord", args={ resultAction="grid" } ) : "";
 			var deleteRecordLink       = canDelete             ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="deleteRecordAction" )                       : "";
@@ -2268,6 +2273,7 @@ component extends="preside.system.base.AdminHandler" {
 			var deleteRecordTitle      = canDelete             ? translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, "{recordlabel}" ] )        : "";
 			var deleteRecordTitleThis  = canDelete             ? translateResource( uri="cms:datamanager.deleteRecord.this",   data=[ objectTitleSingular ] )                         : "";
 			var flagRecordLink         = canFlagRecord         ? event.buildAdminLink( objectName=objectName, recordId="{id}", operation="flagRecordAction" )                         : "";
+
 		}
 
 		for( var record in records ){
@@ -2293,10 +2299,12 @@ component extends="preside.system.base.AdminHandler" {
 					);
 				} else {
 					if ( canView ) {
-						actions.append( {
-							  link       = viewRecordLink.replace( "{id}", record.id )
+						ArrayAppend( actions, {
+							  link       = Replace( viewRecordLink, "{id}", record.id )
 							, icon       = "fa-eye"
 							, contextKey = "v"
+							, modal      = modalView
+							, modalTitle = objectTitleSingular
 						} );
 					}
 					if ( canAdd && isTreeView ) {
