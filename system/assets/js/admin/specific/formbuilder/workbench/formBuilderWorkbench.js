@@ -39,13 +39,98 @@
 
 		$instructions.droppable({
 			  accept : $itemTypes
-        	, drop   : addItemFromDropZone
+			, drop   : addItemFromDropZone
 		});
 
 		$itemsContainer.sortable( {
-			  stop        : sortableStop
-			, placeholder : "item-type sortable-placeholder"
+			  placeholder : "sortable-placeholder form-item"
 			, handle      : ".sort-link"
+			, items       : ".form-item"
+			, helper      : function( event, ui ) {
+				var $group;
+
+				if ( ui.hasClass( "item-type-page" ) ) {
+					$group = ui.nextUntil(".item-type-page").addBack();
+				} else {
+					$group = ui;
+				}
+
+				var $helper = $( "<div class='sortable-helper'></div>" );
+
+				$group.each( function() {
+					$helper.append( $( this ).clone().css( {
+						  width      : $(this).outerWidth()
+						, background : "#f8f9fa"
+						, padding    : "5px"
+					} ) );
+				} );
+
+				ui.data( "group", $group );
+
+				return $helper;
+			  }
+			, start       : function( event, ui ) {
+			  var $group = ui.item.data("group");
+
+				if ( $group && $group.length > 1 ) {
+					$group.not( ui.item ).addClass( "hidden-item" ).slideUp( 200 );
+				}
+			  }
+			, update      : function( event, ui ) {
+				var $group = ui.item.data( "group" );
+				var $next  = ui.item.next();
+				var $prev  = ui.item.prev();
+
+				if ($group && $group.length > 1) {
+					if ( $next.length && !$next.hasClass( "item-type-page" ) ) {
+						$( this ).sortable( "cancel" );
+						$group.removeClass( "hidden-item" ).slideDown( 200 );
+						return;
+					}
+
+					$( ".sortable-placeholder" ).remove();
+
+					$group.detach();
+
+					if ( $next.length ) {
+						$group.insertBefore( $next );
+					} else {
+						$( ".form-items" ).append( $group );
+					}
+
+					$group.removeClass( "hidden-item" ).slideDown( 200 );
+				}
+
+				if ( !ui.item.hasClass( "item-type-page" ) && $prev.length === 0 ) {
+					$( this ).sortable( "cancel" );
+				}
+			  }
+			, stop        : function( event, ui ) {
+				var $group = ui.item.data( "group" )
+				  , item   = ui.item
+				  , data   = item.data();
+
+				if ( $group && $group.length > 1 ) {
+					$( ".sortable-placeholder" ).remove();
+					$group.removeClass( "hidden-item" ).slideDown( 200 );
+				}
+
+				if ( data.itemTemplate ) {
+					processNewItem( item );
+					item.data( "itemTemplate", false );
+				} else {
+					saveSortOrder();
+				}
+			}
+			, change      : function( event, ui ) {
+				var $placeholder = $( ".sortable-placeholder" );
+
+				if ( ui.item.hasClass( "item-type-page" ) && !$placeholder.next().hasClass( "item-type-page" ) ) {
+					$placeholder.hide();
+				} else {
+					$placeholder.show();
+				}
+			}
 		} );
 	};
 
@@ -71,18 +156,6 @@
 		$instructions.removeClass( "empty" );
 
 		processNewItem( $item );
-	};
-
-	sortableStop = function( event, ui ){
-		var item = ui.item
-		  , data = item.data();
-
-		if ( data.itemTemplate ) {
-			processNewItem( item );
-			item.data( "itemTemplate", false );
-		} else {
-			saveSortOrder();
-		}
 	};
 
 	processNewItem = function( $newItem ) {
@@ -186,9 +259,9 @@
 		};
 
 		modal = new PresideIframeModal( configEndpoint, "100%", "100%", {
-	  		  onLoad   : onIFrameLoad
-	  		, onok     : onDialogOk
-	  		, oncancel : onCancelDialog
+			  onLoad   : onIFrameLoad
+			, onok     : onDialogOk
+			, oncancel : onCancelDialog
 		}, {
 			  title      : itemData.configTitle
 			, className  : "full-screen-dialog"

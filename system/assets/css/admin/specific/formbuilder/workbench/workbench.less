@@ -50,7 +50,64 @@
 				}
 			}
 
-			.form-items, .setting-items {
+			.form-items {
+				.form-item {
+					display         : flex;
+					justify-content : space-between;
+					column-gap      : 10px;
+					margin-bottom   : 15px;
+					padding         : 10px;
+					border          : 1px solid @default-panel-border-colour;
+					font-size       : 1.1em;
+
+					&.item-type-page {
+						border-radius    : 5px;
+						background-color : @default-panel-background-colour;
+
+						.item-type-placeholder {
+							margin-left : 0;
+							font-weight : bold;
+						}
+
+						&:has(+ :not(.item-type-page)) {
+							border-radius : 5px 5px 0 0;
+							margin-bottom : 0;
+						}
+					}
+
+					&:not(.item-type-page) {
+						margin-bottom : 0;
+
+						&:has(+ .item-type-page), &:last-child {
+							border-radius : 0 0 5px 5px;
+							margin-bottom : 15px;
+						}
+					}
+
+					&.sortable-placeholder {
+						border     : 2px dashed @default-panel-border-colour;
+						min-height : 4em;
+					}
+
+					.sort-link {
+						&:active, &:hover {
+							cursor : move;
+						}
+					}
+
+					.item-type-placeholder {
+						flex-grow   : 4;
+						margin-left : 20px;
+					}
+
+					.item-type-name {
+						color          : @default-light-font-colour;
+						text-transform : uppercase;
+					}
+				}
+			}
+
+			.setting-items {
 				.item-type {
 					padding          : 10px;
 					background-color : @default-panel-background-colour;
