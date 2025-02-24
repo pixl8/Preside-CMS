@@ -1,0 +1,21 @@
+.readall-wrapper {
+	.collapsible-content-btn.btn-link {
+		padding      : 0;
+		border-width : 0;
+	}
+
+	.readall {
+		position: relative;
+	}
+
+	.readall-hide::after {
+		content    : "";
+		display    : inline-block;
+		position   : absolute;
+		bottom     : 0;
+		right      : 0;
+		width      : 100%;
+		height     : 25px;
+		background : linear-gradient(to bottom, rgba(255, 255, 255, 0.1), white 75%);
+	}
+}

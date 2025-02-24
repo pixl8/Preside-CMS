@@ -12,6 +12,7 @@ component extends="preside.system.base.AdminHandler" {
 	variables.permissionKeyCache = {};
 	variables.maxTabCount        = 6;
 	variables.sidebarNavigation  = false;
+	variables.infoCardStyle      = "default";
 
 // PUBLIC ACTIONS
 	public void function viewRecord( event, rc, prc ){
@@ -79,6 +80,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		_overrideAdminLayout( argumentCollection=arguments );
 		event.setView( "/admin/datamanager/_viewRecord" );
+
+		if ( IsTrue( rc.modalView ?: "" ) ) {
+			event.setLayout( "adminAjaxModal" );
+		}
 	}
 
 // CUSTOMIZATIONS
@@ -143,6 +148,10 @@ component extends="preside.system.base.AdminHandler" {
 			qs &= "&#queryString#";
 		}
 
+		if ( IsTrue( args.modalView ?: "" ) ) {
+			qs &= "&modalView=true";
+		}
+
 		return event.buildAdminLink( linkto="datamanager.#objectName#.viewRecord", queryString=qs );
 	}
 
@@ -169,6 +178,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.col1 = Duplicate( variables.infoCol1 ?: [] );
 		args.col2 = Duplicate( variables.infoCol2 ?: [] );
 		args.col3 = Duplicate( variables.infoCol3 ?: [ "created", "modified" ] );
+		args.infoCardStyle = variables.infoCardStyle;
 
 		announceInterception( "preRenderDataManagerObjectInfoCard", args );
 
@@ -177,15 +187,23 @@ component extends="preside.system.base.AdminHandler" {
 				var field = args[ "col#i#" ][ n ];
 				var rendered = _render( field );
 
-				if ( rendered.trim().len() ) {
-					args[ "col#i#" ][ n ] = rendered;
+				if ( Len( Trim( rendered ) ) ) {
+					if ( infoCardStyle == "definitionList" ) {
+						args[ "col#i#" ][ n ] = {
+							  title = translateResource( uri="preside-objects.#objectName#:infocard.#field#", defaultValue=translateObjectProperty( objectName, field ) )
+							, value = rendered
+						};
+
+					} else {
+						args[ "col#i#" ][ n ] = rendered;
+					}
 				} else {
-					args[ "col#i#" ].deleteAt( n );
+					ArrayDeleteAt( args[ "col#i#" ], n );
 				}
 			}
 		}
 
-		if ( args.col1.len() || args.col2.len() || args.col3.len() ) {
+		if ( ArrayLen( args.col1 ) || ArrayLen( args.col2 ) || ArrayLen( args.col3 ) ) {
 			if ( !IsArray( args.infoColSizes ?: "" ) ) {
 				if ( IsArray( variables.infoColSizes ?: "" ) && ArrayLen( variables.infoColSizes ) == 3 ) {
 					args.infoColSizes = variables.infoColSizes;
