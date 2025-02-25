@@ -20,7 +20,6 @@
 	  , setupDragAndDropBehaviour
 	  , setupClickBehaviours
 	  , addItemFromDropZone
-	  , sortableStop
 	  , addItemDirectlyFromList
 	  , processNewItem
 	  , saveNewItem
@@ -45,12 +44,12 @@
 		$itemsContainer.sortable( {
 			  placeholder : "sortable-placeholder item-type"
 			, handle      : ".sort-link"
-			, items       : ".form-item"
+			// , items       : ".form-item"
 			, helper      : function( event, ui ) {
 				var $group;
 
-				if ( ui.hasClass( "item-type-page" ) ) {
-					$group = ui.nextUntil(".item-type-page").addBack();
+				if ( ui.is( '[data-item-type="page"]' ) ) {
+					$group = ui.nextUntil( ".item-type-page" ).addBack();
 				} else {
 					$group = ui;
 				}
@@ -59,7 +58,7 @@
 
 				$group.each( function() {
 					$helper.append( $( this ).clone().css( {
-						  width      : $(this).outerWidth()
+						  width      : $( this ).outerWidth()
 						, background : "#f8f9fa"
 						, padding    : "5px"
 					} ) );
@@ -70,7 +69,7 @@
 				return $helper;
 			  }
 			, start       : function( event, ui ) {
-			  var $group = ui.item.data("group");
+				var $group = ui.item.data("group");
 
 				if ( $group && $group.length > 1 ) {
 					$group.not( ui.item ).addClass( "hidden-item" ).slideUp( 200 );
@@ -81,8 +80,8 @@
 				var $next  = ui.item.next();
 				var $prev  = ui.item.prev();
 
-				if ($group && $group.length > 1) {
-					if ( $next.length && !$next.hasClass( "item-type-page" ) ) {
+				if ( $group && $group.length > 1 ) {
+					if ( $next.length && !$next.is( '[data-item-type="page"]' ) ) {
 						$( this ).sortable( "cancel" );
 						$group.removeClass( "hidden-item" ).slideDown( 200 );
 						return;
@@ -101,7 +100,7 @@
 					$group.removeClass( "hidden-item" ).slideDown( 200 );
 				}
 
-				if ( !ui.item.hasClass( "item-type-page" ) && $prev.length === 0 ) {
+				if ( !ui.item.is( '[data-item-type="page"]' ) && $prev.length === 0 ) {
 					$( this ).sortable( "cancel" );
 				}
 			  }
@@ -125,7 +124,7 @@
 			, change      : function( event, ui ) {
 				var $placeholder = $( ".sortable-placeholder" );
 
-				if ( ui.item.hasClass( "item-type-page" ) && !$placeholder.next().hasClass( "item-type-page" ) ) {
+				if ( ui.item.is( '[data-item-type="page"]' ) && !$placeholder.next().is( '[data-item-type="page"]' ) ) {
 					$placeholder.hide();
 				} else {
 					$placeholder.show();
