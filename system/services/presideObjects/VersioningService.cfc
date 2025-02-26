@@ -697,7 +697,8 @@ component {
 		}
 
 		if ( StructKeyExists( objMeta.properties, idField ) ) {
-			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id" ] = { unique=false, fields="#idField#,_version_number" };
+			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id_solo" ] = { unique=false, fields=idField };
+			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id"      ] = { unique=false, fields="#idField#,_version_number" }; // naming here off, but backwards compatible issue. See https://presidecms.atlassian.net/browse/PRESIDECMS-3022
 		}
 	}
 
