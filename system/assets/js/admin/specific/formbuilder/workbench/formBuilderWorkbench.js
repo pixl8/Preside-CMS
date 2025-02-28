@@ -296,7 +296,7 @@
 		launchConfiguration( $item );
 	};
 
-	deleteItem = function( e ){
+	deleteItem = function( e ) {
 		var $link  = $( this )
 		  , $item  = $link.closest( ".form-item" )
 		  , title  = $link.data( "title" ) || $link.attr( "title" )
@@ -306,17 +306,29 @@
 
 		presideBootbox.confirm( prompt, function( confirmed ) {
 			if ( confirmed ) {
-				$.ajax( deleteItemEndpoint, {
-					  method : "POST"
-					, data   : { id : $item.data( "id" ) }
-					, cache  : false
-					, success : function( result ){
-						if ( result ) {
-							$item.remove();
-						}
-					}
-				} );
+				var items = [ $item ];
 
+				if ( $item.is( '[data-item-type="page"]' ) ) {
+					var $nextItem = $item.next();
+					while ( $nextItem.length && !$nextItem.is( '[data-item-type="page"]' ) ) {
+						items.push( $nextItem );
+
+						$nextItem = $nextItem.next();
+					}
+				}
+
+				$.each( items, function( _, item ) {
+					$.ajax( deleteItemEndpoint, {
+						  method : "POST"
+						, data   : { id : $( item ).data( "id" ) }
+						, cache  : false
+						, success : function( result ){
+							if ( result ) {
+								$( item ).remove();
+							}
+						}
+					} );
+				} );
 			}
 		});
 	};
