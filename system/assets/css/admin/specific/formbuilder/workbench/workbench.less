@@ -64,7 +64,7 @@
 					&.sortable-placeholder {
 						border           : 1px dashed @error-border-red;
 						background-color : @error-bg-red;
-						min-height       : 3em;
+						min-height       : 2em;
 						border-radius    : 0;
 					}
 
@@ -82,6 +82,11 @@
 					&.item-type-page {
 						border-radius: 5px 5px 0 0;
 						background-color : @default-panel-background-colour;
+
+						&:has(+ .item-type-page), &:last-of-type {
+							border-radius : 5px;
+							margin-bottom : 15px;
+						}
 					}
 
 					/* All non-page items inside a group */

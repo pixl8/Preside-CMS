@@ -44,7 +44,6 @@
 		$itemsContainer.sortable( {
 			  placeholder : "sortable-placeholder item-type"
 			, handle      : ".sort-link"
-			// , items       : ".form-item"
 			, helper      : function( event, ui ) {
 				var $group;
 
@@ -124,8 +123,11 @@
 			, change      : function( event, ui ) {
 				var $placeholder = $( ".sortable-placeholder" );
 
-				if ( ui.item.is( '[data-item-type="page"]' ) && !$placeholder.next().is( '[data-item-type="page"]' ) ) {
-					$placeholder.hide();
+				if (
+					ui.item.is( '[data-item-type="page"]' ) &&
+					($placeholder.next().length === 0 || !$placeholder.next().is( '[data-item-type="page"] '))
+				) {
+					$placeholder.show();
 				} else {
 					$placeholder.show();
 				}
