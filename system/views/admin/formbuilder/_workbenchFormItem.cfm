@@ -42,7 +42,7 @@
 				</cfif>
 			</cfif>
 
-			<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.item.link.title', data=[ args.type.title ] )#">
+			<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.#( args.item_type == "page" ? "page" : "item" )#.link.title', data=[ args.configuration.label ?: args.type.title ] )#">
 				<i class="fa fa-trash"></i>
 			</a>
 
