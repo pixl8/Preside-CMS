@@ -312,40 +312,84 @@
 	};
 
 	deleteItem = function( e ) {
-		var $link  = $( this )
-		  , $item  = $link.closest( ".form-item" )
-		  , title  = $link.data( "title" ) || $link.attr( "title" )
-		  , prompt = i18n.translateResource( "cms:confirmation.prompt", { data:[ ( title.charAt(0).toLowerCase() + title.slice(1) ) ] } );
+		var $link    = $( this )
+		  , $item    = $link.closest( ".form-item" )
+		  , title    = $link.data( "title" ) || $link.attr( "title" )
+		  , prompt   = i18n.translateResource( "cms:confirmation.prompt", { data:[ ( title.charAt(0).toLowerCase() + title.slice(1) ) ] } )
+		  , $message = $( "<div class=\"form-group\"><label>" + prompt + "</label></div>" )
+		  , $input   = $( "<input class=\"bootbox-input form-control\" autocomplete=\"off\" type=\"text\" />" )
+		  , match    = "delete"
+		  , isPage   = $item.is( '[data-item-type="page"]' )
+		  , items    = [ $item ];
 
 		e.preventDefault();
 
-		presideBootbox.confirm( prompt, function( confirmed ) {
-			if ( confirmed ) {
-				var items = [ $item ];
+		if ( isPage ) {
+			var $nextItem = $item.next();
+			while ( $nextItem.length && !$nextItem.is( '[data-item-type="page"]' ) ) {
+				items.push( $nextItem );
 
-				if ( $item.is( '[data-item-type="page"]' ) ) {
-					var $nextItem = $item.next();
-					while ( $nextItem.length && !$nextItem.is( '[data-item-type="page"]' ) ) {
-						items.push( $nextItem );
+				$nextItem = $nextItem.next();
+			}
 
-						$nextItem = $nextItem.next();
-					}
-				}
+			if ( items.length > 1 ) {
+				$message
+					.find( "label" )
+					.text( prompt + " " + i18n.translateResource( "cms:formbuilder.delete.fields.title" ) )
+					.parent()
+					.append( "<p class=\"help-block\">" + i18n.translateResource( "cms:confirmation.prompt.please.type.message", { data:[ "<code>" + match + "</code>" ] } ) + "</p>" )
+					.append( $input )
+				;
+			}
+		}
 
-				$.each( items, function( _, item ) {
-					$.ajax( deleteItemEndpoint, {
-						  method : "POST"
-						, data   : { id : $( item ).data( "id" ) }
-						, cache  : false
-						, success : function( result ){
-							if ( result ) {
-								$( item ).remove();
+		var confirmationDialog = presideBootbox.dialog( {
+			  title   : i18n.translateResource( "cms:confirmation.title" )
+			, message :$message
+			, buttons : {
+				  cancel  : {
+					  label: i18n.translateResource( "cms:confirmation.prompt.cancel.button" )
+				  }
+				, confirm : {
+					  label: i18n.translateResource( "cms:confirmation.prompt.confirm.button" )
+					, callback: function() {
+						var confirmed = false;
+
+						if ( isPage && items.length > 1 && match.length ) {
+							if( $input.val() === match ) {
+								confirmed = true;
+								$message.removeClass( "has-error" );
+							}
+							else {
+								$message.addClass( "has-error" );
 							}
 						}
-					} );
-				} );
+						else {
+							confirmed = true;
+						}
+
+						if ( confirmed ) {
+							$.each( items, function( _, item ) {
+								$.ajax( deleteItemEndpoint, {
+									  method : "POST"
+									, data   : { id : $( item ).data( "id" ) }
+									, cache  : false
+									, success : function( result ){
+										if ( result ) {
+											$( item ).remove();
+										}
+									}
+								} );
+							} );
+
+							confirmationDialog.modal('hide');
+						}
+
+						return false;
+					  }
+				}
 			}
-		});
+		} );
 	};
 
 	saveSortOrder = function(){
