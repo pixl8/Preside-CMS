@@ -2,7 +2,8 @@ component extends="testbox.system.BaseSpec"{
 
 	function beforeAll() {
 		authenticator = createMock( object=new preside.system.services.authentication.GoogleAuthenticator() );
-		authenticator.$( "getCurrentTime", 0 );
+
+		authenticator.$( "getCurrentTime", 1741011498685 );
 	}
 
 	function run(){
@@ -75,38 +76,32 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( key ).toBe( "D5NJOIFNXEB4DL7M" );
 			} );
-
 		} );
 
 		describe( "getOneTimeToken()", function(){
-
 			it( "should return a predictable token given a known secret key and counter", function(){
 				var token = authenticator.getOneTimeToken( "D5NJOIFNXEB4DL7M", 0 );
 
 				expect( token ).toBe( "731217" );
 			} );
-
 		} );
 
 		describe( "getGoogleToken()", function(){
 
 			it( "should return a predictable token given a known secret key and counter based on 30 second interval counters", function(){
-
-
 				var token = authenticator.getGoogleToken( "D5NJOIFNXEB4DL7M" );
-				expect( token ).toBe( "731217" );
+				expect( token ).toBe( "920937" );
 			} );
 
 		} );
 
 		describe( "verifyGoogleToken()", function(){
-
 			it( "should return false when invalid value passed", function(){
 				expect( authenticator.verifyGoogleToken( "D5NJOIFNXEB4DL7M", "000000", 0 ) ).toBeFalse();
 			} );
 
 			it( "should return true when expected valid value passed", function(){
-				expect( authenticator.verifyGoogleToken( "D5NJOIFNXEB4DL7M", "731217", 0 ) ).toBeTrue();
+				expect( authenticator.verifyGoogleToken( "D5NJOIFNXEB4DL7M", "920937", 0 ) ).toBeTrue();
 			} );
 
 			it( "should return false when old valid value passed with no grace", function(){
@@ -114,23 +109,21 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should return true when old valid value passed with grace", function(){
-				expect( authenticator.verifyGoogleToken( "D5NJOIFNXEB4DL7M", "434975", 1 ) ).toBeTrue();
+				expect( authenticator.verifyGoogleToken( "D5NJOIFNXEB4DL7M", "023990", 1 ) ).toBeTrue();
 			} );
 
 			it( "should return true when old valid value passed with excess grace", function(){
-				expect( authenticator.verifyGoogleToken( "D5NJOIFNXEB4DL7M", "434975", 2 ) ).toBeTrue();
+				expect( authenticator.verifyGoogleToken( "D5NJOIFNXEB4DL7M", "023990", 2 ) ).toBeTrue();
 			} );
 
 		} );
 
 		describe( "getOtpUrl", function(){
-
 			it( "should return a URL that can be used in a QR code with the Google Authenticator app", function(){
 				var otpUrl = authenticator.getOtpUrl( "My app", "test@example.com", "D5NJOIFNXEB4DL7M" );
 
 				expect( otpUrl ).toBe( "otpauth://totp/My%20app:test@example.com?secret=D5NJOIFNXEB4DL7M" );
 			} );
-
 		} );
 	}
 }
