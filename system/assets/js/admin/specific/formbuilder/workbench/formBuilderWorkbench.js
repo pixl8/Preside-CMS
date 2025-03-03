@@ -78,6 +78,10 @@
 				var $group = ui.item.data( "group" );
 				var $next  = ui.item.next();
 				var $prev  = ui.item.prev();
+				var $item  = ui.item;
+
+				var isPage     = $item.is( '[data-item-type="page"]' );
+				var hasAnyPage = $( ".form-items .form-item[data-item-type='page']" ).length > 0;
 
 				if ( $group && $group.length > 1 ) {
 					if ( $next.length && !$next.is( '[data-item-type="page"]' ) ) {
@@ -99,8 +103,15 @@
 					$group.removeClass( "hidden-item" ).slideDown( 200 );
 				}
 
-				if ( !ui.item.is( '[data-item-type="page"]' ) && $prev.length === 0 ) {
-					$( this ).sortable( "cancel" );
+				if ( !isPage && $prev.length === 0 ) {
+					if ( hasAnyPage ) {
+						$( this ).sortable( "cancel" );
+						return;
+					}
+				}
+
+				if ( !isPage && !hasAnyPage && $item.index() !== 0 ) {
+					$( ".form-items" ).prepend( $item );
 				}
 			  }
 			, stop        : function( event, ui ) {
@@ -121,13 +132,17 @@
 				}
 			}
 			, change      : function( event, ui ) {
+				var $item        = ui.item;
 				var $placeholder = $( ".sortable-placeholder" );
+				var $firstItem   = $( ".form-items .form-item" ).first();
+				var hasAnyPage   = $( ".form-items .form-item[data-item-type='page']" ).length > 0;
 
-				if (
-					ui.item.is( '[data-item-type="page"]' ) &&
-					($placeholder.next().length === 0 || !$placeholder.next().is( '[data-item-type="page"] '))
-				) {
-					$placeholder.show();
+				if ( !$item.is( '[data-item-type="page"]' ) ) {
+					if ( $placeholder.index() === 0 && hasAnyPage ) {
+						$placeholder.hide();
+					} else {
+						$placeholder.show();
+					}
 				} else {
 					$placeholder.show();
 				}
