@@ -1612,7 +1612,7 @@ component {
 			spreadsheetLib.setCellValue( workbook, headers[i], 1, i, "string" );
 		}
 
-		var extraCols = {};
+		var extraData = {};
 		var row       = 1;
 		for ( var submission in submissions ) {
 			var column = 5;
@@ -1639,12 +1639,19 @@ component {
 					} );
 					var mappedColumns = itemColumnMap[ item.id ];
 
+					var chunkSize = 32767;
 					for( var i=1; i<=mappedColumns.len(); i++ ) {
 						if ( itemColumns.len() >= i ) {
-							if ( Len( itemColumns[ i ] ) >= 32767 ) {
-								extraCols[ column ][ row ] = Mid( itemColumns[ i ], 32768 );
+							var totalChars = Len( itemColumns[ i ] );
+							if ( totalChars >= chunkSize ) {
+								var extendedCols = [];
+								for ( var x=chunkSize+1; x<=totalChars; x+=chunkSize ) {
+									ArrayAppend( extendedCols, Mid( itemColumns[ i ], x, chunkSize ) );
+								}
 
-								spreadsheetLib.setCellValue( workbook, Left( itemColumns[ i ], 32767 ), row, column, "string" );
+								extraData[ column ][ row ] = extendedCols;
+
+								spreadsheetLib.setCellValue( workbook, Left( itemColumns[ i ], chunkSize ), row, column, "string" );
 							} else {
 								spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, column, "string" );
 							}
@@ -1673,18 +1680,33 @@ component {
 			}
 		}
 
-		if ( StructCount( extraCols ) ) {
-			for ( var col in extraCols ) {
-				var data = [ "" ];
+		if ( !StructIsEmpty( extraData ) ) {
+			if ( canInfo ) {
+				logger.info( "Processing additional data..." );
+			}
 
-				for ( var row=1; row<=submissions.recordCount; row++ ) {
-					ArrayAppend( data, extraCols[ col ][ row + 1 ] ?: "" );
+			$helpers.dumpLog(extraData=extraData);
+
+			var offsetCols = 0;
+			for ( var extraCol in extraData ) {
+				var totalCols = 0;
+				for ( var extraRow in extraData[ extraCol ] ) {
+					totalCols = Max( totalCols, ArrayLen( extraData[ extraCol ][ extraRow ] ) );
 				}
 
-				spreadsheetLib.addColumn( workbook=workbook, data=data, startColumn=Val( col ) + 1, insert=true );
+				for ( var i=1; i<=totalCols; i++ ) {
+					var data = [ "" ]; // Empty heading.
+
+					for ( var j=1; j<=submissions.recordCount; j++ ) {
+						ArrayAppend( data, extraData[ extraCol ][ j + 1 ][ i ] ?: "" );
+					}
+
+					spreadsheetLib.addColumn( workbook=workbook, data=data, startColumn=Val( extraCol ) + offsetCols + i, insert=true );
+				}
+
+				offsetCols += totalCols;
 			}
 		}
-
 
 		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
 		spreadsheetLib.addFreezePane( workbook, 0, 1 );
@@ -1694,6 +1716,10 @@ component {
 
 		if ( canReportProgress ) {
 			progress.setProgress( 100 );
+		}
+
+		if ( canInfo ) {
+			logger.info( "Done." );
 		}
 
 		if ( arguments.writeToFile ) {
