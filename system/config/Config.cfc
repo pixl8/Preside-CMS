@@ -1393,6 +1393,7 @@ component {
 			  spacer  = { isFormField=false }
 			, content = { isFormField=false }
 			, section = { isFormField=false }
+			, page    = { isFormField=false }
 		} };
 
 		fbSettings.actions = [
