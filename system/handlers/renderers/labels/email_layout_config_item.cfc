@@ -14,9 +14,9 @@ component {
 
 		var label = [ item ];
 		if( Len( template_name ) ){
-			ArrayPrepend( label, "Template: #template_name#" );
+			ArrayPrepend( label, translateResource( uri="preside-objects.email_layout_config_item:renderer.labels.template_prefix", data=[ template_name ] ) );
 		} else if( Len( blueprint_name ) ){
-			ArrayPrepend( label, "Blueprint: #blueprint_name#" );
+			ArrayPrepend( label, translateResource( uri="preside-objects.email_layout_config_item:renderer.labels.blueprint_prefix", data=[ blueprint_name ] ) );
 		}
 
 		return ArrayToList( label, " - " );
