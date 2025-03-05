@@ -144,6 +144,14 @@
 						text-transform : uppercase;
 					}
 				}
+
+				/* Only one non-page item */
+				&:has(> .item-type:not(.item-type-page):only-child) {
+					> .item-type:not(.item-type-page):only-child {
+						border-radius : 5px;
+						margin-bottom : 15px;
+					}
+				}
 			}
 
 			.setting-items {
