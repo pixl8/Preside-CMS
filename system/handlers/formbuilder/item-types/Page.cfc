@@ -17,4 +17,12 @@ component {
 		return label;
 	}
 
+	private string function renderInput( event, rc, prc, args={} ) {
+		var label = args.label ?: "";
+
+		if ( !isEmptyString( label ) ) {
+			return '<h2>#label#</h2>';
+		}
+	}
+
 }
