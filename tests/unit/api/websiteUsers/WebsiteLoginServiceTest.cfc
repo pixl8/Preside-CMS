@@ -496,7 +496,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		service.$( "$getPresideObject" ).$args( "website_user_reset_token" ).$results( mockResetDao );
 		mockResetDao.$( "insertData", 1 );
 		mockResetDao.$( "deleteData", 1 );
-		mockRequestService.$( "isBackgroundThread", false );
+		mockRequestContext.$( "isBackgroundThread", false );
 
 		return service;
 	}
