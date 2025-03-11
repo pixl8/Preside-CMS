@@ -136,6 +136,10 @@ component displayName="Ad-hoc Task Manager Service" {
 				return true;
 			}
 
+			if ( Len( task.web_owner ?: "" ) ) {
+				$getWebsiteLoginService().spoofUserLoginInBgThread( task.web_owner );
+			}
+
 			if ( task.status == "running" || !markTaskAsRunning( taskId=arguments.taskId ) ) {
 				$raiseError( error={
 					  type    = "AdHoTaskManagerService.task.already.running"
