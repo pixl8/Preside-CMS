@@ -46,13 +46,34 @@ component {
 			setNextEvent( url=cgi.http_referer, persistStruct=persistData );
 		}
 
-		var validationResult = formBuilderService.saveFormSubmission(
-			  formId       = formId
-			, requestData  = submission
-			, instanceId   = ( rc.instanceId   ?: "" )
-			, instanceSite = ( rc.instanceSite ?: "" )
-			, instanceUrl  = ( rc.instanceUrl  ?: "" )
-		);
+		var validationResult = validationEngine.newValidationResult();
+
+		if ( submission.formPageNumber ?: 0 ) {
+			var validationResult = formBuilderValidationService.validateFormSubmission(
+				  formItems      = formBuilderService.getFormItems( id=formId, pageNumber=submission.formPageNumber )
+				, submissionData = submission
+			);
+
+			if ( validationResult.validated() ) {
+				var savedData = formBuilderService.getTempStoredSubmission( formId );
+
+				submission.formPageNumber += submission._formNextPage ?: 1;
+
+				StructAppend( savedData, submission );
+
+				formBuilderService.setTempStoredSubmission( formId, savedData );
+
+				setNextEvent( url=cgi.http_referer );
+			}
+		} else {
+			validationResult = formBuilderService.saveFormSubmission(
+				  formId       = formId
+				, requestData  = submission
+				, instanceId   = ( rc.instanceId   ?: "" )
+				, instanceSite = ( rc.instanceSite ?: "" )
+				, instanceUrl  = ( rc.instanceUrl  ?: "" )
+			);
+		}
 
 		if ( event.isAjax() ) {
 			if ( validationResult.validated() ) {
@@ -93,9 +114,22 @@ component {
 			);
 		}
 
+		args.renderedButtons = renderViewlet( event="formbuilder.core.formButtons", args=args );
+
 		event.include( assetId="/js/frontend/formbuilder/" );
 
 		return renderView( view="/formbuilder/layouts/core/formLayout", args=args );
+	}
+
+	private string function formButtons( event, rc, prc, args={} ) {
+		var formPageNumber = args.formPageNumber ?: 0;
+		var formPagesTotal = args.formPagesTotal ?: 0;
+
+		args.isFormPage  = formPageNumber > 0;
+		args.isFirstPage = formPageNumber == 1;
+		args.isLastPage  = formPagesTotal == formPagesTotal;
+
+		return renderView( view="/formbuilder/layouts/core/formButtons", args=args );
 	}
 
 	private string function successMessage( event, rc, prc, args ) {
