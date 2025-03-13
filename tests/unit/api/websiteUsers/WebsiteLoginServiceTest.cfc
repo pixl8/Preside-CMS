@@ -471,6 +471,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockUserDao           = getMockbox().createStub();
 		mockResetDao          = getMockbox().createStub();
 		mockUserLoginTokenDao = getMockbox().createStub();
+		mockRequestContext    = getMockbox().createStub();
 		mockBCryptService     = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 		mockSysConfigService  = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
 		mockEmailService      = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
@@ -490,10 +491,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockActionsService.$( "promoteVisitorActionsToUserActions", 1 );
 		service.$( "$recordWebsiteUserAction" );
 		service.$( "$announceInterception" );
+		service.$( "$getRequestContext", mockRequestContext );
 		mockSessionStorage.$( "rotate" );
 		service.$( "$getPresideObject" ).$args( "website_user_reset_token" ).$results( mockResetDao );
 		mockResetDao.$( "insertData", 1 );
 		mockResetDao.$( "deleteData", 1 );
+		mockRequestContext.$( "isBackgroundThread", false );
 
 		return service;
 	}
