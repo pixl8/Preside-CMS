@@ -59,7 +59,7 @@ component {
 				return checkAccess.content;
 			}
 
-			if ( !StructIsEmpty( savedData ) ) {
+			if ( isTrue( savedData.checkAccess ?: "" ) ) {
 				var resubmitMessage = formbuilderService.formHasFileUploadFields( formId ) ? "resubmit.after.login.with.files" : "resubmit.after.login";
 				rendered &= '<div class="alert alert-info"><p>' & translateResource( "formbuilder:#resubmitMessage#") & '</p></div>';
 			}

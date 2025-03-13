@@ -1,9 +1,10 @@
 <!---@feature formbuilder--->
-<cfparam name="args.renderedItems"   type="string" />
-<cfparam name="args.renderedButtons" type="string" />
-<cfparam name="args.id"              type="string" />
-<cfparam name="args.validationJs"    type="string" default="" />
-<cfparam name="args.configuration"   type="struct" />
+<cfparam name="args.renderedItems"     type="string" />
+<cfparam name="args.renderedButtons"   type="string" />
+<cfparam name="args.renderedResponses" type="string" />
+<cfparam name="args.id"                type="string" />
+<cfparam name="args.validationJs"      type="string" default="" />
+<cfparam name="args.configuration"     type="struct" />
 
 <cfoutput>
 	<cfif Len( Trim( rc.errorMessage ?: "" ) ) >
@@ -19,6 +20,7 @@
 		</cfloop>
 
 		#args.renderedItems#
+		#args.renderedResponses#
 
 		<cfif IsTrue( args.configuration.use_captcha ?: "" )>
 			#renderView( '/formbuilder/general/captcha' )#

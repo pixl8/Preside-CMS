@@ -704,10 +704,14 @@ component {
 		var submission     =  _getSessionStorage().getVar( tempStorageKey, StructNew() );
 
 		if ( arguments.clearSubmission ) {
-			_getSessionStorage().deleteVar( tempStorageKey );
+			clearTempStoredSubmission( formId=arguments.formId );
 		}
 
 		return submission;
+	}
+
+	public void function clearTempStoredSubmission( required string formId ) {
+		_getSessionStorage().deleteVar( "temp_formbuilder_submission_#formId#" );
 	}
 
 	/**
@@ -725,10 +729,10 @@ component {
 		,          string layout           = "default"
 		,          struct configuration    = {}
 		,          any    validationResult = ""
+		,          struct savedData        = $getRequestContext().getCollectionWithoutSystemVars()
 	) {
-		var formPersistData = $getRequestContext().getCollectionWithoutSystemVars();
-		arguments.configuration.formPagesCount = countFormPages( formId=arguments.formId );
-		arguments.configuration.formPageNumber = arguments.configuration.formPagesCount ? ( formPersistData.formPageNumber ?: 1 ) : 0;
+		arguments.configuration.formPagesTotal = countFormPages( formId=arguments.formId );
+		arguments.configuration.formPageNumber = arguments.configuration.formPagesTotal ? ( savedData.formPageNumber ?: 1 ) : 0;
 
 		var formConfiguration = getForm( id=arguments.formId );
 		var items             = getFormItems( id=arguments.formId, pageNumber=arguments.configuration.formPageNumber );
