@@ -2,12 +2,16 @@
  * @feature formBuilder
  */
 component {
-	property name="formbuilderService" inject="formbuilderService";
+
+	property name="formbuilderService" inject="FormbuilderService";
+
+		property name="rulesEngineWebRequestService"             inject="RulesEngineWebRequestService";
 
 	private function index( event, rc, prc, args={} ) {
 		var pageCachingEnabled = isFeatureEnabled( "fullPageCaching" );
 
-		event.include( assetId="/js/frontend/formbuilder/" );
+		// event.include( assetId="/js/frontend/formbuilder/" );
+
 		if ( pageCachingEnabled ) {
 			event.include( "recaptcha-js" );
 		}
@@ -31,12 +35,12 @@ component {
 	}
 
 	private string function _renderForm( event, rc, prc, args={} ) {
-		var formId    = args.form   ?: "";
-		var layout    = args.layout ?: "";
-		var rendered  = "";
-		var savedData = formBuilderService.getTempStoredSubmission( formId );
+		var formId   = args.form   ?: "";
+		var layout   = args.layout ?: "";
+		var rendered = "";
+		var tempData = formBuilderService.getTempStoredSubmission( formId );
 
-		StructAppend( rc, savedData );
+		StructAppend( rc, tempData );
 
 		if ( Len( Trim( formId ) ) ) {
 			if( !formbuilderService.formExists( formId ) ){
@@ -59,7 +63,7 @@ component {
 				return checkAccess.content;
 			}
 
-			if ( isTrue( savedData.checkAccess ?: "" ) ) {
+			if ( isTrue( tempData.checkAccess ?: "" ) ) {
 				var resubmitMessage = formbuilderService.formHasFileUploadFields( formId ) ? "resubmit.after.login.with.files" : "resubmit.after.login";
 				rendered &= '<div class="alert alert-info"><p>' & translateResource( "formbuilder:#resubmitMessage#") & '</p></div>';
 			}

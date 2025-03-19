@@ -7,6 +7,7 @@
  * @feature        formbuilder
  */
 component {
+
 	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
 
 // CONSTRUCTOR
@@ -647,6 +648,21 @@ component {
 		return { allowed=true, reason="", content="", message="" };
 	}
 
+	public boolean function evaluateConditionForPage(
+		  required string  formId
+		, required numeric pageNumber
+	) {
+		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
+
+		for ( var formItem in formItems ) {
+			if ( ( formItem.configuration.itemType ?: "" ) == "page" && !$helpers.isEmptyString( formItem.configuration.condition ?: "" ) ) {
+				return _getRulesEngineWebRequestService().evaluateCondition( conditionId=formItem.configuration.condition );
+			}
+		}
+
+		return true;
+	}
+
 	/**
 	 * Returns whether or not a form has fields that identify as being file upload fields,
 	 * to make it easier to handle beahviours and repopulating of forms.
@@ -729,10 +745,14 @@ component {
 		,          string layout           = "default"
 		,          struct configuration    = {}
 		,          any    validationResult = ""
-		,          struct savedData        = $getRequestContext().getCollectionWithoutSystemVars()
+		,          struct requestData      = $getRequestContext().getCollectionWithoutSystemVars()
 	) {
-		arguments.configuration.formPagesTotal = countFormPages( formId=arguments.formId );
-		arguments.configuration.formPageNumber = arguments.configuration.formPagesTotal ? ( savedData.formPageNumber ?: 1 ) : 0;
+		arguments.configuration.formPagesTotal = getTotalPagesForForm( formId=arguments.formId );
+		arguments.configuration.formPageNumber = arguments.configuration.formPagesTotal ? ( requestData.formPageNumber ?: 1 ) : 0;
+
+		while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=arguments.configuration.formPageNumber ) ) {
+			arguments.configuration.formPageNumber += requestData._formNextPage ?: 1;
+		}
 
 		var formConfiguration = getForm( id=arguments.formId );
 		var items             = getFormItems( id=arguments.formId, pageNumber=arguments.configuration.formPageNumber );
@@ -2183,7 +2203,7 @@ component {
 		);
 	}
 
-	public numeric function countFormPages( required string formId ) {
+	public numeric function getTotalPagesForForm( required string formId ) {
 		return $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter          = { form=arguments.formId, item_type="page" }
 			, recordCountOnly = true

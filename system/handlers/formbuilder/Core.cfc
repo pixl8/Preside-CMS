@@ -7,7 +7,6 @@ component {
 	property name="formBuilderValidationService" inject="FormBuilderValidationService";
 	property name="formBuilderRenderingService"  inject="FormBuilderRenderingService";
 	property name="validationEngine"             inject="ValidationEngine";
-	property name="rulesEngineWebRequestService" inject="RulesEngineWebRequestService";
 	property name="websiteLoginService"          inject="featureInjector:websiteUsers:websiteLoginService";
 
 	public any function submitAction( event, rc, prc ) {
@@ -48,13 +47,12 @@ component {
 			setNextEvent( url=cgi.http_referer, persistStruct=persistData );
 		}
 
+		var tempSubmission   = formBuilderService.getTempStoredSubmission( formId=formId );
 		var validationResult = validationEngine.newValidationResult();
 		var persistStruct    = {}
 		var formItemsInPage  = [];
 
 		if ( submission.formPageNumber ?: 0 ) {
-			StructAppend( submission, formBuilderService.getTempStoredSubmission( formId ) );
-
 			formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=submission.formPageNumber );
 		}
 
@@ -65,12 +63,18 @@ component {
 			);
 
 			if ( validationResult.validated() ) {
-				submission.formPageNumber += submission._formNextPage ?: 1;
+				submission.formPageNumber += submission._formNextPage ?: 1; // Next page
 
-				formBuilderService.setTempStoredSubmission( formId, submission );
+				while ( !formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=submission.formPageNumber ) ) {
+					submission.formPageNumber += submission._formNextPage ?: 1;
+				}
+
+				StructAppend( tempSubmission, submission );
+
+				formBuilderService.setTempStoredSubmission( formId=formId, submission=tempSubmission );
 			}
 		} else {
-			formBuilderService.clearTempStoredSubmission( formId );
+			StructAppend( submission, tempSubmission );
 
 			validationResult = formBuilderService.saveFormSubmission(
 				  formId       = formId
@@ -79,6 +83,8 @@ component {
 				, instanceSite = ( rc.instanceSite ?: "" )
 				, instanceUrl  = ( rc.instanceUrl  ?: "" )
 			);
+
+			formBuilderService.clearTempStoredSubmission( formId=formId );
 
 			persistStruct.formBuilderFormSubmitted = formId;
 		}
