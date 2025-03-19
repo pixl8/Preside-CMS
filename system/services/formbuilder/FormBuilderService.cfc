@@ -1685,8 +1685,6 @@ component {
 				logger.info( "Processing additional data..." );
 			}
 
-			$helpers.dumpLog(extraData=extraData);
-
 			var offsetCols = 0;
 			for ( var extraCol in extraData ) {
 				var totalCols = 0;
