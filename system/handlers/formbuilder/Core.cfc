@@ -51,27 +51,35 @@ component {
 		var validationResult = validationEngine.newValidationResult();
 		var persistStruct    = {}
 		var formItemsInPage  = [];
+		var formNextPage     = submission._formNextPage ?: 1;
 
 		if ( submission.formPageNumber ?: 0 ) {
+			if ( formNextPage == 0 ) {
+				formBuilderService.clearTempStoredSubmission( formId=formId );
+				submission.formPageNumber = 1;
+			}
+
 			formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=submission.formPageNumber );
 		}
 
 		if ( ArrayLen( formItemsInPage ) ) {
-			validationResult = formBuilderValidationService.validateFormSubmission(
-				  formItems      = formItemsInPage
-				, submissionData = submission
-			);
+			if ( formNextPage != 0 ) {
+				validationResult = formBuilderValidationService.validateFormSubmission(
+					  formItems      = formItemsInPage
+					, submissionData = submission
+				);
 
-			if ( validationResult.validated() ) {
-				submission.formPageNumber += submission._formNextPage ?: 1; // Next page
+				if ( validationResult.validated() ) {
+					submission.formPageNumber += formNextPage;
 
-				while ( !formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=submission.formPageNumber ) ) {
-					submission.formPageNumber += submission._formNextPage ?: 1;
+					while ( !formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=submission.formPageNumber ) ) {
+						submission.formPageNumber += formNextPage;
+					}
+
+					StructAppend( tempSubmission, submission );
+
+					formBuilderService.setTempStoredSubmission( formId=formId, submission=tempSubmission );
 				}
-
-				StructAppend( tempSubmission, submission );
-
-				formBuilderService.setTempStoredSubmission( formId=formId, submission=tempSubmission );
 			}
 		} else {
 			StructAppend( submission, tempSubmission );

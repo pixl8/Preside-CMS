@@ -3,23 +3,28 @@
 	submitLabel   = args.configuration.button_label   ?: translateResource( uri="formbuilder:button.submit.label" );
 	backLabel     = args.configuration.back_label     ?: translateResource( uri="formbuilder:button.back.label" );
 	continueLabel = args.configuration.continue_label ?: translateResource( uri="formbuilder:button.continue.label" );
+	cancelLabel   = args.configuration.cancel_label   ?: translateResource( uri="formbuilder:button.cancel.label" );
 
-	isFormPage  = args.isFormPage ?: false;
+	isFormPage  = args.isFormPage  ?: false;
 	isFirstPage = args.isFirstPage ?: false;
 	isLastPage  = args.isLastPage  ?: false;
+
+	event.include( "/css/frontend/formbuilder/" );
 </cfscript>
 
 <cfoutput>
 	<div class="form-group">
-		<div class="col-md-offset-3 col-md-12">
-			<cfif isFormPage and not isFirstPage>
-				<button tabindex="#getNextTabIndex()#" class="btn btn-bordered" type="submit" name="_formNextPage" value="-1">#backLabel#</button>
-			</cfif>
-
+		<div class="form-buttons col-md-12">
 			<cfif isFormPage and not isLastPage>
 				<button tabindex="#getNextTabIndex()#" class="btn" type="submit" name="_formNextPage" value="1">#continueLabel#</button>
 			<cfelse>
 				<button tabindex="#getNextTabIndex()#" class="btn" type="submit">#submitLabel#</button>
+			</cfif>
+
+			<cfif isFormPage and not isFirstPage>
+				<button tabindex="#getNextTabIndex()#" class="btn btn-bordered" type="submit" name="_formNextPage" value="-1">#backLabel#</button>
+
+				<button tabindex="#getNextTabIndex()#" class="btn btn-link" type="submit" name="_formNextPage" value="0">#cancelLabel#</button>
 			</cfif>
 		</div>
 	</div>
