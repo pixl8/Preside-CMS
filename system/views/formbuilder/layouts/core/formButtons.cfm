@@ -22,9 +22,9 @@
 			</cfif>
 
 			<cfif isFormPage and not isFirstPage>
-				<button tabindex="#getNextTabIndex()#" class="btn btn-bordered" type="submit" name="_formNextPage" value="-1">#backLabel#</button>
-
 				<button tabindex="#getNextTabIndex()#" class="btn btn-link" type="submit" name="_formNextPage" value="0">#cancelLabel#</button>
+
+				<button tabindex="#getNextTabIndex()#" class="btn btn-bordered" type="submit" name="_formNextPage" value="-1">#backLabel#</button>
 			</cfif>
 		</div>
 	</div>
