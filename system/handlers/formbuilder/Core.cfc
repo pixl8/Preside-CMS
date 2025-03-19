@@ -138,31 +138,35 @@ component {
 
 		args.renderedResponses = "";
 		if ( isEmptyString( args.renderedItems ) ) {
-			var formItems = formBuilderService.getFormItems( id=formId );
-			var savedData = formBuilderService.getTempStoredSubmission( formId );
+			var formItems     = formBuilderService.getFormItems( id=formId );
+			var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
 
 			for ( var formItem in formItems ) {
-				formItem.configuration.renderedItem = renderViewlet(
-					  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response")
-					, args={
-						  response          = savedData[ formItem.configuration.name ?: "" ] ?: ""
-						, itemConfiguration = formItem.configuration
-					  }
-				);
+				var response = "";
 
-				formItem.configuration.id = formItem.configuration.id ?: CreateUUID();
-
-				if ( StructKeyExists( formItem.configuration, "layout" ) ) {
+				if ( StructKeyExists( tempSubmission, formItem.configuration.name ?: "" ) ) {
 					formItem.configuration.renderedItem = renderViewlet(
-						  event = formBuilderRenderingService.getFormFieldLayoutViewlet(
-								  itemType = formItem.item_type
-								, layout   = formItem.configuration.layout
-						  )
-						, args  = formItem.configuration
+						  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response")
+						, args={
+							  response          = tempSubmission[ formItem.configuration.name ]
+							, itemConfiguration = formItem.configuration
+						  }
 					);
-				}
 
-				args.renderedResponses &= formItem.configuration.renderedItem;
+					formItem.configuration.id = formItem.configuration.id ?: CreateUUID();
+
+					if ( StructKeyExists( formItem.configuration, "layout" ) ) {
+						formItem.configuration.renderedItem = renderViewlet(
+							  event = formBuilderRenderingService.getFormFieldLayoutViewlet(
+									  itemType = formItem.item_type
+									, layout   = formItem.configuration.layout
+							  )
+							, args  = formItem.configuration
+						);
+					}
+
+					args.renderedResponses &= formItem.configuration.renderedItem;
+				}
 			}
 		}
 
