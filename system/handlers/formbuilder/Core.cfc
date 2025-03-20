@@ -65,9 +65,13 @@ component {
 
 		if ( ArrayLen( formItemsInPage ) || ( formNextPage < 0 && submission.formPageNumber > submission.formPagesTotal ) ) {
 			if ( formNextPage != 0 ) {
+				StructAppend( submission, tempSubmission );
+
+				var formData = formBuilderService.getRequestDataForForm( formId=formId, requestData=submission );
+
 				validationResult = formBuilderValidationService.validateFormSubmission(
 					  formItems      = formItemsInPage
-					, submissionData = submission
+					, submissionData = formData
 				);
 
 				if ( validationResult.validated() ) {
@@ -77,11 +81,13 @@ component {
 						formPageNumber += formNextPage;
 					}
 
-					submission.formPageNumber = formPageNumber;
+					tempSubmission.formPageNumber = formPageNumber;
 
-					StructAppend( tempSubmission, submission );
+					if ( formNextPage == 1 ) {
+						StructAppend( tempSubmission, formData );
+					}
 
-					formBuilderService.setTempStoredSubmission( formId=formId, submission=tempSubmission );
+					formBuilderService.setTempStoredSubmission( formId=formId, submission=tempSubmission, withFileUpload=true );
 				}
 			}
 		} else {
@@ -216,10 +222,13 @@ component {
 	}
 
 	private string function _getFormItemResponse( required struct formItem,  struct submission={} ) {
-		if ( arguments.formItem.item_type == "matrix" ) {
-			return SerializeJson( arguments.submission );
+		var fieldName  = arguments.formItem.configuration.name ?: "";
+		var fieldValue = arguments.submission[ fieldName ] ?: "";
+
+		if ( IsSimpleValue( fieldValue ) ) {
+			return fieldValue;
 		} else {
-			return arguments.submission[ arguments.formItem.configuration.name ?: "" ] ?: "";
+			return fieldValue.fileName ?: "";
 		}
 	}
 

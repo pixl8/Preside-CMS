@@ -35,12 +35,12 @@ component {
 	}
 
 	private string function _renderForm( event, rc, prc, args={} ) {
-		var formId   = args.form   ?: "";
-		var layout   = args.layout ?: "";
-		var rendered = "";
-		var tempData = formBuilderService.getTempStoredSubmission( formId );
+		var formId         = args.form   ?: "";
+		var layout         = args.layout ?: "";
+		var rendered       = "";
+		var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
 
-		StructAppend( rc, tempData );
+		StructAppend( rc, tempSubmission );
 
 		if ( Len( Trim( formId ) ) ) {
 			if( !formbuilderService.formExists( formId ) ){
@@ -63,7 +63,7 @@ component {
 				return checkAccess.content;
 			}
 
-			if ( isTrue( tempData.checkAccess ?: "" ) ) {
+			if ( isTrue( tempSubmission.checkAccess ?: "" ) ) {
 				var resubmitMessage = formbuilderService.formHasFileUploadFields( formId ) ? "resubmit.after.login.with.files" : "resubmit.after.login";
 				rendered &= '<div class="alert alert-info"><p>' & translateResource( "formbuilder:#resubmitMessage#") & '</p></div>';
 			}

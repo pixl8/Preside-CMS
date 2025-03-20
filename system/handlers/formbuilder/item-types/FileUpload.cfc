@@ -84,6 +84,14 @@ component {
 	}
 
 	private any function getItemDataFromRequest( event, rc, prc, args={} ) {
+		var fieldName  = args.inputName                ?: "";
+		var fieldData  = args.requestData[ fieldName ] ?: "";
+		var fieldValue = rc[ fieldName ]               ?: "";
+
+		if ( IsEmptyString( fieldValue ) && IsStruct( fieldData ) ) {
+			return fieldData;
+		}
+
 		var tmpFileDetails = runEvent(
 			  event          = "preprocessors.fileupload.index"
 			, prePostExempt  = true

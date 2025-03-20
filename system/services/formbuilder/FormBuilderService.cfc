@@ -689,18 +689,24 @@ component {
 	 * @submission.hint The form value collection that will be stored in the session
 	 *
 	 */
-	public void function setTempStoredSubmission( required string formId, required struct submission ) {
+	public void function setTempStoredSubmission(
+		  required string  formId
+		, required struct  submission
+		,          boolean withFileUpload = false
+	) {
 		var tempStorageKey      = "temp_formbuilder_submission_#formId#";
 		var dataToStore         = Duplicate( arguments.submission );
 		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
-		var fileFields          = $getPresideObject( "formbuilder_formitem" ).selectData(
+		var fileFields          = ValueArray( $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { form=arguments.formId, item_type=fileUploadItemTypes }
 			, selectFields = [ "question.field_id" ]
-		).valueArray( "field_id" );
+		), "field_id" );
 
-		for( var field in dataToStore ) {
-			if ( ArrayFind( fileFields, field ) ) {
-				StructDelete( dataToStore, field );
+		if ( ArrayLen( fileFields ) && !arguments.withFileUpload ) {
+			for( var field in dataToStore ) {
+				if ( ArrayFind( fileFields, field ) ) {
+					StructDelete( dataToStore, field );
+				}
 			}
 		}
 
@@ -2166,11 +2172,11 @@ component {
 				}
 
 				_saveV2Response(
-					  response             = responses
-					, questionId           = formItem.questionId
-					, formId               = arguments.formId
-					, submissionId         = arguments.submissionId
-					, dataType             = dataType
+					  response     = responses
+					, questionId   = formItem.questionId
+					, formId       = arguments.formId
+					, submissionId = arguments.submissionId
+					, dataType     = dataType
 				);
 			}
 		}
