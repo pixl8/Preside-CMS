@@ -138,7 +138,7 @@ component {
 
 		args.renderedResponses = "";
 		if ( isEmptyString( args.renderedItems ) ) {
-			var formItems     = formBuilderService.getFormItems( id=formId );
+			var formItems      = formBuilderService.getFormItems( id=formId );
 			var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
 
 			for ( var formItem in formItems ) {
@@ -147,11 +147,15 @@ component {
 				if ( StructKeyExists( tempSubmission, formItem.configuration.name ?: "" ) ) {
 					formItem.configuration.renderedItem = renderViewlet(
 						  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response")
-						, args={
+						, args  = {
 							  response          = tempSubmission[ formItem.configuration.name ]
 							, itemConfiguration = formItem.configuration
 						  }
 					);
+
+					if ( isEmptyString( formItem.configuration.renderedItem ) ) {
+						formItem.configuration.renderedItem = translateResource( uri="formbuilder:no.response.placeholder" );
+					}
 
 					formItem.configuration.id = formItem.configuration.id ?: CreateUUID();
 
