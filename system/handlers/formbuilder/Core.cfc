@@ -139,45 +139,8 @@ component {
 			);
 		}
 
-		args.renderedResponses = "";
-		if ( isEmptyString( args.renderedItems ) ) {
-			var formItems      = formBuilderService.getFormItems( id=formId );
-			var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
-
-			for ( var formItem in formItems ) {
-				var formItemResponse = _getFormItemResponse( formItem=formItem, submission=tempSubmission );
-
-				if ( StructKeyExists( tempSubmission, formItem.configuration.name ?: "" ) || formItem.item_type == "matrix" ) {
-					formItem.configuration.renderedItem = renderViewlet(
-						  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response")
-						, args  = {
-							  response          = formItemResponse
-							, itemConfiguration = formItem.configuration
-						  }
-					);
-
-					if ( isEmptyString( formItem.configuration.renderedItem ) ) {
-						formItem.configuration.renderedItem = translateResource( uri="formbuilder:no.response.placeholder" );
-					}
-
-					formItem.configuration.id = formItem.configuration.id ?: CreateUUID();
-
-					if ( StructKeyExists( formItem.configuration, "layout" ) ) {
-						formItem.configuration.renderedItem = renderViewlet(
-							  event = formBuilderRenderingService.getFormFieldLayoutViewlet(
-									  itemType = formItem.item_type
-									, layout   = formItem.configuration.layout
-							  )
-							, args  = formItem.configuration
-						);
-					}
-
-					args.renderedResponses &= formItem.configuration.renderedItem;
-				}
-			}
-		}
-
-		args.renderedButtons = renderViewlet( event="formbuilder.core.formButtons", args=args );
+		args.renderedResponses = renderViewlet( event="formbuilder.core.formResponses", args=args );
+		args.renderedButtons   = renderViewlet( event="formbuilder.core.formButtons", args=args );
 
 		event.include( assetId="/js/frontend/formbuilder/" );
 
@@ -193,6 +156,56 @@ component {
 		args.isLastPage  = formPageNumber > formPagesTotal;
 
 		return renderView( view="/formbuilder/layouts/core/formButtons", args=args );
+	}
+
+	private string function formResponses( event, rc, prc, args={} ) {
+		var formId            = args.form ?: "";
+		var renderedResponses = "";
+
+		if ( isEmptyString( args.renderedItems ) ) {
+			var formTotalPages = formBuilderService.getTotalPagesForForm( formId=formId );
+			var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
+
+			for ( var pageNumber=1; pageNumber<=formTotalPages; pageNumber++ ) {
+				if ( formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=pageNumber ) ) {
+					var formItems = formBuilderService.getFormItems( id=formId, pageNumber=pageNumber );
+
+					for ( var formItem in formItems ) {
+						var formItemResponse = _getFormItemResponse( formItem=formItem, submission=tempSubmission );
+
+						if ( !isEmptyString( formItem.configuration.name ?: "" ) ) {
+							formItem.configuration.renderedItem = renderViewlet(
+								  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response")
+								, args  = {
+									  response          = formItemResponse
+									, itemConfiguration = formItem.configuration
+								  }
+							);
+
+							if ( isEmptyString( formItem.configuration.renderedItem ) ) {
+								formItem.configuration.renderedItem = translateResource( uri="formbuilder:no.response.placeholder" );
+							}
+
+							formItem.configuration.id = formItem.configuration.id ?: CreateUUID();
+
+							if ( StructKeyExists( formItem.configuration, "layout" ) ) {
+								formItem.configuration.renderedItem = renderViewlet(
+									  event = formBuilderRenderingService.getFormFieldLayoutViewlet(
+											  itemType = formItem.item_type
+											, layout   = formItem.configuration.layout
+									  )
+									, args  = formItem.configuration
+								);
+							}
+
+							renderedResponses &= formItem.configuration.renderedItem;
+						}
+					}
+				}
+			}
+		}
+
+		return renderedResponses;
 	}
 
 	private string function successMessage( event, rc, prc, args ) {
