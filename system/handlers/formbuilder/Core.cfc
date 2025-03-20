@@ -51,18 +51,19 @@ component {
 		var validationResult = validationEngine.newValidationResult();
 		var persistStruct    = {}
 		var formItemsInPage  = [];
-		var formNextPage     = submission._formNextPage ?: 1;
+		var formNextPage     = submission._formNextPage  ?: 1;
+		var formPageNumber   = submission.formPageNumber ?: 0;
 
-		if ( submission.formPageNumber ?: 0 ) {
+		if ( formPageNumber ) {
 			if ( formNextPage == 0 ) {
 				formBuilderService.clearTempStoredSubmission( formId=formId );
-				submission.formPageNumber = 1;
+				formPageNumber = 1;
 			}
 
-			formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=submission.formPageNumber );
+			formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 		}
 
-		if ( ArrayLen( formItemsInPage ) ) {
+		if ( ArrayLen( formItemsInPage ) || ( formNextPage < 0 && submission.formPageNumber > submission.formPagesTotal ) ) {
 			if ( formNextPage != 0 ) {
 				validationResult = formBuilderValidationService.validateFormSubmission(
 					  formItems      = formItemsInPage
@@ -70,11 +71,13 @@ component {
 				);
 
 				if ( validationResult.validated() ) {
-					submission.formPageNumber += formNextPage;
+					formPageNumber += formNextPage;
 
-					while ( !formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=submission.formPageNumber ) ) {
-						submission.formPageNumber += formNextPage;
+					while ( !formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=formPageNumber ) ) {
+						formPageNumber += formNextPage;
 					}
+
+					submission.formPageNumber = formPageNumber;
 
 					StructAppend( tempSubmission, submission );
 
