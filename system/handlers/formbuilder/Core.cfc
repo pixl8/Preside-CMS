@@ -145,13 +145,13 @@ component {
 			var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
 
 			for ( var formItem in formItems ) {
-				var response = "";
+				var formItemResponse = _getFormItemResponse( formItem=formItem, submission=tempSubmission );
 
-				if ( StructKeyExists( tempSubmission, formItem.configuration.name ?: "" ) ) {
+				if ( StructKeyExists( tempSubmission, formItem.configuration.name ?: "" ) || formItem.item_type == "matrix" ) {
 					formItem.configuration.renderedItem = renderViewlet(
 						  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response")
 						, args  = {
-							  response          = tempSubmission[ formItem.configuration.name ]
+							  response          = formItemResponse
 							, itemConfiguration = formItem.configuration
 						  }
 					);
@@ -200,6 +200,14 @@ component {
 		args.successMessage = renderContent( renderer="richeditor", data=args.successMessage );
 
 		return renderView( view="/formbuilder/layouts/core/successMessage", args=args );
+	}
+
+	private string function _getFormItemResponse( required struct formItem,  struct submission={} ) {
+		if ( arguments.formItem.item_type == "matrix" ) {
+			return SerializeJson( arguments.submission );
+		} else {
+			return arguments.submission[ arguments.formItem.configuration.name ?: "" ] ?: "";
+		}
 	}
 
 }
