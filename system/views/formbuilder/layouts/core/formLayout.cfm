@@ -5,6 +5,8 @@
 <cfparam name="args.id"                type="string" />
 <cfparam name="args.validationJs"      type="string" default="" />
 <cfparam name="args.configuration"     type="struct" />
+<cfparam name="args.formPageNumber"    type="numeric" default="0" />
+<cfparam name="args.formPagesTotal"    type="numeric" default="0" />
 
 <cfoutput>
 	<cfif Len( Trim( rc.errorMessage ?: "" ) ) >
@@ -22,7 +24,7 @@
 		#args.renderedItems#
 		#args.renderedResponses#
 
-		<cfif IsTrue( args.configuration.use_captcha ?: "" )>
+		<cfif IsTrue( args.configuration.use_captcha ?: "" ) and ( args.formPageNumber eq 1 or args.formPagesTotal eq 0 )>
 			#renderView( '/formbuilder/general/captcha' )#
 		</cfif>
 
