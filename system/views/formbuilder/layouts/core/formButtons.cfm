@@ -16,15 +16,15 @@
 	<div class="form-group">
 		<div class="form-buttons col-md-12">
 			<cfif isFormPage and not isLastPage>
-				<button tabindex="#getNextTabIndex()#" class="btn" type="submit" name="_formNextPage" value="1">#continueLabel#</button>
+				<button tabindex="#getNextTabIndex()#" class="btn" type="submit" name="formPageNext" value="1">#continueLabel#</button>
 			<cfelse>
 				<button tabindex="#getNextTabIndex()#" class="btn" type="submit">#submitLabel#</button>
 			</cfif>
 
 			<cfif isFormPage and not isFirstPage>
-				<button tabindex="#getNextTabIndex()#" class="btn btn-link" type="submit" name="_formNextPage" value="0">#cancelLabel#</button>
+				<button tabindex="#getNextTabIndex()#" class="btn btn-link" type="submit" name="formPageNext" value="0">#cancelLabel#</button>
 
-				<button tabindex="#getNextTabIndex()#" class="btn btn-bordered" type="submit" name="_formNextPage" value="-1">#backLabel#</button>
+				<button tabindex="#getNextTabIndex()#" class="btn btn-bordered" type="submit" name="formPageNext" value="-1">#backLabel#</button>
 			</cfif>
 		</div>
 	</div>

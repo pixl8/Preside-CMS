@@ -753,11 +753,11 @@ component {
 		,          any    validationResult = ""
 		,          struct requestData      = $getRequestContext().getCollectionWithoutSystemVars()
 	) {
-		arguments.configuration.formPagesTotal = getTotalPagesForForm( formId=arguments.formId );
-		arguments.configuration.formPageNumber = arguments.configuration.formPagesTotal ? ( requestData.formPageNumber ?: 1 ) : 0;
+		arguments.configuration.formPageCount  = getPageCount( formId=arguments.formId );
+		arguments.configuration.formPageNumber = arguments.configuration.formPageCount ? ( requestData.formPageNumber ?: 1 ) : 0;
 
 		while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=arguments.configuration.formPageNumber ) ) {
-			arguments.configuration.formPageNumber += requestData._formNextPage ?: 1;
+			arguments.configuration.formPageNumber += requestData.formPageNext ?: 1;
 		}
 
 		var formConfiguration = getForm( id=arguments.formId );
@@ -1168,6 +1168,39 @@ component {
 				, submissionId      = submissionId
 				, submission        = submission
 			} );
+		}
+
+		return validationResult;
+	}
+
+	public any function saveTempSubmission(
+		  required string  formId
+		, required struct  requestData
+		,          array   formItems  = []
+		,          numeric pageNumber = 0
+		,          numeric pageNext   = 0
+	) {
+		var formData = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData );
+
+		var validationResult = _getFormBuilderValidationService().validateFormSubmission(
+			  formItems      = arguments.formItems
+			, submissionData = formData
+		);
+
+		if ( validationResult.validated() ) {
+			arguments.pageNumber += arguments.pageNext;
+
+			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=arguments.pageNumber ) ) {
+				arguments.pageNumber += arguments.pageNext;
+			}
+
+			formData.formPageNumber = arguments.pageNumber;
+
+			var tempSubmission = getTempStoredSubmission( formId=arguments.formId );
+
+			StructAppend( tempSubmission, formData );
+
+			setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, withFileUpload=true );
 		}
 
 		return validationResult;
@@ -2209,7 +2242,7 @@ component {
 		);
 	}
 
-	public numeric function getTotalPagesForForm( required string formId ) {
+	public numeric function getPageCount( required string formId ) {
 		return $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter          = { form=arguments.formId, item_type="page" }
 			, recordCountOnly = true

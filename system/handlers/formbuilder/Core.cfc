@@ -6,6 +6,7 @@ component {
 	property name="formBuilderService"           inject="FormBuilderService";
 	property name="formBuilderValidationService" inject="FormBuilderValidationService";
 	property name="formBuilderRenderingService"  inject="FormBuilderRenderingService";
+	property name="formBuilderItemTypesService"  inject="FormBuilderItemTypesService";
 	property name="validationEngine"             inject="ValidationEngine";
 	property name="websiteLoginService"          inject="featureInjector:websiteUsers:websiteLoginService";
 
@@ -51,11 +52,12 @@ component {
 		var validationResult = validationEngine.newValidationResult();
 		var persistStruct    = {}
 		var formItemsInPage  = [];
-		var formNextPage     = submission._formNextPage  ?: 1;
+		var formPageNext     = submission.formPageNext   ?: 1;
 		var formPageNumber   = submission.formPageNumber ?: 0;
+		var formPageCount    = submission.formPageCount  ?: 0;
 
 		if ( formPageNumber ) {
-			if ( formNextPage == 0 ) {
+			if ( formPageNext == 0 ) {
 				formBuilderService.clearTempStoredSubmission( formId=formId );
 				formPageNumber = 1;
 			}
@@ -63,32 +65,26 @@ component {
 			formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 		}
 
-		if ( ArrayLen( formItemsInPage ) || ( formNextPage < 0 && submission.formPageNumber > submission.formPagesTotal ) ) {
-			if ( formNextPage != 0 ) {
-				StructAppend( submission, tempSubmission );
+		if ( ArrayLen( formItemsInPage ) || ( formPageNext < 0 && formPageNumber > formPageCount ) ) {
+			if ( formPageNext != 0 ) {
+				var fileUploadItemTypes = formBuilderItemTypesService.getFileUploadItemTypes();
+				for ( var formItem in formItemsInPage ) {
+					var fieldName = formItem.configuration.name ?: "";
 
-				var formData = formBuilderService.getRequestDataForForm( formId=formId, requestData=submission );
-
-				validationResult = formBuilderValidationService.validateFormSubmission(
-					  formItems      = formItemsInPage
-					, submissionData = formData
-				);
-
-				if ( validationResult.validated() ) {
-					formPageNumber += formNextPage;
-
-					while ( !formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=formPageNumber ) ) {
-						formPageNumber += formNextPage;
+					if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && isEmptyString( submission[ fieldName ] ?: "" ) ) {
+						StructDelete( submission, formItem.configuration.name ?: "" );
 					}
-
-					tempSubmission.formPageNumber = formPageNumber;
-
-					if ( formNextPage == 1 ) {
-						StructAppend( tempSubmission, formData );
-					}
-
-					formBuilderService.setTempStoredSubmission( formId=formId, submission=tempSubmission, withFileUpload=true );
 				}
+
+				StructAppend( tempSubmission, submission );
+
+				validationResult = formBuilderService.saveTempSubmission(
+					  formId       = formId
+					, requestData  = tempSubmission
+					, formItems    = formItemsInPage
+					, pageNumber   = formPageNumber
+					, pageNext     = formPageNext
+				);
 			}
 		} else {
 			StructAppend( submission, tempSubmission );
@@ -155,11 +151,11 @@ component {
 
 	private string function formButtons( event, rc, prc, args={} ) {
 		var formPageNumber = args.formPageNumber ?: 0;
-		var formPagesTotal = args.formPagesTotal ?: 0;
+		var formPageCount  = args.formPageCount  ?: 0;
 
 		args.isFormPage  = formPageNumber > 0;
 		args.isFirstPage = formPageNumber == 1;
-		args.isLastPage  = formPageNumber > formPagesTotal;
+		args.isLastPage  = formPageNumber > formPageCount;
 
 		return renderView( view="/formbuilder/layouts/core/formButtons", args=args );
 	}
@@ -169,17 +165,17 @@ component {
 		var renderedResponses = "";
 
 		if ( isEmptyString( args.renderedItems ) ) {
-			var formTotalPages = formBuilderService.getTotalPagesForForm( formId=formId );
+			var formPageCount = formBuilderService.getPageCount( formId=formId );
 			var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
 
-			for ( var pageNumber=1; pageNumber<=formTotalPages; pageNumber++ ) {
+			for ( var pageNumber=1; pageNumber<=formPageCount; pageNumber++ ) {
 				if ( formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=pageNumber ) ) {
 					var formItems = formBuilderService.getFormItems( id=formId, pageNumber=pageNumber );
 
 					for ( var formItem in formItems ) {
 						var formItemResponse = _getFormItemResponse( formItem=formItem, submission=tempSubmission );
 
-						if ( !isEmptyString( formItem.configuration.name ?: "" ) ) {
+						if ( formItem.type.isFormField ?: false ) {
 							formItem.configuration.renderedItem = renderViewlet(
 								  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response")
 								, args  = {

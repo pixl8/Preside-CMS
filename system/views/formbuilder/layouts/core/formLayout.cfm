@@ -6,7 +6,7 @@
 <cfparam name="args.validationJs"      type="string" default="" />
 <cfparam name="args.configuration"     type="struct" />
 <cfparam name="args.formPageNumber"    type="numeric" default="0" />
-<cfparam name="args.formPagesTotal"    type="numeric" default="0" />
+<cfparam name="args.formPageCount"     type="numeric" default="0" />
 
 <cfoutput>
 	<cfif Len( Trim( rc.errorMessage ?: "" ) ) >
@@ -16,7 +16,7 @@
 	<form action="#event.buildLink( linkTo="formbuilder.core.submitAction" )#" id="#args.id#" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="csrfToken" value="#event.getCsrfToken()#">
 		<cfloop collection="#args#" item="argName">
-			<cfif not ArrayFindNoCase( [ "id", "validationJs", "renderedItems", "renderedButtons", "context", "layout", "formAction" ], argName ) && IsSimpleValue( args[ argName ] )>
+			<cfif not ArrayFindNoCase( [ "id", "validationJs", "renderedItems", "renderedButtons", "renderedResponses", "context", "layout" ], argName ) && IsSimpleValue( args[ argName ] )>
 				<input type="hidden" name="#argName#" value="#HtmlEditFormat( args[ argName ] )#">
 			</cfif>
 		</cfloop>
@@ -24,7 +24,7 @@
 		#args.renderedItems#
 		#args.renderedResponses#
 
-		<cfif IsTrue( args.configuration.use_captcha ?: "" ) and ( args.formPageNumber eq 1 or args.formPagesTotal eq 0 )>
+		<cfif IsTrue( args.configuration.use_captcha ?: "" ) and ( args.formPageNumber eq 1 or args.formPageCount eq 0 )>
 			#renderView( '/formbuilder/general/captcha' )#
 		</cfif>
 
