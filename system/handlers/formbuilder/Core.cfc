@@ -170,10 +170,11 @@ component {
 
 						if ( formItem.type.isFormField ?: false ) {
 							formItem.configuration.renderedItem = renderViewlet(
-								  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response")
+								  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response" )
 								, args  = {
 									  response          = formItemResponse
 									, itemConfiguration = formItem.configuration
+									, buildLink         = false
 								  }
 							);
 

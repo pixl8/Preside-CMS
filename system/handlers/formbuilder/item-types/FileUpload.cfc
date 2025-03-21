@@ -7,16 +7,20 @@ component {
 	property name="storageProviderService"     inject="storageProviderService";
 
 	private any function renderResponse( event, rc, prc, args={} ) {
-		var fileName = ReReplace( args.response ?: "", "^""(.*?)""$", "\1" );
+		var fileName = Trim( ReReplace( args.response ?: "", "^""(.*?)""$", "\1" ) );
 
-		if ( Len( Trim( fileName ) ) && fileName != "{}" ) {
-			var downloadLink = event.buildLink(
-				  fileStorageProvider = 'formBuilderStorageProvider'
-				, fileStoragePath     = fileName
-				, fileStoragePrivate  = formBuilderStorageProvider.objectExists( path=args.response ?: "", private=true )
-			);
+		if ( !isEmptyString( fileName ) && fileName != "{}" ) {
+			if ( args.buildLink ?: true ) {
+				var downloadLink = event.buildLink(
+					  fileStorageProvider = 'formBuilderStorageProvider'
+					, fileStoragePath     = fileName
+					, fileStoragePrivate  = formBuilderStorageProvider.objectExists( path=args.response ?: "", private=true )
+				);
 
-			return '<a target="_blank" href="#downloadLink#"><i class="fa fa-fw fa-download blue"></i> #Trim( fileName )#</a>';
+				return '<a target="_blank" href="#downloadLink#"><i class="fa fa-fw fa-download blue"></i> #fileName#</a>';
+			} else {
+				return fileName;
+			}
 		}
 
 		return translateResource( "formbuilder.item-types.fileupload:render.empty.response" );
