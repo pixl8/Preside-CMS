@@ -69,6 +69,15 @@ component {
 			args.instanceSite = args.instanceSite ?: event.getSiteId();
 			args.instanceUrl  = args.instanceUrl  ?: event.getCurrentUrl();
 
+			var requestData = event.getCollectionWithoutSystemVars();
+
+			args.formPageCount  = formbuilderService.getPageCount( formId=formId );
+			args.formPageNumber = args.formPageCount ? ( requestData.formPageNumber ?: 1 ) : 0;
+
+			while ( !formbuilderService.evaluateConditionForPage( formId=formId, pageNumber=args.formPageNumber ) ) {
+				args.formPageNumber += requestData.formPageNext ?: 1;
+			}
+
 			rendered &= formbuilderService.renderForm(
 				  formId           = formId
 				, layout           = layout

@@ -751,17 +751,9 @@ component {
 		,          string layout           = "default"
 		,          struct configuration    = {}
 		,          any    validationResult = ""
-		,          struct requestData      = $getRequestContext().getCollectionWithoutSystemVars()
 	) {
-		arguments.configuration.formPageCount  = getPageCount( formId=arguments.formId );
-		arguments.configuration.formPageNumber = arguments.configuration.formPageCount ? ( requestData.formPageNumber ?: 1 ) : 0;
-
-		while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=arguments.configuration.formPageNumber ) ) {
-			arguments.configuration.formPageNumber += requestData.formPageNext ?: 1;
-		}
-
 		var formConfiguration = getForm( id=arguments.formId );
-		var items             = getFormItems( id=arguments.formId, pageNumber=arguments.configuration.formPageNumber );
+		var items             = getFormItems( id=arguments.formId, pageNumber=( arguments.configuration.formPageNumber ?: 0 ) );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
 		var coreLayoutViewlet = "formbuilder.core.formLayout";

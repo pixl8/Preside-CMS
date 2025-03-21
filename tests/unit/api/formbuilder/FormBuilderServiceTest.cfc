@@ -726,8 +726,9 @@ component extends="testbox.system.BaseSpec"{
 					, type          = { id="textarea" }
 					, configuration = { label="test", defaultvalue=CreateUUId(), name="blah2" }
 				}];
-				var formLayoutArgs = Duplicate( formArgs );
-				var coreLayoutArgs = Duplicate( formArgs );
+				var formPageNumber     = 0;
+				var formLayoutArgs     = Duplicate( formArgs );
+				var coreLayoutArgs     = Duplicate( formArgs );
 
 				coreLayoutArgs.renderedItems = renderedItems.toList( "" );
 				coreLayoutArgs.id            = idPrefix;
@@ -737,9 +738,8 @@ component extends="testbox.system.BaseSpec"{
 
 				mockRenderingService.$( "getFormLayoutViewlet" ).$args( layout=formLayout ).$results( formViewlet );
 
-
 				service.$( "_createIdPrefix", idPrefix );
-				service.$( "getFormItems" ).$args( id=formId ).$results( formItems );
+				service.$( "getFormItems" ).$args( id=formId, pageNumber=formPageNumber ).$results( formItems );
 				service.$( "getForm" ).$args( id=formId ).$results( formConfiguration );
 				for( var i=1; i<=formItems.len(); i++ ) {
 					var item = formItems[ i ];
