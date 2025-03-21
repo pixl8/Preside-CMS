@@ -187,7 +187,7 @@ component extends="preside.system.base.AdminHandler" {
 				var field = args[ "col#i#" ][ n ];
 				var rendered = _render( field );
 
-				if ( Len( Trim( rendered ) ) ) {
+				if ( Len( Trim( rendered ?: "" ) ) ) {
 					if ( infoCardStyle == "definitionList" ) {
 						args[ "col#i#" ][ n ] = {
 							  title = translateResource( uri="preside-objects.#objectName#:infocard.#field#", defaultValue=translateObjectProperty( objectName, field ) )
