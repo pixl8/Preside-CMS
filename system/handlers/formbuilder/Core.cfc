@@ -48,35 +48,26 @@ component {
 			setNextEvent( url=cgi.http_referer, persistStruct=persistData );
 		}
 
-		var tempSubmission   = formBuilderService.getTempStoredSubmission( formId=formId );
-		var validationResult = validationEngine.newValidationResult();
-		var persistStruct    = {}
-		var formItemsInPage  = [];
-		var formPageNext     = submission.formPageNext   ?: 1;
-		var formPageNumber   = submission.formPageNumber ?: 0;
-		var formPageCount    = submission.formPageCount  ?: 0;
+		var validationResult  = validationEngine.newValidationResult();
+		var persistStruct     = {}
+		var formItemsInPage   = [];
+		var formPageNext      = submission.formPageNext   ?: 1;
+		var formPageNumber    = submission.formPageNumber ?: 0;
+		var formPageCount     = submission.formPageCount  ?: 0;
+		var formPageIsPreview = ( formPageNext < 0 && formPageNumber > formPageCount );
 
 		if ( formPageNumber ) {
-			if ( formPageNext == 0 ) {
+			if ( formPageNext == 0 ) { // Reset
 				formBuilderService.clearTempStoredSubmission( formId=formId );
 				formPageNumber = 1;
+			} else {
+				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 			}
-
-			formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 		}
 
-		if ( ArrayLen( formItemsInPage ) || ( formPageNext < 0 && formPageNumber > formPageCount ) ) {
+		if ( ArrayLen( formItemsInPage ) || formPageIsPreview ) {
 			if ( formPageNext != 0 ) {
-				var fileUploadItemTypes = formBuilderItemTypesService.getFileUploadItemTypes();
-				for ( var formItem in formItemsInPage ) {
-					var fieldName = formItem.configuration.name ?: "";
-
-					if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && isEmptyString( submission[ fieldName ] ?: "" ) ) {
-						StructDelete( submission, formItem.configuration.name ?: "" );
-					}
-				}
-
-				StructAppend( tempSubmission, submission );
+				var tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, formItems=formItemsInPage );
 
 				validationResult = formBuilderService.saveTempSubmission(
 					  formId       = formId
@@ -87,6 +78,8 @@ component {
 				);
 			}
 		} else {
+			var tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
+
 			StructAppend( submission, tempSubmission );
 
 			validationResult = formBuilderService.saveFormSubmission(
@@ -185,7 +178,7 @@ component {
 							);
 
 							if ( isEmptyString( formItem.configuration.renderedItem ) ) {
-								formItem.configuration.renderedItem = translateResource( uri="formbuilder:no.response.placeholder" );
+								formItem.configuration.renderedItem = translateResource( uri="formbuilder:response.empty.label" );
 							}
 
 							formItem.configuration.id = formItem.configuration.id ?: CreateUUID();

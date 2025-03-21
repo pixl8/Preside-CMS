@@ -1206,6 +1206,31 @@ component {
 		return validationResult;
 	}
 
+	public any function prepareTempSubmission(
+		  required string formId
+		, required struct requestData
+		,          array  formItems  = []
+	) {
+		var tempSubmission      = getTempStoredSubmission( formId=arguments.formId );
+		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
+
+		for ( var formItem in arguments.formItems ) {
+			var fieldName = formItem.configuration.name ?: "";
+
+			if ( !StructKeyExists( arguments.requestData, fieldName ) ) {
+				arguments.requestData[ fieldName ] = "";
+			}
+
+			if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && $helpers.isEmptyString( arguments.requestData[ fieldName ] ?: "" ) ) {
+				StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
+			}
+		}
+
+		StructAppend( tempSubmission, arguments.requestData );
+
+		return tempSubmission;
+	}
+
 	/**
 	 * Returns the number of submissions made for
 	 * a given form
