@@ -5,12 +5,10 @@ component {
 
 	property name="formbuilderService" inject="FormbuilderService";
 
-		property name="rulesEngineWebRequestService"             inject="RulesEngineWebRequestService";
-
 	private function index( event, rc, prc, args={} ) {
 		var pageCachingEnabled = isFeatureEnabled( "fullPageCaching" );
 
-		// event.include( assetId="/js/frontend/formbuilder/" );
+		event.include( assetId="/js/frontend/formbuilder/" );
 
 		if ( pageCachingEnabled ) {
 			event.include( "recaptcha-js" );
