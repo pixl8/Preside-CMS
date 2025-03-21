@@ -215,11 +215,15 @@ component extends="BaseAdapter" {
 
 	public string function applyOrderByAndMaxRowsSql( required string sql, string orderBy="", numeric maxRows=0, numeric startRow=1 ) {
 		var sql = arguments.sql;
-		if ( Len( Trim ( arguments.orderBy ) ) ) {
+		if ( Len( Trim( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
 		}
 		if ( arguments.maxRows ) {
-			sql &= " limit #arguments.startRow-1#, #arguments.maxRows#";
+			if ( Len( Trim( arguments.orderBy ) ) ) {
+				sql = "select * from (#sql#) _mysqlOrderAndLimitPerfFix limit #arguments.startRow-1#, #arguments.maxRows#";
+			} else {
+				sql &= " limit #arguments.startRow-1#, #arguments.maxRows#";
+			}
 		}
 		return sql;
 	}
