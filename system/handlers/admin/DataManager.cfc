@@ -2581,7 +2581,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  errorAction             = ""
 		,          string  errorUrl                = ( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( objectName=arguments.object, operation="addRecord" ) )
 		,          string  viewRecordAction        = ""
-		,          string  viewRecordUrl           = event.buildAdminLink( linkTo=( viewRecordAction.len() ? viewRecordAction : "datamanager.viewRecord" ), querystring="object=#arguments.object#&id={newid}" )
+		,          string  viewRecordUrl           = ( viewRecordAction.len() ? event.buildAdminLink( linkTo=viewRecordAction, querystring="object=#arguments.object#&id={newid}" ) : event.buildAdminLink( objectName=arguments.object, recordId="{newid}" ) )
 		,          string  addAnotherAction        = ""
 		,          string  addAnotherUrl           = ( addAnotherAction.len() ? event.buildAdminLink( linkTo=addAnotherAction ) : event.buildAdminLink( objectName=arguments.object, operation="addRecord" ) )
 		,          string  successAction           = ""
