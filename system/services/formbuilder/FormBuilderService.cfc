@@ -2266,6 +2266,24 @@ component {
 		);
 	}
 
+	public array function getPages( required string formId ) {
+		return $getPresideObject( "formbuilder_formitem" ).selectData(
+			  extraSelectFields = [ " row_number() over (order by sort_order) as page_number" ]
+			, filter            = { form=arguments.formId, item_type="page" }
+			, returnType        = "array"
+		);
+	}
+
+	public struct function getPage( required string formId, required string formItemId ) {
+		var pages = getPages( formId=arguments.formId );
+
+		for ( var page in pages ) {
+			if ( page.id == arguments.formItemId ) {
+				return page;
+			}
+		}
+	}
+
 	public boolean function updateUsesGlobalQuestions() {
 		try {
 			if ( $isFeatureEnabled( "formbuilder2" ) ) {
