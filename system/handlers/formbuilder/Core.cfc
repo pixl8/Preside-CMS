@@ -60,9 +60,9 @@ component {
 			if ( formPageNext == 0 ) { // Reset
 				formBuilderService.clearTempStoredSubmission( formId=formId );
 				formPageNumber = 1;
-			} else {
-				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 			}
+
+			formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 		}
 
 		if ( ArrayLen( formItemsInPage ) || formPageIsPreview ) {
