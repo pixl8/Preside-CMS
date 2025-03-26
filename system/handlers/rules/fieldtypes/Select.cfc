@@ -71,7 +71,7 @@ component {
 // helpers
 	private array function _getLabels( required array values, array labels=[], string labelUriRoot="" ) {
 		if ( ArrayLen( arguments.values ) && !ArrayLen( arguments.labels ) ) {
-			if ( isEmpytString( arguments.labelUriRoot ) ) {
+			if ( isEmptyString( arguments.labelUriRoot ) ) {
 				arguments.labels = arguments.values;
 			} else {
 				for ( var value in arguments.values ) {

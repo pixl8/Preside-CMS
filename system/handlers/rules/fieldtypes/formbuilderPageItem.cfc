@@ -10,7 +10,7 @@ component {
 			return "";
 		}
 
-		return renderLabel( objectName="formbuilder_question", recordId=formItem.questionId, labelRenderer="formbuilder_question_label" );
+		return renderLabel( objectName="formbuilder_question", recordId=formItem.questionId );
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
@@ -33,7 +33,7 @@ component {
 				pageNumber = formItem.page_number;
 			} else if ( formItem.page_number == pageNumber ) {
 				ArrayAppend( values, formItem.id );
-				ArrayAppend( labels, renderLabel( objectName="formbuilder_question", recordId=formItem.question, labelRenderer="formbuilder_question_label" ) );
+				ArrayAppend( labels, renderLabel( objectName="formbuilder_question", recordId=formItem.question ) );
 			}
 		}
 
@@ -45,9 +45,11 @@ component {
 			, type               = "select"
 			, values             = values
 			, labels             = labels
-			, label              = translateResource( "rules.fieldTypes.formbuilderPageQuestion:label" )
+			, label              = translateResource( "rules.fieldTypes.formbuilderPageItem:label" )
 			, savedValue         = arguments.value
 			, defaultValue       = arguments.value
+			, resultTemplate     = "{{{text}}}"
+			, selectedTemplate   = "{{{text}}}"
 		);
 	}
 
