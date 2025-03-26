@@ -7,12 +7,26 @@ component {
 
 		StructAppend( arguments.config, _getFieldConfig( formItemId=formItemId ) );
 
-		return runEvent(
-			  event          = "rules.fieldtypes.#( arguments.config.fieldType ?: "text" )#.renderConfiguredField"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = arguments
-		);
+		if ( ArrayContainsNoCase( [ "timeperiod" ], arguments.config.type ) ) {
+			return runEvent(
+				  event          = "rules.fieldtypes.#arguments.config.type#.renderConfiguredField"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = arguments
+			);
+		} else {
+			if ( IsJSON( arguments.value ) ) {
+				var data = DeserializeJSON( arguments.value );
+
+				if ( !isEmptyString( data.dataType ?: "" ) && !isEmptyString( data.operator ?: "" ) ) {
+					return translateResource( uri="formcontrols.dataComparisonPicker:operator.#data.dataType#.#data.operator#" ) & " '#( data.value ?: "" )#'";
+				} else {
+					return translateResource( uri="rules.fieldTypes.formbuilderPageAnswer:text" )
+				}
+			}
+
+			return arguments.value;
+		}
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
@@ -20,12 +34,24 @@ component {
 
 		StructAppend( arguments.config, _getFieldConfig( formItemId=formItemId ) );
 
-		return runEvent(
-			  event          = "rules.fieldtypes.#( arguments.config.fieldType ?: "text" )#.renderConfigScreen"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = arguments
-		);
+		if ( ArrayContainsNoCase( [ "timeperiod" ], arguments.config.type ) ) {
+			return runEvent(
+				  event          = "rules.fieldtypes.#arguments.config.type#.renderConfigScreen"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = arguments
+			);
+		} else {
+			return renderFormControl(
+				  argumentCollection       = arguments.config
+				, name                     = "value"
+				, type                     = "DataComparisonPicker"
+				, label                    = arguments.config.label
+				, savedValue               = arguments.value
+				, defaultValue             = arguments.value
+				, formControl              = arguments.config
+			);
+		}
 	}
 
 	private struct function _getFieldConfig( required string formItemId ) {
@@ -35,27 +61,35 @@ component {
 
 		if ( !StructIsEmpty( formItem ) ) {
 			if ( formItem.type.isFormField ) {
+				config.label = formItem.configuration.label ?: "";
+
 				switch ( LCase( formItem.type.id ) ) {
 					case "number":
-						config.fieldType = "number";
+					case "starrating":
+						config.type     = "spinner";
+						config.dataType = "numeric";
 						break;
 
 					case "date":
 					case "time":
-						config.fieldType = "timeperiod";
+						config.type = "timeperiod";
 						break;
 
 					case "select":
 					case "radio":
 					case "checkboxlist":
+						config.multiple = true;
+						config.sortable = true;
+						config.dataType = "array";
+
 						if ( isEmptyString( formItem.configuration.datamanagerObject ?: "" ) ) {
-							config.fieldType = "select";
-							config.values    = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
-							config.labels    = ListToArray( formItem.configuration.labels ?: "", Chr( 10 ) & Chr( 13 ) );
+							config.type   = "select";
+							config.values = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
+							config.labels = ListToArray( formItem.configuration.labels ?: "", Chr( 10 ) & Chr( 13 ) );
 						} else {
-							config.fieldType = "object";
-							config.object    = formItem.configuration.datamanagerObject;
-							config.ajax      = false;
+							config.type   = "object";
+							config.object = formItem.configuration.datamanagerObject;
+							config.ajax   = false;
 						}
 						break;
 
@@ -64,7 +98,7 @@ component {
 					case "email":
 					case "url":
 					default:
-						config.fieldType = "text";
+						config.type = "textinput";
 				}
 			}
 		}
