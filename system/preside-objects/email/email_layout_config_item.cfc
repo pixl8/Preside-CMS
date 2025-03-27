@@ -1,8 +1,9 @@
 /**
  * Represents a saved configuration item for an email layout (see [[emailtemplatingv1]])
  *
- * @nolabel   true
- * @versioned false
+ * @nolabel       true
+ * @versioned     false
+ * @labelRenderer email_layout_config_item
  *
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email layout configuration item"  {
