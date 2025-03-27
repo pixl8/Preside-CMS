@@ -21,22 +21,29 @@ component {
 					var data = DeserializeJSON( arguments.value );
 
 					if ( !isEmptyString( data.dataType ?: "" ) && !isEmptyString( data.operator ?: "" ) ) {
-						var dataValues = ListToArray( data.value ?: "" );
-						var dataLabels = [];
+						var propertyLabel = ( !isEmptyString( data.property ?: "" ) ? "#data.property# " : "" );
+						var valueLabel    = "";
 
-						if ( isEmptyString( arguments.config.object ?: "" ) ) {
-							for ( var dataValue in dataValues ) {
-								var index = ArrayFindNoCase( arguments.config.values ?: [], dataValue );
+						if ( StructKeyExists( data, "value" ) ) {
+							var dataValues = ListToArray( data.value );
+							var dataLabels = [];
 
-								ArrayAppend( dataLabels, arguments.config.labels[ index ] ?: dataValue );
+							if ( isEmptyString( arguments.config.object ?: "" ) ) {
+								for ( var dataValue in dataValues ) {
+									var index = ArrayFindNoCase( arguments.config.values ?: [], dataValue );
+
+									ArrayAppend( dataLabels, arguments.config.labels[ index ] ?: dataValue );
+								}
+							} else {
+								for ( var dataValue in dataValues ) {
+									ArrayAppend( dataLabels, renderLabel( objectName=arguments.config.object, recordId=dataValue ) );
+								}
 							}
-						} else {
-							for ( var dataValue in dataValues ) {
-								ArrayAppend( dataLabels, renderLabel( objectName=arguments.config.object, recordId=dataValue ) );
-							}
+
+							valueLabel = " '#ArrayToList( dataLabels, ", " )#'";
 						}
 
-						return ( !isEmptyString( data.property ?: "" ) ? "#data.property# " : "" ) & translateResource( uri="formcontrols.dataComparisonPicker:operator.#data.dataType#.#data.operator#" ) & " '#ArrayToList( dataLabels, ", " )#'";
+						return propertyLabel & translateResource( uri="formcontrols.dataComparisonPicker:operator.#data.dataType#.#data.operator#" ) & valueLabel;
 					} else {
 						return translateResource( uri="rules.fieldTypes.formbuilderPageAnswer:text" )
 					}
@@ -150,6 +157,11 @@ component {
 						for ( var fileType in config.values ) {
 							ArrayAppend( config.labels, translateResource( "filetypes:#fileType#.picker.label" ) );
 						}
+						break;
+
+					case "checkbox":
+						config.type     = "";
+						config.dataType = "boolean";
 						break;
 
 					case "textinput":

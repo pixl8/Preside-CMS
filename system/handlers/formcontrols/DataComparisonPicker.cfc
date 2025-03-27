@@ -4,6 +4,7 @@ component {
 		  string  = [ "eq", "neq", "contains", "notcontains", "startswith", "notstartswith", "endswith", "notendswith" ]
 		, numeric = [ "eq", "neq", "gt", "gte", "lt", "lte" ]
 		, array   = [ "anyof", "notanyof", "allof", "noneof" ]
+		, boolean = [ "true", "false" ]
 	};
 
 	private string function index( event, rc, prc, args={} ) {
@@ -40,7 +41,7 @@ component {
 
 		args.renderedValueFormControl = args.renderedValueFormControl ?: "";
 
-		if ( isEmptyString( args.renderedValueFormControl ) ) {
+		if ( isEmptyString( args.renderedValueFormControl ) && !isEmptyString( args.formControl.type ?: "" ) ) {
 			args.renderedValueFormControl = renderFormControl(
 				  argumentCollection = args.formControl
 				, name               = "#inputName#_value"
@@ -51,7 +52,7 @@ component {
 
 		args.renderedPropertyFormControl = args.renderedPropertyFormControl ?: "";
 
-		if ( isEmptyString( args.renderedPropertyFormControl ) && !StructIsEmpty( args.formControl.formControl ?: {} ) ) {
+		if ( isEmptyString( args.renderedPropertyFormControl ) && !isEmptyString( args.formControl.formControl.type ?: "" ) ) {
 			args.renderedPropertyFormControl = renderFormControl(
 				  argumentCollection = args.formControl.formControl
 				, name               = "#inputName#_property"
