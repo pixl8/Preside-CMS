@@ -19,7 +19,7 @@ component {
 				var data = DeserializeJSON( arguments.value );
 
 				if ( !isEmptyString( data.dataType ?: "" ) && !isEmptyString( data.operator ?: "" ) ) {
-					return translateResource( uri="formcontrols.dataComparisonPicker:operator.#data.dataType#.#data.operator#" ) & " '#( data.value ?: "" )#'";
+					return ( !isEmptyString( data.property ?: "" ) ? "#data.property# " : "" ) & translateResource( uri="formcontrols.dataComparisonPicker:operator.#data.dataType#.#data.operator#" ) & " '#( data.value ?: "" )#'";
 				} else {
 					return translateResource( uri="rules.fieldTypes.formbuilderPageAnswer:text" )
 				}
@@ -43,13 +43,13 @@ component {
 			);
 		} else {
 			return renderFormControl(
-				  argumentCollection       = arguments.config
-				, name                     = "value"
-				, type                     = "DataComparisonPicker"
-				, label                    = arguments.config.label
-				, savedValue               = arguments.value
-				, defaultValue             = arguments.value
-				, formControl              = arguments.config
+				  argumentCollection  = arguments.config
+				, name                = "value"
+				, type                = "DataComparisonPicker"
+				, label               = arguments.config.label
+				, savedValue          = arguments.value
+				, defaultValue        = arguments.value
+				, formControl         = arguments.config
 			);
 		}
 	}
@@ -91,6 +91,18 @@ component {
 							config.object = formItem.configuration.datamanagerObject;
 							config.ajax   = false;
 						}
+						break;
+
+					case "matrix":
+						config.multiple    = true;
+						config.sortable    = true;
+						config.dataType    = "array";
+						config.type        = "select";
+						config.values      = ListToArray( formItem.configuration.columns ?: "", Chr( 10 ) & Chr( 13 ) );
+						config.formControl = {
+							  type   = "select"
+							, values = ListToArray( formItem.configuration.rows ?: "", Chr( 10 ) & Chr( 13 ) )
+						};
 						break;
 
 					case "textinput":

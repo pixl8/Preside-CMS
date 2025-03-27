@@ -49,6 +49,17 @@ component {
 			);
 		}
 
+		args.renderedPropertyFormControl = args.renderedPropertyFormControl ?: "";
+
+		if ( isEmptyString( args.renderedPropertyFormControl ) && !StructIsEmpty( args.formControl.formControl ?: {} ) ) {
+			args.renderedPropertyFormControl = renderFormControl(
+				  argumentCollection = args.formControl.formControl
+				, name               = "#inputName#_property"
+				, defaultValue       = data.property ?: ""
+				, layout             = ""
+			);
+		}
+
 		event.include( "/js/admin/specific/dataComparisonPicker/"  )
 			 .include( "/css/admin/specific/dataComparisonPicker/"  );
 
