@@ -3,7 +3,7 @@ component {
 	variables.operators = {
 		  string  = [ "eq", "neq", "contains", "notcontains", "startswith", "notstartswith", "endswith", "notendswith" ]
 		, numeric = [ "eq", "neq", "gt", "gte", "lt", "lte" ]
-		, array   = [ "allof", "oneof", "noneof" ]
+		, array   = [ "anyof", "notanyof", "allof", "noneof" ]
 	};
 
 	private string function index( event, rc, prc, args={} ) {

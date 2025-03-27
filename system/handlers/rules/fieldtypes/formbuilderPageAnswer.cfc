@@ -1,15 +1,16 @@
 component {
 
-	property name="formBuilderService" inject="FormBuilderService";
+	property name="formBuilderService"  inject="FormBuilderService";
+	property name="assetManagerService" inject="AssetManagerService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
 		var formItemId = arguments.config.formbuilderItem ?: "";
 
 		StructAppend( arguments.config, _getFieldConfig( formItemId=formItemId ) );
 
-		if ( ArrayContainsNoCase( [ "timeperiod" ], arguments.config.type ) ) {
+		if ( !isEmptyString( arguments.config.fieldType ?: ""  ) ) {
 			return runEvent(
-				  event          = "rules.fieldtypes.#arguments.config.type#.renderConfiguredField"
+				  event          = "rules.fieldtypes.#arguments.config.fieldType#.renderConfiguredField"
 				, prePostExempt  = true
 				, private        = true
 				, eventArguments = arguments
@@ -55,7 +56,7 @@ component {
 	}
 
 	private struct function _getFieldConfig( required string formItemId ) {
-		var config = {};
+		var config = { label="", type="", fieldType="", dataType="" };
 
 		var formItem = formBuilderService.getFormItem( id=arguments.formItemId );
 
@@ -72,7 +73,7 @@ component {
 
 					case "date":
 					case "time":
-						config.type = "timeperiod";
+						config.fieldType = "timeperiod";
 						break;
 
 					case "select":
@@ -103,6 +104,30 @@ component {
 							  type   = "select"
 							, values = ListToArray( formItem.configuration.rows ?: "", Chr( 10 ) & Chr( 13 ) )
 						};
+						break;
+
+					case "fileupload":
+						config.multiple = true;
+						config.sortable = true;
+						config.dataType = "array";
+						config.type     = "select";
+						config.values   = [];
+						config.labels   = [];
+
+						if ( isEmptyString( formItem.configuration.accept ?: "" ) ) {
+							var assetTypes = getSetting( name="assetManager.types", defaultValue=[] );
+							for ( var assetType in assetTypes ) {
+								for ( var fileType in assetTypes[ assetType ] ) {
+									ArrayAppend( config.values, fileType );
+								}
+							}
+						} else {
+							config.values = assetManagerService.expandTypeList( ListToArray( formItem.configuration.accept, "," ) );
+						}
+
+						for ( var fileType in config.values ) {
+							ArrayAppend( config.labels, translateResource( "filetypes:#fileType#.picker.label" ) );
+						}
 						break;
 
 					case "textinput":
