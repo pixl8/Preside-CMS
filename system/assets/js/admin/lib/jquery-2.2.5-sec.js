@@ -9822,3 +9822,5 @@ if ( !noGlobal ) {
 
 return jQuery;
 }));
+
+var presideJQuery = $.noConflict( true );
