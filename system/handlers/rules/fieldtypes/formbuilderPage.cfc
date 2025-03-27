@@ -23,8 +23,8 @@ component {
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
 		var formId = config.formbuilderForm ?: "";
-		var values = [ "" ];
-		var labels = [ translateResource( uri="rules.fieldTypes.formbuilderPage:option.any.label" ) ];
+		var values = [];
+		var labels = [];
 
 		if ( !isEmptyString( formId ) ) {
 			var pages = formBuilderService.getPages( formId=formId );

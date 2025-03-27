@@ -22,7 +22,7 @@ component {
 			data = DeserializeJSON( value );
 		}
 
-		var operatorValues = operators[ args.dataType ];
+		var operatorValues = operators[ args.dataType ] ?: [];
 		var operatorLabels = [];
 
 		for ( var operatorValue in operatorValues ){

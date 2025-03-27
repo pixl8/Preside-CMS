@@ -4,29 +4,50 @@ component {
 	property name="assetManagerService" inject="AssetManagerService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
-		var formItemId = arguments.config.formbuilderItem ?: "";
+		try {
+			var formItemId = arguments.config.formbuilderItem ?: "";
 
-		StructAppend( arguments.config, _getFieldConfig( formItemId=formItemId ) );
+			StructAppend( arguments.config, _getFieldConfig( formItemId=formItemId ) );
 
-		if ( !isEmptyString( arguments.config.fieldType ?: ""  ) ) {
-			return runEvent(
-				  event          = "rules.fieldtypes.#arguments.config.fieldType#.renderConfiguredField"
-				, prePostExempt  = true
-				, private        = true
-				, eventArguments = arguments
-			);
-		} else {
-			if ( IsJSON( arguments.value ) ) {
-				var data = DeserializeJSON( arguments.value );
+			if ( !isEmptyString( arguments.config.fieldType ?: ""  ) ) {
+				return runEvent(
+					  event          = "rules.fieldtypes.#arguments.config.fieldType#.renderConfiguredField"
+					, prePostExempt  = true
+					, private        = true
+					, eventArguments = arguments
+				);
+			} else {
+				if ( IsJSON( arguments.value ) ) {
+					var data = DeserializeJSON( arguments.value );
 
-				if ( !isEmptyString( data.dataType ?: "" ) && !isEmptyString( data.operator ?: "" ) ) {
-					return ( !isEmptyString( data.property ?: "" ) ? "#data.property# " : "" ) & translateResource( uri="formcontrols.dataComparisonPicker:operator.#data.dataType#.#data.operator#" ) & " '#( data.value ?: "" )#'";
-				} else {
-					return translateResource( uri="rules.fieldTypes.formbuilderPageAnswer:text" )
+					if ( !isEmptyString( data.dataType ?: "" ) && !isEmptyString( data.operator ?: "" ) ) {
+						var dataValues = ListToArray( data.value ?: "" );
+						var dataLabels = [];
+
+						if ( isEmptyString( arguments.config.object ?: "" ) ) {
+							for ( var dataValue in dataValues ) {
+								var index = ArrayFindNoCase( arguments.config.values ?: [], dataValue );
+
+								ArrayAppend( dataLabels, arguments.config.labels[ index ] ?: dataValue );
+							}
+						} else {
+							for ( var dataValue in dataValues ) {
+								ArrayAppend( dataLabels, renderLabel( objectName=arguments.config.object, recordId=dataValue ) );
+							}
+						}
+
+						return ( !isEmptyString( data.property ?: "" ) ? "#data.property# " : "" ) & translateResource( uri="formcontrols.dataComparisonPicker:operator.#data.dataType#.#data.operator#" ) & " '#ArrayToList( dataLabels, ", " )#'";
+					} else {
+						return translateResource( uri="rules.fieldTypes.formbuilderPageAnswer:text" )
+					}
 				}
-			}
 
-			return arguments.value;
+				return arguments.value;
+			}
+		} catch ( any e ) {
+			logError( e );
+
+			return "";
 		}
 	}
 
@@ -35,9 +56,9 @@ component {
 
 		StructAppend( arguments.config, _getFieldConfig( formItemId=formItemId ) );
 
-		if ( ArrayContainsNoCase( [ "timeperiod" ], arguments.config.type ) ) {
+		if ( !isEmptyString( arguments.config.fieldType ?: ""  ) ) {
 			return runEvent(
-				  event          = "rules.fieldtypes.#arguments.config.type#.renderConfigScreen"
+				  event          = "rules.fieldtypes.#arguments.config.fieldType#.renderConfigScreen"
 				, prePostExempt  = true
 				, private        = true
 				, eventArguments = arguments
@@ -56,7 +77,7 @@ component {
 	}
 
 	private struct function _getFieldConfig( required string formItemId ) {
-		var config = { label="", type="", fieldType="", dataType="" };
+		var config = { label="", type="", fieldType="" };
 
 		var formItem = formBuilderService.getFormItem( id=arguments.formItemId );
 
@@ -73,7 +94,8 @@ component {
 
 					case "date":
 					case "time":
-						config.fieldType = "timeperiod";
+						config.fieldType  = "timeperiod";
+						config.fieldLabel = config.label;
 						break;
 
 					case "select":
@@ -88,7 +110,7 @@ component {
 							config.values = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
 							config.labels = ListToArray( formItem.configuration.labels ?: "", Chr( 10 ) & Chr( 13 ) );
 						} else {
-							config.type   = "object";
+							config.type   = "objectPicker";
 							config.object = formItem.configuration.datamanagerObject;
 							config.ajax   = false;
 						}
