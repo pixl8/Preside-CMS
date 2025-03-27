@@ -92,11 +92,8 @@ module.exports = function( grunt ) {
 					  src  : "js/admin/lib/bootstrap-3.0.0.003.js"
 					, dest : "js/admin/lib/bootstrap-3.0.0.003.min.js"
 				},{
-					  src  : "js/admin/lib/jquery-1.10.2.js"
-					, dest : "js/admin/lib/jquery-1.10.2.min.js"
-				},{
-					  src  : "js/admin/lib/jquery-2.0.3.js"
-					, dest : "js/admin/lib/jquery-2.0.3.min.js"
+					  src  : "js/admin/lib/jquery-2.2.5-sec.js"
+					, dest : "js/admin/lib/jquery-2.2.5-sec.min.js"
 				},{
 					  src  : "js/admin/lib/jquery-ui-1.11.4.js"
 					, dest : "js/admin/lib/jquery-ui-1.11.4.min.js"
