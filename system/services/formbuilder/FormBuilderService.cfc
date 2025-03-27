@@ -1607,7 +1607,6 @@ component {
 					itemsToRender.append( formItems[i] );
 					itemColumnMap[ formItems[ i ].id ] = columns;
 					headers.append( columns, true );
-
 				}
 			}
 		}
@@ -1616,13 +1615,15 @@ component {
 		headers.append( "User agent" );
 
 		spreadsheetLib.renameSheet( workbook, $translateResource( uri="formbuilder:spreadsheet.main.sheet.title", data=[ formDefinition.name ] ), 1 );
-		for( var i=1; i <= headers.len(); i++ ){
+
+		for ( var i=1; i <= headers.len(); i++ ) {
 			spreadsheetLib.setCellValue( workbook, headers[i], 1, i, "string" );
 		}
 
-		var row = 1;
-		for( var submission in submissions ) {
-			var column = 4;
+		var extraData = {};
+		var row       = 1;
+		for ( var submission in submissions ) {
+			var column = 5;
 			row++;
 			spreadsheetLib.setCellValue( workbook, submission.id, row, 1, "string" );
 			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2, "string" );
@@ -1646,12 +1647,27 @@ component {
 					} );
 					var mappedColumns = itemColumnMap[ item.id ];
 
+					var chunkSize = 32767;
 					for( var i=1; i<=mappedColumns.len(); i++ ) {
 						if ( itemColumns.len() >= i ) {
-							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column, "string" );
+							var totalChars = Len( itemColumns[ i ] );
+							if ( totalChars >= chunkSize ) {
+								var extendedCols = [];
+								for ( var x=chunkSize+1; x<=totalChars; x+=chunkSize ) {
+									ArrayAppend( extendedCols, Mid( itemColumns[ i ], x, chunkSize ) );
+								}
+
+								extraData[ column ][ row ] = extendedCols;
+
+								spreadsheetLib.setCellValue( workbook, Left( itemColumns[ i ], chunkSize ), row, column, "string" );
+							} else {
+								spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, column, "string" );
+							}
 						} else {
-							spreadsheetLib.setCellValue( workbook, "", row, ++column );
+							spreadsheetLib.setCellValue( workbook, "", row, column );
 						}
+
+						column++;
 					}
 				}
 			}
@@ -1672,6 +1688,32 @@ component {
 			}
 		}
 
+		if ( !StructIsEmpty( extraData ) ) {
+			if ( canInfo ) {
+				logger.info( "Processing additional data..." );
+			}
+
+			var offsetCols = 0;
+			for ( var extraCol in extraData ) {
+				var totalCols = 0;
+				for ( var extraRow in extraData[ extraCol ] ) {
+					totalCols = Max( totalCols, ArrayLen( extraData[ extraCol ][ extraRow ] ) );
+				}
+
+				for ( var i=1; i<=totalCols; i++ ) {
+					var data = [ "" ]; // Empty heading.
+
+					for ( var j=1; j<=submissions.recordCount; j++ ) {
+						ArrayAppend( data, extraData[ extraCol ][ j + 1 ][ i ] ?: "" );
+					}
+
+					spreadsheetLib.addColumn( workbook=workbook, data=data, startColumn=Val( extraCol ) + offsetCols + i, insert=true );
+				}
+
+				offsetCols += totalCols;
+			}
+		}
+
 		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
 		spreadsheetLib.addFreezePane( workbook, 0, 1 );
 		for( var i=1; i <= headers.len(); i++ ){
@@ -1680,6 +1722,10 @@ component {
 
 		if ( canReportProgress ) {
 			progress.setProgress( 100 );
+		}
+
+		if ( canInfo ) {
+			logger.info( "Done." );
 		}
 
 		if ( arguments.writeToFile ) {
