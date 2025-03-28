@@ -9,6 +9,7 @@
 component {
 
 	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
+	property name="rulesEngineConditionService" inject="RulesEngineConditionService";
 
 // CONSTRUCTOR
 	/**
@@ -655,8 +656,10 @@ component {
 		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
 
 		for ( var formItem in formItems ) {
-			if ( ( formItem.configuration.itemType ?: "" ) == "page" && !$helpers.isEmptyString( formItem.configuration.condition ?: "" ) ) {
-				return _getRulesEngineWebRequestService().evaluateCondition( conditionId=formItem.configuration.condition );
+			if ( ( formItem.item_type ?: "" ) == "page" && !$helpers.isEmptyString( formItem.configuration.condition ?: "" ) ) {
+				setFormBuilderSubmissionContextData( arguments.formId, getTempStoredSubmission( arguments.formId ) );
+
+				return rulesEngineConditionService.evaluateCondition( conditionId=formItem.configuration.condition, context="formBuilderSubmission" );
 			}
 		}
 
@@ -1209,12 +1212,14 @@ component {
 		for ( var formItem in arguments.formItems ) {
 			var fieldName = formItem.configuration.name ?: "";
 
-			if ( !StructKeyExists( arguments.requestData, fieldName ) ) {
-				arguments.requestData[ fieldName ] = "";
-			}
+			if ( !$helpers.isEmptyString( fieldName ) ) {
+				if ( !StructKeyExists( arguments.requestData, fieldName ) ) {
+					arguments.requestData[ fieldName ] = "";
+				}
 
-			if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && $helpers.isEmptyString( arguments.requestData[ fieldName ] ?: "" ) ) {
-				StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
+				if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && $helpers.isEmptyString( arguments.requestData[ fieldName ] ?: "" ) ) {
+					StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
+				}
 			}
 		}
 
@@ -2282,6 +2287,8 @@ component {
 				return page;
 			}
 		}
+
+		return {};
 	}
 
 	public boolean function updateUsesGlobalQuestions() {

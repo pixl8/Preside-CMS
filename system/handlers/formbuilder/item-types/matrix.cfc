@@ -30,13 +30,14 @@ component {
 	private string function getItemDataFromRequest( event, rc, prc, args={} ) {
 		var inputName   = args.inputName         ?: "";
 		var itemConfig  = args.itemConfiguration ?: {};
-		var formFields  = getFormFields( event, rc, prc, itemConfig );
+		var requestData = args.requestData       ?: {};
+		var formFields  = getFormFields( argumentCollection=arguments, args=itemConfig );
 		var rows        = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
 		var isMandatory = IsTrue( itemConfig.mandatory ?: "" );
 		var data        = {};
 
-		for( var field in formFields ) {
-			data[ field ] = rc[ field ] ?: "";
+		for ( var field in formFields ) {
+			data[ field ] = requestData[ field ] ?: "";
 
 			if( isMandatory && !Len( Trim( data[ field ] ) ) ) {
 				return "";
