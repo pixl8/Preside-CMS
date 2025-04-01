@@ -67,9 +67,6 @@ module.exports = function( grunt ) {
 					src  : ["js/admin/coretop/*.js", "!js/admin/coretop/*.min.js" ],
 					dest : 'js/admin/coretop/_coretop.min.js'
 				}, {
-					src:["js/admin/coretop/ie/*.js", "!js/admin/coretop/ie/*.min.js" ],
-					dest: 'js/admin/coretop/ie/_ie.min.js'
-				},{
 					src:["js/admin/devtools/*.js", "!js/admin/devtools/*.min.js" ],
 					dest: 'js/admin/devtools/_devtools.min.js'
 				}, {
