@@ -52,13 +52,14 @@
 			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
-			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
+			  , $tableFilter, filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
 			  , filtersPopulated=false
 			  , hasPreFilters=false;
 
 			if ( allowFilter ) {
-				filterSettings = $( ".object-listing-table-filter" ).data();
-				if ( filterSettings !== null ) {
+				$tableFilter = $( `#${tableId}-filter` );
+				if ( $tableFilter.length ) {
+					filterSettings    = $tableFilter.data();
 					allowUseFilter    = filterSettings.allowUseFilter    || false;
 					allowManageFilter = filterSettings.allowManageFilter || false;
 					if ( allowManageFilter ) {
