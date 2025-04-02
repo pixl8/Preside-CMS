@@ -266,6 +266,9 @@
 					}
 				}
 				for( var i=0; i<fields.length; i++ ) {
+					if ( !$.trim( fields[ i ] ).length ) {
+						continue;
+					}
 					var targetField = targetFields[ i ]
 					  , $field      = $( '[name=' + fields[ i ] + ']', presideObjectConfigurator.$originalInput.closest( 'form' ) );
 
