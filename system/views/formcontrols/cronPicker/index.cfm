@@ -14,7 +14,7 @@
 	fieldKeys       = [ "second", "minute", "hour", "dayofmonth", "monthofyear", "dayofweek" ];
 	args.fieldValue = {};
 
-	if ( !isEmpty( value ) ) {
+	if ( !isEmpty( value ) && value != "disabled" ) {
 		savedFieldValue = listToArray( value, " " );
 
 		for ( i=1; i<=arrayLen( savedFieldValue ); i++ ) {
