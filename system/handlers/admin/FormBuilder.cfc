@@ -123,6 +123,10 @@ component extends="preside.system.base.AdminHandler" {
 				placeholder = translateResource( uri="preside-objects.formbuilder_formitem:field.question.placeholder.custom", data=[ prc.itemTypeConfig.title ] )
 			} } };
 		} else {
+			if ( ( item.item_type ?: "" ) == "page" ) {
+				prc.additionalFormArgs = { fields={ condition={ rulesEngineContextData={ formId=formId } } } };
+			}
+
 			prc.formName = prc.itemTypeConfig.configFormName ?: "";
 		}
 	}

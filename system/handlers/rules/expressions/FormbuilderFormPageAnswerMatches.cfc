@@ -9,10 +9,7 @@ component {
 	property name="rulesEngineOperatorService" inject="RulesEngineOperatorService";
 
 	/**
-	 * @formbuilderForm.fieldType    object
-	 * @formbuilderForm.object       formbuilder_form
-	 * @formbuilderForm.multiple     false
-	 * @formbuilderForm.labelUriRoot rules.FormbuilderFormPageFieldMatches:
+	 * @formbuilderForm.fieldType    formbuilderForm
 	 *
 	 * @formbuilderPage.fieldType    formbuilderPage
 	 *
