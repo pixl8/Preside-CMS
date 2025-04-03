@@ -44,11 +44,12 @@ component {
 			return false;
 		}
 
-		var formData       = payload.formbuilderSubmission.data ?: {};
-		var formFieldName  = formItem.configuration.name ?: "";
-		var formFieldValue = formData[ formFieldName ] ?: "";
+		var formData        = payload.formbuilderSubmission.data ?: {};
+		var formFieldName   = formItem.configuration.name        ?: "";
+		var formFieldValue  = formData[ formFieldName ]          ?: "";
+		var formFieldValues = IsJSON( formFieldValue )           ? [] : ListToArray( formFieldValue );
 
-		var ruleConfig = DeserializeJSON( arguments.formbuilderAnswer );
+		var ruleConfig   = DeserializeJSON( arguments.formbuilderAnswer );
 		var ruleDataType = ruleConfig.dataType ?: "string";
 		var ruleOperator = ruleConfig.operator ?: "eq";
 		var ruleValue    = ruleConfig.value    ?: "";
@@ -71,6 +72,30 @@ component {
 			case "array"  :
 				var ruleValues = ListToArray( ruleValue );
 
+				if ( formItem.item_type == "matrix" ) {
+					var matrix = runEvent(
+						  event          = "formbuilder.item-types.matrix._getQuestionsAndAnswers"
+						, prePostExempt  = true
+						, private        = true
+						, eventArguments = { args={
+							  itemConfiguration = formItem.configuration ?: {}
+							, response          = formFieldValue
+						  } }
+					);
+
+					var ruleProperty = ruleConfig.property ?: "";
+					for ( var item in matrix ) {
+						if ( ruleProperty == ( item.question ?: "" ) && !isEmptyString( item.answer ?: "" ) ) {
+							if ( ArrayContainsNoCase( [ "allof", "noneof" ], ruleOperator ) ) {
+								ArrayAppend( formFieldValues, item.answer );
+							} else {
+								formFieldValue = item.answer;
+								break;
+							}
+						}
+					}
+				}
+
 				switch ( ruleOperator ) {
 					case "anyof"    :
 						return ArrayContainsNoCase( ruleValues, formFieldValue );
@@ -79,10 +104,10 @@ component {
 						return !ArrayContainsNoCase( ruleValues, formFieldValue );
 
 					case "allof"    :
-						return _arrayContainsAllNoCase( ruleValues, [ formFieldValue ] );
+						return _arrayContainsAllNoCase( ruleValues, formFieldValues );
 
 					case "noneof"   :
-						return !_arrayContainsAllNoCase( ruleValues, [ formFieldValue ] );
+						return !_arrayContainsAllNoCase( ruleValues, formFieldValues );
 
 					default         :
 						return false;
@@ -113,8 +138,8 @@ component {
 	}
 
 	private boolean function _arrayContainsAllNoCase( required array ruleValues, required array formFieldValues ) {
-		for ( var formFieldValue in arguments.formFieldValues ) {
-			if ( !ArrayContainsNoCase( arguments.ruleValues, formFieldValue ) ) {
+		for ( var ruleValue in arguments.ruleValues ) {
+			if ( !ArrayContainsNoCase( arguments.formFieldValues, ruleValue ) ) {
 				return false;
 			}
 		}

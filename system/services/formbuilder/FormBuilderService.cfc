@@ -652,14 +652,20 @@ component {
 	public boolean function evaluateConditionForPage(
 		  required string  formId
 		, required numeric pageNumber
+		,          struct  payload = getTempStoredSubmission( arguments.formId )
 	) {
 		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
 
 		for ( var formItem in formItems ) {
 			if ( ( formItem.item_type ?: "" ) == "page" && !$helpers.isEmptyString( formItem.configuration.condition ?: "" ) ) {
-				setFormBuilderSubmissionContextData( arguments.formId, getTempStoredSubmission( arguments.formId ) );
-
-				return rulesEngineConditionService.evaluateCondition( conditionId=formItem.configuration.condition, context="formBuilderSubmission" );
+				return rulesEngineConditionService.evaluateCondition(
+					  conditionId = formItem.configuration.condition
+					, context     = "formBuilderSubmission"
+					, payload     = { formbuilderSubmission={
+						  id   = arguments.formId
+						, data = arguments.payload
+					  } }
+				);
 			}
 		}
 
@@ -1185,15 +1191,15 @@ component {
 		if ( validationResult.validated() ) {
 			arguments.pageNumber += arguments.pageNext;
 
-			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=arguments.pageNumber ) ) {
-				arguments.pageNumber += arguments.pageNext;
-			}
-
-			formData.formPageNumber = arguments.pageNumber;
-
 			var tempSubmission = getTempStoredSubmission( formId=arguments.formId );
 
 			StructAppend( tempSubmission, formData );
+
+			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=arguments.pageNumber, payload=tempSubmission ) ) {
+				arguments.pageNumber += arguments.pageNext;
+			}
+
+			tempSubmission.formPageNumber = arguments.pageNumber;
 
 			setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, withFileUpload=true );
 		}
@@ -1204,7 +1210,7 @@ component {
 	public any function prepareTempSubmission(
 		  required string formId
 		, required struct requestData
-		,          array  formItems  = []
+		,          array  formItems = []
 	) {
 		var tempSubmission      = getTempStoredSubmission( formId=arguments.formId );
 		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
@@ -1224,6 +1230,8 @@ component {
 		}
 
 		StructAppend( tempSubmission, arguments.requestData );
+
+		tempSubmission.id = arguments.formId;
 
 		return tempSubmission;
 	}
