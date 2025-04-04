@@ -660,7 +660,7 @@ component {
 			if ( ( formItem.item_type ?: "" ) == "page" && !$helpers.isEmptyString( formItem.configuration.condition ?: "" ) ) {
 				return rulesEngineConditionService.evaluateCondition(
 					  conditionId = formItem.configuration.condition
-					, context     = "formBuilderSubmission"
+					, context     = "webRequest"
 					, payload     = { formbuilderSubmission={
 						  id   = arguments.formId
 						, data = arguments.payload

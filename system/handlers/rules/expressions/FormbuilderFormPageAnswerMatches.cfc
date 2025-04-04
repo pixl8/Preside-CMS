@@ -1,6 +1,6 @@
 /**
  * @expressionCategory formbuilder
- * @expressionContexts formbuilderSubmission
+ * @expressionContexts webRequest
  * @feature            rulesEngine
  */
 component {
@@ -9,13 +9,10 @@ component {
 	property name="rulesEngineOperatorService" inject="RulesEngineOperatorService";
 
 	/**
-	 * @formbuilderForm.fieldType    formbuilderForm
-	 *
-	 * @formbuilderPage.fieldType    formbuilderPage
-	 *
-	 * @formbuilderItem.fieldType    formbuilderPageItem
-	 *
-	 * @formbuilderAnswer.fieldType  formbuilderPageAnswer
+	 * @formbuilderForm.fieldType   formbuilderForm
+	 * @formbuilderPage.fieldType   formbuilderPage
+	 * @formbuilderItem.fieldType   formbuilderPageItem
+	 * @formbuilderAnswer.fieldType formbuilderPageAnswer
 	 */
 	private boolean function evaluateExpression(
 		  required string formbuilderForm
