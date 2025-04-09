@@ -1198,6 +1198,12 @@ component {
 			var nextPageNumber = arguments.pageNumber + arguments.pageNext;
 			var tempSubmission = getTempStoredSubmission( formId=arguments.formId );
 
+			tempSubmission.instancePage = tempSubmission.instancePage ?: "";
+			var pageItem = getPageByPageNumber( formId=arguments.formId, pageNumber=arguments.pageNumber );
+			if ( !ListContains( tempSubmission.instancePage, pageItem.id ?: "" ) ) {
+				tempSubmission.instancePage = ListAppend( tempSubmission.instancePage, pageItem.id );
+			}
+
 			StructAppend( tempSubmission, formData );
 
 			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=nextPageNumber, payload=tempSubmission ) ) {
@@ -2285,11 +2291,30 @@ component {
 	}
 
 	public array function getPages( required string formId ) {
-		return $getPresideObject( "formbuilder_formitem" ).selectData(
-			  extraSelectFields = [ " row_number() over (order by sort_order) as page_number" ]
-			, filter            = { form=arguments.formId, item_type="page" }
+		var records = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  extraSelectFields = [ "row_number() over (order by sort_order) as page_number" ]
+			, filter            = {
+				  form      = arguments.formId
+				, item_type = "page"
+			  }
 			, returnType        = "array"
 		);
+
+		var pages = [];
+
+		for ( var i=1; i<=ArrayLen( records ); i++ ) {
+			var page = {
+				  id            = records[ i ].id
+				, formId        = records[ i ].form
+				, item_type     = records[ i ].item_type
+				, page_number   = records[ i ].page_number
+				, configuration = IsJson( records[ i ].configuration ) ? DeserializeJSON( records[ i ].configuration ) : {}
+			}
+
+			ArrayAppend( pages, page );
+		}
+
+		return pages;
 	}
 
 	public struct function getPage( required string formId, required string formItemId ) {
@@ -2297,6 +2322,18 @@ component {
 
 		for ( var page in pages ) {
 			if ( page.id == arguments.formItemId ) {
+				return page;
+			}
+		}
+
+		return {};
+	}
+
+	public struct function getPageByPageNumber( required string formId, required numeric pageNumber ) {
+		var pages = getPages( formId=arguments.formId );
+
+		for ( var page in pages ) {
+			if ( page.page_number == arguments.pageNumber ) {
 				return page;
 			}
 		}

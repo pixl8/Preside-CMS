@@ -88,6 +88,7 @@ component {
 				, instanceId   = ( rc.instanceId   ?: "" )
 				, instanceSite = ( rc.instanceSite ?: "" )
 				, instanceUrl  = ( rc.instanceUrl  ?: "" )
+				, instancePage = ( rc.instancePage ?: "" )
 			);
 
 			formBuilderService.clearTempStoredSubmission( formId=formId );

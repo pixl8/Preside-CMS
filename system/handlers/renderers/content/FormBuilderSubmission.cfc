@@ -3,12 +3,38 @@
  */
 component  {
 
-	property name="formBuilderService" inject="formBuilderService";
-
+	property name="formBuilderService" inject="FormBuilderService";
 
 	private string function default( event, rc, prc, args={} ){
+		var formId       = ( rc.formId ?: ( rc.id ?: ( rc.form ?: "" ) ) );
+		var submissionId = ( rc.submissionId ?: ( args.record.id ?: ( rc.id ?: "" ) ) );
+
+		var submission = formBuilderService.getSubmission( submissionId=submissionId, selectFields=[ "form_page" ] );
+
+		args.tabs       = formBuilderService.getPages( formId=formId );
 		args.noResponse = translateResource( "formbuilder:no.response.placeholder" );
-		args.responses  = _preRenderResponses( argumentCollection=arguments );
+
+		args.tabs = ArrayFilter( args.tabs, function( item ) {
+			return ListContains( submission.form_page ?: "", item.id );
+		} );
+
+		var showTabs = IsFalse( args.firstResponseOnly ?: "" ) && ArrayLen( args.tabs ) > 1;
+
+		if ( showTabs ) {
+			args.responses = [];
+
+			for ( var tab in args.tabs ) {
+				ArrayAppend( args.responses, renderView( view="/renderers/content/formBuilderSubmission/default", args={
+					  responses  = _preRenderResponses( argumentCollection=arguments, pageNumber=tab.page_number )
+					, noResponse = args.noResponse
+				} ) );
+			}
+
+			return renderView( view="/renderers/content/formBuilderSubmission/_tabs", args=args );
+		}
+
+		args.responses = _preRenderResponses( argumentCollection=arguments );
+
 		if ( IsSimpleValue( args.responses ) ) {
 			return args.responses;
 		}
@@ -45,17 +71,16 @@ component  {
 
 
 // HELPERS
-	private any function _preRenderResponses( event, rc, prc, args={} ) {
+	private any function _preRenderResponses( event, rc, prc, args={}, pageNumber=0 ) {
 		var formId            = ( rc.formId ?: ( rc.id ?: ( rc.form ?: "" ) ) );
 		var submissionId      = ( rc.submissionId ?: ( args.record.id ?: ( rc.id ?: "" ) ) );
 		var isV2              = formBuilderService.isV2Form( formId );
-		var formItems         = formBuilderService.getFormItems( formId );
+		var formItems         = formBuilderService.getFormItems( id=formId, pageNumber=arguments.pageNumber );
 		var noResponse        = args.noResponse ?: translateResource( "formbuilder:no.response.placeholder" );
 		var responses         = "";
-		var rendered          = "";
 		var renderedResponses = [];
 
-		if( !formItems.len() ){
+		if ( !ArrayLen( formItems ) ) {
 			return noResponse;
 		}
 
@@ -64,34 +89,33 @@ component  {
 				  formId       = formId
 				, submissionId = submissionId
 			);
-		}
-		else {
+		} else {
 			responses = args.data ?: "";
 			if ( !IsJson( responses ) || !IsStruct( DeserializeJSON( responses ) ) ) {
 				return responses;
 			}
-			responses = DeserializeJson( responses );
+			responses = DeserializeJSON( responses );
 		}
 
-		for( var item in formItems ) {
+		for ( var item in formItems ) {
 			var isFormField = item.type.isFormField ?: false;
 
 			if ( isFormField ) {
 				var keyField = isV2 ? item.questionId : ( item.configuration.name ?: "" );
+
 				if ( StructKeyExists( responses, keyField ) ) {
 					var inputName = item.configuration.name;
-					var rendered  = formbuilderService.renderResponse(
-						  formId     = formId
-						, inputName  = inputName
-						, inputValue = responses[ keyField ]
-					);
 
-					renderedResponses.append({
+					ArrayAppend( renderedResponses, {
 						  item     = item
-						, rendered = rendered
+						, rendered = formbuilderService.renderResponse(
+							  formId     = formId
+							, inputName  = inputName
+							, inputValue = responses[ keyField ]
+						  )
 					});
 
-					if ( IsTrue( args.firstResponseOnly ?: "" ) ) {
+					if ( isTrue( args.firstResponseOnly ?: "" ) ) {
 						break;
 					}
 				}
@@ -100,6 +124,5 @@ component  {
 
 		return renderedResponses;
 	}
-
 
 }

@@ -1,9 +1,9 @@
 <!---@feature admin and formbuilder--->
-<cfparam name="args.responses"  type="array"/>
-<cfparam name="args.noResponse" type="string"/>
+<cfparam name="args.responses"  type="array"  default=[] />
+<cfparam name="args.noResponse" type="string" default="" />
 
 <cfoutput>
-	<cfif args.responses.len()>
+	<cfif ArrayLen( args.responses )>
 		<table class="table formbuilder-response table-striped">
 			<cfloop array="#args.responses#" item="response" index="i">
 				<tr>
