@@ -807,7 +807,7 @@ component extends="testbox.system.BaseSpec"{
 		describe( "getRequestDataForForm", function(){
 			it(  "should return a structure of data that contains only the relevent fields for the given form, given a struct containing an entire requests request params", function(){
 				var service        = getService();
-				var formId         = CreateUUId();
+				var formId         = CreateUUID();
 				var items          = [{
 					  type          = { isFormField=false, id="type1" }
 					, configuration = { name="test1" }
@@ -821,11 +821,12 @@ component extends="testbox.system.BaseSpec"{
 					  type          = { isFormField=true , id="type4" }
 					, configuration = { name="test4" }
 				}];
-				var input          = { yes=false, no=true, test1=CreateUUId(), test2="nice", test4=CreateUUId() };
-				var processed      = { test2=CreateUUId(), test4={ complex=true, test=CreateUUId() } }
+				var input          = { yes=false, no=true, test1=CreateUUID(), test2="nice", test4=CreateUUID() };
+				var processed      = { test2=CreateUUID(), test4={ complex=true, test=CreateUUID() } }
 				var expectedOutput = { test2=processed.test2, test4=processed.test4 };
+				var pageNumber     = 0;
 
-				service.$( "getFormItems" ).$args( id=formId ).$results( items );
+				service.$( "getFormItems" ).$args( id=formId, pageNumber=pageNumber ).$results( items );
 				service.$( "getItemDataFromRequest" ).$args( itemType="type2", inputName="test2", requestData=input, itemConfiguration=items[2].configuration ).$results( processed.test2 );
 				service.$( "getItemDataFromRequest" ).$args( itemType="type3", inputName="test3", requestData=input, itemConfiguration=items[3].configuration ).$results( NullValue() );
 				service.$( "getItemDataFromRequest" ).$args( itemType="type4", inputName="test4", requestData=input, itemConfiguration=items[4].configuration ).$results( processed.test4 );
