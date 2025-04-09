@@ -7,10 +7,15 @@ component {
 		var rows             = ListToArray( args.rows    ?: "", Chr( 10 ) & Chr( 13 ) );
 		var columns          = ListToArray( args.columns ?: "", Chr( 10 ) & Chr( 13 ) );
 		var questionInputIds = [];
-		var inputName        = args.name ?: "";
+		var inputName        = args.name       ?: "";
+		var inputValue       = rc[ inputName ] ?: "";
 
-		for( var question in rows ) {
-			questionInputIds.append( _getQuestionInputId( inputName, question ) );
+		for ( var question in rows ) {
+			ArrayAppend( questionInputIds, _getQuestionInputId( inputName, question ) );
+		}
+
+		if ( IsJSON( inputValue ) ) {
+			StructAppend( rc, DeserializeJSON( inputValue ) );
 		}
 
 		return renderFormControl(
@@ -32,7 +37,6 @@ component {
 		var itemConfig  = args.itemConfiguration ?: {};
 		var requestData = args.requestData       ?: {};
 		var formFields  = getFormFields( argumentCollection=arguments, args=itemConfig );
-		var rows        = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
 		var isMandatory = IsTrue( itemConfig.mandatory ?: "" );
 		var data        = {};
 
@@ -83,9 +87,9 @@ component {
 		var rows      = ListToArray( Trim( args.rows ?: "" ), Chr(10) & Chr(13) );
 		var fields    = [];
 
-		for( var question in rows ) {
+		for ( var question in rows ) {
 			if ( Len( Trim( question ) ) ) {
-				fields.append( _getQuestionInputId( inputName, question ) );
+				ArrayAppend( fields, _getQuestionInputId( inputName, question ) );
 			}
 		}
 
