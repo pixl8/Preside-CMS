@@ -8,6 +8,7 @@ component displayName="Cron util" {
 
 // CONSTRUCTOR
 	public any function init() {
+		_registerOsgiBundles();
 		_setupCronParser();
 		_setupTimezoneOffset();
 
@@ -27,7 +28,7 @@ component displayName="Cron util" {
 
 	public string function getNextRunDate( required string crontabExpression, date lastRun=Now() ) {
 		var cronTabExpression = _getCrontabExpressionObject( arguments.crontabExpression );
-		var executionTimeObj  = CreateObject( "java", "com.cronutils.model.time.ExecutionTime", _getLib() ).forCron( cronTabExpression );
+		var executionTimeObj  = _cronUtilsObj( "com.cronutils.model.time.ExecutionTime" ).forCron( cronTabExpression );
 
 		return executionTimeObj.nextExecution( _createJavaZonedTimeObject( arguments.lastRun ) ).get().format( variables._dateTimeFormat );
 	}
@@ -39,7 +40,7 @@ component displayName="Cron util" {
 
 		var locale     = CreateObject( "java", "java.util.Locale" ).forLanguageTag( UCase( ListFirst( arguments.locale, "-" ) ) );
 		var cronObj    = _getCrontabExpressionObject( arguments.crontabExpression );
-		var descriptor = CreateObject( "java", "com.cronutils.descriptor.CronDescriptor", _getLib() ).instance( locale );
+		var descriptor = _cronUtilsObj( "com.cronutils.descriptor.CronDescriptor" ).instance( locale );
 
 		return descriptor.describe( cronObj );
 	}
@@ -55,10 +56,6 @@ component displayName="Cron util" {
 
 	private any function _getCrontabExpressionObject( required string expression ) {
 		return variables._cronParser.parse( _convertToValidQuartzCron( arguments.expression ) );
-	}
-
-	private array function _getLib() {
-		return [ "/preside/system/services/taskmanager/lib/cron-utils-9.2.1.jar" ];
 	}
 
 	private string function _convertToValidQuartzCron( expression ) {
@@ -77,12 +74,24 @@ component displayName="Cron util" {
 		return ArrayToList( expressions, " " );
 	}
 
+	private void function _registerOsgiBundles() {
+		var jars       = DirectoryList( "/preside/system/services/taskmanager/lib/", false, "path", "*.jar" );
+		var cfmlEngine = CreateObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance();
+		var osgiUtil   = CreateObject( "java", "lucee.runtime.osgi.OSGiUtil" );
+
+		for( var jar in jars ) {
+			var res       = cfmlEngine.getResourceUtil().toResourceExisting( getPageContext(), jar );
+
+			osgiUtil.installBundle( cfmlEngine.getBundleContext(), res, true );
+		}
+	}
+
 	private void function _setupCronParser() {
-		var cronTypes  = CreateObject( "java", "com.cronutils.model.CronType", _getLib() );
-		var defBuilder = CreateObject( "java", "com.cronutils.model.definition.CronDefinitionBuilder", _getLib() );
+		var cronTypes  = _cronUtilsObj( "com.cronutils.model.CronType" );
+		var defBuilder = _cronUtilsObj( "com.cronutils.model.definition.CronDefinitionBuilder" );
 		var def        = defBuilder.instanceDefinitionFor( cronTypes.QUARTZ );
 
-		variables._cronParser = CreateObject( "java", "com.cronutils.parser.CronParser", _getLib() ).init( def );
+		variables._cronParser = _cronUtilsObj( "com.cronutils.parser.CronParser" ).init( def );
 	}
 
 	private void function _setupTimezoneOffset() {
@@ -95,6 +104,10 @@ component displayName="Cron util" {
 			variables._timezoneOffset = "+" & variables._timezoneOffset;
 		}
 		variables._dateTimeFormat = CreateObject( "java", "java.time.format.DateTimeFormatter" ).ISO_LOCAL_DATE_TIME;
+	}
+
+	private function _cronUtilsObj( className ) {
+		return CreateObject( "java", arguments.className, "com.cronutils.cron-utils", "9.2.1" );
 	}
 
 }
