@@ -33,9 +33,15 @@ component {
 	}
 
 	private string function getItemDataFromRequest( event, rc, prc, args={} ) {
-		var inputName   = args.inputName         ?: "";
-		var itemConfig  = args.itemConfiguration ?: {};
-		var requestData = args.requestData       ?: {};
+		var requestData = args.requestData              ?: {};
+		var inputName   = args.inputName                ?: "";
+		var inputData   = args.requestData[ inputName ] ?: "";
+		var itemConfig  = args.itemConfiguration        ?: {};
+
+		if ( !isEmptyString( inputData ) && IsJSON( inputData ) ) {
+			return inputData;
+		}
+
 		var formFields  = getFormFields( argumentCollection=arguments, args=itemConfig );
 		var isMandatory = IsTrue( itemConfig.mandatory ?: "" );
 		var data        = {};
@@ -52,9 +58,9 @@ component {
 	}
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		var qAndA = _getQuestionsAndAnswers( argumentCollection=arguments );
+		args.answers = _getQuestionsAndAnswers( argumentCollection=arguments );
 
-		return renderView( view="/formbuilder/item-types/matrix/renderResponse", args={ answers=qAndA } );
+		return Trim( renderView( view="/formbuilder/item-types/matrix/#( args.context ?: "html" )#", args=args ) );
 	}
 
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
@@ -113,9 +119,9 @@ component {
 
 // private helpers
 	private array function _getQuestionsAndAnswers( event, rc, prc, args={} ) {
-		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};
+		var response   = IsJson( args.response ?: "" ) ? DeserializeJSON( args.response ) : {};
 		var itemConfig = args.itemConfiguration ?: ( args.configuration ?: {} );
-		var rows       = ListToArray( Trim( itemConfig.rows ?: "" ), Chr(10) & Chr(13) );
+		var rows       = ListToArray( Trim( itemConfig.rows ?: "" ), Chr( 10 ) & Chr( 13 ) );
 		var answers    = [];
 
 		for( var row in rows ) {

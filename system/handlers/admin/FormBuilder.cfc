@@ -11,7 +11,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="adHocTaskManagerService"     inject="adHocTaskManagerService";
 	property name="submissionRemovalMinDays"    inject="coldbox:setting:formbuilder.submissions.removal.minAllowedDays";
 
-
 // PRE-HANDLER
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -737,7 +736,7 @@ component extends="preside.system.base.AdminHandler" {
 		var useMultiActions = canDelete;
 		var checkboxCol     = [];
 		var optionsCol      = [];
-		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ];
+		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "form_page", "submitted_data" ];
 		var dtHelper        = getModel( "JQueryDatatablesHelpers" );
 		var results         = formbuilderService.getSubmissionsForGridListing(
 			  formId                = formId

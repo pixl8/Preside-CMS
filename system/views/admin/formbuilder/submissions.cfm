@@ -4,7 +4,8 @@
 	formId     = theForm.id;
 	canDelete  = prc.canDelete = hasCmsPermission( "formbuilder.deleteSubmissions" );
 	v2Form     = isTrue( theForm.uses_global_questions ?: "" );
-	gridFields = [ "datecreated", "form_instance", "submitted_data" ];
+	gridFields = [ "datecreated", "form_instance", "form_page", "submitted_data" ];
+
 	if ( isFeatureEnabled( "websiteUsers" ) ) {
 		ArrayPrepend( gridFields, "submitted_by" );
 	}

@@ -1,6 +1,6 @@
 <!---@feature admin and formbuilder--->
 <cfparam name="args.responses"  type="array"  default=[] />
-<cfparam name="args.noResponse" type="string" default="" />
+<cfparam name="args.noResponse" type="string" default="#translateResource( "formbuilder:no.response.placeholder" )#" />
 
 <cfoutput>
 	<cfif ArrayLen( args.responses )>

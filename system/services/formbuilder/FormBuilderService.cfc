@@ -851,6 +851,7 @@ component {
 		  required string formId
 		, required string inputName
 		, required string inputValue
+		,          string context = ""
 	) {
 		var item = getItemByInputName(
 			  formId    = arguments.formid
@@ -868,6 +869,7 @@ component {
 		return $renderViewlet( event=viewlet, args={
 			  response          = arguments.inputValue
 			, itemConfiguration = item.configuration
+			, context           = arguments.context
 		} );
 	}
 
@@ -1139,9 +1141,8 @@ component {
 			var submission = getSubmission( submissionId );
 			for( var s in submission ) { submission = s; }
 
-			if( isV2Form( formId=arguments.formId ) ){
-				var v2responses = getV2Responses( formId=arguments.formId, submissionId=submissionId );
-				submission.submitted_data = serializeJSON( v2responses?:{} );
+			if ( isV2Form( formId=arguments.formId ) ) {
+				submission.submitted_data = SerializeJSON( getV2Responses( formId=arguments.formId, submissionId=submissionId ) );
 			}
 
 			_getActionsService().triggerSubmissionActions(
@@ -1200,7 +1201,7 @@ component {
 
 			tempSubmission.instancePage = tempSubmission.instancePage ?: "";
 			var pageItem = getPageByPageNumber( formId=arguments.formId, pageNumber=arguments.pageNumber );
-			if ( !ListContains( tempSubmission.instancePage, pageItem.id ?: "" ) ) {
+			if ( !$helpers.isEmptyString( pageItem.id ?: "" ) && !ListContains( tempSubmission.instancePage, pageItem.id ) ) {
 				tempSubmission.instancePage = ListAppend( tempSubmission.instancePage, pageItem.id );
 			}
 
@@ -1319,6 +1320,7 @@ component {
 					sortBy = "submitted_by.display_name";
 				}
 				break;
+
 			case "datecreated":
 			case "instanceId":
 			case "submitted_data":
@@ -1368,11 +1370,14 @@ component {
 			  "formbuilder_formsubmission.id"
 			, "formbuilder_formsubmission.submitted_data"
 			, "formbuilder_formsubmission.form_instance"
+			, "formbuilder_formsubmission.form_page"
 			, "formbuilder_formsubmission.datecreated"
 		];
+
 		if ( websiteUsers ) {
 			ArrayAppend( selectFields, "submitted_by.id as submitted_by" );
 		}
+
 		result.records = submissionsDao.selectData(
 			  filter       = { form = arguments.formId }
 			, extraFilters = extraFilters
