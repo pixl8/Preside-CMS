@@ -218,7 +218,16 @@ component {
 		if ( IsSimpleValue( fieldValue ) ) {
 			return fieldValue;
 		} else {
-			return fieldValue.fileName ?: "";
+			if ( !isEmptyString( fieldValue.fileName ?: "" ) ) {
+				return fieldValue.fileName;
+			}
+
+			var response = "";
+			for ( var item in fieldValue ) {
+				response = ListAppend( response, item.fileName ?: "" );
+			}
+
+			return response;
 		}
 	}
 

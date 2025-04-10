@@ -9,6 +9,7 @@
 component {
 
 	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
+	property name="rulesEngineConditionService" inject="RulesEngineConditionService";
 
 // CONSTRUCTOR
 	/**
@@ -651,12 +652,20 @@ component {
 	public boolean function evaluateConditionForPage(
 		  required string  formId
 		, required numeric pageNumber
+		,          struct  payload = getTempStoredSubmission( arguments.formId )
 	) {
 		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
 
 		for ( var formItem in formItems ) {
-			if ( ( formItem.configuration.itemType ?: "" ) == "page" && !$helpers.isEmptyString( formItem.configuration.condition ?: "" ) ) {
-				return _getRulesEngineWebRequestService().evaluateCondition( conditionId=formItem.configuration.condition );
+			if ( ( formItem.item_type ?: "" ) == "page" && !$helpers.isEmptyString( formItem.configuration.condition ?: "" ) ) {
+				return rulesEngineConditionService.evaluateCondition(
+					  conditionId = formItem.configuration.condition
+					, context     = "webRequest"
+					, payload     = { formbuilderSubmission={
+						  id   = arguments.formId
+						, data = arguments.payload
+					  } }
+				);
 			}
 		}
 
@@ -989,9 +998,13 @@ component {
 	 * @requestData.hint A struct containing request data parameters
 	 *
 	 */
-	public struct function getRequestDataForForm( required string formId, required struct requestData ) {
+	public struct function getRequestDataForForm(
+		  required string  formId
+		, required struct  requestData
+		,          numeric pageNumber = 0
+	) {
 		var formData  = {};
-		var formItems = getFormItems( id=arguments.formId );
+		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
 
 		for( var item in formItems ) {
 			var itemName    = item.configuration.name ?: "";
@@ -1064,6 +1077,7 @@ component {
 		,          string instanceId   = ""
 		,          string instanceSite = ""
 		,          string instanceUrl  = ""
+		,          string instancePage = ""
 		,          string ipAddress    = Trim( ListLast( cgi.remote_addr ?: "" ) )
 		,          string userAgent    = ( cgi.http_user_agent ?: "" )
 	) {
@@ -1101,6 +1115,7 @@ component {
 					, form_instance = arguments.instanceId
 					, form_site     = arguments.instanceSite
 					, form_url      = arguments.instanceUrl
+					, form_page     = arguments.instancePage
 					, ip_address    = arguments.ipAddress
 					, user_agent    = arguments.userAgent
 				} );
@@ -1172,7 +1187,7 @@ component {
 		,          numeric pageNumber = 0
 		,          numeric pageNext   = 0
 	) {
-		var formData = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData );
+		var formData = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData, pageNumber=arguments.pageNumber );
 
 		var validationResult = _getFormBuilderValidationService().validateFormSubmission(
 			  formItems      = arguments.formItems
@@ -1180,17 +1195,16 @@ component {
 		);
 
 		if ( validationResult.validated() ) {
-			arguments.pageNumber += arguments.pageNext;
-
-			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=arguments.pageNumber ) ) {
-				arguments.pageNumber += arguments.pageNext;
-			}
-
-			formData.formPageNumber = arguments.pageNumber;
-
+			var nextPageNumber = arguments.pageNumber + arguments.pageNext;
 			var tempSubmission = getTempStoredSubmission( formId=arguments.formId );
 
 			StructAppend( tempSubmission, formData );
+
+			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=nextPageNumber, payload=tempSubmission ) ) {
+				nextPageNumber += arguments.pageNext;
+			}
+
+			tempSubmission.formPageNumber = nextPageNumber;
 
 			setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, withFileUpload=true );
 		}
@@ -1201,7 +1215,7 @@ component {
 	public any function prepareTempSubmission(
 		  required string formId
 		, required struct requestData
-		,          array  formItems  = []
+		,          array  formItems = []
 	) {
 		var tempSubmission      = getTempStoredSubmission( formId=arguments.formId );
 		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
@@ -1209,16 +1223,20 @@ component {
 		for ( var formItem in arguments.formItems ) {
 			var fieldName = formItem.configuration.name ?: "";
 
-			if ( !StructKeyExists( arguments.requestData, fieldName ) ) {
-				arguments.requestData[ fieldName ] = "";
-			}
+			if ( !$helpers.isEmptyString( fieldName ) ) {
+				if ( !StructKeyExists( arguments.requestData, fieldName ) ) {
+					arguments.requestData[ fieldName ] = "";
+				}
 
-			if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && $helpers.isEmptyString( arguments.requestData[ fieldName ] ?: "" ) ) {
-				StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
+				if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && $helpers.isEmptyString( arguments.requestData[ fieldName ] ?: "" ) ) {
+					StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
+				}
 			}
 		}
 
 		StructAppend( tempSubmission, arguments.requestData );
+
+		tempSubmission.id = arguments.formId;
 
 		return tempSubmission;
 	}
@@ -2310,6 +2328,26 @@ component {
 			  filter          = { form=arguments.formId, item_type="page" }
 			, recordCountOnly = true
 		);
+	}
+
+	public array function getPages( required string formId ) {
+		return $getPresideObject( "formbuilder_formitem" ).selectData(
+			  extraSelectFields = [ " row_number() over (order by sort_order) as page_number" ]
+			, filter            = { form=arguments.formId, item_type="page" }
+			, returnType        = "array"
+		);
+	}
+
+	public struct function getPage( required string formId, required string formItemId ) {
+		var pages = getPages( formId=arguments.formId );
+
+		for ( var page in pages ) {
+			if ( page.id == arguments.formItemId ) {
+				return page;
+			}
+		}
+
+		return {};
 	}
 
 	public boolean function updateUsesGlobalQuestions() {

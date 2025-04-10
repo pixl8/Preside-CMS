@@ -33,7 +33,11 @@ component {
 		var filterBy      = "question";
 		var filterByField = "items.question";
 
-		rc.delete( "value" );
+		StructDelete( rc, "value" );
+
+		if ( isEmptyString( arguments.value ) ) {
+			arguments.value = config.formId ?: "";
+		}
 
 		return renderFormControl(
 			  argumentCollection = arguments.config

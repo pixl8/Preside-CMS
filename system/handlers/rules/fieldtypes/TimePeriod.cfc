@@ -79,7 +79,7 @@ component {
 			, pastOnly     = IsTrue( config.pastOnly   ?: "" )
 			, futureOnly   = IsTrue( config.futureOnly ?: "" )
 			, isDate       = IsTrue( config.isDate     ?: "" )
-			, label        = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label" )
+			, label        = translateResource( uri=( config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label" ), defaultValue=config.fieldLabel )
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value
 			, required     = true
