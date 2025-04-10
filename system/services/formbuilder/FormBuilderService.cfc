@@ -7,6 +7,7 @@
  * @feature        formbuilder
  */
 component {
+
 	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
 
 // CONSTRUCTOR
@@ -76,10 +77,18 @@ component {
 	 * @autodoc    true
 	 * @id.hint    ID of the form item's form you wish to get
 	 */
-	public array function getFormItemDefaultFields( required string id ) {
+	public array function getFormItemDefaultFields(
+		  required string  id
+		,          boolean withPageNumber = false
+	) {
 		var fields = [ "id", "item_type", "configuration", "form" ];
+
 		if ( isV2Form( formid=arguments.id ) ) {
 			ArrayAppend( fields, "question" );
+		}
+
+		if ( arguments.withPageNumber ) {
+			ArrayAppend( fields, "count( case when item_type = 'page' then 1 end) over ( order by sort_order rows between unbounded preceding and current row ) as page_number" );
 		}
 
 		return fields;
@@ -92,16 +101,20 @@ component {
 	 * @id.hint        ID of the form whose sections and items you wish to get
 	 * @itemTypes.hint Optional array of item types with which to filter the returned form items
 	 */
-	public array function getFormItems( required string id, array itemTypes=[] ) {
+	public array function getFormItems(
+		  required string  id
+		,          array   itemTypes  = []
+		,          numeric pageNumber = 0
+	) {
 		var result = [];
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
-			  filter       = { form=arguments.id }
+			  selectFields = getFormItemDefaultFields( id=arguments.id, withPageNumber=$helpers.isTrue( arguments.pageNumber ) )
+			, filter       = { form=arguments.id }
 			, orderBy      = "sort_order"
-			, selectFields = getFormItemDefaultFields( id=arguments.id )
 		);
 
-		for( var item in items ) {
-			if ( !itemTypes.len() || itemTypes.findNoCase( item.item_type ) ) {
+		for ( var item in items ) {
+			if ( ( arguments.pageNumber == 0 || arguments.pageNumber == item.page_number ) && ( !ArrayLen( itemTypes ) || ArrayFindNoCase( itemTypes, item.item_type ) ) ) {
 				var preparedItem = {
 					  id            = item.id
 					, formId        = item.form
@@ -635,6 +648,21 @@ component {
 		return { allowed=true, reason="", content="", message="" };
 	}
 
+	public boolean function evaluateConditionForPage(
+		  required string  formId
+		, required numeric pageNumber
+	) {
+		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
+
+		for ( var formItem in formItems ) {
+			if ( ( formItem.configuration.itemType ?: "" ) == "page" && !$helpers.isEmptyString( formItem.configuration.condition ?: "" ) ) {
+				return _getRulesEngineWebRequestService().evaluateCondition( conditionId=formItem.configuration.condition );
+			}
+		}
+
+		return true;
+	}
+
 	/**
 	 * Returns whether or not a form has fields that identify as being file upload fields,
 	 * to make it easier to handle beahviours and repopulating of forms.
@@ -661,18 +689,24 @@ component {
 	 * @submission.hint The form value collection that will be stored in the session
 	 *
 	 */
-	public void function setTempStoredSubmission( required string formId, required struct submission ) {
+	public void function setTempStoredSubmission(
+		  required string  formId
+		, required struct  submission
+		,          boolean withFileUpload = false
+	) {
 		var tempStorageKey      = "temp_formbuilder_submission_#formId#";
 		var dataToStore         = Duplicate( arguments.submission );
 		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
-		var fileFields          = $getPresideObject( "formbuilder_formitem" ).selectData(
+		var fileFields          = ValueArray( $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { form=arguments.formId, item_type=fileUploadItemTypes }
 			, selectFields = [ "question.field_id" ]
-		).valueArray( "field_id" );
+		), "field_id" );
 
-		for( var field in dataToStore ) {
-			if ( ArrayFind( fileFields, field ) ) {
-				StructDelete( dataToStore, field );
+		if ( ArrayLen( fileFields ) && !arguments.withFileUpload ) {
+			for( var field in dataToStore ) {
+				if ( ArrayFind( fileFields, field ) ) {
+					StructDelete( dataToStore, field );
+				}
 			}
 		}
 
@@ -687,15 +721,19 @@ component {
 	 * @formId.hint     The ID of the form you wish to retrieve stored values for
 	 *
 	 */
-	public struct function getTempStoredSubmission( required string formId ) {
+	public struct function getTempStoredSubmission( required string formId, boolean clearSubmission=false ) {
 		var tempStorageKey = "temp_formbuilder_submission_#formId#";
 		var submission     =  _getSessionStorage().getVar( tempStorageKey, StructNew() );
 
-
-		_getSessionStorage().deleteVar( tempStorageKey );
-
+		if ( arguments.clearSubmission ) {
+			clearTempStoredSubmission( formId=arguments.formId );
+		}
 
 		return submission;
+	}
+
+	public void function clearTempStoredSubmission( required string formId ) {
+		_getSessionStorage().deleteVar( "temp_formbuilder_submission_#formId#" );
 	}
 
 	/**
@@ -715,7 +753,7 @@ component {
 		,          any    validationResult = ""
 	) {
 		var formConfiguration = getForm( id=arguments.formId );
-		var items             = getFormItems( id=arguments.formId );
+		var items             = getFormItems( id=arguments.formId, pageNumber=( arguments.configuration.formPageNumber ?: 0 ) );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
 		var coreLayoutViewlet = "formbuilder.core.formLayout";
@@ -723,9 +761,9 @@ component {
 		var formLayoutViewlet = _getFormBuilderRenderingService().getFormLayoutViewlet( layout=arguments.layout );
 		var idPrefixForFields = _createIdPrefix( formId=arguments.formId );
 
-		for( var item in items ) {
+		for ( var item in items ) {
 			var config    = Duplicate( item.configuration );
-			var fieldName = config.name ?: CreateUUId();
+			var fieldName = config.name ?: CreateUUID();
 
 			config.id = idPrefixForFields & fieldName;
 
@@ -745,15 +783,15 @@ component {
 		coreLayoutArgs.renderedItems = renderedItems.toString();
 		coreLayoutArgs.id            = idPrefixForFields;
 		coreLayoutArgs.formItems     = items;
+
 		for( var f in formConfiguration ) {
 			coreLayoutArgs.configuration = f;
 		}
 
-		formLayoutArgs.renderedForm  = $renderViewlet(
+		formLayoutArgs.renderedForm = $renderViewlet(
 			  event = coreLayoutViewlet
 			, args  = coreLayoutArgs
 		);
-
 
 		return $renderViewlet(
 			  event = formLayoutViewlet
@@ -1125,6 +1163,64 @@ component {
 		}
 
 		return validationResult;
+	}
+
+	public any function saveTempSubmission(
+		  required string  formId
+		, required struct  requestData
+		,          array   formItems  = []
+		,          numeric pageNumber = 0
+		,          numeric pageNext   = 0
+	) {
+		var formData = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData );
+
+		var validationResult = _getFormBuilderValidationService().validateFormSubmission(
+			  formItems      = arguments.formItems
+			, submissionData = formData
+		);
+
+		if ( validationResult.validated() ) {
+			arguments.pageNumber += arguments.pageNext;
+
+			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=arguments.pageNumber ) ) {
+				arguments.pageNumber += arguments.pageNext;
+			}
+
+			formData.formPageNumber = arguments.pageNumber;
+
+			var tempSubmission = getTempStoredSubmission( formId=arguments.formId );
+
+			StructAppend( tempSubmission, formData );
+
+			setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, withFileUpload=true );
+		}
+
+		return validationResult;
+	}
+
+	public any function prepareTempSubmission(
+		  required string formId
+		, required struct requestData
+		,          array  formItems  = []
+	) {
+		var tempSubmission      = getTempStoredSubmission( formId=arguments.formId );
+		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
+
+		for ( var formItem in arguments.formItems ) {
+			var fieldName = formItem.configuration.name ?: "";
+
+			if ( !StructKeyExists( arguments.requestData, fieldName ) ) {
+				arguments.requestData[ fieldName ] = "";
+			}
+
+			if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && $helpers.isEmptyString( arguments.requestData[ fieldName ] ?: "" ) ) {
+				StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
+			}
+		}
+
+		StructAppend( tempSubmission, arguments.requestData );
+
+		return tempSubmission;
 	}
 
 	/**
@@ -2172,11 +2268,11 @@ component {
 				}
 
 				_saveV2Response(
-					  response             = responses
-					, questionId           = formItem.questionId
-					, formId               = arguments.formId
-					, submissionId         = arguments.submissionId
-					, dataType             = dataType
+					  response     = responses
+					, questionId   = formItem.questionId
+					, formId       = arguments.formId
+					, submissionId = arguments.submissionId
+					, dataType     = dataType
 				);
 			}
 		}
@@ -2206,6 +2302,13 @@ component {
 	public boolean function isV2Form( required string formid ) {
 		return $isFeatureEnabled( "formbuilder2" ) && $getPresideObject( "formbuilder_form" ).dataExists(
 			  filter = { id=arguments.formId, uses_global_questions=true }
+		);
+	}
+
+	public numeric function getPageCount( required string formId ) {
+		return $getPresideObject( "formbuilder_formitem" ).selectData(
+			  filter          = { form=arguments.formId, item_type="page" }
+			, recordCountOnly = true
 		);
 	}
 
