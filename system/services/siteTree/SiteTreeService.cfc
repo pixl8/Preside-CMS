@@ -838,7 +838,8 @@ component {
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
 
-			var pageDataHasChanged     = _getVersioningService().dataHasChanged( objectName="page", recordId=arguments.id, newData=arguments );
+			var isPublishingDraftPage  = !arguments.isDraft && $helpers.isTrue( existingPage._version_is_draft );
+			var pageDataHasChanged     = _getVersioningService().dataHasChanged( objectName="page", recordId=arguments.id, newData=arguments ) || isPublishingDraftPage;
 			var pageTypeDataHasChanged = false;
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
