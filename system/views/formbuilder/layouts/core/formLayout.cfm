@@ -21,7 +21,9 @@
 			</cfif>
 		</cfloop>
 
-		#renderView( view="/formbuilder/general/progressbar" )#
+		<cfif isTrue( args.configuration.use_progressbar ?: "" )>
+			#renderView( view="/formbuilder/general/progressbar" )#
+		</cfif>
 
 		#args.renderedItems#
 		#args.renderedResponses#
