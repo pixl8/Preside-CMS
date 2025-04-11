@@ -1035,13 +1035,13 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should render the given item's type response viewlet with the supplied data args", function(){
 				var service         = getService();
-				var formId          = CreateUUId();
-				var inputName       = CreateUUId();
-				var inputValue      = CreateUUId();
-				var matchingItem    = { type={ id="someType", isFormField=true }, configuration={ name=inputName, label="hello", test=CreateUUId() } };
+				var formId          = CreateUUID();
+				var inputName       = CreateUUID();
+				var inputValue      = CreateUUID();
+				var matchingItem    = { type={ id="someType", isFormField=true }, configuration={ name=inputName, label="hello", test=CreateUUID() } };
 				var itemTypeViewlet = "some.viewlet." & CreateUUId();
-				var expectedResult  = CreateUUId();
-				var renderArgs      = { response=inputValue, itemConfiguration=matchingItem.configuration };
+				var expectedResult  = CreateUUID();
+				var renderArgs      = { response=inputValue, itemConfiguration=matchingItem.configuration, context="" };
 
 				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=matchingItem.type.id, context="response" ).$results( itemTypeViewlet );
 				service.$( "getItemByInputName" ).$args( formId=formId, inputName=inputName ).$results( matchingItem );
