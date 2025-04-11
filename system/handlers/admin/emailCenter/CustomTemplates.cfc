@@ -715,6 +715,14 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var queuedCount = emailMassSendingService.queueSendout( templateId );
+
+		event.audit(
+			  action   = "send_email_manual"
+			, type     = "emailsend"
+			, recordId = templateId
+			, detail   = { queuedCount=queuedCount }
+		);
+
 		messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.success", data=[ NumberFormat( queuedCount ) ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
 	}

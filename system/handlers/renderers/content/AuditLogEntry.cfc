@@ -207,6 +207,18 @@ component {
 		return translateResource( uri="auditlog.emaillayout:#action#.message", data=[ userLink, recordLink ] );
 	}
 
+	private string function emailSend( event, rc, prc, args={} ) {
+		var action      = args.action             ?: "";
+		var templateId  = args.record_id          ?: "";
+		var queuedCount = args.detail.queuedCount ?: "";
+		var knownAs     = args.known_as           ?: "";
+
+		var templateLink = '<a href="#event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#" )#">#renderLabel( "email_template", templateId )#</a>';
+		var userLink     = '<a href="#args.userLink#">#knownAs#</a>';
+
+		return translateResource( uri="auditlog.emailsend:#action#.message", data=[ userLink, templateLink, queuedCount ] );
+	}
+
 	private string function emailResend( event, rc, prc, args={} ) {
 		var action     = args.action           ?: "";
 		var known_as   = args.known_as         ?: "";
