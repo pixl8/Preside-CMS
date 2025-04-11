@@ -83,6 +83,10 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function template( event, rc, prc ) {
+		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#( rc.template ?: "" )#" ) );
+	}
+
 	function preview( event, rc, prc ) {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true )
 
@@ -144,7 +148,7 @@ component extends="preside.system.base.AdminHandler" {
 		var templateId       = rc.id ?: "";
 
 		if ( validationResult.validated() ) {
-			var sendTo    = ListToArray( formData.send_to ?: "", ",;#Chr(10)##Chr(13)#" );
+			var sendTo    = ListToArray( formData.send_to ?: "", ",;#Chr( 10 )##Chr( 13 )#" );
 			var recipient = formData.recipient ?: "";
 
 			emailService.send(
@@ -152,6 +156,13 @@ component extends="preside.system.base.AdminHandler" {
 				, recipientId = recipient
 				, to          = sendTo
 				, isTest      = true
+			);
+
+			event.audit(
+				  action   = "sendTestEmail"
+				, type     = "emailTemplate"
+				, recordId = templateId
+				, detail   = { to=sendto, recipient=recipient }
 			);
 
 			messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.test.success", data=[ rc.send_to ] ) );
@@ -712,6 +723,14 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var queuedCount = emailMassSendingService.queueSendout( templateId );
+
+		event.audit(
+			  action   = "sendManualEmail"
+			, type     = "emailTemplate"
+			, recordId = templateId
+			, detail   = { queuedCount=queuedCount }
+		);
+
 		messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.success", data=[ NumberFormat( queuedCount ) ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
 	}
