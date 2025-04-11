@@ -21,11 +21,13 @@
 			</cfif>
 		</cfloop>
 
+		#renderView( view="/formbuilder/general/progressbar" )#
+
 		#args.renderedItems#
 		#args.renderedResponses#
 
 		<cfif IsTrue( args.configuration.use_captcha ?: "" ) and ( args.formPageNumber eq 1 or args.formPageCount eq 0 )>
-			#renderView( '/formbuilder/general/captcha' )#
+			#renderView( view="/formbuilder/general/captcha" )#
 		</cfif>
 
 		#args.renderedButtons#
