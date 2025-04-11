@@ -21,7 +21,7 @@
 			</cfif>
 		</cfloop>
 
-		<cfif isTrue( args.configuration.use_progressbar ?: "" )>
+		<cfif isTrue( args.configuration.use_progressbar ?: "" ) and ( args.formPageNumber lte args.formPageCount )>
 			#renderView( view="/formbuilder/general/progressbar" )#
 		</cfif>
 
