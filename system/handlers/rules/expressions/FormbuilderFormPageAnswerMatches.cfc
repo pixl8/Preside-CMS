@@ -15,10 +15,11 @@ component {
 	 * @formbuilderAnswer.fieldType formbuilderPageAnswer
 	 */
 	private boolean function evaluateExpression(
-		  required string formbuilderForm
-		, required string formbuilderPage
-		, required string formbuilderItem
-		, required string formbuilderAnswer
+		  required string  formbuilderForm
+		, required string  formbuilderPage
+		, required string  formbuilderItem
+		, required string  formbuilderAnswer
+		,          boolean _has = true
 	) {
 		var formId = payload.formbuilderSubmission.id ?: "";
 
@@ -47,21 +48,24 @@ component {
 		var ruleDataType = ruleConfig.dataType ?: "string";
 		var ruleOperator = ruleConfig.operator ?: "eq";
 		var ruleValue    = ruleConfig.value    ?: "";
+		var ruleResult   = false;
 
 		switch ( ruleDataType ) {
 			case "string" :
-				return rulesEngineOperatorService.compareStrings(
+				ruleResult = rulesEngineOperatorService.compareStrings(
 					  leftHandSide  = formFieldValue
 					, operator      = ruleOperator
 					, rightHandSide = ruleValue
 				);
+				break;
 
 			case "numeric":
-				return rulesEngineOperatorService.compareNumbers(
+				ruleResult = rulesEngineOperatorService.compareNumbers(
 					  leftHandSide  = formFieldValue
 					, operator      = ruleOperator
 					, rightHandSide = ruleValue
 				);
+				break;
 
 			case "array"  :
 				var ruleValues = ListToArray( ruleValue );
@@ -92,27 +96,32 @@ component {
 
 				switch ( ruleOperator ) {
 					case "anyof"    :
-						return ArrayContainsNoCase( ruleValues, formFieldValue );
+						ruleResult = ArrayContainsNoCase( ruleValues, formFieldValue );
 
 					case "notanyof" :
-						return !ArrayContainsNoCase( ruleValues, formFieldValue );
+						ruleResult = !ArrayContainsNoCase( ruleValues, formFieldValue );
 
 					case "allof"    :
-						return _arrayContainsAllNoCase( ruleValues, formFieldValues );
+						ruleResult = _arrayContainsAllNoCase( ruleValues, formFieldValues );
 
 					case "noneof"   :
-						return !_arrayContainsAllNoCase( ruleValues, formFieldValues );
+						ruleResult = !_arrayContainsAllNoCase( ruleValues, formFieldValues );
 
 					default         :
 						return false;
 				}
+				break;
 
 			case "boolean":
-				return isTrue( ruleOperator ) ? isTrue( formFieldValue ) : isFalse( formFieldValue );
+				ruleResult = isTrue( ruleOperator ) ? isTrue( formFieldValue ) : isFalse( formFieldValue );
+				break;
 
 			default:
-				return false;
+				ruleResult = false;
+				break;
 		}
+
+		return arguments._has ? ruleResult : !ruleResult;
 	}
 
 	private struct function _getFormItem(
