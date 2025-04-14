@@ -21,7 +21,11 @@ component  {
 			}
 		}
 
-		return '<ul><li>#ArrayToList( renderedPages, "</li><li>" )#</li></ul>';
+		if ( ArrayLen( renderedPages ) ) {
+			return '<ul><li>#ArrayToList( renderedPages, "</li><li>" )#</li></ul>';
+		}
+
+		return "";
 	}
 
 }
