@@ -9,7 +9,7 @@
 	<div class="formbuilder-page-progress">
 		<div class="progress-wrapper">
 			<div class="progress">
-				<div class="progress-bar" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100" style="width: #progress#%;"></div>
+				<div class="progress-bar" role="progressbar" aria-valuenow="#progress#" aria-valuemin="0" aria-valuemax="100" style="width: #progress#%;"></div>
 			</div>
 			<div class="progress-text" aria-label="#progress#%">
 				#progress#%
