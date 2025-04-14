@@ -31,7 +31,7 @@ component {
 
 			for ( var page in pages ) {
 				if ( !isEmptyString( page.page_number ?: "" ) ) {
-					var config = DeserializeJSON( page.configuration ?: "" );
+					var config = IsJSON( page.configuration ?: "" ) ? DeserializeJSON( page.configuration ) : page.configuration;
 
 					ArrayAppend( values, page.id );
 					ArrayAppend( labels, _renderLabel( config.label ?: "", page.page_number ) ) ;
