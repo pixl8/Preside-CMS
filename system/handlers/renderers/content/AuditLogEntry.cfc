@@ -182,17 +182,39 @@ component {
 	}
 
 	private string function emailtemplate( event, rc, prc, args={} ) {
-		var action     = args.action            ?: "";
-		var known_as   = args.known_as          ?: "";
-		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
-		var recordId   = args.record_id         ?: "";
-		var label      = renderLabel( "email_template", recordId );
-		var type       = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "customtemplates";
-		var recordUrl  = event.buildAdminLink( linkTo="emailcenter.#type#.template", queryString="template=" & recordId );
-		var recordLink = '<a href="#recordUrl#">#label#</a>';
+		var action = args.action ?: "";
 
-		return translateResource( uri="auditlog.emailtemplate:#action#.message", data=[ userLink, recordLink ] );
+		var known_as = args.known_as ?: "";
+		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+
+		var recordId    = args.record_id ?: "";
+		var recordType  = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "customtemplates";
+		var recordLabel = renderLabel( "email_template", recordId );
+		var recordUrl   = event.buildAdminLink( linkTo="emailcenter.#recordType#.template", queryString="template=#recordId#" );
+		var recordLink  = '<a href="#recordUrl#">#recordLabel#</a>';
+
+		var data = [ userLink, recordLink ];
+
+		switch ( action ) {
+			case "sendTestEmail":
+				var to = ArrayToList( args.detail.to ?: [], ", " );
+
+				var recipientId    = args.detail.recipient ?: "";
+				var recipientLabel = renderLabel( "website_user", recipientId );
+				var recipientUrl   = event.buildAdminLink( linkto="usermanager.viewUser", queryString="id=#recipientId#" );
+				var recipientLink  = '<a href="#recipientUrl#">#recipientLabel#</a>';
+
+				ArrayAppend( data, [ to, recipientLink ], true );
+				break;
+
+			case "sendManualEmail":
+				ArrayAppend( data, args.detail.queuedCount ?: "" );
+				break;
+		}
+
+		return translateResource( uri="auditlog.emailtemplate:#action#.message", data=data );
 	}
+
 
 	private string function emailLayout( event, rc, prc, args={} ) {
 		var action     = args.action            ?: "";
@@ -205,18 +227,6 @@ component {
 		var recordLink = '<a href="#recordUrl#">#label#</a>';
 
 		return translateResource( uri="auditlog.emaillayout:#action#.message", data=[ userLink, recordLink ] );
-	}
-
-	private string function emailSend( event, rc, prc, args={} ) {
-		var action      = args.action             ?: "";
-		var templateId  = args.record_id          ?: "";
-		var queuedCount = args.detail.queuedCount ?: "";
-		var knownAs     = args.known_as           ?: "";
-
-		var templateLink = '<a href="#event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=#templateId#" )#">#renderLabel( "email_template", templateId )#</a>';
-		var userLink     = '<a href="#args.userLink#">#knownAs#</a>';
-
-		return translateResource( uri="auditlog.emailsend:#action#.message", data=[ userLink, templateLink, queuedCount ] );
 	}
 
 	private string function emailResend( event, rc, prc, args={} ) {
