@@ -66,13 +66,16 @@ component {
 				rendered &= '<div class="alert alert-info"><p>' & translateResource( "formbuilder:#resubmitMessage#") & '</p></div>';
 			}
 
+			var requestData = event.getCollectionWithoutSystemVars();
+
 			args.instanceSite = args.instanceSite ?: event.getSiteId();
 			args.instanceUrl  = args.instanceUrl  ?: event.getCurrentUrl();
 
-			var requestData = event.getCollectionWithoutSystemVars();
-
 			args.formPageCount  = formbuilderService.getPageCount( formId=formId );
-			args.formPageNumber = args.formPageCount ? ( requestData.formPageNumber ?: 1 ) : 0;
+			args.formPageNumber = args.formPageCount ? ( requestData.formPageNumber  ?: 1  ) : 0;
+
+			var page = formbuilderService.getPageByPageNumber( formId=formId, pageNumber=args.formPageNumber );
+			args.instancePage = args.formPageCount ? ( tempSubmission.instancePage ?: ( page.id ?: "" ) ) : "";
 
 			while ( !formbuilderService.evaluateConditionForPage( formId=formId, pageNumber=args.formPageNumber ) ) {
 				args.formPageNumber += requestData.formPageNext ?: 1;

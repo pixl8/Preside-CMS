@@ -13,6 +13,7 @@ component displayname="Form builder: form" extends="preside.system.base.SystemPr
 
 	property name="form_instance" type="string" dbtype="varchar" maxlength=200 required=false;
 	property name="form_url"      type="string" dbtype="text"                  required=false renderer="formbuilderSubmissionFormUrl";
+	property name="form_page"     type="string" dbtype="text"                  required=false renderer="formbuilderSubmissionFormPage";
 	property name="form_site"     relationship="many-to-one" relatedTo="site"  required=false;
 
 	property name="ip_address" type="string" dbtype="varchar" maxlength=50 required=false;
