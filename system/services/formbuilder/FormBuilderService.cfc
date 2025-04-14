@@ -1512,7 +1512,7 @@ component {
 		var formItems         = getFormItems( arguments.formId );
 		var spreadsheetLib    = _getSpreadsheetLib();
 		var workbook          = spreadsheetLib.new();
-		var headers           = [ "Submission ID", "Submission date", "Submitted by logged in user", "Form instance ID" ];
+		var headers           = [ "Submission ID", "Submission date", "Submitted by logged in user", "Form instance ID", "Form URL" ];
 		var itemColumnMap     = {};
 		var itemsToRender     = [];
 		var submissions       = $getPresideObject( "formbuilder_formsubmission" ).selectData(
@@ -1523,22 +1523,22 @@ component {
 		if ( canInfo ) {
 			logger.info( "Fetched [#NumberFormat( submissions.recordcount )#] submissions, preparing to export..." );
 		}
-		for( var i=1; i <= formItems.len(); i++ ) {
+
+		for( var i=1; i <= ArrayLen( formItems ); i++ ) {
 			if ( formItems[i].type.isFormField ) {
 				var exclude = isBoolean( formItems[i].configuration.exclude_export ?: "" ) && formItems[i].configuration.exclude_export;
 				var columns = !exclude ? renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration ) : [];
 
 				if ( columns.len() && !exclude ) {
-					itemsToRender.append( formItems[i] );
+					ArrayAppend( itemsToRender, formItems[i] );
 					itemColumnMap[ formItems[ i ].id ] = columns;
-					headers.append( columns, true );
-
+					ArrayAppend( headers, columns, true );
 				}
 			}
 		}
 
-		headers.append( "IP Address" );
-		headers.append( "User agent" );
+		ArrayAppend( headers, "IP Address" );
+		ArrayAppend( headers, "User agent" );
 
 		spreadsheetLib.renameSheet( workbook, $translateResource( uri="formbuilder:spreadsheet.main.sheet.title", data=[ formDefinition.name ] ), 1 );
 		for( var i=1; i <= headers.len(); i++ ){
@@ -1547,15 +1547,16 @@ component {
 
 		var row = 1;
 		for( var submission in submissions ) {
-			var column      = 4;
+			var column      = 6;
 			var submittedBy = Len( submission.submitted_by ) ? $renderLabel( "website_user", submission.submitted_by ) : "";
 			row++;
-			spreadsheetLib.setCellValue( workbook, submission.id, row, 1, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.id                                                  , row, 1, "string" );
 			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2, "string" );
-			spreadsheetLib.setCellValue( workbook, submittedBy, row, 3, "string" );
-			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4, "string" );
+			spreadsheetLib.setCellValue( workbook, submittedBy                                                    , row, 3, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.form_instance                                                     , row, 4, "string" );
+			spreadsheetLib.setCellValue( workbook, $getRequestContext().getSiteUrl( submission.form_site ) & submission.form_url, row, 5, "string" );
 
-			if ( itemsToRender.len() ) {
+			if ( ArrayLen( itemsToRender ) ) {
 				var data = isV2 ? getV2Responses( arguments.formId, submission.id ) : DeSerializeJson( submission.submitted_data );
 				for( item in itemsToRender ) {
 					var itemKey = isV2 ? item.questionId : ( item.configuration.name ?: "" );
