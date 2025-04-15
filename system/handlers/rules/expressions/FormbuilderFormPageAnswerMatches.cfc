@@ -61,9 +61,9 @@ component {
 
 			case "numeric":
 				ruleResult = rulesEngineOperatorService.compareNumbers(
-					  leftHandSide  = formFieldValue
+					  leftHandSide  = Val( formFieldValue )
 					, operator      = ruleOperator
-					, rightHandSide = ruleValue
+					, rightHandSide = Val( ruleValue )
 				);
 				break;
 
