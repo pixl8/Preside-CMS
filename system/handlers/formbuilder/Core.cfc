@@ -48,24 +48,33 @@ component {
 			setNextEvent( url=cgi.http_referer, persistStruct=persistData );
 		}
 
-		var validationResult  = validationEngine.newValidationResult();
-		var persistStruct     = {}
-		var formItemsInPage   = [];
-		var formPageNext      = submission.formPageNext   ?: 1;
-		var formPageNumber    = submission.formPageNumber ?: 0;
-		var formPageCount     = submission.formPageCount  ?: 0;
-		var formPageIsPreview = ( formPageNext < 0 && formPageNumber > formPageCount );
+		var validationResult = validationEngine.newValidationResult();
+		var persistStruct    = {}
+		var formItemsInPage  = [];
+		var formPageNext     = submission.formPageNext   ?: 1;
+		var formPageNumber   = submission.formPageNumber ?: 0;
+		var formPageCount    = submission.formPageCount  ?: 0;
 
-		if ( formPageNumber ) {
+		if ( formPageNumber > 0 ) {
 			if ( formPageNext == 0 ) { // Reset
 				formBuilderService.clearTempStoredSubmission( formId=formId );
 				formPageNumber = 1;
 			}
 
-			formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
+			var formPageIsLast     = formPageNumber >= formPageCount;
+			var formUseSummaryPage = isTrue( theForm.use_summarypage ?: "" );
+			var formPageIsBack     = formPageNext < 0;
+
+			if ( formPageIsLast ) {
+				if ( formPageIsBack || formUseSummaryPage ) {
+					formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageIsBack ? formPageCount : formPageNumber );
+				}
+			} else {
+				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
+			}
 		}
 
-		if ( ArrayLen( formItemsInPage ) || formPageIsPreview ) {
+		if ( ArrayLen( formItemsInPage ) ) {
 			if ( formPageNext != 0 ) {
 				var tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, formItems=formItemsInPage );
 
@@ -144,12 +153,14 @@ component {
 	}
 
 	private string function formButtons( event, rc, prc, args={} ) {
-		var formPageNumber = args.formPageNumber ?: 0;
-		var formPageCount  = args.formPageCount  ?: 0;
+		var formPageNumber     = args.formPageNumber ?: 0;
+		var formPageCount      = args.formPageCount  ?: 0;
+		var formUseSummaryPage = isTrue( args.configuration.use_summarypage ?: "" );
 
-		args.isFormPage  = formPageNumber > 0;
-		args.isFirstPage = formPageNumber == 1;
-		args.isLastPage  = formPageNumber > formPageCount;
+		args.isFormPage    = formPageNumber > 0;
+		args.isFirstPage   = formPageNumber == 1;
+		args.isLastPage    = formPageNumber == formPageCount && !formUseSummaryPage;
+		args.isSummaryPage = formPageNumber > formPageCount  && formUseSummaryPage;
 
 		return renderView( view="/formbuilder/layouts/core/formButtons", args=args );
 	}
