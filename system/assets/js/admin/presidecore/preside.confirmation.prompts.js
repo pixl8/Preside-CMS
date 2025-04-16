@@ -33,7 +33,7 @@
 		}
 
 		var confirmationDialog = presideBootbox.dialog( {
-			  title   : "Confirmation"
+			  title   : i18n.translateResource( "cms:confirmation.prompt.title" )
 			, message : $message
 			, buttons : {
 				  cancel  : {
