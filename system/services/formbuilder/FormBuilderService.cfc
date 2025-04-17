@@ -1624,16 +1624,16 @@ component {
 		var extraData = {};
 		var row       = 1;
 		for ( var submission in submissions ) {
-			var column = 6;
+			var column = 1;
 			row++;
-			spreadsheetLib.setCellValue( workbook, submission.id                                                  , row, 1, "string" );
-			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.id                                                  , row, column++, "string" );
+			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, column++, "string" );
 			if ( websiteUsers ) {
 				var submittedBy = Len( submission.submitted_by ) ? $renderLabel( "website_user", submission.submitted_by ) : "";
-				spreadsheetLib.setCellValue( workbook, submittedBy, row, 3, "string" );
+				spreadsheetLib.setCellValue( workbook, submittedBy, row, column++, "string" );
 			}
-			spreadsheetLib.setCellValue( workbook, submission.form_instance                                                     , row, 4, "string" );
-			spreadsheetLib.setCellValue( workbook, $getRequestContext().getSiteUrl( submission.form_site ) & submission.form_url, row, 5, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.form_instance                                                     , row, column++, "string" );
+			spreadsheetLib.setCellValue( workbook, $getRequestContext().getSiteUrl( submission.form_site ) & submission.form_url, row, column++, "string" );
 
 			if ( ArrayLen( itemsToRender ) ) {
 				var data = isV2 ? getV2Responses( arguments.formId, submission.id ) : DeSerializeJson( submission.submitted_data );
