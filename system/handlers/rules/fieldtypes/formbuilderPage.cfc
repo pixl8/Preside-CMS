@@ -16,7 +16,7 @@ component {
 		}
 
 		var page   = formBuilderService.getPage( formId=formId, formItemId=arguments.value );
-		var config = IsJSON( page.configuration ?: "" ) ? DeserializeJSON( page.configuration ) : {};
+		var config = IsJSON( page.configuration ?: "" ) ? DeserializeJSON( page.configuration ) : page.configuration;
 
 		return _renderLabel( config.label ?: "", page.page_number );
 	}
