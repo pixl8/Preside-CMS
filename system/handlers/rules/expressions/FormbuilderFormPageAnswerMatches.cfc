@@ -51,7 +51,7 @@ component {
 		var ruleResult   = false;
 
 		switch ( ruleDataType ) {
-			case "string" :
+			case "string"  :
 				ruleResult = rulesEngineOperatorService.compareStrings(
 					  leftHandSide  = formFieldValue
 					, operator      = ruleOperator
@@ -59,7 +59,7 @@ component {
 				);
 				break;
 
-			case "numeric":
+			case "numeric" :
 				ruleResult = rulesEngineOperatorService.compareNumbers(
 					  leftHandSide  = Val( formFieldValue )
 					, operator      = ruleOperator
@@ -67,7 +67,7 @@ component {
 				);
 				break;
 
-			case "array"  :
+			case "array"   :
 				var ruleValues = ListToArray( ruleValue );
 
 				if ( formItem.item_type == "matrix" ) {
@@ -97,27 +97,30 @@ component {
 				switch ( ruleOperator ) {
 					case "anyof"    :
 						ruleResult = ArrayContainsNoCase( ruleValues, formFieldValue );
+						break;
 
 					case "notanyof" :
 						ruleResult = !ArrayContainsNoCase( ruleValues, formFieldValue );
+						break;
 
 					case "allof"    :
 						ruleResult = _arrayContainsAllNoCase( ruleValues, formFieldValues );
+						break;
 
 					case "noneof"   :
 						ruleResult = !_arrayContainsAllNoCase( ruleValues, formFieldValues );
+						break;
 
 					default         :
-						return false;
+						break;
 				}
 				break;
 
-			case "boolean":
+			case "boolean" :
 				ruleResult = isTrue( ruleOperator ) ? isTrue( formFieldValue ) : isFalse( formFieldValue );
 				break;
 
-			default:
-				ruleResult = false;
+			default        :
 				break;
 		}
 
