@@ -75,15 +75,11 @@ component displayName="Cron util" {
 	}
 
 	private void function _registerOsgiBundles() {
-		var jars       = DirectoryList( "/preside/system/services/taskmanager/lib/", false, "path", "*.jar" );
 		var cfmlEngine = CreateObject( "java", "lucee.loader.engine.CFMLEngineFactory" ).getInstance();
 		var osgiUtil   = CreateObject( "java", "lucee.runtime.osgi.OSGiUtil" );
+		var res        = cfmlEngine.getResourceUtil().toResourceExisting( getPageContext(), ExpandPath( "/preside/system/services/taskmanager/lib/cron-utils-9.2.1-preside-build.jar" ) );
 
-		for( var jar in jars ) {
-			var res       = cfmlEngine.getResourceUtil().toResourceExisting( getPageContext(), jar );
-
-			osgiUtil.installBundle( cfmlEngine.getBundleContext(), res, true );
-		}
+		osgiUtil.installBundle( cfmlEngine.getBundleContext(), res, true );
 	}
 
 	private void function _setupCronParser() {
