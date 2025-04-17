@@ -49,8 +49,12 @@ component  {
 	}
 
 	private string function adminDataTable( event, rc, prc, args={} ){
-		args.firstResponseOnly = true;
+		args.firstResponseOnly  = true;
 		args.renderedSubmission = default( argumentCollection=arguments );
+
+		args.renderedSubmission = REReplaceNoCase( args.renderedSubmission, "<\s*th\s*>", "<b>", "all" );
+		args.renderedSubmission = REReplaceNoCase( args.renderedSubmission, "<\s*/\s*th\s*>", "</b>", "all" );
+		args.renderedSubmission = REReplaceNoCase( args.renderedSubmission, "<(?!/?b\s*>)[^>]+>", "", "all" );
 
 		return renderView( view="/renderers/content/formBuilderSubmission/adminDataTable", args=args );
 	}

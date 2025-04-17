@@ -18,6 +18,10 @@ component  {
 		for ( var page in pages ) {
 			if ( ListContains( args.data, page.id ) ) {
 				ArrayAppend( renderedPages, page.configuration.label );
+
+				if ( isTrue( args.firstPageOnly ?: "" ) ) {
+					break;
+				}
 			}
 		}
 
@@ -26,6 +30,13 @@ component  {
 		}
 
 		return "";
+	}
+
+	private string function adminDataTable( event, rc, prc, args={} ) {
+		args.firstPageOnly = true;
+		args.renderedPage  = stripTags( default( argumentCollection=arguments ) );
+
+		return renderView( view="/renderers/content/formBuilderSubmissionFormPage/adminDataTable", args=args );
 	}
 
 }

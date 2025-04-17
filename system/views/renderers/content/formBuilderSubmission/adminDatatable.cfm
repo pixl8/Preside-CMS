@@ -1,9 +1,10 @@
 <!---@feature admin and formbuilder--->
-<cfparam name="args.renderedSubmission" type="string" />
+<cfparam name="args.renderedSubmission" type="string" default="" />
 
 <cfoutput>
-	<div class="formbuilder-submission-preview collapsed">
-		#args.renderedSubmission#
-		<div class="clearfix"></div>
-	</div>
+	<cfif not isEmptyString( args.renderedSubmission )>
+		<div class="formbuilder-submission-preview">
+			<span>#args.renderedSubmission#</span>
+		</div>
+	</cfif>
 </cfoutput>
