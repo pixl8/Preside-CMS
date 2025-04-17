@@ -1013,6 +1013,7 @@ component {
 			, "rulesEngineConditionService"
 			, "enumService"
 			, "EmailCenterValidators"
+			, "FormbuilderValidators"
 		];
 	}
 
