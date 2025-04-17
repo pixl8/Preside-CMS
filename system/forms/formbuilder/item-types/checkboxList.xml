@@ -2,8 +2,13 @@
 <form i18nBaseUri="formbuilder.item-types.checkboxList:">
 	<tab id="values">
 		<fieldset id="values">
-			<field name="values" control="textarea" required="false" sortorder="32" defaultvalue="" />
-			<field name="labels" control="textarea" required="false" sortorder="34" defaultvalue="" />
+			<field name="values" control="textarea"  required="false" sortorder="32" defaultvalue="">
+				<rule validator="responseMaxLength">
+					<param name="itemType" value="checkboxlist" />
+					<param name="length"   value="200" />
+				</rule>
+			</field>
+			<field name="labels" control="textarea"  required="false" sortorder="34" defaultvalue="" />
 		</fieldset>
 	</tab>
 </form>
