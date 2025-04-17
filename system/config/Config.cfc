@@ -950,7 +950,7 @@ component {
 	}
 
 	private void function __setupFormValidationProviders() {
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators", "FormbuilderValidators" ];
 	}
 
 	private void function __setupStaticAssetConfiguration() {
