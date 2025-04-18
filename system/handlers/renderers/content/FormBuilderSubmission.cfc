@@ -11,7 +11,7 @@ component  {
 
 		args.tabs = _getAnsweredPages( formId=formId, submissionId=submissionId );
 
-		var showTabs = IsFalse( args.firstResponseOnly ?: "" ) && ArrayLen( args.tabs ) > 1;
+		var showTabs = IsFalse( args.firstResponseOnly ?: "" ) && ArrayLen( args.tabs ) > 0;
 
 		if ( showTabs ) {
 			args.responses = [];
