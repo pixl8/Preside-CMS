@@ -1,12 +1,11 @@
 <!---@feature formbuilder--->
-<cfparam name="args.renderedItems"     type="string" />
-<cfparam name="args.renderedButtons"   type="string" />
-<cfparam name="args.renderedResponses" type="string" />
-<cfparam name="args.id"                type="string" />
-<cfparam name="args.validationJs"      type="string" default="" />
-<cfparam name="args.configuration"     type="struct" />
-<cfparam name="args.formPageNumber"    type="numeric" default="0" />
-<cfparam name="args.formPageCount"     type="numeric" default="0" />
+<cfparam name="args.renderedItems"   type="string" />
+<cfparam name="args.renderedButtons" type="string" />
+<cfparam name="args.id"              type="string" />
+<cfparam name="args.validationJs"    type="string" default="" />
+<cfparam name="args.configuration"   type="struct" />
+<cfparam name="args.formPageNumber"  type="numeric" default="0" />
+<cfparam name="args.formPageCount"   type="numeric" default="0" />
 
 <cfoutput>
 	<cfif Len( Trim( rc.errorMessage ?: "" ) ) >
@@ -26,7 +25,6 @@
 		</cfif>
 
 		#args.renderedItems#
-		#args.renderedResponses#
 
 		<cfif isTrue( args.configuration.use_captcha ?: "" ) and ( args.formPageNumber eq 1 or args.formPageCount eq 0 )>
 			#renderView( view="/formbuilder/general/captcha" )#
