@@ -832,9 +832,9 @@ component {
 		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType, context="input" );
 		var renderedItem     = $renderViewlet( event=itemViewlet, args=arguments.configuration );
 
-		// if ( !Len( Trim( renderedItem ) ) && arguments.itemType != "page" ) {
-		// 	renderedItem = "<div class=""alert alert-notfound"">" & $translateResource( uri="formbuilder.item-types.notfound:title" ) & "</div>";
-		// }
+		if ( !Len( Trim( renderedItem ) ) && arguments.itemType != "page" ) {
+			renderedItem = "<div class=""alert alert-notfound"">" & $translateResource( uri="formbuilder.item-types.notfound:title" ) & "</div>";
+		}
 
 		if ( StructKeyExists( arguments.configuration, "layout" ) ) {
 			var layoutArgs    = Duplicate( arguments.configuration );
