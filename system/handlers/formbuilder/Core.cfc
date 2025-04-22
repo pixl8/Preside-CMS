@@ -169,7 +169,7 @@ component {
 	}
 
 	private string function formSummary( event, rc, prc, args={} ) {
-		return formBuilderService.renderSummary( formId=( args.form ?: "" ) );
+		return translateResource( uri="formbuilder:summary.description", defaultValue="" ) & formBuilderService.renderSummary( formId=( args.form ?: "" ) );
 	}
 
 	private string function successMessage( event, rc, prc, args ) {
