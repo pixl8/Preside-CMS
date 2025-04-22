@@ -1205,7 +1205,9 @@ component {
 				tempSubmission.instancePage = ListAppend( tempSubmission.instancePage, pageItem.id );
 			}
 
-			StructAppend( tempSubmission, formData );
+			if ( !StructIsEmpty( formData ) ) {
+				StructAppend( tempSubmission, formData );
+			}
 
 			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=nextPageNumber, payload=tempSubmission ) ) {
 				nextPageNumber += arguments.pageNext;
@@ -1219,12 +1221,12 @@ component {
 		return validationResult;
 	}
 
-	public any function prepareTempSubmission(
+	public struct function prepareTempSubmission(
 		  required string formId
 		, required struct requestData
 		,          array  formItems = []
 	) {
-		var tempSubmission      = getTempStoredSubmission( formId=arguments.formId );
+		var tempSubmission      = Duplicate( getTempStoredSubmission( formId=arguments.formId ) );
 		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
 
 		for ( var formItem in arguments.formItems ) {

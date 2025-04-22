@@ -70,11 +70,11 @@ component {
 				var tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, formItems=formItemsInPage );
 
 				validationResult = formBuilderService.saveTempSubmission(
-					  formId       = formId
-					, requestData  = tempSubmission
-					, formItems    = formItemsInPage
-					, pageNumber   = formPageNumber
-					, pageNext     = formPageNext
+					  formId      = formId
+					, requestData = tempSubmission
+					, formItems   = formItemsInPage
+					, pageNumber  = formPageNumber
+					, pageNext    = formPageNext
 				);
 			}
 		} else {
