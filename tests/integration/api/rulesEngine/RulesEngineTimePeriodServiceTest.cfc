@@ -101,8 +101,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return currentDate as 'to' and a 3 days prior to current date from when type is 'recent', unit is 'd' and measure is 3", function(){
 				var timePeriod = { type="recent", unit="d", measure=3 };
 				var json       = SerializeJson( timePeriod );
-				var fromDate   = DateAdd( 'd', -3, nowish );
-				var range      = { from=CreateDate( Year( fromDate ), Month( fromDate ), Day( fromDate ) ), to=nowish };
+				var fromDate   = DateAdd( "d", -3, nowish );
+				var range      = { from=fromDate, to=nowish };
 
 				expect( service.convertTimePeriodToDateRange( json ) ).toBe( range );
 			} );
@@ -124,8 +124,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return currentDate as 'from' and 2 years after current date as 'to' when type is 'upcoming', unit is 'yyyy' and measure is 2", function(){
 				var timePeriod = { type="upcoming", unit="yyyy", measure=2 };
 				var json       = SerializeJson( timePeriod );
-				var fromDate   = DateAdd( 'yyyy', 2, nowish );
-				var range      = { to=CreateDate( Year( fromDate ), Month( fromDate ), Day( fromDate ) ), from=nowish };
+				var toDate     = DateAdd( "yyyy", 2, nowish );
+				var range      = { to=toDate, from=nowish };
 
 				expect( service.convertTimePeriodToDateRange( json ) ).toBe( range );
 			} );
