@@ -762,7 +762,8 @@ component {
 		,          any    validationResult = ""
 	) {
 		var formConfiguration = getForm( id=arguments.formId );
-		var items             = getFormItems( id=arguments.formId, pageNumber=( arguments.configuration.formPageNumber ?: 0 ) );
+		var formPageNumber    = arguments.configuration.formPageNumber ?: 0;
+		var items             = getFormItems( id=arguments.formId, pageNumber=formPageNumber );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
 		var coreLayoutViewlet = "formbuilder.core.formLayout";
@@ -793,6 +794,16 @@ component {
 		coreLayoutArgs.id            = idPrefixForFields;
 		coreLayoutArgs.formItems     = items;
 
+		if ( formPageNumber ) {
+			var page = getPageByPageNumber( formId=formId, pageNumber=formPageNumber );
+
+			if ( !StructIsEmpty( page ) ) {
+				page.renderedItems = coreLayoutArgs.renderedItems;
+
+				coreLayoutArgs.renderedItems = $renderViewlet( event="formbuilder.layouts.formpage.default", args=page );
+			}
+		}
+
 		for( var f in formConfiguration ) {
 			coreLayoutArgs.configuration = f;
 		}
@@ -821,7 +832,7 @@ component {
 		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType, context="input" );
 		var renderedItem     = $renderViewlet( event=itemViewlet, args=arguments.configuration );
 
-		if ( !len( trim( renderedItem ) ) ) {
+		if ( !Len( Trim( renderedItem ) ) && arguments.itemType != "page" ) {
 			renderedItem = "<div class=""alert alert-notfound"">" & $translateResource( uri="formbuilder.item-types.notfound:title" ) & "</div>";
 		}
 
@@ -871,6 +882,84 @@ component {
 			, itemConfiguration = item.configuration
 			, context           = arguments.context
 		} );
+	}
+
+	private string function _getFormItemResponsFromSubmission( required struct formItem,  struct submission={} ) {
+		var fieldName  = arguments.formItem.configuration.name ?: "";
+		var fieldValue = arguments.submission[ fieldName ] ?: "";
+
+		if ( IsSimpleValue( fieldValue ) ) {
+			return fieldValue;
+		} else {
+			if ( !$helpers.isEmptyString( fieldValue.fileName ?: "" ) ) {
+				return fieldValue.fileName;
+			}
+
+			var response = "";
+			for ( var item in fieldValue ) {
+				response = ListAppend( response, item.fileName ?: "" );
+			}
+
+			return response;
+		}
+	}
+
+	public string function renderSummary(
+		  required string formId
+		,          struct submission = getTempStoredSubmission( arguments.formId )
+	) {
+		var formPageCount = getPageCount( formId=arguments.formId );
+		var renderedPages = CreateObject( "java", "java.lang.StringBuffer" );
+
+		for ( var pageNumber=1; pageNumber<=formPageCount; pageNumber++ ) {
+			if ( evaluateConditionForPage( formId=arguments.formId, pageNumber=pageNumber ) ) {
+				var renderedItems = CreateObject( "java", "java.lang.StringBuffer" );
+				var formItems = getFormItems( id=arguments.formId, pageNumber=pageNumber );
+
+				for ( var formItem in formItems ) {
+					var formItemResponse = _getFormItemResponsFromSubmission( formItem=formItem, submission=arguments.submission );
+
+					if ( ( formItem.type.isFormField ?: false ) ) {
+						formItem.configuration.renderedItem = $renderViewlet(
+							  event = _getFormBuilderRenderingService().getItemTypeViewlet( itemType=formItem.item_type, context="response" )
+							, args  = {
+								  response          = formItemResponse
+								, itemConfiguration = formItem.configuration
+								, buildLink         = false
+								, pageNumber        = pageNumber
+								, pageCount         = formPageCount
+							  }
+						);
+
+						if ( $helpers.isEmptyString( formItem.configuration.renderedItem ) ) {
+							formItem.configuration.renderedItem = $translateResource( uri="formbuilder:response.empty.label" );
+						}
+
+						formItem.configuration.id           = formItem.configuration.id ?: CreateUUID();
+						formItem.configuration.renderedItem = $renderViewlet(
+							  event = _getFormBuilderRenderingService().getFormFieldLayoutViewlet(
+									  itemType = formItem.item_type
+									, layout   = "summary"
+							  )
+							, args  = formItem.configuration
+						);
+
+						renderedItems.append( formItem.configuration.renderedItem );
+					}
+				}
+
+				var page = getPageByPageNumber( formId=arguments.formId, pageNumber=pageNumber );
+
+				if ( !StructIsEmpty( page ) ) {
+					page.renderedItems = renderedItems.toString();
+					page.isSummary     = true;
+
+					renderedPages.append( $renderViewlet( event="formbuilder.layouts.formpage.default", args=page ) );
+				}
+			}
+		}
+
+		return renderedPages.toString();
 	}
 
 	/**

@@ -144,8 +144,11 @@ component {
 			);
 		}
 
-		args.renderedResponses = renderViewlet( event="formbuilder.core.formResponses", args=args );
-		args.renderedButtons   = renderViewlet( event="formbuilder.core.formButtons", args=args );
+		args.renderedButtons = renderViewlet( event="formbuilder.core.formButtons", args=args );
+
+		if ( isEmptyString( args.renderedItems ) ) {
+			args.renderedItems = renderViewlet( event="formbuilder.core.formSummary", args=args );
+		}
 
 		event.include( assetId="/js/frontend/formbuilder/" );
 
@@ -165,55 +168,8 @@ component {
 		return renderView( view="/formbuilder/layouts/core/formButtons", args=args );
 	}
 
-	private string function formResponses( event, rc, prc, args={} ) {
-		var formId            = args.form ?: "";
-		var renderedResponses = "";
-
-		if ( isEmptyString( args.renderedItems ) ) {
-			var formPageCount = formBuilderService.getPageCount( formId=formId );
-			var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
-
-			for ( var pageNumber=1; pageNumber<=formPageCount; pageNumber++ ) {
-				if ( formBuilderService.evaluateConditionForPage( formId=formId, pageNumber=pageNumber ) ) {
-					var formItems = formBuilderService.getFormItems( id=formId, pageNumber=pageNumber );
-
-					for ( var formItem in formItems ) {
-						var formItemResponse = _getFormItemResponse( formItem=formItem, submission=tempSubmission );
-
-						if ( formItem.type.isFormField ?: false ) {
-							formItem.configuration.renderedItem = renderViewlet(
-								  event = formBuilderRenderingService.getItemTypeViewlet( itemType=formItem.item_type, context="response" )
-								, args  = {
-									  response          = formItemResponse
-									, itemConfiguration = formItem.configuration
-									, buildLink         = false
-								  }
-							);
-
-							if ( isEmptyString( formItem.configuration.renderedItem ) ) {
-								formItem.configuration.renderedItem = translateResource( uri="formbuilder:response.empty.label" );
-							}
-
-							formItem.configuration.id = formItem.configuration.id ?: CreateUUID();
-
-							if ( StructKeyExists( formItem.configuration, "layout" ) ) {
-								formItem.configuration.renderedItem = renderViewlet(
-									  event = formBuilderRenderingService.getFormFieldLayoutViewlet(
-											  itemType = formItem.item_type
-											, layout   = formItem.configuration.layout
-									  )
-									, args  = formItem.configuration
-								);
-							}
-
-							renderedResponses &= formItem.configuration.renderedItem;
-						}
-					}
-				}
-			}
-		}
-
-		return renderedResponses;
+	private string function formSummary( event, rc, prc, args={} ) {
+		return translateResource( uri="formbuilder:summary.description", defaultValue="" ) & formBuilderService.renderSummary( formId=( args.form ?: "" ) );
 	}
 
 	private string function successMessage( event, rc, prc, args ) {
@@ -221,26 +177,6 @@ component {
 		args.successMessage = renderContent( renderer="richeditor", data=args.successMessage );
 
 		return renderView( view="/formbuilder/layouts/core/successMessage", args=args );
-	}
-
-	private string function _getFormItemResponse( required struct formItem,  struct submission={} ) {
-		var fieldName  = arguments.formItem.configuration.name ?: "";
-		var fieldValue = arguments.submission[ fieldName ] ?: "";
-
-		if ( IsSimpleValue( fieldValue ) ) {
-			return fieldValue;
-		} else {
-			if ( !isEmptyString( fieldValue.fileName ?: "" ) ) {
-				return fieldValue.fileName;
-			}
-
-			var response = "";
-			for ( var item in fieldValue ) {
-				response = ListAppend( response, item.fileName ?: "" );
-			}
-
-			return response;
-		}
 	}
 
 }
