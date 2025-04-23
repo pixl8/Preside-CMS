@@ -909,11 +909,11 @@ component {
 		,          struct submission = getTempStoredSubmission( arguments.formId )
 	) {
 		var formPageCount = getPageCount( formId=arguments.formId );
-		var renderedPages = CreateObject( "java", "java.lang.StringBuffer" );;
+		var renderedPages = CreateObject( "java", "java.lang.StringBuffer" );
 
 		for ( var pageNumber=1; pageNumber<=formPageCount; pageNumber++ ) {
 			if ( evaluateConditionForPage( formId=arguments.formId, pageNumber=pageNumber ) ) {
-				var renderedItems = CreateObject( "java", "java.lang.StringBuffer" );;
+				var renderedItems = CreateObject( "java", "java.lang.StringBuffer" );
 				var formItems = getFormItems( id=arguments.formId, pageNumber=pageNumber );
 
 				for ( var formItem in formItems ) {

@@ -25,7 +25,7 @@
 
 		<div class="formbuilder-page-content collapse in" id="collapsible-#id#" aria-expanded="true">
 			<div class="formbuilder-page-content-wrapper">
-				<dl class="dl-horizontal mod-align-left">
+				<dl class="dl-horizontal">
 					#args.renderedItems#
 				</dl>
 			</div>

@@ -4,8 +4,8 @@
 	folderRecord = prc.folder ?: QueryNew( 'label' );
 
 	prc.pageIcon     = "lock";
-	prc.pageTitle    = translateResource( uri="cms:assetmanager.manageperms.title", data=[ folderRecord.label ] );;
-	prc.pageSubTitle = translateResource( uri="cms:assetmanager.manageperms.subtitle", data=[ folderRecord.label ] );;
+	prc.pageTitle    = translateResource( uri="cms:assetmanager.manageperms.title", data=[ folderRecord.label ] );
+	prc.pageSubTitle = translateResource( uri="cms:assetmanager.manageperms.subtitle", data=[ folderRecord.label ] );
 </cfscript>
 
 <cfoutput>
