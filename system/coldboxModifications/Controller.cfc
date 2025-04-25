@@ -188,6 +188,11 @@ component extends="coldbox.system.web.Controller" {
 			   type="Controller.SettingNotFoundException");
 	}
 
+	public function persistVariables( persist="", struct persistStruct={} ){
+		return super.persistVariables( argumentCollection=arguments );
+	}
+
+
 // private helpers
 	private boolean function _actionExistsInHandler( required struct handlerMeta, required string action ) {
 		if ( StructKeyExists( arguments.handlerMeta, "extends" ) and _actionExistsInHandler( arguments.handlerMeta.extends, arguments.action ) ) {
