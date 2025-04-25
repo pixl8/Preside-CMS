@@ -2196,22 +2196,25 @@ component {
 			);
 
 			var question = {};
-			var formQuestion = getQuestion( formbuilderFormItem.questionId );
-			if ( formQuestion.recordCount ) {
-				var question = {
-					  id               = formQuestion.id
-					, fieldId          = formQuestion.field_id
-					, fieldLabel       = formQuestion.field_label
-					, fullQuestionText = formQuestion.full_question_text
-					, helpText         = formQuestion.help_text
-					, config           = DeserializeJSON( formQuestion.item_type_config ?: "{}" )
-				};
+
+			if ( !$helpers.isEmptyString( formbuilderFormItem.questionId ?: "" ) ) {
+				var formQuestion = getQuestion( formbuilderFormItem.questionId  );
+				if ( formQuestion.recordCount ) {
+					question = {
+						  id               = formQuestion.id
+						, fieldId          = formQuestion.field_id
+						, fieldLabel       = formQuestion.field_label
+						, fullQuestionText = formQuestion.full_question_text
+						, helpText         = formQuestion.help_text
+						, config           = DeserializeJSON( formQuestion.item_type_config ?: "{}" )
+					};
+				}
 			}
 
 			ArrayAppend( json.items, {
 				  id         = formbuilderFormItem.id
 				, itemTypeId = formbuilderFormItem.item_type
-				, questionId = formbuilderFormItem.questionId
+				, questionId = formbuilderFormItem.questionId ?: ""
 				, config     = DeserializeJSON( formItem.configuration ?: "{}" )
 				, question   = question
 			} );
