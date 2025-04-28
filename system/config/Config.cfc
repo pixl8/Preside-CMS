@@ -641,8 +641,8 @@ component {
 		settings.adminMenuItems.urlRedirects = {
 			  feature       = "urlRedirects"
 			, permissionKey = "urlRedirects.navigate"
-			, buildLinkArgs = { linkTo="urlRedirects" }
-			, activeChecks  = { handlerPatterns="^admin\.urlRedirects\." }
+			, buildLinkArgs = { objectName="url_redirect_rule" }
+			, activeChecks  = { datamanagerObject="url_redirect_rule" }
 			, icon          = "fa-code-fork"
 			, title         = "cms:urlRedirects.navigation.link"
 		};
@@ -680,7 +680,7 @@ component {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, systemInformation      = [ "navigate" ]
-			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
+			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule", "batchdelete", "batchedit", "manageContextPerms", "viewversions", "clone", "managefilters", "usefilters" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "deleteForm" ,"lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, formquestions          = [ "navigate", "read", "add", "edit", "delete", "batchdelete", "batchedit", "clone", "managefilters", "usefilters" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
