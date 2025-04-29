@@ -90,8 +90,10 @@ component {
 		event.include( "/js/admin/specific/urlRedirects/" );
 
 		event.includeData( {
-			  "redirectType301Warning"      = translateResource( uri="preside-objects.url_redirect_rule:field.redirect_type.301.warning" )
+			  "redirectType301Warning"     = translateResource( uri="preside-objects.url_redirect_rule:field.redirect_type.301.warning" )
 			, "exactMatchOnlyfalseWarning" = translateResource( uri="preside-objects.url_redirect_rule:field.exact_match_only.false.warning" )
+			, "toSlugPrefix"               = translateResource( uri="preside-objects.url_redirect_rule:field.label.slug.to.prefix" )
+			, "fromSlugPrefix"             = translateResource( uri="preside-objects.url_redirect_rule:field.label.slug.from.prefix" )
 		} );
 	}
 
