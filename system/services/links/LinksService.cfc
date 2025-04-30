@@ -85,7 +85,7 @@ component {
 	}
 
 	private string function _buildAnchorLinkHref( required query link ){
-		return "##" & arguments.link.page_anchor;
+		return "##" & ( arguments.link.page_anchor ?: "" );
 	}
 
 	private any function _getRequestContext() {
