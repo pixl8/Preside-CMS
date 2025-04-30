@@ -25,10 +25,11 @@ component {
 		}
 
 		switch( link.type ){
-			case "email"        : return _buildEmailHref       ( link ); break;
-			case "url"          : return _buildUrlHref         ( link ); break;
-			case "sitetreelink" : return _buildSitetreelinkHref( link ); break;
-			case "asset"        : return _buildAssetlinkHref   ( link ); break;
+			case "email"        : return _buildEmailHref       ( link );
+			case "url"          : return _buildUrlHref         ( link );
+			case "sitetreelink" : return _buildSitetreelinkHref( link );
+			case "asset"        : return _buildAssetlinkHref   ( link );
+			case "anchor"       : return _buildAnchorLinkHref  ( link );
 		}
 
 		return "";
@@ -81,6 +82,10 @@ component {
 
 	private string function _buildAssetlinkHref( required query link ) {
 		return _getRequestContext().buildLink( assetId=link.asset );
+	}
+
+	private string function _buildAnchorLinkHref( required query link ){
+		return "##" & arguments.link.page_anchor;
 	}
 
 	private any function _getRequestContext() {
