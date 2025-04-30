@@ -2243,16 +2243,21 @@ component {
 				var fieldId    = question.fieldId;
 				var oldFieldId = "";
 
-				if ( $getPresideObject( "formbuilder_question" ).dataExists( filter={ field_id=fieldId } ) ) {
+				var found   = $getPresideObject( "formbuilder_question" ).dataExists( filter={ field_id=fieldId } );
+				var counter = 1;
+
+				while ( found ) {
 					oldFieldId = " ( #fieldId# )";
 
-					var timestamp = DateTimeFormat( Now(), "yymmddHHmmss" );
-
-					if ( REFind("(_\d+)$", fieldId) ) {
-						fieldId = REReplace( fieldId, "(_\d+)$", "_#timestamp#", "all" );
+					if ( REFind( "(_\d+)$", fieldId ) ) {
+						fieldId = REReplace( fieldId, "(_\d+)$", "_#counter#", "all" );
 					} else {
-						fieldId = "#fieldId#_#timestamp#";
+						fieldId = "#fieldId#_#counter#";
 					}
+
+					found = $getPresideObject( "formbuilder_question" ).dataExists( filter={ field_id=fieldId } );
+
+					counter++;
 				}
 
 				questionId = $getPresideObject( "formbuilder_question" ).insertData(
