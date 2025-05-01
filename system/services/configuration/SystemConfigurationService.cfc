@@ -401,11 +401,13 @@ component displayName="System configuration service" {
 			, description      = _getConventionsBaseCategoryDescription( arguments.id )
 			, icon             = _getConventionsBaseCategoryIcon( arguments.id )
 			, form             = formName
-			, siteForm         = _getConventionsBaseSiteCategoryForm( arguments.id )
 			, tenancy          = formAttributes.tenancy ?: "site"
 			, noTenancy        = $helpers.isTrue( formAttributes.notenancy ?: "" )
-			, siteForm         = _getConventionsBaseSiteCategoryForm( arguments.id )
 		);
+
+		if ( !categories[ arguments.id ].getNoTenancy() && categories[ arguments.id ].getTenancy() == "site" && $isFeatureEnabled( "sites" ) ) {
+			categories[ arguments.id ].setSiteForm( _getConventionsBaseSiteCategoryForm( arguments.id ) );
+		}
 	}
 
 	private string function _getConventionsBaseCategoryName( required string id ) {
