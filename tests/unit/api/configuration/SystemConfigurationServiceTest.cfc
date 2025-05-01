@@ -456,6 +456,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		) );
 
 		svc.$( "$announceInterception" );
+		svc.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
 		svc.$property( propertyName="$helpers", mock=helpers );
 		helpers.$( method="isTrue", callback=function( val ){
 			return IsBoolean( arguments.val ?: "" ) && arguments.val;
