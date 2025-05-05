@@ -77,7 +77,7 @@ component displayName="RulesEngine Expression Service" {
 				continue;
 			}
 
-			if ( filterOnObject && ArrayLen( arguments.userRoles ) && StructKeyExists( arguments.roleLimits, roleLimitKey ) ) {
+			if ( filterOnObject && ArrayLen( arguments.userRoles ) && StructCount( arguments.roleLimits[ roleLimitKey ] ?: {} ) ) {
 				var expressionHandler    = allExpressions[ expressionId ].expressionHandler ?: "";
 				var expressionIdentifier = ( ListLen( expressionHandler, "." ) eq 5 ) ? ListGetAt( expressionHandler, 4, "." ) : "";
 				var hasPermission        = false;
