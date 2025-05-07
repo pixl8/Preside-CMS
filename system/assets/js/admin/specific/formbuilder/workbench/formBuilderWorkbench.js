@@ -110,8 +110,16 @@
 					}
 				}
 
-				if ( !isPage && !hasAnyPage && $item.index() !== 0 ) {
-					$( ".form-items" ).prepend( $item );
+				if ( !isPage && !hasAnyPage ) {
+					$item.detach();
+
+					if ( $next.length ) {
+						$item.insertBefore( $next );
+					} else if ( $prev.length === 0 ) {
+						$( ".form-items" ).prepend( $item );
+					} else {
+						$( ".form-items" ).append( $item );
+					}
 				}
 			  }
 			, stop        : function( event, ui ) {
