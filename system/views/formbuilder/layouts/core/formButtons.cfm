@@ -19,9 +19,9 @@
 			<button tabindex="#getNextTabIndex()#" class="btn" type="submit" name="formPageNext" value="1">#( ( isLastPage || isSummaryPage ) ? submitLabel : continueLabel )#</button>
 
 			<cfif isFormPage and not isFirstPage>
-				<button tabindex="#getNextTabIndex()#" class="btn btn-link" type="submit" name="formPageNext" value="0">#cancelLabel#</button>
+				<button tabindex="#getNextTabIndex()#" class="btn btn-link" type="submit" name="formPageNext" value="0" formnovalidate>#cancelLabel#</button>
 
-				<button tabindex="#getNextTabIndex()#" class="btn btn-bordered" type="submit" name="formPageNext" value="-1">#backLabel#</button>
+				<button tabindex="#getNextTabIndex()#" class="btn btn-bordered" type="submit" name="formPageNext" value="-1" formnovalidate>#backLabel#</button>
 			</cfif>
 		</div>
 	</div>

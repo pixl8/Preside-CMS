@@ -1277,12 +1277,15 @@ component {
 		,          numeric pageNumber = 0
 		,          numeric pageNext   = 0
 	) {
-		var formData = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData, pageNumber=arguments.pageNumber );
+		var formData         = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData, pageNumber=arguments.pageNumber );
+		var validationResult = _getValidationEngine().newValidationResult();
 
-		var validationResult = _getFormBuilderValidationService().validateFormSubmission(
-			  formItems      = arguments.formItems
-			, submissionData = formData
-		);
+		if ( arguments.pageNext > 0 ) {
+			validationResult = _getFormBuilderValidationService().validateFormSubmission(
+				  formItems      = arguments.formItems
+				, submissionData = formData
+			);
+		}
 
 		if ( validationResult.validated() ) {
 			var nextPageNumber = arguments.pageNumber + arguments.pageNext;
