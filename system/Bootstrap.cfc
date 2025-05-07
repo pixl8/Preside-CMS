@@ -669,6 +669,8 @@ component {
 				anyCookiesChanged = true;
 			}
 
+			cooky = ReReplaceNoCase( cooky, "(Expires=[^;]+)UTC;", "\1GMT;" );
+
 			cleanedCookies.append( cooky );
 		}
 
