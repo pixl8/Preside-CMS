@@ -39,10 +39,14 @@
 				executeWithFormBuilderDependencies( function( $ ) {
 					$( '###args.id#' ).validate( $.extend( #args.validationJs#, {
 						highlight: function( element, errorClass ) {
-							$( element ).closest( '.form-group' ).addClass( 'has-error' );
+							if ( $( this.submitButton ).attr( 'formnovalidate' ) == undefined ) {
+								$( element ).closest( '.form-group' ).addClass( 'has-error' );
+							}
 						},
 						unhighlight: function( element, errorClass ) {
-							$( element ).closest( '.form-group' ).removeClass( 'has-error' );
+							if ( $( this.submitButton ).attr( 'formnovalidate' ) == undefined ) {
+								$( element ).closest( '.form-group' ).removeClass( 'has-error' );
+							}
 						}
 					} ) );
 				} );
