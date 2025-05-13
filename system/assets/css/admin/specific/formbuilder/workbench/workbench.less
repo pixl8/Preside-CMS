@@ -3,6 +3,20 @@
 .presidecms {
 
 	.formbuilder-workbench {
+		> .row {
+			display   : flex;
+			flex-wrap : wrap;
+
+			> [class^="col-"] {
+				display        : flex;
+				flex-direction : column;
+
+				> .item-type-picker {
+				  	position : sticky;
+					top      : 20px;
+				}
+			}
+		}
 
 		a, .ui-accordion .ui-accordion-header, .ui-icon {
 			color : @default-font-colour;
