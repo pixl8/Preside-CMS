@@ -144,10 +144,12 @@ component {
 			);
 		}
 
-		args.renderedButtons = renderViewlet( event="formbuilder.core.formButtons", args=args );
-
 		if ( isEmptyString( args.renderedItems ) ) {
 			args.renderedItems = renderViewlet( event="formbuilder.core.formSummary", args=args );
+		}
+
+		if ( !isEmptyString( args.renderedItems ) ) {
+			args.renderedButtons = renderViewlet( event="formbuilder.core.formButtons", args=args );
 		}
 
 		event.include( assetId="/js/frontend/formbuilder/" );
@@ -169,7 +171,13 @@ component {
 	}
 
 	private string function formSummary( event, rc, prc, args={} ) {
-		return translateResource( uri="formbuilder:summary.description", defaultValue="" ) & formBuilderService.renderSummary( formId=( args.form ?: "" ) );
+		var summary = formBuilderService.renderSummary( formId=( args.form ?: "" ) );
+
+		if ( !isEmptyString( summary ) ) {
+			return translateResource( uri="formbuilder:summary.description", defaultValue="" ) & summary;
+		}
+
+		return "";
 	}
 
 	private string function successMessage( event, rc, prc, args ) {
