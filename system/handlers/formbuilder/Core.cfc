@@ -144,7 +144,7 @@ component {
 			);
 		}
 
-		if ( isEmptyString( args.renderedItems ) ) {
+		if ( isEmptyString( args.renderedItems ) && isTrue( args.configuration.use_summarypage ?: "" ) ) {
 			args.renderedItems = renderViewlet( event="formbuilder.core.formSummary", args=args );
 		}
 
