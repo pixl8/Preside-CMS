@@ -83,11 +83,13 @@ component {
 			StructAppend( submission, tempSubmission );
 
 			validationResult = formBuilderService.saveFormSubmission(
-				  formId       = formId
-				, requestData  = submission
-				, instanceId   = ( rc.instanceId   ?: "" )
-				, instanceSite = ( rc.instanceSite ?: "" )
-				, instanceUrl  = ( rc.instanceUrl  ?: "" )
+				  formId          = formId
+				, requestData     = submission
+				, instanceId      = ( rc.instanceId   ?: "" )
+				, instanceSite    = ( rc.instanceSite ?: "" )
+				, instanceUrl     = ( rc.instanceUrl  ?: "" )
+				, instancePage    = ( rc.instancePage ?: "" )
+				, validateCaptcha = formPageNumber <= 0
 			);
 
 			formBuilderService.clearTempStoredSubmission( formId=formId );
