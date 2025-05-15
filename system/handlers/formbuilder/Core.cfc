@@ -66,7 +66,7 @@ component {
 			var formPageIsBack     = formPageNext < 0;
 
 			if ( formPageIsLast ) {
-				if ( formPageIsBack || formUseSummaryPage ) {
+				if ( formPageIsBack || formUseSummaryPage || formPageNext == 0 ) {
 					formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageIsBack ? formPageCount : formPageNumber );
 				}
 			} else {
@@ -150,6 +150,10 @@ component {
 
 		if ( !isEmptyString( args.renderedItems ) ) {
 			args.renderedButtons = renderViewlet( event="formbuilder.core.formButtons", args=args );
+		}
+
+		if ( isEmptyString( args.renderedItems ?: "" ) && isEmptyString( args.renderedButtons ?: "" ) ) {
+			return renderView( view="/formbuilder/layouts/core/emptyStateMessage", args=args );
 		}
 
 		event.include( assetId="/js/frontend/formbuilder/" );
