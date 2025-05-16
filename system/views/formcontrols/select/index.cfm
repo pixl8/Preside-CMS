@@ -68,7 +68,7 @@
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selectValue=EncodeForHTML( selectValue ) />
-			<cfset selected=ListFindNoCase( value, selectValue ) />
+			<cfset selected=FindNoCase( value, selectValue ) />
 			<cfset valueFound=valueFound || selected />
 			<cfset label=EncodeForHTML( translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) ) />
 			<option

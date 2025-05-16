@@ -68,7 +68,14 @@ component {
 				break;
 
 			case "array"   :
-				var ruleValues = ListToArray( ruleValue );
+				var ruleValues       = [];
+				var formConfigValues = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
+
+				for ( var formConfigValue in formConfigValues ) {
+					if ( Find( formConfigValue, ruleValue ) ) {
+						ArrayAppend( ruleValues, formConfigValue );
+					}
+				}
 
 				if ( formItem.item_type == "matrix" ) {
 					var matrix = runEvent(

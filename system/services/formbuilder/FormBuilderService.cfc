@@ -1163,14 +1163,15 @@ component {
 	 *
 	 */
 	public any function saveFormSubmission(
-		  required string formId
-		, required struct requestData
-		,          string instanceId   = ""
-		,          string instanceSite = ""
-		,          string instanceUrl  = ""
-		,          string instancePage = ""
-		,          string ipAddress    = Trim( ListLast( cgi.remote_addr ?: "" ) )
-		,          string userAgent    = ( cgi.http_user_agent ?: "" )
+		  required string  formId
+		, required struct  requestData
+		,          string  instanceId      = ""
+		,          string  instanceSite    = ""
+		,          string  instanceUrl     = ""
+		,          string  instancePage    = ""
+		,          string  ipAddress       = Trim( ListLast( cgi.remote_addr ?: "" ) )
+		,          string  userAgent       = ( cgi.http_user_agent ?: "" )
+		,          boolean validateCaptcha = true
 	) {
 		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
 
@@ -1183,7 +1184,7 @@ component {
 			, submissionData = formData
 		);
 
-		if ( IsBoolean( formConfiguration.use_captcha ?: "" ) && formConfiguration.use_captcha ) {
+		if ( arguments.validateCaptcha && $helpers.isTrue( formConfiguration.use_captcha ?: "" ) ) {
 			if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
 				validationResult.addError( fieldName="recaptcha", message="formbuilder:recaptcha.error.message" );
 			}
@@ -1225,8 +1226,8 @@ component {
 					, ip_address     = arguments.ipAddress
 					, user_agent     = arguments.userAgent
 				} );
-
 			}
+
 			var submission = getSubmission( submissionId );
 			for( var s in submission ) { submission = s; }
 
@@ -1277,14 +1278,21 @@ component {
 		,          numeric pageNumber = 0
 		,          numeric pageNext   = 0
 	) {
-		var formData         = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData, pageNumber=arguments.pageNumber );
-		var validationResult = _getValidationEngine().newValidationResult();
+		var formConfiguration = getForm( arguments.formId );
+		var formData          = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData, pageNumber=arguments.pageNumber );
+		var validationResult  = _getValidationEngine().newValidationResult();
 
 		if ( arguments.pageNext > 0 ) {
 			validationResult = _getFormBuilderValidationService().validateFormSubmission(
 				  formItems      = arguments.formItems
 				, submissionData = formData
 			);
+
+			if ( arguments.pageNumber == 1 && $helpers.isTrue( formConfiguration.use_captcha ?: "" ) ) {
+				if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
+					validationResult.addError( fieldName="recaptcha", message="formbuilder:recaptcha.error.message" );
+				}
+			}
 		}
 
 		if ( validationResult.validated() ) {
