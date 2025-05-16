@@ -100,6 +100,10 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 			}
 		}
 
+		if ( StructIsEmpty( site ) ) {
+			site = siteService.matchSite( domain=domain, path=pathInfo );
+		}
+
 		interceptData.site = site;
 
 		_announceInterception( "onPresideDetectIncomingSite", interceptData );
