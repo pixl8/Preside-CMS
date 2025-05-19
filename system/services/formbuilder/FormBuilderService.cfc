@@ -1163,20 +1163,22 @@ component {
 	 *
 	 */
 	public any function saveFormSubmission(
-		  required string formId
-		, required struct requestData
-		,          string instanceId   = ""
-		,          string instanceSite = ""
-		,          string instanceUrl  = ""
-		,          string instancePage = ""
-		,          string ipAddress    = Trim( ListLast( cgi.remote_addr ?: "" ) )
-		,          string userAgent    = ( cgi.http_user_agent ?: "" )
+		  required string  formId
+		, required struct  requestData
+		,          string  instanceId      = ""
+		,          string  instanceSite    = ""
+		,          string  instanceUrl     = ""
+		,          string  instancePage    = ""
+		,          string  ipAddress       = Trim( ListLast( cgi.remote_addr ?: "" ) )
+		,          string  userAgent       = ( cgi.http_user_agent ?: "" )
+		,          boolean validateCaptcha = true
+		,          array   formItems       = []
 	) {
 		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
 
 		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
-		var formItems         = getFormItems( arguments.formId );
+		var formItems         = ArrayLen( arguments.formItems ) ? arguments.formItems : getFormItems( arguments.formId );
 		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
 		var validationResult  = _getFormBuilderValidationService().validateFormSubmission(
 			  formItems      = formItems
