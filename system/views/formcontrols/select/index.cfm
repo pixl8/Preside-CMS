@@ -36,7 +36,7 @@
 		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
 	}
 
-	value      = htmlEditFormat( value );
+	value      = EncodeForHTML( value );
 	valueFound = false;
 
 	htmlAttributes = renderHtmlAttributes(
