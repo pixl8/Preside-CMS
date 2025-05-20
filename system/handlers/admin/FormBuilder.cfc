@@ -718,7 +718,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object          = "formbuilder_form"
 				, useMultiActions = prc.canDelete
-				, gridFields      = "name,description,locked,active,active_from,active_to"
+				, gridFields      = "name,description,locked,active,active_from,active_to,datemodified"
 				, actionsView     = "admin.formbuilder.formDataTableGridFields"
 			}
 		);
