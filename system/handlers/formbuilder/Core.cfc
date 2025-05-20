@@ -87,9 +87,19 @@ component {
 				);
 			}
 		} else {
-			var tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
+			var tempSubmission      = formBuilderService.getTempStoredSubmission( formId=formId );
+			var submissionFormItems = [];
 
 			StructAppend( submission, tempSubmission );
+
+			if ( !isEmptyString( submission.instancePage ?: "" ) ) {
+				var submissionPages = ListToArray( submission.instancePage );
+
+				for ( var submissionPage in submissionPages ) {
+					var formItemPage = formBuilderService.getPage( formId=formId, formItemId=submissionPage );
+					ArrayAppend( submissionFormItems, formBuilderService.getFormItems( id=formId, pageNumber=formItemPage.page_number ), true );
+				}
+			}
 
 			validationResult = formBuilderService.saveFormSubmission(
 				  formId          = formId
@@ -99,6 +109,7 @@ component {
 				, instanceUrl     = ( rc.instanceUrl  ?: "" )
 				, instancePage    = ( rc.instancePage ?: "" )
 				, validateCaptcha = formPageNumber <= 0
+				, formItems       = submissionFormItems
 			);
 
 			formBuilderService.clearTempStoredSubmission( formId=formId );
