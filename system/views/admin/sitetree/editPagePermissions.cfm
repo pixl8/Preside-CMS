@@ -4,8 +4,8 @@
 	pageRecord = prc.page ?: QueryNew( 'title' );
 
 	prc.pageIcon     = "lock";
-	prc.pageTitle    = translateResource( uri="cms:sitetree.editPagePermissions.title", data=[ pageRecord.title ] );;
-	prc.pageSubTitle = translateResource( uri="cms:sitetree.editPagePermissions.subtitle", data=[ pageRecord.title ] );;
+	prc.pageTitle    = translateResource( uri="cms:sitetree.editPagePermissions.title", data=[ pageRecord.title ] );
+	prc.pageSubTitle = translateResource( uri="cms:sitetree.editPagePermissions.subtitle", data=[ pageRecord.title ] );
 </cfscript>
 
 <cfoutput>

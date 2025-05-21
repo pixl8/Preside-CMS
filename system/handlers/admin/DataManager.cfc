@@ -1061,8 +1061,8 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		prc.pageIcon     = "lock";
-		prc.pageTitle    = translateResource( uri="cms:datamanager.manageperms.title", data=[  prc.objectTitle ?: ""  ] );;
-		prc.pageSubTitle = translateResource( uri="cms:datamanager.manageperms.subtitle", data=[  prc.objectTitle ?: ""  ] );;
+		prc.pageTitle    = translateResource( uri="cms:datamanager.manageperms.title", data=[  prc.objectTitle ?: ""  ] );
+		prc.pageSubTitle = translateResource( uri="cms:datamanager.manageperms.subtitle", data=[  prc.objectTitle ?: ""  ] );
 	}
 
 	public void function savePermsAction( event, rc, prc ) {
@@ -1207,12 +1207,12 @@ component extends="preside.system.base.AdminHandler" {
 		prc.record = queryRowToStruct( prc.record );
 
 		var object = prc.objectName ?: "";
-		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=object, action="preRenderQuickAddRecordForm" );
-		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=object, action="postRenderQuickAddRecordForm" );
+		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=object, action="preRenderQuickEditRecordForm" );
+		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=object, action="postRenderQuickEditRecordForm" );
 
 		prc.formName = _getDefaultQuickEditFormName( argumentCollection=arguments, objectName=object );
-		prc.preForm  = hasPreFormCustomization       ? customizationService.runCustomization( objectName=object, action="preRenderQuickAddRecordForm" , args=prc ) : "";
-		prc.postForm = hasPostFormCustomization      ? customizationService.runCustomization( objectName=object, action="postRenderQuickAddRecordForm", args=prc ) : "";
+		prc.preForm  = hasPreFormCustomization       ? customizationService.runCustomization( objectName=object, action="preRenderQuickEditRecordForm" , args=prc ) : "";
+		prc.postForm = hasPostFormCustomization      ? customizationService.runCustomization( objectName=object, action="postRenderQuickEditRecordForm", args=prc ) : "";
 
 		if ( customizationService.objectHasCustomization( object, "preQuickEditRecordForm" ) ) {
 			customizationService.runCustomization(

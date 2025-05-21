@@ -3,10 +3,11 @@
  */
 component {
 
-	property name="formBuilderService"           inject="formBuilderService";
-	property name="formBuilderValidationService" inject="formBuilderValidationService";
-	property name="validationEngine"             inject="validationEngine";
-	property name="rulesEngineWebRequestService" inject="RulesEngineWebRequestService";
+	property name="formBuilderService"           inject="FormBuilderService";
+	property name="formBuilderValidationService" inject="FormBuilderValidationService";
+	property name="formBuilderRenderingService"  inject="FormBuilderRenderingService";
+	property name="formBuilderItemTypesService"  inject="FormBuilderItemTypesService";
+	property name="validationEngine"             inject="ValidationEngine";
 	property name="websiteLoginService"          inject="featureInjector:websiteUsers:websiteLoginService";
 
 	public any function submitAction( event, rc, prc ) {
@@ -24,6 +25,7 @@ component {
 		var checkAccess = formbuilderService.checkAccessAllowed( formId );
 		if ( !checkAccess.allowed ) {
 			if ( checkAccess.reason == "login" ) {
+				submission.checkAccess = true;
 				formBuilderService.setTempStoredSubmission( formId, submission );
 				if ( event.isAjax() ) {
 					event.renderData( data={ success=false, response=checkAccess.message }, type="json" );
@@ -46,13 +48,74 @@ component {
 			setNextEvent( url=cgi.http_referer, persistStruct=persistData );
 		}
 
-		var validationResult = formBuilderService.saveFormSubmission(
-			  formId       = formId
-			, requestData  = submission
-			, instanceId   = ( rc.instanceId   ?: "" )
-			, instanceSite = ( rc.instanceSite ?: "" )
-			, instanceUrl  = ( rc.instanceUrl  ?: "" )
-		);
+		var validationResult = validationEngine.newValidationResult();
+		var persistStruct    = {}
+		var formItemsInPage  = [];
+		var formPageNext     = submission.formPageNext   ?: 1;
+		var formPageNumber   = submission.formPageNumber ?: 0;
+		var formPageCount    = submission.formPageCount  ?: 0;
+
+		if ( formPageNumber > 0 ) {
+			if ( formPageNext == 0 ) { // Reset
+				formBuilderService.clearTempStoredSubmission( formId=formId );
+				formPageNumber = 1;
+			}
+
+			var formPageIsLast     = formPageNumber >= formPageCount;
+			var formUseSummaryPage = isTrue( theForm.use_summarypage ?: "" );
+			var formPageIsBack     = formPageNext < 0;
+
+			if ( formPageIsLast ) {
+				if ( formPageIsBack || formUseSummaryPage || formPageNext == 0 ) {
+					formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageIsBack ? formPageCount : formPageNumber );
+				}
+			} else {
+				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
+			}
+		}
+
+		if ( ArrayLen( formItemsInPage ) ) {
+			if ( formPageNext != 0 ) {
+				var tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, formItems=formItemsInPage );
+
+				validationResult = formBuilderService.saveTempSubmission(
+					  formId      = formId
+					, requestData = tempSubmission
+					, formItems   = formItemsInPage
+					, pageNumber  = formPageNumber
+					, pageNext    = formPageNext
+				);
+			}
+		} else {
+			var tempSubmission      = formBuilderService.getTempStoredSubmission( formId=formId );
+			var submissionFormItems = [];
+
+			StructAppend( submission, tempSubmission );
+
+			if ( !isEmptyString( submission.instancePage ?: "" ) ) {
+				var submissionPages = ListToArray( submission.instancePage );
+
+				for ( var submissionPage in submissionPages ) {
+					var formItemPage = formBuilderService.getPage( formId=formId, formItemId=submissionPage );
+					ArrayAppend( submissionFormItems, formBuilderService.getFormItems( id=formId, pageNumber=formItemPage.page_number ), true );
+				}
+			}
+
+			validationResult = formBuilderService.saveFormSubmission(
+				  formId          = formId
+				, requestData     = submission
+				, instanceId      = ( rc.instanceId   ?: "" )
+				, instanceSite    = ( rc.instanceSite ?: "" )
+				, instanceUrl     = ( rc.instanceUrl  ?: "" )
+				, instancePage    = ( rc.instancePage ?: "" )
+				, validateCaptcha = formPageNumber <= 0
+				, formItems       = submissionFormItems
+			);
+
+			formBuilderService.clearTempStoredSubmission( formId=formId );
+
+			persistStruct.formBuilderFormSubmitted = formId;
+		}
 
 		if ( event.isAjax() ) {
 			if ( validationResult.validated() ) {
@@ -62,27 +125,27 @@ component {
 			} else {
 				var errors = {};
 				var messages = validationResult.getMessages();
-				for( var fieldName in messages ) {
+				for ( var fieldName in messages ) {
 					var message = messages[ fieldName ];
 					errors[ fieldName ] = translateResource( uri=message.message, data=message.params );
 				}
 				event.renderData( data={ success=false, errors=errors }, type="json" );
 			}
 		} else {
-			if ( validationResult.validated() ) {
-				setNextEvent( url=cgi.http_referer, persistStruct={
-					formBuilderFormSubmitted = formId
-				} );
-			} else {
-				submission.validationResult = validationResult;
-				setNextEvent( url=cgi.http_referer, persistStruct=submission );
+			if ( !validationResult.validated() ) {
+				persistStruct = submission;
+				persistStruct.validationResult = validationResult;
 			}
+
+			setNextEvent( url=cgi.http_referer, persistStruct=persistStruct );
 		}
 	}
 
 	private string function formLayout( event, rc, prc, args={} ) {
-		if ( ( rc.formBuilderFormSubmitted ?: "" ) == ( args.form ?: "" ) ) {
-			return renderViewlet( event="formbuilder.core.successMessage", args={ formId=args.form } )
+		var formId = args.form ?: "";
+
+		if ( ( rc.formBuilderFormSubmitted ?: "" ) == formId ) {
+			return renderViewlet( event="formbuilder.core.successMessage", args={ formId=formId } )
 		}
 
 		var validationRulesetName = formBuilderValidationService.getRulesetForFormItems( args.formItems ?: [] );
@@ -93,9 +156,44 @@ component {
 			);
 		}
 
+		if ( isEmptyString( args.renderedItems ) && isTrue( args.configuration.use_summarypage ?: "" ) ) {
+			args.renderedItems = renderViewlet( event="formbuilder.core.formSummary", args=args );
+		}
+
+		if ( !isEmptyString( args.renderedItems ) ) {
+			args.renderedButtons = renderViewlet( event="formbuilder.core.formButtons", args=args );
+		}
+
+		if ( isEmptyString( args.renderedItems ?: "" ) && isEmptyString( args.renderedButtons ?: "" ) ) {
+			return renderView( view="/formbuilder/layouts/core/emptyStateMessage", args=args );
+		}
+
 		event.include( assetId="/js/frontend/formbuilder/" );
 
 		return renderView( view="/formbuilder/layouts/core/formLayout", args=args );
+	}
+
+	private string function formButtons( event, rc, prc, args={} ) {
+		var formPageNumber     = args.formPageNumber ?: 0;
+		var formPageCount      = args.formPageCount  ?: 0;
+		var formUseSummaryPage = isTrue( args.configuration.use_summarypage ?: "" );
+
+		args.isFormPage    = formPageNumber > 0;
+		args.isFirstPage   = formPageNumber == 1;
+		args.isLastPage    = formPageNumber == formPageCount && !formUseSummaryPage;
+		args.isSummaryPage = formPageNumber > formPageCount  && formUseSummaryPage;
+
+		return renderView( view="/formbuilder/layouts/core/formButtons", args=args );
+	}
+
+	private string function formSummary( event, rc, prc, args={} ) {
+		var summary = formBuilderService.renderSummary( formId=( args.form ?: "" ) );
+
+		if ( !isEmptyString( summary ) ) {
+			return translateResource( uri="formbuilder:summary.description", defaultValue="" ) & summary;
+		}
+
+		return "";
 	}
 
 	private string function successMessage( event, rc, prc, args ) {

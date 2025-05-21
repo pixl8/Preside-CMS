@@ -142,6 +142,11 @@ jobs:
           box server start serverConfigFile="server.json" cfengine="${{ matrix.cfengine }}" --noSaveSettings
           http_response=$(curl --max-time 120 -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9998)
           if [ $http_response != "200" ]; then
+            echo "Website startup exited with error: $http_response"
+            echo "Logs:"
+            echo "============"
+            echo
+            box server log name="fullcmsapp"
             exit 1
           fi
 
