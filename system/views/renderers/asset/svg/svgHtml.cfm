@@ -3,7 +3,7 @@
 </cfscript>
 
 <cfoutput>
-    <cfif !isEmpty( assetBinary ) >
-        #decodeForHTML( assetBinary )#
+    <cfif !IsEmpty( assetBinary ) >
+        #DecodeForHTML( assetBinary )#
     </cfif>
 </cfoutput>
