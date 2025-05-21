@@ -1799,11 +1799,11 @@ component {
 		var formItems         = getFormItems( arguments.formId );
 		var spreadsheetLib    = _getSpreadsheetLib();
 		var workbook          = spreadsheetLib.new();
-		var headers           = [ "Submission ID", "Submission date", "Form instance ID", "Form URL" ];
+		var headers           = [ "Submission ID", "Submission date", "Form instance ID", "Form URL", "Form page(s)" ];
 		var itemColumnMap     = {};
 		var itemsToRender     = [];
 		var submissions       = $getPresideObject( "formbuilder_formsubmission" ).selectData(
-			  filter  = { form = arguments.formId }
+			  filter  = { form=arguments.formId }
 			, orderBy = "datecreated"
 		);
 
@@ -1850,6 +1850,7 @@ component {
 			}
 			spreadsheetLib.setCellValue( workbook, submission.form_instance                                                     , row, column++, "string" );
 			spreadsheetLib.setCellValue( workbook, $getRequestContext().getSiteUrl( submission.form_site ) & submission.form_url, row, column++, "string" );
+			spreadsheetLib.setCellValue( workbook, $renderField( object="formbuilder_formsubmission", property="form_page", data=submission.form_page, context="text", record=submission ), row, column++, "string" );
 
 			if ( ArrayLen( itemsToRender ) ) {
 				var data = isV2 ? getV2Responses( arguments.formId, submission.id ) : DeSerializeJson( submission.submitted_data );
@@ -1890,8 +1891,8 @@ component {
 				}
 			}
 
-			spreadsheetLib.setCellValue( workbook, submission.ip_address, row, ++column, "string" );
-			spreadsheetLib.setCellValue( workbook, submission.user_agent, row, ++column, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.ip_address, row, column++, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.user_agent, row, column++, "string" );
 
 			if ( !row mod 100 && ( canInfo || canReportProgress ) ) {
 				if ( canReportProgress ) {
