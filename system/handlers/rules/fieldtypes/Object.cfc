@@ -19,12 +19,12 @@ component {
 			return renderLabel( objectName=objectName, recordId=ids[1] );
 		}
 
-		var records = presideObjectService.selectData(
-			  objectName   = objectName
-			, selectFields = [ "${labelfield} as label" ]
-			, filter       = { id=ids }
-		);
-		return ValueList( records.label, ", " );
+		var labels = [];
+		for( var id in ids ){
+			ArrayAppend( labels, renderLabel( objectName, id ) );
+		}
+
+		return arrayToList( labels, ", " );
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {

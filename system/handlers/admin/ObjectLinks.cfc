@@ -34,6 +34,10 @@ component {
 				queryString &= "&version=#version#";
 			}
 
+			if ( isTrue( args.modalView ?: "" ) ) {
+				queryString &= "&modalView=true";
+			}
+
 			return event.buildAdminLink(
 				  linkto      = "datamanager.viewRecord"
 				, queryString = _queryString( queryString, args )

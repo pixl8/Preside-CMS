@@ -1,10 +1,10 @@
 /**
  * Represents a saved configuration item for an email layout (see [[emailtemplatingv1]])
  *
- * @nolabel   true
- * @versioned false
- * @feature   emailCenter
- *
+ * @nolabel       true
+ * @versioned     false
+ * @feature       emailCenter
+ * @labelRenderer email_layout_config_item
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email layout configuration item"  {
 	property name="layout"          type="string" dbtype="varchar"  maxlength=200          required=true  uniqueindexes="layoutconfigitem|1" indexes="layout,layouttemplate|1,layoutblueprint|1,layoutcustom|3"                                             cloneable=true;

@@ -52,13 +52,14 @@
 			  , $filterLink
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
-			  , filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
+			  , $tableFilter, filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
 			  , filtersPopulated=false
 			  , hasPreFilters=false;
 
 			if ( allowFilter ) {
-				filterSettings = $( ".object-listing-table-filter" ).data();
-				if ( filterSettings !== null ) {
+				$tableFilter = $( `#${tableId}-filter` );
+				if ( $tableFilter.length ) {
+					filterSettings    = $tableFilter.data();
 					allowUseFilter    = filterSettings.allowUseFilter    || false;
 					allowManageFilter = filterSettings.allowManageFilter || false;
 					if ( allowManageFilter ) {
@@ -259,12 +260,21 @@
 						$( ".datatable-container" ).presideLoadingSheen( false );
 						updateSelectAllOptionRecordCount( dt.fnFormatNumber( dt._iRecordsTotal ) );
 					},
-					fnFooterCallback: function ( nRow, aaData, iStart, iEnd, aiDisplay ) {
-						if ( $( nRow ).length ) {
-							if ( lastAjaxResult && typeof lastAjaxResult.sFooter !== "undefined" && lastAjaxResult.sFooter.length ) {
-								$( nRow ).show().find( "th:first" ).html( lastAjaxResult.sFooter );
+					fnFooterCallback: function ( nFoot, aaData, iStart, iEnd, aiDisplay ) {
+						if ( $( nFoot ).length ) {
+							if ( $( nFoot ).hasClass( "multi-column-footer" ) ) {
+								if ( lastAjaxResult && typeof lastAjaxResult.sFooter !== "undefined" && lastAjaxResult.sFooter.length ) {
+									$( nFoot ).html( lastAjaxResult.sFooter );
+								} else {
+									$( nFoot ).html( "" );
+								}
 							} else {
-								$( nRow ).hide().find( "th:first" ).html( "" );
+								var nRow = $( nFoot ).children('tr')[0];
+								if ( lastAjaxResult && typeof lastAjaxResult.sFooter !== "undefined" && lastAjaxResult.sFooter.length ) {
+									$( nRow ).show().find( "th:first" ).html( lastAjaxResult.sFooter );
+								} else {
+									$( nRow ).hide().find( "th:first" ).html( "" );
+								}
 							}
 						}
 					},

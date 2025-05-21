@@ -9,9 +9,12 @@
 	param name="args.draftsEnabled"               type="boolean" default=false;
 	param name="args.noActions"                   type="boolean" default=false;
 	param name="args.footerEnabled"               type="boolean" default=false;
+	param name="args.footerWrapWithRow"           type="boolean" default=true;
 	param name="args.gridFields"                  type="array";
 	param name="args.gridHeaderLabels"            type="struct"  default={};
 	param name="args.sortableFields"              type="array"   default=[];
+	param name="args.centerAlignFields"           type="array"   default=[];
+	param name="args.rightAlignFields"            type="array"   default=[];
 	param name="args.hiddenGridFields"            type="array"   default=[];
 	param name="args.filterContextData"           type="struct"  default={};
 	param name="args.allowSearch"                 type="boolean" default=true;
@@ -201,7 +204,10 @@
 						</th>
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
-						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>" data-field="#ListLast( fieldName, '.' )#">
+						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>"
+							data-field="#ListLast( fieldName, '.' )#"
+							data-class="<cfif ArrayFindNoCase( args.centerAlignFields, fieldName )>dt-align-center<cfelseif ArrayFindNoCase( args.rightAlignFields, fieldName )>dt-align-right<cfelse></cfif>"
+						>
 							<cfif structKeyExists( args.gridHeaderLabels, fieldName ) >
 								#args.gridHeaderLabels[ fieldName ]#
 							<cfelse>
@@ -226,10 +232,15 @@
 				</tr>
 			</thead>
 			<cfif args.footerEnabled>
-				<tfoot>
-					<tr>
-						<th colspan="#colCount#"></th>
-					</tr>
+					<cfif args.footerWrapWithRow >
+						<tfoot>
+							<tr>
+								<th colspan="#colCount#"></th>
+							</tr>
+						</foot>
+					<cfelse>
+						<tfoot class="multi-column-footer">
+					</cfif>
 				</tfoot>
 			</cfif>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">

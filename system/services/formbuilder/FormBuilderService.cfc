@@ -1799,7 +1799,7 @@ component {
 		var formItems         = getFormItems( arguments.formId );
 		var spreadsheetLib    = _getSpreadsheetLib();
 		var workbook          = spreadsheetLib.new();
-		var headers           = [ "Submission ID", "Submission date", "Form instance ID" ];
+		var headers           = [ "Submission ID", "Submission date", "Form instance ID", "Form URL" ];
 		var itemColumnMap     = {};
 		var itemsToRender     = [];
 		var submissions       = $getPresideObject( "formbuilder_formsubmission" ).selectData(
@@ -1814,41 +1814,44 @@ component {
 		if ( canInfo ) {
 			logger.info( "Fetched [#NumberFormat( submissions.recordcount )#] submissions, preparing to export..." );
 		}
-		for( var i=1; i <= formItems.len(); i++ ) {
+
+		for( var i=1; i <= ArrayLen( formItems ); i++ ) {
 			if ( formItems[i].type.isFormField ) {
 				var exclude = isBoolean( formItems[i].configuration.exclude_export ?: "" ) && formItems[i].configuration.exclude_export;
 				var columns = !exclude ? renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration ) : [];
 
 				if ( columns.len() && !exclude ) {
-					itemsToRender.append( formItems[i] );
+					ArrayAppend( itemsToRender, formItems[i] );
 					itemColumnMap[ formItems[ i ].id ] = columns;
-					headers.append( columns, true );
-
+					ArrayAppend( headers, columns, true );
 				}
 			}
 		}
 
-		headers.append( "IP Address" );
-		headers.append( "User agent" );
+		ArrayAppend( headers, "IP Address" );
+		ArrayAppend( headers, "User agent" );
 
 		spreadsheetLib.renameSheet( workbook, $translateResource( uri="formbuilder:spreadsheet.main.sheet.title", data=[ formDefinition.name ] ), 1 );
-		for( var i=1; i <= headers.len(); i++ ){
+
+		for ( var i=1; i <= headers.len(); i++ ) {
 			spreadsheetLib.setCellValue( workbook, headers[i], 1, i, "string" );
 		}
 
-		var row = 1;
-		for( var submission in submissions ) {
-			var column = 4;
+		var extraData = {};
+		var row       = 1;
+		for ( var submission in submissions ) {
+			var column = 1;
 			row++;
-			spreadsheetLib.setCellValue( workbook, submission.id, row, 1, "string" );
-			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.id                                                  , row, column++, "string" );
+			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, column++, "string" );
 			if ( websiteUsers ) {
 				var submittedBy = Len( submission.submitted_by ) ? $renderLabel( "website_user", submission.submitted_by ) : "";
-				spreadsheetLib.setCellValue( workbook, submittedBy, row, 3, "string" );
+				spreadsheetLib.setCellValue( workbook, submittedBy, row, column++, "string" );
 			}
-			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4, "string" );
+			spreadsheetLib.setCellValue( workbook, submission.form_instance                                                     , row, column++, "string" );
+			spreadsheetLib.setCellValue( workbook, $getRequestContext().getSiteUrl( submission.form_site ) & submission.form_url, row, column++, "string" );
 
-			if ( itemsToRender.len() ) {
+			if ( ArrayLen( itemsToRender ) ) {
 				var data = isV2 ? getV2Responses( arguments.formId, submission.id ) : DeSerializeJson( submission.submitted_data );
 				for( item in itemsToRender ) {
 					var itemKey = isV2 ? item.questionId : ( item.configuration.name ?: "" );
@@ -1862,12 +1865,27 @@ component {
 					} );
 					var mappedColumns = itemColumnMap[ item.id ];
 
+					var chunkSize = 32767;
 					for( var i=1; i<=mappedColumns.len(); i++ ) {
 						if ( itemColumns.len() >= i ) {
-							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column, "string" );
+							var totalChars = Len( itemColumns[ i ] );
+							if ( totalChars >= chunkSize ) {
+								var extendedCols = [];
+								for ( var x=chunkSize+1; x<=totalChars; x+=chunkSize ) {
+									ArrayAppend( extendedCols, Mid( itemColumns[ i ], x, chunkSize ) );
+								}
+
+								extraData[ column ][ row ] = extendedCols;
+
+								spreadsheetLib.setCellValue( workbook, Left( itemColumns[ i ], chunkSize ), row, column, "string" );
+							} else {
+								spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, column, "string" );
+							}
 						} else {
-							spreadsheetLib.setCellValue( workbook, "", row, ++column );
+							spreadsheetLib.setCellValue( workbook, "", row, column );
 						}
+
+						column++;
 					}
 				}
 			}
@@ -1888,6 +1906,32 @@ component {
 			}
 		}
 
+		if ( !StructIsEmpty( extraData ) ) {
+			if ( canInfo ) {
+				logger.info( "Processing additional data..." );
+			}
+
+			var offsetCols = 0;
+			for ( var extraCol in extraData ) {
+				var totalCols = 0;
+				for ( var extraRow in extraData[ extraCol ] ) {
+					totalCols = Max( totalCols, ArrayLen( extraData[ extraCol ][ extraRow ] ) );
+				}
+
+				for ( var i=1; i<=totalCols; i++ ) {
+					var data = [ "" ]; // Empty heading.
+
+					for ( var j=1; j<=submissions.recordCount; j++ ) {
+						ArrayAppend( data, extraData[ extraCol ][ j + 1 ][ i ] ?: "" );
+					}
+
+					spreadsheetLib.addColumn( workbook=workbook, data=data, startColumn=Val( extraCol ) + offsetCols + i, insert=true );
+				}
+
+				offsetCols += totalCols;
+			}
+		}
+
 		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
 		spreadsheetLib.addFreezePane( workbook, 0, 1 );
 		for( var i=1; i <= headers.len(); i++ ){
@@ -1896,6 +1940,10 @@ component {
 
 		if ( canReportProgress ) {
 			progress.setProgress( 100 );
+		}
+
+		if ( canInfo ) {
+			logger.info( "Done." );
 		}
 
 		if ( arguments.writeToFile ) {
