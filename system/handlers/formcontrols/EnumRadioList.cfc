@@ -5,13 +5,48 @@ component {
 	property name="enumService" inject="enumService";
 
 	public string function index( event, rc, prc, args={} ) {
-		var enum  = args.enum ?: "";
+		var enum = args.enum ?: "";
 
 		args.items = enumService.listItems( enum );
-		if ( !args.items.len() ) {
-		    return "";
+		if ( !ArrayLen( args.items ) ) {
+			return "";
 		}
+
+		args.hasToggleFields = false;
+
+		var toggleFields = _getToggleFields( fields=( args.toggleFields ?: "" ), separator=( args.toggleSeparator ?: "|" ) );
+
+		if ( !isEmpty( toggleFields ) ) {
+			for ( var i=1; i<=ArrayLen( args.items ); i++ ) {
+				var id = args.items[ i ].id ?: "";
+
+				if ( !isEmptyString( toggleFields[ id ] ?: "" ) ) {
+					args.items[ i ].toggleFields = toggleFields[ id ];
+
+					args.hasToggleFields = true;
+				}
+			}
+		}
+
+		event.include( "/js/admin/specific/enumRadioList/" );
 
 		return renderView( view="formcontrols/enumRadioList/index", args=args );
 	}
+
+	public struct function _getToggleFields( required any fields, string separator="|" ) {
+		var fields = {};
+
+		if ( IsSimpleValue( arguments.fields ) ) {
+			arguments.fields = ListToArray( arguments.fields, arguments.separator );
+		}
+
+		for ( var toggleField in arguments.fields ) {
+			if ( Find( ":", toggleField ) ) {
+				StructAppend( fields, { "#ListFirst( toggleField, ":")#"=ListRest( toggleField, ":" ) } )
+			}
+		}
+
+		return fields;
+	}
+
 }
