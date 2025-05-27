@@ -1302,8 +1302,13 @@ component {
 
 			tempSubmission.instancePage = tempSubmission.instancePage ?: "";
 			var pageItem = getPageByPageNumber( formId=arguments.formId, pageNumber=arguments.pageNumber );
-			if ( !$helpers.isEmptyString( pageItem.id ?: "" ) && !ListContains( tempSubmission.instancePage, pageItem.id ) ) {
-				tempSubmission.instancePage = ListAppend( tempSubmission.instancePage, pageItem.id );
+			if ( !$helpers.isEmptyString( pageItem.id ?: "" ) ) {
+				var index = ListFindNoCase( tempSubmission.instancePage, pageItem.id );
+				if ( arguments.pageNext < 0 && index > 0 ) {
+					tempSubmission.instancePage = ListDeleteAt( tempSubmission.instancePage, index );
+				} else if ( arguments.pageNext >= 0 && index == 0 ) {
+					tempSubmission.instancePage = ListAppend( tempSubmission.instancePage, pageItem.id );
+				}
 			}
 
 			if ( !StructIsEmpty( formData ) ) {
