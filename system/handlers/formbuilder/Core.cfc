@@ -54,6 +54,7 @@ component {
 		var formPageNext     = submission.formPageNext   ?: 1;
 		var formPageNumber   = submission.formPageNumber ?: 0;
 		var formPageCount    = submission.formPageCount  ?: 0;
+		var tempSubmission   = {};
 
 		if ( formPageNumber > 0 ) {
 			if ( formPageNext == 0 ) { // Reset
@@ -61,14 +62,8 @@ component {
 				formPageNumber = 1;
 			}
 
-			var formPageIsLast     = formPageNumber >= formPageCount;
-			var formUseSummaryPage = isTrue( theForm.use_summarypage ?: "" );
-			var formPageIsBack     = formPageNext < 0;
-
-			if ( formPageIsLast ) {
-				if ( formPageIsBack || formUseSummaryPage || formPageNext == 0 ) {
-					formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageIsBack ? formPageCount : formPageNumber );
-				}
+			if ( formPageNumber >= formPageCount ) {
+				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNext < 0 ? formPageCount : formPageNumber );
 			} else {
 				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 			}
@@ -76,7 +71,7 @@ component {
 
 		if ( ArrayLen( formItemsInPage ) ) {
 			if ( formPageNext != 0 ) {
-				var tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, formItems=formItemsInPage );
+				tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, formItems=formItemsInPage );
 
 				validationResult = formBuilderService.saveTempSubmission(
 					  formId      = formId
@@ -85,12 +80,22 @@ component {
 					, pageNumber  = formPageNumber
 					, pageNext    = formPageNext
 				);
+
+				// Trigger save submission.
+				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
+
+				if ( tempSubmission.formPageNumber > formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
+					formItemsInPage = [];
+				}
 			}
-		} else {
-			var tempSubmission      = formBuilderService.getTempStoredSubmission( formId=formId );
-			var submissionFormItems = [];
+		}
+
+		if ( !ArrayLen( formItemsInPage ) ) {
+			tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
 
 			StructAppend( submission, tempSubmission );
+
+			var submissionFormItems = [];
 
 			if ( !isEmptyString( submission.instancePage ?: "" ) ) {
 				var submissionPages = ListToArray( submission.instancePage );
@@ -104,10 +109,10 @@ component {
 			validationResult = formBuilderService.saveFormSubmission(
 				  formId          = formId
 				, requestData     = submission
-				, instanceId      = ( rc.instanceId   ?: "" )
-				, instanceSite    = ( rc.instanceSite ?: "" )
-				, instanceUrl     = ( rc.instanceUrl  ?: "" )
-				, instancePage    = ( rc.instancePage ?: "" )
+				, instanceId      = ( submission.instanceId   ?: "" )
+				, instanceSite    = ( submission.instanceSite ?: "" )
+				, instanceUrl     = ( submission.instanceUrl  ?: "" )
+				, instancePage    = ( submission.instancePage ?: "" )
 				, validateCaptcha = formPageNumber <= 0
 				, formItems       = submissionFormItems
 			);
