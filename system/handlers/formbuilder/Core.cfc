@@ -142,6 +142,10 @@ component {
 				persistStruct.validationResult = validationResult;
 			}
 
+			if ( !isEmptyString( persistStruct.formBuilderFormSubmitted ?: "" ) ) {
+				StructAppend( persistStruct, submission );
+			}
+
 			setNextEvent( url=cgi.http_referer, persistStruct=persistStruct );
 		}
 	}
