@@ -38,14 +38,14 @@ component  {
 		var formId       = rc.formId       ?: ( rc.id          ?: ( rc.form ?: "" ) );
 		var submissionId = rc.submissionId ?: ( args.record.id ?: ( rc.id   ?: "" ) );
 
-		return _renderEmailResponse( formId=formId, submissionId=submissionId );
+		return _renderEmailResponse( formId=formId, submissionId=submissionId, args=args );
 	}
 
 	private string function textEmail( event, rc, prc, args={} ){
 		var formId       = rc.formId       ?: ( rc.id          ?: ( rc.form ?: "" ) );
 		var submissionId = rc.submissionId ?: ( args.record.id ?: ( rc.id   ?: "" ) );
 
-		return Trim( _renderEmailResponse( formId=formId, submissionId=submissionId, context="text" ) );
+		return Trim( _renderEmailResponse( formId=formId, submissionId=submissionId, args=args, context="text" ) );
 	}
 
 	private string function adminDataTable( event, rc, prc, args={} ){
