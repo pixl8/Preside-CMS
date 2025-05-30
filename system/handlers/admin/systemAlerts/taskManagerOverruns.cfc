@@ -19,6 +19,10 @@ component {
 		return true;
 	}
 
+	private string function schedule() {
+		return "0 */5 * * * *"; // every five minutes
+	}
+
 	private string function defaultLevel() {
 		return "warning";
 	}
