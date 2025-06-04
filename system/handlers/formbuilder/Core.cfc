@@ -84,7 +84,7 @@ component {
 				// Trigger save submission.
 				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
 
-				if ( tempSubmission.formPageNumber > formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
+				if ( ( tempSubmission.formPageNumber ?: 0 ) > formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
 					formItemsInPage = [];
 				}
 			}
