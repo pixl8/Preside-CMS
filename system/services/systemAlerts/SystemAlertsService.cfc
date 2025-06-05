@@ -476,7 +476,7 @@ component {
 	}
 
 	private boolean function _crontabExpressionIsValid( required string crontabExpression ) {
-		return Len( _getCronUtil().validateExpression( arguments.crontabExpression ) ) > 0;
+		return !Len( _getCronUtil().validateExpression( arguments.crontabExpression ) ) > 0;// validateExpressions returns empty string for success otehrwise the error message
 	}
 
 // GETTERS AND SETTERS
