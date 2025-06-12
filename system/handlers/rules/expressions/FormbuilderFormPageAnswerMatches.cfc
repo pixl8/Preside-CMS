@@ -1,5 +1,5 @@
 /**
- * @expressionCategory formbuilder
+ * @expressionCategory formbuilderInProgress
  * @expressionContexts webRequest
  * @feature            rulesEngine
  */
