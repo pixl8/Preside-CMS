@@ -1324,7 +1324,7 @@ component {
 		derivatives.openGraphImage = {
 			  permissions = "inherit"
 			, autoQueue   = [ "image" ]
-			, transformations = [ { method="shrinkToFit", args={ width=400, height=400 } } ]
+			, transformations = [ { method="shrinkToFit", args={ width=1200, height=1200 } } ]
 		};
 
 		return derivatives;
