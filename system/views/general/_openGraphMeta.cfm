@@ -22,4 +22,5 @@
 	<cfif Len( local.mainImage )>
 		<meta property="og:image" content="#event.buildLink( assetId=local.mainImage, derivative='openGraphImage' )#" />
 	</cfif>
+	<meta name="twitter:card" content="summary" />
 </cfoutput>
