@@ -243,6 +243,10 @@ component {
 			qs &= "&#interceptArgs.extraQs#";
 		}
 
+		if ( Len( dataManagerService.listGroupField( objectName=objectName ) ) && Len( Trim( rc.activeGroupId ?: "" ) ) ) {
+			qs &= "&activeGroupId=#rc.activeGroupId#";
+		}
+
 		return event.buildAdminLink(
 			  linkto      = "datamanager.getObjectRecordsForAjaxDataTables"
 			, queryString = _queryString( qs, args )

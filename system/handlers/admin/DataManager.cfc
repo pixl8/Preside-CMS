@@ -150,6 +150,11 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			}
 
+			if ( Len( _getObjectListingGroupField( objectName=objectName ) ) && Len( Trim( rc.activeGroupId ?: "" ) ) ) {
+				args.exportFilterString  = Trim( args.exportFilterString ?: "" );
+				args.exportFilterString &= ( Len( args.exportFilterString ) ? "&" : "" ) & "activeGroupId=#rc.activeGroupId#";
+			}
+
 			args.gridHeaderLabels = {};
 			customizationService.runCustomization(
 				  objectName     = args.objectName ?: ""
@@ -2150,6 +2155,11 @@ component extends="preside.system.base.AdminHandler" {
 			getRecordsArgs.orderBy = arguments.orderBy.len() ? arguments.orderBy : dataManagerService.getDefaultSortOrderForDataGrid( object );
 		}
 
+		var objectGroupField = _getObjectListingGroupField( objectName=getRecordsArgs.objectName );
+		if ( Len( objectGroupField ) && Len( Trim( rc.activeGroupId ?: "" ) ) ) {
+			ArrayAppend( getRecordsArgs.extraFilters, { filter={ "#objectGroupField#.id"=rc.activeGroupId } } );
+		}
+
 		customizationService.runCustomization(
 			  objectName = arguments.object
 			, action     = "preFetchRecordsForGridListing"
@@ -4103,6 +4113,10 @@ component extends="preside.system.base.AdminHandler" {
 			, attributeName = "datamanagerRightAlignFields"
 			, defaultValue  = ""
 		) );
+	}
+
+	public string function _getObjectListingGroupField( required string objectName ) {
+		return dataManagerService.listGroupField( objectName=arguments.objectName );
 	}
 
 	private array function _getObjectHiddenFieldsForGrid( required string objectName ) {
