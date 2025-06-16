@@ -801,6 +801,7 @@ component {
 		// these settings useful for Preside applications that are fixed
 		// admin applications with the 'site' feature disabled
 		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
+		settings.forcePort      = settings.env.FORCE_PORT ?: "";
 		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
 		settings.defaultSiteProtocol = settings.defaultSiteProtocol ?: ( settings.env.DEFAULT_SITE_PROTOCOL ?: _getCurrentProtocol() );
 	}

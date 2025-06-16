@@ -110,9 +110,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		prc.delete( "_forceDomainLookup" );
 
-		if ( !listFindNoCase( "80,443", cgi.SERVER_PORT ) ) {
-			siteUrl &= ":#cgi.SERVER_PORT#";
-		}
+		siteUrl &= getPortSuffix();
 
 		if ( arguments.includePath ) {
 			siteUrl &= site.path ?: "/";
@@ -139,6 +137,20 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		siteUrl = siteUrl.reReplace( "/$", "" );
 
 		return siteUrl;
+	}
+
+	public string function getPortSuffix() {
+		var port = getController().getSetting( "forceport" );
+
+		if ( !Len( port ) ) {
+			port = cgi.SERVER_PORT;
+		}
+
+		if ( Len( port ) && port != "443" && port != "80" ) {
+			return ":#port#";
+		}
+
+		return "";
 	}
 
 	public string function getSystemPageId( required string systemPage ) {
@@ -204,7 +216,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		}
 
 		var protocol = getProtocol() & "://";
-		var port     = !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ( ":" & cgi.SERVER_PORT ) : "";
+		var port     = getPortSuffix();
 
 		if ( overwriteDomainForBuildLink() ) {
 			return protocol & getOverwriteDomainForBuildLink() & port;
