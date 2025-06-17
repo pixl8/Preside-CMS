@@ -246,6 +246,7 @@ component {
 			  ]
 			, filter             = filter
 			, extraFilters       = extra
+			, savedFilters       = [ "siteTreePageTypes" ]
 			, maxRows            = arguments.maxRows
 			, orderBy            = "page._hierarchy_sort_order"
 			, allowDraftVersions = true
@@ -664,7 +665,7 @@ component {
 		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
 		var filter         = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
 		var filterParams   = {};
-		var savedFilters   = [];
+		var savedFilters   = [ "siteTreePageTypes" ];
 
 		if ( !arguments.includeInactive ) {
 			filter &= " and active = '1'";
