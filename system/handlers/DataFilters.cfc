@@ -1,6 +1,7 @@
 component {
 
 	property name="permissionService" inject="permissionService";
+	property name="pageTypesService"  inject="pageTypesService";
 
 	private struct function formbuilderV1Form( event, rc, prc, args={} ) {
 		if ( isFeatureEnabled( "formbuilder2" ) ) {
@@ -35,13 +36,16 @@ component {
 		);
 
 		return { filter = { id=groups } };
-    }
+	}
 
-    private struct function globalRulesEngineFilters( event, rc, prc, args={} ) {
-    	return {
-    		  filter = "rules_engine_condition.filter_sharing_scope is null or rules_engine_condition.filter_sharing_scope = :filter_sharing_scope"
-    		, filterParams = { filter_sharing_scope="global" }
-    	};
-    }
+	private struct function globalRulesEngineFilters( event, rc, prc, args={} ) {
+		return {
+			  filter = "rules_engine_condition.filter_sharing_scope is null or rules_engine_condition.filter_sharing_scope = :filter_sharing_scope"
+			, filterParams = { filter_sharing_scope="global" }
+		};
+	}
 
+	private struct function siteTreePageTypes( event, rc, prc, args={} ) {
+		return { filter={ "page.page_type"=pageTypesService.listSiteTreePageTypes() } };
+	}
 }
