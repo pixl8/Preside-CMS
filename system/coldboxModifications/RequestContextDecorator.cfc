@@ -83,15 +83,16 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true, boolean includeProtocol=true ) {
-		var prc       = getRequestContext().getCollection( private=true );
-		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
-		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
-		var protocol  = ( site.protocol ?: getProtocol() );
-		var domain    = "";
+		var prc           = getRequestContext().getCollection( private=true );
+		var fetchSite     = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
+		var useSiteDomain = ( prc._forceDomainLookup ?: false ) || Len( Trim( arguments.siteId ) );
+		var site          = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
+		var protocol      = ( site.protocol ?: getProtocol() );
+		var domain        = "";
 
 		if ( overwriteDomainForBuildLink() ) {
 			domain = getOverwriteDomainForBuildLink();
-		} else if ( fetchSite && StructKeyExists( site, "domain" ) && site.domain != "*" ) {
+		} else if ( useSiteDomain && StructKeyExists( site, "domain" ) && site.domain != "*" ) {
 			domain = site.domain;
 		} else {
 			domain = cgi.server_name;
