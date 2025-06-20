@@ -17,8 +17,8 @@ component {
 		var questionId  = arguments.config.question ?: ( rc.question ?: "" );
 		var theQuestion = formBuilderService.getQuestion( questionId );
 
-		if ( len( theQuestion ) ) {
-			var questionConfig = DeserializeJSON( theQuestion.item_type_config );
+		if ( Len( theQuestion ) ) {
+			var questionConfig = DeserializeJson( theQuestion.item_type_config );
 			var inc            = isTrue( questionConfig.allowHalfStars ?: "" ) ? 0.5 : 1;
 
 			var values = [];
