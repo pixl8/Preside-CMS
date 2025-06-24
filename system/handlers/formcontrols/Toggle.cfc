@@ -2,8 +2,6 @@ component {
 	public string function index( event, rc, prc, args={} ) {
 		event.include( "/js/admin/specific/toggleControl/" );
 
-		args.class = Trim( ( args.class ?: "" ) & " toggle-fields" );
-
 		var toggleType = args.toggleType ?: "checkbox";
 
 		if ( toggleType == "radio" ) {
@@ -19,6 +17,10 @@ component {
 				}
 			}
 		}
+
+		args.class = Trim( args.class ?: "" );
+
+		args.class &= ( isEmptyString( args.toggleClass ?: "" ) ? " toggle-fields" : args.toggleClass );
 
 		return renderView( view="/formcontrols/toggle/_#toggleType#", args=args );
 	}
