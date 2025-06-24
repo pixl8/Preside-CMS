@@ -320,7 +320,7 @@ component {
 		for( var savedAction in configuredActions ) {
 			var allowedToFire = !Len( Trim( savedAction.condition ?: "" ) ) || conditionService.evaluateCondition(
 				  conditionId = savedAction.condition
-				, context     = "formbuilderSubmission"
+				, context     = "webrequest"
 				, payload     = {
 					formbuilderSubmission = {
 						  formId       = submissionData.form ?: ""
