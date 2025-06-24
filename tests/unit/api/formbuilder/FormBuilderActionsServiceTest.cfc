@@ -155,7 +155,7 @@ component extends="testbox.system.BaseSpec"{
 				for( var i=1; i<=savedActions.len(); i++ ) {
 					mockConditionService.$( "evaluateCondition" ).$args(
 						  conditionId=savedActions[i].condition
-						, context="formbuilderSubmission"
+						, context="webrequest"
 						, payload={ formbuilderSubmission={ formId="", submissionId="" } }
 					).$results( !i==savedActions.len() );
 				}
