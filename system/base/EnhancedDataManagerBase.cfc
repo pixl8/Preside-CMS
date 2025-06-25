@@ -15,6 +15,63 @@ component extends="preside.system.base.AdminHandler" {
 	variables.infoCardStyle      = "default";
 
 // PUBLIC ACTIONS
+	public string function listingViewlet( event, rc, prc, args={} ) {
+		args.objectName        = args.objectName ?: prc.objectName;
+		args.listingGroupField = Trim( presideObjectService.getObjectAttribute( objectName=args.objectName, attributeName="datamanagerListingGroupField" ) );
+
+		prc.listingView = runEvent(
+			  event          = "admin.dataManager._objectListingViewlet"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+
+		if ( Len( args.listingGroupField ) ) {
+			args.currentListingView = prc.listingView;
+			args.allListingGroups   = [];
+
+			var groupFieldSelectFields = [];
+			var groupFieldSourceObj    = "";
+			var groupFieldProps        = presideObjectService.getObjectProperty( objectName=args.objectName, propertyName=args.listingGroupField );
+
+			switch( groupFieldProps.relationship ?: "" ) {
+				case "many-to-one":
+					groupFieldSelectFields = [ "#args.listingGroupField#.id AS id" ];
+					groupFieldSourceObj    = groupFieldProps.relatedto ?: "";
+				break;
+
+				case "many-to-many":
+					groupFieldSelectFields = [ "GROUP_CONCAT( DISTINCT #args.listingGroupField#.id ) AS id" ];
+					groupFieldSourceObj    = groupFieldProps.relatedto ?: "";
+				break;
+			}
+
+			if ( ArrayLen( groupFieldSelectFields ) && Len( groupFieldSourceObj ) ) {
+				var groupFieldQuery = presideObjectService.selectData(
+					  objectName   = args.objectName
+					, selectFields = groupFieldSelectFields
+					, orderBy      = presideObjectService.getLabelField( objectName=groupFieldSourceObj )
+					, groupBy      = "#args.listingGroupField#.id"
+				);
+
+				for ( var row in groupFieldQuery ) {
+					if ( Len( Trim( row.id ?: "" ) ) ) {
+						ArrayAppend( args.allListingGroups, {
+							  id    = row.id
+							, label = renderLabel( groupFieldSourceObj, row.id )
+						} );
+					}
+				}
+			}
+
+			if ( ArrayLen( args.allListingGroups ) ) {
+				prc.listingView = renderView( view="/admin/datamanager/_listingWithGroups", args=args );
+			}
+		}
+
+		return renderView( view="/admin/datamanager/object", args=args );
+	}
+
 	public void function viewRecord( event, rc, prc ){
 		var objectName = event.getCurrentEvent().reReplaceNoCase( "admin\.datamanager\.(.*?)\.viewRecord", "\1" );
 		var recordId = rc.id ?: "";
