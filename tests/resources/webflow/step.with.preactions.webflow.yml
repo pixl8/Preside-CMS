@@ -1,0 +1,36 @@
+version: 1.0.0
+webflow:
+  id: my.webflow.with.preaction
+  singleton: false
+  steps:
+  - id: step-1
+  - id: step-2
+    condition:
+      ref: condition.test
+    next:
+    - step-4
+  - id: step-3
+    prev:
+    - step-1
+    preactions:
+    - handler:
+        event: test.event
+        args:
+          arg: test
+      condition:
+        ref: string.EndsWith
+        args:
+          pattern: "@gmail.com"
+          value: $email_address
+    - handler:
+        event: test.event.2
+        args:
+          arg: test.2
+      direction: both
+    - handler:
+        event: test.event.3
+        args:
+          arg: test.3
+      direction: back
+  - id: step-4
+  - id: step-5
