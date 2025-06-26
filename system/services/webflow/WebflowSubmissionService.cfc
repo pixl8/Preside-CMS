@@ -136,15 +136,15 @@ component {
 			, instance  = local.wfInstance ?: NullValue()
 		);
 
-		var webflow = _getWebflowLibrary().getWebflow( webflowId );
-		var preCancel = webflow.getPreCancelHandler();
+		var webflow    = _getWebflowLibrary().getWebflow( webflowId );
+		var preCancel  = webflow.getPreCancelHandler();
 		var postCancel = webflow.getPostCancelHandler();
 
 		if ( Len( preCancel.event ?: "" ) ) {
 			$runEvent(
-				event = preCancel.event
-				, private = true
-				, prePostExempt = true
+				  event          = preCancel.event
+				, private        = true
+				, prePostExempt  = true
 				, eventArguments = {
 					  args       = preCancel.args ?: {}
 					, wfInstance = wfInstance ?: NullValue()
@@ -159,9 +159,9 @@ component {
 
 		if ( Len( postCancel.event ?: "" ) ) {
 			$runEvent(
-				event = postCancel.event
-				, private = true
-				, prePostExempt = true
+				  event          = postCancel.event
+				, private        = true
+				, prePostExempt  = true
 				, eventArguments = {
 					  args       = postCancel.args ?: {}
 					, wfInstance = wfInstance ?: NullValue()

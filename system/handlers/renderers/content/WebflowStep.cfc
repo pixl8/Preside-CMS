@@ -10,11 +10,11 @@ component {
 	}
 
 	private string function adminDataTable( event, rc, prc, args={} ) {
-		var stepId = args.data ?: "";
+		var stepId    = args.data ?: "";
 		var webflowId = args.record.webflow_id ?: "";
-		var posType = args.record.position_type ?: "";
-		var label = webflowConfigurationService.getStepLabel( stepId, webflowId );
-		var icon = "fa-globe light-grey";
+		var posType   = args.record.position_type ?: "";
+		var label     = webflowConfigurationService.getStepLabel( stepId, webflowId );
+		var icon      = "fa-globe light-grey";
 
 		if ( Len( Trim( webflowId ) ) && Len( Trim( posType ) ) ) {
 			icon = translateResource( uri="enum.webflowPositionType:#posType#.iconClass", defaultValue=icon );

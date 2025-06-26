@@ -25,9 +25,6 @@ component {
 
 // PUBLIC API METHODS
 	public boolean function archiveExpiredWebflows( any logger ) {
-		var canLog       = StructKeyExists( arguments, "logger" );
-		var canInfo      = canLog && logger.canInfo();
-		var canDebug     = canLog && logger.canDebug();
 		var flows        = _getWebflowLibrary().getAllWebflows();
 		var confService  = _getWebflowConfigurationService();
 		var storage      = _getCfFlowPresideStorage();
@@ -40,11 +37,11 @@ component {
 			var timeout = Val( conf.timeout_in_minutes ?: "" );
 
 			if ( !timeout ) {
-				if ( canDebug ) logger.debug( "Skipping webflow instances for webflow: " & flowId & ". Webflow does not have expiry." );
+				logger?.debug( "Skipping webflow instances for webflow: " & flowId & ". Webflow does not have expiry." );
 				continue;
 			}
 
-			if ( canInfo ) logger.info( "Checking expired webflow instances for webflow: " & flowId );
+			logger?.info( "Checking expired webflow instances for webflow: " & flowId );
 
 			var cfFlowId   = "preside.webflow.#flowId#";
 			var cutOffDate = DateAdd( "n", 0-( timeout+oneDay ), Now() );
@@ -54,10 +51,10 @@ component {
 				, selectFields = [ "owner", "reference", "sub_reference", "sub_sub_reference", "completed" ]
 			);
 
-			if ( !instances.recordCount && canInfo ) {
-				logger.info( "No expired instances found for: " & flowId );
-			} else if ( canInfo ) {
-				logger.info( "[#NumberFormat( instances.recordCount )#] expired instances found for: " & flowId & ". Archiving..." );
+			if ( !instances.recordCount ) {
+				logger?.info( "No expired instances found for: " & flowId );
+			} else {
+				logger?.info( "[#NumberFormat( instances.recordCount )#] expired instances found for: " & flowId & ". Archiving..." );
 			}
 
 			for( var instance in instances ) {
@@ -73,12 +70,12 @@ component {
 				);
 			}
 
-			if ( instances.recordCount && canInfo ) {
-				logger.info( "[#NumberFormat( instances.recordCount )#] instances archived for flow: " & flowId & "." );
+			if ( instances.recordCount ) {
+				logger?.info( "[#NumberFormat( instances.recordCount )#] instances archived for flow: " & flowId & "." );
 			}
 		}
 
-		if ( canInfo ) logger.info( "Finished archiving webflow instances." );
+		logger?.info( "Finished archiving webflow instances." );
 
 		return true;
 	}
