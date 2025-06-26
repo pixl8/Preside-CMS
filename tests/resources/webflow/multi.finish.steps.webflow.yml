@@ -1,0 +1,19 @@
+version: 1.0.0
+webflow:
+  id: my.complex.webflow
+  steps:
+  - id: step-1
+    next:
+    - step-2
+    - step-4
+  - id: step-2
+    condition:
+      ref: test.condition
+      args:
+        test: true
+  - id: step-3
+    finish: true
+  - id: step-4
+    prev:
+    - step-1
+  - id: step-5

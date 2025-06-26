@@ -18,6 +18,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="sessionStorage"                   inject="sessionStorage";
 	property name="applicationsService"              inject="applicationsService";
 	property name="loginService"                     inject="loginService";
+	property name="datamanagerWorkflowService"       inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -1799,6 +1800,15 @@ component extends="preside.system.base.AdminHandler" {
 				, action         = "extraTopRightButtons"
 				, args           = { objectName=objectName, action=action, actions=actions }
 			);
+
+			if ( isFeatureEnabled( "datamanagerWorkflow" ) && action == "viewRecord" && datamanagerWorkflowService.hasWorkflow( objectName=objectName, recordId=prc.recordId ) ) {
+				runEvent(
+					  event          = "admin.datamanagerWorkflow.addWorkflowActionButtons"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = { objectName=objectName, actions=actions, recordId=prc.recordId }
+				);
+			}
 
 			announceInterception( "postExtraTopRightButtons", { objectName=objectName, action=action, actions=actions } );
 
