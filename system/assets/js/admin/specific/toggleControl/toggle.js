@@ -72,7 +72,7 @@
 			}
 		}
 
-		return this.each( function() {
+		this.each( function() {
 			var $toggle = $( this );
 
 			$toggle.on( "change", function( e ) {
@@ -86,7 +86,11 @@
 			} else {
 				toggleControl( $toggle );
 			}
+
+			$toggle.trigger( "postinit" );
 		} );
+
+		return this;
 	};
 
 	$( function() {
