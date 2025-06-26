@@ -1,11 +1,12 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="datamanagerService"    inject="datamanagerService";
-	property name="customizationService"  inject="dataManagerCustomizationService";
-	property name="presideObjectService"  inject="presideObjectService";
-	property name="permissionService"     inject="permissionService";
-	property name="adminDataViewsService" inject="adminDataViewsService";
-	property name="messageBox"            inject="messagebox@cbmessagebox";
+	property name="datamanagerService"         inject="datamanagerService";
+	property name="customizationService"       inject="dataManagerCustomizationService";
+	property name="presideObjectService"       inject="presideObjectService";
+	property name="permissionService"          inject="permissionService";
+	property name="adminDataViewsService"      inject="adminDataViewsService";
+	property name="datamanagerWorkflowService" inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 	variables.permissionSubBase  = "";
 	variables.systemDateRenderer = { renderer = "datetime", context="relative" };
@@ -233,6 +234,8 @@ component extends="preside.system.base.AdminHandler" {
 		args.tabs       = Duplicate( variables.tabs ?: [ "default" ] );
 		args.currentTab = rc.tab ?: "";
 
+		_addWorkflowTab( argumentCollection=arguments );
+
 		announceInterception( "preRenderDataManagerObjectTabs", args );
 
 		var sidebarMenuItems = [];
@@ -348,6 +351,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.tabs    = Duplicate( variables.tabs ?: [ "default" ] );
 		args.maxTabs = variables.maxTabCount;
 
+		_addWorkflowTab( argumentCollection=arguments );
 		announceInterception( "preRenderDataManagerObjectTabs", args );
 
 		for( var i=1; i<=args.tabs.len(); i++ ) {
@@ -416,6 +420,38 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function _auditTrailTab( event, rc, prc, args={} ) {
 		return renderViewlet( event="admin.audittrail.recordTrailViewlet", args={ recordId=args.recordId ?: "" } );
+	}
+
+	private string function _workflowTab( event, rc, prc, args={} ) {
+		args.workflowId = datamanagerWorkflowService.getWorkflowIdForRecord(
+			  objectName = args.objectName
+			, recordId   = args.recordId
+		);
+		args.history = datamanagerWorkflowService.getTransitionHistory(
+			  objectName = args.objectName
+			, recordId   = args.recordId
+		);
+		args.diagramUrl = event.buildAdminLink(
+			  linkto      = "datamanagerWorkflow.flowDiagram"
+			, queryString = "objectName=#args.objectName#&recordId=#args.recordId#"
+		);
+
+		return renderView( view="/admin/datamanagerWorkflow/workflowTabViewForRecord", args=args );
+	}
+
+	private string function _workflowTabTitle( event, rc, prc, args={} ) {
+		var flowStatus = adminDataViewsService.renderField(
+			  objectName   = args.objectName
+			, propertyName = "datamanager_workflow_status"
+			, recordId     = args.recordId
+			, value        = args.record.datamanager_workflow_status ?: ""
+		);
+
+		return translateResource(
+			  uri          = "preside-objects.#args.objectName#:viewtab.workflow.title"
+			, defaultValue = translateResource( uri="adminui:viewtab.workflow.title", data=[ flowStatus ] )
+			, data         = [ flowStatus ]
+		);
 	}
 
 	private string function _getNonVersionDateCreated( required string objectName, required string recordId ) {
@@ -495,6 +531,22 @@ component extends="preside.system.base.AdminHandler" {
 		var allKeys = permissionService.listPermissionKeys();
 
 		return ArrayFindNoCase( allKeys, arguments.key );
+	}
+
+	private void function _addWorkflowTab( event, rc, prc, args={} ) {
+		if ( !isFeatureEnabled( "datamanagerWorkflow" ) ) {
+			return;
+		}
+
+		var objectName = args.objectName ?: "";
+		var recordId   = prc.recordId    ?: "";
+
+		if ( datamanagerWorkflowService.hasWorkflow( objectName=objectName, recordId=recordId ) ) {
+			args.tabs = args.tabs ?: [];
+			if ( !ArrayFind( args.tabs, "workflow" ) ) {
+				ArrayAppend( args.tabs, "workflow" );
+			}
+		}
 	}
 
 }

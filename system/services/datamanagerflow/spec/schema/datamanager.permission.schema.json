@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "datamanager.permission.schema.json",
+    "type": "object",
+    "title": "Permission",
+    "additionalProperties": false,
+    "anyOf": [
+        {"required": ["key"]},
+        {"required": ["handler"]}
+    ],
+    "properties":{
+        "key" : { "type":"string", "description":"Preside admin permission key to use to control access" },
+        "handler" : { "type":"object", "$ref":"datamanager.handler.schema.json", "description":"Handler that returns a truthy result to indicate whether or not permission is granted to the current logged in user" }
+    }
+}
