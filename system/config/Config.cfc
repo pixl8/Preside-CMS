@@ -398,6 +398,7 @@ component {
 			, "taskmanager"
 			, "savedexport"
 			, "apiManager"
+			, "workflow"
 			, "systemInformation"
 		];
 
@@ -582,6 +583,14 @@ component {
 			, title         = "cms:links.navigation.link"
 			, permissionKey = "presideobject.link.read"
 			, feature       = "cms"
+		};
+		settings.adminMenuItems.workflow = {
+			  feature       = "webflow"
+			, permissionKey = "webflow.navigate"
+			, buildLinkArgs = { objectName="webflow_configuration" }
+			, activeChecks  = { datamanagerObject="webflow_configuration" }
+			, title         = "preside-objects.webflow_configuration:title"
+			, icon          = "fa-code-fork"
 		};
 		settings.adminMenuItems.maintenanceMode = {
 			  permissionKey = "maintenanceMode.configure"
