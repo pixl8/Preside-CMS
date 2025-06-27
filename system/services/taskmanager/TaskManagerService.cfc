@@ -85,7 +85,7 @@ component displayName="Task Manager Service" {
 		var task        = getTask( arguments.taskKey );
 		var taskDetails = _getTaskDao().selectData(
 			  filter       = { task_key=arguments.taskKey }
-			, selectFields = [ "crontab_definition", "enabled" ]
+			, selectFields = [ "crontab_definition", "enabled", "overrun_min_runtime" ]
 		);
 
 		for( var t in taskDetails ) {
@@ -734,6 +734,80 @@ component displayName="Task Manager Service" {
 		}
 	}
 
+	public array function getTaskOverruns( ) {
+		var overrunningTasks     = [];
+		var tasks                = listTasks();
+		var runningTasks         = [];
+		var minimumRuntime       = $getPresideSetting( "taskmanager", "overrun_minimum_runtime" );
+		var previousRunsRequired = $getPresideSetting( "taskmanager", "overrun_previous_runs_required" );
+		var minOverrunPercentage = $getPresideSetting( "taskmanager", "overrun_percentage" );
+
+		if ( !Len( minOverrunPercentage ) || !Len( previousRunsRequired ) || !Len( minimumRuntime ) ) {
+			return [];
+		}
+
+		for ( var taskKey in tasks ) {
+			if ( taskIsRunning(  taskKey) ) {
+				ArrayAppend( runningTasks, taskKey );
+			}
+		}
+
+		for ( var taskKey in runningTasks ) {
+			var activeHistoryId = getActiveHistoryIdForTask( taskKey );
+			var taskStarted     = _getTaskHistoryDao().selectData(
+				  id         = activeHistoryId
+				, returnType = "singleValue"
+				, columnKey  = "datecreated"
+			);
+			if ( !IsDate( taskStarted ?: "" ) ) {
+				return;
+			}
+			var runTime = DateDiff( "s", taskStarted, now() )
+
+			if ( minimumRuntime>0 && runTime < ( minimumRuntime * 60 ) ) {
+				continue;
+			}
+
+			var taskConfig     = getTaskConfiguration( taskKey );
+			var taskMinRunTime = ( taskConfig.overrun_min_runtime ?: 0 ) * 60;
+			if ( taskMinRunTime>0 && runTime<taskMinRunTime ) {
+				continue;
+			}
+
+			var successfulRunTimes  = _getTaskHistoryDao().selectData(
+				  selectFields = [ "time_taken" ]
+				, filter       = { task_key=taskKey, success=true }
+				, orderby      = "datecreated desc"
+				, maxrows      = 100
+				, returnType   = "arrayOfValues"
+				, columnKey    = "time_taken"
+			);
+
+			if ( ArrayLen( successfulRunTimes ) < previousRunsRequired ) {
+				continue;
+			}
+
+			var averageWorkTime = _getAverageWorkTimeFromClusteredTimes( successfulRunTimes )/1000;
+			if ( runTime <= averageWorkTime ) {
+				continue;
+			}
+
+			var overrunPercentage = 100 * ( runTime - averageWorkTime ) / averageWorkTime;
+			if ( overrunPercentage > minOverrunPercentage ) {
+				var task = getTask( taskKey );
+				ArrayAppend( overrunningTasks, {
+					  taskKey         = taskKey
+					, label           = task.name
+					, historyId       = activeHistoryId
+					, runTime         = runTime
+					, averageWorkTime = averageWorkTime
+				} );
+			}
+		}
+
+		return overrunningTasks;
+	}
+
 // PRIVATE HELPERS
 	private void function _initialiseDb() {
 		ensureTasksExistInStatusDb();
@@ -772,6 +846,46 @@ component displayName="Task Manager Service" {
 			event.autoSetSiteByHost();
 		}
 	}
+
+
+
+private numeric function _getAverageWorkTimeFromClusteredTimes( required array runTimes ) {
+	var centroids = [runTimes[RandRange(1, ArrayLen(runTimes))], runTimes[RandRange(1, arrayLen(RunTimes))]];
+	var clusters  = ArrayNew(1);
+
+	maxIterations = 100;
+
+	for (i = 1; i <= maxIterations; i++) {
+		clusters = ArrayNew(1);
+		clusters[1] = [];
+		clusters[2] = [];
+
+		for (time in runTimes) {
+			distanceToCluster1 = Abs(time - centroids[1]);
+			distanceToCluster2 = Abs(time - centroids[2])
+			if (distanceToCluster1 < distanceToCluster2) {
+				ArrayAppend(clusters[1], time);
+			} else {
+				ArrayAppend(clusters[2], time);
+			}
+		}
+
+		newCentroids = [ArrayAvg(clusters[1]), ArrayAvg(clusters[2])];
+
+		if ( newCentroids.equals( centroids ) ) {
+			break;
+		} else {
+			centroids = newCentroids;
+		}
+	}
+
+	// Identify which cluster is "work" (the one with the higher average)
+	workClusterIndex = (ArrayAvg(clusters[1]) > ArrayAvg(clusters[2])) ? 1 : 2;
+	workTimes = clusters[workClusterIndex];
+
+	return ArrayAvg(workTimes);
+}
+
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTasks() {

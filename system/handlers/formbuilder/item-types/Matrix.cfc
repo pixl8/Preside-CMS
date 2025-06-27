@@ -7,10 +7,15 @@ component {
 		var rows             = ListToArray( args.rows    ?: "", Chr( 10 ) & Chr( 13 ) );
 		var columns          = ListToArray( args.columns ?: "", Chr( 10 ) & Chr( 13 ) );
 		var questionInputIds = [];
-		var inputName        = args.name ?: "";
+		var inputName        = args.name       ?: "";
+		var inputValue       = rc[ inputName ] ?: "";
 
-		for( var question in rows ) {
-			questionInputIds.append( _getQuestionInputId( inputName, question ) );
+		for ( var question in rows ) {
+			ArrayAppend( questionInputIds, _getQuestionInputId( inputName, question ) );
+		}
+
+		if ( IsJSON( inputValue ) ) {
+			StructAppend( rc, DeserializeJSON( inputValue ) );
 		}
 
 		return renderFormControl(
@@ -28,15 +33,21 @@ component {
 	}
 
 	private string function getItemDataFromRequest( event, rc, prc, args={} ) {
-		var inputName   = args.inputName         ?: "";
-		var itemConfig  = args.itemConfiguration ?: {};
-		var formFields  = getFormFields( event, rc, prc, itemConfig );
-		var rows        = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
+		var requestData = args.requestData              ?: {};
+		var inputName   = args.inputName                ?: "";
+		var inputData   = args.requestData[ inputName ] ?: "";
+		var itemConfig  = args.itemConfiguration        ?: {};
+
+		if ( !isEmptyString( inputData ) && IsJSON( inputData ) ) {
+			return inputData;
+		}
+
+		var formFields  = getFormFields( argumentCollection=arguments, args=itemConfig );
 		var isMandatory = IsTrue( itemConfig.mandatory ?: "" );
 		var data        = {};
 
-		for( var field in formFields ) {
-			data[ field ] = rc[ field ] ?: "";
+		for ( var field in formFields ) {
+			data[ field ] = requestData[ field ] ?: "";
 
 			if( isMandatory && !Len( Trim( data[ field ] ) ) ) {
 				return "";
@@ -47,9 +58,9 @@ component {
 	}
 
 	private string function renderResponse( event, rc, prc, args={} ) {
-		var qAndA = _getQuestionsAndAnswers( argumentCollection=arguments );
+		args.answers = _getQuestionsAndAnswers( argumentCollection=arguments );
 
-		return renderView( view="/formbuilder/item-types/matrix/renderResponse", args={ answers=qAndA } );
+		return Trim( renderView( view="/formbuilder/item-types/matrix/#( args.context ?: "html" )#", args=args ) );
 	}
 
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
@@ -82,9 +93,9 @@ component {
 		var rows      = ListToArray( Trim( args.rows ?: "" ), Chr(10) & Chr(13) );
 		var fields    = [];
 
-		for( var question in rows ) {
+		for ( var question in rows ) {
 			if ( Len( Trim( question ) ) ) {
-				fields.append( _getQuestionInputId( inputName, question ) );
+				ArrayAppend( fields, _getQuestionInputId( inputName, question ) );
 			}
 		}
 
@@ -108,9 +119,9 @@ component {
 
 // private helpers
 	private array function _getQuestionsAndAnswers( event, rc, prc, args={} ) {
-		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};
+		var response   = IsJson( args.response ?: "" ) ? DeserializeJSON( args.response ) : {};
 		var itemConfig = args.itemConfiguration ?: ( args.configuration ?: {} );
-		var rows       = ListToArray( Trim( itemConfig.rows ?: "" ), Chr(10) & Chr(13) );
+		var rows       = ListToArray( Trim( itemConfig.rows ?: "" ), Chr( 10 ) & Chr( 13 ) );
 		var answers    = [];
 
 		for( var row in rows ) {

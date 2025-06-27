@@ -88,15 +88,16 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true, boolean includeProtocol=true ) {
-		var prc       = getRequestContext().getCollection( private=true );
-		var fetchSite = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
-		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
-		var protocol  = ( site.protocol ?: getProtocol() );
-		var domain    = "";
+		var prc           = getRequestContext().getCollection( private=true );
+		var fetchSite     = ( prc._forceDomainLookup ?: false ) || ( Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId() );
+		var useSiteDomain = ( prc._forceDomainLookup ?: false ) || Len( Trim( arguments.siteId ) );
+		var site          = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
+		var protocol      = ( site.protocol ?: getProtocol() );
+		var domain        = "";
 
 		if ( overwriteDomainForBuildLink() ) {
 			domain = getOverwriteDomainForBuildLink();
-		} else if ( fetchSite && StructKeyExists( site, "domain" ) && site.domain != "*" ) {
+		} else if ( useSiteDomain && StructKeyExists( site, "domain" ) && site.domain != "*" ) {
 			domain = site.domain;
 		} else {
 			domain = cgi.server_name;
@@ -110,9 +111,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		prc.delete( "_forceDomainLookup" );
 
-		if ( !listFindNoCase( "80,443", cgi.SERVER_PORT ) ) {
-			siteUrl &= ":#cgi.SERVER_PORT#";
-		}
+		siteUrl &= getPortSuffix();
 
 		if ( arguments.includePath ) {
 			siteUrl &= site.path ?: "/";
@@ -139,6 +138,20 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		siteUrl = siteUrl.reReplace( "/$", "" );
 
 		return siteUrl;
+	}
+
+	public string function getPortSuffix() {
+		var port = getController().getSetting( "forceport" );
+
+		if ( !Len( port ) ) {
+			port = cgi.SERVER_PORT;
+		}
+
+		if ( Len( port ) && port != "443" && port != "80" ) {
+			return ":#port#";
+		}
+
+		return "";
 	}
 
 	public string function getSystemPageId( required string systemPage ) {
@@ -204,7 +217,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		}
 
 		var protocol = getProtocol() & "://";
-		var port     = !listFindNoCase( "80,443", cgi.SERVER_PORT ) ? ( ":" & cgi.SERVER_PORT ) : "";
+		var port     = getPortSuffix();
 
 		if ( overwriteDomainForBuildLink() ) {
 			return protocol & getOverwriteDomainForBuildLink() & port;
@@ -1191,6 +1204,79 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	public boolean function isEmailRenderingContext() {
 		return getRequestContext().getValue( name="_isEmailRenderingContext", defaultValue=false, private=true );
 	}
+
+// OUTPUTVIEWLET HELPERS
+	public function pushViewletContext( required string view ) {
+		var prc = getRequestContext().getCollection( private=true );
+		if ( !StructKeyExists( prc, "_viewletContexts" ) ) {
+			prc._viewletContexts = [];
+		}
+
+		ArrayAppend( prc._viewletContexts, { view=arguments.view, deferredViewlet="" } );
+	}
+
+	public function popViewletContext() {
+		var prc = getRequestContext().getCollection( private=true );
+		if ( StructKeyExists( prc, "_viewletContexts" ) && ArrayLen( prc._viewletContexts ) ) {
+			ArrayDeleteAt( prc._viewletContexts, ArrayLen( prc._viewletContexts ) );
+		}
+	}
+
+	public function getViewletContext() {
+		var prc = getRequestContext().getCollection( private=true );
+
+		if ( !StructKeyExists( prc, "_viewletContexts" ) || !ArrayLen( prc._viewletContexts ) ) {
+			prc._viewletContexts = [ { view="", deferredViewlet="" } ];
+		}
+
+		return ArrayLast( prc._viewletContexts );
+	}
+
+	public function setViewletView( required string view ) {
+		var viewletCtx = getViewletContext();
+
+		viewletCtx.view = arguments.view;
+	}
+
+	public function noViewletView() {
+		setViewletView( "" );
+	}
+
+	public function deferViewlet( required string deferredViewlet ) {
+		var viewletCtx = getViewletContext();
+
+		viewletCtx.deferredViewlet = arguments.deferredViewlet;
+	}
+
+	public function setViewletArgs( required struct args ) {
+		var viewletCtx = getViewletContext();
+
+		viewletCtx.args = arguments.args;
+	}
+
+	public string function getViewletView() {
+		var viewletCtx = getViewletContext();
+
+		return viewletCtx.view ?: "";
+	}
+
+	public string function getDeferredViewlet() {
+		var viewletCtx = getViewletContext();
+
+		return viewletCtx.deferredViewlet ?: "";
+	}
+
+	public struct function getViewletArgs( required struct defaultArgs ) {
+		var viewletCtx = getViewletContext();
+
+		if ( StructKeyExists( viewletCtx, "args" ) && IsStruct( viewletCtx.args ) ) {
+			return viewletCtx.args;
+		}
+
+		return arguments.defaultArgs;
+	}
+
+
 
 // status codes
 	public void function notFound() {

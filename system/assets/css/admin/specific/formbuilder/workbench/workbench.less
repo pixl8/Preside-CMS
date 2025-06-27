@@ -3,6 +3,20 @@
 .presidecms {
 
 	.formbuilder-workbench {
+		> .row {
+			display   : flex;
+			flex-wrap : wrap;
+
+			> [class^="col-"] {
+				display        : flex;
+				flex-direction : column;
+
+				> .item-type-picker {
+				  	position : sticky;
+					top      : 20px;
+				}
+			}
+		}
 
 		a, .ui-accordion .ui-accordion-header, .ui-icon {
 			color : @default-font-colour;
@@ -50,7 +64,116 @@
 				}
 			}
 
-			.form-items, .setting-items {
+			.form-items {
+				.item-type {
+					display         : flex;
+					justify-content : space-between;
+					column-gap      : 10px;
+					padding         : 10px;
+					border          : 1px solid @default-panel-border-colour;
+					font-size       : 1.1em;
+					border-radius   : 5px;
+					margin-bottom   : 0;
+
+					&.form-action {
+						border-radius : 5px !important;
+						margin-bottom : 10px !important;
+					}
+
+					&.sortable-placeholder {
+						border           : 1px dashed @error-border-red;
+						background-color : @error-bg-red;
+						min-height       : 2em;
+						border-radius    : 0;
+					}
+
+					/* First sortable-placeholder */
+					&:first-child:has(+ .item-type-page).sortable-placeholder {
+						border-radius : 5px !important;
+						margin-bottom : 15px;
+					}
+
+					/* Last sortable-placeholder */
+					&:has(+ .ui-sortable-helper).sortable-placeholder {
+						border-radius : 0 0 5px 5px !important;
+					}
+
+					&.item-type-page {
+						border-radius: 5px 5px 0 0;
+						background-color : @default-panel-background-colour;
+
+						&:has(+ .item-type-page), &:last-of-type {
+							border-radius : 5px;
+							margin-bottom : 15px;
+						}
+					}
+
+					/* All non-page items inside a group */
+					&:not(.item-type-page) {
+						border-radius : 0;
+					}
+
+					/* Last non-page item before the next page item */
+					&:not(.item-type-page):has(+ .item-type-page),
+					&:not(.item-type-page):last-of-type {
+						border-radius : 0 0 5px 5px;
+					}
+
+					/* No page item exists in the list */
+					.form-items:not(:has(.item-type-page)) & {
+						border-radius : 5px;
+						margin-bottom : 15px;
+					}
+
+					/* The first item in a grouped set has non-page item above it */
+					&:not(.item-type-page):first-of-type,
+					&:not(.item-type-page):has(~ .item-type-page):first-child {
+						border-radius : 5px 5px 0 0;
+					}
+
+					/* The last item in a grouped set and there is non-page item after it */
+					&:not(.item-type-page):last-of-type,
+					&:not(.item-type-page):has(+ .item-type-page) {
+						border-radius : 0 0 5px 5px;
+						margin-bottom : 15px;
+					}
+
+					&.item-type-page {
+						.item-type-placeholder {
+							font-weight : bold;
+
+							span {
+								font-weight : normal;
+							}
+						}
+					}
+
+					.sort-link {
+						&:active, &:hover {
+							cursor : move;
+						}
+					}
+
+					.item-type-placeholder {
+						flex-grow : 4;
+					}
+
+					.item-type-name {
+						color          : @default-light-font-colour;
+						text-transform : uppercase;
+					}
+				}
+
+				/* Only one non-page item */
+				&:has(> .item-type:not(.item-type-page):only-child) {
+					> .item-type:not(.item-type-page):only-child {
+						border-radius : 5px;
+						margin-bottom : 15px;
+					}
+				}
+			}
+
+			.setting-items {
 				.item-type {
 					padding          : 10px;
 					background-color : @default-panel-background-colour;

@@ -73,13 +73,15 @@ component {
 	private string function renderConfigScreen( string value="", struct config={} ) {
 		rc.delete( "value" );
 
+		var i18nUri = config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label";
+
 		return renderFormControl(
 			  name         = "value"
 			, type         = "timePeriodPicker"
 			, pastOnly     = IsTrue( config.pastOnly   ?: "" )
 			, futureOnly   = IsTrue( config.futureOnly ?: "" )
 			, isDate       = IsTrue( config.isDate     ?: "" )
-			, label        = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label" )
+			, label        = translateResource( uri=i18nUri, defaultValue=i18nUri )
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value
 			, required     = true

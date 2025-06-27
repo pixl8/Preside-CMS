@@ -2,8 +2,10 @@
 	// Merge variables from renderer
 	StructAppend( variables, attributes.rendererVariables, false );
 
-	variables.isViewsHelperIncluded = variables.isViewsHelperIncluded ?: false;
-	variables.renderedHelpers 		= variables.renderedHelpers       ?: {};
+	variables.viewsHelper           = StructKeyExists( variables, "viewsHelper"           ) ? variables.viewsHelper           : "";
+	variables.viewHelperPath        = StructKeyExists( variables, "viewHelperPath"        ) ? variables.viewHelperPath        : "";
+	variables.isViewsHelperIncluded = StructKeyExists( variables, "isViewsHelperIncluded" ) ? variables.isViewsHelperIncluded : false;
+	variables.renderedHelpers       = StructKeyExists( variables, "renderedHelpers"       ) ? variables.renderedHelpers       : {};
 
 	// Localize context
 	variables.event = attributes.event;
@@ -25,13 +27,13 @@
 
 	// view helpers ( directory + view + whatever )
 	if(
-		arguments.viewHelperPath.len() AND
-		NOT variables.renderedHelpers.keyExists( hash( arguments.viewHelperPath.toString() ) )
+		Len( attributes.viewHelperPath ?: "" ) AND
+		NOT StructKeyExists( variables.renderedHelpers, hash( attributes.viewHelperPath.toString() ) )
 	){
-		arguments.viewHelperPath.each( function( item ){
-			include "#arguments.item#";
+		attributes.viewHelperPath.each( function( item ){
+			include "#attributes.item#";
 		} );
-		variables.renderedHelpers[ hash( arguments.viewHelperPath.toString() ) ] = true;
+		variables.renderedHelpers[ hash( attributes.viewHelperPath.toString() ) ] = true;
 	}
 
 	function includeWrapper( viewPath ){
@@ -41,5 +43,5 @@
 		include template=arguments.viewPath;
 	}
 
-	includeWrapper( "#arguments.viewPath#.cfm" );
+	includeWrapper( "#attributes.viewPath#.cfm" );
 </cfscript>

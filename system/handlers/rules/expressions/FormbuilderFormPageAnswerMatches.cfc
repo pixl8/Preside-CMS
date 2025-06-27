@@ -1,0 +1,163 @@
+/**
+ * @expressionCategory formbuilderInProgress
+ * @expressionContexts webRequest
+ * @feature            rulesEngine
+ */
+component {
+
+	property name="formBuilderService"         inject="FormBuilderService";
+	property name="rulesEngineOperatorService" inject="RulesEngineOperatorService";
+
+	/**
+	 * @formbuilderForm.fieldType   formbuilderForm
+	 * @formbuilderPage.fieldType   formbuilderPage
+	 * @formbuilderItem.fieldType   formbuilderPageItem
+	 * @formbuilderAnswer.fieldType formbuilderPageAnswer
+	 */
+	private boolean function evaluateExpression(
+		  required string  formbuilderForm
+		, required string  formbuilderPage
+		, required string  formbuilderItem
+		, required string  formbuilderAnswer
+		,          boolean _has = true
+	) {
+		var formId = payload.formbuilderSubmission.id ?: "";
+
+		if ( formId != arguments.formbuilderForm ) {
+			return false;
+		}
+
+		var page = formBuilderService.getPage( formId=formId, formItemId=formbuilderPage );
+
+		if ( isEmpty( page.page_number ?: 0 ) ) {
+			return false;
+		}
+
+		var formItem = _getFormItem( formId=formId, pageNumber=page.page_number, formItemId=arguments.formbuilderItem );
+
+		if ( isEmptyString( formItem.id ?: "" ) ) {
+			return false;
+		}
+
+		var formData        = payload.formbuilderSubmission.data ?: {};
+		var formFieldName   = formItem.configuration.name        ?: "";
+		var formFieldValue  = formData[ formFieldName ]          ?: "";
+		var formFieldValues = IsJSON( formFieldValue )           ? [] : ListToArray( formFieldValue );
+
+		var ruleConfig   = DeserializeJSON( arguments.formbuilderAnswer );
+		var ruleDataType = ruleConfig.dataType ?: "string";
+		var ruleOperator = ruleConfig.operator ?: "eq";
+		var ruleValue    = ruleConfig.value    ?: "";
+		var ruleResult   = false;
+
+		switch ( ruleDataType ) {
+			case "string"  :
+				ruleResult = rulesEngineOperatorService.compareStrings(
+					  leftHandSide  = formFieldValue
+					, operator      = ruleOperator
+					, rightHandSide = ruleValue
+				);
+				break;
+
+			case "numeric" :
+				ruleResult = rulesEngineOperatorService.compareNumbers(
+					  leftHandSide  = Val( formFieldValue )
+					, operator      = ruleOperator
+					, rightHandSide = Val( ruleValue )
+				);
+				break;
+
+			case "array"   :
+				var ruleValues       = [];
+				var formConfigValues = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
+
+				for ( var formConfigValue in formConfigValues ) {
+					if ( Find( formConfigValue, ruleValue ) ) {
+						ArrayAppend( ruleValues, formConfigValue );
+					}
+				}
+
+				if ( formItem.item_type == "matrix" ) {
+					var matrix = runEvent(
+						  event          = "formbuilder.item-types.matrix._getQuestionsAndAnswers"
+						, prePostExempt  = true
+						, private        = true
+						, eventArguments = { args={
+							  itemConfiguration = formItem.configuration ?: {}
+							, response          = formFieldValue
+						  } }
+					);
+
+					var ruleProperty = ruleConfig.property ?: "";
+					for ( var item in matrix ) {
+						if ( ruleProperty == ( item.question ?: "" ) && !isEmptyString( item.answer ?: "" ) ) {
+							if ( ArrayContainsNoCase( [ "allof", "noneof" ], ruleOperator ) ) {
+								ArrayAppend( formFieldValues, item.answer );
+							} else {
+								formFieldValue = item.answer;
+								break;
+							}
+						}
+					}
+				}
+
+				switch ( ruleOperator ) {
+					case "anyof"    :
+						ruleResult = ArrayContainsNoCase( ruleValues, formFieldValue );
+						break;
+
+					case "notanyof" :
+						ruleResult = !ArrayContainsNoCase( ruleValues, formFieldValue );
+						break;
+
+					case "allof"    :
+						ruleResult = _arrayContainsAllNoCase( ruleValues, formFieldValues );
+						break;
+
+					case "noneof"   :
+						ruleResult = !_arrayContainsAllNoCase( ruleValues, formFieldValues );
+						break;
+
+					default         :
+						break;
+				}
+				break;
+
+			case "boolean" :
+				ruleResult = isTrue( ruleOperator ) ? isTrue( formFieldValue ) : isFalse( formFieldValue );
+				break;
+
+			default        :
+				break;
+		}
+
+		return arguments._has ? ruleResult : !ruleResult;
+	}
+
+	private struct function _getFormItem(
+		  required string  formId
+		, required numeric pageNumber
+		, required string  formItemId
+	) {
+		var formItems = formBuilderService.getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
+
+		for ( var formItem in formItems ) {
+			if ( formItem.id == arguments.formItemId ) {
+				return formItem;
+			}
+		}
+
+		return {};
+	}
+
+	private boolean function _arrayContainsAllNoCase( required array ruleValues, required array formFieldValues ) {
+		for ( var ruleValue in arguments.ruleValues ) {
+			if ( !ArrayContainsNoCase( arguments.formFieldValues, ruleValue ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+}

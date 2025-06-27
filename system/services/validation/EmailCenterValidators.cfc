@@ -38,7 +38,7 @@ component {
 
 		var emailDomain = _getDomainFromEmail( arguments.value );
 		for( var allowedDomain in allowedDomains ) {
-			if ( emailDomain == Trim( allowedDomain ) ) {
+			if ( compare( emailDomain, allowedDomain ) == 0 ) {
 				return true;
 			}
 		}

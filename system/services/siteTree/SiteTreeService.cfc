@@ -247,6 +247,7 @@ component {
 			  ]
 			, filter             = filter
 			, extraFilters       = extra
+			, savedFilters       = [ "siteTreePageTypes" ]
 			, maxRows            = arguments.maxRows
 			, orderBy            = "page._hierarchy_sort_order"
 			, allowDraftVersions = true
@@ -665,7 +666,7 @@ component {
 		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
 		var filter         = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
 		var filterParams   = {};
-		var savedFilters   = [];
+		var savedFilters   = [ "siteTreePageTypes" ];
 
 		if ( !arguments.includeInactive ) {
 			filter &= " and active = '1'";
@@ -838,7 +839,8 @@ component {
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
 
-			var pageDataHasChanged     = _getVersioningService().dataHasChanged( objectName="page", recordId=arguments.id, newData=arguments );
+			var isPublishingDraftPage  = !arguments.isDraft && $helpers.isTrue( existingPage._version_is_draft );
+			var pageDataHasChanged     = isPublishingDraftPage || _getVersioningService().dataHasChanged( objectName="page", recordId=arguments.id, newData=arguments );
 			var pageTypeDataHasChanged = false;
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {

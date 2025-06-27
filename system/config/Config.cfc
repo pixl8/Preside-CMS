@@ -641,8 +641,8 @@ component {
 		settings.adminMenuItems.urlRedirects = {
 			  feature       = "urlRedirects"
 			, permissionKey = "urlRedirects.navigate"
-			, buildLinkArgs = { linkTo="urlRedirects" }
-			, activeChecks  = { handlerPatterns="^admin\.urlRedirects\." }
+			, buildLinkArgs = { objectName="url_redirect_rule" }
+			, activeChecks  = { datamanagerObject="url_redirect_rule" }
 			, icon          = "fa-code-fork"
 			, title         = "cms:urlRedirects.navigation.link"
 		};
@@ -680,7 +680,7 @@ component {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, systemInformation      = [ "navigate" ]
-			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
+			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule", "batchdelete", "batchedit", "manageContextPerms", "viewversions", "clone", "managefilters", "usefilters" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "deleteForm" ,"lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, formquestions          = [ "navigate", "read", "add", "edit", "delete", "batchdelete", "batchedit", "clone", "managefilters", "usefilters" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
@@ -801,6 +801,7 @@ component {
 		// these settings useful for Preside applications that are fixed
 		// admin applications with the 'site' feature disabled
 		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
+		settings.forcePort      = settings.env.FORCE_PORT ?: "";
 		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
 		settings.defaultSiteProtocol = settings.defaultSiteProtocol ?: ( settings.env.DEFAULT_SITE_PROTOCOL ?: _getCurrentProtocol() );
 	}
@@ -1013,6 +1014,7 @@ component {
 			, "rulesEngineConditionService"
 			, "enumService"
 			, "EmailCenterValidators"
+			, "FormbuilderValidators"
 		];
 	}
 
@@ -1064,11 +1066,11 @@ component {
 
 	private void function __setupRulesEngine(){
 		settings.rulesEngine = { contexts={} };
-		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser", "formBuilderSubmission" ] };
 		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
 		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
 		settings.rulesEngine.contexts.adminuser             = { feature="admin", object="security_user" };
-		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
+		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder" };
 	}
 
 	private void function __setupTenancy() {
@@ -1393,6 +1395,7 @@ component {
 			  spacer  = { isFormField=false }
 			, content = { isFormField=false }
 			, section = { isFormField=false }
+			, page    = { isFormField=false }
 		} };
 
 		fbSettings.actions = [

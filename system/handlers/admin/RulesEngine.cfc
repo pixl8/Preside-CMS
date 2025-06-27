@@ -180,6 +180,14 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickEditConditionForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
+		prc.contextData  = {};
+
+		try {
+			prc.contextData = DeSerializeJson( rc.contextData ?: "" );
+			if ( !IsStruct( prc.contextData ) ) {
+				prc.contextData = {};
+			}
+		} catch( any e ) {}
 
 		prc.record = rulesEngineConditionService.getConditionRecord( rc.id ?: "" );
 

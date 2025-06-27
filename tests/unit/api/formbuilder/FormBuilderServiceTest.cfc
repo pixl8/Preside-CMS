@@ -726,8 +726,9 @@ component extends="testbox.system.BaseSpec"{
 					, type          = { id="textarea" }
 					, configuration = { label="test", defaultvalue=CreateUUId(), name="blah2" }
 				}];
-				var formLayoutArgs = Duplicate( formArgs );
-				var coreLayoutArgs = Duplicate( formArgs );
+				var formPageNumber     = 0;
+				var formLayoutArgs     = Duplicate( formArgs );
+				var coreLayoutArgs     = Duplicate( formArgs );
 
 				coreLayoutArgs.renderedItems = renderedItems.toList( "" );
 				coreLayoutArgs.id            = idPrefix;
@@ -737,9 +738,8 @@ component extends="testbox.system.BaseSpec"{
 
 				mockRenderingService.$( "getFormLayoutViewlet" ).$args( layout=formLayout ).$results( formViewlet );
 
-
 				service.$( "_createIdPrefix", idPrefix );
-				service.$( "getFormItems" ).$args( id=formId ).$results( formItems );
+				service.$( "getFormItems" ).$args( id=formId, pageNumber=formPageNumber ).$results( formItems );
 				service.$( "getForm" ).$args( id=formId ).$results( formConfiguration );
 				for( var i=1; i<=formItems.len(); i++ ) {
 					var item = formItems[ i ];
@@ -807,7 +807,7 @@ component extends="testbox.system.BaseSpec"{
 		describe( "getRequestDataForForm", function(){
 			it(  "should return a structure of data that contains only the relevent fields for the given form, given a struct containing an entire requests request params", function(){
 				var service        = getService();
-				var formId         = CreateUUId();
+				var formId         = CreateUUID();
 				var items          = [{
 					  type          = { isFormField=false, id="type1" }
 					, configuration = { name="test1" }
@@ -821,11 +821,12 @@ component extends="testbox.system.BaseSpec"{
 					  type          = { isFormField=true , id="type4" }
 					, configuration = { name="test4" }
 				}];
-				var input          = { yes=false, no=true, test1=CreateUUId(), test2="nice", test4=CreateUUId() };
-				var processed      = { test2=CreateUUId(), test4={ complex=true, test=CreateUUId() } }
+				var input          = { yes=false, no=true, test1=CreateUUID(), test2="nice", test4=CreateUUID() };
+				var processed      = { test2=CreateUUID(), test4={ complex=true, test=CreateUUID() } }
 				var expectedOutput = { test2=processed.test2, test4=processed.test4 };
+				var pageNumber     = 0;
 
-				service.$( "getFormItems" ).$args( id=formId ).$results( items );
+				service.$( "getFormItems" ).$args( id=formId, pageNumber=pageNumber ).$results( items );
 				service.$( "getItemDataFromRequest" ).$args( itemType="type2", inputName="test2", requestData=input, itemConfiguration=items[2].configuration ).$results( processed.test2 );
 				service.$( "getItemDataFromRequest" ).$args( itemType="type3", inputName="test3", requestData=input, itemConfiguration=items[3].configuration ).$results( NullValue() );
 				service.$( "getItemDataFromRequest" ).$args( itemType="type4", inputName="test4", requestData=input, itemConfiguration=items[4].configuration ).$results( processed.test4 );
@@ -1034,13 +1035,13 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should render the given item's type response viewlet with the supplied data args", function(){
 				var service         = getService();
-				var formId          = CreateUUId();
-				var inputName       = CreateUUId();
-				var inputValue      = CreateUUId();
-				var matchingItem    = { type={ id="someType", isFormField=true }, configuration={ name=inputName, label="hello", test=CreateUUId() } };
+				var formId          = CreateUUID();
+				var inputName       = CreateUUID();
+				var inputValue      = CreateUUID();
+				var matchingItem    = { type={ id="someType", isFormField=true }, configuration={ name=inputName, label="hello", test=CreateUUID() } };
 				var itemTypeViewlet = "some.viewlet." & CreateUUId();
-				var expectedResult  = CreateUUId();
-				var renderArgs      = { response=inputValue, itemConfiguration=matchingItem.configuration };
+				var expectedResult  = CreateUUID();
+				var renderArgs      = { response=inputValue, itemConfiguration=matchingItem.configuration, context="" };
 
 				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=matchingItem.type.id, context="response" ).$results( itemTypeViewlet );
 				service.$( "getItemByInputName" ).$args( formId=formId, inputName=inputName ).$results( matchingItem );

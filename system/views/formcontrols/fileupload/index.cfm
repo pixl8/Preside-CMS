@@ -11,6 +11,14 @@
 
 	filename = isEmptyString( defaultValue ) || IsJSON( defaultValue ) ? "" : ListLast( defaultValue, "/" );
 
+	value = event.getValue( name=inputName, defaultValue=filename );
+
+	if ( !IsSimpleValue( value ) ) {
+		value = value.fileName ?: "";
+	}
+
+	value = EncodeForHTML( value );
+
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )
 		, attribNames  = ( args.attribNames  ?: "" )
@@ -22,5 +30,5 @@
 <cfoutput>
 	<input type="file" id="#inputId#" class="#inputClass# form-control" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#"<cfif Len( Trim( accept ) )> accept="#accept#"</cfif> #htmlAttributes# />
 	<input type="hidden" class="maxFileSize" id="maxFileSize_#inputId#" name="maxFileSize" value="#maximumfilesize#">
-	<span class="form-control-filename">#filename#</span>
+	<span class="form-control-filename">#value#</span>
 </cfoutput>

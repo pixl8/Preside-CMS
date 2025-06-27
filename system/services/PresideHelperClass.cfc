@@ -23,4 +23,5 @@ component extends="coldbox.system.FrameworkSupertype" accessors=true {
 			return variables[ arguments.missingMethodName ]( argumentCollection=arguments.missingMethodArguments );
 		}
 	}
+
 }

@@ -1173,7 +1173,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="navigate", pageId=parentId );
 
 		prc.pageTitle       = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] );
-		prc.pageSubTitle    = translateResource( uri="cms:sitetree.manage.type.subtitle", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ), prc.parentPage.title ] );;
+		prc.pageSubTitle    = translateResource( uri="cms:sitetree.manage.type.subtitle", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ), prc.parentPage.title ] );
 		prc.pageIcon        = translateResource( "page-types.#pageType#:iconClass" );
 		prc.canAddChildren  = _checkPermissions( argumentCollection=arguments, key="add", pageId=parentId, throwOnError=false );
 		prc.canSortChildren = _checkPermissions( argumentCollection=arguments, key="sort", pageId=parentId, throwOnError=false );

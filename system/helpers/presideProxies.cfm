@@ -27,6 +27,33 @@
 		<cfreturn getController().renderViewlet( argumentCollection = arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="outputViewlet" access="public" returntype="any" output="true"><cfreturn getController().outputViewlet( argumentCollection = arguments ) /></cffunction>
+
+	<cffunction name="renderView" access="public" returntype="any" output="false"><cfsilent>
+		<cfreturn getSingleton( "presideRenderer" ).renderView( argumentCollection = arguments ) />
+	</cfsilent></cffunction>
+
+	<cffunction name="renderViewCollection" access="public" returntype="any" output="false"><cfsilent>
+		<cfreturn getSingleton( "presideRenderer" ).renderViewCollection( argumentCollection = arguments ) />
+	</cfsilent></cffunction>
+
+	<cffunction name="renderViewComposite" access="public" returntype="any" output="false"><cfsilent>
+		<cfreturn getSingleton( "presideRenderer" ).renderViewComposite( argumentCollection = arguments ) />
+	</cfsilent></cffunction>
+
+	<cffunction name="renderExternalView" access="public" returntype="any" output="false"><cfsilent>
+		<cfreturn getSingleton( "presideRenderer" ).renderExternalView( argumentCollection = arguments ) />
+	</cfsilent></cffunction>
+
+	<cffunction name="renderLayout" access="public" returntype="any" output="false"><cfsilent>
+		<cfreturn getSingleton( "presideRenderer" ).renderLayout( argumentCollection = arguments ) />
+	</cfsilent></cffunction>
+
+	<cffunction name="outputView" access="public" returntype="any" output="true">
+		<cfargument name="view" type="string" required="true" />
+		<cfreturn getSingleton( "presideRenderer" ).outputView( argumentCollection=arguments ) />
+	</cffunction>
+
 	<cffunction name="renderContent" access="public" returntype="any" output="false"><cfsilent>
 		<cfreturn getSingleton( "contentRendererService" ).render( argumentCollection = arguments ) />
 	</cfsilent></cffunction>
