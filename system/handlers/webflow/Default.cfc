@@ -11,6 +11,7 @@ component {
 	property name="webflowConfigurationService" inject="webflowConfigurationService";
 	property name="webflowRenderer"             inject="webflowRenderer";
 	property name="webflowExceptions"           inject="coldbox:setting:webflow.exceptions";
+	property name="webflowProgressBarClass"     inject="coldbox:setting:webflow.layout.progressBar.class";
 
 // MAIN RENDER VIEWLET
 	/**
@@ -197,15 +198,20 @@ component {
 		var isAdminRequest     = event.isAdminRequest();
 		var isComplete         = instance.isComplete();
 		var backToStepBaseLink = event.buildLink( linkto="webflow.default.backToStepAction", queryString="csrfToken=#event.getCsrfToken()#&_wid=#UrlEncode( args.obfuscatedFields )#&backToStep={stepid}" );
+		var flowConfig         = webflowConfigurationService.getFlowConfig( webflowId=args.webflowId ?: "" );
+		var progressbarLayout  = Trim( flowConfig.progressbar_layout ?: "" );
 		var stepTitles         = webflowConfigurationService.getStepTitles(
 			  webflowId   = args.webflowId   ?: ""
 			, instanceRef = args.instanceRef ?: ""
 			, short       = true
 		);
 
+		args.progressBarClass   = args.progressBarClass ?: webflowProgressBarClass;
 		args.progressIndicators = webflowProgressService.getProgressIndicators( instance );
-		args.stepCount = ArrayLen( args.progressIndicators );
-		args.currentStepNumber = 1;
+		args.stepCount          = ArrayLen( args.progressIndicators );
+		args.currentStepNumber  = 1;
+		args.currentStepTitle   = "";
+
 		for( var i=1; i<=ArrayLen( args.progressIndicators ); i++ ) {
 			var step = args.progressIndicators[ i ];
 
@@ -227,6 +233,10 @@ component {
 			}
 			step.title = stepTitles[ step.step ] ?: step.step;
 
+			if ( step.status == "active" ) {
+				args.currentStepTitle = step.title;
+			}
+
 			if ( !isComplete && step.status == "complete" ) {
 				step.link = Replace( backToStepBaseLink, "{stepid}", step.step );
 			} else {
@@ -237,6 +247,15 @@ component {
 		if ( isAdminRequest ) {
 			return renderView( view="/admin/webflow/progressbar", args=args );
 		}
+
+		if ( Len( progressbarLayout ) ) {
+			args.progressBarClass = translateResource( uri="enum.webflowProgressBarType:#progressbarLayout#.cssclass", defaultValue="" );
+
+			if ( getController().viewletExists( "webflow.default.progressbar._#progressbarLayout#" ) ) {
+				return renderViewlet( event="webflow.default.progressbar._#progressbarLayout#", args=args );
+			}
+		}
+
 		return renderView( view="/webflow/default/progressbar", args=args );
 	}
 
