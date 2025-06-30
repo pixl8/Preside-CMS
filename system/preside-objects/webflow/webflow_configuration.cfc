@@ -10,6 +10,7 @@ component {
 	property name="webflow_id"         type="string"  dbtype="varchar" maxlength=100 required=true  indexes="webflowid"  uniqueindexes="webflowref|1";
 	property name="instance_ref"       type="string"  dbtype="varchar" maxlength=100 required=false indexes="webflowref" uniqueindexes="webflowref|2";
 	property name="weflow_config_hash" type="string"  dbtype="varchar" maxlength=35  required=false indexes="confighash";
+	property name="progressbar_layout" type="string"  dbtype="varchar" maxlength=20  required=false indexes="prgoressbarlayout" enum="webflowProgressBarType" batcheditable=false;
 
 	property name="is_singleton" type="boolean" dbtype="boolean" required=true default=false indexes="singleton" batcheditable=false;
 	property name="config"       type="string"  dbtype="text" batcheditable=false;
