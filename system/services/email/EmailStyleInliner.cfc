@@ -46,7 +46,7 @@ component {
 			return fromCache;
 		}
 
-		arguments.html = trim( arguments.html );
+		arguments.html = Trim( arguments.html );
 
 		var innerHtmlOnly = !FindNoCase( "</html>", arguments.html );
 
@@ -163,10 +163,10 @@ component {
 	}
 
 	private array function _getElementsWithStylesToApply( required any doc, required array styles ) {
-		var elems         = [];
-		var elemStyles    = [];
+		var elems         = {};
+		var elemStyles    = {};
 
-		for( var style in styles ) {
+		for( var style in arguments.styles ) {
 			try {
 				var selectedElements = doc.select( style.selector );
 			} catch( any e ) {
@@ -174,14 +174,14 @@ component {
 			}
 
 			for ( var selectedElem in selectedElements ) {
-				var index = ArrayFind( elems, selectedElem );
-				if ( !index ) {
-					ArrayAppend( elems, selectedElem );
-					ArrayAppend( elemStyles, StructNew( "linked" ) );
-					index = ArrayLen( elems );
-				}
-				var elemStyle = elemStyles[ index ];
+				var hashCode = selectedElem.hashCode();
 
+				if ( !StructKeyExists( elems, hashCode ) ) {
+					elems[ hashCode ]      = selectedElem;
+					elemStyles[ hashCode ] = StructNew( "linked" );
+				}
+
+				var elemStyle = elemStyles[ hashCode ];
 
 				if ( !StructCount( elemStyle ) ) {
 					var existingInlineStyles = ListToArray( selectedElem.attr( "style" ), ";" );
@@ -210,23 +210,21 @@ component {
 				}
 			}
 		}
-
-		var index = 1;
-		for( var elem in elemStyles ) {
+		var result = [];
+		for( var hashCode in elemStyles ) {
+			var elem  = elemStyles[ hashCode ];
 			var style = "";
 			for( var prop in elem ) {
 				style = ListAppend( style, "#prop#:#elem[ prop ].value#", ";" );
 			}
 
-			elems[ index ] = {
-				  element = elems[ index ]
+			ArrayAppend( result, {
+				  element = elems[ hashCode ]
 				, style   = style
-			};
-
-			index++;
+			} );
 		}
 
-		return elems;
+		return result;
 	}
 
 	private array function _orderStylesBySelectorPrecedence( required array styles ) {
