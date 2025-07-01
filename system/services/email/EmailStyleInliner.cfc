@@ -163,8 +163,7 @@ component {
 	}
 
 	private array function _getElementsWithStylesToApply( required any doc, required array styles ) {
-		var elems         = {};
-		var elemStyles    = {};
+		var elems = {};
 
 		for( var style in arguments.styles ) {
 			try {
@@ -177,11 +176,13 @@ component {
 				var hashCode = selectedElem.hashCode();
 
 				if ( !StructKeyExists( elems, hashCode ) ) {
-					elems[ hashCode ]      = selectedElem;
-					elemStyles[ hashCode ] = StructNew( "linked" );
+					elems[ hashCode ] = {
+						  element = selectedElem
+						, styles  = StructNew( "linked" )
+					};
 				}
 
-				var elemStyle = elemStyles[ hashCode ];
+				var elemStyle = elems[ hashCode ].styles;
 
 				if ( !StructCount( elemStyle ) ) {
 					var existingInlineStyles = ListToArray( selectedElem.attr( "style" ), ";" );
@@ -210,18 +211,19 @@ component {
 				}
 			}
 		}
-		var result = [];
-		for( var hashCode in elemStyles ) {
-			var styleDefs = elemStyles[ hashCode ];
-			var styles    = [];
 
-			for( var prop in styleDefs ) {
-				ArrayAppend( styles, "#prop#:#styleDefs[ prop ].value#" );
+		var result = [];
+		for( var hashCode in elems ) {
+			var elemStyles  = elems[ hashcode ].styles;
+			var plainStyles = [];
+
+			for( var prop in elemStyles ) {
+				ArrayAppend( plainStyles, "#prop#:#elemStyles[ prop ].value#" );
 			}
 
 			ArrayAppend( result, {
-				  element = elems[ hashCode ]
-				, style   = ArrayToList( styles, ";" )
+				  element = elems[ hashCode ].element
+				, style   = ArrayToList( plainStyles, ";" )
 			} );
 		}
 
