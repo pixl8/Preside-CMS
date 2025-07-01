@@ -212,15 +212,16 @@ component {
 		}
 		var result = [];
 		for( var hashCode in elemStyles ) {
-			var elem  = elemStyles[ hashCode ];
-			var style = "";
-			for( var prop in elem ) {
-				style = ListAppend( style, "#prop#:#elem[ prop ].value#", ";" );
+			var styleDefs = elemStyles[ hashCode ];
+			var styles    = [];
+
+			for( var prop in styleDefs ) {
+				ArrayAppend( styles, "#prop#:#styleDefs[ prop ].value#" );
 			}
 
 			ArrayAppend( result, {
 				  element = elems[ hashCode ]
-				, style   = style
+				, style   = ArrayToList( styles, ";" )
 			} );
 		}
 
