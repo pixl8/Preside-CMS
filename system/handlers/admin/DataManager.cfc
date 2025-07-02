@@ -150,9 +150,9 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			}
 
-			if ( Len( _getObjectListingGroupField( objectName=objectName ) ) && Len( Trim( rc.activeGroupId ?: "" ) ) ) {
+			if ( Len( _getObjectListingCategoryField( objectName=objectName ) ) && Len( Trim( rc.activeCategoryId ?: "" ) ) ) {
 				args.exportFilterString  = Trim( args.exportFilterString ?: "" );
-				args.exportFilterString &= ( Len( args.exportFilterString ) ? "&" : "" ) & "activeGroupId=#rc.activeGroupId#";
+				args.exportFilterString &= ( Len( args.exportFilterString ) ? "&" : "" ) & "activeCategoryId=#rc.activeCategoryId#";
 			}
 
 			args.gridHeaderLabels = {};
@@ -2155,9 +2155,9 @@ component extends="preside.system.base.AdminHandler" {
 			getRecordsArgs.orderBy = arguments.orderBy.len() ? arguments.orderBy : dataManagerService.getDefaultSortOrderForDataGrid( object );
 		}
 
-		var objectGroupField = _getObjectListingGroupField( objectName=getRecordsArgs.objectName );
-		if ( Len( objectGroupField ) && Len( Trim( rc.activeGroupId ?: "" ) ) ) {
-			ArrayAppend( getRecordsArgs.extraFilters, { filter={ "#objectGroupField#.id"=rc.activeGroupId } } );
+		var objectCategoryField = _getObjectListingCategoryField( objectName=getRecordsArgs.objectName );
+		if ( Len( objectCategoryField ) && Len( Trim( rc.activeCategoryId ?: "" ) ) ) {
+			ArrayAppend( getRecordsArgs.extraFilters, { filter={ "#objectCategoryField#.id"=rc.activeCategoryId } } );
 		}
 
 		customizationService.runCustomization(
@@ -4115,8 +4115,8 @@ component extends="preside.system.base.AdminHandler" {
 		) );
 	}
 
-	public string function _getObjectListingGroupField( required string objectName ) {
-		return dataManagerService.listGroupField( objectName=arguments.objectName );
+	public string function _getObjectListingCategoryField( required string objectName ) {
+	return dataManagerService.listCategoryField( objectName=arguments.objectName );
 	}
 
 	private array function _getObjectHiddenFieldsForGrid( required string objectName ) {
