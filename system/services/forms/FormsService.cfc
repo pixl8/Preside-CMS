@@ -503,6 +503,7 @@ component displayName="Forms service" {
 		var formArgs = {
 			  formId                = arguments.formId
 			, formName              = mergedFormName
+			, formAssets            = ListToArray( Trim( frm.includeAssets ?: "" ) )
 			, content               = renderedTabs.toString()
 			, tabs                  = tabs
 			, validationResult      = arguments.validationResult
@@ -515,6 +516,14 @@ component displayName="Forms service" {
 		interceptorArgs.rendered = coldbox.renderViewlet( event=arguments.formLayout, args=formArgs );
 
 		$announceInterception( "postRenderForm", arguments );
+
+		if ( ArrayLen( formArgs.formAssets ) ) {
+			var event = $getRequestContext();
+
+			for ( var formAssetId in formArgs.formAssets ) {
+				event.include( assetId=formAssetId, throwOnMissing=false );
+			}
+		}
 
 		return interceptorArgs.rendered;
 	}
