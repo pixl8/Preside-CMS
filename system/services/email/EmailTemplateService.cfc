@@ -22,7 +22,7 @@ component {
 	 * @emailRecipientTypeService.inject  emailRecipientTypeService
 	 * @emailLayoutService.inject         emailLayoutService
 	 * @emailSendingContextService.inject emailSendingContextService
-	 * @emailStyleInliner.inject          emailStyleInliner
+	 * @emailStyleInliner.inject          featureInjector:emailStyleInliner:emailStyleInliner
 	 * @emailStatsService.inject          emailStatsService
 	 * @assetManagerService.inject        featureInjector:assetManager:assetManagerService
 	 * @emailSettings.inject              coldbox:setting:email
