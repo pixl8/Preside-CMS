@@ -801,6 +801,7 @@ component {
 		// these settings useful for Preside applications that are fixed
 		// admin applications with the 'site' feature disabled
 		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
+		settings.forcePort      = settings.env.FORCE_PORT ?: "";
 		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
 		settings.defaultSiteProtocol = settings.defaultSiteProtocol ?: ( settings.env.DEFAULT_SITE_PROTOCOL ?: _getCurrentProtocol() );
 	}
@@ -1065,11 +1066,11 @@ component {
 
 	private void function __setupRulesEngine(){
 		settings.rulesEngine = { contexts={} };
-		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser", "formBuilderSubmission" ] };
 		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
 		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
 		settings.rulesEngine.contexts.adminuser             = { feature="admin", object="security_user" };
-		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
+		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder" };
 	}
 
 	private void function __setupTenancy() {

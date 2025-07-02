@@ -84,7 +84,7 @@ component {
 				// Trigger save submission.
 				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
 
-				if ( tempSubmission.formPageNumber > formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
+				if ( ( tempSubmission.formPageNumber ?: 0 ) > formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
 					formItemsInPage = [];
 				}
 			}
@@ -140,6 +140,10 @@ component {
 			if ( !validationResult.validated() ) {
 				persistStruct = submission;
 				persistStruct.validationResult = validationResult;
+			}
+
+			if ( !isEmptyString( persistStruct.formBuilderFormSubmitted ?: "" ) ) {
+				StructAppend( persistStruct, submission );
 			}
 
 			setNextEvent( url=cgi.http_referer, persistStruct=persistStruct );
