@@ -8,7 +8,7 @@ component {
     public string function svgHtml( event, rc, prc, args={} ) {
         try {
             args.assetId     = args.id ?: "";
-            args.assetBinary = assetManagerService.getAssetBinary( assetId=args.assetId );
+            args.assetBinary = assetManagerService.getAssetBinary( id=args.assetId );
         } catch ( any e ) {
             // If the asset is not found, we need to set the args.assetBinary to an empty string to avoid errors in the view.
             args.assetBinary = "";
