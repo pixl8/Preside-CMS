@@ -17,8 +17,8 @@ component extends="preside.system.base.AdminHandler" {
 
 // PUBLIC ACTIONS
 	public string function listingViewlet( event, rc, prc, args={} ) {
-		args.objectName        = args.objectName ?: prc.objectName;
-		args.listingGroupField = Trim( presideObjectService.getObjectAttribute( objectName=args.objectName, attributeName="datamanagerListingGroupField" ) );
+		args.objectName           = args.objectName ?: prc.objectName;
+		args.listingCategoryField = Trim( presideObjectService.getObjectAttribute( objectName=args.objectName, attributeName="datamanagerListingCategoryField" ) );
 
 		prc.listingView = runEvent(
 			  event          = "admin.dataManager._objectListingViewlet"
@@ -27,46 +27,46 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = { args=args }
 		);
 
-		if ( Len( args.listingGroupField ) ) {
-			args.currentListingView = prc.listingView;
-			args.allListingGroups   = [];
+		if ( Len( args.listingCategoryField ) ) {
+			args.currentListingView   = prc.listingView;
+			args.allListingCategories = [];
 
-			var groupFieldSelectFields = [];
-			var groupFieldSourceObj    = "";
-			var groupFieldProps        = presideObjectService.getObjectProperty( objectName=args.objectName, propertyName=args.listingGroupField );
+			var categoryFieldSelectFields = [];
+			var categoryFieldSourceObj    = "";
+			var categoryFieldProps        = presideObjectService.getObjectProperty( objectName=args.objectName, propertyName=args.listingCategoryField );
 
-			switch( groupFieldProps.relationship ?: "" ) {
+			switch( categoryFieldProps.relationship ?: "" ) {
 				case "many-to-one":
-					groupFieldSelectFields = [ "#args.listingGroupField#.id AS id" ];
-					groupFieldSourceObj    = groupFieldProps.relatedto ?: "";
+					categoryFieldSelectFields = [ "#args.listingCategoryField#.id AS id" ];
+					categoryFieldSourceObj    = categoryFieldProps.relatedto ?: "";
 				break;
 
 				case "many-to-many":
-					groupFieldSelectFields = [ "GROUP_CONCAT( DISTINCT #args.listingGroupField#.id ) AS id" ];
-					groupFieldSourceObj    = groupFieldProps.relatedto ?: "";
+					categoryFieldSelectFields = [ "GROUP_CONCAT( DISTINCT #args.listingCategoryField#.id ) AS id" ];
+					categoryFieldSourceObj    = categoryFieldProps.relatedto ?: "";
 				break;
 			}
 
-			if ( ArrayLen( groupFieldSelectFields ) && Len( groupFieldSourceObj ) ) {
-				var groupFieldQuery = presideObjectService.selectData(
+			if ( ArrayLen( categoryFieldSelectFields ) && Len( categoryFieldSourceObj ) ) {
+				var categoryFieldQuery = presideObjectService.selectData(
 					  objectName   = args.objectName
-					, selectFields = groupFieldSelectFields
-					, orderBy      = presideObjectService.getLabelField( objectName=groupFieldSourceObj )
-					, groupBy      = "#args.listingGroupField#.id"
+					, selectFields = categoryFieldSelectFields
+					, orderBy      = presideObjectService.getLabelField( objectName=categoryFieldSourceObj )
+					, groupBy      = "#args.listingCategoryField#.id"
 				);
 
-				for ( var row in groupFieldQuery ) {
+				for ( var row in categoryFieldQuery ) {
 					if ( Len( Trim( row.id ?: "" ) ) ) {
-						ArrayAppend( args.allListingGroups, {
+						ArrayAppend( args.allListingCategories, {
 							  id    = row.id
-							, label = renderLabel( groupFieldSourceObj, row.id )
+							, label = renderLabel( categoryFieldSourceObj, row.id )
 						} );
 					}
 				}
 			}
 
-			if ( ArrayLen( args.allListingGroups ) ) {
-				prc.listingView = renderView( view="/admin/datamanager/_listingWithGroups", args=args );
+			if ( ArrayLen( args.allListingCategories ) ) {
+				prc.listingView = renderView( view="/admin/datamanager/_listingWithCategories", args=args );
 			}
 		}
 

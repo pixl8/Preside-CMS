@@ -243,8 +243,8 @@ component {
 			qs &= "&#interceptArgs.extraQs#";
 		}
 
-		if ( Len( dataManagerService.listGroupField( objectName=objectName ) ) && Len( Trim( rc.activeGroupId ?: "" ) ) ) {
-			qs &= "&activeGroupId=#rc.activeGroupId#";
+		if ( Len( dataManagerService.listCategoryField( objectName=objectName ) ) && Len( Trim( rc.activeCategoryId ?: "" ) ) ) {
+			qs &= "&activeCategoryId=#rc.activeCategoryId#";
 		}
 
 		return event.buildAdminLink(

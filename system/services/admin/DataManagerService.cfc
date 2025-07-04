@@ -175,8 +175,8 @@ component {
 		return ListToArray( fields, ", " );
 	}
 
-	public string function listGroupField( required string objectName ) {
-		return Trim( _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerListingGroupField") );
+	public string function listCategoryField( required string objectName ) {
+		return Trim( _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerListingCategoryField") );
 	}
 
 	public array function listBatchEditableFields( required string objectName ) {
