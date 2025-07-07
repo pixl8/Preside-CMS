@@ -404,6 +404,7 @@ component displayName="Forms service" {
 
 		var mergedFormName    = Len( Trim( arguments.mergeWithFormName ) ) ? getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
 		var frm               = getForm( argumentCollection=arguments, formName=mergedFormName );
+		var frmAssets         = Trim( frm.includeAssets ?: "" );
 		var coldbox           = _getColdbox();
 		var i18n              = _getI18n();
 		var renderedTabs      = CreateObject( "java", "java.lang.StringBuffer" );
@@ -469,6 +470,10 @@ component displayName="Forms service" {
 						renderArgs.append( arguments.additionalArgs.fields[ field.name ?: "" ] ?: {} );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
+
+						if ( Len( Trim( field.includeAssets ?: "" ) ) ) {
+							frmAssets = ListAppend( frmAssets, field.includeAssets );
+						}
 					}
 				}
 
@@ -482,6 +487,10 @@ component displayName="Forms service" {
 						  event = ( fieldset.layout ?: arguments.fieldsetLayout )
 						, args  = renderArgs
 					) );
+				}
+
+				if ( Len( Trim( fieldset.includeAssets ?: "" ) ) ) {
+					frmAssets = ListAppend( frmAssets, fieldset.includeAssets );
 				}
 			}
 
@@ -498,12 +507,16 @@ component displayName="Forms service" {
 				, args  = renderArgs
 			) );
 			activeTab = false;
+
+			if ( Len( Trim( tab.includeAssets ?: "" ) ) ) {
+				frmAssets = ListAppend( frmAssets, tab.includeAssets );
+			}
 		}
 
 		var formArgs = {
 			  formId                = arguments.formId
 			, formName              = mergedFormName
-			, formAssets            = ListToArray( Trim( frm.includeAssets ?: "" ) )
+			, formAssets            = ListToArray( ListRemoveDuplicates( frmAssets ) )
 			, content               = renderedTabs.toString()
 			, tabs                  = tabs
 			, validationResult      = arguments.validationResult
