@@ -12,9 +12,8 @@ component {
 			return "";
 		}
 
-		args.hasToggleFields = false;
-
-		var toggleFields = _getToggleFields( fields=( args.toggleFields ?: "" ), separator=( args.toggleSeparator ?: "|" ) );
+		var hasToggleFields = false;
+		var toggleFields    = _getToggleFields( fields=( args.toggleFields ?: "" ), separator=( args.toggleSeparator ?: "|" ) );
 
 		if ( !isEmpty( toggleFields ) ) {
 			for ( var i=1; i<=ArrayLen( args.items ); i++ ) {
@@ -23,9 +22,15 @@ component {
 				if ( !isEmptyString( toggleFields[ id ] ?: "" ) ) {
 					args.items[ i ].toggleFields = toggleFields[ id ];
 
-					args.hasToggleFields = true;
+					hasToggleFields = true;
 				}
 			}
+		}
+
+		args.class = Trim( args.class ?: "" );
+
+		if ( hasToggleFields ) {
+			args.class &= ( isEmptyString( args.toggleClass ?: "" ) ? " togglable-enum-radio-list" : args.toggleClass );
 		}
 
 		event.include( "/js/admin/specific/enumRadioList/" );
