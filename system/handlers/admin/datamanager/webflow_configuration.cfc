@@ -9,8 +9,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="flowDao"                     inject="preside:object:webflow_configuration";
 	property name="stepDao"                     inject="preside:object:webflow_configuration_step";
 
-	variables.permissionBase = "webflows"
-	variables.infoDescription = "description";
+	variables.permissionBase    = "webflows";
+	variables.infoDescription   = "description";
+	variables.sidebarNavigation = true;
+	variables.tabs              = [ "activeInstances", "archivedInstances", "steps" ];
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
@@ -29,7 +31,23 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 // BETTER VIEW RECORD CUSTOMIZATIONS
-	private string function _defaultTab( event, rc, prc, args={} ) {
+	private string function _activeInstancesTab( event, rc, prc, args={} ) {
+		args.gridFields = args.gridFields ?: [ "datecreated" ];
+
+		ArrayPrepend( args.gridFields, "owner" );
+
+		return renderView( view="/admin/datamanager/webflow_configuration/_activeInstancesTab", args=args )
+	}
+
+	private string function _archivedInstancesTab( event, rc, prc, args={} ) {
+		args.gridFields = args.gridFields ?: [ "archive_reason", "time_taken", "date_started", "date_archived" ];
+
+		ArrayPrepend( args.gridFields, "owner" );
+
+		return renderView( view="/admin/datamanager/webflow_configuration/_archivedInstancesTab", args=args )
+	}
+
+	private string function _stepsTab( event, rc, prc, args={} ) {
 		args.svgLink = event.buildAdminLink( linkto='datamanager.webflow_configuration.flowsvg', queryString='webflowId=#prc.record.webflow_id#' );
 		args.fullSvgLink = event.buildAdminLink( linkto='datamanager.webflow_configuration.flowsvg', queryString='webflowId=#prc.record.webflow_id#&collapse=false' );
 		args.stepstable = objectDataTable( objectName="webflow_configuration_step", args={
@@ -39,7 +57,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			, compact         = true
 		} );
 
-		return renderView( view="/admin/datamanager/webflow_configuration/_defaultTab", args=args )
+		return renderView( view="/admin/datamanager/webflow_configuration/_stepsTab", args=args )
 	}
 
 // DATAMANAGER CUSTOMIZATIONS
