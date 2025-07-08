@@ -6,18 +6,18 @@
  * @feature                        cfflow
  * @labelrenderer                  cfflow_instance_label
  * @datamanagerEnabled             true
- * @datamanagerAllowedOperations   read,delete
+ * @datamanagerAllowedOperations   read
  * @datamanagerDefaultSortOrder    date_archived DESC, date_started
  */
 component {
-	property name="workflow_id"       type="string" dbtype="varchar" maxlength=100 required=true  indexes="workflowid";
+	property name="workflow_id"       type="string" dbtype="varchar" maxlength=100 required=true  indexes="workflowid" autofilter=false;
 	property name="owner"             type="string" dbtype="varchar" maxlength=100 required=true  indexes="owner" renderer="webflowOwner";
 	property name="reference"         type="string" dbtype="varchar" maxlength=100 required=true  indexes="reference,subreference|1";
-	property name="sub_reference"     type="string" dbtype="varchar" maxlength=100 required=false indexes="subreference|2";
+	property name="sub_reference"     type="string" dbtype="varchar" maxlength=100 required=false indexes="subreference|2" renderer="webflowInstanceReference";
 	property name="sub_sub_reference" type="string" dbtype="varchar" maxlength=100 required=false indexes="subreference|3";
 
 	property name="completed"     type="boolean" dbtype="boolean" default=false indexes="completed";
-	property name="state"         type="string" dbtype="longtext";
+	property name="state"         type="string" dbtype="longtext" autofilter=false;
 
 	// for stats
 	property name="archive_reason"        required=true  type="string"  dbtype="varchar" maxlength=20  indexes="archivereason" enum="cfflowArchiveReason";
