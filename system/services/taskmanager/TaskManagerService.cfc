@@ -515,14 +515,14 @@ component displayName="Task Manager Service" {
 				$getRequestContext().setSite( siteSvc.getSite( site_context ) );
 				activeSite = siteSvc.getActiveSiteId();
 			}
+
+			if ( Len( Trim( site_context ) ) && site_context != siteSvc.getActiveSiteId() ) {
+				return { tasksStarted=[], warning="Scheduled tasks are not configured to run for this site context. Please review your general task manager configuration settings" };
+			}
 		}
 
 		if ( !IsBoolean( scheduledTasksEnabled ) || !scheduledTasksEnabled ) {
 			return { tasksStarted=[], warning="Scheduled tasks are disabled" };
-		}
-
-		if ( Len( Trim( site_context ) ) && site_context != siteSvc.getActiveSiteId() ) {
-			return { tasksStarted=[], warning="Scheduled tasks are not configured to run for this site context. Please review your general task manager configuration settings" };
 		}
 
 		var tasks = getRunnableTasks();
