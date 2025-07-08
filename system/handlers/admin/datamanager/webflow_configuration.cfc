@@ -30,21 +30,37 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		abort;
 	}
 
+// PRIVATE HELPERs
+	private void function _checkInstanceSingletonRedirect( event, rc, prc, args={} ) {
+		var activeTab     = rc.tab ?: "activeInstances";
+		var instObjName   = Trim( args.instanceObjectName ?: "" );
+		var webflowId     = Trim( prc.record.webflow_id   ?: "" );
+		var webflowRef    = Trim( prc.record.instance_ref ?: "" );
+		var webflowConfig = webflowConfigurationService.getFlowConfig( webflowId=webflowId, instanceRef=webflowRef );
+		var isSingleton   = isTrue( webflowConfig.is_singleton ?: "" );
+
+		if ( Len( instObjName ) && isSingleton ) {
+			//
+		}
+	}
+
 // BETTER VIEW RECORD CUSTOMIZATIONS
 	private string function _activeInstancesTab( event, rc, prc, args={} ) {
-		args.gridFields = args.gridFields ?: [ "datecreated" ];
+		args.instanceObjectName = "cfflow_workflow_instance";
+		args.gridFields         = args.gridFields ?: [ "owner", "sub_reference", "datecreated" ];
 
-		ArrayPrepend( args.gridFields, "owner" );
+		_checkInstanceSingletonRedirect( argumentCollection=arguments );
 
-		return renderView( view="/admin/datamanager/webflow_configuration/_activeInstancesTab", args=args )
+		return renderView( view="/admin/datamanager/webflow_configuration/_instancesTab", args=args )
 	}
 
 	private string function _archivedInstancesTab( event, rc, prc, args={} ) {
-		args.gridFields = args.gridFields ?: [ "archive_reason", "time_taken", "date_started", "date_archived" ];
+		args.instanceObjectName = "cfflow_workflow_archived_instance";
+		args.gridFields         = args.gridFields ?: [ "owner", "sub_reference", "archive_reason", "time_taken", "date_started", "date_archived" ];
 
-		ArrayPrepend( args.gridFields, "owner" );
+		_checkInstanceSingletonRedirect( argumentCollection=arguments );
 
-		return renderView( view="/admin/datamanager/webflow_configuration/_archivedInstancesTab", args=args )
+		return renderView( view="/admin/datamanager/webflow_configuration/_instancesTab", args=args )
 	}
 
 	private string function _stepsTab( event, rc, prc, args={} ) {

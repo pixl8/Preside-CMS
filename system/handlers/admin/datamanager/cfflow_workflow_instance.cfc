@@ -1,7 +1,14 @@
+/**
+ * @feature    cfflow
+ */
 component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.permissionBase = "webflows";
+	variables.infoCardStyle  = "definitionList";
+	variables.infoCol1       = [ "sub_reference" ];
+	variables.infoCol3       = [ "datecreated" ];
 
-	property name="webflowConfigurationService" inject="webflowConfigurationService";
+	property name="webflowConfigService" inject="webflowConfigurationService";
+	property name="webflowLibrary"       inject="WebflowSpecLibrary";
 
 	private string function _defaultTab( event, rc, prc, args={} ) {
 		args.savedState = Trim( args.record.state ?: "" );
@@ -37,8 +44,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		);
 
 		if ( Len( Trim( prc.recordId ?: "" ) ) ) {
-			var webflowId     = Trim( prc.record.reference ?: "" );
-			var webflowConfig = webflowConfigurationService.getFlowConfig( webflowId=webflowId );
+			var webflowId     = Trim( prc.record.reference     ?: "" );
+			var webflowRef    = Trim( prc.record.sub_reference ?: "" );
+			var webflow       = webflowLibrary.getWebflow( webflowId );
+			var webflowConfig = webflowConfigService.getFlowConfig(
+				  webflowId   = webflow.getId()
+				, instanceRef = webflow.getSingleton() ? "" : webflowRef
+			);
 
 			if ( Len( webflowConfig.id ?: "" ) ) {
 				event.addAdminBreadCrumb(

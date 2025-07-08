@@ -33,6 +33,7 @@
                 "layout":{ "type": "object", "$ref":"webflow.layout.schema.json", "description":"Explicit webflow layout viewlet in which to display steps" },
                 "preCancelHandler":{ "type": "object", "$ref":"webflow.handler.schema.json", "description":"Handler action that is triggered before a webflow instance is cancelled." },
                 "postCancelHandler":{ "type": "object", "$ref":"webflow.handler.schema.json", "description":"Handler action that is triggered after a webflow instance is cancelled." },
+                "instRefConfig":{ "type": "object", "$ref":"webflow.instrefconfig.schema.json", "description":"Configuration related to webflow instance reference." },
                 "steps": {
                     "type": "array",
                     "minItems": 2,
