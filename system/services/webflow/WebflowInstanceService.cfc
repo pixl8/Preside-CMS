@@ -290,10 +290,16 @@ component {
 		return IsDate( lastModified ?: "" ) && DateDiff( "n", lastModified, Now() ) >= timeoutInMinutes;
 	}
 
-	public boolean function archiveExpiredWorkflow( required string webflowId, string instanceRef="", string subReference="" ) {
+	public boolean function archiveWorkflow(
+		  required string webflowId
+		,          string instanceRef   = ""
+		,          string subReference  = ""
+		,          struct explicitArgs  = {}
+		,          string archiveReason = "timedout"
+	) {
 		var instance = getInstance( argumentCollection=arguments );
 
-		if ( IsNull( local.instance ) || !isInstanceTimedOut( argumentCollection=arguments, instance=instance ) ) {
+		if ( IsNull( local.instance ) || ( ( arguments.archiveReason == "timedout" ) && !isInstanceTimedOut( argumentCollection=arguments, instance=instance ) ) ) {
 			return false;
 		}
 
@@ -312,11 +318,15 @@ component {
 			_getCfFlowPresideStorage().archiveInstance(
 				  workflowId    = instance.getWorkflowId()
 				, instanceArgs  = instance.getInstanceArgs()
-				, archiveReason = "timedout"
+				, archiveReason = arguments.archiveReason
 			);
 		}
 
 		return true;
+	}
+
+	public boolean function archiveExpiredWorkflow( required string webflowId, string instanceRef="", string subReference="" ) {
+		return archiveWorkflow( argumentCollection=arguments );
 	}
 
 	public boolean function currentStepIgnoresExpiryOnSubmission( required string webflowId, string instanceRef="", string subReference="") {

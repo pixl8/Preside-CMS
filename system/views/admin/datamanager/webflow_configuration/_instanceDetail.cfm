@@ -1,8 +1,12 @@
 <cfscript>
-	savedState = args.savedState ?: {};
+	ignoreKeys   = args.ignoreKeys   ?: [ "_rurl", "_wid" ];
+	printedState = args.printedState ?: "";
+	isSystemUser = isTrue( args.isSystemUser ?: "" );
+	naLabel      = translateResource( uri="cms:not.applicable" );
 </cfscript>
 
 <cfoutput>
-	<!--- TODO saved state render --->
-	#SerializeJSON( savedState )#
+	<cfif isSystemUser && Len( printedState )>
+		<pre>#printedState#</pre>
+	</cfif>
 </cfoutput>

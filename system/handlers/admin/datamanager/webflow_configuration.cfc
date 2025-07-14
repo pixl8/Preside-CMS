@@ -10,9 +10,9 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="stepDao"                     inject="preside:object:webflow_configuration_step";
 
 	variables.permissionBase    = "webflows";
-	variables.infoDescription   = "description";
 	variables.sidebarNavigation = true;
 	variables.tabs              = [ "activeInstances", "archivedInstances", "steps" ];
+	variables.infoCol3          = [];
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
@@ -31,36 +31,54 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 // PRIVATE HELPERs
-	private void function _checkInstanceSingletonRedirect( event, rc, prc, args={} ) {
-		var activeTab     = rc.tab ?: "activeInstances";
-		var instObjName   = Trim( args.instanceObjectName ?: "" );
-		var webflowId     = Trim( prc.record.webflow_id   ?: "" );
-		var webflowRef    = Trim( prc.record.instance_ref ?: "" );
-		var webflowConfig = webflowConfigurationService.getFlowConfig( webflowId=webflowId, instanceRef=webflowRef );
-		var isSingleton   = isTrue( webflowConfig.is_singleton ?: "" );
+	private string function _checkInstanceSingletonRedirect( event, rc, prc, args={} ) {
+		var reference   = Trim( rc.reference            ?: "" );
+		var instObjName = Trim( args.instanceObjectName ?: "" );
+		var webflowId   = Trim( prc.record.webflow_id   ?: "" );
 
-		if ( Len( instObjName ) && isSingleton ) {
-			//
+		if ( isEmptyString( reference ) && Len( instObjName ) && Len( webflowId ) ) {
+			args.refGroupingConfig = webflowConfigurationService.getInstanceRefGroupingConfig( webflowId=webflowId, sourceObject=instObjName );
+
+			if ( IsQuery( args.refGroupingConfig.groupedRefs ?: "" ) && args.refGroupingConfig.groupedRefs.recordcount ) {
+				return renderView( view="/admin/datamanager/webflow_configuration/_instancesGroup", args=args );
+			}
 		}
+
+		if ( Len( reference ) ) {
+			var renderedReference = renderContent( renderer="webflowInstanceReference", data=reference, args={ webflowId=webflowId } );
+
+			event.addAdminBreadCrumb( title=renderedReference, link="" );
+
+			prc.pageTitle = translateResource(
+				  uri  = "preside-objects.webflow_configuration:pageTitle.with.instRef"
+				, data = [ prc.pageTitle, renderedReference ]
+			);
+		}
+
+		return renderView( view="/admin/datamanager/webflow_configuration/_instancesTab", args=args );
 	}
 
 // BETTER VIEW RECORD CUSTOMIZATIONS
+	private string function renderSidebarHeader( event, rc, prc, args={} ) {
+		return renderView( view="/admin/datamanager/webflow_configuration/_sidebarHeader", args=args );
+	}
+
 	private string function _activeInstancesTab( event, rc, prc, args={} ) {
 		args.instanceObjectName = "cfflow_workflow_instance";
-		args.gridFields         = args.gridFields ?: [ "owner", "sub_reference", "datecreated" ];
+		args.gridFields         = args.gridFields ?: [ "owner", "datecreated", "datemodified" ];
 
-		_checkInstanceSingletonRedirect( argumentCollection=arguments );
+		prc.pageTitle = translateResource( uri="preside-objects.webflow_configuration:pageTitle.activeInstances" );
 
-		return renderView( view="/admin/datamanager/webflow_configuration/_instancesTab", args=args )
+		return _checkInstanceSingletonRedirect( argumentCollection=arguments );
 	}
 
 	private string function _archivedInstancesTab( event, rc, prc, args={} ) {
 		args.instanceObjectName = "cfflow_workflow_archived_instance";
-		args.gridFields         = args.gridFields ?: [ "owner", "sub_reference", "archive_reason", "time_taken", "date_started", "date_archived" ];
+		args.gridFields         = args.gridFields ?: [ "owner", "archive_reason", "time_taken", "date_started", "date_archived" ];
 
-		_checkInstanceSingletonRedirect( argumentCollection=arguments );
+		prc.pageTitle = translateResource( uri="preside-objects.webflow_configuration:pageTitle.archivedInstances" );
 
-		return renderView( view="/admin/datamanager/webflow_configuration/_instancesTab", args=args )
+		return _checkInstanceSingletonRedirect( argumentCollection=arguments );
 	}
 
 	private string function _stepsTab( event, rc, prc, args={} ) {

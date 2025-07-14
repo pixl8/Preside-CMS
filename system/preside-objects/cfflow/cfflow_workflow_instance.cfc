@@ -6,7 +6,7 @@
  * @useCache                       false
  * @labelrenderer                  cfflow_instance_label
  * @datamanagerEnabled             true
- * @datamanagerAllowedOperations   read,delete
+ * @datamanagerAllowedOperations   read
  * @datamanagerDefaultSortOrder    datecreated
  */
 component {

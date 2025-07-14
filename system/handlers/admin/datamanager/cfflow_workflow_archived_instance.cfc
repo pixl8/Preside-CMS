@@ -4,36 +4,65 @@
 component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.permissionBase = "webflows";
 	variables.infoCardStyle  = "definitionList";
-	variables.infoCol1       = [ "archive_reason" ];
-	variables.infoCol2       = [ "time_taken" ];
-	variables.infoCol3       = [ "date_archived" ];
+	variables.infoCol1       = [ "owner", "completedSteps" ];
+	variables.infoCol2       = [ "sub_reference", "time_taken" ];
+	variables.infoCol3       = [ "date_archived", "archive_reason" ];
 
 	property name="webflowConfigService" inject="webflowConfigurationService";
+	property name="webflowLibrary"       inject="WebflowSpecLibrary";
+	property name="webflowUtilsService"  inject="WebflowUtilsService";
 
 	private string function _defaultTab( event, rc, prc, args={} ) {
-		args.savedState = Trim( args.record.state ?: "" );
-		args.savedState = IsJSON( args.savedState ) ? DeserializeJSON( args.savedState ) : {};
+		args.savedState   = Trim( args.record.state ?: "" );
+		args.savedState   = IsJSON( args.savedState ) ? DeserializeJSON( args.savedState ) : {};
+		args.isSystemUser = loginService.isSystemUser();
+		args.printedState = webflowUtilsService.prettyPrintSavedState( savedState=args.savedState );
 
 		return renderView( view="/admin/datamanager/webflow_configuration/_instanceDetail", args=args )
 	}
 
+	private string function _infoCardCompletedSteps( event, rc, prc, args={} ) {
+		var completedSteps = ListToArray( args.record.completed_steps ?: "" );
+
+		if ( ArrayLen( completedSteps ) ) {
+			var renderedSteps = "";
+			for ( var completedStep in completedSteps ) {
+				renderedSteps &= "<li>#completedStep#</li>";
+			}
+
+			return "<ul>#renderedSteps#</ul>";
+		}
+		return "";
+	}
+
 // DATAMANAGER CUSTOMISATIONs
 	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
+		var qs         = [];
 		var objectName = Trim( prc.objectName         ?: "" );
 		var webflowId  = Trim( prc.record?.webflow_id ?: "" );
 
 		if ( objectName == "webflow_configuration" ) {
-			return "webflow_id=#webflowId#";
+			ArrayAppend( qs, "webflow_id=#webflowId#" );
 		}
 
-		return "";
+		if ( Len( Trim( rc.reference ?: "" ) ) ) {
+			ArrayAppend( qs, "reference=#reference#" );
+		} else if ( Len( Trim( prc.record.instance_ref ?: "" ) ) ) {
+			ArrayAppend( qs, "reference=#prc.record.instance_ref#" );
+		}
+
+		return ArrayToList( qs, "&" );
 	}
 	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
 		args.extraFilters = args.extraFilters   ?: [];
 		var webflowId     = Trim( rc.webflow_id ?: "" );
+		var referenceId   = Trim( rc.reference ?: "" );
 
 		if ( Len( webflowId ) ) {
 			ArrayAppend( args.extraFilters, { filter={ reference=webflowId } } );
+		}
+		if ( Len( referenceId ) ) {
+			ArrayAppend( args.extraFilters, { filter={ sub_reference=referenceId } } );
 		}
 	}
 

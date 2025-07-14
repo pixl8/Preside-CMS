@@ -1,8 +1,11 @@
 /**
- * @feature   cfflow
- * @nolabel   true
- * @versioned false
- * @tablePrefix ""
+ * @feature                        cfflow
+ * @nolabel                        true
+ * @versioned                      false
+ * @tablePrefix                    ""
+ * @datamanagerEnabled             true
+ * @datamanagerAllowedOperations   read
+ * @datamanagerDefaultSortOrder    datecreated
  */
 component {
 	property name="triggered_by_admin_user"   relationship="many-to-one" relatedto="security_user";

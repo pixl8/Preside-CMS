@@ -556,6 +556,42 @@ component {
 		return $translateResource( uri=i18nUri, defaultValue=defaultValue );
 	}
 
+	public struct function getInstanceRefGroupingConfig(
+		  required string webflowId
+		,          string sourceObject = "cfflow_workflow_instance"
+	) {
+		var webflow     = _getWebflowLibrary().getWebflow( arguments.webflowId );
+		var isSingleton = webflow.getSingleton();
+
+		if ( isSingleton ) {
+			var cb              = $getColdbox();
+			var instRefConfig   = webflow.getInstRefConfig();
+			var groupingViewlet = Len( instRefConfig.groupingConfigViewlet ?: "" ) ? instRefConfig.groupingConfigViewlet : "webflow.#webflowId#.instanceReferenceAdminGrouping";
+			var groupedInstRefs = $getPresideObject( arguments.sourceObject ).selectData(
+				  filter       = { reference=arguments.webflowId }
+				, groupBy      = "sub_reference"
+				, selectFields = [
+					  "sub_reference AS reference_id"
+					, "COUNT( id ) AS total_no"
+				]
+			);
+			var groupingConfig  = {
+				  webflowId   = arguments.webflowId
+				, groupedRefs = groupedInstRefs
+			};
+
+			if ( cb.viewletExists( groupingViewlet ) ) {
+				var args         = Duplicate( arguments );
+				    args.webflow = webflow;
+
+				StructAppend( groupingConfig, cb.renderViewlet( event=groupingViewlet, args=args ) );
+			}
+
+			return groupingConfig;
+		}
+		return {};
+	}
+
 // PRIVATE HELPERS
 	private void function _syncStepConfigs( required string flowConfigId, required array steps, required struct existingStepConfigs, string siteId="" ) {
 		var stepDao         = $getPresideObject( "webflow_configuration_step" );
