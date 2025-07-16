@@ -1385,7 +1385,7 @@ $.extend( $.validator, {
 
 		// http://jqueryvalidation.org/maxlength-method/
 		maxlength: function( value, element, param ) {
-			var length = $.isArray( value ) ? value.length : this.getLength( value.replace(/\r\n/g, '\n'), element );
+			var length = $.isArray( value ) ? value.length : this.getLength( value?.replace(/\r\n/g, '\n'), element );
 			return this.optional( element ) || length <= param;
 		},
 
