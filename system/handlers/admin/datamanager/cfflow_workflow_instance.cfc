@@ -5,9 +5,9 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.permissionBase = "webflows";
 	variables.infoCardStyle  = "definitionList";
 	variables.tabs           = [ "steps", "default" ];
-	variables.infoCol1       = [ "owner" ];
+	variables.infoCol1       = [ "owner", "currentStep" ];
 	variables.infoCol2       = [ "sub_reference" ];
-	variables.infoCol3       = [ "datecreated" ];
+	variables.infoCol3       = [ "datecreated", "datemodified" ];
 
 	property name="webflowConfigService"   inject="webflowConfigurationService";
 	property name="webflowInstanceService" inject="WebflowInstanceService";
@@ -27,14 +27,35 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private string function _defaultTab( event, rc, prc, args={} ) {
-		args.savedState   = Trim( args.record.state ?: "" );
-		args.savedState   = IsJSON( args.savedState ) ? DeserializeJSON( args.savedState ) : {};
-		args.isSystemUser = loginService.isSystemUser();
-		args.printedState = webflowUtilsService.prettyPrintSavedState( savedState=args.savedState );
+		args.savedState    = Trim( args.record.state ?: "" );
+		args.savedState    = IsJSON( args.savedState ) ? DeserializeJSON( args.savedState ) : {};
+		args.hasPermission = hasCmsPermission( "webflows.admin.viewSavedState" );
+		args.printedState  = webflowUtilsService.prettyPrintSavedState( savedState=args.savedState );
 
 		return renderView( view="/admin/datamanager/webflow_configuration/_instanceDetail", args=args )
 	}
 
+	private string function _infoCardCurrentStep( event, rc, prc, args={} ) {
+		var recordId          = prc.recordId ?: ( args.recordId ?: "" );
+		var latestCurrentStep = getPresideObject( "cfflow_workflow_instance_history" ).selectData(
+			  filter       = { instance=recordId }
+			, orderBy      = "datecreated DESC"
+			, selectFields = [ "result as step_id", "instance.reference", "instance.sub_reference" ]
+			, maxRows      = 1
+			, returntype   = "singleRecordStruct"
+		);
+
+		if ( !StructIsEmpty( latestCurrentStep ) ) {
+			return renderContent(
+				  renderer = "webflowInstanceStepTitle"
+				, data     = latestCurrentStep.step_id
+				, args     = { webflowId=latestCurrentStep.reference, instanceRef=latestCurrentStep.sub_reference }
+			);
+		}
+		return "";
+	}
+
+// CUSTOM VIEWLETs
 	public void function archiveInstanceAction( event, rc, prc, args={} ) {
 		if ( !hasCmsPermission( "webflows.archiveInstance" ) ) {
 			event.adminAccessDenied()
@@ -153,8 +174,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		args.actions   = args.actions    ?: [];
 
 		if ( Len( recordId ) && hasCmsPermission( "webflows.archiveInstance" ) ) {
-			var wfIsSingleton = getPresideObject( "webflow_configuration" ).dataExists( filter={ webflow_id=record.reference, is_singleton=true } );
-			var instanceRef   = wfIsSingleton ? record.sub_reference : "";
+			var instanceRef = Trim( record.sub_reference ?: "" );
 
 			ArrayPrepend( args.actions, {
 				  link      = event.buildAdminLink( linkto="datamanager.cfflow_workflow_instance.archiveInstanceAction", queryString="id=#recordId#&reference=#instanceRef#" )

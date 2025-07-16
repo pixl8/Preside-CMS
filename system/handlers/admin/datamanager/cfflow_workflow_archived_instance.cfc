@@ -13,10 +13,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="webflowUtilsService"  inject="WebflowUtilsService";
 
 	private string function _defaultTab( event, rc, prc, args={} ) {
-		args.savedState   = Trim( args.record.state ?: "" );
-		args.savedState   = IsJSON( args.savedState ) ? DeserializeJSON( args.savedState ) : {};
-		args.isSystemUser = loginService.isSystemUser();
-		args.printedState = webflowUtilsService.prettyPrintSavedState( savedState=args.savedState );
+		args.savedState    = Trim( args.record.state ?: "" );
+		args.savedState    = IsJSON( args.savedState ) ? DeserializeJSON( args.savedState ) : {};
+		args.hasPermission = hasCmsPermission( "webflows.admin.viewSavedState" );
+		args.printedState  = webflowUtilsService.prettyPrintSavedState( savedState=args.savedState );
 
 		return renderView( view="/admin/datamanager/webflow_configuration/_instanceDetail", args=args )
 	}
@@ -27,7 +27,14 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		if ( ArrayLen( completedSteps ) ) {
 			var renderedSteps = "";
 			for ( var completedStep in completedSteps ) {
-				renderedSteps &= "<li>#completedStep#</li>";
+				renderedSteps &= "<li>#renderContent(
+					  renderer = "webflowInstanceStepTitle"
+					, data     = completedStep
+					, args     = {
+						  webflowId   = args.record.reference     ?: ""
+						, instanceRef = args.record.sub_reference ?: ""
+					}
+				)#</li>";
 			}
 
 			return "<ul>#renderedSteps#</ul>";

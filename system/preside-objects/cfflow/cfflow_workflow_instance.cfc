@@ -19,4 +19,6 @@ component {
 	property name="completed" type="boolean" dbtype="boolean" default=false indexes="completed";
 
 	property name="state" type="string" dbtype="longtext" autofilter=false;
+
+	property name="instance_histories"relationship="one-to-many" relatedto="cfflow_workflow_instance_history" relationshipKey="instance" cloneable=false;
 }

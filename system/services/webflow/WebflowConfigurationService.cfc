@@ -568,7 +568,8 @@ component {
 			var instRefConfig   = webflow.getInstRefConfig();
 			var groupingViewlet = Len( instRefConfig.groupingConfigViewlet ?: "" ) ? instRefConfig.groupingConfigViewlet : "webflow.#webflowId#.instanceReferenceAdminGrouping";
 			var groupedInstRefs = $getPresideObject( arguments.sourceObject ).selectData(
-				  filter       = { reference=arguments.webflowId }
+				  filter       = "reference = :reference AND sub_reference IS NOT NULL"
+				, filterParams = { reference=arguments.webflowId }
 				, groupBy      = "sub_reference"
 				, selectFields = [
 					  "sub_reference AS reference_id"
