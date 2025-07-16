@@ -321,12 +321,6 @@ component {
 			var allowedToFire = !Len( Trim( savedAction.condition ?: "" ) ) || conditionService.evaluateCondition(
 				  conditionId = savedAction.condition
 				, context     = "formbuilderSubmission"
-				, payload     = {
-					formbuilderSubmission = {
-						  formId       = submissionData.form ?: ""
-						, submissionId = submissionData.id   ?: ""
-					}
-				  }
 			);
 
 			if ( allowedToFire ) {
