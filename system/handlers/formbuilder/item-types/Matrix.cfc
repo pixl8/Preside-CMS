@@ -60,7 +60,9 @@ component {
 	private string function renderResponse( event, rc, prc, args={} ) {
 		args.answers = _getQuestionsAndAnswers( argumentCollection=arguments );
 
-		return Trim( renderView( view="/formbuilder/item-types/matrix/#( args.context ?: "html" )#", args=args ) );
+		args.context = isEmptyString( args.context ?: "" ) ? "html" : args.context;
+
+		return Trim( renderView( view="/formbuilder/item-types/matrix/#args.context#", args=args ) );
 	}
 
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
