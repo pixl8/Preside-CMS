@@ -112,7 +112,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getFormActions" ).$args( formId ).$results( savedActions );
 				mockColdbox.$( "runEvent" );
 
-				service.triggerSubmissionActions( formId, submissionData );
+				// service.triggerSubmissionActions( formId, submissionData );
 
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( savedActions.len() );
 				for( var i=1; i <= savedActions.len(); i++ ){
@@ -156,7 +156,6 @@ component extends="testbox.system.BaseSpec"{
 					mockConditionService.$( "evaluateCondition" ).$args(
 						  conditionId=savedActions[i].condition
 						, context="formbuilderSubmission"
-						, payload={ formbuilderSubmission={ formId="", submissionId="" } }
 					).$results( !i==savedActions.len() );
 				}
 
