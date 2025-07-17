@@ -1216,6 +1216,7 @@ component extends="testbox.system.BaseSpec"{
 		rc.$( "getHttpHeader", "" );
 		rc.$( "renderData", rc );
 		rc.$( "getCollection", {} );
+		rc.$( "setContentSecurityPolicy" );
 		rc.$( "getInstanceIdForComparison", CreateUUId() );
 
 		return rc;
