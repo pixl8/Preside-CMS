@@ -4,7 +4,7 @@
 component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.permissionBase = "webflows";
 	variables.infoCardStyle  = "definitionList";
-	variables.tabs           = [ "steps", "default" ];
+	variables.tabs           = [ "transitions", "default" ];
 	variables.infoCol1       = [ "owner", "currentStep" ];
 	variables.infoCol2       = [ "sub_reference" ];
 	variables.infoCol3       = [ "datecreated", "datemodified" ];
@@ -14,8 +14,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="webflowLibrary"         inject="WebflowSpecLibrary";
 	property name="webflowUtilsService"    inject="WebflowUtilsService";
 
-	private string function _stepsTab( event, rc, prc, args={} ) {
-		return objectDataTable( objectName="cfflow_workflow_instance_history", args={
+	private string function _transitionsTab( event, rc, prc, args={} ) {
+		args.diagramUrl = event.buildAdminLink(
+			  linkto      = "datamanager.cfflow_workflow_instance.flowDiagram"
+			, queryString = "objectName=#args.objectName#&recordId=#args.recordId#"
+		);
+
+		args.instanceHistory = objectDataTable( objectName="cfflow_workflow_instance_history", args={
 			  useMultiActions = false
 			, allowSearch     = false
 			, allowFilter     = false
@@ -24,6 +29,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			, compact         = true
 			, gridFields      = [ "step", "action", "result", "datecreated" ]
 		} );
+
+		return renderView( view="/admin/webflow/_instanceTransitions", args=args );
 	}
 
 	private string function _defaultTab( event, rc, prc, args={} ) {
@@ -51,6 +58,24 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				, data     = latestCurrentStep.step_id
 				, args     = { webflowId=latestCurrentStep.reference, instanceRef=latestCurrentStep.sub_reference }
 			);
+		}
+		return "";
+	}
+
+	private string function _infoCardDateCreated( event, rc, prc, args={} ) {
+		var data = args.record.datecreated ?: "";
+
+		if ( IsDate( data ) ) {
+			return renderContent( "datetime", data, "relative" );
+		}
+		return "";
+	}
+
+	private string function _infoCardDateModified( event, rc, prc, args={} ) {
+		var data = args.record.datemodified ?: "";
+
+		if ( IsDate( data ) ) {
+			return renderContent( "datetime", data, "relative" );
 		}
 		return "";
 	}
@@ -98,6 +123,15 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			messageBox.error( translateResource( uri="preside-objects.cfflow_workflow_instance:admin.archiveInstance.failed.message" ) );
 		}
 		setNextEvent( url=event.buildAdminLink( objectName="webflow_configuration", recordId=instanceWebflow.id, querystring="tab=activeInstances&reference=#instanceRef#" ) );
+	}
+
+	public void function flowDiagram() {
+		var objectName = Trim( rc.objectName ?: "" );
+		var recordId   = Trim( rc.recordId   ?: "" );
+
+		content reset=true type="image/svg+xml";
+		Echo( webflowInstanceService.renderFlowDiagram( objectName=objectName, recordId=recordId ) );
+		abort;
 	}
 
 // DATAMANAGER CUSTOMISATIONs

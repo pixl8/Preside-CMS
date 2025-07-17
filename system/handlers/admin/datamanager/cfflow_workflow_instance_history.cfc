@@ -17,4 +17,14 @@ component {
 			ArrayAppend( args.extraFilters, { filter={ instance=instanceId } } );
 		}
 	}
+
+	private void function postFetchRecordsForGridListing( event, rc, prc, args={} ) {
+		var records = args.records ?: QueryNew('');
+
+		for ( var record in records ) {
+			if ( IsDate( record.datecreated ?: "" ) ) {
+				QuerySetCell( records, "datecreated", renderContent( "datetime", record.datecreated, "relative" ) , QueryCurrentRow( records ) );
+			}
+		}
+	}
 }

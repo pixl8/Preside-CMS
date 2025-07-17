@@ -4,13 +4,27 @@
 component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.permissionBase = "webflows";
 	variables.infoCardStyle  = "definitionList";
-	variables.infoCol1       = [ "owner", "completedSteps" ];
+	variables.tabs           = [ "transitions", "default" ];
+	variables.infoCol1       = [ "owner" ];
 	variables.infoCol2       = [ "sub_reference", "time_taken" ];
 	variables.infoCol3       = [ "date_archived", "archive_reason" ];
 
-	property name="webflowConfigService" inject="webflowConfigurationService";
-	property name="webflowLibrary"       inject="WebflowSpecLibrary";
-	property name="webflowUtilsService"  inject="WebflowUtilsService";
+	property name="webflowConfigService"   inject="webflowConfigurationService";
+	property name="webflowInstanceService" inject="WebflowInstanceService";
+	property name="webflowLibrary"         inject="WebflowSpecLibrary";
+	property name="webflowUtilsService"    inject="WebflowUtilsService";
+
+	private string function _transitionsTab( event, rc, prc, args={} ) {
+		args.diagramUrl = event.buildAdminLink(
+			  linkto      = "datamanager.cfflow_workflow_instance.flowDiagram"
+			, queryString = "objectName=#args.objectName#&recordId=#args.recordId#"
+		);
+
+		args.transitionQuery = webflowInstanceService.getArchiveInstanceTransitions( archiveInstanceId=args.recordId );
+		args.instanceHistory = renderView( view="/admin/webflow/_instanceHistories", args=args );
+
+		return renderView( view="/admin/webflow/_instanceTransitions", args=args );
+	}
 
 	private string function _defaultTab( event, rc, prc, args={} ) {
 		args.savedState    = Trim( args.record.state ?: "" );
@@ -21,23 +35,11 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return renderView( view="/admin/datamanager/webflow_configuration/_instanceDetail", args=args )
 	}
 
-	private string function _infoCardCompletedSteps( event, rc, prc, args={} ) {
-		var completedSteps = ListToArray( args.record.completed_steps ?: "" );
+	private string function _infoCardDate_archived( event, rc, prc, args={} ) {
+		var data = args.record.date_archived ?: "";
 
-		if ( ArrayLen( completedSteps ) ) {
-			var renderedSteps = "";
-			for ( var completedStep in completedSteps ) {
-				renderedSteps &= "<li>#renderContent(
-					  renderer = "webflowInstanceStepTitle"
-					, data     = completedStep
-					, args     = {
-						  webflowId   = args.record.reference     ?: ""
-						, instanceRef = args.record.sub_reference ?: ""
-					}
-				)#</li>";
-			}
-
-			return "<ul>#renderedSteps#</ul>";
+		if ( IsDate( data ) ) {
+			return renderContent( "datetime", data, "relative" );
 		}
 		return "";
 	}
