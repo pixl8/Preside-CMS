@@ -735,6 +735,14 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		getRequestContext().setValue( name="xframeoptions", value=UCase( arguments.value ), private=true );
 	}
 
+	public void function setContentSecurityPolicy( required string policy ) {
+		getRequestContext().setValue( name="contentSecurityPolicy", value=arguments.policy, private=true );
+	}
+
+	public string function getContentSecurityPolicy() {
+		return getRequestContext().getValue( name="contentSecurityPolicy", defaultValue="", private=true );
+	}
+
 // FRONT END, dealing with current page
 	public void function initializePresideSiteteePage (
 		  string  slug
