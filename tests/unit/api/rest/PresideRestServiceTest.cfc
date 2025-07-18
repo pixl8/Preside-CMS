@@ -1193,6 +1193,7 @@ component extends="testbox.system.BaseSpec"{
 		restService.$( "authenticateRequest" );
 		restService.$( "$getRequestContext", mockRequestContext );
 		mockRequestContext.$( "cachePage" );
+		mockRequestContext.$( "setContentSecurityPolicy" );
 		mockRequestContext.$( "setRestResponse" );
 		mockRequestContext.$( "setRestRequest" );
 
@@ -1216,7 +1217,6 @@ component extends="testbox.system.BaseSpec"{
 		rc.$( "getHttpHeader", "" );
 		rc.$( "renderData", rc );
 		rc.$( "getCollection", {} );
-		rc.$( "setContentSecurityPolicy" );
 		rc.$( "getInstanceIdForComparison", CreateUUId() );
 
 		return rc;
