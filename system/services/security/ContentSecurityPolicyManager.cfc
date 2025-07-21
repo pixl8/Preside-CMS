@@ -34,8 +34,6 @@ component {
 		var policy         = settings[ settingsPrefix & "manual_policy" ] ?: "";
 
 		switch( mode ) {
-			case "strict":
-				return "default-src 'self'; script-src 'self' 'unsafe-inline' 'nonce-$nonce' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'nonce-$nonce'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' wss:;";
 			case "manual":
 				return ReReplace( Trim( policy ), "[\r\n]+", " ", "all" );
 		}

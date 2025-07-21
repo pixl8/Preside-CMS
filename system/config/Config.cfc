@@ -1032,7 +1032,7 @@ component {
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
 		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
 		settings.enum.adminToolbarModes           = [ "fixed", "reveal", "none" ];
-		settings.enum.cspConfigMode               = [ "disabled", "strict", "manual" ];
+		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
 		settings.enum.cfflowStepStatus            = [ "pending", "active", "skipped", "complete" ];
 		settings.enum.webflowPositionType         = [ "start", "middle", "end" ];
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
