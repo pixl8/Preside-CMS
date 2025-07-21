@@ -389,19 +389,21 @@ component {
 
 			var stepTransitions = _getStepTransitions( instanceId=wfDetail.id, isArchive=isArchive );
 			var stepTitles      = _getWebflowConfigurator().getStepTitles( webflowId=wfDetail.reference, instanceRef=wfDetail.sub_reference );
+			var transitionsUml  = "";
 
 			for ( var transition in stepTransitions ) {
-				var fromStep = StructKeyExists( stepTitles, transition.from ) ? stepTitles[ transition.from ] : transition.from;
-				var toStep   = StructKeyExists( stepTitles, transition.to   ) ? stepTitles[ transition.to   ] : transition.to
+				var stepLabel = StructKeyExists( stepTitles, transition.to ) ? stepTitles[ transition.to ] : transition.to
+
+				plantUml &= 'state "#stepLabel#" as #transition.to#<<#LCase( transition.action )#>>' & nl;
 
 				if ( ( QueryCurrentRow( stepTransitions ) == 1 ) ) {
-					plantUml &= "[*] --> #toStep#" & nl;
-				} else if ( Len( fromStep ) ) {
-					plantUml &= "#fromStep# --> #toStep#" & nl;
+					transitionsUml &= "[*] --> #transition.to#" & nl;
+				} else if ( Len( transition.from ) ) {
+					transitionsUml &= "#transition.from# --> #transition.to#" & nl;
 				}
 			}
 
-			plantUml &= nl & "@enduml";
+			plantUml &= transitionsUml & nl & "@enduml";
 
 			return plantUml;
 		}
