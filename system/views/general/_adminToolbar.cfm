@@ -127,7 +127,7 @@
 			</div>
 		</div>
 
-		<script>
+		<script nonce="#event.getRequestNonce()#">
 			( function(){
 				var htmlElement    = document.querySelector( "html" )
 				  , bodyElement    = document.querySelector( "body" )

@@ -51,7 +51,7 @@
 
 
 <cfoutput>
-	<style type="text/css">
+	<style type="text/css" nonce="#event.getRequestNonce()#">
 		##simple-colour-picker-#controlId# .popover {
 			max-width : #paletteWidth#px;
 		}

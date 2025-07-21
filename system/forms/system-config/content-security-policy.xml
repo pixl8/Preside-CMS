@@ -10,5 +10,9 @@ This form is used for configuring how Content Security Policy is applied to the 
 			<field sortorder="10" name="csp_mode"      control="enumRadioList" required="true" default="disabled" enum="cspConfigMode" toggleFields="manual:manual_policy" />
 			<field sortorder="20" name="manual_policy" control="textarea"      required="false" />
 		</fieldset>
+		<fieldset id="admin" sortorder="20">
+			<field sortorder="10" name="admin_csp_mode"      control="enumRadioList" required="true" default="disabled" enum="cspConfigMode" toggleFields="manual:admin_manual_policy" />
+			<field sortorder="20" name="admin_manual_policy" control="textarea"      required="false" />
+		</fieldset>
 	</tab>
 </form>
