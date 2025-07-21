@@ -68,7 +68,7 @@
 			#siteAlerts#
 
 			<div class="main-container" id="main-container">
-				<script type="text/javascript">
+				<script type="text/javascript" nonce="#event.getRequestNonce()#">
 					try{ace.settings.check('main-container' , 'fixed')}catch(e){}
 				</script>
 

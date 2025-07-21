@@ -20,7 +20,7 @@
 	</cfif>
 
 	<cfif !IsEmpty( args.inline_script )>
-		<script type="text/javascript">
+		<script type="text/javascript" nonce="#event.getRequestNonce()#">
 			#args.inline_script#
 		</script>
 	</cfif>

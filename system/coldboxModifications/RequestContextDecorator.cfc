@@ -618,7 +618,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public string function renderIncludes( string type, string group="default" ) {
-		var rendered      = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments );
+		var rendered      = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments, nonce=getRequestNonce() );
 
 		if ( !StructKeyExists( arguments, "type" ) || arguments.type == "js" ) {
 			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
@@ -645,7 +645,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
 
 		inlineJs[ arguments.group ] = inlineJs[ arguments.group ] ?: [];
-		inlineJs[ arguments.group ].append( "<script type=""text/javascript"">" & Chr(10) & arguments.js & Chr(10) & "</script>" );
+		inlineJs[ arguments.group ].append( "<script type=""text/javascript"" nonce=""#getRequestNonce()#"">" & Chr(10) & arguments.js & Chr(10) & "</script>" );
 
 		getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
 	}
@@ -741,6 +741,17 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 	public string function getContentSecurityPolicy() {
 		return getRequestContext().getValue( name="contentSecurityPolicy", defaultValue="", private=true );
+	}
+
+	public string function getRequestNonce() {
+		var nonce = getRequestContext().getValue( name="_requestNonce", defaultValue="", private=true );
+
+		if ( !Len( Trim( nonce ) ) ) {
+			nonce = LCase( Hash( CreateUUID() ) );
+			getRequestContext().setValue( name="_requestNonce", value=nonce, private=true );
+		}
+
+		return nonce;
 	}
 
 // FRONT END, dealing with current page

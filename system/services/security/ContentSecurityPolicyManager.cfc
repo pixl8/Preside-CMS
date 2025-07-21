@@ -13,31 +13,39 @@ component {
 
 // PUBLIC API
 	public void function outputPolicyHeader() {
-		var requestPolicy = $getRequestContext().getContentSecurityPolicy();
+		var policy = $getRequestContext().getContentSecurityPolicy();
 
-		if ( Len( Trim( requestPolicy ) ) ) {
-			header name="Content-Security-Policy" value=requestPolicy;
-			return;
+		if ( !Len( Trim( policy ) ) ) {
+			policy = _getGlobalPolicy();
 		}
 
-		var globalPolicy = _getGlobalPolicy();
+		if ( Len( Trim( policy ) ) ) {
+			policy = _injectNonce( policy );
 
-		if ( Len( Trim( globalPolicy ) ) ) {
-			header name="Content-Security-Policy" value=globalPolicy;
+			header name="Content-Security-Policy" value=policy;
 		}
 	}
 
 // PRIVATE HELPERS
 	private function _getGlobalPolicy() {
-		var settings = $getPresideCategorySettings( "content-security-policy" );
+		var settings       = $getPresideCategorySettings( "content-security-policy" );
+		var settingsPrefix = $getRequestContext().isAdminRequest() ? "admin_" : "";
+		var mode           = settings[ settingsPrefix & "csp_mode" ] ?: "";
+		var policy         = settings[ settingsPrefix & "manual_policy" ] ?: "";
 
-		switch( settings.csp_mode ?: "" ) {
+		switch( mode ) {
 			case "strict":
-				return "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' wss:;";
+				return "default-src 'self'; script-src 'self' 'unsafe-inline' 'nonce-$nonce' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'nonce-$nonce'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' wss:;";
 			case "manual":
-				return ReReplace( Trim( settings.manual_policy ?: "" ), "[\r\n]+", " ", "all" );
+				return ReReplace( Trim( policy ), "[\r\n]+", " ", "all" );
 		}
 
 		return "";
+	}
+
+	private function _injectNonce( required string policy ) {
+		var nonce = $getRequestContext().getRequestNonce();
+
+		return ReplaceNoCase( arguments.policy, "$nonce", nonce, "all" );
 	}
 }
