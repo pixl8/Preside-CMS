@@ -9,8 +9,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="flowDao"                     inject="preside:object:webflow_configuration";
 	property name="stepDao"                     inject="preside:object:webflow_configuration_step";
 
-	variables.permissionBase = "webflows"
-	variables.infoDescription = "description";
+	variables.permissionBase    = "webflows";
+	variables.sidebarNavigation = true;
+	variables.tabs              = [ "activeInstances", "archivedInstances", "steps" ];
+	variables.infoCol3          = [];
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
@@ -28,8 +30,58 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		abort;
 	}
 
+// PRIVATE HELPERs
+	private string function _checkInstanceSingletonRedirect( event, rc, prc, args={} ) {
+		var reference   = Trim( rc.reference            ?: "" );
+		var instObjName = Trim( args.instanceObjectName ?: "" );
+		var webflowId   = Trim( prc.record.webflow_id   ?: "" );
+
+		if ( isEmptyString( reference ) && Len( instObjName ) && Len( webflowId ) ) {
+			args.refGroupingConfig = webflowConfigurationService.getInstanceRefGroupingConfig( webflowId=webflowId, sourceObject=instObjName );
+
+			if ( IsQuery( args.refGroupingConfig.groupedRefs ?: "" ) && args.refGroupingConfig.groupedRefs.recordcount ) {
+				return renderView( view="/admin/datamanager/webflow_configuration/_instancesGroup", args=args );
+			}
+		}
+
+		if ( Len( reference ) ) {
+			var renderedReference = renderContent( renderer="webflowInstanceReference", data=reference, args={ webflowId=webflowId } );
+
+			event.addAdminBreadCrumb( title=renderedReference, link="" );
+
+			prc.pageTitle = translateResource(
+				  uri  = "preside-objects.webflow_configuration:pageTitle.with.instRef"
+				, data = [ prc.pageTitle, renderedReference ]
+			);
+		}
+
+		return renderView( view="/admin/datamanager/webflow_configuration/_instancesTab", args=args );
+	}
+
 // BETTER VIEW RECORD CUSTOMIZATIONS
-	private string function _defaultTab( event, rc, prc, args={} ) {
+	private string function renderSidebarHeader( event, rc, prc, args={} ) {
+		return renderView( view="/admin/datamanager/webflow_configuration/_sidebarHeader", args=args );
+	}
+
+	private string function _activeInstancesTab( event, rc, prc, args={} ) {
+		args.instanceObjectName = "cfflow_workflow_instance";
+		args.gridFields         = args.gridFields ?: [ "owner", "datecreated", "datemodified" ];
+
+		prc.pageTitle = translateResource( uri="preside-objects.webflow_configuration:pageTitle.activeInstances" );
+
+		return _checkInstanceSingletonRedirect( argumentCollection=arguments );
+	}
+
+	private string function _archivedInstancesTab( event, rc, prc, args={} ) {
+		args.instanceObjectName = "cfflow_workflow_archived_instance";
+		args.gridFields         = args.gridFields ?: [ "owner", "archive_reason", "time_taken", "date_started", "date_archived" ];
+
+		prc.pageTitle = translateResource( uri="preside-objects.webflow_configuration:pageTitle.archivedInstances" );
+
+		return _checkInstanceSingletonRedirect( argumentCollection=arguments );
+	}
+
+	private string function _stepsTab( event, rc, prc, args={} ) {
 		args.svgLink = event.buildAdminLink( linkto='datamanager.webflow_configuration.flowsvg', queryString='webflowId=#prc.record.webflow_id#' );
 		args.fullSvgLink = event.buildAdminLink( linkto='datamanager.webflow_configuration.flowsvg', queryString='webflowId=#prc.record.webflow_id#&collapse=false' );
 		args.stepstable = objectDataTable( objectName="webflow_configuration_step", args={
@@ -39,7 +91,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			, compact         = true
 		} );
 
-		return renderView( view="/admin/datamanager/webflow_configuration/_defaultTab", args=args )
+		return renderView( view="/admin/datamanager/webflow_configuration/_stepsTab", args=args )
 	}
 
 // DATAMANAGER CUSTOMIZATIONS

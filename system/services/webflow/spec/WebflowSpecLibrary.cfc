@@ -180,6 +180,7 @@ component {
 			, layout            = spec.webflow.layout ?: {}
 			, preCancelHandler  = spec.webflow.preCancelHandler ?: {}
 			, postCancelHandler = spec.webflow.postCancelHandler ?: {}
+			, instRefConfig     = spec.webflow.instRefConfig ?: {}
 		);
 	}
 

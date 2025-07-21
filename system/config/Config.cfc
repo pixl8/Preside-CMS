@@ -732,7 +732,7 @@ component {
 				, assets           = [ "upload", "edit", "delete", "download", "pick", "translate" ]
 				, storagelocations = [ "manage" ]
 			 }
-			, webflows                = [ "navigate", "read", "add", "edit", "delete" ]
+			, webflows                = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
 		};
 
 		settings.adminRoles = StructNew( "linked" );

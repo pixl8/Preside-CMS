@@ -4,6 +4,7 @@
  * @singleton      true
  */
 component {
+	property name="plantUmlService" inject="plantUmlDiagramService";
 
 // CONSTRUCTOR
 	/**
@@ -290,10 +291,16 @@ component {
 		return IsDate( lastModified ?: "" ) && DateDiff( "n", lastModified, Now() ) >= timeoutInMinutes;
 	}
 
-	public boolean function archiveExpiredWorkflow( required string webflowId, string instanceRef="", string subReference="" ) {
+	public boolean function archiveWorkflow(
+		  required string webflowId
+		,          string instanceRef   = ""
+		,          string subReference  = ""
+		,          struct explicitArgs  = {}
+		,          string archiveReason = "timedout"
+	) {
 		var instance = getInstance( argumentCollection=arguments );
 
-		if ( IsNull( local.instance ) || !isInstanceTimedOut( argumentCollection=arguments, instance=instance ) ) {
+		if ( IsNull( local.instance ) || ( ( arguments.archiveReason == "timedout" ) && !isInstanceTimedOut( argumentCollection=arguments, instance=instance ) ) ) {
 			return false;
 		}
 
@@ -312,11 +319,15 @@ component {
 			_getCfFlowPresideStorage().archiveInstance(
 				  workflowId    = instance.getWorkflowId()
 				, instanceArgs  = instance.getInstanceArgs()
-				, archiveReason = "timedout"
+				, archiveReason = arguments.archiveReason
 			);
 		}
 
 		return true;
+	}
+
+	public boolean function archiveExpiredWorkflow( required string webflowId, string instanceRef="", string subReference="" ) {
+		return archiveWorkflow( argumentCollection=arguments );
 	}
 
 	public boolean function currentStepIgnoresExpiryOnSubmission( required string webflowId, string instanceRef="", string subReference="") {
@@ -342,6 +353,90 @@ component {
 		return false;
 	}
 
+	public string function renderFlowDiagram(
+		  required string objectName
+		, required string recordId
+		,          string plantUmlStyles = _getDefaultPlantUmlStyles()
+	) {
+		return plantUmlService.umlToSvgDiagram( flowToPlantUml( argumentCollection=arguments ) );
+	}
+
+	public string function flowToPlantUml(
+		  required string objectName
+		, required string recordId
+		,          string plantUmlStyles = _getDefaultPlantUmlStyles()
+	) {
+		var wfDetail = $getPresideObject( arguments.objectName ).selectData(
+			  id           = arguments.recordId
+			, returntype   = "singleRecordStruct"
+			, selectFields =[
+				  "id"
+				, "owner"
+				, "reference"
+				, "sub_reference"
+				, "sub_sub_reference"
+			]
+		);
+
+		if ( !StructIsEmpty( wfDetail ) ) {
+			var nl        = Chr( 10 );
+			var plantUml  = "@startuml" & nl;
+			var isArchive = ( arguments.objectName == "cfflow_workflow_archived_instance" );
+
+			if ( Len( Trim( arguments.plantUmlStyles ) ) ) {
+				plantUml &= arguments.plantUmlStyles & nl;
+			}
+
+			var stepTransitions = _getStepTransitions( instanceId=wfDetail.id, isArchive=isArchive );
+			var stepTitles      = _getWebflowConfigurator().getStepTitles( webflowId=wfDetail.reference, instanceRef=wfDetail.sub_reference );
+			var transitionsUml  = "";
+
+			for ( var transition in stepTransitions ) {
+				var stepLabel = StructKeyExists( stepTitles, transition.to ) ? stepTitles[ transition.to ] : transition.to
+
+				plantUml &= 'state "#stepLabel#" as #transition.to#<<#LCase( transition.action )#>>' & nl;
+
+				if ( ( QueryCurrentRow( stepTransitions ) == 1 ) ) {
+					transitionsUml &= "[*] --> #transition.to#" & nl;
+				} else if ( Len( transition.from ) ) {
+					transitionsUml &= "#transition.from# --> #transition.to#" & nl;
+				}
+			}
+
+			plantUml &= transitionsUml & nl & "@enduml";
+
+			return plantUml;
+		}
+
+		return "";
+	}
+
+	public query function getArchiveInstanceTransitions( required string archiveInstanceId ) {
+		var processedTransitions = QueryNew( "from,action,to", "varchar,varchar,varchar" );
+		var archiveTransitions   = $getPresideObject( "cfflow_workflow_archived_instance" ).selectData(
+			  id           = arguments.archiveInstanceId
+			, selectFields = [ "step_transitions" ]
+			, returntype   = "singleValue"
+			, columnKey    = "step_transitions"
+		);
+
+		if ( IsJSON( archiveTransitions ) ) {
+			archiveTransitions = DeserializeJSON( archiveTransitions );
+
+			var previousStep = "";
+			for ( var transition in archiveTransitions ) {
+				QueryAddRow( processedTransitions, {
+					  from   = previousStep
+					, action = transition.action
+					, to     = transition.result
+				} );
+
+				previousStep = transition.result;
+			}
+		}
+
+		return processedTransitions;
+	}
 
 // PRIVATE HELPERS
 	private boolean function _sessionsEnabled() {
@@ -350,6 +445,49 @@ component {
 		return !IsBoolean( appSettings.statelessRequest ?: "" ) || !appSettings.statelessRequest;
 	}
 
+	private any function _getStepTransitions(
+		  required string  instanceId
+		,          boolean isArchive = false
+	) {
+		if ( arguments.isArchive ) {
+			return getArchiveInstanceTransitions( archiveInstanceId=arguments.instanceId );
+		}
+
+		return $getPresideObject( "cfflow_workflow_instance_history" ).selectData(
+			  filter       = { instance=arguments.instanceId }
+			, orderBy      = "datecreated"
+			, selectFields = [
+				  "step AS from"
+				, "action"
+				, "result AS to"
+			]
+		);
+	}
+
+	private function _getDefaultPlantUmlStyles() {
+		return 'skinparam Padding 2
+skinparam state {
+  StartColor ##2b7dbc
+  EndColor ##2b7dbc
+  ArrowColor ##b2b6bf
+  BorderColor ##2c3d4e
+  BackgroundColor ##f5f5f5
+  BackgroundColor<<active>> ##dff0d8
+  BackgroundColor<<pending>> ##ffffff
+  BackgroundColor<<complete>> ##f5f5f5
+  BackgroundColor<<skipped>> ##ffffff
+  BorderColor<<skipped>> ##cccccc
+  FontColor<<skipped>> ##cccccc
+  AttributeFontColor<<skipped>> ##cccccc
+  BackgroundColor<<pending>> ##ffffff
+  BorderColor<<pending>> ##cccccc
+  FontColor<<pending>> ##cccccc
+  AttributeFontColor<<pending>> ##cccccc
+  FontSize 10
+  AttributeFontSize 8
+  AttributeFontStyle italic
+}';
+	}
 
 // GETTERS AND SETTERS
 	private any function _getWebflowLibrary() {

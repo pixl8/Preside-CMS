@@ -47,7 +47,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "preside-objects.webflow_configuration:field.steps.title" )
-			, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowId )
+			, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowId, queryString="tab=steps" )
 		);
 	}
 

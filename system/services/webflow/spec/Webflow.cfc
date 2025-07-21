@@ -12,6 +12,7 @@ component accessors=true {
 	property name="layout"            type="struct";
 	property name="preCancelHandler"  type="struct";
 	property name="postCancelHandler" type="struct";
+	property name="instRefConfig"     type="struct";
 	property name="steps"             type="array";
 	property name="configHash"        type="string";
 

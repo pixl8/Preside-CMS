@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Webflow configuration: base edit form
+
+This form is used when editing configuration for webflows. See [[webflowquickstart]] for more information.
+-->
 <form i18nBaseUri="preside-objects.webflow_configuration:">
 	<tab id="default" sortOrder="10" >
 		<fieldset id="default" sortorder="10">
