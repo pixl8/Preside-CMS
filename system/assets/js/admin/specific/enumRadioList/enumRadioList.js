@@ -1,69 +1,72 @@
 ( function( $ ) {
-	$.fn.presideEnumRadioListControl = function() {
-		function toggleControl( $control ) {
-			var groupName = $control.attr( "name" );
+	if ( !$.presideEnumRadioListControl ) {
+		$.presideEnumRadioListControl = {};
+	}
 
-			$( 'input:radio[name="' + groupName + '"]' ).each( function() {
-				var fields = $( this ).data( "toggleFields" );
+	$.presideEnumRadioListControl.toggleControl = function( $control ) {
+		const groupName = $control.attr( "name" );
 
-				if ( !fields ) return;
+		$( 'input:radio[name="' + groupName + '"]' ).each( function() {
+			const fields = $( this ).data( "toggleFields" );
+			if ( !fields ) return;
 
-				fields.split( /\s*,\s*/ ).forEach( function( field ) {
-					var selector = "";
-					switch ( field.charAt( 0 ) ) {
-						case "#":
-						case ".":
-							selector = field;
-							break;
-
-						default :
-							selector = '[name="' + field + '"]';
-					}
-					$( selector ).closest( ".form-group" ).hide();
-				} );
+			fields.split( /\s*,\s*/ ).forEach( function( field ) {
+				let selector = "";
+				switch ( field.charAt( 0 ) ) {
+					case "#":
+					case ".":
+						selector = field;
+						break;
+					default :
+						selector = '[name="' + field + '"]';
+				}
+				$( selector ).closest( ".form-group" ).hide();
 			} );
+		} );
 
-			if ( $control.is( ":checked" ) ) {
-				var fields = $control.data( "toggleFields" );
+		if ( $control.is( ":checked" ) ) {
+			const fields = $control.data( "toggleFields" );
+			if ( !fields ) return;
 
-				if ( !fields ) return;
-
-				fields.split( /\s*,\s*/ ).forEach( function( field ) {
-					var selector = "";
-					switch ( field.charAt( 0 ) ) {
-						case "#":
-						case ".":
-							selector = field;
-							break;
-
-						default :
-							selector = '[name="' + field + '"]';
-					}
-					$( selector ).closest( ".form-group" ).show();
-				} );
-			}
+			fields.split( /\s*,\s*/ ).forEach( function( field ) {
+				let selector = "";
+				switch ( field.charAt( 0 ) ) {
+					case "#":
+					case ".":
+						selector = field;
+						break;
+					default :
+						selector = '[name="' + field + '"]';
+				}
+				$( selector ).closest( ".form-group" ).show();
+			} );
 		}
+	};
 
+	$.fn.presideEnumRadioListControl = function() {
 		this.each( function() {
-			var $radio = $( this );
+			const $radio = $( this );
 			$radio.on( "change", function() {
-				toggleControl( $( this ) );
+				$.presideEnumRadioListControl.toggleControl( $( this ) );
 			} );
 		} );
 
 		const handledGroups = new Set();
 
 		this.each( function() {
-			var $radio    = $( this );
-			var groupName = $radio.attr( "name" );
+			const $radio    = $( this );
+			const groupName = $radio.attr( "name" );
 
 			if ( !handledGroups.has( groupName ) ) {
-				var $checked = $( 'input:radio[name="' + groupName + '"]:checked' );
-				if ( $checked.length > 0 ) {
-					toggleControl( $checked );
+				const $checked = $( 'input:radio[name="' + groupName + '"]:checked' );
+
+				if ( $checked.length ) {
+					$.presideEnumRadioListControl.toggleControl( $checked );
 				}
 				handledGroups.add( groupName );
 			}
+
+			$radio.trigger( "postinit" );
 		} );
 
 		return this;
