@@ -22,7 +22,7 @@ component {
 		var labelFields      = labelRendererService.getSelectFieldsForLabel( labelRenderer );
 		var useCache         = IsTrue( args.useCache ?: "" );
 
-		args.defaultValue    = _removeInvalidValues( objectName=targetObject, values=args.defaultValue, bypassTenants=bypassTenants );
+		args.defaultValue    = _removeInvalidValues( objectName=targetObject, values=args.defaultValue, bypassTenants=bypassTenants, targetIdField=targetIdField );
 
 		if ( IsBoolean( ajax ) && ajax ) {
 			var sourceIdField     = Trim( args.sourceIdField     ?: "" );
@@ -86,7 +86,7 @@ component {
 		return renderView( view="formcontrols/objectPicker/index", args=args );
 	}
 
-	private string function _removeInvalidValues( required string objectName, required string values, string bypassTenants="" ) {
+	private string function _removeInvalidValues( required string objectName, required string values, string bypassTenants="", string targetIdField="" ) {
 		if ( !len( arguments.values ?: "" ) ) {
 			return "";
 		}
@@ -95,9 +95,9 @@ component {
 		var validValues   = presideObjectService.selectData(
 			  objectName    = arguments.objectName
 			, filter        = { id=initialValues }
-			, selectFields  = [ "id" ]
+			, selectFields  = [ arguments.targetIdField ]
 			, bypassTenants = ListToArray( arguments.bypassTenants )
-		).columnData( "id" );
+		).columnData( arguments.targetIdField );
 
 		var cleanedValues = initialValues.filter( function( value ){
 			return validValues.find( value );
