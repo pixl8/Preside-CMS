@@ -94,7 +94,7 @@ component {
 		var initialValues = listToArray( arguments.values );
 		var validValues   = presideObjectService.selectData(
 			  objectName    = arguments.objectName
-			, filter        = { id=initialValues }
+			, filter        = { "#arguments.targetIdField#"=initialValues }
 			, selectFields  = [ arguments.targetIdField ]
 			, bypassTenants = ListToArray( arguments.bypassTenants )
 		).columnData( arguments.targetIdField );
