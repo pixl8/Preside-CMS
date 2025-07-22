@@ -198,10 +198,18 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return link;
 	}
 
-	public string function getProtocol() {
+	public string function getProtocol( boolean fromSite=false ) {
+		if ( arguments.fromSite ) {
+			var site = getSite();
+			if ( StructKeyExists( site, "protocol" ) && Len( site.protocol ) ) {
+				return site.protocol;
+			}
+		}
+
 		if ( getController().getSetting( "forcessl" ) ) {
 			return "https";
 		}
+
 		return ( cgi.https ?: "" ) == "on" ? "https" : "http";
 	}
 
@@ -618,7 +626,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public string function renderIncludes( string type, string group="default" ) {
-		var rendered      = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments, nonce=getRequestNonce() );
+		var rendered = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments, nonce=getRequestNonce() );
 
 		if ( !StructKeyExists( arguments, "type" ) || arguments.type == "js" ) {
 			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
@@ -741,6 +749,26 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 	public string function getContentSecurityPolicy() {
 		return getRequestContext().getValue( name="contentSecurityPolicy", defaultValue="", private=true );
+	}
+
+	public void function addToContentSecurityPolicy( required string directive, required string value ) {
+		var sources = getRequestContext().getValue( name="additionalCspSources", defaultValue={}, private=true );
+
+		if ( !StructKeyExists( sources, arguments.directive ) ) {
+			sources[ arguments.directive ] = [];
+		}
+
+		if ( ReFind( "^//", arguments.value ) ) {
+			arguments.value = "#getProtocol( fromSite=true )#:#arguments.value#";
+		}
+
+		ArrayAppend( sources[ arguments.directive ], arguments.value );
+
+		getRequestContext().setValue( name="additionalCspSources", value=sources, private=true );
+	}
+
+	public struct function getAdditionalCspSources() {
+		return getRequestContext().getValue( name="additionalCspSources", defaultValue={}, private=true );
 	}
 
 	public string function getRequestNonce() {
