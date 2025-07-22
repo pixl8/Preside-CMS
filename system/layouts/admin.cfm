@@ -41,6 +41,8 @@
 
 	htmlTitle = translateResource( uri="cms:cms.title" ) & " :: " & ( prc.pageTitle ?: translateResource( uri="cms:cms.tagline", defaultValue="" ) );
 
+	event.addToContentSecurityPolicy( "img-src", "//www.gravatar.com" );
+
 	header name="cache-control" value="no-store";
 	header name="expires"       value="Fri, 20 Nov 2015 00:00:00 GMT";
 </cfscript>
