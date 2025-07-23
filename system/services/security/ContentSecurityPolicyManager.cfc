@@ -24,6 +24,49 @@ component {
 		}
 	}
 
+	public boolean function validate( required string policy ) {
+		var directives       = _convertPolicyToDirectiveStructure( arguments.policy );
+		var validSrcPatterns = [ "^//", "^(http|https|ftp|wss|file)://", "^'[a-z0-9-\$_]+'$", "^data:" ];
+
+		for( var directive in directives ) {
+			// there are lots of directives with other rules. Avoid attempting a fully policy
+			// validator here to avoid false negatives that prevent valid rule generation.
+			// Instead, we will perform some basic checks on the values of the src directives.
+			if ( ReFind( "-src$", directive ) ) {
+				for( var src in directives[ directive ] ) {
+					var valid = false;
+					for( var pattern in validSrcPatterns ) {
+						if ( ReFindNoCase( pattern, src ) ) {
+							valid = true;
+							continue;
+						}
+					}
+					if ( !valid ) {
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+// VALIDATION PROVIDER
+	/**
+	 * @validator true
+	 * @validationMessage system-config.content-security-policy:csp.validation.message
+	 */
+	public boolean function contentSecurityPolicy( required string fieldName, any value="" ) {
+		if ( IsEmpty( arguments.value ) ) {
+			return true;
+		}
+
+		return validate( arguments.value );
+	}
+	public string function contentSecurityPolicy_js() {
+		return "function( value, el, params ){ return true; }";
+	}
+
 // PRIVATE HELPERS
 	private function _getGlobalPolicy() {
 		var settings       = $getPresideCategorySettings( "content-security-policy" );

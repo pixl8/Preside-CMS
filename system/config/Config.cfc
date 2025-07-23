@@ -1048,6 +1048,7 @@ component {
 			, "enumService"
 			, "EmailCenterValidators"
 			, "FormbuilderValidators"
+			, "ContentSecurityPolicyManager"
 		];
 	}
 

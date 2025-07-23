@@ -8,6 +8,7 @@
 
 <cfoutput>
 	<cfif !IsEmpty( args.source_url )>
+		<cfset event.addToContentSecurityPolicy( "script-src", args.source_url ) />
 		<cfif IsTrue( args.async )>
 			<cfset method = " async" />
 		<cfelseif IsTrue( args.defer )>

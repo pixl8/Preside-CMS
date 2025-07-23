@@ -8,11 +8,15 @@ This form is used for configuring how Content Security Policy is applied to the 
 	<tab id="general" sortorder="10">
 		<fieldset id="general" sortorder="10">
 			<field sortorder="10" name="csp_mode"      control="enumRadioList" required="true" default="disabled" enum="cspConfigMode" toggleFields="manual:manual_policy" />
-			<field sortorder="20" name="manual_policy" control="textarea"      required="false" />
+			<field sortorder="20" name="manual_policy" control="textarea"      required="false">
+				<rule validator="contentSecurityPolicy" message="system-config.content-security-policy:csp.validation.message" />
+			</field>
 		</fieldset>
 		<fieldset id="admin" sortorder="20">
 			<field sortorder="10" name="admin_csp_mode"      control="enumRadioList" required="true" default="disabled" enum="cspConfigMode" toggleFields="manual:admin_manual_policy" />
-			<field sortorder="20" name="admin_manual_policy" control="textarea"      required="false" />
+			<field sortorder="20" name="admin_manual_policy" control="textarea"      required="false">
+				<rule validator="contentSecurityPolicy" message="system-config.content-security-policy:csp.validation.message" />
+			</field>
 		</fieldset>
 	</tab>
 </form>
