@@ -24,7 +24,7 @@ component {
 		}
 	}
 
-	public boolean function validate( required string policy ) {
+	public boolean function validatePolicy( required string policy ) {
 		var directives       = _convertPolicyToDirectiveStructure( arguments.policy );
 		var validSrcPatterns = [ "^//", "^(http|https|ftp|wss|file)://", "^'[a-z0-9-\$_]+'$", "^data:" ];
 
@@ -61,7 +61,7 @@ component {
 			return true;
 		}
 
-		return validate( arguments.value );
+		return validatePolicy( arguments.value );
 	}
 	public string function contentSecurityPolicy_js() {
 		return "function( value, el, params ){ return true; }";
@@ -74,12 +74,21 @@ component {
 		var mode           = settings[ settingsPrefix & "csp_mode" ] ?: "";
 		var policy         = settings[ settingsPrefix & "manual_policy" ] ?: "";
 
+		if ( _isTestMode( settings ) ) {
+			policy = settings.test_manual_policy ?: "";
+			mode   = "manual";
+		}
+
 		switch( mode ) {
 			case "manual":
 				return ReReplace( Trim( policy ), "[\r\n]+", " ", "all" );
 		}
 
 		return "";
+	}
+
+	private function _isTestMode( required struct settings ) {
+		return ( arguments.settings.test_csp_mode ?: "" ) == "manual" && ( url.testcsp ?: "" ) == "true";
 	}
 
 	private function _injectNonce( required string policy ) {

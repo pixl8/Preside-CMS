@@ -18,5 +18,11 @@ This form is used for configuring how Content Security Policy is applied to the 
 				<rule validator="contentSecurityPolicy" message="system-config.content-security-policy:csp.validation.message" />
 			</field>
 		</fieldset>
+		<fieldset id="test" sortorder="20">
+			<field sortorder="10" name="test_csp_mode"      control="enumRadioList" required="true" default="disabled" enum="cspConfigMode" toggleFields="manual:test_manual_policy" />
+			<field sortorder="20" name="test_manual_policy" control="textarea"      required="false">
+				<rule validator="contentSecurityPolicy" message="system-config.content-security-policy:csp.validation.message" />
+			</field>
+		</fieldset>
 	</tab>
 </form>
