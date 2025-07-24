@@ -17,7 +17,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )
@@ -58,7 +58,7 @@
 				  data-max-height="#Val( args.maxHeight )#"
 			  </cfif>
 			  <cfif Len( Trim( customDefaultConfigs ?: "" ) )>
-				  data-custom-default-configs="#HtmlEditFormat( customDefaultConfigs )#"
+				  data-custom-default-configs="#EncodeForHtmlAttribute( customDefaultConfigs )#"
 			  </cfif>
 			  <cfif Len( Trim( widgetCategories ) )>
 				  data-widget-categories="#Trim( widgetCategories )#"

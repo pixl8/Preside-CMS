@@ -43,7 +43,7 @@
 	</cfif>
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#event.buildAdminLink( linkTo='sitetree.editPageAction' )#">
-		<input type="hidden" name="id" value="#event.getValue( name="id", defaultValue="" )#" />
+		<input type="hidden" name="id" value="#EncodeForHtmlAttribute( event.getValue( name="id", defaultValue="" ) )#" />
 
 		#renderForm(
 			  formName                = mainFormName

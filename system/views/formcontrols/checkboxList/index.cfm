@@ -34,8 +34,8 @@
 
 		<div class="checkbox">
 			<label>
-				<input type="checkbox" id="#elementId#" name="#inputName#" value="#HtmlEditFormat( selectValue )#" class="#inputClass# #extraClasses#" tabindex="#getNextTabIndex()#" <cfif checked>checked</cfif> #htmlAttributes# />
-				#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
+				<input type="checkbox" id="#elementId#" name="#inputName#" value="#EncodeForHtmlAttribute( selectValue )#" class="#inputClass# #extraClasses#" tabindex="#getNextTabIndex()#" <cfif checked>checked</cfif> #htmlAttributes# />
+				#EncodeForHtmlAttribute( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 			</label>
 		</div>
 	</cfloop>

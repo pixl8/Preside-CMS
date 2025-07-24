@@ -18,7 +18,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	event.include( "/css/admin/specific/multiSelectPanel/" )
 	     .include( "/js/admin/specific/multiSelectPanel/"  );
