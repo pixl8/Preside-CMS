@@ -29,7 +29,7 @@
 		<cfset toggleFieldsAttribute=( isEmptyString( item.toggleFields ?: "" ) ? "" : renderHtmlAttributes( attribs={ "toggle-fields"=item.toggleFields }, attribPrefix="data-" ) ) />
 		<div class="checkbox role-picker-radio">
 			<label>
-				<input class="#inputClass# #inputClasses# ace" name="#inputName#" id="#itemId#" type="#inputType#" value="#HtmlEditFormat( item.id )#"<cfif disabled> disabled="disabled"<cfelseif ListFindNoCase( value, item.id )> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# #toggleFieldsAttribute# />
+				<input class="#inputClass# #inputClasses# ace" name="#inputName#" id="#itemId#" type="#inputType#" value="#EncodeForHtmlAttribute( item.id )#"<cfif disabled> disabled="disabled"<cfelseif ListFindNoCase( value, item.id )> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# #toggleFieldsAttribute# />
 				<span class="lbl">
 					<span class="role-title bigger">#item.label#</span><br />
 					<span class="role-desc">

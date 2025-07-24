@@ -17,7 +17,7 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	function formatCssColour(
 		  required string  colour

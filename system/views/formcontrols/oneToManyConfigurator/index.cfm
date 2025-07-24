@@ -5,7 +5,7 @@
 	inputId                 = args.id               ?: "";
 	inputClass              = args.class            ?: "";
 	placeholder             = args.placeholder      ?: "";
-	placeholder             = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	placeholder             = EncodeForHtmlAttribute( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue            = args.defaultValue     ?: "";
 	records                 = args.records          ?: QueryNew('');
 	extraClasses            = args.extraClasses     ?: "";
@@ -48,7 +48,7 @@
 		   <cfif disabled>disabled</cfif>
 		   tabindex         = "#getNextTabIndex()#"
 		   data-placeholder = "#placeholder#"
-		   data-value       = "#HtmlEditFormat( value )#"
+		   data-value       = "#EncodeForHtmlAttribute( value )#"
 		   <cfif IsBoolean( multiple ) && multiple>
 		   	multiple      = "multiple"
 		   </cfif>

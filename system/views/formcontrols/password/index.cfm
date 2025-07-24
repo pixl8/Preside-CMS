@@ -16,7 +16,7 @@
 		if ( !IsSimpleValue( value ) ) {
 			value = "";
 		}
-		value = HtmlEditFormat( value );
+		value = EncodeForHtmlAttribute( value );
 	} else {
 		value = "";
 	}

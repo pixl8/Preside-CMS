@@ -38,7 +38,7 @@
 		</div>
 		<cfif Len( Trim( args.help ) )>
 			<div>
-				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#HtmlEditFormat( args.help )#" title="#translateResource( 'cms:help.popover.title' )#"></span>
+				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#EncodeForHtmlAttribute( args.help )#" title="#translateResource( 'cms:help.popover.title' )#"></span>
 			</div>
 		</cfif>
 	</div>
