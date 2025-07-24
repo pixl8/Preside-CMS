@@ -8,7 +8,7 @@
 	param name="args.isActive"       type="boolean";
 	param name="args.canViewHistory" type="boolean";
 
-	safeTitle = HtmlEditFormat( args.title );
+	safeTitle = EncodeForHtmlAttribute( args.title );
 </cfscript>
 
 <cfoutput>
