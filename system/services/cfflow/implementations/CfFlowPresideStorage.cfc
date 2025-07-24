@@ -262,7 +262,7 @@ component implements="preside.system.modules.cfflow.models.implementation.interf
 		);
 
 		for( var flow in flows ) {
-			instanceDao.deleteData( filter={
+			var hasExistingInstance = instanceDao.dataExists( filter={
 				  workflow_id       = flow.workflow_id
 				, reference         = flow.reference
 				, sub_reference     = flow.sub_reference
@@ -271,10 +271,12 @@ component implements="preside.system.modules.cfflow.models.implementation.interf
 				, completed         = false
 			} );
 
-			instanceDao.updateData(
-				  id   = flow.id
-				, data = { owner=arguments.newOwner }
-			);
+			if ( !hasExistingInstance ) {
+				instanceDao.updateData(
+					  id   = flow.id
+					, data = { owner=arguments.newOwner }
+				);
+			}
 		}
 	}
 
