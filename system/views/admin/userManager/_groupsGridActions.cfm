@@ -22,7 +22,7 @@
 					<i class="fa fa-trash-o bigger-130"></i>
 				</a>
 			<cfelse>
-				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="usermanager.deleteGroupAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteGroup.prompt', data=[args.label] )#">
+				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="usermanager.deleteGroupAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteGroup.prompt', data=[ EncodeForHtmlAttribute( args.label ) ] )#">
 					<i class="fa fa-trash-o bigger-130"></i>
 				</a>
 			</cfif>
