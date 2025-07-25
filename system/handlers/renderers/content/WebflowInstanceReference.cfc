@@ -46,4 +46,14 @@ component {
 
 		return default( argumentCollection=arguments );
 	}
+
+	private string function plainText( event, rc, prc, args={} ) {
+		if ( isEmptyString( args.recordId ?:"" ) ) {
+			args.recordId = args.record?.id ?: "";
+		}
+
+		args.plainText = true;
+
+		return default( argumentCollection=arguments );
+	}
 }

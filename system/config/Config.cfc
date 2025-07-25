@@ -1034,6 +1034,7 @@ component {
 		settings.enum.adminToolbarModes           = [ "fixed", "reveal", "none" ];
 		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
 		settings.enum.cfflowStepStatus            = [ "pending", "active", "skipped", "complete" ];
+		settings.enum.webflowSessionType          = [ "active", "complete", "timedout", "adminarchive" ];
 		settings.enum.webflowPositionType         = [ "start", "middle", "end" ];
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
 	}

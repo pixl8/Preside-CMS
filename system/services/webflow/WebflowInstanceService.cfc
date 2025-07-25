@@ -438,6 +438,86 @@ component {
 		return processedTransitions;
 	}
 
+	public struct function prepareInstanceRuleFilter(
+		  required string  type
+		, required string  webflowId
+		,          string  webflowStep = ""
+		,          string  instanceRef = ""
+		,          boolean hasValue    = true
+		,          struct  timeStruct  = {}
+	) {
+		var exists            = arguments.hasValue ? "exists" : "not exists";
+		var forArchived       = ( arguments.type != "active" );
+		var targetObject      = forArchived ? "cfflow_workflow_archived_instance" : "cfflow_workflow_instance";
+		var lastModifiedField = forArchived ? "date_archived" : $getPresideObject( targetObject ).getDateModifiedField();
+
+		var extraFilters = [];
+		var params       = {};
+		var paramSuffix  = CreateUUId().lCase().replace( "-", "", "all" );
+
+		ArrayAppend( extraFilters, {
+			  filter       = "#targetObject#.reference = :webflowId#paramSuffix#"
+			, filterParams = { "webflowId#paramSuffix#"={ type="cf_sql_varchar", value=arguments.webflowId } }
+		} );
+
+		if ( forArchived ) {
+			ArrayAppend( extraFilters, {
+				  filter       = "cfflow_workflow_archived_instance.archive_reason = :archiveReason#paramSuffix#"
+				, filterParams = { "archiveReason#paramSuffix#"={ type="cf_sql_varchar", value=arguments.type } }
+			} );
+		}
+
+		if ( Len( arguments.instanceRef ) ) {
+			ArrayAppend( extraFilters, {
+				  filter       = "#targetObject#.sub_reference = :instanceRef#paramSuffix#"
+				, filterParams = { "instanceRef#paramSuffix#"={ type="cf_sql_varchar", value=arguments.instanceRef } }
+			} );
+		}
+
+		if ( Len( arguments.webflowStep ) ) {
+			if ( forArchived ) {
+				ArrayAppend( extraFilters, {
+					  filter       = "cfflow_workflow_archived_instance.active_steps = :stepId#paramSuffix#"
+					, filterParams = { "stepId#paramSuffix#"={ type="cf_sql_varchar", value=arguments.webflowStep } }
+				} );
+			} else {
+				ArrayAppend( extraFilters, {
+					  having       = "GROUP_CONCAT( DISTINCT instance_histories.result ) LIKE :stepId#paramSuffix#"
+					, filterParams = { "stepId#paramSuffix#"={ type="cf_sql_varchar", value="%#arguments.webflowStep#" } }
+				} );
+			}
+		}
+
+		if ( IsDate( arguments.timeStruct.from ?: ""  ) ) {
+			ArrayAppend( extraFilters, {
+				  filter       = "#targetObject#.#lastModifiedField# >= :datefrom#paramSuffix#"
+				, filterParams = { "datefrom#paramSuffix#"={ type="cf_sql_timestamp", value=arguments.timeStruct.from } }
+			} );
+		}
+		if ( IsDate( arguments.timeStruct.to ?: ""  ) ) {
+			ArrayAppend( extraFilters, {
+				  filter       = "#targetObject#.#lastModifiedField# <= :dateto#paramSuffix#"
+				, filterParams = { "dateto#paramSuffix#"={ type="cf_sql_timestamp", value=arguments.timeStruct.to } }
+			} );
+		}
+
+		var subquery = $getPresideObject( targetObject ).selectData(
+			  selectFields        = [ "owner" ]
+			, filter              = "#$obfuscateSqlForPreside( 'website_user.id = #targetObject#.owner' )# AND #targetObject#.owner IS NOT NULL"
+			, extraFilters        = extraFilters
+			, forceJoins          = "inner"
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
+
+		StructAppend( params, subquery.params );
+
+		return {
+			  filter       = "#exists# (#$obfuscateSqlForPreside( subquery.sql )#)"
+			, filterParams = params
+		};
+	}
+
 // PRIVATE HELPERS
 	private boolean function _sessionsEnabled() {
 		var appSettings = getApplicationSettings();
