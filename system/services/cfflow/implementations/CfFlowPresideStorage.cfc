@@ -271,7 +271,18 @@ component implements="preside.system.modules.cfflow.models.implementation.interf
 				, completed         = false
 			} );
 
-			if ( !hasExistingInstance ) {
+			if ( hasExistingInstance ) {
+				archiveInstance(
+					  workflowId    = flow.workflow_id
+					, instanceArgs  = {
+						  owner           = arguments.previousOwner
+						, reference       = flow.reference
+						, subReference    = flow.sub_reference
+						, subSubReference = flow.sub_sub_reference
+					  }
+					, archiveReason = "userloggedin"
+				);
+			} else {
 				instanceDao.updateData(
 					  id   = flow.id
 					, data = { owner=arguments.newOwner }
