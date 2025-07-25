@@ -15,7 +15,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	event.include( "/js/admin/specific/siteTreePageSlugEditor/"  )
 	     .include( "/css/admin/specific/siteTreePageSlugEditor/" );

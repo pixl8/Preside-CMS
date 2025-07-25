@@ -38,11 +38,11 @@
     </cfswitch>
 
     <form action="#event.buildLink( linkTo="login.attemptLogin" )#" method="post">
-        <input type="hidden" name="postLoginUrl" value="#args.postLoginUrl#">
+        <input type="hidden" name="postLoginUrl" value="#EncodeForHtmlAttribute( args.postLoginUrl )#">
 
         <div class="form-group">
             <label for="loginId">#translateResource( uri="page-types.login:emailaddress.label" )#</label>
-            <input type="email" id="loginId" name="loginId" value="#args.loginId#" class="form-control">
+            <input type="email" id="loginId" name="loginId" value="#EncodeForHtmlAttribute( args.loginId )#" class="form-control">
         </div>
 
         <div class="form-group">

@@ -6,7 +6,7 @@
 	inputId                 = args.id               ?: "";
 	inputClass              = args.class            ?: "";
 	placeholder             = args.placeholder      ?: "";
-	placeholder             = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	placeholder             = EncodeForHtmlAttribute( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue            = args.defaultValue     ?: "";
 	sortable                = args.sortable         ?: "";
 	ajax                    = args.ajax             ?: true;
@@ -61,7 +61,7 @@
 			quickEditModalTitle = translateResource( args.quickEditModalTitle ?: "cms:datamanager.quick.edit.modal.title" );
 
 			selectedTemplate = '<span class="selected-text">' & selectedTemplate & '</span>';
-			selectedTemplate &= ' <a class="fa fa-pencil edit-choice-link quick-edit-link" href="#quickEditUrl#{{value}}" title="#HtmlEditFormat( quickEditModalTitle )#"></a>';
+			selectedTemplate &= ' <a class="fa fa-pencil edit-choice-link quick-edit-link" href="#quickEditUrl#{{value}}" title="#EncodeForHtmlAttribute( quickEditModalTitle )#"></a>';
 		}
 	}
 
@@ -113,7 +113,7 @@
 			tabindex           = "#getNextTabIndex()#"
 			data-placeholder   = "#placeholder#"
 			data-sortable      = "#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
-			data-value         = "#HtmlEditFormat( value )#"
+			data-value         = "#EncodeForHtmlAttribute( value )#"
 			data-display-limit = "#displayLimit#"
 			<cfif IsBoolean( multiple ) && multiple>
 				multiple="multiple"

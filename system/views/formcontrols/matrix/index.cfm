@@ -48,7 +48,7 @@
 							   name     = "#questionInputId#"
 							   id       = "#elementId#"
 							   tabindex = "#getNextTabIndex()#"
-							   value    = "#HtmlEditFormat( answer )#"
+							   value    = "#EncodeForHtmlAttribute( answer )#"
 							   <cfif selected> checked="checked"</cfif>
 							   #htmlAttributes#
 						>
