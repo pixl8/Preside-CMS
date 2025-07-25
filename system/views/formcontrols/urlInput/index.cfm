@@ -49,5 +49,5 @@
 			)#
 		</div>
 	</div>
-	<input type="hidden" class="#inputClass# url-input url-input-hidden" id="#inputId#" name="#inputName#" value="#value#" />
+	<input type="hidden" class="#inputClass# url-input url-input-hidden" id="#inputId#" name="#inputName#" value="#EncodeForHtmlAttribute( value )#" />
 </cfoutput>
