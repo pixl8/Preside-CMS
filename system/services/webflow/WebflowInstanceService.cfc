@@ -503,7 +503,7 @@ component {
 
 		var subquery = $getPresideObject( targetObject ).selectData(
 			  selectFields        = [ "owner" ]
-			, filter              = "#$helpers.obfuscateSqlForPreside( 'website_user.id = #targetObject#.owner' )# AND #targetObject#.owner IS NOT NULL"
+			, filter              = "#$obfuscateSqlForPreside( 'website_user.id = #targetObject#.owner' )# AND #targetObject#.owner IS NOT NULL"
 			, extraFilters        = extraFilters
 			, forceJoins          = "inner"
 			, getSqlAndParamsOnly = true

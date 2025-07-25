@@ -27,7 +27,7 @@ component {
 		,          boolean _has      = true
 		,          struct  _pastTime = {}
 	) {
-		var userId = Trim( payload?.user?.id ?: "" );
+		var userId = Trim( payload.user.id ?: "" );
 
 		if ( !Len( userId ) ) {
 			return false;
