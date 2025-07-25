@@ -42,11 +42,11 @@
 	<div class="space-6"></div>
 	<form method="post" action="#event.buildAdminLink( linkto="login.login" )#" data-auto-focus-form="true">
 		<fieldset>
-			<input type="hidden" name="postLoginUrl" value="#postLoginUrl#" />
+			<input type="hidden" name="postLoginUrl" value="#EncodeForHtmlAttribute( postLoginUrl )#" />
 
 			<label class="block clearfix">
 				<span class="block input-icon input-icon-right">
-					<input type="text" class="form-control" placeholder="#translateResource( 'cms:login.username.placeholder' )#" name="loginId" value="#event.getValue( name="loginId", defaultValue="" )#" />
+					<input type="text" class="form-control" placeholder="#translateResource( 'cms:login.username.placeholder' )#" name="loginId" value="#EncodeForHtmlAttribute( event.getValue( name="loginId", defaultValue="" ) )#" />
 					<i class="fa fa-user"></i>
 				</span>
 			</label>
