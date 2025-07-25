@@ -43,7 +43,7 @@
 					<cfloop array="#roles#" index="role">
 						<div class="checkbox role-picker-checkbox">
 							<label>
-								<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#role#" type="checkbox" value="#HtmlEditFormat( role )#"<cfif ListFindNoCase( value, role )> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# />
+								<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#role#" type="checkbox" value="#EncodeForHtmlAttribute( role )#"<cfif ListFindNoCase( value, role )> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# />
 								<span class="lbl">
 									<span class="role-title bigger">
 										#translateResource( uri="roles:#role#.title" )#
