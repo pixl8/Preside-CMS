@@ -52,7 +52,7 @@
         <input type="hidden" name="token" value="#EncodeForHtmlAttribute( rc.token )#" />
         <div class="form-group">
             <label for="passwordField">#translateResource( uri="page-types.reset_password:newPassword.label" )#</label>
-            <input type="password" name="password" id="passwordField" class="form-control" value="#EncodeForHtmlAttribute( rc.password )#">
+            <input type="password" name="password" id="passwordField" class="form-control">
         </div>
 
         <div class="form-group">
