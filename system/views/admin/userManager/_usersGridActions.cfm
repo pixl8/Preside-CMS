@@ -17,7 +17,7 @@
 
 		<cfif hasCmsPermission( "usermanager.delete" )>
 			<cfif args.id != event.getAdminUserId()>
-				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="userManager.deleteUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteUser.prompt', data=[args.known_as] )#">
+				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="userManager.deleteUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteUser.prompt', data=[ EncodeForHtmlAttribute( args.known_as ) ] )#">
 					<i class="fa fa-trash-o bigger-130"></i>
 				</a>
 			<cfelse>
