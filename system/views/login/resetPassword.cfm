@@ -50,10 +50,10 @@
     </cfswitch>
 
     <form action="#event.buildLink( linkTo='login.resetPasswordAction' )#" method="post">
-        <input type="hidden" name="token" value="#rc.token#" />
+        <input type="hidden" name="token" value="#EncodeForHtmlAttribute( rc.token )#" />
         <div class="form-group">
             <label for="passwordField">#translateResource( uri="page-types.reset_password:newPassword.label" )#</label>
-            <input type="password" name="password" id="passwordField" class="form-control">
+            <input type="password" name="password" id="passwordField" class="form-control" value="#EncodeForHtmlAttribute( rc.password )#">
         </div>
 
         <div class="form-group">
