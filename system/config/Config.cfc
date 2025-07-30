@@ -488,8 +488,9 @@ component {
 		settings.enum.emailAction                 = [ "sent", "received", "failed", "bounced", "opened", "markedasspam", "clicked" ];
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed" ];
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
+		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators", "ContentSecurityPolicyManager" ];
 
 		settings.antiSamy = {
 			  enabled                 = true
