@@ -60,6 +60,7 @@ component {
 		var event        = $getRequestContext();
 
 		event.cachePage( false );
+		event.setContentSecurityPolicy( "default-src 'none'; frame-ancestors 'none';" );
 		event.setRestResponse( restResponse );
 		event.setRestRequest( restRequest );
 

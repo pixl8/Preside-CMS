@@ -2,9 +2,16 @@
 <cfscript>
 	if ( event.isAdminUser() ) {
 		prc.adminToolbarDisplayMode = prc.adminToolbarDisplayMode ?: getSystemSetting( "frontend-editing", "admin_toolbar_mode", "fixed" );
+		showToolBar = !getModel( "loginService" ).twoFactorAuthenticationRequired() && prc.adminToolbarDisplayMode neq "none";
+
+		if ( showToolBar ) {
+			event.addToContentSecurityPolicy( "img-src", "//www.gravatar.com" );
+		}
+	} else {
+		showToolBar = false;
 	}
 </cfscript>
-<cfif event.isAdminUser() and !getModel( "loginService" ).twoFactorAuthenticationRequired() and prc.adminToolbarDisplayMode neq "none">
+<cfif showToolBar>
 	<cfscript>
 		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
 		prc.adminQuickEditDisabled    = prc.adminQuickEditDisabled    ?: isTrue( getSystemSetting( "frontend-editing", "disable_quick_edit" ) );
@@ -127,7 +134,7 @@
 			</div>
 		</div>
 
-		<script>
+		<script nonce="#event.getRequestNonce()#">
 			( function(){
 				var htmlElement    = document.querySelector( "html" )
 				  , bodyElement    = document.querySelector( "body" )
