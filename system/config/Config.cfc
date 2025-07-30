@@ -1003,6 +1003,7 @@ component {
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
 		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
 		settings.enum.adminToolbarModes           = [ "fixed", "reveal", "none" ];
+		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
 	}
 
 	private void function __setupFormValidationProviders() {
@@ -1015,6 +1016,7 @@ component {
 			, "enumService"
 			, "EmailCenterValidators"
 			, "FormbuilderValidators"
+			, "ContentSecurityPolicyManager"
 		];
 	}
 

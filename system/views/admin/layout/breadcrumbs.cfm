@@ -6,7 +6,7 @@
 
 <cfoutput>
 	<div id="breadcrumbs" class="breadcrumbs">
-		<script type="text/javascript">
+		<script type="text/javascript" nonce="#event.getRequestNonce()#">
 			try{ace.settings.check('breadcrumbs' , 'fixed')}catch(e){}
 		</script>
 

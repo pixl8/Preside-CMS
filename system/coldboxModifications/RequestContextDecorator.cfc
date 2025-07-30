@@ -198,10 +198,18 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		return link;
 	}
 
-	public string function getProtocol() {
+	public string function getProtocol( boolean fromSite=false ) {
+		if ( arguments.fromSite ) {
+			var site = getSite();
+			if ( StructKeyExists( site, "protocol" ) && Len( site.protocol ) ) {
+				return site.protocol;
+			}
+		}
+
 		if ( getController().getSetting( "forcessl" ) ) {
 			return "https";
 		}
+
 		return ( cgi.https ?: "" ) == "on" ? "https" : "http";
 	}
 
@@ -618,7 +626,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 	}
 
 	public string function renderIncludes( string type, string group="default" ) {
-		var rendered      = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments );
+		var rendered = getModel( "StickerForPreside" ).renderIncludes( argumentCollection = arguments, nonce=getRequestNonce() );
 
 		if ( !StructKeyExists( arguments, "type" ) || arguments.type == "js" ) {
 			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
@@ -645,7 +653,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
 
 		inlineJs[ arguments.group ] = inlineJs[ arguments.group ] ?: [];
-		inlineJs[ arguments.group ].append( "<script type=""text/javascript"">" & Chr(10) & arguments.js & Chr(10) & "</script>" );
+		inlineJs[ arguments.group ].append( "<script type=""text/javascript"" nonce=""#getRequestNonce()#"">" & Chr(10) & arguments.js & Chr(10) & "</script>" );
 
 		getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
 	}
@@ -733,6 +741,45 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		}
 
 		getRequestContext().setValue( name="xframeoptions", value=UCase( arguments.value ), private=true );
+	}
+
+	public void function setContentSecurityPolicy( required string policy ) {
+		getRequestContext().setValue( name="contentSecurityPolicy", value=arguments.policy, private=true );
+	}
+
+	public string function getContentSecurityPolicy() {
+		return getRequestContext().getValue( name="contentSecurityPolicy", defaultValue="", private=true );
+	}
+
+	public void function addToContentSecurityPolicy( required string directive, required string value ) {
+		var sources = getRequestContext().getValue( name="additionalCspSources", defaultValue={}, private=true );
+
+		if ( !StructKeyExists( sources, arguments.directive ) ) {
+			sources[ arguments.directive ] = [];
+		}
+
+		if ( ReFind( "^//", arguments.value ) ) {
+			arguments.value = "#getProtocol( fromSite=true )#:#arguments.value#";
+		}
+
+		ArrayAppend( sources[ arguments.directive ], arguments.value );
+
+		getRequestContext().setValue( name="additionalCspSources", value=sources, private=true );
+	}
+
+	public struct function getAdditionalCspSources() {
+		return getRequestContext().getValue( name="additionalCspSources", defaultValue={}, private=true );
+	}
+
+	public string function getRequestNonce() {
+		var nonce = getRequestContext().getValue( name="_requestNonce", defaultValue="", private=true );
+
+		if ( !Len( Trim( nonce ) ) ) {
+			nonce = LCase( Hash( CreateUUID() ) );
+			getRequestContext().setValue( name="_requestNonce", value=nonce, private=true );
+		}
+
+		return nonce;
 	}
 
 // FRONT END, dealing with current page
