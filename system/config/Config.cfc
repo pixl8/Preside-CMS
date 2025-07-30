@@ -923,10 +923,11 @@ component {
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
+		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
 	}
 
 	private void function __setupFormValidationProviders() {
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators", "ContentSecurityPolicyManager" ];
 	}
 
 	private void function __setupStaticAssetConfiguration() {
