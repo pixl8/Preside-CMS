@@ -34,7 +34,11 @@ component {
 		if ( arguments.delayed ) {
 			return _getDelayedStickerRendererService().renderDelayedStickerTag( argumentCollection=arguments, memento=_getSticker().getMemento() );
 		} else {
-			return _getSticker().renderIncludes( argumentCollection=arguments );
+			var rendered = _getSticker().renderIncludes( argumentCollection=arguments );
+
+			_addCspSourcesFromExternalRenderedIncludes( rendered );
+
+			return rendered;
 		}
 	}
 
@@ -66,7 +70,25 @@ component {
 		_setSticker( sticker );
 	}
 
-// GETTERS AND SETTERS
+	private void function _addCspSourcesFromExternalRenderedIncludes( required string rendered ) {
+		var event          = $getRequestContext();
+		var externalStyles = ReFind( '<link\s.*href="((https?://|//)[^"/]+)', arguments.rendered, 1, true, "all" );
+
+		for( var match in externalStyles ) {
+			if ( Len( Trim( match.match[ 2 ] ?: "" ) ) ) {
+				event.addToContentSecurityPolicy( "style-src", match.match[ 2 ] );
+			}
+		}
+
+		var externalScripts = ReFind( '<script src="((https?://|//)[^"/]+)', arguments.rendered, 1, true, "all" );
+		for( var match in externalScripts ) {
+			if ( Len( Trim( match.match[ 2 ] ?: "" ) ) ) {
+				event.addToContentSecurityPolicy( "script-src", match.match[ 2 ] );
+			}
+		}
+	}
+
+	// GETTERS AND SETTERS
 	private any function _getDelayedStickerRendererService() {
 		return _delayedStickerRendererService;
 	}
