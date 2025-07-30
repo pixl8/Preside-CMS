@@ -4,7 +4,7 @@
 		<title>Preside: SQL Schema Synchronisation Required</title>
 		<meta charset="utf-8">
 		<meta name="robots" content="noindex,nofollow" />
-		<style type="text/css">
+		<style type="text/css" nonce="#event.getRequestNonce()#">
 			body {
 				background  : #fff;
 				font-family : arial;

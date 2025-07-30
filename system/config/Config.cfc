@@ -499,8 +499,9 @@ component {
 		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
+		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators", "ContentSecurityPolicyManager" ];
 
 		settings.antiSamy = {
 			  enabled                 = true

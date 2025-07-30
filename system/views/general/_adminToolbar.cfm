@@ -2,6 +2,8 @@
 	<cfscript>
 		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
 
+		event.addToContentSecurityPolicy( "img-src", "//www.gravatar.com" );
+
 		if ( prc.hasCmsPageEditPermissions ) {
 			event.include( "/js/admin/presidecore/" );
 			event.include( "/js/admin/frontend/" );
@@ -109,4 +111,3 @@
 		#ckEditorJs#
 	</cfoutput>
 </cfif>
-
