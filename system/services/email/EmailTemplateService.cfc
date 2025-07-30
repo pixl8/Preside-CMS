@@ -691,7 +691,7 @@ component {
 			, useRequestCache  = false
 		);
 
-		var updatedData = { schedule_next_send_date = "" };
+		var updatedData = { schedule_next_send_date="", schedule_queueing=false };
 
 		if ( template.sending_method == "scheduled" ) {
 			if ( template.schedule_type == "repeat" ) {
@@ -754,6 +754,27 @@ component {
 		return $getPresideObject( "email_template" ).updateData(
 			  id      = arguments.templateId
 			, data    = { last_sent_date=arguments.lastSentDate }
+		);
+	}
+
+	/**
+	 * Update the queueing flag of email
+	 *
+	 * @autodoc           true
+	 * @templateId.hint   ID of the template to update
+	 * @scheduleQueueing.hint The date of last sent
+	 */
+	public any function updateScheduleQueueingFlag(
+		  required string  templateId
+		, required boolean isQueueing
+		,          boolean queueFailed = false
+	) {
+		return $getPresideObject( "email_template" ).updateData(
+			  id      = arguments.templateId
+			, data    = {
+				  schedule_queueing   = arguments.isQueueing
+				, schedule_queue_fail = arguments.queueFailed
+			}
 		);
 	}
 
