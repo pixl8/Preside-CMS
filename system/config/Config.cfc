@@ -965,10 +965,11 @@ component {
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
 		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
+		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
 	}
 
 	private void function __setupFormValidationProviders() {
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators", "FormbuilderValidators" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators", "FormbuilderValidators", "ContentSecurityPolicyManager" ];
 	}
 
 	private void function __setupStaticAssetConfiguration() {
