@@ -41,6 +41,8 @@
 
 	htmlTitle = translateResource( uri="cms:cms.title" ) & " :: " & ( prc.pageTitle ?: translateResource( uri="cms:cms.tagline", defaultValue="" ) );
 
+	event.addToContentSecurityPolicy( "img-src", "//www.gravatar.com" );
+
 	header name="cache-control" value="no-cache, no-store";
 	header name="expires"       value="Fri, 20 Nov 2015 00:00:00 GMT";
 </cfscript>
@@ -66,7 +68,7 @@
 			#siteAlerts#
 
 			<div class="main-container" id="main-container">
-				<script type="text/javascript">
+				<script type="text/javascript" nonce="#event.getRequestNonce()#">
 					try{ace.settings.check('main-container' , 'fixed')}catch(e){}
 				</script>
 
