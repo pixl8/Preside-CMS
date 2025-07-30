@@ -10,7 +10,7 @@
 
 <cfoutput>
 	<div class="navbar navbar-default" id="navbar">
-		<script type="text/javascript">
+		<script type="text/javascript" nonce="#event.getRequestNonce()#">
 			try{ace.settings.check( 'navbar', 'fixed' );}catch(e){}
 		</script>
 

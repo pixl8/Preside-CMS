@@ -7,6 +7,7 @@
 
 <cfoutput>
 	<cfif !IsEmpty( args.source_url )>
+		<cfset event.addToContentSecurityPolicy( "script-src", args.source_url ) />
 		<cfif IsTrue( args.async )>
 			<cfset method = " async" />
 		<cfelseif IsTrue( args.defer )>
@@ -19,7 +20,7 @@
 	</cfif>
 
 	<cfif !IsEmpty( args.inline_script )>
-		<script type="text/javascript">
+		<script type="text/javascript" nonce="#event.getRequestNonce()#">
 			#args.inline_script#
 		</script>
 	</cfif>
