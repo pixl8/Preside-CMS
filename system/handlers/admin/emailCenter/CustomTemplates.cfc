@@ -830,45 +830,51 @@ component extends="preside.system.base.AdminHandler" {
 				}
 
 				if ( args.sendMethod == "scheduled" ){
-					var nowish = Now();
-					args.sendDate = args.scheduleType == "repeat" ? ( template.schedule_next_send_date ?: "" ) : ( template.schedule_date ?: "" );
+					if ( isTrue( template.schedule_queueing ?: "" ) ) {
+						defaultNotice.message = translateResource( uri="cms:emailcenter.schedule.queueing.alert" );
+						defaultNotice.class   = "error";
+						defaultNotice.icon    = "fa-exclamation-triangle";
+					} else {
+						var nowish = Now();
+						args.sendDate = args.scheduleType == "repeat" ? ( template.schedule_next_send_date ?: "" ) : ( template.schedule_date ?: "" );
 
-					if ( IsDate( args.sendDate ) && args.sendDate > nowish ) {
-						args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
-					}
+						if ( IsDate( args.sendDate ) && args.sendDate > nowish ) {
+							args.estimatedSendCount = emailMassSendingService.getTemplateRecipientCount( templateId );
+						}
 
-					if ( args.scheduleType == "repeat" ) {
-						if ( IsDate( args.sendDate ) ) {
-							if ( args.sendDate > nowish ) {
-								defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn"), NumberFormat( args.estimatedSendCount ) ] );
+						if ( args.scheduleType == "repeat" ) {
+							if ( IsDate( args.sendDate ) ) {
+								if ( args.sendDate > nowish ) {
+									defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn"), NumberFormat( args.estimatedSendCount ) ] );
+								} else {
+									defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.in.past.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn") ] );
+								}
 							} else {
-								defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.in.past.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn") ] );
+								defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.unknown.alert" );
+								defaultNotice.class   = "warn";
+								defaultNotice.icon    = "fa-exclamation-triangle";
+							}
+						} else if ( IsDate( args.sendDate ) ) {
+							if ( args.sendDate > nowish ) {
+								defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn"), NumberFormat( args.estimatedSendCount ) ]);
+							} else if ( args.queued ) {
+								defaultNotice.message = translateResource( uri="cms:emailcenter.sending.alert", data=[ NumberFormat( args.queued ), NumberFormat( args.sent ) ] );
+								if ( args.canCancel ) {
+									defaultNotice.message &= '<a href="#args.cancelLink#" class="confirmation-prompt" title="#HtmlEditFormat( args.cancelPrompt )#">
+										<i class="fa fa-fw fa-ban"></i>
+										#args.cancelSend#
+									</a>';
+								}
+							} else if ( args.sent ) {
+								defaultNotice.message = translateResource( uri="cms:emailcenter.sent.alert", data=[ NumberFormat( args.sent ) ] );
+							} else {
+								defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.in.past.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn") ] )
 							}
 						} else {
-							defaultNotice.message = translateResource( uri="cms:emailcenter.next.send.date.unknown.alert" );
+							defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.unknown.alert" );
 							defaultNotice.class   = "warn";
 							defaultNotice.icon    = "fa-exclamation-triangle";
 						}
-					} else if ( IsDate( args.sendDate ) ) {
-						if ( args.sendDate > nowish ) {
-							defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn"), NumberFormat( args.estimatedSendCount ) ]);
-						} else if ( args.queued ) {
-							defaultNotice.message = translateResource( uri="cms:emailcenter.sending.alert", data=[ NumberFormat( args.queued ), NumberFormat( args.sent ) ] );
-							if ( args.canCancel ) {
-								defaultNotice.message &= '<a href="#args.cancelLink#" class="confirmation-prompt" title="#HtmlEditFormat( args.cancelPrompt )#">
-									<i class="fa fa-fw fa-ban"></i>
-									#args.cancelSend#
-								</a>';
-							}
-						} else if ( args.sent ) {
-							defaultNotice.message = translateResource( uri="cms:emailcenter.sent.alert", data=[ NumberFormat( args.sent ) ] );
-						} else {
-							defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.in.past.alert", data=[ DateTimeFormat( args.sendDate, "d mmm, yyyy HH:nn") ] )
-						}
-					} else {
-						defaultNotice.message = translateResource( uri="cms:emailcenter.send.date.unknown.alert" );
-						defaultNotice.class   = "warn";
-						defaultNotice.icon    = "fa-exclamation-triangle";
 					}
 				} else {
 					if ( args.queued ) {
@@ -889,6 +895,14 @@ component extends="preside.system.base.AdminHandler" {
 			args.template = template;
 			args.notices = [ defaultNotice ];
 			announceInterception( "preRenderEmailTemplateNotices", args );
+
+			if ( isTrue( template.schedule_queue_fail ?: "" ) ) {
+				ArrayPrepend( args.notices, {
+					  message = translateResource( uri="cms:emailcenter.schedule.error.alert" )
+					, class   = "danger"
+					, icon    = "fa-exclamation"
+				} );
+			}
 
 			return renderView( view="/admin/emailCenter/customTemplates/_customTemplateNotices", args=args );
 		}
