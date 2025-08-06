@@ -360,8 +360,14 @@ component displayName="Task Manager Service" {
 	public void function cleanupNoLongerRunningTasks() {
 		var localTaskThreads          = _getRunningTasks();
 		var localTaskThreadIds        = StructKeyArray( localTaskThreads );
+		var stuckTaskCutoffDate       = DateAdd( "d", -( Val( $getPresideSetting( "taskmanager", "stuck_thread_period", 1 ) ) ), Now() );
 		var runningTasksAccordingToDb = _getTaskDao().selectData(
-			  filter = { is_running=true, running_machine=_getMachineId() }
+			  filter       = "is_running = :is_running AND ( running_machine = :running_machine OR last_ran <= :dayFromNow )"
+			, filterParams = {
+				  is_running      = true
+				, running_machine = _getMachineId()
+				, dayFromNow      = { value=stuckTaskCutoffDate, type="cf_sql_timestamp" }
+			}
 		);
 
 		for( var task in runningTasksAccordingToDb ) {
