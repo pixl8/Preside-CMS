@@ -478,16 +478,32 @@ component extends="preside.system.base.AdminHandler" {
 					, fromVersionTable  = true
 					, extraSelectFields = [ "group_concat( attachments.id ) as attachments" ]
 				);
-				for( var key in [ "id", "layout", "_version_has_drafts", "_version_is_draft", "datecreated", "datemodified" ] ) {
+				var keysToOmit  = [
+					  "id"
+					, "layout"
+					, "_version_has_drafts"
+					, "_version_is_draft"
+					, "datecreated"
+					, "datemodified"
+					, "schedule_type"
+					, "schedule_date"
+					, "schedule_start_date"
+					, "schedule_end_date"
+					, "schedule_unit"
+					, "schedule_measure"
+					, "schedule_sent"
+					, "schedule_next_send_date"
+				];
+				for( var key in keysToOmit ) {
 					StructDelete( draftRecord, key );
 				}
 				StructAppend( draftRecord, formData );
 			}
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=( IsTrue( prc.template._version_is_draft ?: false ) ) );
+			emailTemplateService.updateScheduledSendFields( templateId=id );
 			if ( resaveDraft ) {
 				emailTemplateService.saveTemplate( id=id, template=draftRecord, isDraft=true );
 			}
-			emailTemplateService.updateScheduledSendFields( templateId=id );
 
 			messagebox.info( translateResource( "cms:emailcenter.customTemplates.settings.saved.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
@@ -770,6 +786,10 @@ component extends="preside.system.base.AdminHandler" {
 	private string function _customTemplateActions( event, rc, prc, args={} ) {
 		var templateId = rc.id ?: "";
 		args.template  = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
+
+		if ( event.getCurrentAction() != "preview" ) {
+			return "";
+		}
 
 		if ( args.template.count() ) {
 			args.isDraft       = IsTrue( args.template._version_is_draft );
