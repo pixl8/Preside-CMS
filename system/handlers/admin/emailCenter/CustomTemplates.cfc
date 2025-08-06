@@ -774,6 +774,10 @@ component extends="preside.system.base.AdminHandler" {
 		var templateId = rc.id ?: "";
 		args.template  = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 
+		if ( event.getCurrentAction() != "preview" ) {
+			return "";
+		}
+
 		if ( args.template.count() ) {
 			args.isDraft       = IsTrue( args.template._version_is_draft );
 			args.canSend       = !args.isDraft && args.template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
