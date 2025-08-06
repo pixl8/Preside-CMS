@@ -931,8 +931,6 @@ component extends="preside.system.base.AdminHandler" {
 				setNextEvent( url=templatePreviewUrl );
 			}
 		}
-
-		event.notFound();
 	}
 
 	private any function _getTemplate( event, rc, prc, allowDrafts=false, fromVersionTable=arguments.allowDrafts ) {
