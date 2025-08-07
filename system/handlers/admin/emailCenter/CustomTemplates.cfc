@@ -111,7 +111,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 		prc.canPreviewWithRecipient = Len( Trim( prc.filterObject ) );
-				if ( prc.canPreviewWithRecipient && Len( Trim( previewRecipient ) ) ){
+
+		if ( prc.canPreviewWithRecipient && Len( Trim( previewRecipient ) ) ){
 			prc.previewRecipientName = renderLabel( prc.filterObject, previewRecipient );
 		}
 
@@ -204,8 +205,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		var id = rc.id ?: "";
 
-		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.edit.page.title", data=[ prc.record.name ] );
-				prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.edit.page.subtitle", data=[ prc.record.name ] );
+		prc.pageTitle          = translateResource( uri="cms:emailcenter.customTemplates.edit.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle       = translateResource( uri="cms:emailcenter.customTemplates.edit.page.subtitle", data=[ prc.record.name ] );
 		prc.additionalFormArgs = _getAdditionalAddEditFormArgs( argumentCollection=arguments );
 
 		event.addAdminBreadCrumb(
@@ -531,11 +532,10 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object                  = "email_template"
-				, gridFields              = "name,sending_method,send_date,last_sent_date,open_rate,click_rate,datecreated,datemodified,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date"
+				, gridFields              = "name,sending_method,send_date,last_sent_date,open_rate,click_rate,datecreated,datemodified,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date,sent_count"
 				, actionsView             = "admin.emailCenter/customTemplates._gridActions"
 				, filter                  = { "email_template.is_system_email" = false }
 				, draftsEnabled           = true
-				, includeAllFormulaFields = true
 			}
 		);
 	}
