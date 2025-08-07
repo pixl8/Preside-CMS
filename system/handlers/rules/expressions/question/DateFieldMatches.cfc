@@ -1,11 +1,13 @@
 /**
  * Expression handler for "Date {question} matches"
  *
- * @expressionContexts webrequest
+ * @expressionContexts formbuilderSubmission
  * @expressionCategory formbuilder
  * @expressionTags     formbuilderV2Form
  * @feature            rulesEngine and formbuilder
  */
+
+
 component {
 
 	property name="formBuilderFilterService" inject="formBuilderFilterService";
