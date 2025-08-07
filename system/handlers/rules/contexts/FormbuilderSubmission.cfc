@@ -7,7 +7,13 @@ component {
 	property name="formBuilderService" inject="formBuilderService";
 
 	private struct function getPayload() {
-		return { formbuilderSubmission=formBuilderService.getFormBuilderSubmissionContextData() };
+		var formId = rc.formBuilderFormSubmitted ?: "";
+
+		if ( isEmptyString( formId ) ) {
+			return { formbuilderSubmission=formBuilderService.getFormBuilderSubmissionContextData() };
+		}
+
+		return { formbuilderSubmission={ id=formId, formId=formId, submissionId="", data=rc } };
 	}
 
 }

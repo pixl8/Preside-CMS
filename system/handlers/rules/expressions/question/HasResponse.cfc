@@ -1,9 +1,9 @@
 /**
  * Expression handler for "Has responded"
  *
- * @expressionContexts  webrequest
- * @expressionCategory  formbuilder
- * @expressionTags      formbuilderV2Form
+ * @expressionContexts formbuilderSubmission
+ * @expressionCategory formbuilder
+ * @expressionTags     formbuilderV2Form
  */
 component {
 
