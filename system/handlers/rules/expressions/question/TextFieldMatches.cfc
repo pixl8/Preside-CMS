@@ -1,7 +1,7 @@
 /**
  * Expression handler for "Textfield {question} text matches"
  *
- * @expressionContexts webrequest
+ * @expressionContexts formbuilderSubmission
  * @expressionCategory formbuilder
  * @expressionTags     formbuilderV2Form
  * @feature            rulesEngine and formbuilder

@@ -1,7 +1,7 @@
 /**
  * Expression handler for "Has responded"
  *
- * @expressionContexts webrequest
+ * @expressionContexts formbuilderSubmission
  * @expressionCategory formbuilder
  * @expressionTags     formbuilderV2Form
  * @feature            rulesEngine and formbuilder

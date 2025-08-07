@@ -1174,8 +1174,6 @@ component {
 		,          boolean validateCaptcha = true
 		,          array   formItems       = []
 	) {
-		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
-
 		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = ArrayLen( arguments.formItems ) ? arguments.formItems : getFormItems( arguments.formId );
@@ -1228,6 +1226,8 @@ component {
 					, user_agent     = arguments.userAgent
 				} );
 			}
+
+			setFormBuilderSubmissionContextData( formId=arguments.formId, submissionId=submissionId, data=arguments.requestData );
 
 			var submission = getSubmission( submissionId );
 			for( var s in submission ) { submission = s; }
@@ -2421,10 +2421,19 @@ component {
 	public struct function getFormBuilderSubmissionContextData() {
 		return $getRequestContext().getValue( name="_formBuilderContext", private=true, defaultValue={} );
 	}
-	public void function setFormBuilderSubmissionContextData( required string formId, required struct data ) {
+	public void function setFormBuilderSubmissionContextData(
+		  required string formId
+		, required struct data
+		,          string submissionId = ""
+	) {
 		$getRequestContext().setValue(
 			  name    = "_formBuilderContext"
-			, value   = { id=arguments.formId, data=arguments.data }
+			, value   = {
+				  id           = arguments.formId // for compatibility
+				, formId       = arguments.formId
+				, submissionId = arguments.submissionId
+				, data         = arguments.data
+			  }
 			, private = true
 		);
 	}
