@@ -14,7 +14,7 @@ component {
 			return { formbuilderSubmission=formBuilderService.getFormBuilderSubmissionContextData() };
 		}
 
-		return { formbuilderSubmission={ id=formId, data=rc } };
+		return { formbuilderSubmission={ id=formId, formId=formId, submissionId="", data=rc } };
 	}
 
 }

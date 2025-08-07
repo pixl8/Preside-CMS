@@ -310,9 +310,9 @@ component {
 
 	public boolean function evaluateQuestionSubmissionResponseMatch(
 			  required array  extraFilters
-			,          string userId
-			,          string formId
-			,          string submissionId
+			,          string userId       = ""
+			,          string formId       = ""
+			,          string submissionId = ""
 
 	) {
 		var submissionsDao = $getPresideObject( "formbuilder_formsubmission" );

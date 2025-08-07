@@ -17,7 +17,7 @@ component {
 	private boolean function evaluateExpression(
 		  required string  question
 		, required numeric value
-		,          string  formId           = ( payload.formId ?: "" )
+		,          string  formId           = ( payload.formbuilderSubmission.formId ?: "" )
 		,          string  _numericOperator = "eq"
 	) {
 		var userId = payload.user.id ?: "";
@@ -29,8 +29,6 @@ component {
 		return formBuilderFilterService.evaluateQuestionUserLatestResponseMatch(
 			  argumentCollection = arguments
 			, userId             = userId
-			, formId             = arguments.formid
-			, submissionId       = payload.submissionId ?: ""
 			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
 	}
