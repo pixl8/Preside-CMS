@@ -3,6 +3,26 @@
  */
 component extends="preside.system.handlers.dataExportTemplates.Default" {
 
+	public array function getSelectFields( event, rc, prc, objectName, templateConfig, suppliedFields ) {
+		var requiredFields = [
+			  "send_count_from_stats"
+			, "unique_opens_count"
+			, "unique_clicks_count"
+			, "unique_unsubscribes_count"
+			, "open_rate_percentage"
+			, "click_rate_percentage"
+			, "unsubscribe_rate_percentage"
+		];
+
+		for ( var field in requiredFields ) {
+			if ( !ArrayFindNoCase( arguments.suppliedFields, field ) ) {
+				ArrayAppend( arguments.suppliedFields, field );
+			}
+		}
+
+		return arguments.suppliedFields;
+	}
+
 	private any function renderRecords( event, rc, prc, objectName, templateConfig, records ) {
 		for( var i=1; i<=records.recordCount; i++ ) {
 			var opens        = Val( records.unique_opens_count[i]        ?: 0 );
