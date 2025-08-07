@@ -949,7 +949,7 @@ component extends="preside.system.base.AdminHandler" {
 			  opens        = stats.openRate
 			, clicks       = stats.clickThroughRate
 			, unsubscribes = stats.unsubscribeRate
-			, emailsSent   = stats.sendCount
+			, emailsSent   = stats.sendCountFiltered
 		};
 
 		var col1 = [
