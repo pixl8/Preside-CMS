@@ -1029,8 +1029,6 @@ component {
 		,          string ipAddress    = Trim( ListLast( cgi.remote_addr ?: "" ) )
 		,          string userAgent    = ( cgi.http_user_agent ?: "" )
 	) {
-		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
-
 		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = getFormItems( arguments.formId );
@@ -1081,8 +1079,10 @@ component {
 					, ip_address     = arguments.ipAddress
 					, user_agent     = arguments.userAgent
 				} );
-
 			}
+
+			setFormBuilderSubmissionContextData( formId=arguments.formId, submissionId=submissionId, data=arguments.requestData );
+
 			var submission = getSubmission( submissionId );
 			for( var s in submission ) { submission = s; }
 
@@ -2187,10 +2187,19 @@ component {
 	public struct function getFormBuilderSubmissionContextData() {
 		return $getRequestContext().getValue( name="_formBuilderContext", private=true, defaultValue={} );
 	}
-	public void function setFormBuilderSubmissionContextData( required string formId, required struct data ) {
+	public void function setFormBuilderSubmissionContextData(
+		  required string formId
+		, required struct data
+		,          string submissionId = ""
+	) {
 		$getRequestContext().setValue(
 			  name    = "_formBuilderContext"
-			, value   = { id=arguments.formId, data=arguments.data }
+			, value   = {
+				  id           = arguments.formId // for compatibility
+				, formId       = arguments.formId
+				, submissionId = arguments.submissionId
+				, data         = arguments.data
+			  }
 			, private = true
 		);
 	}
