@@ -8,6 +8,7 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	property name="sessionStorage"        inject="delayedInjector:sessionStorage";
 	property name="featureService"        inject="delayedInjector:featureService";
 	property name="adminLanguages"        inject="coldbox:setting:adminLanguages";
+	property name="frontendLanguages"     inject="coldbox:setting:frontendLanguages";
 	property name="unknownTranslation"    inject="coldbox:setting:unknownTranslation";
 
 	variables._localeCache = {};
@@ -143,12 +144,14 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 
 	public any function setfwLocale( required string locale ) output=false {
 		var event = controller.getRequestService().getContext();
-		if ( event.isAdminRequest() && adminLanguages.len() && !adminLanguages.findNoCase( arguments.locale ) ) {
-			if ( adminLanguages.len() == 1 ) {
+		if ( event.isAdminRequest() && ArrayLen( adminLanguages ) && !ArrayFindNoCase( adminLanguages, arguments.locale ) ) {
+			if ( ArrayLen( adminLanguages ) == 1 ) {
 				arguments.locale = adminLanguages[ 1 ];
 			} else {
 				arguments.locale = controller.getSetting( "default_locale" );
 			}
+		} else if ( ArrayLen( frontendLanguages ) && !ArrayFindNoCase( frontendLanguages, arguments.locale ) ) {
+			arguments.locale = ( ArrayLen( frontendLanguages ) == 1 ) ? ArrayFirst( frontendLanguages ) : controller.getSetting( "default_locale" );
 		}
 
 		request._cbfwlocale = arguments.locale;
@@ -164,12 +167,14 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 
 			var event = controller.getRequestService().getContext();
 
-			if ( event.isAdminRequest() && adminLanguages.len() && !adminLanguages.findNoCase( request._cbfwlocale ) ) {
-				if ( adminLanguages.len() == 1 ) {
+			if ( event.isAdminRequest() && ArrayLen( adminLanguages ) && !ArrayFindNoCase( adminLanguages, request._cbfwlocale ) ) {
+				if ( ArrayLen( adminLanguages ) == 1 ) {
 					request._cbfwlocale = adminLanguages[ 1 ];
 				} else {
 					request._cbfwlocale = controller.getSetting( "default_locale" );
 				}
+			} else if ( ArrayLen( frontendLanguages ) && !ArrayFindNoCase( frontendLanguages, request._cbfwlocale ) ) {
+				request._cbfwlocale = ( ArrayLen( frontendLanguages ) == 1 ) ? ArrayFirst( frontendLanguages ) : controller.getSetting( "default_locale" );
 			}
 		}
 

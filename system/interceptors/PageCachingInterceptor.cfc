@@ -4,11 +4,19 @@ component extends="coldbox.system.Interceptor" {
 	property name="delayedViewletRendererService" inject="delayedInjector:delayedViewletRendererService";
 	property name="delayedStickerRendererService" inject="delayedInjector:delayedStickerRendererService";
 	property name="websiteUserActionService"      inject="delayedInjector:websiteUserActionService";
+	property name="i18n"                          inject="delayedInjector:i18n";
 
 // PUBLIC
 	public void function configure() {}
 
 	public void function onRequestCapture( event ) {
+		var siteDetail = event.getSite();
+		var siteLocale = Trim( siteDetail.locale ?: "" );
+
+		if ( Len( siteLocale ) && ( siteLocale != i18n.getFwLocale() ) ) {
+			i18n.setFwLocale( locale=siteLocale );
+		}
+
 		if ( event.cachePage() ) {
 			var cacheKey = _getCacheKey( event );
 			var cached   = cache.get( cacheKey );

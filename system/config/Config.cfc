@@ -143,7 +143,8 @@ component {
 			, unknownTranslation = "**NOT FOUND**"
 		};
 
-		settings.adminLanguages = [];
+		settings.adminLanguages    = [];
+		settings.frontendLanguages = [ "en" ];
 	}
 
 	private void function __setupInterceptors() {
