@@ -111,17 +111,18 @@ component {
 		var dateFrom = DateAdd( "yyyy", -1, dateTo );
 
 		var stats = {
-			  sendCount        = getStatCount( templateId=arguments.templateId, field="send_count"        , customTemplatesOnly=arguments.customTemplatesOnly, dateFrom=dateFrom, dateTo=dateTo )
-			, deliveryCount    = getStatCount( templateId=arguments.templateId, field="delivery_count"    , customTemplatesOnly=arguments.customTemplatesOnly )
-			, bounceCount      = getStatCount( templateId=arguments.templateId, field="fail_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
-			, uniqueOpenCount  = getStatCount( templateId=arguments.templateId, field="unique_open_count" , customTemplatesOnly=arguments.customTemplatesOnly )
-			, totalOpenCount   = getStatCount( templateId=arguments.templateId, field="open_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
-			, uniqueClickCount = getStatCount( templateId=arguments.templateId, field="unique_click_count", customTemplatesOnly=arguments.customTemplatesOnly )
-			, totalClickCount  = getStatCount( templateId=arguments.templateId, field="click_count"       , customTemplatesOnly=arguments.customTemplatesOnly )
-			, unsubscribeCount = getStatCount( templateId=arguments.templateId, field="unsubscribe_count" , customTemplatesOnly=arguments.customTemplatesOnly )
-			, complaintCount   = getStatCount( templateId=arguments.templateId, field="spam_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
-			, botOpenCount     = getStatCount( templateId=arguments.templateId, field="bot_open_count"    , customTemplatesOnly=arguments.customTemplatesOnly )
-			, botClickCount    = getStatCount( templateId=arguments.templateId, field="bot_click_count"   , customTemplatesOnly=arguments.customTemplatesOnly )
+			  sendCountFiltered = getStatCount( templateId=arguments.templateId, field="send_count"        , customTemplatesOnly=arguments.customTemplatesOnly, dateFrom=dateFrom, dateTo=dateTo )
+			, sendCount         = getStatCount( templateId=arguments.templateId, field="send_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
+			, deliveryCount     = getStatCount( templateId=arguments.templateId, field="delivery_count"    , customTemplatesOnly=arguments.customTemplatesOnly )
+			, bounceCount       = getStatCount( templateId=arguments.templateId, field="fail_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
+			, uniqueOpenCount   = getStatCount( templateId=arguments.templateId, field="unique_open_count" , customTemplatesOnly=arguments.customTemplatesOnly )
+			, totalOpenCount    = getStatCount( templateId=arguments.templateId, field="open_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
+			, uniqueClickCount  = getStatCount( templateId=arguments.templateId, field="unique_click_count", customTemplatesOnly=arguments.customTemplatesOnly )
+			, totalClickCount   = getStatCount( templateId=arguments.templateId, field="click_count"       , customTemplatesOnly=arguments.customTemplatesOnly )
+			, unsubscribeCount  = getStatCount( templateId=arguments.templateId, field="unsubscribe_count" , customTemplatesOnly=arguments.customTemplatesOnly )
+			, complaintCount    = getStatCount( templateId=arguments.templateId, field="spam_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
+			, botOpenCount      = getStatCount( templateId=arguments.templateId, field="bot_open_count"    , customTemplatesOnly=arguments.customTemplatesOnly )
+			, botClickCount     = getStatCount( templateId=arguments.templateId, field="bot_click_count"   , customTemplatesOnly=arguments.customTemplatesOnly )
 		};
 
 		if ( ( stats.bounceCount + stats.deliveryCount ) > stats.sendCount ) {
