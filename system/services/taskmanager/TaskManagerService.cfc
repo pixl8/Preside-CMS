@@ -568,8 +568,13 @@ component displayName="Task Manager Service" {
 
 		var taskConfig = getTaskConfiguration( arguments.taskKey );
 		var schedule   = Len( Trim( taskConfig.crontab_definition ?: "" ) ) ? taskConfig.crontab_definition : task.schedule;
+		var runDate    = _getCronUtil().getNextRunDate( schedule, arguments.lastRun );
 
-		return _getCronUtil().getNextRunDate( schedule, arguments.lastRun );
+		if ( $isFeatureEnabled( "taskmanagerUseRandomOffset" ) ) {
+			runDate = DateAdd( "s", _getRandomOffset(), runDate );
+		}
+
+		return runDate;
 	}
 
 	public array function getAllTaskDetails( string locale="EN" ) {
@@ -998,6 +1003,10 @@ private numeric function _getAverageWorkTimeFromClusteredTimes( required array r
 	}
 	private void function _setCronUtil( required any cronUtil ) {
 	    _cronUtil = arguments.cronUtil;
+	}
+
+	private numeric function _getRandomOffset() {
+		return RandRange( 0, 59 );
 	}
 
 }
