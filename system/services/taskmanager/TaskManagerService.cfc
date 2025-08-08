@@ -24,17 +24,17 @@ component displayName="Task Manager Service" {
 	 *
 	 */
 	public any function init(
-		  required any configWrapper
-		, required any controller
-		, required any taskDao
-		, required any taskHistoryDao
-		, required any systemConfigurationService
-		, required any logger
-		, required any errorLogService
-		, required any siteService
-		, required any threadUtil
-		, required any executor
-		, required any cronUtil
+		  required any     configWrapper
+		, required any     controller
+		, required any     taskDao
+		, required any     taskHistoryDao
+		, required any     systemConfigurationService
+		, required any     logger
+		, required any     errorLogService
+		, required any     siteService
+		, required any     threadUtil
+		, required any     executor
+		, required any     cronUtil
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
@@ -562,8 +562,13 @@ component displayName="Task Manager Service" {
 
 		var taskConfig = getTaskConfiguration( arguments.taskKey );
 		var schedule   = Len( Trim( taskConfig.crontab_definition ?: "" ) ) ? taskConfig.crontab_definition : task.schedule;
+		var runDate    = _getCronUtil().getNextRunDate( schedule, arguments.lastRun );
 
-		return _getCronUtil().getNextRunDate( schedule, arguments.lastRun );
+		if ( $isFeatureEnabled( "taskmanagerUseRandomOffset" ) ) {
+			runDate = DateAdd( "s", _getRandomOffset(), runDate );
+		}
+
+		return runDate;
 	}
 
 	public array function getAllTaskDetails( string locale="EN" ) {
@@ -992,6 +997,10 @@ private numeric function _getAverageWorkTimeFromClusteredTimes( required array r
 	}
 	private void function _setCronUtil( required any cronUtil ) {
 	    _cronUtil = arguments.cronUtil;
+	}
+
+	private numeric function _getRandomOffset() {
+		return RandRange( 0, 59 );
 	}
 
 }
