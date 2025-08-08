@@ -445,6 +445,7 @@ component {
 		,          string  instanceRef = ""
 		,          boolean hasValue    = true
 		,          struct  timeStruct  = {}
+		,          string  userField   = "website_user.id"
 	) {
 		var exists            = arguments.hasValue ? "exists" : "not exists";
 		var forArchived       = ( arguments.type != "active" );
@@ -503,7 +504,7 @@ component {
 
 		var subquery = $getPresideObject( targetObject ).selectData(
 			  selectFields        = [ "owner" ]
-			, filter              = "#$obfuscateSqlForPreside( 'website_user.id = #targetObject#.owner' )# AND #targetObject#.owner IS NOT NULL"
+			, filter              = "#$obfuscateSqlForPreside( '#arguments.userField# = #targetObject#.owner' )# AND #targetObject#.owner IS NOT NULL"
 			, extraFilters        = extraFilters
 			, forceJoins          = "inner"
 			, getSqlAndParamsOnly = true
