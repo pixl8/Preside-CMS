@@ -24,17 +24,17 @@ component displayName="Task Manager Service" {
 	 *
 	 */
 	public any function init(
-		  required any     configWrapper
-		, required any     controller
-		, required any     taskDao
-		, required any     taskHistoryDao
-		, required any     systemConfigurationService
-		, required any     logger
-		, required any     errorLogService
-		, required any     siteService
-		, required any     threadUtil
-		, required any     executor
-		, required any     cronUtil
+		  required any configWrapper
+		, required any controller
+		, required any taskDao
+		, required any taskHistoryDao
+		, required any systemConfigurationService
+		, required any logger
+		, required any errorLogService
+		, required any siteService
+		, required any threadUtil
+		, required any executor
+		, required any cronUtil
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
