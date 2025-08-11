@@ -914,6 +914,7 @@ component {
 			, sticker                         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms" ] }
 			, taskManager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, taskmanagerUseRandomOffset      = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "taskmanager" ] }
 			, adhocTasks                      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, assetManager                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, websiteUsers                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
@@ -971,6 +972,10 @@ component {
 			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 		};
+
+		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {
+			settings.features.taskmanagerUseRandomOffset.enabled = settings.env.TASKMANAGER_USE_RANDOM_OFFSET;
+		}
 	}
 
 	private void function __setupEnums() {
