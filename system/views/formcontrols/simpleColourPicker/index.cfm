@@ -62,7 +62,7 @@
 
 	<div class="simple-colour-picker clearfix" data-colour-format="#colourFormat#" data-raw-values="#rawValue#" id="simple-colour-picker-#controlId#">
 		<div class="selected-colour<cfif showInput> show-selected-colour-input</cfif>">
-			<span class="selected-colour-swatch<cfif !len( value )> unselected</cfif>"<cfif len( value )> style="background-color:#formatCssColour( value, colourFormat )#;"</cfif>>
+			<span class="selected-colour-swatch<cfif !len( value )> unselected</cfif>"<cfif len( value )> style="background-color:#formatCssColour( DecodeForHTML( value ), colourFormat )#;"</cfif>>
 			</span>
 			<input <cfif showInput>type="text" readonly<cfelse>type="hidden"</cfif> class="#inputClass# selected-colour-input" name="#inputName#" id="#inputId#" value="#value#" #htmlAttributes# />
 		</div>
