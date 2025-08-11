@@ -387,23 +387,37 @@ component {
 				plantUml &= arguments.plantUmlStyles & nl;
 			}
 
-			var stepTransitions = _getStepTransitions( instanceId=wfDetail.id, isArchive=isArchive );
-			var stepTitles      = _getWebflowConfigurator().getStepTitles( webflowId=wfDetail.reference, instanceRef=wfDetail.sub_reference );
-			var transitionsUml  = "";
+			var wfInstance = getInstance(
+				  webflowId    = wfDetail.reference
+				, instanceRef  = wfDetail.sub_reference
+				, subReference = wfDetail.sub_sub_reference
+				, explicitArgs = { owner=wfDetail.owner }
+				, archiveId    = isArchive ? wfDetail.id : ""
+			);
 
-			for ( var transition in stepTransitions ) {
-				var stepLabel = StructKeyExists( stepTitles, transition.to ) ? stepTitles[ transition.to ] : transition.to
+			var allSteps       = !IsSimpleValue( wfInstance ?: "" ) ? wfInstance.getAllStepStatuses() : [];
+			var stepTitles     = _getWebflowConfigurator().getStepTitles( webflowId=wfDetail.reference, instanceRef=wfDetail.sub_reference );
+			var transitionsUml = "";
+			var fromStep       = "";
 
-				plantUml &= 'state "#stepLabel#" as #transition.to#<<#LCase( transition.action )#>>' & nl;
+			for( var step in allSteps ) {
+				var stepId     = Trim( step.step ?: "" );
+				var stepLabel  = StructKeyExists( stepTitles, stepId ) ? "#stepTitles[ stepId ]# (#stepId#)" : stepId;
+				var stepStatus = $translateResource( uri="enum.cfflowStepStatus:#step.status#.label", defaultValue=step.status );
 
-				if ( ( QueryCurrentRow( stepTransitions ) == 1 ) ) {
-					transitionsUml &= "[*] --> #transition.to#" & nl;
-				} else if ( Len( transition.from ) ) {
-					transitionsUml &= "#transition.from# --> #transition.to#" & nl;
+				plantUml &= 'state "#stepStatus#" as #stepId#<<#LCase( step.status )#>>: #stepLabel#' & nl;
+
+				if ( !Len( fromStep ) ) {
+					transitionsUml &= "[*] --> #stepId#" & nl;
+				} else {
+					transitionsUml &= "#fromStep# --> #stepId#" & nl;
 				}
+
+				fromStep = stepId;
 			}
 
-			plantUml &= transitionsUml & nl & "@enduml";
+			transitionsUml &= "#fromStep# --> [*]" & nl;
+			plantUml       &= transitionsUml & nl & "@enduml";
 
 			return plantUml;
 		}
@@ -485,7 +499,6 @@ skinparam state {
   AttributeFontColor<<pending>> ##cccccc
   FontSize 10
   AttributeFontSize 8
-  AttributeFontStyle italic
 }';
 	}
 
