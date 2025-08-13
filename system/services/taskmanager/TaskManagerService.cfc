@@ -48,10 +48,11 @@ component displayName="Task Manager Service" {
 		_setExecutor( arguments.executor );
 		_setCronUtil( arguments.cronUtil );
 		_setMachineId();
-
-		_initialiseDb();
 		_setRunningTasks({});
 		_setTaskOffsets({});
+
+		_initialiseDb();
+
 
 		return this;
 	}
