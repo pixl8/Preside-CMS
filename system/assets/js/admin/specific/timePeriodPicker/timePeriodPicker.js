@@ -128,6 +128,9 @@
 					case "lastmonth":
 					case "thismonth":
 					case "nextmonth":
+					case "lastyear":
+					case "thisyear":
+					case "nextyear":
 						val.type = val.type;
 					break;
 
