@@ -49,6 +49,7 @@ component {
 		,          string  step      = ""
 		,          boolean _has      = true
 		,          struct  _pastTime = {}
+		,          string  userField = "website_user.id"
 	) {
 		return [ webflowInstanceService.prepareInstanceRuleFilter(
 			  type        = arguments.type
@@ -57,6 +58,7 @@ component {
 			, instanceRef = arguments.instance
 			, hasValue    = arguments._has
 			, timeStruct  = arguments._pastTime
+			, userField   = arguments.userField
 		) ];
 	}
 }
