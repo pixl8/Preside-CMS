@@ -9,21 +9,21 @@ component {
 	property name="adminLanguages"         inject="coldbox:setting:adminLanguages";
 
 	public string function index( event, rc, prc, args={} ) {
-		var locales      = Duplicate( resourceBundleService.listLocales() );
+		var locales      = Duplicate( args.locales ?: resourceBundleService.listLocales() );
 		var adminLocales = IsTrue( args.adminLocales ?: "" );
 		var userDetail   = loginService.getLoggedInUserDetails();
 
-		if ( locales.len() ) {
+		if ( ArrayLen( locales ) ) {
 			var defaultLocale = i18n.getDefaultLocale();
 			var currentLocale = i18n.getfwLocale();
 			args.values       = [];
 			args.labels       = [];
 
-			locales.append( defaultLocale );
-			if ( adminLocales && adminLanguages.len() ) {
-				for( var i=locales.len(); i>0; i-- ) {
-					if ( !adminLanguages.findNoCase( locales[ i ] ) ) {
-						locales.deleteAt( i );
+			ArrayAppend( locales, defaultLocale );
+			if ( adminLocales && ArrayLen( adminLanguages ) ) {
+				for( var i=ArrayLen( locales ); i>0; i-- ) {
+					if ( !ArrayFindNoCase( adminLanguages, locales[ i ] ) ) {
+						ArrayDeleteAt( locales, i );
 					}
 				}
 			}
@@ -45,12 +45,12 @@ component {
 				return a.title < b.title ? -1 : 1;
 			} );
 
-			for( var i=1 ; i<=arrayLen( locales ); i++ ) {
-				arrayAppend( args.values, locales[i].locale );
-				arrayAppend( args.labels, locales[i].title );
+			for( var i=1 ; i<=ArrayLen( locales ); i++ ) {
+				ArrayAppend( args.values, locales[i].locale );
+				ArrayAppend( args.labels, locales[i].title );
 			}
 
-			args.defaultValue = userDetail.user_language;
+			args.defaultValue = args.defaultValue ?: userDetail.user_language;
 			args.multiple     = false;
 
 			return renderView( view="/formcontrols/select/index", args=args );
