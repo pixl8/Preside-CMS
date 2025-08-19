@@ -3,7 +3,12 @@ component {
 
 	public string function default( event, rc, prc, args={} ) {
 		var recordId      = Trim( args.data ?: "" );
-		var instanceCount = webflowUtilsService.getWebflowInstances( recordId=recordId, countOnly=true );
+		var referenceId   = Trim( rc.reference ?: "" );
+		var instanceCount = webflowUtilsService.getWebflowInstances(
+			  recordId     = recordId
+			, countOnly    = true
+			, extraFilters = Len( referenceId ) ? [ { filter={ sub_reference=referenceId } } ] : []
+		);
 
 		return Val( instanceCount );
 	}

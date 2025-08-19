@@ -5,6 +5,7 @@
 	btnClass  = args.btnClass  ?: "";
 	iconClass = args.iconClass ?: "";
 	title     = args.title     ?: "";
+	message   = args.message   ?: "";
 	prompt    = args.prompt    ?: "";
 	children  = args.children  ?: [];
 	target    = args.target    ?: "";
@@ -15,7 +16,7 @@
 
 <cfoutput>
 	<cfif not ArrayLen( children )>
-		<a class="pull-right btn #btnClass# btn-sm inline<cfif Len( prompt )> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif Len( prompt )> title="#HtmlEditFormat( prompt )#"</cfif><cfif Len( target )> target="#target#"</cfif><cfif Len( match )> data-confirmation-match="#match#"</cfif> #linkAttributes#>
+		<a class="pull-right btn #btnClass# btn-sm inline<cfif Len( prompt )> confirmation-prompt</cfif>" href="#link#" data-global-key="#globalKey#"<cfif Len( prompt )> title="#HtmlEditFormat( prompt )#"</cfif><cfif Len( message )> data-message="#EncodeForHTML( message )#"</cfif><cfif Len( target )> target="#target#"</cfif><cfif Len( match )> data-confirmation-match="#match#"</cfif> #linkAttributes#>
 			<cfif !isEmpty(iconClass)><i class="fa fa-fw #iconClass#"></i></cfif>
 			#title#
 		</a>

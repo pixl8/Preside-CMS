@@ -1,36 +1,19 @@
 <cfscript>
-	recordId       = args.recordId              ?: "";
-	activeTab      = rc.tab                     ?: "activeInstances"
-	instObjName    = args.instanceObjectName    ?: "";
 	groupingConfig = args.refGroupingConfig     ?: {};
 	webflowId      = groupingConfig.webflowId   ?: "";
 	groupedRefs    = groupingConfig.groupedRefs ?: QueryNew( "" );
+	infoCards      = args.infoCards             ?: "";
 
-	event.include( "/css/admin/specific/datamanager/dataCardGrid/" );
+	groupingLayout        = args.groupingLayout          ?: "cards";
+	groupingLayoutViewlet = groupingConfig.layoutViewlet ?: "admin.datamanager.webflow_configuration._instancesGroup#groupingLayout#";
 </cfscript>
 
 <cfoutput>
-	<cfif Len( webflowId ) && groupedRefs.recordcount>
-		<div id="cards" class="card-listing">
-			<cfloop query="#groupedRefs#">
-				<cfset refId = groupedRefs.reference_id ?: "" />
+	<cfif Len( infoCards )>
+		#infoCards#
+	</cfif>
 
-				<div class="card-listing-item">
-					<div class="card">
-						<div class="card-header">
-							<h6 class="card-header-label">
-								#renderContent( renderer="webflowInstanceReference", data=refId, args={ webflowId=webflowId } )#
-							</h6>
-						</div>
-
-						<div class="card-body card-body-with-link">
-							<a href="#event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=#activeTab#&reference=#refId#" )#" class="card-body-link">
-								#translateResource( uri="preside-objects.webflow_configuration:instance.group.count.label", data=[ Val( groupedRefs.total_no ?: "" ) ] )#
-							</a>
-						</div>
-					</div>
-				</div>
-			</cfloop>
-		</div>
+	<cfif Len( webflowId ) && groupedRefs.recordcount && viewletExists( groupingLayoutViewlet )>
+		#renderViewlet( event=groupingLayoutViewlet, args=args )#
 	</cfif>
 </cfoutput>

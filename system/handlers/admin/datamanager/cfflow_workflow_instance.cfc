@@ -215,6 +215,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				, iconClass = "fa-archive"
 				, btnClass  = "btn-danger"
 				, title     = translateResource( uri="preside-objects.cfflow_workflow_instance:admin.archiveInstance.title" )
+				, message   = translateResource( uri="preside-objects.cfflow_workflow_instance:admin.archiveInstance.message" )
 				, prompt    = translateResource( uri="preside-objects.cfflow_workflow_instance:admin.archiveInstance.prompt", data=[ renderContent( "webflowOwner", record.owner ?: "" ) ] )
 				, match     = translateResource( uri="preside-objects.cfflow_workflow_instance:admin.archiveInstance.match" )
 			} );
@@ -242,10 +243,12 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 					, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id )
 				);
 
-				event.addAdminBreadCrumb(
-					  title = translateResource( uri="preside-objects.webflow_configuration:viewtab.activeInstances.title" )
-					, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id, queryString="tab=activeInstances" )
-				);
+				if ( webflow.getSingleton() && Len( webflowRef ) ) {
+					event.addAdminBreadCrumb(
+						  title = renderContent( renderer="webflowInstanceReference", data=webflowRef, args={ webflowId=webflowId, plainText=true } )
+						, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id, queryString="tab=activeInstances&reference=#webflowRef#" )
+					);
+				}
 			}
 		}
 	}

@@ -1943,7 +1943,10 @@ component extends="preside.system.base.AdminHandler" {
 				, btnClass  = "btn-success"
 				, iconClass = "fa-pencil"
 				, globalKey = "e"
-				, title     = translateResource( uri="cms:datamanager.editRecord.btn" )
+				, title     = translateResource(
+					  uri          = "preside-objects.#objectName#:datamanager.editRecord.btn"
+					, defaultValue = translateResource( uri="cms:datamanager.editRecord.btn" )
+				)
 			} );
 		}
 

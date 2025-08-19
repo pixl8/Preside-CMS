@@ -11,6 +11,6 @@ component {
 			, extraFilters = [ { filter={ archive_reason="complete" } } ]
 		);
 
-		return NumberFormat( ( archivedCount > 0 ) ? ( completedCount / archivedCount * 100 ) : 0, "_.000" );
+		return NumberFormat( ( archivedCount > 0 ) ? ( completedCount / archivedCount * 100 ) : 0, "0" );
 	}
 }

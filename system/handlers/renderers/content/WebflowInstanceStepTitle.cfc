@@ -1,4 +1,5 @@
 component {
+	property name="presideObjectService" inject="PresideObjectService";
 	property name="webflowConfigService" inject="WebflowConfigurationService";
 
 	private string function default( event, rc, prc, args={} ) {
@@ -9,11 +10,19 @@ component {
 
 		if ( Len( recordData ) ) {
 			if ( !Len( webflowId ) || !Len( instanceRef ) ) {
-				var webflowDetail = getPresideObject( "cfflow_workflow_instance_history" ).selectData(
-					  id           = recordId
-					, returntype   = "singleRecordStruct"
-					, selectFields = [ "instance.reference", "instance.sub_reference" ]
-				);
+				var webflowDetail = presideObjectService.selectUnion( selectDataArgs=[
+					{
+						  objectName   = "cfflow_workflow_instance_history"
+						, id           = recordId
+						, returntype   = "singleRecordStruct"
+						, selectFields = [ "instance.reference", "instance.sub_reference" ]
+					}, {
+						  objectName   = "cfflow_workflow_instance"
+						, id           = recordId
+						, returntype   = "singleRecordStruct"
+						, selectFields = [ "reference", "sub_reference" ]
+					}
+				] );
 
 				webflowId   = Len( webflowId   ) ? webflowId   : ( webflowDetail.reference     ?: "" );
 				instanceRef = Len( instanceRef ) ? instanceRef : ( webflowDetail.sub_reference ?: "" );
