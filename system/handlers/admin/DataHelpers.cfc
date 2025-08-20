@@ -21,9 +21,9 @@ component extends="preside.system.base.adminHandler" {
 
 		args.viewGroups = adminDataViewsService.listViewGroupsForObject( objectName );
 
-		args.preRenderRecord         = ( customizationService.objectHasCustomization( objectName, "preRenderRecord"          ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecord"         , args=args ) : "" );
-		args.preRenderRecordLeftCol  = ( customizationService.objectHasCustomization( objectName, "preRenderRecordLeftCol"   ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecordLeftCol"  , args=args ) : "" );
-		args.preRenderRecordRightCol = ( customizationService.objectHasCustomization( objectName, "preRenderRecordRightCol"  ) ? customizationService.runCustomization( objectName=objectName, action="preRenderRecordRightCol" , args=args ) : "" );
+		args.preRenderRecord         = customizationService.runCustomization( objectName=objectName, action="preRenderRecord"        , args=args, defaultResult="" );
+		args.preRenderRecordLeftCol  = customizationService.runCustomization( objectName=objectName, action="preRenderRecordLeftCol" , args=args, defaultResult="" );
+		args.preRenderRecordRightCol = customizationService.runCustomization( objectName=objectName, action="preRenderRecordRightCol", args=args, defaultResult="" );
 
 		args.leftCol  = "";
 		args.rightCol = "";
@@ -40,9 +40,9 @@ component extends="preside.system.base.adminHandler" {
 			}
 		}
 
-		args.postRenderRecordLeftCol  = ( customizationService.objectHasCustomization( objectName, "postRenderRecordLeftCol"  ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecordLeftCol" , args=args ) : "" );
-		args.postRenderRecordRightCol = ( customizationService.objectHasCustomization( objectName, "postRenderRecordRightCol" ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecordRightCol", args=args ) : "" );
-		args.postRenderRecord         = ( customizationService.objectHasCustomization( objectName, "postRenderRecord"         ) ? customizationService.runCustomization( objectName=objectName, action="postRenderRecord"        , args=args ) : "" );
+		args.postRenderRecordLeftCol  = customizationService.runCustomization( objectName=objectName, action="postRenderRecordLeftCol" , args=args, defaultResult="" );
+		args.postRenderRecordRightCol = customizationService.runCustomization( objectName=objectName, action="postRenderRecordRightCol", args=args, defaultResult="" );
+		args.postRenderRecord         = customizationService.runCustomization( objectName=objectName, action="postRenderRecord"        , args=args, defaultResult="" );
 
 
 		return renderView( view="/admin/dataHelpers/viewRecord", args=args );
