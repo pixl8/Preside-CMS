@@ -2,7 +2,7 @@
 <cfscript>
 	objectName          = "email_template"
 	gridFields          = [ "name", "sending_method", "send_date", "last_sent_date", "open_rate", "click_rate", "datecreated", "datemodified" ];
-	sortableFields      = [ "name", "sending_method", "last_sent_date", "datecreated", "datemodified" ];
+	sortableFields      = [ "name", "sending_method", "last_sent_date", "datecreated", "datemodified", "open_rate", "click_rate" ];
 	objectTitle         = translateResource( uri = "preside-objects.#objectName#:title"         , defaultValue = objectName );
 	objectTitleSingular = translateResource( uri = "preside-objects.#objectName#:title.singular", defaultValue = objectName );
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
