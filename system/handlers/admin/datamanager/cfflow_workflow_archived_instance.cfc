@@ -100,6 +100,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 					  title = translateResource( uri="preside-objects.webflow_configuration:viewtab.archivedInstances.title" )
 					, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id, queryString="tab=archivedInstances" )
 				);
+
+				if ( webflow.getSingleton() && Len( webflowRef ) ) {
+					event.addAdminBreadCrumb(
+						  title = renderContent( renderer="webflowInstanceReference", data=webflowRef, args={ webflowId=webflowId, plainText=true } )
+						, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id, queryString="tab=archivedInstances&reference=#webflowRef#" )
+					);
+				}
 			}
 		}
 	}

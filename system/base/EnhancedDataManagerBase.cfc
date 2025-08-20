@@ -233,9 +233,9 @@ component extends="preside.system.base.AdminHandler" {
 			args.infoDescription = _render( args.infoDescription );
 		}
 
-		args.col1 = Duplicate( variables.infoCol1 ?: [] );
-		args.col2 = Duplicate( variables.infoCol2 ?: [] );
-		args.col3 = Duplicate( variables.infoCol3 ?: [ "created", "modified" ] );
+		args.col1 = Duplicate( args.col1 ?: ( variables.infoCol1 ?: [] ) );
+		args.col2 = Duplicate( args.col2 ?: ( variables.infoCol2 ?: [] ) );
+		args.col3 = Duplicate( args.col3 ?: ( variables.infoCol3 ?: [ "created", "modified" ] ) );
 		args.infoCardStyle = variables.infoCardStyle;
 
 		announceInterception( "preRenderDataManagerObjectInfoCard", args );
