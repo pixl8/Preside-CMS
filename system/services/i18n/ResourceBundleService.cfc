@@ -1,4 +1,8 @@
-component singleton=true {
+/**
+ * @singleton      true
+ * @presideService true
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -109,7 +113,12 @@ component singleton=true {
 					bundleName = ListAppend( subDirectory, bundleName, "." );
 				}
 
-				if ( ReFind( localeRegex, bundleName ) ) {
+				var isObjectBundle = false;
+				if ( ( ListLen( bundleName, "." ) > 1 ) && ( ListFirst( bundleName, "." ) == "preside-objects" ) ) {
+					isObjectBundle = $getPresideObjectService().objectExists( ListLast( bundleName, "." ) );
+				}
+
+				if ( !isObjectBundle && ReFind( localeRegex, bundleName ) ) {
 					locale = ReReplace( bundleName, ("^.*?" & localeRegex ), "\1\2" );
 					locale = Right( locale, Len( locale ) - 1 );
 
