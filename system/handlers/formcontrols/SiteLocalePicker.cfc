@@ -8,6 +8,7 @@ component {
 
 	public string function index( event, rc, prc, args={} ) output=false {
 		args.adminLocales = false;
+		args.checkLocales = true;
 		args.locales      = frontendLanguages;
 		args.defaultValue = args.defaultValue ?: i18n.getDefaultLocale();
 
