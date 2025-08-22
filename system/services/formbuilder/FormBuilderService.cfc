@@ -722,6 +722,31 @@ component {
 		_getSessionStorage().setVar( tempStorageKey, dataToStore );
 	}
 
+	public any function getSubmittedData(
+		required string submissionId
+	) {
+		var data = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  argumentCollection = arguments
+			, id                 = arguments.submissionId
+			, selectFields       = [ "submitted_data" ]
+			, returnType         = "singleValue"
+			, columnKey          = "submitted_data"
+		);
+
+		return IsEmpty( data ) ? {} : DeserializeJson( data );
+	}
+
+	public any function clearSubmittedData(
+		required string submissionId
+	) {
+		return $getPresideObject( "formbuilder_formsubmission" ).updateData(
+			 id = arguments.submissionId
+			, data = {
+				submitted_data = ""
+			}
+		);
+	}
+
 	/**
 	 * Retrieves a formbuilder form's submitted values from the user's session temporarily
 	 * for repopulation to a form when the user has logged back in after a timeout.
@@ -1175,8 +1200,10 @@ component {
 		,          boolean recordAction    = true
 		,          array   formItems       = []
 		,          struct  data            = {}
+		,          string  submissionId    = ""
 	) {
 		var submissionId      = "";
+		var submission        = {};
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = ArrayLen( arguments.formItems ) ? arguments.formItems : getFormItems( arguments.formId );
 		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
@@ -1202,6 +1229,14 @@ component {
 
 		if ( validationResult.validated() ) {
 			if ( isV2Form( arguments.formId ) ) {
+				if ( !$helpers.isEmptyString( arguments.submissionId ) ) {
+					submission = getSubmission( submissionId=arguments.submissionId, returnType="singleRecordStruct" );
+
+					if ( !$helpers.isEmptyString( submission.id ?: "" ) ) {
+						$getPresideObject( "formbuilder_formsubmission" ).deleteData( id=submission.id );
+					}
+				}
+
 				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
 					  form           = arguments.formId
 					, submitted_by   = $getWebsiteLoggedInUserId()
@@ -1212,6 +1247,7 @@ component {
 					, ip_address     = arguments.ipAddress
 					, user_agent     = arguments.userAgent
 					, submitted_data = IsEmpty( arguments.data ) ? NullValue() : SerializeJson( arguments.data )
+					, id             = submission.id ?: ""
 				} );
 
 				saveV2Responses( formId=arguments.formId, formData=formData, formItems=formItems, submissionId=submissionId );
@@ -1232,8 +1268,10 @@ component {
 
 			setFormBuilderSubmissionContextData( formId=arguments.formId, submissionId=submissionId, data=arguments.requestData );
 
-			var submission = getSubmission( submissionId );
-			for ( var s in submission ) { submission = s; }
+			submission = getSubmission( submissionId=submissionId, returnType="singleRecordStruct" );
+
+			arguments.data = arguments.data ?: {};
+			arguments.data.submissionId = submissionId;
 
 			if ( isV2Form( formId=arguments.formId ) ) {
 				submission.submitted_data = SerializeJSON( getV2Responses( formId=arguments.formId, submissionId=submissionId ) );
@@ -1388,19 +1426,11 @@ component {
 	 * @selectFields.hint Array of field names to select
 	 *
 	 */
-	public query function getSubmission(
-		  required string submissionId
-		,          array  selectFields = []
-	) {
-		var args = {
-			filter = { id=arguments.submissionId }
-		};
-
-		if ( ArrayLen( arguments.selectFields ) ) {
-			StructAppend( args, { selectFields=arguments.selectFields } );
-		}
-
-		return $getPresideObject( "formbuilder_formsubmission" ).selectData( argumentCollection=args );
+	public any function getSubmission( required string submissionId ) {
+		return $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  argumentCollection = arguments
+			, id                 = arguments.submissionId
+		);
 	}
 
 	/**
