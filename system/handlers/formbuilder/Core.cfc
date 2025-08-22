@@ -102,10 +102,26 @@ component {
 				}
 
 				formData.formPageNumber = formNextPageNumber;
-			} else {
-				StructAppend( submission, formData );
-				formData = {};
-				persistStruct.formBuilderFormSubmitted = formId; // Trigger success message.
+
+				if ( formPageNumber >= formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
+					formItemsInPage = [];
+				}
+			}
+		}
+
+		if ( !ArrayLen( formItemsInPage ) ) {
+			StructAppend( submission, formData );
+			formData = {};
+			persistStruct.formBuilderFormSubmitted = formId; // Trigger success message.
+		}
+
+		if ( !isEmptyString( submission.instancePage ?: "" ) ) {
+			formItemsInPage = [];
+
+			// For validation, only form items that have been answered on the page
+			for ( var submissionPage in ListToArray( submission.instancePage ) ) {
+				var formItemPage = formBuilderService.getPage( formId=formId, formItemId=submissionPage );
+				ArrayAppend( formItemsInPage, formBuilderService.getFormItems( id=formId, pageNumber=formItemPage.page_number ), true );
 			}
 		}
 
