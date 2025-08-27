@@ -129,10 +129,6 @@ component {
 					StructAppend( preparedItem.configuration, _getItemConfigurationForV2Question( item.question ) );
 				}
 
-				if ( ( preparedItem.item_type == "textinput" ) && ( Val( preparedItem.configuration.maxlength ?: "" ) == 0 ) ) {
-					preparedItem.configuration.maxlength = 200;
-				}
-
 				ArrayAppend( result, preparedItem );
 			}
 		}
