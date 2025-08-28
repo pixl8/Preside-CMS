@@ -22,16 +22,25 @@ component {
 		args.defaultValue    = _removeInvalidValues( objectName=targetObject, values=args.defaultValue, bypassTenants=bypassTenants );
 
 		if ( IsBoolean( ajax ) && ajax ) {
+			var sourceIdField     = Trim( args.sourceIdField     ?: "" );
+			var sourceObjectField = Trim( args.sourceObjectField ?: "" );
+			var sourceObject      = Trim( args.sourceObject      ?: "" );
+			var valueQs           = "defaultValue=#args.defaultValue#";
+
+			if ( Len( sourceObjectField ) && Len( sourceObject ) && Len( sourceIdField ) && Len( savedData[ sourceIdField ] ?: "" ) ) {
+				valueQs = "sourceObject=#sourceObject#&sourceObjectField=#sourceObjectField#&sourceIdValue=#savedData[ sourceIdField ]#";
+			}
+
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&defaultValue=#args.defaultValue#"
+					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&#valueQs#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&defaultValue=#args.defaultValue#&q=%QUERY"
+				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&#valueQs#&q=%QUERY"
 			);
 		} else {
 			var filter = {};
