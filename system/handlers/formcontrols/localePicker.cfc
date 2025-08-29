@@ -9,7 +9,9 @@ component {
 	property name="adminLanguages"         inject="coldbox:setting:adminLanguages";
 
 	public string function index( event, rc, prc, args={} ) {
-		var locales      = Duplicate( args.locales ?: resourceBundleService.listLocales() );
+		var allLocales   = resourceBundleService.listLocales()
+		var locales      = Duplicate( args.locales ?: allLocales );
+		var checkLocales = IsTrue( args.checkLocales ?: "" );
 		var adminLocales = IsTrue( args.adminLocales ?: "" );
 		var userDetail   = loginService.getLoggedInUserDetails();
 
@@ -31,10 +33,15 @@ component {
 			locales = locales.map( function( locale ){
 				var language = ListFirst( locale, "_" );
 				var country  = ListLen( locale, "_" ) > 1 ? ListRest( locale, "_" ) : "";
+				var title    = translateResource( uri="locale:title", language=language, country=country );
+
+				if ( checkLocales && !ArrayFindNoCase( allLocales, locale ) && ( locale != "en" ) ) {
+					title = locale;
+				}
 
 				return {
 					  locale  = arguments.locale
-					, title   = translateResource( uri="locale:title", language=language, country=country )
+					, title   = title
 					, selected = ( arguments.locale == currentLocale )
 				}
 			} ).sort( function( a, b ){
