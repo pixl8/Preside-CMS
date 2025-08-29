@@ -1033,6 +1033,25 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
+		var sourceObject      = Trim( rc.sourceObject      ?: "" );
+		var sourceObjectField = Trim( rc.sourceObjectField ?: "" );
+		var sourceIdValue     = Trim( rc.sourceIdValue     ?: "" );
+
+		if ( isEmptyString( defaultValue ) && Len( sourceObject ) && Len( sourceObjectField ) && Len( sourceIdValue ) ) {
+			var objPropRelationship = presideObjectService.getObjectPropertyAttribute( sourceObject, sourceObjectField, "relationship" );
+
+			if ( objPropRelationship == "many-to-many" ) {
+				var objPropQuery = presideObjectService.selectManyToManyData(
+					  objectName   = sourceObject
+					, propertyName = sourceObjectField
+					, id           = sourceIdValue
+					, selectFields = [ "GROUP_CONCAT( #sourceObjectField#.id ) AS ids" ]
+				);
+
+				defaultValue = objPropQuery.ids ?: "";
+			}
+		}
+
 		var interceptArgs = {
 			  objectName   = rc.object ?: ""
 			, defaultValue = defaultValue
