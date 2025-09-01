@@ -9,7 +9,7 @@ This form is used for the "edit user group" form in the user admin section of th
 		<fieldset id="basic" sortorder="10">
 			<field binding="security_group.label"       sortorder="10" />
 			<field binding="security_group.description" sortorder="20" />
-			<field binding="security_group.users"       sortorder="30" />
+			<field binding="security_group.users"       sortorder="30" sourceObjectField="users" sourceIdField="id" />
 			<field binding="security_group.roles"       sortorder="40" />
 		</fieldset>
 	</tab>
