@@ -671,12 +671,18 @@ component displayName="Admin login service" {
 				two_step_auth_key_in_use = true
 			} );
 
-			var loginRecordId = $getPresideObject( "security_user_two_factor_login_record" ).insertData( {
+			var tfaTrustPeriod = Val( $getPresideSetting( "admin-login-security", "tfa_trust_period", 7 ) );
+			var loginRecordId  = $getPresideObject( "security_user_two_factor_login_record" ).insertData( {
 				  security_user  = userId
 				, logged_in_date = Now()
 			} );
 
-			_getCookieService().setVar( name=_getTwoFactorAuthCookiePersistKey(), value=loginRecordId );
+			_getCookieService().setVar(
+				  name     = _getTwoFactorAuthCookiePersistKey()
+				, value    = loginRecordId
+				, expires  = DateAdd( "d", tfaTrustPeriod, Now() )
+				, httpOnly = true
+			);
 
 			$audit(
 				  userId = userId
