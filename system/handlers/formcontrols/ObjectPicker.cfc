@@ -86,7 +86,7 @@ component {
 		return renderView( view="formcontrols/objectPicker/index", args=args );
 	}
 
-	private string function _removeInvalidValues( required string objectName, required string values, string bypassTenants="", string targetIdField="" ) {
+	private string function _removeInvalidValues( required string objectName, required string values, string bypassTenants="", string targetIdField="id" ) {
 		if ( !len( arguments.values ?: "" ) ) {
 			return "";
 		}
