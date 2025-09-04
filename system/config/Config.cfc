@@ -198,6 +198,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"                  );
 		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"                 );
 		interceptorSettings.customInterceptionPoints.append( "postInitializePresideSiteteePage"      );
+		interceptorSettings.customInterceptionPoints.append( "preInitializeDummyPresideSiteTreePage" );
 		interceptorSettings.customInterceptionPoints.append( "postInitializeDummyPresideSiteTreePage");
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"                   );
