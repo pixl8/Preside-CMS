@@ -2,7 +2,7 @@
 	formPageCount  = args.formPageCount  ?: 0;
 	formPageNumber = args.formPageNumber ?: 0;
 
-	progress = args.progress ?: Round( ( ( formPageNumber - 1 ) / formPageCount ) * 100 );
+	progress = args.progress ?: Ceiling( ( ( formPageNumber - 1 ) / formPageCount ) * 100 );
 </cfscript>
 
 <cfoutput>
