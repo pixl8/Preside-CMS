@@ -45,7 +45,7 @@ component {
 		};
 	}
 
-	private struct function siteTreePageTypes( event, rc, prc, args={} ) {
-		return { filter={ "page.page_type"=pageTypesService.listSiteTreePageTypes() } };
+	private struct function enabledPageTypes( event, rc, prc, args={} ) {
+		return { filter={ "page.page_type"=pageTypesService.listSiteTreePageTypes( includeHidden=true ) } };
 	}
 }
