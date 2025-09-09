@@ -26,6 +26,10 @@ component displayName="Cron util" {
 	}
 
 	public string function getNextRunDate( required string crontabExpression, date lastRun=Now() ) {
+		if ( arguments.crontabExpression == "disabled" ) {
+			return "";
+		}
+
 		var cronTabExpression = _getCrontabExpressionObject( arguments.crontabExpression );
 		var executionTimeObj  = CreateObject( "java", "com.cronutils.model.time.ExecutionTime", _getLib() ).forCron( cronTabExpression );
 
