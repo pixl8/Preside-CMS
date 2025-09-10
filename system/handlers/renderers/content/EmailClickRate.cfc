@@ -9,10 +9,10 @@ component output=false {
 		var rate       = 0;
 
 		if ( Len( templateId ) && Val( clicks ) > 0 ) {
-			var stats = emailStatsService.getSummaryStats( templateId );
+			var sendCount = emailStatsService.getSendCountStat( templateId=templateId );
 
-			if ( stats.sendCount > 0 ) {
-				rate = ( clicks / stats.sendCount ) * 100;
+			if ( sendCount > 0 ) {
+				rate = ( clicks / sendCount ) * 100;
 			}
 		}
 

@@ -144,6 +144,14 @@ component {
 		return stats;
 	}
 
+	public numeric function getSendCountStat( required string templateId, boolean customTemplatesOnly = false ) {
+		return getStatCount(
+			  templateId           = arguments.templateId
+			, field                = "send_count"
+			, customTemplatesOnly  = arguments.customTemplatesOnly
+		);
+	}
+
 	public struct function getStatsOverTime(
 		  required string  templateId
 		, required string  dateFrom
