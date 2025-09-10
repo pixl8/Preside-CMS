@@ -1,13 +1,19 @@
 component output=false {
 
+	property name="emailStatsService" inject="emailStatsService";
+
 	public string function default( event, rc, prc, args={} ){
-		var opens      = args.data         ?: 0;
-		var record     = args.record       ?: {};
-		var sentCount  = record.sent_count ?: 0;
+		var opens      = args.data   ?: 0;
+		var record     = args.record ?: {};
+		var templateId = record.id  ?: "";
 		var rate       = 0;
 
-		if ( sentCount > 0 ) {
-			rate = ( opens / sentCount ) * 100;
+		if ( Len( templateId ) && Val( opens ) > 0 ) {
+			var stats = emailStatsService.getSummaryStats( templateId );
+
+			if ( stats.sendCount > 0 ) {
+				rate = ( opens / stats.sendCount ) * 100;
+			}
 		}
 
 		rate = NumberFormat( rate, "99.9" ) & "%";
