@@ -46,6 +46,11 @@ component {
 	}
 
 	private struct function enabledPageTypes( event, rc, prc, args={} ) {
-		return { filter={ "page.page_type"=pageTypesService.listSiteTreePageTypes( includeHidden=true ) } };
+		return {
+			  filter       = "page.page_type IN ( :enabledPageTypes )"
+			, filterParams = {
+				enabledPageTypes = { value=pageTypesService.listSiteTreePageTypes( includeHidden=true ), type="cf_sql_varchar", list=true }
+			  }
+		};
 	}
 }
