@@ -194,6 +194,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"                  );
 		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"                 );
 		interceptorSettings.customInterceptionPoints.append( "postInitializePresideSiteteePage"      );
+		interceptorSettings.customInterceptionPoints.append( "preInitializeDummyPresideSiteTreePage" );
 		interceptorSettings.customInterceptionPoints.append( "postInitializeDummyPresideSiteTreePage");
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"                   );
@@ -726,7 +727,7 @@ component {
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*", "formquestions.*" ];
 		settings.adminRoles.emailcentremanager = [ "cms.access", "emailCenter.*", "!emailCenter.queue.*" ];
-		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*" ];
+		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*", "datamanager.managefilters" ];
 		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
 		settings.adminRoles.savedExportAccess  = [ "cms.access", "savedExport.navigate", "savedExport.read" ];
 	}
@@ -915,6 +916,7 @@ component {
 			, sticker                         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms" ] }
 			, taskManager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, taskmanagerUseRandomOffset      = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "taskmanager" ] }
 			, adhocTasks                      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, assetManager                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, websiteUsers                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
@@ -972,6 +974,10 @@ component {
 			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 		};
+
+		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {
+			settings.features.taskmanagerUseRandomOffset.enabled = settings.env.TASKMANAGER_USE_RANDOM_OFFSET;
+		}
 	}
 
 	private void function __setupEnums() {
