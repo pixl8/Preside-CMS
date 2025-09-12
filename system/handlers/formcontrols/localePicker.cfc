@@ -16,12 +16,21 @@ component {
 		var userDetail   = loginService.getLoggedInUserDetails();
 
 		if ( ArrayLen( locales ) ) {
-			var defaultLocale = i18n.getDefaultLocale();
+			var defaultLocale    = i18n.getDefaultLocale();
+			var defaultLangTitle = translateResource(
+				  uri      = "locale:title"
+				, language = ListFirst( defaultLocale, "_" )
+				, country  = ListLen( defaultLocale, "_" ) > 1 ? ListRest( defaultLocale, "_" ) : ""
+			);
+
 			var currentLocale = i18n.getfwLocale();
 			args.values       = [];
 			args.labels       = [];
 
-			ArrayAppend( locales, defaultLocale );
+			if ( !ArrayFindNoCase( locales, defaultLocale ) ) {
+				ArrayAppend( locales, defaultLocale );
+			}
+
 			if ( adminLocales && ArrayLen( adminLanguages ) ) {
 				for( var i=ArrayLen( locales ); i>0; i-- ) {
 					if ( !ArrayFindNoCase( adminLanguages, locales[ i ] ) ) {
@@ -35,8 +44,10 @@ component {
 				var country  = ListLen( locale, "_" ) > 1 ? ListRest( locale, "_" ) : "";
 				var title    = translateResource( uri="locale:title", language=language, country=country );
 
-				if ( checkLocales && !ArrayFindNoCase( allLocales, locale ) && ( locale != "en" ) ) {
-					title = locale;
+				if ( checkLocales && ( locale != "en" ) ) {
+					if ( !ArrayFindNoCase( allLocales, locale ) || ( title == defaultLangTitle ) ) {
+						title = locale;
+					}
 				}
 
 				return {
