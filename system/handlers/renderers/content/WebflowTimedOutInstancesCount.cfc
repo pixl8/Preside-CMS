@@ -8,7 +8,7 @@ component {
 		var extraFilters  = [];
 
 		ArrayAppend( extraFilters, {
-			  filter       = "datemodified >= :datemodified"
+			  filter       = "datemodified < :datemodified"
 			, filterParams = { datemodified = DateAdd( "n", -1 * Val( webflowConfig?.timeout_in_minutes ), Now() ) }
 		} );
 

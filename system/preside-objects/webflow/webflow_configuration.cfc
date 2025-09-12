@@ -3,7 +3,7 @@
  * @tablePrefix                     ""
  * @tenant                          site
  * @datamanagerEnabled              true
- * @datamanagerGridFields           label,step_count,timeout_in_minutes,active_instances_count,archived_instances_count,completed_archived_count,instance_completion_rate,datemodified
+ * @datamanagerGridFields           label,step_count,timeout_in_minutes,active_instances_count,timedout_instances_count,archived_instances_count,completed_archived_count,instance_completion_rate,datemodified
  * @datamanagerDisallowedOperations add,delete,clone
  */
 component {
@@ -28,6 +28,7 @@ component {
 	property name="is_admin_flow"    type="boolean" dbtype="boolean" required=false default=false indexes="adminflows" batcheditable=false;
 
 	property name="active_instances_count"   type="numeric" formula="${prefix}id" renderer="webflowActiveInstancesCount";
+	property name="timedout_instances_count" type="numeric" formula="${prefix}id" renderer="webflowTimedOutInstancesCount";
 	property name="archived_instances_count" type="numeric" formula="${prefix}id" renderer="webflowArchivedInstancesCount";
 	property name="completed_archived_count" type="numeric" formula="${prefix}id" renderer="webflowCompletedArchivedInstancesCount";
 	property name="instance_completion_rate" type="numeric" formula="${prefix}id" renderer="webflowInstancesCompletionRate";
