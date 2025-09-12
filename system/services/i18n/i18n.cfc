@@ -25,13 +25,13 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 
 	public string function translateResource(
 		  required string uri
-		,          string defaultValue = unknownTranslation
-		,          string language     = getFWLanguageCode()
-		,          string country      = getFWCountryCode()
-		,          array  data         = []
-
+		,          string defaultValue     = unknownTranslation
+		,          string language         = getFWLanguageCode()
+		,          string country          = getFWCountryCode()
+		,          array  data             = []
+		,          boolean ignoreDebugMode = false
 	) output=false {
-		if ( _isDebugMode() ) {
+		if ( _isDebugMode() && !arguments.ignoreDebugMode ) {
 			return arguments.uri;
 		}
 
