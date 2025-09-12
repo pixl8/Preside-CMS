@@ -448,7 +448,7 @@ component {
 		,          string  userField   = "website_user.id"
 	) {
 		var exists            = arguments.hasValue ? "exists" : "not exists";
-		var forArchived       = ( arguments.type != "active" );
+		var forArchived       = !ArrayFind( [ "active", "activetimedout" ], arguments.type );
 		var targetObject      = forArchived ? "cfflow_workflow_archived_instance" : "cfflow_workflow_instance";
 		var lastModifiedField = forArchived ? "date_archived" : $getPresideObject( targetObject ).getDateModifiedField();
 
@@ -465,6 +465,13 @@ component {
 			ArrayAppend( extraFilters, {
 				  filter       = "cfflow_workflow_archived_instance.archive_reason = :archiveReason#paramSuffix#"
 				, filterParams = { "archiveReason#paramSuffix#"={ type="cf_sql_varchar", value=arguments.type } }
+			} );
+		} else {
+			var timeoutOperator = arguments.type == "active" ? ">=" : "<";
+			var webflowConfig   = $getPresideObject( "webflow_configuration" ).selectData( id=arguments.webflowId );
+			ArrayAppend( extraFilters, {
+				  filter       = "datemodified #timeoutOperator# :datemodified"
+				, filterParams = { datemodified = DateAdd( "n", -1 * Val( webflowConfig?.timeout_in_minutes ), Now() ) }
 			} );
 		}
 
