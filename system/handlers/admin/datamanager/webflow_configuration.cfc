@@ -128,37 +128,40 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 // BETTER VIEW RECORD CUSTOMIZATIONS
 	private string function renderSidebarHeader( event, rc, prc, args={} ) {
-		prc.adminSidebarItems = prc.adminSidebarItems ?: [];
+		var sidebarCurrentTab = Trim( rc.tab ?: "" );
+		var referenceId       = Trim( rc.reference ?: "" );
 
-		var sidebarCurrentTab    = Trim( rc.tab ?: "" );
-		var activeInstancesTitle = translateResource( uri="preside-objects.webflow_configuration:viewtab.activeInstances.title" )
-		var activeInstancesItem  = ArrayFilter( prc.adminSidebarItems, function( _item ) {
-			return ( _item.title ?: "" ) == activeInstancesTitle;
-		} );
+		if ( sidebarCurrentTab == "activeInstances" && Len( referenceId ) ) {
+			prc.adminSidebarItems = prc.adminSidebarItems ?: [];
 
-		activeInstancesItem = ArrayLen( activeInstancesItem ) ? ArrayFirst( activeInstancesItem ) : {};
+			var activeInstancesTitle = translateResource( uri="preside-objects.webflow_configuration:viewtab.activeInstances.title" )
+			var activeInstancesItem  = ArrayFilter( prc.adminSidebarItems, function( _item ) {
+				return ( _item.title ?: "" ) == activeInstancesTitle;
+			} );
 
-		if ( !StructIsEmpty( activeInstancesItem ) ) {
-			activeInstancesItem.submenuItems = activeInstancesItem.submenuItems ?: [];
+			activeInstancesItem = ArrayLen( activeInstancesItem ) ? ArrayFirst( activeInstancesItem ) : {};
 
-			var recordId        = Trim( prc.record.id         ?: "" );
-			var webflowId       = Trim( prc.record.webflow_id ?: "" );
-			var referenceId     = Trim( rc.reference          ?: "" );
-			var refGrouping     = webflowConfigurationService.getInstanceRefGroupingConfig( webflowId=webflowId, sourceObject="cfflow_workflow_instance" );
-			var refGroupingRefs = refGrouping.groupedRefs ?: QueryNew( "" );
+			if ( !StructIsEmpty( activeInstancesItem ) ) {
+				activeInstancesItem.submenuItems = activeInstancesItem.submenuItems ?: [];
 
-			if ( refGroupingRefs.recordcount ) {
-				activeInstancesItem.open = isEmptyString( sidebarCurrentTab ) || ( sidebarCurrentTab == "activeInstances" );
+				var recordId        = Trim( prc.record.id         ?: "" );
+				var webflowId       = Trim( prc.record.webflow_id ?: "" );
+				var refGrouping     = webflowConfigurationService.getInstanceRefGroupingConfig( webflowId=webflowId, sourceObject="cfflow_workflow_instance" );
+				var refGroupingRefs = refGrouping.groupedRefs ?: QueryNew( "" );
 
-				for ( var groupRef in refGroupingRefs ) {
-					var refId = Trim( groupRef.reference_id ?: "" );
+				if ( refGroupingRefs.recordcount ) {
+					activeInstancesItem.open = isEmptyString( sidebarCurrentTab ) || ( sidebarCurrentTab == "activeInstances" );
 
-					if ( Len( refId ) ) {
-						ArrayAppend( activeInstancesItem.submenuItems, {
-							  title  = renderContent( renderer="webflowInstanceReference", data=refId, args={ webflowId=webflowId, plainText=true, shortTitle=true } )
-							, link   = event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=activeInstances&reference=#refId#" )
-							, active = ( ( args.instanceObjectName ?: "" ) == "cfflow_workflow_instance" ) && ( referenceId == refId )
-						} );
+					for ( var groupRef in refGroupingRefs ) {
+						var refId = Trim( groupRef.reference_id ?: "" );
+
+						if ( Len( refId ) ) {
+							ArrayAppend( activeInstancesItem.submenuItems, {
+								title  = renderContent( renderer="webflowInstanceReference", data=refId, args={ webflowId=webflowId, plainText=true, shortTitle=true } )
+								, link   = event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=activeInstances&reference=#refId#" )
+								, active = ( ( args.instanceObjectName ?: "" ) == "cfflow_workflow_instance" ) && ( referenceId == refId )
+							} );
+						}
 					}
 				}
 			}
