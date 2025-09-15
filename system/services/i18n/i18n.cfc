@@ -142,6 +142,24 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 		return resourceBundleService.isValidResourceUri( arguments.uri );
 	}
 
+	public struct function getLocaleLabel( required string locale, required string defaultLocale ) {
+		var language = ListFirst( arguments.locale, "_" );
+		var country  = ListLen( arguments.locale, "_" ) > 1 ? ListRest( arguments.locale, "_" ) : "";
+
+		var title = translateResource( uri="locale:title", language=language, country=country );
+		var flag  = translateResource( uri="locale:flag" , language=language, country=country );
+
+		if ( arguments.locale != arguments.defaultLocale ) {
+			var defaultTitle = translateResource( uri="locale:title" );
+			if ( title == defaultTitle ) {
+				title = arguments.locale;
+				flag  = "Unknown.png";
+			}
+		}
+
+		return { title=title, flag=flag };
+	}
+
 	public any function setfwLocale( required string locale ) output=false {
 		var event = controller.getRequestService().getContext();
 		if ( event.isAdminRequest() && ArrayLen( adminLanguages ) && !ArrayFindNoCase( adminLanguages, arguments.locale ) ) {
