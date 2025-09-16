@@ -1,0 +1,18 @@
+id: choose-package
+condition:
+  ref: preside.web.isLoggedIn
+  not: true
+display:
+  form: crm.subscriptions.choose-package
+submission:
+  validation:
+    preaction:
+    - form: crm.subscriptions.choose-package
+    - condition:
+        ref: string.IsEmpty
+        not: true
+        args:
+          value: $subscription_package
+  action:
+    handler:
+      event: some.action.handler

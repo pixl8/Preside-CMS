@@ -1,0 +1,101 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "webflow.step.schema.json",
+    "type": "object",
+    "title":"Webflow step definition",
+    "description":"Container object for a webflow step",
+    "additionalProperties": false,
+    "properties": {
+        "id": { "type": "string", "description": "Unique id of the step"},
+        "feature":{ "type":"string", "description":"Preside feature that must be enabled in order for this step to be registered" },
+        "$ref": { "type": "string", "description": "Reference to a pre-registered step in the webflow step library." },
+        "$subflowref": { "type": "string", "description": "Reference to a pre-registered subflow in the webflow spec library." },
+        "configform":{ "type":"string", "description": "Optional preside form for configuring the step in an instance of this webflow." },
+        "config":{ "type":"object", "description": "Optional hardcoded configuration that will be passed to the step (useful for re-usable steps and subflows)." },
+        "canCancel":{ "type":"boolean", "description":"Whether or not the flow can be cancelled when on this step (always false on final steps)." },
+        "condition":{
+            "type":"object",
+            "description":"Optional condition object that will determine whether or not the step is skipped",
+            "$ref":"webflow.condition.schema.json"
+        },
+        "preactions":{
+            "type": "array",
+            "description": "Array of handlers to execute before transitioning to this step",
+            "items": {
+                "type":"object",
+                "$ref":"webflow.prepostaction.schema.json"
+            }
+        },
+        "postactions":{
+            "type": "array",
+            "description": "Array of handlers to execute before transitioning to the next or previous step",
+            "items": {
+                "type":"object",
+                "$ref":"webflow.prepostaction.schema.json"
+            }
+        },
+        "display":{
+            "type":"object",
+            "description":"Describes how the step will be displayed to the end-user",
+            "additionalProperties": false,
+            "properties":{
+                "form":{ "type":"string", "description":"Preside form that will be rendered" },
+                "layout":{ "type": "object", "$ref":"webflow.handler.schema.json", "description":"Explicit webflow layout in which to display the step" },
+                "viewlet":{
+                    "type":"object",
+                    "description":"Coldbox viewlet used to render the step",
+                    "$ref":"webflow.handler.schema.json"
+                }
+            }
+        },
+        "submission":{
+            "type":"object",
+            "description": "Describes what happens when the step is submitted",
+            "additionalProperties": false,
+            "required":[ "handler" ],
+            "properties":{
+                "handler":{
+                    "type":"object",
+                    "$ref":"webflow.handler.schema.json",
+                    "description":"Action to perform when submitting this step."
+                },
+                "backHandler":{
+                    "type":"object",
+                    "$ref":"webflow.handler.schema.json",
+                    "description":"Action to run when performing the 'back' action from this step. If the action returns false, the back trigger will be aborted and the step will remain active."
+                },
+                "autovalidateforms":{ "type":"boolean", "description":"Whether or not to automatically validate submitted preside forms (defaults to true)." },
+                "ignoretimeout":{ "type":"boolean", "description":"Whether or not to ignore any timeouts set on the flow. Useful for critical steps such as payments." }
+            }
+        },
+        "next":{
+            "anyOf": [
+                {
+                  "type": "array",
+                  "description": "Array of step IDs that will be the next possible steps for this step",
+                  "items": {"type": "string"}
+                },
+                { "type": "string", "description": "Step ID that will be the next step after this step." }
+            ]
+        },
+        "prev":{
+            "anyOf": [
+                {
+                  "type": "array",
+                  "description": "Array of step IDs that will be the previous possible steps for this step",
+                  "items": {"type": "string"}
+                },
+                { "type": "string", "description": "Step ID that will be the previous step after this step." }
+            ]
+        },
+        "start":{ "type": "boolean", "description":"Whether or not this step can be used to start the flow. Default is false, or true if it is the first step in the array of steps." },
+        "finish":{ "type": "boolean", "description":"Whether or not this step terminates the flow. Default is false, or true if it is the last step in the array of steps." },
+        "subflowEntryPoint":{ "type":"boolean", "description":"For steps in subflows, whether or not this step is to be considered an entry point for the subflow. This effects any 'prev' steps defined on the parent step including this subflow." },
+        "subflowExitPoint":{ "type":"boolean", "description":"For steps in subflows, whether or not this step is to be considered an exit point for the subflow. This effects any 'next' steps defined on the parent step including this subflow."}
+    },
+    "anyOf": [
+        { "required": [ "id" ] },
+        { "required": [ "$ref" ] },
+        { "required": [ "$subflowref" ] }
+    ]
+}

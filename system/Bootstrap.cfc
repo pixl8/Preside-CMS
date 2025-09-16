@@ -166,6 +166,9 @@ component {
 		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
 		this.mappings[ "/javaloader"     ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
 
+		// legacy support for apps and extensions that were referencing the now defunct workflow extension
+		this.mappings[ "/app/extensions/preside-ext-workflow/modules/cfflow" ] = presideroot & "/system/modules/cfflow";
+
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
 		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;

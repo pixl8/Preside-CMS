@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Webflow configuration step: base edit form
+
+This form is used when editing configuration for webflow steps. See [[webflowquickstart]] for more information.
+-->
+<form i18nBaseUri="preside-objects.webflow_configuration_step:">
+	<tab id="default" sortorder="10">
+		<fieldset id="copy" sortorder="10">
+			<field binding="webflow_configuration_step.title"       sortOrder="10" />
+			<field binding="webflow_configuration_step.short_title" sortOrder="20" />
+			<field binding="webflow_configuration_step.intro"       sortOrder="30" />
+		</fieldset>
+		<fieldset id="navigation" sortorder="20">
+			<field binding="webflow_configuration_step.next_button" sortOrder="10" />
+			<field binding="webflow_configuration_step.back_button" sortOrder="20" />
+			<field binding="webflow_configuration_step.cancel_button" sortOrder="30" />
+		</fieldset>
+	</tab>
+</form>

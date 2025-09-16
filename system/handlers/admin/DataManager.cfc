@@ -18,6 +18,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="sessionStorage"                   inject="sessionStorage";
 	property name="applicationsService"              inject="applicationsService";
 	property name="loginService"                     inject="loginService";
+	property name="datamanagerWorkflowService"       inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -1814,6 +1815,15 @@ component extends="preside.system.base.AdminHandler" {
 				, args           = { objectName=objectName, action=action, actions=actions }
 			);
 
+			if ( isFeatureEnabled( "datamanagerWorkflow" ) && action == "viewRecord" && datamanagerWorkflowService.hasWorkflow( objectName=objectName, recordId=prc.recordId ) ) {
+				runEvent(
+					  event          = "admin.datamanagerWorkflow.addWorkflowActionButtons"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = { objectName=objectName, actions=actions, recordId=prc.recordId }
+				);
+			}
+
 			announceInterception( "postExtraTopRightButtons", { objectName=objectName, action=action, actions=actions } );
 
 			actions = actions.reverse();
@@ -1952,7 +1962,10 @@ component extends="preside.system.base.AdminHandler" {
 				, btnClass  = "btn-success"
 				, iconClass = "fa-pencil"
 				, globalKey = "e"
-				, title     = translateResource( uri="cms:datamanager.editRecord.btn" )
+				, title     = translateResource(
+					  uri          = "preside-objects.#objectName#:datamanager.editRecord.btn"
+					, defaultValue = translateResource( uri="cms:datamanager.editRecord.btn" )
+				)
 			} );
 		}
 

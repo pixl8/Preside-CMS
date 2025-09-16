@@ -1,0 +1,40 @@
+id: login-register
+feature: somefeature
+steps:
+  - id: loginorregister
+    condition:
+      ref: preside.logged.in
+      not: true
+  - id: confirmemail
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $loginregaction
+        pattern: register
+  - id: forgotpassword
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $loginregaction
+        pattern: forgotpassword
+  - id: forgotpasswordcode
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $loginregaction
+        pattern: forgotpassword
+      and:
+      - ref: bool.IsTrue
+        not: true
+        args:
+          value: $forgotpasswordcodeconfirmed
+  - id: resetpassword
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $loginregaction
+        pattern: forgotpassword
+      and:
+      - ref: bool.IsTrue
+        args:
+          value: $forgotpasswordcodeconfirmed

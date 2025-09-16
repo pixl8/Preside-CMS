@@ -1,0 +1,32 @@
+version: 1.0.0
+webflow:
+  id: my.simple.webflow
+  singleton: false
+  meta:
+    title: A simple test webflow
+    category: test
+  init:
+    state:
+      configform: flows.subscription.signup.product
+    instanceargs:
+      args:
+        owner: $_presideUserOrVisitor
+        reference: $product_id
+    condition:
+      ref: preside.web.logged.in
+      and:
+      - ref: preside.crm.subscription.registered
+        args:
+          product_id: $product_id
+      not: true
+  steps:
+  - id: step-1
+    display:
+      form: webflow.simple.step-1
+    submission:
+      handler:
+        event: webflow.simple.step-1
+  - id: step-2
+    display:
+      form: webflow.simple.step-2
+  - id: step-3

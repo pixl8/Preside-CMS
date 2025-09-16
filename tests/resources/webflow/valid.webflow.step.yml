@@ -1,0 +1,12 @@
+id: choose-package
+feature: somefeature
+condition:
+  ref: preside.web.isLoggedIn
+  not: true
+display:
+  form: crm.subscriptions.choose-package
+submission:
+  handler:
+    event: some.action.handler
+    args:
+      test: true

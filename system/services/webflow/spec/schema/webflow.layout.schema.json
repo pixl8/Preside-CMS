@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "webflow.layout.schema.json",
+    "type": "object",
+    "additionalProperties": false,
+    "title":"Webflow coldbox handler definition",
+    "description":"Defines the use of a coldbox handler within an element of the webflow",
+    "properties": {
+        "event": { "type": "string", "description": "The coldbox event to run. (Default to bundled layout)" },
+        "args": { "type": "object", "description": "Arbitrary set of arguments to send to the handler" }
+    }
+}
