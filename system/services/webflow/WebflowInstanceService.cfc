@@ -482,7 +482,11 @@ component {
 			} );
 		} else {
 			var timeoutOperator = arguments.type == "active" ? ">=" : "<";
-			var webflowConfig   = $getPresideObject( "webflow_configuration" ).selectData( id=arguments.webflowId );
+			var webflowConfig   = $getPresideObject( "webflow_configuration" ).selectData(
+				  filter       = { webflow_id=arguments.webflowId }
+				, selectFields = [ "timeout_in_minutes" ]
+			);
+
 			ArrayAppend( extraFilters, {
 				  filter       = "datemodified #timeoutOperator# :datemodified"
 				, filterParams = { datemodified = DateAdd( "n", -1 * Val( webflowConfig?.timeout_in_minutes ), Now() ) }
