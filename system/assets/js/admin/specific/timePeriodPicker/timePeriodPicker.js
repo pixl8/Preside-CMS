@@ -22,7 +22,7 @@
 
 				$builderContainer.removeClass( "hide" );
 				$hiddenControl = $( '<input type="hidden">' );
-				$hiddenControl.val( val );
+				$hiddenControl.val( val ).trigger( "change" );
 				$hiddenControl.attr( "name", name );
 				$formControl.after( $hiddenControl );
 				$formControl.remove();
@@ -138,7 +138,7 @@
 						val.type = "alltime";
 				}
 
-				$hiddenControl.val( JSON.stringify( val ) );
+				$hiddenControl.val( JSON.stringify( val ) ).trigger( "change" );
 			};
 
 			getSelectedType = function(){
