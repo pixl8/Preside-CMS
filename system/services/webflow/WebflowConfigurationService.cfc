@@ -574,6 +574,7 @@ component {
 				, selectFields = [
 					  "sub_reference AS reference_id"
 					, "COUNT( id ) AS total_no"
+					, "GROUP_CONCAT( datemodified ) AS last_actives"
 				]
 			);
 			var groupingConfig  = {

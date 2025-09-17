@@ -172,7 +172,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	private string function _activeInstancesTab( event, rc, prc, args={} ) {
 		args.instanceObjectName = "cfflow_workflow_instance";
-		args.gridFields         = args.gridFields ?: [ "owner", "current_step", "datecreated", "datemodified" ];
+		args.gridFields         = args.gridFields ?: [ "owner", "current_status", "current_step", "datecreated", "datemodified" ];
 
 		prc.pageTitle = translateResource( uri="preside-objects.webflow_configuration:pageTitle.activeInstances" );
 

@@ -4,8 +4,12 @@ component {
 	public string function default( event, rc, prc, args={} ) {
 		var recordId      = Trim( args.data ?: "" );
 		var referenceId   = Trim( rc.reference ?: "" );
-		var webflowConfig = args.record ?: {};
 		var extraFilters  = [];
+		var webflowConfig = args.record ?: getPresideObject( args.objectName ).selectData(
+			  id           = recordId
+			, returntype   = "singleRecordStruct"
+			, selectFields = [ "timeout_in_minutes" ]
+		);
 
 		ArrayAppend( extraFilters, {
 			  filter       = "datemodified >= :datemodified"
