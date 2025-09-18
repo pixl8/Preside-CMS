@@ -5,7 +5,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.permissionBase = "webflows";
 	variables.infoCardStyle  = "definitionList";
 	variables.tabs           = [ "transitions", "default" ];
-	variables.infoCol1       = [ "owner", "currentStep" ];
+	variables.infoCol1       = [ "currentStatus", "currentStep", "owner" ];
 	variables.infoCol2       = [ "sub_reference" ];
 	variables.infoCol3       = [ "datecreated", "datemodified" ];
 
@@ -40,6 +40,19 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		args.printedState  = webflowUtilsService.prettyPrintSavedState( savedState=args.savedState );
 
 		return renderView( view="/admin/datamanager/webflow_configuration/_instanceDetail", args=args )
+	}
+
+	private string function _infoCardcurrentStatus( event, rc, prc, args={} ) {
+		var currentStatus = renderField(
+			  object   = "cfflow_workflow_instance"
+			, property = "current_status"
+			, data     = args.record.current_status ?: ""
+		);
+
+		if ( Len( currentStatus ) ) {
+			return '<span class="badge badge-#( currentStatus == "active" ) ? "success" : "warning"#">#currentStatus#</span>';
+		}
+		return "";
 	}
 
 	private string function _infoCardCurrentStep( event, rc, prc, args={} ) {
