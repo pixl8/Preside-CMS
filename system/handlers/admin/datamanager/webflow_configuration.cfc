@@ -98,7 +98,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var webflowId   = Trim( prc.record.webflow_id   ?: "" );
 
 		if ( instObjName == "cfflow_workflow_instance" ) {
-			args.col1      = [ "active_instances_count", "step_count" ];
+			args.col1      = [ "active_instances_count", "timedout_instances_count", "step_count" ];
 			args.col2      = [ "instanceRef", "progressbar_layout", "timeout_in_minutes" ];
 			args.col3      = [ "created", "modified" ];
 			args.infoCards = _infoCard( argumentCollection=arguments );
