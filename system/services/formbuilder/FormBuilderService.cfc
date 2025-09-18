@@ -1268,8 +1268,7 @@ component {
 
 			setFormBuilderSubmissionContextData( formId=arguments.formId, submissionId=submissionId, data=arguments.requestData );
 
-			submission = getSubmission( submissionId );
-			for( var s in submission ) { submission = s; }
+			submission = getSubmission( submissionId=submissionId, returnType="singleRecordStruct" );
 
 			arguments.data = arguments.data ?: {};
 			arguments.data.submissionId = submissionId;
