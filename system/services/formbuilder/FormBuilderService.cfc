@@ -1780,7 +1780,7 @@ component {
 		var itemColumnMap     = {};
 		var itemsToRender     = [];
 		var submissions       = $getPresideObject( "formbuilder_formsubmission" ).selectData(
-			  filter  = { form=arguments.formId }
+			  filter  = { form=arguments.formId, incomplete_submission=false }
 			, orderBy = "datecreated"
 		);
 
