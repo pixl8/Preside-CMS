@@ -16,6 +16,7 @@
 			, compact           = true
 			, gridFields        = gridFields
 			, allowSearch       = false
+			, allowFilter       = false
 		} )#
 	</cfif>
 </cfoutput>
