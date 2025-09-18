@@ -66,6 +66,7 @@ component {
 			}
 
 			if ( formPageNumber >= formPageCount ) {
+				completedSubmission = isFalse( theForm.use_summarypage ?: "" ) || formPageNumber > formPageCount;
 				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNext < 0 ? formPageCount : formPageNumber );
 			} else {
 				completedSubmission = false;
@@ -104,9 +105,8 @@ component {
 				}
 
 				formData.formPageNumber = formNextPageNumber;
-
-				completedSubmission = formPageNumber >= formPageCount;
-				if ( completedSubmission && !isTrue( theForm.use_summarypage ?: "" ) ) {
+				if ( formPageNumber >= formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
+					completedSubmission = true;
 					formItemsInPage = [];
 				}
 			}

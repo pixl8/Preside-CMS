@@ -1334,7 +1334,7 @@ component {
 	 */
 	public numeric function getSubmissionCount( required string formId ) {
 		var submissions = $getPresideObject( "formbuilder_formsubmission" ).selectData(
-			  filter       = { form=formId }
+			  filter       = { form=formId, incomplete_submission=false }
 			, selectFields = [ "Count( id ) as submission_count" ]
 		);
 		return Val( submissions.submission_count ?: "" );
@@ -1456,7 +1456,7 @@ component {
 		);
 
 		result.totalRecords = submissionsDao.selectData(
-			  filter          = { form = arguments.formId }
+			  filter          = { form = arguments.formId, incomplete_submission = false }
 			, extraFilters    = extraFilters
 			, recordCountOnly = true
 		);
