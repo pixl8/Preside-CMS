@@ -736,9 +736,13 @@ component {
 		return IsEmpty( data ) ? {} : DeserializeJson( data );
 	}
 
-	public any function clearSubmittedData(
+	public numeric function clearSubmittedData(
 		required string submissionId
 	) {
+		if ( $helpers.isEmptyString( arguments.submissionId ) ) {
+			return 0;
+		}
+
 		return $getPresideObject( "formbuilder_formsubmission" ).updateData(
 			 id = arguments.submissionId
 			, data = {
@@ -1314,93 +1318,6 @@ component {
 		}
 
 		return validationResult;
-	}
-
-	public any function saveTempSubmission(
-		  required string  formId
-		, required struct  requestData
-		,          boolean validateForm = true
-		,          array   formItems    = []
-		,          numeric pageNumber   = 0
-		,          numeric pageNext     = 0
-	) {
-		var formConfiguration = getForm( arguments.formId );
-		var formData          = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData, pageNumber=arguments.pageNumber );
-		var validationResult  = _getValidationEngine().newValidationResult();
-
-		if ( arguments.pageNext > 0 ) {
-			if ( arguments.validateForm ) {
-				validationResult = _getFormBuilderValidationService().validateFormSubmission(
-					  formItems      = arguments.formItems
-					, submissionData = formData
-				);
-			}
-
-			if ( arguments.pageNumber == 1 && $helpers.isTrue( formConfiguration.use_captcha ?: "" ) ) {
-				if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
-					validationResult.addError( fieldName="recaptcha", message="formbuilder:recaptcha.error.message" );
-				}
-			}
-		}
-
-		if ( validationResult.validated() ) {
-			var nextPageNumber = arguments.pageNumber + arguments.pageNext;
-			var tempSubmission = getTempStoredSubmission( formId=arguments.formId );
-
-			tempSubmission.instancePage = tempSubmission.instancePage ?: "";
-			var pageItem = getPageByPageNumber( formId=arguments.formId, pageNumber=arguments.pageNumber );
-			if ( !$helpers.isEmptyString( pageItem.id ?: "" ) ) {
-				var index = ListFindNoCase( tempSubmission.instancePage, pageItem.id );
-				if ( arguments.pageNext < 0 && index > 0 ) {
-					tempSubmission.instancePage = ListDeleteAt( tempSubmission.instancePage, index );
-				} else if ( arguments.pageNext >= 0 && index == 0 ) {
-					tempSubmission.instancePage = ListAppend( tempSubmission.instancePage, pageItem.id );
-				}
-			}
-
-			if ( !StructIsEmpty( formData ) ) {
-				StructAppend( tempSubmission, formData );
-			}
-
-			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=nextPageNumber, payload=tempSubmission ) ) {
-				nextPageNumber += arguments.pageNext;
-			}
-
-			tempSubmission.formPageNumber = nextPageNumber;
-
-			setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, withFileUpload=true );
-		}
-
-		return validationResult;
-	}
-
-	public struct function prepareTempSubmission(
-		  required string formId
-		, required struct requestData
-		,          array  formItems = []
-	) {
-		var tempSubmission      = Duplicate( getTempStoredSubmission( formId=arguments.formId ) );
-		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
-
-		for ( var formItem in arguments.formItems ) {
-			var fieldName = formItem.configuration.name ?: "";
-
-			if ( !$helpers.isEmptyString( fieldName ) ) {
-				if ( !StructKeyExists( arguments.requestData, fieldName ) ) {
-					arguments.requestData[ fieldName ] = "";
-				}
-
-				if ( ArrayFind( fileUploadItemTypes, formItem.item_type ?: "" ) && $helpers.isEmptyString( arguments.requestData[ fieldName ] ?: "" ) ) {
-					StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
-				}
-			}
-		}
-
-		StructAppend( tempSubmission, arguments.requestData );
-
-		tempSubmission.id = arguments.formId;
-
-		return tempSubmission;
 	}
 
 	/**
