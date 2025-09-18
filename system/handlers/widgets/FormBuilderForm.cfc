@@ -35,12 +35,20 @@ component {
 	private string function _renderForm( event, rc, prc, args={} ) {
 		var formId         = args.form   ?: "";
 		var layout         = args.layout ?: "";
+		var submissionId   = rc._fs      ?: "";
+
 		var rendered       = "";
 		var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
 
-		StructAppend( rc, tempSubmission );
-
 		if ( Len( Trim( formId ) ) ) {
+			var formData = formBuilderService.getSubmittedData( submissionId=submissionId );
+
+			if ( IsEmpty( formData ) ) {
+				submissionId = "";
+			} else {
+				StructAppend( rc, formData );
+			}
+
 			if( !formbuilderService.formExists( formId ) ){
 				if ( !event.isAdminUser() ) {
 					return "";
@@ -68,6 +76,8 @@ component {
 
 			var requestData = event.getCollectionWithoutSystemVars();
 
+			args.submissionId = args.submissionId ?: submissionId;
+
 			args.instanceSite = args.instanceSite ?: event.getSiteId();
 			args.instanceUrl  = args.instanceUrl  ?: event.getCurrentUrl();
 
@@ -77,7 +87,7 @@ component {
 			var page = formbuilderService.getPageByPageNumber( formId=formId, pageNumber=args.formPageNumber );
 			args.instancePage = args.formPageCount ? ( tempSubmission.instancePage ?: ( page.id ?: "" ) ) : "";
 
-			while ( !formbuilderService.evaluateConditionForPage( formId=formId, pageNumber=args.formPageNumber ) ) {
+			while ( !formbuilderService.evaluateConditionForPage( formId=formId, pageNumber=args.formPageNumber, payload=requestData ) ) {
 				args.formPageNumber += requestData.formPageNext ?: 1;
 			}
 
