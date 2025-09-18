@@ -41,7 +41,7 @@ component {
 		var tempSubmission = formBuilderService.getTempStoredSubmission( formId );
 
 		if ( Len( Trim( formId ) ) ) {
-			var formData = formBuilderService.getSubmittedData( submissionId=submissionId, filter="submitted_data != '' and submitted_data is not null" );
+			var formData = formBuilderService.getSubmittedData( submissionId=submissionId );
 
 			if ( IsEmpty( formData ) ) {
 				submissionId = "";
