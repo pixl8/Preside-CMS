@@ -1205,6 +1205,7 @@ component {
 		,          array   formItems       = []
 		,          struct  data            = {}
 		,          string  submissionId    = ""
+		,          boolean completedSubmission = true
 	) {
 		var submissionId      = "";
 		var submission        = {};
@@ -1242,16 +1243,17 @@ component {
 				}
 
 				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
-					  form           = arguments.formId
-					, submitted_by   = $getWebsiteLoggedInUserId()
-					, form_instance  = arguments.instanceId
-					, form_site      = arguments.instanceSite
-					, form_url       = arguments.instanceUrl
-					, form_page      = arguments.instancePage
-					, ip_address     = arguments.ipAddress
-					, user_agent     = arguments.userAgent
-					, submitted_data = IsEmpty( arguments.data ) ? NullValue() : SerializeJson( arguments.data )
-					, id             = submission.id ?: ""
+					  form                  = arguments.formId
+					, submitted_by          = $getWebsiteLoggedInUserId()
+					, form_instance         = arguments.instanceId
+					, form_site             = arguments.instanceSite
+					, form_url              = arguments.instanceUrl
+					, form_page             = arguments.instancePage
+					, ip_address            = arguments.ipAddress
+					, user_agent            = arguments.userAgent
+					, submitted_data        = IsEmpty( arguments.data ) ? NullValue() : SerializeJson( arguments.data )
+					, id                    = submission.id ?: ""
+					, incomplete_submission = !arguments.completedSubmission
 				} );
 
 				saveV2Responses( formId=arguments.formId, formData=formData, formItems=formItems, submissionId=submissionId );
@@ -1282,39 +1284,41 @@ component {
 				submission.submitted_data = SerializeJSON( getV2Responses( formId=arguments.formId, submissionId=submissionId ) );
 			}
 
-			_getActionsService().triggerSubmissionActions(
-				  formId         = arguments.formId
-				, submissionData = submission
-			);
-
-			if ( arguments.recordAction ) {
-				$recordWebsiteUserAction(
-					  type       = "formbuilder"
-					, action     = "submitform"
-					, identifier = arguments.formId
-					, detail     = submission
+			if ( arguments.completedSubmission ) {
+				_getActionsService().triggerSubmissionActions(
+					formId         = arguments.formId
+					, submissionData = submission
 				);
-			}
 
-			if ( $helpers.isTrue( formConfiguration.notification_enabled ?: false ) ) {
-				$createNotification(
-					  topic = "FormbuilderSubmissionReceived"
-					, type  = "info"
-					, data  = {
-						id = submissionId
-					}
-				);
-			}
+				if ( arguments.recordAction ) {
+					$recordWebsiteUserAction(
+						type       = "formbuilder"
+						, action     = "submitform"
+						, identifier = arguments.formId
+						, detail     = submission
+					);
+				}
 
-			$announceInterception( "postFormBuilderFormSubmission", {
-				  formData          = formData
-				, requestData       = arguments.requestData
-				, formId            = arguments.formId
-				, formConfiguration = formConfiguration
-				, formItems         = formItems
-				, submissionId      = submissionId
-				, submission        = submission
-			} );
+				if ( $helpers.isTrue( formConfiguration.notification_enabled ?: false ) ) {
+					$createNotification(
+						topic = "FormbuilderSubmissionReceived"
+						, type  = "info"
+						, data  = {
+							id = submissionId
+						}
+					);
+				}
+
+				$announceInterception( "postFormBuilderFormSubmission", {
+					formData          = formData
+					, requestData       = arguments.requestData
+					, formId            = arguments.formId
+					, formConfiguration = formConfiguration
+					, formItems         = formItems
+					, submissionId      = submissionId
+					, submission        = submission
+				} );
+			}
 		}
 
 		return validationResult;
@@ -1443,7 +1447,7 @@ component {
 		}
 
 		result.records = submissionsDao.selectData(
-			  filter       = { form = arguments.formId }
+			  filter       = { form = arguments.formId, incomplete_submission = false }
 			, extraFilters = extraFilters
 			, startRow     = arguments.startRow
 			, maxRows      = arguments.maxRows

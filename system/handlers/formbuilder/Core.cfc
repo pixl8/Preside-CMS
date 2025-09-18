@@ -51,12 +51,13 @@ component {
 			setNextEvent( url=formUrl, persistStruct=persistData );
 		}
 
-		var validationResult = validationEngine.newValidationResult();
-		var persistStruct    = {}
-		var formItemsInPage  = [];
-		var formPageNext     = submission.formPageNext   ?: 1;
-		var formPageNumber   = submission.formPageNumber ?: 0;
-		var formPageCount    = submission.formPageCount  ?: 0;
+		var validationResult    = validationEngine.newValidationResult();
+		var persistStruct       = {}
+		var formItemsInPage     = [];
+		var formPageNext        = submission.formPageNext   ?: 1;
+		var formPageNumber      = submission.formPageNumber ?: 0;
+		var formPageCount       = submission.formPageCount  ?: 0;
+		var completedSubmission = true;
 
 		if ( formPageNumber > 0 ) {
 			if ( formPageNext == 0 ) {
@@ -67,6 +68,7 @@ component {
 			if ( formPageNumber >= formPageCount ) {
 				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNext < 0 ? formPageCount : formPageNumber );
 			} else {
+				completedSubmission = false;
 				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 			}
 
@@ -103,7 +105,8 @@ component {
 
 				formData.formPageNumber = formNextPageNumber;
 
-				if ( formPageNumber >= formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
+				completedSubmission = formPageNumber >= formPageCount;
+				if ( completedSubmission && !isTrue( theForm.use_summarypage ?: "" ) ) {
 					formItemsInPage = [];
 				}
 			}
@@ -126,16 +129,17 @@ component {
 		}
 
 		validationResult = formBuilderService.saveFormSubmission(
-			  formId          = formId
-			, requestData     = submission
-			, instanceId      = ( submission.instanceId   ?: "" )
-			, instanceSite    = ( submission.instanceSite ?: "" )
-			, instanceUrl     = ( submission.instanceUrl  ?: "" )
-			, instancePage    = ( submission.instancePage ?: "" )
-			, validateCaptcha = formPageNumber <= 0
-			, formItems       = formItemsInPage
-			, data            = formData
-			, submissionId    = submissionId
+			  formId              = formId
+			, requestData         = submission
+			, instanceId          = ( submission.instanceId   ?: "" )
+			, instanceSite        = ( submission.instanceSite ?: "" )
+			, instanceUrl         = ( submission.instanceUrl  ?: "" )
+			, instancePage        = ( submission.instancePage ?: "" )
+			, validateCaptcha     = formPageNumber <= 0
+			, formItems           = formItemsInPage
+			, data                = formData
+			, submissionId        = submissionId
+			, completedSubmission = completedSubmission
 		);
 
 		if ( event.isAjax() ) {

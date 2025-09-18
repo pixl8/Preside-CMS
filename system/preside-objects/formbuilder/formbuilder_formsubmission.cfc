@@ -18,4 +18,6 @@ component displayname="Form builder: form" extends="preside.system.base.SystemPr
 
 	property name="ip_address" type="string" dbtype="varchar" maxlength=50 required=false;
 	property name="user_agent" type="string" dbtype="text"                 required=false;
+
+	property name="incomplete_submission" type="boolean" dbtype="boolean" required=true default=false;
 }
