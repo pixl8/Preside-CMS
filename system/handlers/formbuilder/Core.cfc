@@ -70,7 +70,7 @@ component {
 				formItemsInPage = formBuilderService.getFormItems( id=formId, pageNumber=formPageNumber );
 			}
 
-			formData = formBuilderService.getSubmittedData( submissionId=submissionId, filter="submitted_data != '' and submitted_data is not null" );
+			formData = formBuilderService.getSubmittedData( submissionId=submissionId );
 
 			if ( ArrayLen( formItemsInPage ) ) {
 				var formNextPageNumber = formPageNumber + formPageNext;
@@ -207,7 +207,7 @@ component {
 		var formId       = args.form ?: "";
 		var submissionId = args.submissionId ?: "";
 
-		var summary = formBuilderService.renderSummary( formId=formId, submission=formBuilderService.getSubmittedData( submissionId=submissionId, filter="submitted_data != '' and submitted_data is not null" ) );
+		var summary = formBuilderService.renderSummary( formId=formId, submission=formBuilderService.getSubmittedData( submissionId=submissionId ) );
 
 		if ( !isEmptyString( summary ) ) {
 			return translateResource( uri="formbuilder:summary.description", defaultValue="" ) & summary;
