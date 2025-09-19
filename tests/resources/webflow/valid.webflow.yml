@@ -1,0 +1,48 @@
+version: 1.0.0
+webflow:
+  id: my.test.webflow
+  feature: somefeature
+  singleton: false
+  meta:
+    title: Quick subscription sign up
+    category: crmsubscription
+  init:
+    state:
+      configform: flows.subscription.signup.product
+    instanceargs:
+      args:
+        owner: $_presideUserOrVisitor
+        reference: $product_id
+    condition:
+      ref: preside.web.logged.in
+      and:
+      - ref: preside.crm.subscription.registered
+        args:
+          product_id: $product_id
+      not: true
+
+  steps:
+  # choose a package
+  - id: choose-package
+    display:
+      form: crm.subscriptions.choose-package
+    condition:
+      ref: preside.web.isLoggedIn
+      not: true
+    submission:
+      handler:
+        event: some.action.handler
+        args:
+          test: true
+
+  # login / register
+  - id: login-register
+    $ref: login.register.step
+
+  # payment
+  - id: payment
+    $ref: preside-ext-payments.payment.step
+
+  # confirmation
+  - id: confirmation
+    $ref: confirmation.screen

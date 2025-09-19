@@ -28,10 +28,18 @@
 				$formControl.remove();
 				$hiddenControl.attr( "id", id );
 				showAndHideFieldsBasedOnPeriodType();
-				$form.on( "click change dp.change", function(){
+
+				function updateTimePeriodValue() {
 					showAndHideFieldsBasedOnPeriodType();
 					saveToHiddenField();
-				} );
+				}
+
+				$form.on( "click", updateTimePeriodValue );
+				$typeControl.on( "change", updateTimePeriodValue );
+				$measureControl.on( "change", updateTimePeriodValue );
+				$unitControl.on( "change", updateTimePeriodValue );
+				$date1Control.on( "dp.change", updateTimePeriodValue );
+				$date2Control.on( "dp.change", updateTimePeriodValue );
 			};
 
 			showAndHideFieldsBasedOnPeriodType = function(){
@@ -128,6 +136,9 @@
 					case "lastmonth":
 					case "thismonth":
 					case "nextmonth":
+					case "lastyear":
+					case "thisyear":
+					case "nextyear":
 						val.type = val.type;
 					break;
 

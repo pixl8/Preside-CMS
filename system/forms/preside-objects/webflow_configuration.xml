@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Webflow configuration: base edit form
+
+This form is used when editing configuration for webflows. See [[webflowquickstart]] for more information.
+-->
+<form i18nBaseUri="preside-objects.webflow_configuration:">
+	<tab id="default" sortOrder="10" >
+		<fieldset id="default" sortorder="10">
+			<field binding="webflow_configuration.label"              sortOrder="10" />
+			<field binding="webflow_configuration.description"        sortOrder="20" />
+			<field binding="webflow_configuration.hide_from_widget"   sortOrder="30" />
+			<field binding="webflow_configuration.progressbar_layout" sortOrder="40" control="enumRadioList" enum="webflowProgressBarType" />
+		</fieldset>
+		<fieldset id="timeout" sortorder="20">
+			<field binding="webflow_configuration.timeout_in_minutes" sortOrder="10" />
+			<field binding="webflow_configuration.timeout_message"    sortOrder="20" />
+		</fieldset>
+		<fieldset id="eligibility" sortorder="30">
+			<field binding="webflow_configuration.ineligble_message" sortOrder="10" />
+		</fieldset>
+	</tab>
+</form>

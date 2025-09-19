@@ -44,6 +44,7 @@ component {
 		__setupHeartbeatsAndServices();
 		__setupNotifications();
 		__setupIgnoreFile();
+		__setupWebflow();
 		__loadConfigurationFromExtensions();
 	}
 
@@ -85,6 +86,7 @@ component {
 			, "preside-ext-vips"
 			, "preside-ext-db-perf-enhancements"
 			, "preside-ext-email-log-performance"
+			, "preside-ext-workflow"
 		];
 
 		settings.activeExtensions = application.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
@@ -143,7 +145,8 @@ component {
 			, unknownTranslation = "**NOT FOUND**"
 		};
 
-		settings.adminLanguages = [];
+		settings.adminLanguages    = [];
+		settings.frontendLanguages = [ "en" ];
 	}
 
 	private void function __setupInterceptors() {
@@ -157,6 +160,8 @@ component {
 			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
 			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} },
+			{ class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} },
+			{ class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
 		];
 
 		variables.interceptorSettings = {
@@ -307,6 +312,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postRunCustomization"                  );
 		interceptorSettings.customInterceptionPoints.append( "onEmailTemplateGetAdditionalQueryStringForBuildAjaxListingLink" );
 		interceptorSettings.customInterceptionPoints.append( "onEmailTemplatePreFetchRecordsForGridListing" );
+		interceptorSettings.customInterceptionPoints.append( "preRenderWebflowStepForm" );
+		interceptorSettings.customInterceptionPoints.append( "postRenderWebflowStep" );
 	}
 
 	private void function __setupCachebox() {
@@ -375,6 +382,7 @@ component {
 			, "websiteUserManager"
 			, "formbuilder"
 			, "emailcenter"
+			, "webflow"
 		];
 
 		settings.adminConfigurationMenuItems = [
@@ -392,6 +400,7 @@ component {
 			, "taskmanager"
 			, "savedexport"
 			, "apiManager"
+			, "workflow"
 			, "systemInformation"
 		];
 
@@ -577,6 +586,14 @@ component {
 			, permissionKey = "presideobject.link.read"
 			, feature       = "cms"
 		};
+		settings.adminMenuItems.workflow = {
+			  feature       = "webflow"
+			, permissionKey = "webflow.navigate"
+			, buildLinkArgs = { objectName="webflow_configuration" }
+			, activeChecks  = { datamanagerObject="webflow_configuration" }
+			, title         = "preside-objects.webflow_configuration:title"
+			, icon          = "fa-code-fork"
+		};
 		settings.adminMenuItems.maintenanceMode = {
 			  permissionKey = "maintenanceMode.configure"
 			, buildLinkArgs = { linkTo="maintenanceMode" }
@@ -717,6 +734,7 @@ component {
 				, assets           = [ "upload", "edit", "delete", "download", "pick", "translate" ]
 				, storagelocations = [ "manage" ]
 			 }
+			, webflows                = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
 		};
 
 		settings.adminRoles = StructNew( "linked" );
@@ -729,6 +747,7 @@ component {
 		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*", "datamanager.managefilters" ];
 		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
 		settings.adminRoles.savedExportAccess  = [ "cms.access", "savedExport.navigate", "savedExport.read" ];
+		settings.adminRoles.webflowAdmin       = [ "cms.access", "webflows.*" ];
 	}
 
 	private void function __setupWebsiteUsers() {
@@ -783,6 +802,14 @@ component {
 			, webUserEmailTemplates = {
 				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
 				, filterParams = { "email_template.recipient_type" = "websiteUser" }
+			  }
+			, webflowsForWidget = {
+				  filter       = "( hide_from_widget is null or hide_from_widget = :hide_from_widget ) and ( is_admin_flow is null or is_admin_flow = :is_admin_flow )"
+				, filterParams = { hide_from_widget=false, is_admin_flow=false }
+			  }
+			, webflowsNonAdminFlows = {
+				  filter       = "is_admin_flow is null or is_admin_flow = :is_admin_flow"
+				, filterParams = { is_admin_flow=false }
 			  }
 		};
 	}
@@ -964,6 +991,9 @@ component {
 			, presideBasicWorkflow            = { enabled=true, siteTemplates=[ "*" ] }
 			, dbLogAppender                   = { enabled=true, siteTemplates=[ "*" ] }
 			, maintenanceMode                 = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "admin" ] }
+			, cfflow                          = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "admin" ] }
+			, webflow                         = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "cfflow" ] }
+			, datamanagerWorkflow             = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "cfflow", "datamanager" ] }
 			, sslInternalHttpCalls            = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls            = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, presideSessionManagement        = { enabled=_usePresideSessionManagement(), siteTemplates=[ "*" ] }
@@ -1010,6 +1040,10 @@ component {
 		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
 		settings.enum.adminToolbarModes           = [ "fixed", "reveal", "none" ];
 		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
+		settings.enum.cfflowStepStatus            = [ "pending", "active", "skipped", "complete" ];
+		settings.enum.webflowSessionType          = [ "active", "activetimedout", "complete", "timedout", "adminarchive" ];
+		settings.enum.webflowPositionType         = [ "start", "middle", "end" ];
+		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
 	}
 
 	private void function __setupFormValidationProviders() {
@@ -1157,6 +1191,35 @@ component {
 			, write = false
 			, path  = ExpandPath( "/.presideignore.json" )
 		};
+	}
+
+	private void function __setupWebflow() {
+		settings.webflow       = settings.webflow       ?: {};
+		settings.webflow.forms = settings.webflow.forms ?: {};
+
+		settings.webflow.forms.context             = settings.webflow.forms.context             ?: "website";
+		settings.webflow.forms.adminContext        = settings.webflow.forms.adminContext        ?: "admin";
+		settings.webflow.forms.fieldLayout         = settings.webflow.forms.fieldLayout         ?: "webflow.forms.fieldLayout";
+		settings.webflow.forms.fieldsetLayout      = settings.webflow.forms.fieldsetLayout      ?: "webflow.forms.fieldsetLayout";
+		settings.webflow.forms.tabLayout           = settings.webflow.forms.tabLayout           ?: "webflow.forms.tabLayout";
+		settings.webflow.forms.layout              = settings.webflow.forms.layout              ?: "webflow.forms.layout";
+		settings.webflow.forms.includeValidationJs = settings.webflow.forms.includeValidationJs ?: false;
+		settings.webflow.forms.jqueryRef           = settings.webflow.forms.jqueryRef           ?: "jquery";
+
+		settings.webflow.layout      = settings.webflow.layout      ?: {};
+		settings.webflow.layout.args = settings.webflow.layout.args ?: {};
+
+		settings.webflow.layout.progressBar       = settings.webflow.layout.progressBar       ?: {};
+		settings.webflow.layout.progressBar.class = settings.webflow.layout.progressBar.class ?: "";
+
+		settings.webflow.exceptions      = settings.webflow.exceptions      ?: {};
+		settings.webflow.exceptions.safe = settings.webflow.exceptions.safe ?: [
+			  "preside.webflow.instance.not.active"
+			, "preside.webflow.step.not.active"
+			, "preside.webflow.action.not.permitted"
+			, "preside.webflow.step.not.completed"
+			, "preside.webflow.instance.not.cancellable"
+		];
 	}
 
 	private void function __loadConfigurationFromExtensions() {
