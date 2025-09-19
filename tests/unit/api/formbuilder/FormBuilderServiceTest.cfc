@@ -987,7 +987,7 @@ component extends="testbox.system.BaseSpec"{
 				var queryResult   = QueryNew( "submission_count", "int", [ [ responseCount ] ] );
 
 				mockFormSubmissionDao.$( "selectData" ).$args(
-					  filter       = { form=formId, incomplete_submission=false }
+					  filter       = { form=formId }
 					, selectFields = [ "Count( id ) as submission_count" ]
 				).$results( queryResult );
 
