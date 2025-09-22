@@ -557,13 +557,14 @@ component {
 	}
 
 	public struct function getInstanceRefGroupingConfig(
-		  required string webflowId
-		,          string sourceObject = "cfflow_workflow_instance"
+		  required string  webflowId
+		,          string  sourceObject        = "cfflow_workflow_instance"
+		,          boolean includeNonSingleton = false
 	) {
 		var webflow     = _getWebflowLibrary().getWebflow( arguments.webflowId );
 		var isSingleton = webflow.getSingleton();
 
-		if ( isSingleton ) {
+		if ( isSingleton || arguments.includeNonSingleton ) {
 			var cb              = $getColdbox();
 			var instRefConfig   = webflow.getInstRefConfig();
 			var groupingViewlet = Len( instRefConfig.groupingConfigViewlet ?: "" ) ? instRefConfig.groupingConfigViewlet : "webflow.#webflowId#.instanceReferenceAdminGrouping";
