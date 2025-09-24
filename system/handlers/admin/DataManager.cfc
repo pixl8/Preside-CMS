@@ -1019,6 +1019,7 @@ component extends="preside.system.base.AdminHandler" {
 		var labelRenderer  = rc.labelRenderer ?: "";
 		var useCache       = IsTrue( rc.useCache ?: "" );
 		var defaultValue   = rc.defaultValue  ?: "";
+		var targetIdField  = Len( Trim( rc.targetIdField ?: "" ) ) ? rc.targetIdField : presideObjectService.getIdField( objectName );
 
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
@@ -1054,6 +1055,10 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		announceInterception( "preGetObjectRecordsForAjaxSelectControlSelect", interceptArgs );
 
+		if ( Len( defaultValue ) && Len( targetIdField ) ) {
+			orderBy = "CASE WHEN #interceptArgs.objectName#.#targetIdField# = '#defaultValue#' THEN 0 ELSE 1 END#Len( orderBy ) ? ", #orderBy#" : ""#";
+		}
+
 		var records = dataManagerService.getRecordsForAjaxSelect(
 			  objectName    = rc.object  ?: ""
 			, maxRows       = rc.maxRows ?: 1000
@@ -1065,7 +1070,7 @@ component extends="preside.system.base.AdminHandler" {
 			, labelRenderer = labelRenderer
 			, bypassTenants = bypassTenants
 			, useCache      = useCache
-			, idField       = rc.targetIdField ?: ""
+			, idField       = targetIdField
 		);
 
 		event.renderData( type="json", data=records );
