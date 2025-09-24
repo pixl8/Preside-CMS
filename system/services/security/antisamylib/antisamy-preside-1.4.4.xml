@@ -755,6 +755,14 @@ http://www.w3.org/TR/html401/struct/global.html
 				</literal-list>
 			</attribute>
 			<attribute name="name"/>
+			<attribute name="target" onInvalid="remove">
+				<literal-list>
+					<literal value="_blank"/>
+					<literal value="_self"/>
+					<literal value="_parent"/>
+					<literal value="_top"/>
+				</literal-list>
+			</attribute>
 
 		</tag>
 
