@@ -3907,8 +3907,11 @@ component displayName="Preside Object Service" {
 			, filterParams = _deepishDuplicate( arguments.filterParams )
 			, having       = arguments.having
 		};
-		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
+		var originalFilterParams = StructCopy( result.filterParams );
+
+		if ( IsStruct( result.filter ) && ( arrayLen( arguments.extraFilters ) || arrayLen( arguments.savedFilters ) ) ) {
 			StructAppend( result.filterParams, result.filter );
+			StructAppend( originalFilterParams, result.filter );
 		}
 
 		for( var extraFilter in arguments.extraFilters ){
@@ -3919,9 +3922,71 @@ component displayName="Preside Object Service" {
 			extraFilter = _cleanupPropertyAliases( argumentCollection=extraFilter, objectName=arguments.objectName );
 			extraFilter.delete( "objectName" );
 
-			result.filterParams.append( extraFilter.filterParams ?: {} );
+			var hasCollision = false;
 			if ( IsStruct( extraFilter.filter ) ) {
-				result.filterParams.append( extraFilter.filter );
+				for ( var key in extraFilter.filter ) {
+					if ( StructKeyExists( originalFilterParams, key ) ) {
+						hasCollision = true;
+						break;
+					}
+				}
+			}
+
+			if ( hasCollision ) {
+				var sqlParts = [];
+				for ( var key in extraFilter.filter ) {
+					if ( StructKeyExists( originalFilterParams, key ) ) {
+						var paramName = "sf_" & ReReplace( key, "[\.\$]", "__", "all" );
+						var value     = extraFilter.filter[ key ];
+
+						if ( IsArray( value ) ) {
+							ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
+						} else {
+							ArrayAppend( sqlParts, "#key# = :#paramName#" );
+						}
+
+						result.params = result.params ?: [];
+						ArrayAppend( result.params, _convertDataToQueryParams(
+							  objectName        = arguments.objectName
+							, columnDefinitions = arguments.columnDefinitions
+							, data              = { "#key#" = value }
+							, dbAdapter         = arguments.adapter
+							, prefix            = "sf_"
+						), true );
+					} else {
+						var paramName = ReReplace( key, "[\.\$]", "__", "all" );
+						var value = extraFilter.filter[ key ];
+
+						if ( IsArray( value ) ) {
+							ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
+						} else {
+							ArrayAppend( sqlParts, "#key# = :#paramName#" );
+						}
+
+						result.filterParams[ key ] = value;
+					}
+				}
+				extraFilter.filter = "(" & ArrayToList( sqlParts, " AND " ) & ")";
+			} else {
+				StructAppend( result.filterParams, extraFilter.filterParams ?: {} );
+				if ( IsStruct( extraFilter.filter ) ) {
+					StructAppend( result.filterParams, extraFilter.filter );
+				}
+			}
+
+			if ( IsSimpleValue( extraFilter.filter ) && Len( Trim( extraFilter.filter ) ) ) {
+				for ( var key in extraFilter.filterParams ?: {} ) {
+					if ( StructKeyExists( originalFilterParams, key ) ) {
+						var namespacedKey = "sf_" & key;
+						var parameterName = ReReplace( namespacedKey, "[\.\$]", "__", "all" );
+						var escapedKey    = ReReplace( key, "([\.\$])", "\\1", "all" );
+
+						extraFilter.filter = ReReplaceNoCase( extraFilter.filter, ":#escapedKey#(\b)", ":#parameterName#\1", "all" );
+						result.filterParams[ namespacedKey ] = extraFilter.filterParams[ key ];
+					} else {
+						result.filterParams[ key ] = extraFilter.filterParams[ key ];
+					}
+				}
 			}
 
 			result.filter = mergeFilters(
