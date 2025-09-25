@@ -40,11 +40,15 @@ component {
 
 			if ( IsQuery( refGroupingConfig.groupedRefs ?: "" ) && refGroupingConfig.groupedRefs.recordcount ) {
 				for ( var row in refGroupingConfig.groupedRefs ) {
-					ArrayAppend( values, row.reference_id );
-					ArrayAppend( labels, _renderInstanceLabel(
+					var referenceLabel = _renderInstanceLabel(
 						  webflowId = webflowId
 						, reference = row.reference_id
-					) );
+					);
+
+					if ( Len( referenceLabel ) ) {
+						ArrayAppend( values, row.reference_id );
+						ArrayAppend( labels, referenceLabel );
+					}
 				}
 			}
 		}
