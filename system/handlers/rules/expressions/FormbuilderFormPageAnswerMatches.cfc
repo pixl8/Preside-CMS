@@ -1,7 +1,7 @@
 /**
  * @expressionCategory formbuilderInProgress
  * @expressionContexts webRequest
- * @feature            rulesEngine
+ * @feature            rulesEngine and formbuilder
  */
 component {
 
