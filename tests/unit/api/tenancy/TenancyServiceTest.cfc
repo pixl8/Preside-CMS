@@ -476,6 +476,7 @@ component extends="testbox.system.BaseSpec"{
 		service = createMock( object=service );
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
 
 		return service;
 	}
