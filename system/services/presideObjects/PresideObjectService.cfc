@@ -3922,54 +3922,51 @@ component displayName="Preside Object Service" {
 			extraFilter = _cleanupPropertyAliases( argumentCollection=extraFilter, objectName=arguments.objectName );
 			extraFilter.delete( "objectName" );
 
-			var hasCollision = false;
 			if ( IsStruct( extraFilter.filter ) ) {
+				var hasCollision = false;
 				for ( var key in extraFilter.filter ) {
 					if ( StructKeyExists( originalFilterParams, key ) ) {
 						hasCollision = true;
 						break;
 					}
 				}
-			}
 
-			if ( hasCollision ) {
-				var sqlParts = [];
-				for ( var key in extraFilter.filter ) {
-					if ( StructKeyExists( originalFilterParams, key ) ) {
-						var paramName = "sf_" & ReReplace( key, "[\.\$]", "__", "all" );
-						var value     = extraFilter.filter[ key ];
+				if ( hasCollision ) {
+					var sqlParts = [];
+					for ( var key in extraFilter.filter ) {
+						if ( StructKeyExists( originalFilterParams, key ) ) {
+							var paramName = "sf_" & ReReplace( key, "[\.\$]", "__", "all" );
+							var value     = extraFilter.filter[ key ];
 
-						if ( IsArray( value ) ) {
-							ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
+							if ( IsArray( value ) ) {
+								ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
+							} else {
+								ArrayAppend( sqlParts, "#key# = :#paramName#" );
+							}
+
+							result.params = result.params ?: [];
+							ArrayAppend( result.params, _convertDataToQueryParams(
+								  objectName        = arguments.objectName
+								, columnDefinitions = arguments.columnDefinitions
+								, data              = { "#key#" = value }
+								, dbAdapter         = arguments.adapter
+								, prefix            = "sf_"
+							), true );
 						} else {
-							ArrayAppend( sqlParts, "#key# = :#paramName#" );
+							var paramName = ReReplace( key, "[\.\$]", "__", "all" );
+							var value = extraFilter.filter[ key ];
+
+							if ( IsArray( value ) ) {
+								ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
+							} else {
+								ArrayAppend( sqlParts, "#key# = :#paramName#" );
+							}
+
+							result.filterParams[ key ] = value;
 						}
-
-						result.params = result.params ?: [];
-						ArrayAppend( result.params, _convertDataToQueryParams(
-							  objectName        = arguments.objectName
-							, columnDefinitions = arguments.columnDefinitions
-							, data              = { "#key#" = value }
-							, dbAdapter         = arguments.adapter
-							, prefix            = "sf_"
-						), true );
-					} else {
-						var paramName = ReReplace( key, "[\.\$]", "__", "all" );
-						var value = extraFilter.filter[ key ];
-
-						if ( IsArray( value ) ) {
-							ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
-						} else {
-							ArrayAppend( sqlParts, "#key# = :#paramName#" );
-						}
-
-						result.filterParams[ key ] = value;
 					}
-				}
-				extraFilter.filter = "(" & ArrayToList( sqlParts, " AND " ) & ")";
-			} else {
-				StructAppend( result.filterParams, extraFilter.filterParams ?: {} );
-				if ( IsStruct( extraFilter.filter ) ) {
+					extraFilter.filter = "(" & ArrayToList( sqlParts, " AND " ) & ")";
+				} else {
 					StructAppend( result.filterParams, extraFilter.filter );
 				}
 			}
@@ -3988,6 +3985,8 @@ component displayName="Preside Object Service" {
 					}
 				}
 			}
+
+			StructAppend( result.filterParams, extraFilter.filterParams ?: {} );
 
 			result.filter = mergeFilters(
 				  filter1    = result.filter
