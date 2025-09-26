@@ -167,7 +167,8 @@ component displayName="Audit Service" {
 
 	public query function getLoggedActions() {
 		return $getPresideObject( "audit_log" ).selectData(
-			  selectFields = [ "distinct action", "type" ]
+			  selectFields = [ "action", "type" ]
+			, distinct     = true
 		);
 	}
 
