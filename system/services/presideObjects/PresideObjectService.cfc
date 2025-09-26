@@ -3914,13 +3914,18 @@ component displayName="Preside Object Service" {
 			StructAppend( originalFilterParams, result.filter );
 		}
 
+		var extraFilterIndex = 0;
 		for( var extraFilter in arguments.extraFilters ){
+			extraFilterIndex++;
 			extraFilter.filter       = extraFilter.filter       ?: {};
 			extraFilter.filterParams = extraFilter.filterParams ?: {};
 			extraFilter.having       = extraFilter.having       ?: "";
 
 			extraFilter = _cleanupPropertyAliases( argumentCollection=extraFilter, objectName=arguments.objectName );
 			extraFilter.delete( "objectName" );
+
+			var filterContentForHash = SerializeJSON( extraFilter ) & "_" & extraFilterIndex;
+			var uniqueHash           = Left( Hash( filterContentForHash ), 10 );
 
 			if ( IsStruct( extraFilter.filter ) ) {
 				var hasCollision = false;
@@ -3935,8 +3940,9 @@ component displayName="Preside Object Service" {
 					var sqlParts = [];
 					for ( var key in extraFilter.filter ) {
 						if ( StructKeyExists( originalFilterParams, key ) ) {
-							var paramName = "sf_" & ReReplace( key, "[\.\$]", "__", "all" );
-							var value     = extraFilter.filter[ key ];
+							var baseParamName = ReReplace( key, "[\.\$]", "__", "all" );
+							var paramName     = baseParamName & "__" & uniqueHash;
+							var value         = extraFilter.filter[ key ];
 
 							if ( IsArray( value ) ) {
 								ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
@@ -3945,13 +3951,24 @@ component displayName="Preside Object Service" {
 							}
 
 							result.params = result.params ?: [];
-							ArrayAppend( result.params, _convertDataToQueryParams(
-								  objectName        = arguments.objectName
-								, columnDefinitions = arguments.columnDefinitions
-								, data              = { "#key#" = value }
-								, dbAdapter         = arguments.adapter
-								, prefix            = "sf_"
-							), true );
+
+							var fieldName = ListLast( key, "." );
+							var dataType  = arguments.adapter.sqlDataTypeToCfSqlDatatype(
+								arguments.columnDefinitions[ fieldName ].dbType
+							);
+
+							var param = {
+								  name  = paramName
+								, value = IsArray( value ) ? ArrayToList( value, chr( 31 ) ) : value
+								, type  = dataType
+							};
+
+							if ( IsArray( value ) ) {
+								param.list      = true;
+								param.separator = chr( 31 );
+							}
+
+							ArrayAppend( result.params, param );
 						} else {
 							var paramName = ReReplace( key, "[\.\$]", "__", "all" );
 							var value = extraFilter.filter[ key ];
@@ -3974,12 +3991,12 @@ component displayName="Preside Object Service" {
 			if ( IsSimpleValue( extraFilter.filter ) && Len( Trim( extraFilter.filter ) ) ) {
 				for ( var key in extraFilter.filterParams ?: {} ) {
 					if ( StructKeyExists( originalFilterParams, key ) ) {
-						var namespacedKey = "sf_" & key;
-						var parameterName = ReReplace( namespacedKey, "[\.\$]", "__", "all" );
+						var baseParamName = ReReplace( key, "[\.\$]", "__", "all" );
+						var parameterName = baseParamName & "__" & uniqueHash;
 						var escapedKey    = ReReplace( key, "([\.\$])", "\\1", "all" );
 
 						extraFilter.filter = ReReplaceNoCase( extraFilter.filter, ":#escapedKey#(\b)", ":#parameterName#\1", "all" );
-						result.filterParams[ namespacedKey ] = extraFilter.filterParams[ key ];
+						result.filterParams[ key & "__" & uniqueHash ] = extraFilter.filterParams[ key ];
 					} else {
 						result.filterParams[ key ] = extraFilter.filterParams[ key ];
 					}
