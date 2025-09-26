@@ -3914,9 +3914,7 @@ component displayName="Preside Object Service" {
 			StructAppend( originalFilterParams, result.filter );
 		}
 
-		var extraFilterIndex = 0;
 		for( var extraFilter in arguments.extraFilters ){
-			extraFilterIndex++;
 			extraFilter.filter       = extraFilter.filter       ?: {};
 			extraFilter.filterParams = extraFilter.filterParams ?: {};
 			extraFilter.having       = extraFilter.having       ?: "";
@@ -3924,7 +3922,7 @@ component displayName="Preside Object Service" {
 			extraFilter = _cleanupPropertyAliases( argumentCollection=extraFilter, objectName=arguments.objectName );
 			extraFilter.delete( "objectName" );
 
-			var filterContentForHash = SerializeJSON( extraFilter ) & "_" & extraFilterIndex;
+			var filterContentForHash = SerializeJSON( extraFilter );
 			var uniqueHash           = Left( Hash( filterContentForHash ), 10 );
 
 			if ( IsStruct( extraFilter.filter ) ) {
@@ -3940,35 +3938,24 @@ component displayName="Preside Object Service" {
 					var sqlParts = [];
 					for ( var key in extraFilter.filter ) {
 						if ( StructKeyExists( originalFilterParams, key ) ) {
-							var baseParamName = ReReplace( key, "[\.\$]", "__", "all" );
-							var paramName     = baseParamName & "__" & uniqueHash;
-							var value         = extraFilter.filter[ key ];
+							var prefix            = "ef_" & uniqueHash;
+							var expectedParamName = prefix & ReReplace( key, "[\.\$]", "__", "all" );
+							var value             = extraFilter.filter[ key ];
 
 							if ( IsArray( value ) ) {
-								ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
+								ArrayAppend( sqlParts, "#key# IN (:#expectedParamName#)" );
 							} else {
-								ArrayAppend( sqlParts, "#key# = :#paramName#" );
+								ArrayAppend( sqlParts, "#key# = :#expectedParamName#" );
 							}
 
 							result.params = result.params ?: [];
-
-							var fieldName = ListLast( key, "." );
-							var dataType  = arguments.adapter.sqlDataTypeToCfSqlDatatype(
-								arguments.columnDefinitions[ fieldName ].dbType
-							);
-
-							var param = {
-								  name  = paramName
-								, value = IsArray( value ) ? ArrayToList( value, chr( 31 ) ) : value
-								, type  = dataType
-							};
-
-							if ( IsArray( value ) ) {
-								param.list      = true;
-								param.separator = chr( 31 );
-							}
-
-							ArrayAppend( result.params, param );
+							ArrayAppend( result.params, _convertDataToQueryParams(
+								  objectName        = arguments.objectName
+								, columnDefinitions = arguments.columnDefinitions
+								, data              = { "#key#" = value }
+								, dbAdapter         = arguments.adapter
+								, prefix            = prefix
+							), true );
 						} else {
 							var paramName = ReReplace( key, "[\.\$]", "__", "all" );
 							var value = extraFilter.filter[ key ];
