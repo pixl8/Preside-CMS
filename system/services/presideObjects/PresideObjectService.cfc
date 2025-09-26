@@ -3924,6 +3924,7 @@ component displayName="Preside Object Service" {
 
 			var filterContentForHash = SerializeJSON( extraFilter );
 			var uniqueHash           = Left( Hash( filterContentForHash ), 10 );
+			var prefix               = "ef_" & uniqueHash;
 
 			if ( IsStruct( extraFilter.filter ) ) {
 				var hasCollision = false;
@@ -3938,7 +3939,6 @@ component displayName="Preside Object Service" {
 					var sqlParts = [];
 					for ( var key in extraFilter.filter ) {
 						if ( StructKeyExists( originalFilterParams, key ) ) {
-							var prefix            = "ef_" & uniqueHash;
 							var expectedParamName = prefix & ReReplace( key, "[\.\$]", "__", "all" );
 							var value             = extraFilter.filter[ key ];
 
