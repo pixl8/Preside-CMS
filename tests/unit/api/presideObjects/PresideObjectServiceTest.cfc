@@ -4457,6 +4457,49 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test099_selectData_shouldPreventCollisionWithCustomParameterNames" returntype="void">
+		<cfscript>
+			var poService  = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/filterCollisionTesting/" ] );
+			var testObjId1 = "";
+			var testObjId2 = "";
+			var testObjId3 = "";
+			var result     = "";
+
+			poService.dbSync();
+
+			testObjId1 = poService.insertData( objectName="collision_test_object", data={
+				  label    = "Test Object 1"
+				, status   = "active"
+				, priority = 1
+			});
+			testObjId2 = poService.insertData( objectName="collision_test_object", data={
+				  label    = "Test Object 2"
+				, status   = "pending"
+				, priority = 2
+			});
+			testObjId3 = poService.insertData( objectName="collision_test_object", data={
+				  label    = "Test Object 3"
+				, status   = "inactive"
+				, priority = 3
+			});
+
+			result = poService.selectData(
+				  objectName   = "collision_test_object"
+				, filter       = "collision_test_object.status IN ( :allowedStatusesFilter )"
+				, filterParams = {
+					allowedStatusesFilter = { value = [ "active", "pending" ], type = "cf_sql_varchar", list = true }
+				}
+				, extraFilters = [{
+					filter = { "collision_test_object.status" = [ "pending", "inactive" ] }
+				}]
+			);
+
+			super.assertEquals( 1, result.recordCount, "Expected exactly 1 record with custom parameter collision prevention" );
+			super.assertEquals( "pending", result.status, "Expected 'pending' status" );
+			super.assertEquals( "Test Object 2", result.label, "Expected correct record" );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories"    type="array"   required="true" />
