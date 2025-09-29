@@ -156,11 +156,15 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 						var refId = Trim( groupRef.reference_id ?: "" );
 
 						if ( Len( refId ) ) {
-							ArrayAppend( activeInstancesItem.submenuItems, {
-								title  = renderContent( renderer="webflowInstanceReference", data=refId, args={ webflowId=webflowId, plainText=true, shortTitle=true } )
-								, link   = event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=activeInstances&reference=#refId#" )
-								, active = ( ( args.instanceObjectName ?: "" ) == "cfflow_workflow_instance" ) && ( referenceId == refId )
-							} );
+							var refLabel = renderContent( renderer="webflowInstanceReference", data=refId, args={ webflowId=webflowId, plainText=true, shortTitle=true } );
+
+							if ( Len( refLabel ) ) {
+								ArrayAppend( activeInstancesItem.submenuItems, {
+									  title  = refLabel
+									, link   = event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=activeInstances&reference=#refId#" )
+									, active = ( ( args.instanceObjectName ?: "" ) == "cfflow_workflow_instance" ) && ( referenceId == refId )
+								} );
+							}
 						}
 					}
 				}
