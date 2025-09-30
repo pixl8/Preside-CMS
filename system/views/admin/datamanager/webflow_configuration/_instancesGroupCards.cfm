@@ -13,8 +13,13 @@
 	<cfif Len( webflowId ) && groupedRefs.recordcount>
 		<div id="cards" class="card-listing">
 			<cfloop query="#groupedRefs#">
-				<cfset refId   = groupedRefs.reference_id  ?: "" />
-				<cfset totalNo = Val( groupedRefs.total_no ?: "" ) />
+				<cfset refId    = groupedRefs.reference_id  ?: "" />
+				<cfset refLabel = renderContent( renderer="webflowInstanceReference", data=refId, args={ webflowId=webflowId } ) />
+				<cfset totalNo  = Val( groupedRefs.total_no ?: "" ) />
+
+				<cfif isEmptyString( refLabel )>
+					<cfcontinue />
+				</cfif>
 
 				<div class="card-listing-item">
 					<div class="card">
