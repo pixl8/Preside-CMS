@@ -170,6 +170,8 @@ component displayName="Website login service" {
 				_getUserLoginTokenDao().deleteData( filter={ series = cookieValue.series } );
 			}
 		}
+
+		$announceInterception( "postLogout" );
 	}
 
 	/**
