@@ -10,6 +10,7 @@ component {
 
 	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
 	property name="rulesEngineConditionService" inject="RulesEngineConditionService";
+	property name="formbuilderStorageType"      inject="coldbox:setting:formbuilder.storage.type";
 
 // CONSTRUCTOR
 	/**
@@ -652,7 +653,8 @@ component {
 	public boolean function evaluateConditionForPage(
 		  required string  formId
 		, required numeric pageNumber
-		,          struct  payload = getTempStoredSubmission( arguments.formId )
+		,          string  submissionId = ""
+		,          struct  payload      = getTempStoredSubmission( arguments.formId, arguments.submissionId )
 	) {
 		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
 
@@ -698,28 +700,47 @@ component {
 	 * @submission.hint The form value collection that will be stored in the session
 	 *
 	 */
-	public void function setTempStoredSubmission(
+	public string function setTempStoredSubmission(
 		  required string  formId
 		, required struct  submission
+		,          string  submissionId   = ""
 		,          boolean withFileUpload = false
+		,          string  storage        = formbuilderStorageType
 	) {
-		var tempStorageKey      = "temp_formbuilder_submission_#formId#";
-		var dataToStore         = Duplicate( arguments.submission );
-		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
-		var fileFields          = ValueArray( $getPresideObject( "formbuilder_formitem" ).selectData(
-			  filter       = { form=arguments.formId, item_type=fileUploadItemTypes }
-			, selectFields = [ "question.field_id" ]
-		), "field_id" );
+		var storageHandler = "formbuilder.storages.#arguments.storage#.setTempData";
 
-		if ( ArrayLen( fileFields ) && !arguments.withFileUpload ) {
-			for ( var field in dataToStore ) {
-				if ( ArrayFind( fileFields, field ) ) {
-					StructDelete( dataToStore, field );
+		if ( $getColdbox().handlerExists( storageHandler ) ) {
+			var data = Duplicate( arguments.submission );
+
+			if ( !arguments.withFileUpload ) {
+				var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
+				var fileFields          = ValueArray( $getPresideObject( "formbuilder_formitem" ).selectData(
+					  filter       = { form=arguments.formId, item_type=fileUploadItemTypes }
+					, selectFields = [ "question.field_id" ]
+				), "field_id" );
+
+				if ( ArrayLen( fileFields ) ) {
+					for ( var field in dataToStore ) {
+						if ( ArrayFind( fileFields, field ) ) {
+							StructDelete( data, field );
+						}
+					}
 				}
 			}
+
+			return $getColdbox().runEvent(
+				  event          = storageHandler
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  formId       = arguments.formId
+					, submissionId = arguments.submissionId
+					, data         = data
+				  }
+			);
 		}
 
-		_getSessionStorage().setVar( tempStorageKey, dataToStore );
+		return "";
 	}
 
 	/**
@@ -727,22 +748,49 @@ component {
 	 * for repopulation to a form when the user has logged back in after a timeout.
 	 *
 	 * @autodoc
-	 * @formId.hint     The ID of the form you wish to retrieve stored values for
+	 * @formId.hint The ID of the form you wish to retrieve stored values for
 	 *
 	 */
-	public struct function getTempStoredSubmission( required string formId, boolean clearSubmission=false ) {
-		var tempStorageKey = "temp_formbuilder_submission_#formId#";
-		var submission     =  _getSessionStorage().getVar( tempStorageKey, StructNew() );
+	public struct function getTempStoredSubmission(
+		  required string  formId
+		,          string  submissionId    = ""
+		,          string  storage         = formbuilderStorageType
+	) {
+		var storageHandler = "formbuilder.storages.#arguments.storage#.getTempData";
 
-		if ( arguments.clearSubmission ) {
-			clearTempStoredSubmission( formId=arguments.formId );
+		if ( $getColdbox().handlerExists( storageHandler ) ) {
+			return $getColdbox().runEvent(
+				  event          = storageHandler
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  formId       = arguments.formId
+					, submissionId = arguments.submissionId
+				  }
+			);
 		}
 
-		return submission;
+		return {};
 	}
 
-	public void function clearTempStoredSubmission( required string formId ) {
-		_getSessionStorage().deleteVar( "temp_formbuilder_submission_#formId#" );
+	public void function clearTempStoredSubmission(
+		  required string  formId
+		,          string  submissionId    = ""
+		,          string  storage         = formbuilderStorageType
+	) {
+		var storageHandler = "formbuilder.storages.#arguments.storage#.clearTempData";
+
+		if ( $getColdbox().handlerExists( storageHandler ) ) {
+			$getColdbox().runEvent(
+				  event          = storageHandler
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  formId       = arguments.formId
+					, submissionId = arguments.submissionId
+				  }
+			);
+		}
 	}
 
 	/**
@@ -1280,6 +1328,7 @@ component {
 	public any function saveTempSubmission(
 		  required string  formId
 		, required struct  requestData
+		,          string  submissionId = ""
 		,          boolean validateForm = true
 		,          array   formItems    = []
 		,          numeric pageNumber   = 0
@@ -1306,7 +1355,7 @@ component {
 
 		if ( validationResult.validated() ) {
 			var nextPageNumber = arguments.pageNumber + arguments.pageNext;
-			var tempSubmission = getTempStoredSubmission( formId=arguments.formId );
+			var tempSubmission = getTempStoredSubmission( formId=arguments.formId, submissionId=arguments.submissionId );
 
 			tempSubmission.instancePage = tempSubmission.instancePage ?: "";
 			var pageItem = getPageByPageNumber( formId=arguments.formId, pageNumber=arguments.pageNumber );
@@ -1329,7 +1378,7 @@ component {
 
 			tempSubmission.formPageNumber = nextPageNumber;
 
-			setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, withFileUpload=true );
+			requestData.submissionId = setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, submissionId=arguments.submissionId, withFileUpload=true );
 		}
 
 		return validationResult;
@@ -1338,9 +1387,10 @@ component {
 	public struct function prepareTempSubmission(
 		  required string formId
 		, required struct requestData
-		,          array  formItems = []
+		,          string submissionId = ""
+		,          array  formItems    = []
 	) {
-		var tempSubmission      = Duplicate( getTempStoredSubmission( formId=arguments.formId ) );
+		var tempSubmission      = Duplicate( getTempStoredSubmission( formId=arguments.formId, submissionId=arguments.submissionId ) );
 		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
 
 		for ( var formItem in arguments.formItems ) {
@@ -1355,7 +1405,7 @@ component {
 					StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
 				}
 			}
-		}
+		};
 
 		StructAppend( tempSubmission, arguments.requestData );
 
