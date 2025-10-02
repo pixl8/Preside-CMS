@@ -2,15 +2,18 @@ component {
 
 	public struct function getTempData(
 		  required string formId
-		,          string submissionId = ""
+		, required string id
 	) {
 		var data = getPresideObject( "formbuilder_formsubmission_draft" ).selectData(
-			  argumentCollection = arguments
-			, id                 = arguments.submissionId
-			, selectFields       = [ "submitted_data" ]
-			, returnType         = "singleValue"
-			, columnKey          = "submitted_data"
-			, useCache           = false
+			  filter       = "id = :id and form = :form"
+			, filterParams = {
+				  id   = { cfsqltype="cf_sql_varchar", 	value=arguments.id     }
+				, form = { cfsqltype="cf_sql_varchar", 	value=arguments.formId }
+			  }
+			, selectFields = [ "submitted_data" ]
+			, returnType   = "singleValue"
+			, columnKey    = "submitted_data"
+			, useCache     = false
 		);
 
 		return IsEmpty( data ) ? StructNew() : DeserializeJson( data );
@@ -18,12 +21,12 @@ component {
 
 	public string function setTempData(
 		  required string formId
-		,          string submissionId = ""
-		,          struct data         = {}
+		, required string id
+		, required struct data
 	) {
 		var filter       = "id = :id and form = :form";
 		var filterParams = {
-			  id   = { cfsqltype="cf_sql_varchar", 	value=arguments.submissionId }
+			  id   = { cfsqltype="cf_sql_varchar", 	value=arguments.id }
 			, form = { cfsqltype="cf_sql_varchar", 	value=arguments.formId }
 		};
 
@@ -36,7 +39,7 @@ component {
 				  }
 			 );
 
-			return arguments.submissionId;
+			return arguments.id;
 		} else {
 			return getPresideObject( "formbuilder_formsubmission_draft" ).insertData( data={
 				  form           = arguments.formId
@@ -48,13 +51,14 @@ component {
 
 	public void function clearTempData(
 		  required string formId
-		,          string submissionId = ""
+		, required string id
 	) {
-		getPresideObject( "formbuilder_formsubmission_draft" ).updateData(
-			 id = arguments.submissionId
-			, data = {
-				submitted_data = ""
-			}
+		getPresideObject( "formbuilder_formsubmission_draft" ).deleteData(
+			  filter       = "id = :id and form = :form"
+			, filterParams = {
+				  id   = { cfsqltype="cf_sql_varchar", 	value=arguments.id     }
+				, form = { cfsqltype="cf_sql_varchar", 	value=arguments.formId }
+			  }
 		);
 	}
 
