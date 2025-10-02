@@ -12,25 +12,28 @@ component {
 
 	public any function submitAction( event, rc, prc ) {
 		var formId       = rc.form ?: "";
+		var formUrl      = cgi.http_referer;
 		var theForm      = formBuilderService.getForm( formId );
-		var validRequest = theForm.recordCount == 1 && Len( Trim( cgi.http_referer ) ) && event.getHTTPMethod() == "POST";
+		var validRequest = theForm.recordCount == 1 && Len( Trim( formUrl ) ) && event.getHTTPMethod() == "POST";
 
 		if ( !validRequest ) {
 			event.notFound();
 		}
 
-		var submission  = event.getCollectionWithoutSystemVars();
-		var persistData = submission;
+		var submission   = event.getCollectionWithoutSystemVars();
+		var persistData  = submission;
+
+		var submissionId = rc.submissionId ?: "";
 
 		var checkAccess = formbuilderService.checkAccessAllowed( formId );
 		if ( !checkAccess.allowed ) {
 			if ( checkAccess.reason == "login" ) {
 				submission.checkAccess = true;
-				formBuilderService.setTempStoredSubmission( formId, submission );
+				formBuilderService.setTempStoredSubmission( formId=formId, submission=submission, submissionId=submissionId );
 				if ( event.isAjax() ) {
 					event.renderData( data={ success=false, response=checkAccess.message }, type="json" );
 				} else {
-					websiteLoginService.setPostLoginUrl( cgi.http_referer );
+					websiteLoginService.setPostLoginUrl( formUrl );
 					setNextEvent( url=event.buildLink( page="login" ), persistStruct={ message="LOGIN_REQUIRED" } );
 				}
 			}
@@ -45,7 +48,7 @@ component {
 
 		if ( !event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
 			persistData.errorMessage = translateResource( uri="cms:invalidCsrfToken.error" );
-			setNextEvent( url=cgi.http_referer, persistStruct=persistData );
+			setNextEvent( url=formUrl, persistStruct=persistData );
 		}
 
 		var validationResult = validationEngine.newValidationResult();
@@ -69,29 +72,33 @@ component {
 			}
 		}
 
+		// Handle save temp data.
 		if ( ArrayLen( formItemsInPage ) ) {
 			if ( formPageNext != 0 ) {
-				tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, formItems=formItemsInPage );
+				tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, submissionId=submissionId, formItems=formItemsInPage );
 
 				validationResult = formBuilderService.saveTempSubmission(
-					  formId      = formId
-					, requestData = tempSubmission
-					, formItems   = formItemsInPage
-					, pageNumber  = formPageNumber
-					, pageNext    = formPageNext
+					  formId       = formId
+					, requestData  = tempSubmission
+					, submissionId = submissionId
+					, formItems    = formItemsInPage
+					, pageNumber   = formPageNumber
+					, pageNext     = formPageNext
 				);
 
-				// Trigger save submission.
-				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
+				submissionId = tempSubmission.submissionId ?: "";
+
+				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, submissionId=submissionId );
 
 				if ( ( tempSubmission.formPageNumber ?: 0 ) > formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
-					formItemsInPage = [];
+					formItemsInPage = []; // Trigger save submission.
 				}
 			}
 		}
 
+		// Handle save submission data.
 		if ( !ArrayLen( formItemsInPage ) ) {
-			tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
+			tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, submissionId=submissionId );
 
 			StructAppend( submission, tempSubmission );
 
@@ -117,7 +124,7 @@ component {
 				, formItems       = submissionFormItems
 			);
 
-			formBuilderService.clearTempStoredSubmission( formId=formId );
+			formBuilderService.clearTempStoredSubmission( formId=formId, submissionId=submissionId );
 
 			persistStruct.formBuilderFormSubmitted = formId;
 		}
@@ -146,7 +153,13 @@ component {
 				StructAppend( persistStruct, submission );
 			}
 
-			setNextEvent( url=cgi.http_referer, persistStruct=persistStruct );
+			formUrl = REReplaceNoCase( formUrl, "([?&])_fs=[^&]*", "\1_fs=#submissionId#" );
+
+			if ( !REFindNoCase("([?&])_fs=", formUrl ) ) {
+				formUrl = ListAppend( formUrl, "_fs=#submissionId#", Find( "?", formUrl ) ? "&" : "?" );
+			}
+
+			setNextEvent( url=formUrl, persistStruct=persistStruct );
 		}
 	}
 
