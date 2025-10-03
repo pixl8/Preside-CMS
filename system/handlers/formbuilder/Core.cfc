@@ -23,13 +23,13 @@ component {
 		var submission   = event.getCollectionWithoutSystemVars();
 		var persistData  = submission;
 
-		var submissionId = rc.submissionId ?: "";
+		var storageKey = rc.storageKey ?: "";
 
 		var checkAccess = formbuilderService.checkAccessAllowed( formId );
 		if ( !checkAccess.allowed ) {
 			if ( checkAccess.reason == "login" ) {
 				submission.checkAccess = true;
-				formBuilderService.setTempStoredSubmission( formId=formId, submission=submission, submissionId=submissionId );
+				formBuilderService.setTempStoredSubmission( formId=formId, submission=submission, storageKey=storageKey );
 				if ( event.isAjax() ) {
 					event.renderData( data={ success=false, response=checkAccess.message }, type="json" );
 				} else {
@@ -61,7 +61,7 @@ component {
 
 		if ( formPageNumber > 0 ) {
 			if ( formPageNext == 0 ) { // Reset
-				formBuilderService.clearTempStoredSubmission( formId=formId );
+				formBuilderService.clearTempStoredSubmission( formId=formId, storageKey=storageKey );
 				formPageNumber = 1;
 			}
 
@@ -75,20 +75,20 @@ component {
 		// Handle save temp data.
 		if ( ArrayLen( formItemsInPage ) ) {
 			if ( formPageNext != 0 ) {
-				tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, submissionId=submissionId, formItems=formItemsInPage );
+				tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, storageKey=storageKey, formItems=formItemsInPage );
 
 				validationResult = formBuilderService.saveTempSubmission(
-					  formId       = formId
-					, requestData  = tempSubmission
-					, submissionId = submissionId
-					, formItems    = formItemsInPage
-					, pageNumber   = formPageNumber
-					, pageNext     = formPageNext
+					  formId      = formId
+					, requestData = tempSubmission
+					, storageKey  = storageKey
+					, formItems   = formItemsInPage
+					, pageNumber  = formPageNumber
+					, pageNext    = formPageNext
 				);
 
-				submissionId = tempSubmission.submissionId ?: "";
+				storageKey = tempSubmission.storageKey ?: "";
 
-				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, submissionId=submissionId );
+				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, storageKey=storageKey );
 
 				if ( ( tempSubmission.formPageNumber ?: 0 ) > formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
 					formItemsInPage = []; // Trigger save submission.
@@ -98,7 +98,7 @@ component {
 
 		// Handle save submission data.
 		if ( !ArrayLen( formItemsInPage ) ) {
-			tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, submissionId=submissionId );
+			tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, storageKey=storageKey );
 
 			StructAppend( submission, tempSubmission );
 
@@ -124,7 +124,7 @@ component {
 				, formItems       = submissionFormItems
 			);
 
-			formBuilderService.clearTempStoredSubmission( formId=formId, submissionId=submissionId );
+			formBuilderService.clearTempStoredSubmission( formId=formId, storageKey=storageKey );
 
 			persistStruct.formBuilderFormSubmitted = formId;
 		}
@@ -153,10 +153,10 @@ component {
 				StructAppend( persistStruct, submission );
 			}
 
-			formUrl = REReplaceNoCase( formUrl, "([?&])_fs=[^&]*", "\1_fs=#submissionId#" );
+			formUrl = REReplaceNoCase( formUrl, "([?&])_sk=[^&]*", "\1_sk=#storageKey#" );
 
-			if ( !REFindNoCase("([?&])_fs=", formUrl ) ) {
-				formUrl = ListAppend( formUrl, "_fs=#submissionId#", Find( "?", formUrl ) ? "&" : "?" );
+			if ( !REFindNoCase("([?&])_sk=", formUrl ) ) {
+				formUrl = ListAppend( formUrl, "_sk=#storageKey#", Find( "?", formUrl ) ? "&" : "?" );
 			}
 
 			setNextEvent( url=formUrl, persistStruct=persistStruct );
@@ -209,7 +209,7 @@ component {
 	}
 
 	private string function formSummary( event, rc, prc, args={} ) {
-		var summary = formBuilderService.renderSummary( formId=( args.form ?: "" ) );
+		var summary = formBuilderService.renderSummary( formId=( args.form ?: "" ), storageKey=( args.storageKey ?: "" ) );
 
 		if ( !isEmptyString( summary ) ) {
 			return translateResource( uri="formbuilder:summary.description", defaultValue="" ) & summary;

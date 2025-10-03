@@ -10,7 +10,7 @@ component {
 
 	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
 	property name="rulesEngineConditionService" inject="RulesEngineConditionService";
-	property name="formbuilderStorageType"      inject="coldbox:setting:formbuilder.storage.type";
+	property name="formbuilderDraftStorageType" inject="coldbox:setting:formbuilder.drafts.storage.type";
 
 // CONSTRUCTOR
 	/**
@@ -138,7 +138,7 @@ component {
 	}
 
 	/**
-	 * Retuns a form's item from the DB, converted to a useful struct. Keys are
+	 * Retuns a form's item from the DB, converted to a useful struct. storageKeys are
 	 * 'id', 'type' (a structure containing type configuration) and 'configuration'
 	 * (a structure of configuration options for the item)
 	 *
@@ -653,8 +653,8 @@ component {
 	public boolean function evaluateConditionForPage(
 		  required string  formId
 		, required numeric pageNumber
-		,          string  submissionId = ""
-		,          struct  payload      = getTempStoredSubmission( arguments.formId, arguments.submissionId )
+		,          string  key     = ""
+		,          struct  payload = getTempStoredSubmission( formId=arguments.formId, key=arguments.key )
 	) {
 		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
 
@@ -703,9 +703,9 @@ component {
 	public string function setTempStoredSubmission(
 		  required string  formId
 		, required struct  submission
-		,          string  submissionId   = ""
 		,          boolean withFileUpload = false
-		,          string  storage        = formbuilderStorageType
+		,          string  storageKey            = ""
+		,          string  storage        = formbuilderDraftStorageType
 	) {
 		var storageHandler = "formbuilder.storages.#arguments.storage#.setTempData";
 
@@ -733,9 +733,9 @@ component {
 				, prePostExempt  = true
 				, private        = true
 				, eventArguments = {
-					  formId = arguments.formId
-					, id     = arguments.submissionId
-					, data   = data
+					  formId     = arguments.formId
+					, storageKey = arguments.storageKey
+					, data       = data
 				  }
 			);
 		}
@@ -753,8 +753,8 @@ component {
 	 */
 	public struct function getTempStoredSubmission(
 		  required string  formId
-		,          string  submissionId = ""
-		,          string  storage      = formbuilderStorageType
+		,          string  storageKey = ""
+		,          string  storage    = formbuilderDraftStorageType
 	) {
 		var storageHandler = "formbuilder.storages.#arguments.storage#.getTempData";
 
@@ -764,8 +764,8 @@ component {
 				, prePostExempt  = true
 				, private        = true
 				, eventArguments = {
-					  formId = arguments.formId
-					, id     = arguments.submissionId
+					  formId     = arguments.formId
+					, storageKey = arguments.storageKey
 				  }
 			);
 		}
@@ -775,8 +775,8 @@ component {
 
 	public void function clearTempStoredSubmission(
 		  required string  formId
-		,          string  submissionId = ""
-		,          string  storage      = formbuilderStorageType
+		,          string  storageKey = ""
+		,          string  storage    = formbuilderDraftStorageType
 	) {
 		var storageHandler = "formbuilder.storages.#arguments.storage#.clearTempData";
 
@@ -786,8 +786,8 @@ component {
 				, prePostExempt  = true
 				, private        = true
 				, eventArguments = {
-					  formId = arguments.formId
-					, id     = arguments.submissionId
+					  formId     = arguments.formId
+					, storageKey = arguments.storageKey
 				  }
 			);
 		}
@@ -954,7 +954,8 @@ component {
 
 	public string function renderSummary(
 		  required string formId
-		,          struct submission = getTempStoredSubmission( arguments.formId )
+		,          string storageKey = ""
+		,          struct submission = getTempStoredSubmission( formId=arguments.formId, storageKey=arguments.storageKey )
 	) {
 		var formPageCount = getPageCount( formId=arguments.formId );
 		var renderedPages = CreateObject( "java", "java.lang.StringBuffer" );
@@ -1328,7 +1329,7 @@ component {
 	public any function saveTempSubmission(
 		  required string  formId
 		, required struct  requestData
-		,          string  submissionId = ""
+		,          string  storageKey          = ""
 		,          boolean validateForm = true
 		,          array   formItems    = []
 		,          numeric pageNumber   = 0
@@ -1355,7 +1356,7 @@ component {
 
 		if ( validationResult.validated() ) {
 			var nextPageNumber = arguments.pageNumber + arguments.pageNext;
-			var tempSubmission = getTempStoredSubmission( formId=arguments.formId, submissionId=arguments.submissionId );
+			var tempSubmission = getTempStoredSubmission( formId=arguments.formId, storageKey=arguments.storageKey );
 
 			tempSubmission.instancePage = tempSubmission.instancePage ?: "";
 			var pageItem = getPageByPageNumber( formId=arguments.formId, pageNumber=arguments.pageNumber );
@@ -1378,7 +1379,7 @@ component {
 
 			tempSubmission.formPageNumber = nextPageNumber;
 
-			requestData.submissionId = setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, submissionId=arguments.submissionId, withFileUpload=true );
+			requestData.storageKey = setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, storageKey=arguments.storageKey, withFileUpload=true );
 		}
 
 		return validationResult;
@@ -1387,10 +1388,10 @@ component {
 	public struct function prepareTempSubmission(
 		  required string formId
 		, required struct requestData
-		,          string submissionId = ""
-		,          array  formItems    = []
+		,          string storageKey       = ""
+		,          array  formItems = []
 	) {
-		var tempSubmission      = Duplicate( getTempStoredSubmission( formId=arguments.formId, submissionId=arguments.submissionId ) );
+		var tempSubmission      = Duplicate( getTempStoredSubmission( formId=arguments.formId, storageKey=arguments.storageKey ) );
 		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
 
 		for ( var formItem in arguments.formItems ) {

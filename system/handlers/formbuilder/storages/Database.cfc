@@ -1,14 +1,18 @@
 component {
 
+	property name="formbuilderDraftStorageDatabaseTable" inject="coldbox:setting:formbuilder.drafts.storage.database.table";
+
 	public struct function getTempData(
 		  required string formId
-		, required string id
+		, required string storageKey
+		,          string userId = getLoggedInUserId()
 	) {
-		var data = getPresideObject( "formbuilder_formsubmission_draft" ).selectData(
+		var data = getPresideObject( formbuilderDraftStorageDatabaseTable ).selectData(
 			  filter       = "id = :id and form = :form"
 			, filterParams = {
-				  id   = { cfsqltype="cf_sql_varchar", 	value=arguments.id     }
-				, form = { cfsqltype="cf_sql_varchar", 	value=arguments.formId }
+				  id           = { cfsqltype="cf_sql_varchar", 	value=arguments.storageKey }
+				, form         = { cfsqltype="cf_sql_varchar", 	value=arguments.formId     }
+				, submitted_by = { cfsqltype="cf_sql_varchar", 	value=arguments.userId     }
 			  }
 			, selectFields = [ "submitted_data" ]
 			, returnType   = "singleValue"
@@ -21,17 +25,19 @@ component {
 
 	public string function setTempData(
 		  required string formId
-		, required string id
+		, required string storageKey
 		, required struct data
+		,          string userId = getLoggedInUserId()
 	) {
 		var filter       = "id = :id and form = :form";
 		var filterParams = {
-			  id   = { cfsqltype="cf_sql_varchar", 	value=arguments.id }
-			, form = { cfsqltype="cf_sql_varchar", 	value=arguments.formId }
+			  id           = { cfsqltype="cf_sql_varchar", 	value=arguments.storageKey }
+			, form         = { cfsqltype="cf_sql_varchar", 	value=arguments.formId     }
+			, submitted_by = { cfsqltype="cf_sql_varchar", 	value=arguments.userId     }
 		};
 
-		if ( getPresideObject( "formbuilder_formsubmission_draft" ).dataExists( filter=filter, filterParams=filterParams ) ) {
-			getPresideObject( "formbuilder_formsubmission_draft" ).updateData(
+		if ( getPresideObject( formbuilderDraftStorageDatabaseTable ).dataExists( filter=filter, filterParams=filterParams ) ) {
+			getPresideObject( formbuilderDraftStorageDatabaseTable ).updateData(
 				  filter       = filter
 				, filterParams = filterParams
 				, data         = {
@@ -39,11 +45,11 @@ component {
 				  }
 			 );
 
-			return arguments.id;
+			return arguments.storageKey;
 		} else {
-			return getPresideObject( "formbuilder_formsubmission_draft" ).insertData( data={
+			return getPresideObject( formbuilderDraftStorageDatabaseTable ).insertData( data={
 				  form           = arguments.formId
-				, submitted_by   = getLoggedInUserId()
+				, submitted_by   = arguments.userId
 				, submitted_data = IsEmpty( arguments.data ) ? NullValue() : SerializeJson( arguments.data )
 			} );
 		}
@@ -51,13 +57,13 @@ component {
 
 	public void function clearTempData(
 		  required string formId
-		, required string id
+		, required string storageKey
 	) {
-		getPresideObject( "formbuilder_formsubmission_draft" ).deleteData(
+		getPresideObject( formbuilderDraftStorageDatabaseTable ).deleteData(
 			  filter       = "id = :id and form = :form"
 			, filterParams = {
-				  id   = { cfsqltype="cf_sql_varchar", 	value=arguments.id     }
-				, form = { cfsqltype="cf_sql_varchar", 	value=arguments.formId }
+				  id   = { cfsqltype="cf_sql_varchar", 	value=arguments.storageKey }
+				, form = { cfsqltype="cf_sql_varchar", 	value=arguments.formId     }
 			  }
 		);
 	}
