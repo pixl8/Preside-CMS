@@ -138,7 +138,7 @@ component {
 	}
 
 	/**
-	 * Retuns a form's item from the DB, converted to a useful struct. storageKeys are
+	 * Retuns a form's item from the DB, converted to a useful struct. Keys are
 	 * 'id', 'type' (a structure containing type configuration) and 'configuration'
 	 * (a structure of configuration options for the item)
 	 *
