@@ -187,6 +187,7 @@ jobs:
         uses: pixl8/github-action-push-to-translation-manager@v1
         with:
           translations_api_key: ${{ secrets.TRANSLATIONS_API_KEY }}
+          project_slug: "presidecms"
 
       - name: Generate release version number
         id: versiongen
