@@ -1105,7 +1105,10 @@ component {
 		settings.formbuilder.submissions.removal                = settings.formbuilder.submissions.removal ?: {};
 		settings.formbuilder.submissions.removal.minAllowedDays = 30;
 
-		settings.formbuilder.storage.type = "database";
+		settings.formbuilder.drafts                        = settings.formbuilder.drafts ?: {};
+		settings.formbuilder.drafts.storage                = settings.formbuilder.drafts.storage ?: {};
+		settings.formbuilder.drafts.storage.type           = "database";
+		settings.formbuilder.drafts.storage.database.table = "formbuilder_formsubmission_draft";
 	}
 
 	private void function __setupRulesEngine(){
