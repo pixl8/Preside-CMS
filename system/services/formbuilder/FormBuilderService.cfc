@@ -650,6 +650,24 @@ component {
 		return { allowed=true, reason="", content="", message="" };
 	}
 
+	/**
+	 * Evaluates any conditional logic attached to a given form page to determine
+	 * whether that page should be displayed. The evaluation is performed against
+	 * stored or provided submission data using the rules engine.
+	 *
+	 * If no condition is defined for the page, the function will return true by default.
+	 *
+	 * @autodoc
+	 *
+	 * @formId.hint      The ID of the form containing the page to evaluate
+	 * @pageNumber.hint  The page number within the form to evaluate conditions for
+	 * @key.hint         Optional key to retrieve stored submission data
+	 * @payload.hint     A struct of submission data used for evaluating conditions
+	 *                   (defaults to temporary stored submission if not provided)
+	 *
+	 * @return boolean   True if the page should be displayed (condition passes or none exists),
+	 *                   false if the condition evaluation fails
+	 */
 	public boolean function evaluateConditionForPage(
 		  required string  formId
 		, required numeric pageNumber
@@ -691,20 +709,27 @@ component {
 	}
 
 	/**
-	 * Stores a formbuilder form's submitted values in the user's session temporarily, so
-	 * they can be retrieved when the user has, for instance, logged back in after a timeout.
-	 * File upload fields will be omitted from these stored values.
+	 * Stores a formbuilder form's submitted values in temporary storage (e.g. session or database).
+	 * This allows the data to be restored after an interruption such as a login timeout.
+	 *
+	 * By default, file upload fields will be excluded from storage unless explicitly
+	 * allowed by setting `withFileUpload` to true.
 	 *
 	 * @autodoc
-	 * @formId.hint     The ID of the form you wish to store values for
-	 * @submission.hint The form value collection that will be stored in the session
 	 *
+	 * @formId.hint         The ID of the form whose submission values should be stored
+	 * @submission.hint     A struct of submitted form values to be stored temporarily
+	 * @withFileUpload.hint Whether file upload field values should also be included (default: false)
+	 * @storageKey.hint     Optional key to namespace or identify the stored submission
+	 * @storage.hint        The storage type to use (defaults to `formbuilderDraftStorageType`)
+	 *
+	 * @return string       The key or identifier returned by the storage handler, or an empty string if storage is unavailable
 	 */
 	public string function setTempStoredSubmission(
 		  required string  formId
 		, required struct  submission
 		,          boolean withFileUpload = false
-		,          string  storageKey            = ""
+		,          string  storageKey     = ""
 		,          string  storage        = formbuilderDraftStorageType
 	) {
 		var storageHandler = "formbuilder.storages.#arguments.storage#.setTempData";
@@ -744,12 +769,18 @@ component {
 	}
 
 	/**
-	 * Retrieves a formbuilder form's submitted values from the user's session temporarily
-	 * for repopulation to a form when the user has logged back in after a timeout.
+	 * Retrieves a formbuilder form's previously stored submission values from
+	 * temporary storage (e.g. session or database). This is typically used to
+	 * repopulate a form after the user returns from an interruption such as a
+	 * login timeout.
 	 *
 	 * @autodoc
-	 * @formId.hint The ID of the form you wish to retrieve stored values for
 	 *
+	 * @formId.hint     The ID of the form whose stored values should be retrieved
+	 * @storageKey.hint Optional key to namespace or identify the stored submission
+	 * @storage.hint    The storage type to use (defaults to `formbuilderDraftStorageType`)
+	 *
+	 * @return struct   A struct of stored submission values, or an empty struct if none are found
 	 */
 	public struct function getTempStoredSubmission(
 		  required string  formId
@@ -773,6 +804,20 @@ component {
 		return {};
 	}
 
+	/**
+	 * Clears a formbuilder form's previously stored submission values from
+	 * temporary storage (e.g. session or database). This is typically used
+	 * once the stored data is no longer needed, such as after a successful
+	 * form submission or when discarding a draft.
+	 *
+	 * @autodoc
+	 *
+	 * @formId.hint     The ID of the form whose stored values should be cleared
+	 * @storageKey.hint Optional key to namespace or identify the stored submission
+	 * @storage.hint    The storage type to use (defaults to `formbuilderDraftStorageType`)
+	 *
+	 * @return void     No return value
+	 */
 	public void function clearTempStoredSubmission(
 		  required string  formId
 		,          string  storageKey = ""
