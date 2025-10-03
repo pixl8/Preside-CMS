@@ -1754,6 +1754,16 @@ component {
 						}
 					}
 				}
+
+				if ( $getColdbox().getSetting( name="formbuilder.drafts.storage.type", defaultValue="" ) == "database" ) {
+					$getPresideObject( $getColdbox().getSetting( name="formbuilder.drafts.storage.database.table" ) ).deleteData(
+						  filter       = "form = :form and datecreated < :datecreated"
+						, filterParams = {
+							  form        = { cfsqltype="cf_sql_varchar", value=formbuilderForm.id }
+							, datecreated = DateAdd( "d", -Val( formbuilderForm.submission_remove_after ), Now() )
+						  }
+					);
+				}
 			}
 
 			$helpers.logMessage( logger=arguments.logger, severity="info", message="All expired submissions deleted." );
