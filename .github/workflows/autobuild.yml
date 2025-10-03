@@ -183,6 +183,11 @@ jobs:
           grunt all &&
           rm -rf node_modules
 
+      - name: Push to Translation Manager
+        uses: pixl8/github-action-push-to-translation-manager@v1
+        with:
+          translations_api_key: ${{ secrets.TRANSLATIONS_API_KEY }}
+
       - name: Generate release version number
         id: versiongen
         uses: pixl8/github-action-twgit-release-version-generator@v3
