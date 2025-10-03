@@ -15,6 +15,9 @@ component extends="preside.system.handlers.formcontrols.ObjectPicker" {
 			};
 		}
 
+		args.object = args.object ?: "webflow_configuration";
+		args.ajax   = args.ajax   ?: false;
+
 		return super.index( event=arguments.event, rc=arguments.rc, prc=arguments.prc, args=arguments.args );
 	}
 

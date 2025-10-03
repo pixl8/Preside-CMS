@@ -452,6 +452,88 @@ component {
 		return processedTransitions;
 	}
 
+	public array function getWebflowTransitionsForJourneyChart(
+		  required string  webflowId
+		,          string  webflowRef   = ""
+		,          string  instanceRef  = ""
+		,          boolean isHistorical = false
+		,          date    startDate
+		,          date    endDate
+	) {
+		var transitions    = [];
+		var transitionsMap = [:];
+		var filters        = [ { filter={ reference=arguments.webflowId } } ];
+		var stepTitles     = _getWebflowConfigurator().getStepTitles( webflowId=arguments.webflowId, instanceRef=arguments.webflowRef, short=true );
+		var instanceQuery  = QueryNew( "" );
+
+		if ( Len( arguments.instanceRef ) ) {
+			ArrayAppend( filters, { filter={ sub_reference=arguments.instanceRef } } );
+		}
+
+		if ( StructKeyExists( arguments, "startDate" ) && IsDate( arguments.startDate ) ) {
+			ArrayAppend( filters, {
+				  filter       = "#arguments.isHistorical ? "date_archived" : "datecreated"# > :start"
+				, filterParams = { start={ type="cf_sql_timestamp", value=arguments.startDate } }
+			} );
+		}
+		if ( StructKeyExists( arguments, "endDate" ) && IsDate( arguments.endDate ) ) {
+			ArrayAppend( filters, {
+				  filter       = "#arguments.isHistorical ? "date_archived" : "datecreated"# < :end"
+				, filterParams = { end={ type="cf_sql_timestamp", value=arguments.endDate } }
+			} );
+		}
+
+		if ( arguments.isHistorical ) {
+			instanceQuery = $getPresideObject( "cfflow_workflow_archived_instance" ).selectData(
+				  extraFilters = filters
+				, selectFields = [ "id" ]
+			);
+		} else {
+			instanceQuery = $getPresideObject( "cfflow_workflow_instance" ).selectData(
+				  extraFilters = filters
+				, selectFields = [ "id" ]
+			);
+		}
+
+		for ( var instance in instanceQuery ) {
+			var transitionFrom      = "";
+			var transitionTo        = "";
+			var instanceTransitions = _getStepTransitions( instanceId=instance.id, isArchive=arguments.isHistorical );
+
+			for ( var transition in instanceTransitions ) {
+				if ( transition.action == "start" ) {
+					transitionTo = transition.to;
+				} else if ( transition.action == "next" ) {
+					transitionFrom = transitionTo;
+					transitionTo   = transition.to;
+				} else {
+					transitionFrom = transitionTo;
+					transitionTo   = "";
+				}
+
+				if ( Len( transitionFrom ) && Len( transitionTo ) ) {
+					transitionsMap[ "#transitionFrom#|#transitionTo#" ] = transitionsMap[ "#transitionFrom#|#transitionTo#" ] ?: 0;
+					transitionsMap[ "#transitionFrom#|#transitionTo#" ] += 1;
+				}
+			}
+		}
+
+		for ( var key in transitionsMap ) {
+			var fromKey   = ListFirst( key, "|" );
+			var fromLabel = stepTitles[ fromKey ] ?: fromKey;
+			var toKey     = ListLast( key, "|" );
+			var toLabel   = stepTitles[ toKey ] ?: toKey;
+
+			ArrayAppend( transitions, {
+				  from = fromLabel
+				, to   = toLabel
+				, flow = transitionsMap[ key ]
+			} );
+		}
+
+		return transitions;
+	}
+
 	public struct function prepareInstanceRuleFilter(
 		  required string  type
 		, required string  webflowId
