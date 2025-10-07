@@ -35,16 +35,20 @@ component {
 		var webflowId = Trim( rc.webflow ?: "" );
 
 		if ( Len( webflowId ) ) {
-			var sourceObject      = ( ( rc.type ?: "active" ) == "active" ) ? "cfflow_workflow_instance" : "cfflow_workflow_archived_instance";
-			var refGroupingConfig = webflowConfigurationService.getInstanceRefGroupingConfig( webflowId=webflowId, sourceObject=sourceObject );
+			var sourceObject      = ArrayFindNoCase( [ "active", "activetimedout" ], ( rc.type ?: "active" ) ) ? "cfflow_workflow_instance" : "cfflow_workflow_archived_instance";
+			var refGroupingConfig = webflowConfigurationService.getInstanceRefGroupingConfig( webflowId=webflowId, sourceObject=sourceObject, includeNonSingleton=true );
 
 			if ( IsQuery( refGroupingConfig.groupedRefs ?: "" ) && refGroupingConfig.groupedRefs.recordcount ) {
 				for ( var row in refGroupingConfig.groupedRefs ) {
-					ArrayAppend( values, row.reference_id );
-					ArrayAppend( labels, _renderInstanceLabel(
+					var referenceLabel = _renderInstanceLabel(
 						  webflowId = webflowId
 						, reference = row.reference_id
-					) );
+					);
+
+					if ( Len( referenceLabel ) ) {
+						ArrayAppend( values, row.reference_id );
+						ArrayAppend( labels, referenceLabel );
+					}
 				}
 			}
 		}
