@@ -17,6 +17,8 @@ component {
 			, includeInactive = event.showNonLiveContent()
 			, activeTree      = activeTree
 		);
+
+		announceInterception( "onGetMainNavigationMenuItems", args );
 	}
 
 	private function subNavigation( event, rc, prc, args={} ) {
@@ -45,6 +47,8 @@ component {
 			, expandAllSiblings = false
 			, isSubMenu         = true
 		);
+
+		announceInterception( "onGetSubNavigationMenuItems", args );
 
 		event.setViewletView( args.view ?: "/core/navigation/subNavigation" );
 	}
