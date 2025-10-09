@@ -315,6 +315,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onEmailTemplatePreFetchRecordsForGridListing" );
 		interceptorSettings.customInterceptionPoints.append( "preRenderWebflowStepForm" );
 		interceptorSettings.customInterceptionPoints.append( "postRenderWebflowStep" );
+		interceptorSettings.customInterceptionPoints.append( "onGetMainNavigationMenuItems" );
+		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
 	}
 
 	private void function __setupCachebox() {
