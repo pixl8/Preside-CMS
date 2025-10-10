@@ -26,6 +26,12 @@ component displayName="Tenancy service" {
 
 		var tenant = ( objectMeta.tenant ?: "" ).trim();
 
+		if ( tenant == "site" && !$isFeatureEnabled( "sites" ) ) {
+			objectMeta.tenant = "";
+			objectMeta.siteFiltered = false;
+			return;
+		}
+
 		if ( tenant.len() ) {
 			var config = _getTenancyConfig();
 			if ( siteFiltered ) {

@@ -1,7 +1,7 @@
 component {
 
-	property name="permissionService" inject="permissionService";
-	property name="pageTypesService"  inject="pageTypesService";
+	property name="permissionService" inject="featureInjector:admin:permissionService";
+	property name="pageTypesService"  inject="featureInjector:sitetree:pageTypesService";
 
 	private struct function formbuilderV1Form( event, rc, prc, args={} ) {
 		if ( isFeatureEnabled( "formbuilder2" ) ) {
