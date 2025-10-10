@@ -29,24 +29,32 @@ component extends="preside.system.base.AdminHandler" {
 			return translateResource( uri="admin.admindashboards.widget.webflowJourneyChart:error.no.webflow" );
 		}
 
-		var widgetTitle = Trim( args.config.widget_title ?: "" );
-		var transitions = webflowInstanceService.getWebflowTransitionsForJourneyChart(
+		var widgetTitle       = Trim( args.config.widget_title ?: "" );
+		var transitionsConfig = webflowInstanceService.getWebflowTransitionsConfigForJourneyChart(
 			  webflowId    = wfConfig.webflow_id
 			, webflowRef   = wfConfig.instance_ref ?: ""
 			, instanceRef  = args.config.instance  ?: ""
+			, statuses     = ( args.config.type    ?: "current" ) == "current" ? ( args.config.current_statuses ?: "" ) : ( args.config.historical_statuses ?: "" )
 			, isHistorical = ( args.config.type    ?: "current" ) == "historical"
 			, startDate    = timePeriod.from       ?: NullValue()
 			, endDate      = timePeriod.to         ?: NullValue()
 		);
 
-		if ( !ArrayLen( transitions ) ) {
+		if ( !ArrayLen( transitionsConfig.transitions ?: [] ) ) {
 			return translateResource( uri="admin.admindashboards.widget.webflowJourneyChart:error.no.transitions" );
 		}
 
 		var chart = newChart( type="sankey", theme="adminDashboardWidgets" )
 					.setId( "widget_#Hash( args.configInstanceId )#" )
 					.setAspectRatio( 1.5 )
-					.addDataset( label=widgetTitle, data=transitions, options={ size="max" } );
+					.addDataset(
+						  label   = widgetTitle
+						, data    = transitionsConfig.transitions
+						, options = {
+							  size   = "max"
+							, labels = transitionsConfig.labels ?: {}
+						}
+					);
 
 		return chart.render();
 	}

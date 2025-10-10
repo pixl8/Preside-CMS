@@ -452,18 +452,21 @@ component {
 		return processedTransitions;
 	}
 
-	public array function getWebflowTransitionsForJourneyChart(
+	public struct function getWebflowTransitionsConfigForJourneyChart(
 		  required string  webflowId
 		,          string  webflowRef   = ""
 		,          string  instanceRef  = ""
+		,          string  statuses     = ""
 		,          boolean isHistorical = false
 		,          date    startDate
 		,          date    endDate
 	) {
+		var pointLabels    = {};
 		var transitions    = [];
 		var transitionsMap = [:];
 		var filters        = [ { filter={ reference=arguments.webflowId } } ];
-		var stepTitles     = _getWebflowConfigurator().getStepTitles( webflowId=arguments.webflowId, instanceRef=arguments.webflowRef, short=true );
+		var flowConfig     = _getWebflowConfigurator().getFlowConfig( webflowId=arguments.webflowId, instanceRef=arguments.webflowRef );
+		var stepLabels     = _getWebflowConfigurator().getStepLabels( webflowId=arguments.webflowId, instanceRef=arguments.webflowRef );
 		var instanceQuery  = QueryNew( "" );
 
 		if ( Len( arguments.instanceRef ) ) {
@@ -484,11 +487,31 @@ component {
 		}
 
 		if ( arguments.isHistorical ) {
+			if ( Len( arguments.statuses ) ) {
+				ArrayAppend( filters, { filter={ archive_reason=ListToArray( arguments.statuses ) } } );
+			}
+
 			instanceQuery = $getPresideObject( "cfflow_workflow_archived_instance" ).selectData(
 				  extraFilters = filters
 				, selectFields = [ "id" ]
 			);
 		} else {
+			if ( Len( arguments.statuses ) ) {
+				if ( arguments.statuses == "active" ) {
+					ArrayAppend( filters, {
+						  filter       = "datemodified < :datemodified"
+						, filterParams = { datemodified = DateAdd( "n", -1 * Val( flowConfig?.timeout_in_minutes ), Now() ) }
+					} );
+				}
+
+				if ( arguments.statuses == "activetimedout" ) {
+					ArrayAppend( filters, {
+						  filter       = "datemodified >= :datemodified"
+						, filterParams = { datemodified = DateAdd( "n", -1 * Val( flowConfig?.timeout_in_minutes ), Now() ) }
+					} );
+				}
+			}
+
 			instanceQuery = $getPresideObject( "cfflow_workflow_instance" ).selectData(
 				  extraFilters = filters
 				, selectFields = [ "id" ]
@@ -518,11 +541,17 @@ component {
 			}
 		}
 
+		var baseI18nUri     = "webflow.#arguments.webflowId#:step.";
+		var stepBaseI18nUri = "webflow.step.";
+
 		for ( var key in transitionsMap ) {
 			var fromKey   = ListFirst( key, "|" );
-			var fromLabel = stepTitles[ fromKey ] ?: fromKey;
-			var toKey     = ListLast( key, "|" );
-			var toLabel   = stepTitles[ toKey ] ?: toKey;
+			var fromLabel = stepLabels[ fromKey ] ?: fromKey;
+			var toKey     = ListLast(  key, "|" );
+			var toLabel   = stepLabels[ toKey ] ?: toKey;
+
+			pointLabels[ fromLabel ] = pointLabels[ fromLabel ] ?: "#fromLabel# (#transitionsMap[ key ]#)";
+			pointLabels[ toLabel ]   = pointLabels[ toLabel]    ?: "#toLabel# (#transitionsMap[ key ]#)";
 
 			ArrayAppend( transitions, {
 				  from = fromLabel
@@ -531,7 +560,10 @@ component {
 			} );
 		}
 
-		return transitions;
+		return {
+			  transitions = transitions
+			, labels      = pointLabels
+		};
 	}
 
 	public struct function prepareInstanceRuleFilter(
