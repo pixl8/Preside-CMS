@@ -461,7 +461,7 @@ component {
 
 		for( var step in stepDefinitions ) {
 			if ( Len( Trim( step.getStepRef() ) ) ) {
-				parentSteps.append( step.getStepRef() );
+				ArrayPrepend( parentSteps, step.getStepRef() );
 			}
 		}
 		if ( ArrayLen( parentSteps ) ) {
