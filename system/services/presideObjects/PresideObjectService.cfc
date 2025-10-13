@@ -3938,14 +3938,15 @@ component displayName="Preside Object Service" {
 				if ( hasCollision ) {
 					var sqlParts = [];
 					for ( var key in extraFilter.filter ) {
+						var qualifiedKey = _autoPrefixBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
 						if ( StructKeyExists( originalFilterParams, key ) ) {
 							var expectedParamName = prefix & ReReplace( key, "[\.\$]", "__", "all" );
 							var value             = extraFilter.filter[ key ];
 
 							if ( IsArray( value ) ) {
-								ArrayAppend( sqlParts, "#key# IN (:#expectedParamName#)" );
+								ArrayAppend( sqlParts, "#qualifiedKey# IN (:#expectedParamName#)" );
 							} else {
-								ArrayAppend( sqlParts, "#key# = :#expectedParamName#" );
+								ArrayAppend( sqlParts, "#qualifiedKey# = :#expectedParamName#" );
 							}
 
 							result.params = result.params ?: [];
@@ -3961,9 +3962,9 @@ component displayName="Preside Object Service" {
 							var value = extraFilter.filter[ key ];
 
 							if ( IsArray( value ) ) {
-								ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
+								ArrayAppend( sqlParts, "#qualifiedKey# IN (:#paramName#)" );
 							} else {
-								ArrayAppend( sqlParts, "#key# = :#paramName#" );
+								ArrayAppend( sqlParts, "#qualifiedKey# = :#paramName#" );
 							}
 
 							result.filterParams[ key ] = value;

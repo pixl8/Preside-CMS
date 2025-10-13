@@ -4500,6 +4500,47 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test100_selectData_shouldReturnSingleRecord_evenWhenExtraFilterUsesUnqualifiedId_withJoinPresent" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var aId       = 0;
+			var eId       = "";
+			var dId       = 0;
+			var bId       = 0;
+			var result    = "";
+
+			poService.dbSync();
+
+			aId = poService.insertData( objectName="object_a", data={
+				  label = "object a"
+			} );
+			eId = poService.insertData( objectName="object_e", data={
+				  label = "object e"
+			} );
+			dId = poService.insertData( objectName="object_d", data={
+				  label   = "object d"
+				, object_e = eId
+			} );
+			bId = poService.insertData( objectName="object_b", data={
+				  label        = "object b"
+				, related_to_a = aId
+				, object_d     = dId
+			} );
+
+			result = poService.selectData(
+				  objectName   = "object_b"
+				, selectFields = [ "id", "object_d.id" ]
+				, filter       = "object_b.id = :id"
+				, filterParams = { id = bId }
+				, extraFilters = [ { filter = { id = bId } } ]
+				, maxRows      = 1
+			);
+
+			super.assertEquals( 1, result.recordCount, "Expected exactly 1 record returned" );
+			super.assertEquals( bId, result.id, "Expected to retrieve the inserted object_b record" );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories"    type="array"   required="true" />
