@@ -3907,11 +3907,8 @@ component displayName="Preside Object Service" {
 			, filterParams = _deepishDuplicate( arguments.filterParams )
 			, having       = arguments.having
 		};
-		var originalFilterParams = StructCopy( result.filterParams );
-
-		if ( IsStruct( result.filter ) && ( arrayLen( arguments.extraFilters ) || arrayLen( arguments.savedFilters ) ) ) {
+		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
 			StructAppend( result.filterParams, result.filter );
-			StructAppend( originalFilterParams, result.filter );
 		}
 
 		for( var extraFilter in arguments.extraFilters ){
@@ -3922,75 +3919,10 @@ component displayName="Preside Object Service" {
 			extraFilter = _cleanupPropertyAliases( argumentCollection=extraFilter, objectName=arguments.objectName );
 			extraFilter.delete( "objectName" );
 
-			var filterContentForHash = SerializeJSON( extraFilter );
-			var uniqueHash           = Left( Hash( filterContentForHash ), 10 );
-			var prefix               = "ef_" & uniqueHash;
-
+			result.filterParams.append( extraFilter.filterParams ?: {} );
 			if ( IsStruct( extraFilter.filter ) ) {
-				var hasCollision = false;
-				for ( var key in extraFilter.filter ) {
-					if ( StructKeyExists( originalFilterParams, key ) ) {
-						hasCollision = true;
-						break;
-					}
-				}
-
-				if ( hasCollision ) {
-					var sqlParts = [];
-					for ( var key in extraFilter.filter ) {
-						if ( StructKeyExists( originalFilterParams, key ) ) {
-							var expectedParamName = prefix & ReReplace( key, "[\.\$]", "__", "all" );
-							var value             = extraFilter.filter[ key ];
-
-							if ( IsArray( value ) ) {
-								ArrayAppend( sqlParts, "#key# IN (:#expectedParamName#)" );
-							} else {
-								ArrayAppend( sqlParts, "#key# = :#expectedParamName#" );
-							}
-
-							result.params = result.params ?: [];
-							ArrayAppend( result.params, _convertDataToQueryParams(
-								  objectName        = arguments.objectName
-								, columnDefinitions = arguments.columnDefinitions
-								, data              = { "#key#" = value }
-								, dbAdapter         = arguments.adapter
-								, prefix            = prefix
-							), true );
-						} else {
-							var paramName = ReReplace( key, "[\.\$]", "__", "all" );
-							var value = extraFilter.filter[ key ];
-
-							if ( IsArray( value ) ) {
-								ArrayAppend( sqlParts, "#key# IN (:#paramName#)" );
-							} else {
-								ArrayAppend( sqlParts, "#key# = :#paramName#" );
-							}
-
-							result.filterParams[ key ] = value;
-						}
-					}
-					extraFilter.filter = "(" & ArrayToList( sqlParts, " AND " ) & ")";
-				} else {
-					StructAppend( result.filterParams, extraFilter.filter );
-				}
+				result.filterParams.append( extraFilter.filter );
 			}
-
-			if ( IsSimpleValue( extraFilter.filter ) && Len( Trim( extraFilter.filter ) ) ) {
-				for ( var key in extraFilter.filterParams ?: {} ) {
-					if ( StructKeyExists( originalFilterParams, key ) ) {
-						var baseParamName = ReReplace( key, "[\.\$]", "__", "all" );
-						var parameterName = baseParamName & "__" & uniqueHash;
-						var escapedKey    = ReReplace( key, "([\.\$])", "\\1", "all" );
-
-						extraFilter.filter = ReReplaceNoCase( extraFilter.filter, ":#escapedKey#(\b)", ":#parameterName#\1", "all" );
-						result.filterParams[ key & "__" & uniqueHash ] = extraFilter.filterParams[ key ];
-					} else {
-						result.filterParams[ key ] = extraFilter.filterParams[ key ];
-					}
-				}
-			}
-
-			StructAppend( result.filterParams, extraFilter.filterParams ?: {} );
 
 			result.filter = mergeFilters(
 				  filter1    = result.filter
