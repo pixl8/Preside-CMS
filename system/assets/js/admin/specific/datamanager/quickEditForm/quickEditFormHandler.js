@@ -12,17 +12,31 @@
 		submitForm();
 	};
 
-	submitForm = function(){
-		if ( $quickEditForm.valid() ) {
-			$.ajax({
-				  type    : "POST"
-				, url     : $quickEditForm.attr( 'action' )
-				, data    : $quickEditForm.serializeObject()
-				, success : ajaxSuccessHandler
-				, error   : ajaxErrorHandler
-			});
-		}
-	};
+    submitForm = function(){
+        if ( $quickEditForm.valid() ) {
+            var pairs = $quickEditForm.serializeArray();
+            var data  = {};
+
+            for ( var i=0; i<pairs.length; i++ ) {
+                var name  = pairs[i].name;
+                var value = pairs[i].value;
+
+                if ( data.hasOwnProperty( name ) ) {
+                    data[ name ] = data[ name ] + "," + value;
+                } else {
+                    data[ name ] = value;
+                }
+            }
+
+            $.ajax({
+                  type    : "POST"
+                , url     : $quickEditForm.attr( 'action' )
+                , data    : data
+                , success : ajaxSuccessHandler
+                , error   : ajaxErrorHandler
+            });
+        }
+    };
 
 	ajaxSuccessHandler = function( data ){
 		if ( typeof data === "object" ) {
