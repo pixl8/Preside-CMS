@@ -101,7 +101,7 @@ component singleton=true {
 
 		do {
 			try {
-				result = QueryExecute(
+				result = _queryExecute(
 					  sql     = arguments.sql
 					, params  = params
 					, options = options
@@ -153,8 +153,8 @@ component singleton=true {
 		var preClause  = arguments.sql.reReplaceNoCase( "^(.*?\swhere)\s.*$", "\1" );
 		var postClause = arguments.sql.reReplaceNoCase( "^.*?\swhere\s", " " );
 
-		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not null", "all" );
-		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is null", "all" );
+		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#\b", " is not null", "all" );
+		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#\b", " is null", "all" );
 
 		return preClause & postClause
 	}
@@ -179,6 +179,11 @@ component singleton=true {
 			return _getDefaultBgQueryTimeout();
 		}
 		return _getDefaultQueryTimeout();
+	}
+
+	// here to help mocking with tests
+	private any function _queryExecute( sql, params, options ) {
+		return QueryExecute( sql=arguments.sql, params=arguments.params, options=arguments.options );
 	}
 
 // GETTERS AND SETTERS
