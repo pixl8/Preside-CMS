@@ -23,7 +23,7 @@ component {
 		var submission   = event.getCollectionWithoutSystemVars();
 		var persistData  = submission;
 
-		var storageKey = rc.storageKey ?: "";
+		var storageKey = rc._sk ?: "";
 
 		var checkAccess = formbuilderService.checkAccessAllowed( formId );
 		if ( !checkAccess.allowed ) {

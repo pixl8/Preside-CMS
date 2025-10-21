@@ -8,9 +8,10 @@
  */
 component {
 
-	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
-	property name="rulesEngineConditionService" inject="RulesEngineConditionService";
-	property name="formbuilderDraftStorageType" inject="coldbox:setting:formbuilder.drafts.storage.type";
+	property name="formBuilderStorageProvider"           inject="FormBuilderStorageProvider";
+	property name="rulesEngineConditionService"          inject="RulesEngineConditionService";
+	property name="formbuilderDraftStorageType"          inject="coldbox:setting:formbuilder.drafts.storage.type";
+	property name="formbuilderDraftStorageDatabaseTable" inject="coldbox:setting:formbuilder.drafts.storage.database.table";
 
 // CONSTRUCTOR
 	/**
@@ -735,7 +736,7 @@ component {
 		var storageHandler = "formbuilder.storages.#arguments.storage#.setTempData";
 
 		if ( $getColdbox().handlerExists( storageHandler ) ) {
-			var data = Duplicate( arguments.submission );
+			var data = StructCopy( arguments.submission );
 
 			if ( !arguments.withFileUpload ) {
 				var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
@@ -1755,8 +1756,8 @@ component {
 					}
 				}
 
-				if ( $getColdbox().getSetting( name="formbuilder.drafts.storage.type", defaultValue="" ) == "database" ) {
-					$getPresideObject( $getColdbox().getSetting( name="formbuilder.drafts.storage.database.table" ) ).deleteData(
+				if ( formbuilderDraftStorageType == "database" ) {
+					$getPresideObject( formbuilderDraftStorageDatabaseTable ).deleteData(
 						  filter       = "form = :form and datecreated < :datecreated"
 						, filterParams = {
 							  form        = { cfsqltype="cf_sql_varchar", value=formbuilderForm.id }
