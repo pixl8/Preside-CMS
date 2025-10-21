@@ -45,7 +45,6 @@ component singleton=true {
 		_getLogger().debug( arguments.sql );
 
 		if ( arguments.returntype == "info" ) {
-			var info = "";
 			options.result = "info";
 		} else if ( arguments.returntype == "array" ) {
 			options.returntype = "array";
@@ -102,9 +101,10 @@ component singleton=true {
 		do {
 			try {
 				result = _queryExecute(
-					  sql     = arguments.sql
-					, params  = params
-					, options = options
+					  sql        = arguments.sql
+					, params     = params
+					, options    = options
+					, returnType = arguments.returntype
 				);
 				break;
 			} catch( database e ) {
@@ -116,11 +116,7 @@ component singleton=true {
 			}
 		} while( ++connectionAttempts <= connectionRetries );
 
-		if ( arguments.returntype eq "info" ) {
-			return info;
-		} else {
-			return result;
-		}
+		return result;
 	}
 
 	public string function obfuscateSqlForPreside( required string sql ) {
@@ -182,8 +178,11 @@ component singleton=true {
 	}
 
 	// here to help mocking with tests
-	private any function _queryExecute( sql, params, options ) {
-		return QueryExecute( sql=arguments.sql, params=arguments.params, options=arguments.options );
+	private any function _queryExecute( sql, params, options, returntype ) {
+		var info   = "";
+		var result = QueryExecute( sql=arguments.sql, params=arguments.params, options=arguments.options );
+
+		return arguments.returntype == "info" ? info : result;
 	}
 
 // GETTERS AND SETTERS
