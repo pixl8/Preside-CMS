@@ -108,17 +108,38 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test07_runSql_should_turn_empty_string_filters_to_null_filters" access="public" returntype="any" output="false">
+		<cfscript>
+			var logger = new tests.resources.HelperObjects.TestLogger( logLevel = "INFORMATION" );
+			var runner = _getRunner( logger=logger );
+
+
+			runner.$( "_queryExecute", QueryNew( "id" ) );
+
+			var result = runner.runSql( dsn=application.dsn, sql="select id from test where some_value = :some_value and some_value_other = :some_value_other and another != :another", params=[
+				{ name="some_value", value="", type="cf_sql_varchar" },
+				{ name="some_value_other", value="test", type="cf_sql_varchar" },
+				{ name="another", value="", type="cf_sql_varchar" },
+			] );
+
+			var callLog = runner.$callLog()._queryExecute;
+
+			super.assertEquals( 1, ArrayLen( callLog ) );
+			super.assertEquals( "select id from test where some_value is null and some_value_other = :some_value_other and another is not null", callLog[1].sql );
+		</cfscript>
+	</cffunction>
+
 <!--- private --->
 	<cffunction name="_getRunner" access="private" returntype="any" output="false">
 		<cfargument name="logger"         type="any"     required="true" />
 		<cfargument name="defaultTimeout" type="numeric" required="false" default="0" />
 
 		<cfscript>
-			return new preside.system.services.database.SqlRunner(
+			return CreateMock( object=new preside.system.services.database.SqlRunner(
 				  logger                = arguments.logger
 				, defaultQueryTimeout   = arguments.defaultTimeout
 				, defaultBgQueryTimeout = arguments.defaultTimeout
-			);
+			) );
 		</cfscript>
 	</cffunction>
 
