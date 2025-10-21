@@ -45,7 +45,6 @@ component singleton=true {
 		_getLogger().debug( arguments.sql );
 
 		if ( arguments.returntype == "info" ) {
-			var info = "";
 			options.result = "info";
 		} else if ( arguments.returntype == "array" ) {
 			options.returntype = "array";
@@ -101,10 +100,11 @@ component singleton=true {
 
 		do {
 			try {
-				result = QueryExecute(
-					  sql     = arguments.sql
-					, params  = params
-					, options = options
+				result = _queryExecute(
+					  sql        = arguments.sql
+					, params     = params
+					, options    = options
+					, returnType = arguments.returntype
 				);
 				break;
 			} catch( database e ) {
@@ -116,11 +116,7 @@ component singleton=true {
 			}
 		} while( ++connectionAttempts <= connectionRetries );
 
-		if ( arguments.returntype eq "info" ) {
-			return info;
-		} else {
-			return result;
-		}
+		return result;
 	}
 
 	public string function obfuscateSqlForPreside( required string sql ) {
@@ -153,8 +149,8 @@ component singleton=true {
 		var preClause  = arguments.sql.reReplaceNoCase( "^(.*?\swhere)\s.*$", "\1" );
 		var postClause = arguments.sql.reReplaceNoCase( "^.*?\swhere\s", " " );
 
-		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not null", "all" );
-		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is null", "all" );
+		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#\b", " is not null", "all" );
+		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#\b", " is null", "all" );
 
 		return preClause & postClause
 	}
@@ -179,6 +175,14 @@ component singleton=true {
 			return _getDefaultBgQueryTimeout();
 		}
 		return _getDefaultQueryTimeout();
+	}
+
+	// here to help mocking with tests
+	private any function _queryExecute( sql, params, options, returntype ) {
+		var info   = "";
+		var result = QueryExecute( sql=arguments.sql, params=arguments.params, options=arguments.options );
+
+		return arguments.returntype == "info" ? info : result;
 	}
 
 // GETTERS AND SETTERS
