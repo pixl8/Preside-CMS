@@ -18,7 +18,7 @@
 			} );
 		} );
 
-		$ajaxSubmitContainer.one( "click", ".webflow-prev-btn", function(event) {
+		$ajaxSubmitContainer.on( "click", ".webflow-prev-btn", function(event) {
 			event.preventDefault();
 
 			$.ajax( {
