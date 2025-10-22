@@ -16,11 +16,11 @@ component extends="preside.system.base.AdminHandler" {
 	variables.infoCardStyle      = "default";
 
 // PUBLIC ACTIONS
-	public string function listingViewlet( event, rc, prc, args={} ) {
+	private string function listingViewlet( event, rc, prc, args={} ) {
 		args.objectName           = args.objectName ?: prc.objectName;
 		args.listingCategoryField = Trim( presideObjectService.getObjectAttribute( objectName=args.objectName, attributeName="datamanagerListingCategoryField" ) );
 
-		prc.listingView = runEvent(
+		var rendered = runEvent(
 			  event          = "admin.dataManager._objectListingViewlet"
 			, private        = true
 			, prePostExempt  = true
@@ -28,7 +28,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( Len( args.listingCategoryField ) ) {
-			args.currentListingView   = prc.listingView;
 			args.allListingCategories = [];
 
 			var categoryFieldSelectFields = [];
@@ -66,11 +65,12 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			if ( ArrayLen( args.allListingCategories ) ) {
-				prc.listingView = renderView( view="/admin/datamanager/_listingWithCategories", args=args );
+				args.currentListingView = rendered;
+				return renderView( view="/admin/datamanager/_listingWithCategories", args=args );
 			}
 		}
 
-		return renderView( view="/admin/datamanager/object", args=args );
+		return rendered;
 	}
 
 	public void function viewRecord( event, rc, prc ){
