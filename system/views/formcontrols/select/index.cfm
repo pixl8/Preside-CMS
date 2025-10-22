@@ -18,10 +18,11 @@
 	addMissingValues        = IsTrue( args.addMissingValues   ?: "" );
 	includeEmptyOption      = IsTrue( args.includeEmptyOption ?: "" );
 	labels                  = ( structKeyExists( args, "labels") && len( args.labels ) ) ? args.labels : args.values;
-	
+	optionAttribs           = args.optionAttribs           ?: "";
 
-	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
-	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
+	if ( IsSimpleValue( values        ) ) { values        = ListToArray( values        ); }
+	if ( IsSimpleValue( labels        ) ) { labels        = ListToArray( labels        ); }
+	if ( IsSimpleValue( optionAttribs ) ) { optionAttribs = ListToArray( optionAttribs ); }
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
@@ -71,10 +72,12 @@
 			<cfset selected=FindNoCase( value, selectValue ) />
 			<cfset valueFound=valueFound || selected />
 			<cfset label=EncodeForHTML( translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) ) />
+			<cfset optAttribs=renderHtmlAttributes( argumentCollection=optionAttribs[ i ] ?: {} ) />
 			<option
 				value="#selectValue#"
 				title="#label#"
 				<cfif selected> selected="selected"</cfif>
+				#optAttribs#
 			>
 				#label#
 			</option>

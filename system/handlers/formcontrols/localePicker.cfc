@@ -51,8 +51,23 @@ component {
 				ArrayAppend( args.labels, locales[i].title );
 			}
 
-			args.defaultValue = args.defaultValue ?: userDetail.user_language;
-			args.multiple     = false;
+			args.defaultValue    = args.defaultValue ?: userDetail.user_language;
+			args.multiple        = false;
+			args.includeLangAttr = args.includeLangAttr ?: true;
+
+			if ( args.includeLangAttr ) {
+				args.removeObjectPickerClass = args.removeObjectPickerClass ?: true;
+				args.extraClasses            = args.extraClasses            ?: "form-control";
+				args.optionAttribs           = args.optionAttribs           ?: [];
+
+				if ( IsArray( args.optionAttribs ) && ArrayIsEmpty( args.optionAttribs ) ) {
+					for ( var value in args.values ) {
+						ArrayAppend( args.optionAttribs, {
+							  attribs = { lang=ListChangeDelims( value, "-", "_" ) }
+						} );
+					}
+				}
+			}
 
 			return renderView( view="/formcontrols/select/index", args=args );
 		}
