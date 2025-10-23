@@ -36,7 +36,7 @@ component {
 		var formId = args.form   ?: "";
 		var layout = args.layout ?: "";
 
-		var storageKey = rc._sk ?: "";
+		var storageKey = args._sk = rc._sk ?: "";
 
 		var rendered       = "";
 		var tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, storageKey=storageKey );
@@ -71,8 +71,6 @@ component {
 
 			var requestData = event.getCollectionWithoutSystemVars();
 
-			args.storageKey = args.storageKey ?: storageKey;
-
 			args.instanceSite = args.instanceSite ?: event.getSiteId();
 			args.instanceUrl  = args.instanceUrl  ?: event.getCurrentUrl();
 
@@ -82,7 +80,7 @@ component {
 			var page = formbuilderService.getPageByPageNumber( formId=formId, pageNumber=args.formPageNumber );
 			args.instancePage = args.formPageCount ? ( tempSubmission.instancePage ?: ( page.id ?: "" ) ) : "";
 
-			while ( !formbuilderService.evaluateConditionForPage( formId=formId, pageNumber=args.formPageNumber, storageKey=args.storageKey ) ) {
+			while ( !formbuilderService.evaluateConditionForPage( formId=formId, pageNumber=args.formPageNumber, storageKey=storageKey ) ) {
 				args.formPageNumber += requestData.formPageNext ?: 1;
 			}
 

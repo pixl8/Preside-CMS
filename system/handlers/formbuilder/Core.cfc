@@ -20,8 +20,8 @@ component {
 			event.notFound();
 		}
 
-		var submission   = event.getCollectionWithoutSystemVars();
-		var persistData  = submission;
+		var submission  = event.getCollectionWithoutSystemVars();
+		var persistData = submission;
 
 		var storageKey = rc._sk ?: "";
 
