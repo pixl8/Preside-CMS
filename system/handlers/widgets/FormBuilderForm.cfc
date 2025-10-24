@@ -36,7 +36,7 @@ component {
 		var formId = args.form   ?: "";
 		var layout = args.layout ?: "";
 
-		var storageKey = args._sk = rc._sk ?: "";
+		var storageKey = args.storageKey = args._sk = ( rc._sk ?: "" );
 
 		var rendered       = "";
 		var tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, storageKey=storageKey );
