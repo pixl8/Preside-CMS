@@ -672,8 +672,8 @@ component {
 	public boolean function evaluateConditionForPage(
 		  required string  formId
 		, required numeric pageNumber
-		,          string  key     = ""
-		,          struct  payload = getTempStoredSubmission( formId=arguments.formId, key=arguments.key )
+		,          string  storageKey = ""
+		,          struct  payload    = getTempStoredSubmission( formId=arguments.formId, storageKey=arguments.storageKey )
 	) {
 		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
 
@@ -1007,7 +1007,7 @@ component {
 		var renderedPages = CreateObject( "java", "java.lang.StringBuffer" );
 
 		for ( var pageNumber=1; pageNumber<=formPageCount; pageNumber++ ) {
-			if ( evaluateConditionForPage( formId=arguments.formId, pageNumber=pageNumber, payload=arguments.submission ) ) {
+			if ( evaluateConditionForPage( formId=arguments.formId, pageNumber=pageNumber, storageKey=arguments.storageKey, payload=arguments.submission ) ) {
 				var renderedItems = CreateObject( "java", "java.lang.StringBuffer" );
 				var formItems     = getFormItems( id=arguments.formId, pageNumber=pageNumber );
 
@@ -1419,7 +1419,7 @@ component {
 				StructAppend( tempSubmission, formData );
 			}
 
-			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=nextPageNumber, payload=tempSubmission ) ) {
+			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=nextPageNumber, storageKey=arguments.storageKey, payload=tempSubmission ) ) {
 				nextPageNumber += arguments.pageNext;
 			}
 
