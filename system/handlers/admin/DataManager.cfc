@@ -991,7 +991,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
-		var objectName     = prc.objectName ?: "";
+		var objectName     = rc.object ?: ( prc.objectName ?: "" );
 		var extraFilters   = [];
 
 		if ( !Len( Trim( objectName ) ) || !presideObjectService.objectExists( objectName ) ) {
