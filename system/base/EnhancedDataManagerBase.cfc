@@ -7,6 +7,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="adminDataViewsService"      inject="adminDataViewsService";
 	property name="datamanagerWorkflowService" inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
+	property name="draftManagerService"        inject="DraftManagerService";
 
 	variables.permissionSubBase  = "";
 	variables.systemDateRenderer = { renderer = "datetime", context="relative" };
@@ -19,6 +20,17 @@ component extends="preside.system.base.AdminHandler" {
 	private string function listingViewlet( event, rc, prc, args={} ) {
 		args.objectName           = args.objectName ?: prc.objectName;
 		args.listingCategoryField = Trim( presideObjectService.getObjectAttribute( objectName=args.objectName, attributeName="datamanagerListingCategoryField" ) );
+
+		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) && isTrue( args.allowDraftManager ?: true ) ) {
+			args.tabs = [ "publish", "draft" ];
+
+			return customizationService.runCustomization(
+				  objectName     = args.objectName
+				, action         = "renderTabs"
+				, defaultHandler = "admin.datamanager.#args.objectName#._tabs"
+				, args           = args
+			);
+		}
 
 		var rendered = runEvent(
 			  event          = "admin.dataManager._objectListingViewlet"
@@ -401,14 +413,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _tabs( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
-		var i18nBase   = "preside-objects.#objectName#:";
+		var objectName      = args.objectName ?: "";
+		var i18nBase        = "preside-objects.#objectName#:";
 		var i18nDefaultBase = "adminui:";
 
-		args.tabs    = Duplicate( variables.tabs ?: [ "default" ] );
+		args.tabs    = args.tabs ?: ( Duplicate( variables.tabs ?: [ "default" ] ) );
 		args.maxTabs = variables.maxTabCount;
 
 		_addWorkflowTab( argumentCollection=arguments );
+
 		announceInterception( "preRenderDataManagerObjectTabs", args );
 
 		for( var i=1; i<=args.tabs.len(); i++ ) {
@@ -421,6 +434,7 @@ component extends="preside.system.base.AdminHandler" {
 				, title     = customizationService.runCustomization( objectName=objectName, action="_#tabId#TabTitle", args=args, defaultResult=translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) ) )
 			};
 		}
+
 		for( var i=args.tabs.len(); i>0; i-- ) {
 			if ( !Len( Trim( args.tabs[ i ].content ?: "" ) ) ) {
 				args.tabs.deleteAt( i );
@@ -431,6 +445,7 @@ component extends="preside.system.base.AdminHandler" {
 			event.include( "/css/admin/specific/datamanager/viewtabs/" );
 			return renderView( view="/admin/datamanager/_tabs", args=args );
 		}
+
 		return "";
 	}
 
@@ -508,6 +523,26 @@ component extends="preside.system.base.AdminHandler" {
 			  uri          = "preside-objects.#args.objectName#:viewtab.workflow.title"
 			, defaultValue = translateResource( uri="adminui:viewtab.workflow.title", data=[ flowStatus ] )
 			, data         = [ flowStatus ]
+		);
+	}
+
+	private string function _publishTab( event, rc, prc, args={} ) {
+		return runEvent(
+			  event          = "admin.dataManager._objectListingViewlet"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+	}
+
+	private string function _draftTab( event, rc, prc, args={} ) {
+		return runEvent(
+			  event          = "admin.dataManager._objectListingViewlet"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args={
+				objectName = "draftmanager_draft"
+			} }
 		);
 	}
 

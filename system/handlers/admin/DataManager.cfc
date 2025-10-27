@@ -19,6 +19,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="applicationsService"              inject="applicationsService";
 	property name="loginService"                     inject="loginService";
 	property name="datamanagerWorkflowService"       inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
+	property name="draftManagerService"              inject="featureInjector:draftManager:DraftManagerService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -2691,6 +2692,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          any     validationResult
 	) {
 		arguments.formName = Len( Trim( arguments.mergeWithFormName ) ) ? formsService.getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
+
 		var formData         = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
 		var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 		var obj              = "";
@@ -2707,11 +2709,21 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.formData         = formData;
 		args.validationResult = validationResult;
+
 		if ( customizationService.objectHasCustomization( object, "preAddRecordAction" ) ) {
 			customizationService.runCustomization(
 				  objectName = object
 				, action     = "preAddRecordAction"
 				, args       = args
+			);
+		}
+
+		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) ) {
+			runEvent(
+				  event          = "admin.DraftManager.addDraftRecordAction"
+				, private        = true
+				, prepostExempt  = true
+				, eventArguments = args
 			);
 		}
 
@@ -3638,8 +3650,8 @@ component extends="preside.system.base.AdminHandler" {
 		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderAddRecordForm" );
 		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderAddRecordForm" );
 
-		args.preForm               = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderAddRecordForm" , args=args ) : "";
-		args.postForm              = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderAddRecordForm", args=args ) : "";
+		args.preForm               = hasPreFormCustomization  ? customizationService.runCustomization( objectName=objectName, action="preRenderAddRecordForm" , args=args ) : "";
+		args.postForm              = hasPostFormCustomization ? customizationService.runCustomization( objectName=objectName, action="postRenderAddRecordForm", args=args ) : "";
 		args.renderedActionButtons = customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "addRecordActionButtons"
@@ -3666,53 +3678,61 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function _getAddRecordActionButtons( event, rc, prc, args={} ) {
-		args.draftsEnabled = args.draftsEnabled   ?: false;
-		args.canPublish    = args.canPublish      ?: false;
-		args.canSaveDraft  = args.canSaveDraft    ?: false;
-		args.cancelAction  = args.cancelAction    ?: event.buildAdminLink( objectName=args.objectName );
-		args.cancelLabel   = args.cancelLabel     ?: translateResource( "cms:datamanager.cancel.btn" );
+		args.draftsEnabled = args.draftsEnabled ?: false;
+		args.canPublish    = args.canPublish    ?: false;
+		args.canSaveDraft  = args.canSaveDraft  ?: false;
+		args.cancelAction  = args.cancelAction  ?: event.buildAdminLink( objectName=args.objectName );
+		args.cancelLabel   = args.cancelLabel   ?: translateResource( "cms:datamanager.cancel.btn" );
 
 		var objectTitle = translateObjectName( args.objectName );
 
-		args.actions = [{
+		args.actions = [ {
 			  type      = "link"
 			, href      = args.cancelAction
 			, class     = "btn-default"
 			, globalKey = "c"
 			, iconClass = "fa-reply"
 			, label     = args.cancelLabel
-		}];
+		} ];
 
-		if ( args.draftsEnabled ) {
+		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
+			runEvent(
+				  event          = "admin.DraftManager.getDraftActionButtons"
+				, private        = true
+				, prepostExempt  = true
+				, eventArguments = arguments
+			);
+		} else if ( args.draftsEnabled ) {
 			if ( args.canSaveDraft ) {
-				args.actions.append({
+				ArrayAppend( args.actions, {
 					  type      = "button"
 					, class     = "btn-info"
 					, iconClass = "fa-save"
 					, name      = "_saveAction"
 					, value     = "savedraft"
 					, label     = args.saveDraftLabel ?: translateResource( uri="cms:datamanager.add.record.draft.btn", data=[ objectTitle ] )
-				});
+				} );
 			}
+
 			if ( args.canPublish ) {
-				args.actions.append({
+				ArrayAppend( args.actions, {
 					  type      = "button"
 					, class     = "btn-warning"
 					, iconClass = "fa-globe"
 					, name      = "_saveAction"
 					, value     = "publish"
 					, label     = args.publishLabel ?: translateResource( uri="cms:datamanager.add.record.publish.btn", data=[ objectTitle ] )
-				});
+				} );
 			}
 		} else {
-			args.actions.append({
+			ArrayAppend( args.actions, {
 				  type      = "button"
 				, class     = "btn-info"
 				, iconClass = "fa-save"
 				, name      = "_saveAction"
 				, value     = "publish"
 				, label     = args.addRecordLabel ?: translateResource( uri="cms:datamanager.addrecord.btn", data=[ objectTitle ] )
-			});
+			} );
 		}
 
 		customizationService.runCustomization(
@@ -3744,7 +3764,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
-
 
 		args.append({
 			  object        = ( args.objectName  ?: "" )
