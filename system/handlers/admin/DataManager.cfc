@@ -3667,12 +3667,21 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _addRecordActionButtons( event, rc, prc, args={} ) {
-		args.actionButtons = customizationService.runCustomization(
-			  objectName     = args.objectName ?: ""
-			, args           = args
-			, action         = "getAddRecordActionButtons"
-			, defaultHandler = "admin.datamanager._getAddRecordActionButtons"
-		);
+		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
+			args.actionButtons = runEvent(
+					  event          = "admin.DraftManager._getAddRecordActionButtons"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = arguments
+				);
+		} else {
+			args.actionButtons = customizationService.runCustomization(
+				  objectName     = args.objectName ?: ""
+				, args           = args
+				, action         = "getAddRecordActionButtons"
+				, defaultHandler = "admin.datamanager._getAddRecordActionButtons"
+			);
+		}
 
 		return renderView( view="/admin/datamanager/_addOrEditRecordActionButtons", args=args );
 	}
@@ -3695,14 +3704,7 @@ component extends="preside.system.base.AdminHandler" {
 			, label     = args.cancelLabel
 		} ];
 
-		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
-			runEvent(
-				  event          = "admin.DraftManager.getDraftActionButtons"
-				, private        = true
-				, prepostExempt  = true
-				, eventArguments = arguments
-			);
-		} else if ( args.draftsEnabled ) {
+		if ( args.draftsEnabled ) {
 			if ( args.canSaveDraft ) {
 				ArrayAppend( args.actions, {
 					  type      = "button"

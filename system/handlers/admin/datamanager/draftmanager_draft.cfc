@@ -40,6 +40,19 @@ component {
 		);
 	}
 
+	private array function getEditRecordActionButtons( event, rc, prc, args={} ) {
+		// Override to resuse save draft button.
+		args.draftsEnabled = true;
+		args.canSaveDraft  = true;
+
+		return runEvent(
+			  event          = "admin.DataManager._getEditRecordActionButtons"
+			, private        = true
+			, prepostExempt  = true
+			, eventArguments = arguments
+		);
+	}
+
 	private string function editRecordForm( event, rc, prc, args={} ) {
 		if ( !IsEmpty( args.record.data ?: {} ) ) {
 			StructAppend( args.record, DeserializeJSON( args.record.data ), true );

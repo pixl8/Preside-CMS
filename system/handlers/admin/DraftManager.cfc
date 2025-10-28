@@ -4,17 +4,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="datamanagerWorkflowService" inject="DatamanagerWorkflowService";
 	property name="draftManagerService"        inject="DraftManagerService";
 
-	public void function getDraftActionButtons( event, rc, prc, args={} ) {
-		ArrayAppend( args.actions, {
-			  type      = "button"
-			, class     = "btn-info"
-			, iconClass = "fa-save"
-			, label     = translateResource( uri="draftManager:button.draft.title" )
-			, name      = "_saveAction"
-			, value     = "savedraft"
-		} );
-	}
-
 	public void function addDraftRecordAction( event, rc, prc, args={} ) {
 		if ( !draftManagerService.isDraftAction() ) {
 			return;
@@ -41,6 +30,19 @@ component extends="preside.system.base.AdminHandler" {
 				, object_name = objectName
 				, data        = SerializeJSON( formData )
 			}
+		);
+	}
+
+	private array function _getAddRecordActionButtons( event, rc, prc, args={} ) {
+		// Override to resuse save draft button.
+		args.draftsEnabled = true;
+		args.canSaveDraft  = true;
+
+		return runEvent(
+			  event          = "admin.DataManager._getAddRecordActionButtons"
+			, private        = true
+			, prepostExempt  = true
+			, eventArguments = arguments
 		);
 	}
 
