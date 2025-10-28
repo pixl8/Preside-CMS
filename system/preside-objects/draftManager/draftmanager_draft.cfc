@@ -1,6 +1,7 @@
 /**
- * @versioned          false
- * @dataManagerEnabled true
+ * @versioned                       false
+ * @dataManagerEnabled              true
+ * @datamanagerDisallowedOperations clone
  */
 component {
 

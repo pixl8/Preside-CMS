@@ -115,7 +115,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( args.treeView ) {
 			listing = renderViewlet( event="admin.datamanager._treeView", args=args );
-
 		} else {
 			if ( !IsBoolean( args.useMultiActions ?: "" ) || args.useMultiActions ) {
 				args.multiActions = customizationService.runCustomization(
@@ -3092,6 +3091,7 @@ component extends="preside.system.base.AdminHandler" {
 		  required any     event
 		, required struct  rc
 		, required struct  prc
+		,          struct  args                    = {}
 		,          string  object                  = ( rc.object ?: '' )
 		,          string  recordId                = ( rc.id     ?: '' )
 		,          string  errorAction             = ""
@@ -3100,7 +3100,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  successAction           = ""
 		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( objectname=arguments.object, operation="listing" ) )
 		,          boolean redirectOnSuccess       = true
-		,          string  formName                = _getDefaultEditFormName( arguments.object )
+		,          string  formName                = _getDefaultEditFormName( arguments.object, arguments.args )
 		,          string  mergeWithFormName       = ""
 		,          boolean audit                   = false
 		,          string  auditAction             = ""
@@ -3753,9 +3753,10 @@ component extends="preside.system.base.AdminHandler" {
 		var hasPreFormCustomization       = customizationService.objectHasCustomization( objectName=objectName, action="preRenderEditRecordForm" );
 		var hasPostFormCustomization      = customizationService.objectHasCustomization( objectName=objectName, action="postRenderEditRecordForm" );
 
-		args.formName              = _getDefaultEditFormName( objectName );
-		args.preForm               = hasPreFormCustomization       ? customizationService.runCustomization( objectName=objectName, action="preRenderEditRecordForm" , args=args ) : "";
-		args.postForm              = hasPostFormCustomization      ? customizationService.runCustomization( objectName=objectName, action="postRenderEditRecordForm", args=args ) : "";
+		args.formName = _getDefaultEditFormName( objectName, args );
+
+		args.preForm               = hasPreFormCustomization  ? customizationService.runCustomization( objectName=objectName, action="preRenderEditRecordForm" , args=args ) : "";
+		args.postForm              = hasPostFormCustomization ? customizationService.runCustomization( objectName=objectName, action="postRenderEditRecordForm", args=args ) : "";
 		args.renderedActionButtons = customizationService.runCustomization(
 			  objectName     = objectName
 			, args           = args
@@ -3765,11 +3766,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		args.allowAddAnotherSwitch = IsTrue( args.allowAddAnotherSwitch ?: true );
 
-		args.append({
-			  object        = ( args.objectName  ?: "" )
-			, id            = ( args.recordId      ?: "" )
-			, resultAction  = rc.resultAction ?: ""
-		});
+		StructAppend( args, {
+			  object        = ( args.objectName ?: "" )
+			, id            = ( args.recordId   ?: "" )
+			, resultAction  = ( rc.resultAction ?: "" )
+		} );
 
 		args.readOnly = isTrue( prc.readOnly ?: "" );
 
@@ -4556,12 +4557,15 @@ component extends="preside.system.base.AdminHandler" {
 		event.getAdminBreadCrumbs()[ 1 ].link = applicationsService.getDefaultUrl( applicationId=adminApplication, siteId=event.getSiteId() );
 	}
 
-	private string function _getDefaultEditFormName( required string objectName ) {
+	private string function _getDefaultEditFormName(
+		  required string objectName
+		,          struct args = {}
+	) {
 		return customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "getEditRecordFormName"
 			, defaultHandler = "admin.datamanager._getEditRecordFormName"
-			, args           = { objectName=objectName }
+			, args           = { objectName=objectName, args=args }
 		);
 	}
 
