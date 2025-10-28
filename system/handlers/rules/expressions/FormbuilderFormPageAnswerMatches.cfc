@@ -124,21 +124,25 @@ component {
 			case "string"  :
 			default        :
 				if ( formItem.item_type == "date" ) {
-					var dateTimeValue  = ParseDateTime( formFieldValue );
-					var dateRangeValue = rulesEngineTimePeriodService.convertTimePeriodToDateRange( arguments.formbuilderAnswer );
+					if ( IsDate( formFieldValue ) ) {
+						var dateTimeValue  = ParseDateTime( formFieldValue );
+						var dateRangeValue = rulesEngineTimePeriodService.convertTimePeriodToDateRange( arguments.formbuilderAnswer );
 
-					ruleResult = true;
+						ruleResult = true;
 
-					if ( IsDate( dateRangeValue.from ?: "" ) ) {
-						if ( DateCompare( dateTimeValue, dateRangeValue.from ) == -1 ) {
-							ruleResult = false;
+						if ( IsDate( dateRangeValue.from ?: "" ) ) {
+							if ( DateCompare( dateTimeValue, dateRangeValue.from ) == -1 ) {
+								ruleResult = false;
+							}
 						}
-					}
 
-					if ( IsDate( dateRangeValue.to ?: "" ) ) {
-						if ( DateCompare( dateTimeValue, dateRangeValue.to ) == 1 ) {
-							ruleResult = false;
+						if ( IsDate( dateRangeValue.to ?: "" ) ) {
+							if ( DateCompare( dateTimeValue, dateRangeValue.to ) == 1 ) {
+								ruleResult = false;
+							}
 						}
+					} else {
+						ruleResult = false;
 					}
 				} else {
 					ruleResult = rulesEngineOperatorService.compareStrings(
