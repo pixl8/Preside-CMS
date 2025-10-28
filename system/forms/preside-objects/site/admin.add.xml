@@ -13,6 +13,9 @@ This form is used for the "add site" form in the site manager
 			<field binding="site.path"     sortorder="40" control="textinput" />
 			<field binding="site.template" sortorder="50" control="sitetemplatepicker"  />
 		</fieldset>
+		<fieldset id="localisation" sortorder="20">
+			<field binding="site.locale" sortorder="10" control="siteLocalePicker" />
+		</fieldset>
 	</tab>
 	<tab id="seo" sortorder="20" title="preside-objects.site:seo.tab.title">
 		<fieldset id="seo" sortorder="10">

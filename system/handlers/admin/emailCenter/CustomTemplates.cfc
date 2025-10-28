@@ -16,6 +16,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="cloningService"             inject="presideObjectCloningService";
 	property name="dao"                        inject="presidecms:object:email_template";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
+	property name="emailStatsService"          inject="emailStatsService";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -40,6 +41,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.canAdd    = hasCmsPermission( "emailCenter.customTemplates.add"    );
 		prc.canDelete = hasCmsPermission( "emailCenter.customTemplates.delete" );
+
+		prc.infoCard = _getInfoCard( argumentCollection=arguments );
 	}
 
 	function add( event, rc, prc ) {
@@ -108,6 +111,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
 		prc.canPreviewWithRecipient = Len( Trim( prc.filterObject ) );
+
 		if ( prc.canPreviewWithRecipient && Len( Trim( previewRecipient ) ) ){
 			prc.previewRecipientName = renderLabel( prc.filterObject, previewRecipient );
 		}
@@ -201,8 +205,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		var id = rc.id ?: "";
 
-		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.edit.page.title", data=[ prc.record.name ] );
-		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.edit.page.subtitle", data=[ prc.record.name ] );
+		prc.pageTitle          = translateResource( uri="cms:emailcenter.customTemplates.edit.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle       = translateResource( uri="cms:emailcenter.customTemplates.edit.page.subtitle", data=[ prc.record.name ] );
 		prc.additionalFormArgs = _getAdditionalAddEditFormArgs( argumentCollection=arguments );
 
 		event.addAdminBreadCrumb(
@@ -545,11 +549,11 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object        = "email_template"
-				, gridFields    = "name,sending_method,send_date,datecreated,datemodified,last_sent_date,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date"
-				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
-				, filter        = { "email_template.is_system_email" = false }
-				, draftsEnabled = true
+				  object                  = "email_template"
+				, gridFields              = "name,sending_method,send_date,last_sent_date,open_rate,click_rate,datecreated,datemodified,schedule_type,schedule_unit,schedule_measure,schedule_start_date,schedule_end_date,sent_count"
+				, actionsView             = "admin.emailCenter/customTemplates._gridActions"
+				, filter                  = { "email_template.is_system_email" = false }
+				, draftsEnabled           = true
 			}
 		);
 	}
@@ -760,16 +764,23 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !isFeatureEnabled( "dataexport" ) ) {
 			event.notFound();
 		}
+		var templateId   = rc.id ?: "";
+		var extraFilters = [];
 
-		var templateId = rc.id ?: "";
+		if ( Len( Trim( templateId ) ) ) {
+			extraFilters.append( { filter={ email_template=templateId } } );
+		} else {
+			extraFilters.append( { filter={ "email_template.is_system_email"=false } } );
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._exportDataAction"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				extraFilters = [ { filter={ email_template=templateId } } ]
-			  }
+				  extraFilters   = extraFilters
+				, exportTemplate = "EmailTemplate"
+			}
 		);
 	}
 
@@ -912,7 +923,6 @@ component extends="preside.system.base.AdminHandler" {
 						defaultNotice.message = translateResource( uri="cms:emailcenter.manual.sent.alert", data=[ NumberFormat( Val( args.sent ) ) ] );
 					}
 				}
-
 			}
 
 			args.template = template;
@@ -931,6 +941,59 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		return "";
+	}
+
+	private string function _getInfoCard( event, rc, prc, args={} ) {
+		var stats          = emailStatsService.getSummaryStats( templateId="", customTemplatesOnly=true );
+		var aggregateStats = {
+			  opens        = stats.openRate
+			, clicks       = stats.clickThroughRate
+			, unsubscribes = stats.unsubscribeRate
+			, emailsSent   = stats.sendCountFiltered
+		};
+
+		var col1 = [
+			  _renderRibbonItem( "opens", aggregateStats.opens )
+			, _renderRibbonItem( "clicks", aggregateStats.clicks )
+		];
+		var col2 = [];
+		var col3 = [
+			  _renderRibbonItem( "unsubscribes", aggregateStats.unsubscribes )
+			, _renderRibbonItem( "emails_sent", aggregateStats.emailsSent )
+		];
+
+		return renderView( view="/admin/datamanager/_infoCard", args={
+			  col1         = col1
+			, col2         = col2
+			, col3         = col3
+			, infoColSizes = [ 6, 0, 6 ]
+		} );
+	}
+
+	private string function _renderRibbonItem( required string type, required any value ) {
+		var icon = "";
+		var data = [];
+
+		switch( arguments.type ) {
+			case "opens":
+				icon = "fa-envelope";
+				data = [ NumberFormat( arguments.value, "99.9" ) & "%" ];
+				break;
+			case "clicks":
+				icon = "fa-hand-pointer-o";
+				data = [ NumberFormat( arguments.value, "99.9" ) & "%" ];
+				break;
+			case "unsubscribes":
+				icon = "fa-user-times";
+				data = [ NumberFormat( arguments.value, "99.99" ) & "%" ];
+				break;
+			case "emails_sent":
+				icon = "fa-paper-plane";
+				data = [ NumberFormat( arguments.value ) ];
+				break;
+		}
+
+		return '<i class="fa fa-fw #icon#"></i>&nbsp; ' & translateResource( uri = "preside-objects.email_template:infocard.#arguments.type#", data = data );
 	}
 
 // private utility

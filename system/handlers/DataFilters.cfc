@@ -1,7 +1,7 @@
 component {
 
-	property name="permissionService" inject="permissionService";
-	property name="pageTypesService"  inject="pageTypesService";
+	property name="permissionService" inject="featureInjector:admin:permissionService";
+	property name="pageTypesService"  inject="featureInjector:sitetree:pageTypesService";
 
 	private struct function formbuilderV1Form( event, rc, prc, args={} ) {
 		if ( isFeatureEnabled( "formbuilder2" ) ) {
@@ -45,7 +45,12 @@ component {
 		};
 	}
 
-	private struct function siteTreePageTypes( event, rc, prc, args={} ) {
-		return { filter={ "page.page_type"=pageTypesService.listSiteTreePageTypes() } };
+	private struct function enabledPageTypes( event, rc, prc, args={} ) {
+		return {
+			  filter       = "page.page_type IN ( :enabledPageTypes )"
+			, filterParams = {
+				enabledPageTypes = { value=pageTypesService.listSiteTreePageTypes( includeHidden=true ), type="cf_sql_varchar", list=true }
+			  }
+		};
 	}
 }

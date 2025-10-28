@@ -712,7 +712,7 @@ component {
 		), "field_id" );
 
 		if ( ArrayLen( fileFields ) && !arguments.withFileUpload ) {
-			for( var field in dataToStore ) {
+			for ( var field in dataToStore ) {
 				if ( ArrayFind( fileFields, field ) ) {
 					StructDelete( dataToStore, field );
 				}
@@ -757,16 +757,16 @@ component {
 	 */
 	public string function renderForm(
 		  required string formId
-		,          string layout           = "default"
-		,          struct configuration    = {}
-		,          any    validationResult = ""
+		,          string layout            = "default"
+		,          struct configuration     = {}
+		,          any    validationResult  = ""
+		,          string coreLayoutViewlet = "formbuilder.core.formLayout"
 	) {
 		var formConfiguration = getForm( id=arguments.formId );
 		var formPageNumber    = arguments.configuration.formPageNumber ?: 0;
 		var items             = getFormItems( id=arguments.formId, pageNumber=formPageNumber );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
-		var coreLayoutViewlet = "formbuilder.core.formLayout";
 		var formLayoutArgs    = Duplicate( arguments.configuration );
 		var formLayoutViewlet = _getFormBuilderRenderingService().getFormLayoutViewlet( layout=arguments.layout );
 		var idPrefixForFields = _createIdPrefix( formId=arguments.formId );
@@ -809,7 +809,7 @@ component {
 		}
 
 		formLayoutArgs.renderedForm = $renderViewlet(
-			  event = coreLayoutViewlet
+			  event = arguments.coreLayoutViewlet
 			, args  = coreLayoutArgs
 		);
 
@@ -912,9 +912,9 @@ component {
 		var renderedPages = CreateObject( "java", "java.lang.StringBuffer" );
 
 		for ( var pageNumber=1; pageNumber<=formPageCount; pageNumber++ ) {
-			if ( evaluateConditionForPage( formId=arguments.formId, pageNumber=pageNumber ) ) {
+			if ( evaluateConditionForPage( formId=arguments.formId, pageNumber=pageNumber, payload=arguments.submission ) ) {
 				var renderedItems = CreateObject( "java", "java.lang.StringBuffer" );
-				var formItems = getFormItems( id=arguments.formId, pageNumber=pageNumber );
+				var formItems     = getFormItems( id=arguments.formId, pageNumber=pageNumber );
 
 				for ( var formItem in formItems ) {
 					var formItemResponse = _getFormItemResponsFromSubmission( formItem=formItem, submission=arguments.submission );
@@ -1058,7 +1058,6 @@ component {
 		return render;
 	}
 
-
 	/**
 	 * Returns the submission success message saved
 	 * against the form for the given form ID
@@ -1172,16 +1171,19 @@ component {
 		,          string  ipAddress       = Trim( ListLast( cgi.remote_addr ?: "" ) )
 		,          string  userAgent       = ( cgi.http_user_agent ?: "" )
 		,          boolean validateCaptcha = true
+		,          boolean validateForm    = true
+		,          boolean recordAction    = true
 		,          array   formItems       = []
+		,          struct  data            = {}
 	) {
 		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = ArrayLen( arguments.formItems ) ? arguments.formItems : getFormItems( arguments.formId );
 		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
-		var validationResult  = _getFormBuilderValidationService().validateFormSubmission(
+		var validationResult  = arguments.validateForm ? _getFormBuilderValidationService().validateFormSubmission(
 			  formItems      = formItems
 			, submissionData = formData
-		);
+		) : validationEngine.newValidationResult();
 
 		if ( arguments.validateCaptcha && $helpers.isTrue( formConfiguration.use_captcha ?: "" ) ) {
 			if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
@@ -1199,16 +1201,17 @@ component {
 		} );
 
 		if ( validationResult.validated() ) {
-			if ( isV2Form( arguments.formid ) ) {
+			if ( isV2Form( arguments.formId ) ) {
 				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
-					  form          = arguments.formId
-					, submitted_by  = $getWebsiteLoggedInUserId()
-					, form_instance = arguments.instanceId
-					, form_site     = arguments.instanceSite
-					, form_url      = arguments.instanceUrl
-					, form_page     = arguments.instancePage
-					, ip_address    = arguments.ipAddress
-					, user_agent    = arguments.userAgent
+					  form           = arguments.formId
+					, submitted_by   = $getWebsiteLoggedInUserId()
+					, form_instance  = arguments.instanceId
+					, form_site      = arguments.instanceSite
+					, form_url       = arguments.instanceUrl
+					, form_page      = arguments.instancePage
+					, ip_address     = arguments.ipAddress
+					, user_agent     = arguments.userAgent
+					, submitted_data = IsEmpty( arguments.data ) ? NullValue() : SerializeJson( arguments.data )
 				} );
 
 				saveV2Responses( formId=arguments.formId, formData=formData, formItems=formItems, submissionId=submissionId );
@@ -1230,7 +1233,7 @@ component {
 			setFormBuilderSubmissionContextData( formId=arguments.formId, submissionId=submissionId, data=arguments.requestData );
 
 			var submission = getSubmission( submissionId );
-			for( var s in submission ) { submission = s; }
+			for ( var s in submission ) { submission = s; }
 
 			if ( isV2Form( formId=arguments.formId ) ) {
 				submission.submitted_data = SerializeJSON( getV2Responses( formId=arguments.formId, submissionId=submissionId ) );
@@ -1241,12 +1244,14 @@ component {
 				, submissionData = submission
 			);
 
-			$recordWebsiteUserAction(
-				  type       = "formbuilder"
-				, action     = "submitform"
-				, identifier = arguments.formId
-				, detail     = submission
-			);
+			if ( arguments.recordAction ) {
+				$recordWebsiteUserAction(
+					  type       = "formbuilder"
+					, action     = "submitform"
+					, identifier = arguments.formId
+					, detail     = submission
+				);
+			}
 
 			if ( $helpers.isTrue( formConfiguration.notification_enabled ?: false ) ) {
 				$createNotification(
@@ -1275,19 +1280,22 @@ component {
 	public any function saveTempSubmission(
 		  required string  formId
 		, required struct  requestData
-		,          array   formItems  = []
-		,          numeric pageNumber = 0
-		,          numeric pageNext   = 0
+		,          boolean validateForm = true
+		,          array   formItems    = []
+		,          numeric pageNumber   = 0
+		,          numeric pageNext     = 0
 	) {
 		var formConfiguration = getForm( arguments.formId );
 		var formData          = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData, pageNumber=arguments.pageNumber );
 		var validationResult  = _getValidationEngine().newValidationResult();
 
 		if ( arguments.pageNext > 0 ) {
-			validationResult = _getFormBuilderValidationService().validateFormSubmission(
-				  formItems      = arguments.formItems
-				, submissionData = formData
-			);
+			if ( arguments.validateForm ) {
+				validationResult = _getFormBuilderValidationService().validateFormSubmission(
+					  formItems      = arguments.formItems
+					, submissionData = formData
+				);
+			}
 
 			if ( arguments.pageNumber == 1 && $helpers.isTrue( formConfiguration.use_captcha ?: "" ) ) {
 				if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
@@ -2735,7 +2743,7 @@ component {
 	}
 
 	private string function _createIdPrefix( required string formId ) {
-		return "formbuilder_" & LCase( Hash( Now() & arguments.formId ) );
+		return "formbuilder_" & LCase( Hash( Now() & arguments.formId ) ) & "_";
 	}
 
 	private struct function _getItemConfigurationForV2Question( required string questionId ) {

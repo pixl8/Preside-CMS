@@ -18,6 +18,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="sessionStorage"                   inject="sessionStorage";
 	property name="applicationsService"              inject="applicationsService";
 	property name="loginService"                     inject="loginService";
+	property name="datamanagerWorkflowService"       inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -151,6 +152,11 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( Len( customExportFilterString ?: "" ) ) {
 				args.exportFilterString = customExportFilterString;
+			}
+
+			if ( Len( _getObjectListingCategoryField( objectName=objectName ) ) && Len( Trim( rc.activeCategoryId ?: "" ) ) ) {
+				args.exportFilterString  = Trim( args.exportFilterString ?: "" );
+				args.exportFilterString &= ( Len( args.exportFilterString ) ? "&" : "" ) & "activeCategoryId=#rc.activeCategoryId#";
 			}
 
 			args.gridHeaderLabels = {};
@@ -989,11 +995,31 @@ component extends="preside.system.base.AdminHandler" {
 		var labelRenderer  = rc.labelRenderer ?: "";
 		var useCache       = IsTrue( rc.useCache ?: "" );
 		var defaultValue   = rc.defaultValue  ?: "";
+		var targetIdField  = Len( Trim( rc.targetIdField ?: "" ) ) ? rc.targetIdField : presideObjectService.getIdField( objectName );
 
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
 			if( !isEmpty( filterValue ) ){
 				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
+			}
+		}
+
+		var sourceObject      = Trim( rc.sourceObject      ?: "" );
+		var sourceObjectField = Trim( rc.sourceObjectField ?: "" );
+		var sourceIdValue     = Trim( rc.sourceIdValue     ?: "" );
+
+		if ( isEmptyString( defaultValue ) && Len( sourceObject ) && Len( sourceObjectField ) && Len( sourceIdValue ) ) {
+			var objPropRelationship = presideObjectService.getObjectPropertyAttribute( sourceObject, sourceObjectField, "relationship" );
+
+			if ( objPropRelationship == "many-to-many" ) {
+				var objPropQuery = presideObjectService.selectManyToManyData(
+					  objectName   = sourceObject
+					, propertyName = sourceObjectField
+					, id           = sourceIdValue
+					, selectFields = [ "GROUP_CONCAT( #sourceObjectField#.id ) AS ids" ]
+				);
+
+				defaultValue = objPropQuery.ids ?: "";
 			}
 		}
 
@@ -1004,6 +1030,10 @@ component extends="preside.system.base.AdminHandler" {
 			, savedFilters = ListToArray( rc.savedFilters ?: "" )
 		}
 		announceInterception( "preGetObjectRecordsForAjaxSelectControlSelect", interceptArgs );
+
+		if ( Len( defaultValue ) && Len( targetIdField ) ) {
+			orderBy = "CASE WHEN #interceptArgs.objectName#.#targetIdField# = '#defaultValue#' THEN 0 ELSE 1 END#Len( orderBy ) ? ", #orderBy#" : ""#";
+		}
 
 		var records = dataManagerService.getRecordsForAjaxSelect(
 			  objectName    = rc.object  ?: ""
@@ -1016,7 +1046,7 @@ component extends="preside.system.base.AdminHandler" {
 			, labelRenderer = labelRenderer
 			, bypassTenants = bypassTenants
 			, useCache      = useCache
-			, idField       = rc.targetIdField ?: ""
+			, idField       = targetIdField
 		);
 
 		event.renderData( type="json", data=records );
@@ -1739,6 +1769,15 @@ component extends="preside.system.base.AdminHandler" {
 				, args           = { objectName=objectName, action=action, actions=actions }
 			);
 
+			if ( isFeatureEnabled( "datamanagerWorkflow" ) && action == "viewRecord" && datamanagerWorkflowService.hasWorkflow( objectName=objectName, recordId=prc.recordId ) ) {
+				runEvent(
+					  event          = "admin.datamanagerWorkflow.addWorkflowActionButtons"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = { objectName=objectName, actions=actions, recordId=prc.recordId }
+				);
+			}
+
 			announceInterception( "postExtraTopRightButtons", { objectName=objectName, action=action, actions=actions } );
 
 			actions = actions.reverse();
@@ -1877,7 +1916,10 @@ component extends="preside.system.base.AdminHandler" {
 				, btnClass  = "btn-success"
 				, iconClass = "fa-pencil"
 				, globalKey = "e"
-				, title     = translateResource( uri="cms:datamanager.editRecord.btn" )
+				, title     = translateResource(
+					  uri          = "preside-objects.#objectName#:datamanager.editRecord.btn"
+					, defaultValue = translateResource( uri="cms:datamanager.editRecord.btn" )
+				)
 			} );
 		}
 
@@ -2092,6 +2134,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( IsEmpty( getRecordsArgs.orderBy ) ) {
 			getRecordsArgs.orderBy = arguments.orderBy.len() ? arguments.orderBy : dataManagerService.getDefaultSortOrderForDataGrid( object );
+		}
+
+		var objectCategoryField = _getObjectListingCategoryField( objectName=getRecordsArgs.objectName );
+		if ( Len( objectCategoryField ) && Len( Trim( rc.activeCategoryId ?: "" ) ) ) {
+			ArrayAppend( getRecordsArgs.extraFilters, { filter={ "#objectCategoryField#.id"=rc.activeCategoryId } } );
 		}
 
 		customizationService.runCustomization(
@@ -4027,6 +4074,10 @@ component extends="preside.system.base.AdminHandler" {
 			, attributeName = "datamanagerRightAlignFields"
 			, defaultValue  = ""
 		) );
+	}
+
+	public string function _getObjectListingCategoryField( required string objectName ) {
+	return dataManagerService.listCategoryField( objectName=arguments.objectName );
 	}
 
 	private array function _getObjectHiddenFieldsForGrid( required string objectName ) {

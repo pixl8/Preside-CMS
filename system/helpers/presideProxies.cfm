@@ -27,6 +27,11 @@
 		<cfreturn getController().renderViewlet( argumentCollection = arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="viewletExists" access="public" returntype="boolean" output="false">
+		<cfargument name="event" type="string" required="true" /><cfsilent>
+		<cfreturn getController().viewletExists( argumentCollection = arguments ) />
+	</cfsilent></cffunction>
+
 	<cffunction name="outputViewlet" access="public" returntype="any" output="true"><cfreturn getController().outputViewlet( argumentCollection = arguments ) /></cffunction>
 
 	<cffunction name="renderView" access="public" returntype="any" output="false"><cfsilent>

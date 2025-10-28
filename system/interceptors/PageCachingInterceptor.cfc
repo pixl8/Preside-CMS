@@ -4,11 +4,28 @@ component extends="coldbox.system.Interceptor" {
 	property name="delayedViewletRendererService" inject="delayedInjector:delayedViewletRendererService";
 	property name="delayedStickerRendererService" inject="delayedInjector:delayedStickerRendererService";
 	property name="websiteUserActionService"      inject="delayedInjector:websiteUserActionService";
+	property name="i18n"                          inject="delayedInjector:i18n";
+	property name="defaultLocale"                 inject="coldbox:setting:default_locale";
 
 // PUBLIC
 	public void function configure() {}
 
 	public void function onRequestCapture( event ) {
+		var adminUser   = event.getAdminUserDetails();
+		var adminLocale = Len( adminUser.user_language ?: "" ) ? adminUser.user_language : defaultLocale;
+		var siteDetail  = event.getSite();
+		var siteLocale  = Len( siteDetail.locale ?: "" ) ? siteDetail.locale : defaultLocale;
+
+		if ( event.isAdminRequest() ) {
+			if ( adminLocale != i18n.getFwLocale() ) {
+				i18n.setFwLocale( locale=adminLocale );
+			}
+		} else {
+			if ( siteLocale != i18n.getFwLocale() ) {
+				i18n.setFwLocale( locale=siteLocale );
+			}
+		}
+
 		if ( event.cachePage() ) {
 			var cacheKey = _getCacheKey( event );
 			var cached   = cache.get( cacheKey );

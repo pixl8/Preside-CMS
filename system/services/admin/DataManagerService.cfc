@@ -175,6 +175,10 @@ component {
 		return ListToArray( fields, ", " );
 	}
 
+	public string function listCategoryField( required string objectName ) {
+		return Trim( _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerListingCategoryField") );
+	}
+
 	public array function listBatchEditableFields( required string objectName ) {
 		 if ( !isOperationAllowed( arguments.objectName, "edit" ) || !isOperationAllowed( arguments.objectName, "batchedit" ) ) {
 			return [];

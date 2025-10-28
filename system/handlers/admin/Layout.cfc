@@ -54,21 +54,18 @@ component {
 
 			if ( args.locales.len() > 1 ) {
 				args.locales = args.locales.map( function( locale ){
-					var language = ListFirst( locale, "_" );
-					var country  = ListLen( locale, "_" ) > 1 ? ListRest( locale, "_" ) : "";
+					var localeLabel = i18n.getLocaleLabel( locale=locale, defaultLocale=defaultLocale );
 
 					return {
 						  locale  = arguments.locale
-						, title   = translateResource( uri="locale:title", language=language, country=country )
-						, flag    = translateResource( uri="locale:flag" , language=language, country=country )
+						, title   = localeLabel.title
+						, flag    = localeLabel.flag
 						, selected = ( arguments.locale == currentLocale )
 					}
 				} ).sort( function( a, b ){
-					if ( a.locale == defaultLocale ) {
-						return -1;
-					}
-
 					return a.title < b.title ? -1 : 1;
+				} ).sort( function( a, b ){
+					return a.locale == defaultLocale ? -1 : 1;
 				} );
 
 				args.selectedLocale = args.locales[1];

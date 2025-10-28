@@ -128,6 +128,16 @@
 				    .virtualInheritance( "presideSuperClass" );
 			}
 		}
+
+		if ( featureService.isFeatureEnabled( "webflow" ) ) {
+			map( "webflowValidator"             ).asSingleton().noAutoWire().to( "preside.system.modules.cfflow.models.util.JsonSchemaValidator" );
+			map( "webflowStepValidator"         ).asSingleton().noAutoWire().to( "preside.system.modules.cfflow.models.util.JsonSchemaValidator" );
+			map( "webflowSubflowValidator"      ).asSingleton().noAutoWire().to( "preside.system.modules.cfflow.models.util.JsonSchemaValidator" );
+		}
+
+		if ( featureService.isFeatureEnabled( "datamanagerworkflow" ) ) {
+			map( "datamanagerWorkflowValidator" ).asSingleton().noAutoWire().to( "preside.system.modules.cfflow.models.util.JsonSchemaValidator" );
+		}
 	}
 
 	private void function _loadExtensionConfigurations() {
