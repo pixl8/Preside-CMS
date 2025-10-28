@@ -2717,6 +2717,14 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+
+			setNextEvent( url=errorUrl, persistStruct=persist );
+		}
+
 		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) ) {
 			runEvent(
 				  event          = "admin.DraftManager.addDraftRecordAction"
@@ -2724,14 +2732,6 @@ component extends="preside.system.base.AdminHandler" {
 				, prepostExempt  = true
 				, eventArguments = args
 			);
-		}
-
-		if ( not validationResult.validated() ) {
-			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
-			persist = formData;
-			persist.validationResult = validationResult;
-
-			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
 		if ( arguments.draftsEnabled ) {
@@ -3091,7 +3091,6 @@ component extends="preside.system.base.AdminHandler" {
 		  required any     event
 		, required struct  rc
 		, required struct  prc
-		,          struct  args                    = {}
 		,          string  object                  = ( rc.object ?: '' )
 		,          string  recordId                = ( rc.id     ?: '' )
 		,          string  errorAction             = ""
@@ -3100,7 +3099,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  successAction           = ""
 		,          string  successUrl              = ( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( objectname=arguments.object, operation="listing" ) )
 		,          boolean redirectOnSuccess       = true
-		,          string  formName                = _getDefaultEditFormName( arguments.object, arguments.args )
+		,          string  formName                = _getDefaultEditFormName( arguments.object, arguments )
 		,          string  mergeWithFormName       = ""
 		,          boolean audit                   = false
 		,          string  auditAction             = ""
@@ -3112,6 +3111,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string  permissionContext       = arguments.object
 		,          array   permissionContextKeys   = []
 		,          any     validationResult
+		,          boolean checkExistingRecord     = true
 	) {
 		arguments.formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
 
@@ -3126,7 +3126,7 @@ component extends="preside.system.base.AdminHandler" {
 		var forceVersion     = false;
 		var existingRecord   = presideObjectService.selectData( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled );
 
-		if ( !existingRecord.recordCount ) {
+		if ( arguments.checkExistingRecord && !existingRecord.recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectName  ] ) );
 
 			setNextEvent( url=missingUrl );
@@ -3148,13 +3148,21 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
-
-		if ( not validationResult.validated() ) {
+		if ( !validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 			persist = formData;
 			persist.validationResult = validationResult;
 
 			setNextEvent( url=errorUrl, persistStruct=persist );
+		}
+
+		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) ) {
+			runEvent(
+				  event          = "admin.DraftManager.editDraftRecordAction"
+				, private        = true
+				, prepostExempt  = true
+				, eventArguments = args
+			);
 		}
 
 		if ( arguments.draftsEnabled ) {

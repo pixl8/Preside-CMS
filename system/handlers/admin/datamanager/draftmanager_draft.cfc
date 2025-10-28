@@ -41,12 +41,10 @@ component {
 	}
 
 	private array function getEditRecordActionButtons( event, rc, prc, args={} ) {
-		// Override to resuse save draft button.
-		args.draftsEnabled = true;
-		args.canSaveDraft  = true;
+		var objectName = prc.record.object_name ?: "";
 
 		return runEvent(
-			  event          = "admin.DataManager._getEditRecordActionButtons"
+			  event          = "admin.DraftManager._getEditRecordActionButtons"
 			, private        = true
 			, prepostExempt  = true
 			, eventArguments = arguments
@@ -61,6 +59,21 @@ component {
 		return runEvent(
 			  event          = "admin.DataManager._editRecordForm"
 			, prepostExempt  = true
+			, private        = true
+			, eventArguments = arguments
+		);
+	}
+
+	private any function editRecordAction( event, rc, prc ) {
+		// Pretend to be the original object.
+		arguments.object   = prc.record.object_name ?: "";
+		arguments.recordId = prc.record.record_id   ?: "";
+
+		arguments.checkExistingRecord = false;
+
+		runEvent(
+			  event          = "admin.DataManager._editRecordAction"
+			, prePostExempt  = true
 			, private        = true
 			, eventArguments = arguments
 		);
