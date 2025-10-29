@@ -437,6 +437,73 @@ component {
 		return copyConfig;
 	}
 
+	public struct function getStepLabels(
+		  required string  webflowId
+		, required string  instanceRef
+	) {
+		var labels      = {};
+		var baseI18nUri = "webflow.#arguments.webflowId#:step.";
+		var flowDao     = $getPresideObject( "webflow_configuration" );
+		var flowRecord  = flowDao.selectData( selectFields=[ "id" ], filter={ webflow_id=arguments.webflowId, instance_ref=arguments.instanceRef } );
+		var stepDao     = $getPresideObject( "webflow_configuration_step" );
+		var stepFilter  = {};
+
+		if ( flowRecord.recordcount ) {
+			stepFilter.webflow = flowRecord.id;
+		} else {
+			stepFilter[ "webflow.webflow_id" ] = arguments.webflowId;
+		}
+
+		var stepRecords       = stepDao.selectData( selectFields = [ "step_id", "title", "short_title" ], filter=stepFilter );
+		var stepDefinitions   = _getWebflowLibrary().getWebflow( webflowId ).getSteps();
+		var parentSteps       = [];
+		var parentStepRecords = "";
+
+		for( var step in stepDefinitions ) {
+			if ( Len( Trim( step.getStepRef() ) ) ) {
+				ArrayPrepend( parentSteps, step.getStepRef() );
+			}
+		}
+		if ( ArrayLen( parentSteps ) ) {
+			parentStepRecords = stepDao.selectData(
+				  selectFields = [ "step_id", "title", "short_title" ]
+				, filter       = { webflow = "", step_id=parentSteps }
+			);
+		}
+
+		for( var step in stepRecords ) {
+			var stepBaseI18nUri = "webflow.step.#step.step_id#:";
+			var parent          = {};
+			var label           = "";
+
+			for( var p in parentStepRecords ) {
+				if ( p.step_id == step.step_id ) {
+					parent = p;
+					break;
+				}
+			}
+
+			if ( !Len( Trim( label ) ) ) {
+				label = step.short_title ?: "";
+
+				if ( !Len( Trim( label ) ) ) {
+					label = parent.short_title ?: "";
+
+					if ( !Len( Trim( label ) ) ) {
+						label = Trim( ListLast( $translateResource(
+							  uri          = baseI18nUri & "#step.step_id#.label"
+							, defaultValue = $translateResource( uri=stepBaseI18nUri & "label", defaultValue=step.step_id )
+						), ":" ) )
+					}
+				}
+			}
+
+			labels[ step.step_id ] = label;
+		}
+
+		return labels;
+	}
+
 	public struct function getStepTitles(
 		  required string  webflowId
 		, required string  instanceRef
@@ -584,8 +651,9 @@ component {
 			};
 
 			if ( cb.viewletExists( groupingViewlet ) ) {
-				var args         = Duplicate( arguments );
-				    args.webflow = webflow;
+				var args             = Duplicate( arguments );
+				    args.webflow     = webflow;
+				    args.groupedRefs = groupingConfig.groupedRefs
 
 				StructAppend( groupingConfig, cb.renderViewlet( event=groupingViewlet, args=args ) );
 			}
