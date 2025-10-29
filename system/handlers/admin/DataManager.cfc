@@ -299,7 +299,7 @@ component extends="preside.system.base.AdminHandler" {
 			  objectName     = objectName
 			, action         = "renderRecord"
 			, defaultHandler = "admin.dataHelpers.viewRecord"
-			, args           = { objectName= objectName, recordId=recordId, version=version }
+			, args           = { objectName=objectName, recordId=recordId, version=version }
 		);
 
 		if ( IsTrue( rc.modalView ?: "" ) ) {

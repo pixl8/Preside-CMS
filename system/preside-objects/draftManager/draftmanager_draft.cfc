@@ -2,6 +2,8 @@
  * @versioned                       false
  * @dataManagerEnabled              true
  * @datamanagerDisallowedOperations clone
+ * @datamanagerWorkflowEnabled      true
+ * @datamanagerWorkflowDefaultFlow  draftDefault
  */
 component {
 

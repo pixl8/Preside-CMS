@@ -1,0 +1,32 @@
+version: 1.0.0
+workflow:
+  id: draftDefault
+
+  initialActions:
+  - id: start
+    result:
+      activateSteps: [ "drafted" ]
+
+  steps:
+  - id: drafted
+    actions:
+    - id: draft
+      result:
+        activateSteps: [ "reviewed" ]
+
+  - id: reviewed
+    actions:
+    - id: publish
+      result:
+        skipSteps: [ "deleted" ]
+        activateSteps: [ "published" ]
+    - id: change
+      result:
+        activateSteps: [ "drafted" ]
+    - id: delete
+      result:
+        skipSteps: [ "published" ]
+        activateSteps: [ "deleted" ]
+
+  - id: published
+  - id: deleted
