@@ -101,7 +101,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		);
 	}
 
-private any function editRecordAction( event, rc, prc ) {
+	private any function editRecordAction( event, rc, prc ) {
 		// Pretend to be the original object.
 		arguments.object   = prc.record.object_name ?: "";
 		arguments.recordId = prc.record.record_id   ?: "";
@@ -113,6 +113,22 @@ private any function editRecordAction( event, rc, prc ) {
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = arguments
+		);
+	}
+
+	private any function deleteRecordAction( event, rc, prc, batch=false, batchAll=false, batchSrcArgs={} ) {
+		event.setValue( name="postActionUrl", value=event.buildAdminLink( objectName=( prc.record.object_name ?: "" ), operation="listing", queryString="tab=draft" ) );
+
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  audit        = true
+				, batch        = arguments.batch
+				, batchAll     = arguments.batchAll
+				, batchSrcArgs = arguments.batchSrcArgs
+			  }
 		);
 	}
 
