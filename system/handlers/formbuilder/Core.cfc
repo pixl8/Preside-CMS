@@ -12,8 +12,9 @@ component {
 
 	public any function submitAction( event, rc, prc ) {
 		var formId       = rc.form ?: "";
+		var formUrl      = cgi.http_referer;
 		var theForm      = formBuilderService.getForm( formId );
-		var validRequest = theForm.recordCount == 1 && Len( Trim( cgi.http_referer ) ) && event.getHTTPMethod() == "POST";
+		var validRequest = theForm.recordCount == 1 && Len( Trim( formUrl ) ) && event.getHTTPMethod() == "POST";
 
 		if ( !validRequest ) {
 			event.notFound();
@@ -22,15 +23,17 @@ component {
 		var submission  = event.getCollectionWithoutSystemVars();
 		var persistData = submission;
 
+		var storageKey = rc._sk ?: "";
+
 		var checkAccess = formbuilderService.checkAccessAllowed( formId );
 		if ( !checkAccess.allowed ) {
 			if ( checkAccess.reason == "login" ) {
 				submission.checkAccess = true;
-				formBuilderService.setTempStoredSubmission( formId, submission );
+				formBuilderService.setTempStoredSubmission( formId=formId, submission=submission, storageKey=storageKey );
 				if ( event.isAjax() ) {
 					event.renderData( data={ success=false, response=checkAccess.message }, type="json" );
 				} else {
-					websiteLoginService.setPostLoginUrl( cgi.http_referer );
+					websiteLoginService.setPostLoginUrl( formUrl );
 					setNextEvent( url=event.buildLink( page="login" ), persistStruct={ message="LOGIN_REQUIRED" } );
 				}
 			}
@@ -45,7 +48,7 @@ component {
 
 		if ( !event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
 			persistData.errorMessage = translateResource( uri="cms:invalidCsrfToken.error" );
-			setNextEvent( url=cgi.http_referer, persistStruct=persistData );
+			setNextEvent( url=formUrl, persistStruct=persistData );
 		}
 
 		var validationResult = validationEngine.newValidationResult();
@@ -58,7 +61,7 @@ component {
 
 		if ( formPageNumber > 0 ) {
 			if ( formPageNext == 0 ) { // Reset
-				formBuilderService.clearTempStoredSubmission( formId=formId );
+				formBuilderService.clearTempStoredSubmission( formId=formId, storageKey=storageKey );
 				formPageNumber = 1;
 			}
 
@@ -69,29 +72,33 @@ component {
 			}
 		}
 
+		// Handle save temp data.
 		if ( ArrayLen( formItemsInPage ) ) {
 			if ( formPageNext != 0 ) {
-				tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, formItems=formItemsInPage );
+				tempSubmission = formBuilderService.prepareTempSubmission( formId=formId, requestData=submission, storageKey=storageKey, formItems=formItemsInPage );
 
 				validationResult = formBuilderService.saveTempSubmission(
 					  formId      = formId
 					, requestData = tempSubmission
+					, storageKey  = storageKey
 					, formItems   = formItemsInPage
 					, pageNumber  = formPageNumber
 					, pageNext    = formPageNext
 				);
 
-				// Trigger save submission.
-				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
+				storageKey = tempSubmission.storageKey ?: "";
+
+				tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, storageKey=storageKey );
 
 				if ( ( tempSubmission.formPageNumber ?: 0 ) > formPageCount && !isTrue( theForm.use_summarypage ?: "" ) ) {
-					formItemsInPage = [];
+					formItemsInPage = []; // Trigger save submission.
 				}
 			}
 		}
 
+		// Handle save submission data.
 		if ( !ArrayLen( formItemsInPage ) ) {
-			tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId );
+			tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, storageKey=storageKey );
 
 			StructAppend( submission, tempSubmission );
 
@@ -117,7 +124,7 @@ component {
 				, formItems       = submissionFormItems
 			);
 
-			formBuilderService.clearTempStoredSubmission( formId=formId );
+			formBuilderService.clearTempStoredSubmission( formId=formId, storageKey=storageKey );
 
 			persistStruct.formBuilderFormSubmitted = formId;
 		}
@@ -146,7 +153,13 @@ component {
 				StructAppend( persistStruct, submission );
 			}
 
-			setNextEvent( url=cgi.http_referer, persistStruct=persistStruct );
+			formUrl = REReplaceNoCase( formUrl, "([?&])_sk=[^&]*", "\1_sk=#storageKey#" );
+
+			if ( !REFindNoCase("([?&])_sk=", formUrl ) ) {
+				formUrl = ListAppend( formUrl, "_sk=#storageKey#", Find( "?", formUrl ) ? "&" : "?" );
+			}
+
+			setNextEvent( url=formUrl, persistStruct=persistStruct );
 		}
 	}
 
@@ -196,7 +209,7 @@ component {
 	}
 
 	private string function formSummary( event, rc, prc, args={} ) {
-		var summary = formBuilderService.renderSummary( formId=( args.form ?: "" ) );
+		var summary = formBuilderService.renderSummary( formId=( args.form ?: "" ), storageKey=( args.storageKey ?: "" ) );
 
 		if ( !isEmptyString( summary ) ) {
 			return translateResource( uri="formbuilder:summary.description", defaultValue="" ) & summary;
