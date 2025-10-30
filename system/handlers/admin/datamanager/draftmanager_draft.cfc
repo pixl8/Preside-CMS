@@ -66,6 +66,25 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return super._workflowTabTitle( argumentCollection=arguments );
 	}
 
+	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
+		var objectName  = prc.objectName ?: "";
+		var queryString = [];
+
+		ArrayAppend( queryString, "object_name=#objectName#" );
+
+		return ArrayToList( queryString, "&" );
+	}
+
+	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
+		var objectName = rc.object_name ?: "";
+
+		args.extraFilters = args.extraFilters ?: [];
+
+		if ( !isEmptyString( objectName ) ) {
+			ArrayAppend( args.extraFilters, { filter={ object_name=objectName } } );
+		}
+	}
+
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
 		var objectName = prc.record.object_name ?: "";
 

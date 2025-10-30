@@ -6,8 +6,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="permissionService"          inject="permissionService";
 	property name="adminDataViewsService"      inject="adminDataViewsService";
 	property name="datamanagerWorkflowService" inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
+	property name="draftManagerService"        inject="featureInjector:draftManager:DraftManagerService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
-	property name="draftManagerService"        inject="DraftManagerService";
 
 	variables.permissionSubBase  = "";
 	variables.systemDateRenderer = { renderer = "datetime", context="relative" };
@@ -541,7 +541,8 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = { args={
-				objectName = "draftmanager_draft"
+				  object_name = args.objectName
+				, objectName = "draftmanager_draft"
 			} }
 		);
 	}
