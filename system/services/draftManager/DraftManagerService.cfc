@@ -4,7 +4,8 @@
  */
 component {
 
-	property name="presideObjectService" inject="PresideObjectService";
+	property name="presideObjectService"       inject="PresideObjectService";
+	property name="dataManagerWorkflowService" inject="DataManagerWorkflowService";
 
 	public any function init() {
 		return this;
@@ -26,6 +27,26 @@ component {
 		var rc = $getRequestContext().getCollection();
 
 		return ( rc._saveaction ?: "" ) != "publish";
+	}
+
+	public string function getWorkflowId(
+		  required string objectName
+		,          string recordId = ""
+	) {
+		var workflowHandler = "admin.DataManager.#objectName#.getWorkflowForRecord";
+
+		if ( $getColdbox().handlerExists( workflowHandler ) ) {
+			var result = $runEvent(
+				  event          = workflowHandler
+				, private        = true
+				, prepostExempt  = true
+				, eventArguments = { recordId=arguments.recordId }
+			);
+
+			return local.result ?: "";
+		}
+
+		return dataManagerWorkflowService.getDefaultWorkflowId( objectName="draftmanager_draft" );
 	}
 
 }

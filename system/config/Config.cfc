@@ -151,17 +151,17 @@ component {
 
 	private void function __setupInterceptors() {
 		variables.interceptors = [
-			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
-			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
-			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
-			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
-			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
-			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} },
-			{ class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
+			  { class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} }
+			, { class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} }
+			, { class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} }
+			, { class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} }
+			, { class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} }
+			, { class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
+			, { class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
+			, { class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} }
+			, { class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} }
+			, { class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} }
+			, { class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
 		];
 
 		variables.interceptorSettings = {
@@ -1004,6 +1004,7 @@ component {
 			, "devtools.extension"            = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
+			, draftManager                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "cfflow", "datamanager", "datamanagerWorkflow" ] }
 		};
 
 		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {

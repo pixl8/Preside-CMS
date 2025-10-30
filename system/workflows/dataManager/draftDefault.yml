@@ -5,28 +5,22 @@ workflow:
   initialActions:
   - id: start
     result:
-      activateSteps: [ "drafted" ]
+      activateSteps: [ "draft" ]
 
   steps:
-  - id: drafted
+  - id: draft
     actions:
-    - id: draft
+    - id: review
       result:
-        activateSteps: [ "reviewed" ]
+        activateSteps: [ "review" ]
 
-  - id: reviewed
+  - id: review
     actions:
-    - id: publish
+    - id: approve
       result:
-        skipSteps: [ "deleted" ]
-        activateSteps: [ "published" ]
-    - id: change
+        activateSteps: [ "publish" ]
+    - id: reject
       result:
-        activateSteps: [ "drafted" ]
-    - id: delete
-      result:
-        skipSteps: [ "published" ]
-        activateSteps: [ "deleted" ]
+        activateSteps: [ "draft" ]
 
-  - id: published
-  - id: deleted
+  - id: publish

@@ -2,7 +2,9 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	property name="presideObjectService"            inject="PresideObjectService";
 	property name="dataManagerService"              inject="DataManagerService";
+	property name="draftManagerService"             inject="DraftManagerService";
 	property name="dataManagerCustomizationService" inject="DataManagerCustomizationService";
+	property name="dataManagerWorkflowService"      inject="DataManagerWorkflowService";
 
 	private void function rootBreadcrumb( event, rc, prc, args={} ) {
 		event.addAdminBreadCrumb(
@@ -91,7 +93,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return dataManagerCustomizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "getEditRecordFormName"
-			, defaultHandler = "admin.datamanager._getEditRecordFormName"
+			, defaultHandler = "admin.DataManager._getEditRecordFormName"
 			, args           = { objectName=objectName }
 		);
 	}
@@ -149,6 +151,12 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				, batchSrcArgs = arguments.batchSrcArgs
 			  }
 		);
+	}
+
+	private function getWorkflowForRecord( event, rc, prc, recordId="" ) {
+		var objectName = prc.record.object_name ?: "";
+
+		return draftManagerService.getWorkflowId( objectName=objectName );
 	}
 
 }

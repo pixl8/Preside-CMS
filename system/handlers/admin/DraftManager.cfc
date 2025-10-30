@@ -1,7 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="presideObjectService"       inject="PresideObjectService";
-	property name="datamanagerWorkflowService" inject="DatamanagerWorkflowService";
+	property name="dataManagerWorkflowService" inject="DataManagerWorkflowService";
 	property name="draftManagerService"        inject="DraftManagerService";
 
 	public void function addDraftRecordAction( event, rc, prc, args={} ) {
@@ -16,6 +16,8 @@ component extends="preside.system.base.AdminHandler" {
 			data = {
 				  label       = _getDraftLabel( objectName=objectName, formData=formData )
 				, object_name = objectName
+				, record_id   = ""
+				, workflow_id = draftManagerService.getWorkflowId( objectName=objectName )
 				, data        = SerializeJSON( formData )
 			}
 		);
