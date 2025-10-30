@@ -1,6 +1,6 @@
 ( function( $ ){
 
-	var $ajaxSubmitContainer = $( ".webflow-form-ajax-submit" );
+	const $ajaxSubmitContainer = $( ".webflow-form-ajax-submit" );
 
 	if ( $ajaxSubmitContainer.length > 0 ) {
 		$ajaxSubmitContainer.on( "submit", "form", function(event) {
@@ -13,7 +13,7 @@
 				, type : 'POST'
 				, data : formData
 			} )
-			.success( function( response ) {
+			.done( function( response ) {
 				$ajaxSubmitContainer.html( response );
 			} );
 		} );
@@ -25,7 +25,7 @@
 				  url  : $(this).attr( "href" )
 				, type : 'GET'
 			} )
-			.success( function( response ) {
+			.done( function( response ) {
 				$ajaxSubmitContainer.html( response );
 			} );
 		});
