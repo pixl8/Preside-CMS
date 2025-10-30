@@ -8,7 +8,7 @@ component {
 		,          string userId = getLoggedInUserId()
 	) {
 		var data = getPresideObject( formbuilderDraftStorageDatabaseTable ).selectData(
-			  filter       = "id = :id and form = :form"
+			  filter       = "id = :id and form = :form and submitted_by = :submitted_by"
 			, filterParams = {
 				  id           = { cfsqltype="cf_sql_varchar", 	value=arguments.storageKey }
 				, form         = { cfsqltype="cf_sql_varchar", 	value=arguments.formId     }
@@ -29,7 +29,7 @@ component {
 		, required struct data
 		,          string userId = getLoggedInUserId()
 	) {
-		var filter       = "id = :id and form = :form";
+		var filter       = "id = :id and form = :form and submitted_by = :submitted_by";
 		var filterParams = {
 			  id           = { cfsqltype="cf_sql_varchar", 	value=arguments.storageKey }
 			, form         = { cfsqltype="cf_sql_varchar", 	value=arguments.formId     }
