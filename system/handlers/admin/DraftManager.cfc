@@ -46,6 +46,21 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId ) );
 	}
 
+	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
+		prc.objectName = rc.object = arguments.object = prc.record.object_name ?: "";
+
+		if ( !IsEmpty( prc.record.data ?: {} ) ) {
+			StructAppend( rc, DeserializeJSON( prc.record.data ), true );
+		}
+
+		runEvent(
+			  event          = "admin.DataManager.addRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = arguments
+		);
+	}
+
 	private array function _getAddRecordActionButtons( event, rc, prc, args={} ) {
 		// Override to resuse save draft button.
 		args.draftsEnabled = true;

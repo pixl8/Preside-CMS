@@ -2725,7 +2725,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
-		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) ) {
+		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction( argumentCollection=arguments ) ) {
 			runEvent(
 				  event          = "admin.DraftManager.addDraftRecordAction"
 				, private        = true
@@ -3156,7 +3156,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
-		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) ) {
+		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction( argumentCollection=arguments ) ) {
 			runEvent(
 				  event          = "admin.DraftManager.editDraftRecordAction"
 				, private        = true

@@ -19,6 +19,8 @@ workflow:
     - id: approve
       result:
         activateSteps: [ "publish" ]
+        preHandlers:
+        - event: admin.DraftManager.preApproveAction
     - id: reject
       result:
         activateSteps: [ "draft" ]

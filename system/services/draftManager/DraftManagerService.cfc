@@ -19,14 +19,14 @@ component {
 		return presideObjectService.getObjectAttribute( objectName=arguments.objectName, attributeName="draftManagerEnabled", defaultValue=false );
 	}
 
-	public boolean function isDraftAction() {
+	public boolean function isDraftAction( event, rc, prc ) {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
 			return false;
 		}
 
 		var rc = $getRequestContext().getCollection();
 
-		return ( rc._saveaction ?: "" ) != "publish";
+		return ( rc._saveaction ?: "" ) == "savedraft";
 	}
 
 	public string function getWorkflowId(
