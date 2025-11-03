@@ -9,4 +9,7 @@ component extends="preside.system.base.AdminHandler" {
 		runEvent( "webflow.default.submitAction" );
 	}
 
+	public void function submitAjaxAction() {
+		runEvent( "webflow.default.submitAjaxAction" );
+	}
 }

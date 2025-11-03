@@ -214,6 +214,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                        );
 		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                        );
 		interceptorSettings.customInterceptionPoints.append( "onLogout"                              );
+		interceptorSettings.customInterceptionPoints.append( "postLogout"                            );
 		interceptorSettings.customInterceptionPoints.append( "onAdminLoginSuccess"                   );
 		interceptorSettings.customInterceptionPoints.append( "onAdminLoginFailure"                   );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                       );
@@ -1106,6 +1107,11 @@ component {
 		settings.formbuilder.submissions                        = settings.formbuilder.submissions         ?: {};
 		settings.formbuilder.submissions.removal                = settings.formbuilder.submissions.removal ?: {};
 		settings.formbuilder.submissions.removal.minAllowedDays = 30;
+
+		settings.formbuilder.drafts                        = settings.formbuilder.drafts ?: {};
+		settings.formbuilder.drafts.storage                = settings.formbuilder.drafts.storage ?: {};
+		settings.formbuilder.drafts.storage.type           = "database";
+		settings.formbuilder.drafts.storage.database.table = "formbuilder_formsubmission_draft";
 	}
 
 	private void function __setupRulesEngine(){

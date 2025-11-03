@@ -114,16 +114,17 @@ component {
 					, asset          = asset
 				} );
 
+				if ( type.trackDownloads && isFeatureEnabled( "websiteUsers" ) ) {
+					websiteUserActionService.recordAction(
+						  action     = "download"
+						, type       = "asset"
+						, userId     = getLoggedInUserId()
+						, identifier = assetId
+					);
+				}
+
 				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
-				if ( type.trackDownloads ) {
-					if ( isFeatureEnabled( "websiteUsers" ) ) {
-						websiteUserActionService.recordAction(
-							  action     = "download"
-							, type       = "asset"
-							, userId     = getLoggedInUserId()
-							, identifier = assetId
-						);
-					}
+				if ( type.serveAsAttachment ) {
 					header name="Content-Disposition" value="attachment; filename=""#filename#""";
 				} else {
 					header name="Content-Disposition" value="inline; filename=""#filename#""";
