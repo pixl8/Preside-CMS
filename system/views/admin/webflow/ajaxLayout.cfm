@@ -1,0 +1,3 @@
+<cfoutput>
+	#prc.content ?: ""#
+</cfoutput>

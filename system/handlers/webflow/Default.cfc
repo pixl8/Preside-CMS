@@ -31,6 +31,29 @@ component {
 		);
 	}
 
+	/**
+	 * @cacheable false
+	 *
+	 */
+	private string function ajaxRender( event, rc, prc, args={} ) {
+		event.preventPageCache();
+		event.include( "/css/frontend/webflow/ajaxLayout/" )
+			 .include( "/js/frontend/webflow/ajaxLayout/"  );
+
+		var webflowQs = "";
+		for ( var key in args ) {
+			webflowQs = ListAppend( webflowQs, "#key#=#args[ key ]#", "&" );
+		}
+
+		if ( event.isAdminRequest() ) {
+			args.flowLink = event.buildAdminLink( linkto="webflow.ajaxLayout", queryString="flowQs=#UrlEncode( ToBase64( webflowQs ) )#" );
+		} else {
+			args.flowLink = event.buildLink( linkto="webflow.default.ajaxLayout", queryString="flowQs=#UrlEncode( ToBase64( webflowQs ) )#" );
+		}
+
+		return renderView( view="/webflow/default/ajaxRender", args=args );
+	}
+
 // PUBLIC ACTIONS
 	public void function submitAction( event, rc, prc ) {
 		_processSubmission( event, rc, prc, function( flowArgs ){
@@ -92,6 +115,28 @@ component {
 		} );
 	}
 
+	/**
+	 * @cacheable false
+	 *
+	 */
+	public string function ajaxLayout( event, rc, prc, args={} ) {
+		event.preventPageCache();
+
+		var flowArgs = {};
+		var flowQs    = Trim( rc.flowQs ?: "" );
+		    flowQs    = ListToArray( ToString( ToBinary( UrlDecode( flowQs ) ) ), "&" );
+
+		for ( var qs in flowQs ) {
+			if ( ListLen( qs, "=" ) > 1 ) {
+				flowArgs[ ListFirst( qs, "=" ) ] = ListLast( qs, "=" );
+			}
+		}
+
+		flowArgs.layout        = "";
+		flowArgs.useAjaxLayout = true;
+
+		return renderViewlet( event="webflow.default.render", args=flowArgs );
+	}
 
 // VIEWLETS
 	private string function layout( event, rc, prc, args={} ){
@@ -130,17 +175,6 @@ component {
 		}
 
 		return renderView( view="/webflow/default/layout", args=args );
-	}
-
-	private string function ajaxLayout( event, rc, prc, args={} ) {
-		event.include( "/css/frontend/webflow/ajaxLayout/" )
-			 .include( "/js/frontend/webflow/ajaxLayout/"  );
-
-		args.useAjaxLayout = true;
-
-		return renderView( view="/webflow/default/ajaxLayout", args={
-			content = renderViewlet( event="webflow.default.layout", args=args )
-		} );
 	}
 
 	private string function messages( event, rc, prc, args={} ) {

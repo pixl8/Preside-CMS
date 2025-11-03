@@ -6,6 +6,14 @@
 	<cfreturn renderViewlet( event="webflow.Default.render", args=arguments ) />
 </cffunction>
 
+<cffunction name="renderAjaxWebflow" access="public" returntype="any" output="false">
+	<cfargument name="webflowId"   type="string"  required="true" />
+	<cfargument name="instanceRef" type="string"  required="false" default="" />
+	<cfargument name="layout"      type="string"  required="false" default="" />
+
+	<cfreturn renderViewlet( event="webflow.Default.ajaxRender", args=arguments ) />
+</cffunction>
+
 <cffunction name="setWebflowErrorMessage" access="public" returntype="any" output="false">
 	<cfargument name="message" type="string" required="true" />
 
