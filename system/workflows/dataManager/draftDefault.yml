@@ -21,6 +21,8 @@ workflow:
         activateSteps: [ "publish" ]
         preHandlers:
         - event: admin.DraftManager.preApproveAction
+        postHandlers:
+        - event: admin.DraftManager.postApproveAction
     - id: reject
       result:
         activateSteps: [ "draft" ]

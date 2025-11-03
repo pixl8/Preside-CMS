@@ -1,8 +1,10 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="presideObjectService"       inject="PresideObjectService";
-	property name="dataManagerWorkflowService" inject="DataManagerWorkflowService";
-	property name="draftManagerService"        inject="DraftManagerService";
+	property name="presideObjectService"            inject="PresideObjectService";
+	property name="dataManagerWorkflowService"      inject="DataManagerWorkflowService";
+	property name="dataManagerCustomizationService" inject="DataManagerCustomizationService";
+	property name="draftManagerService"             inject="DraftManagerService";
+	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
 	public void function addDraftRecordAction( event, rc, prc, args={} ) {
 		if ( !draftManagerService.isDraftAction() ) {
@@ -36,7 +38,7 @@ component extends="preside.system.base.AdminHandler" {
 		var draftId = args.recordId ?: "";
 
 		getPresideObject( "draftmanager_draft" ).updateData(
-			  id   = args.recordId
+			  id   = draftId
 			, data = {
 				  label = _getDraftLabel( objectName=objectName, formData=formData )
 				, data  = SerializeJSON( formData )
@@ -53,12 +55,51 @@ component extends="preside.system.base.AdminHandler" {
 			StructAppend( rc, DeserializeJSON( prc.record.data ), true );
 		}
 
-		runEvent(
-			  event          = "admin.DataManager.addRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = arguments
-		);
+		var recordId = _addDraftRecordAction( argumentCollection=arguments );
+
+		if ( !isEmptyString( recordId ) ) {
+			wfInstance.appendState( { record_id=recordId } );
+		}
+	}
+
+	private void function postApproveAction( event, rc, prc, args={}, wfInstance ) {
+		var state = wfInstance.getState();
+
+		var objectName = prc.record.object_name ?: "";
+		var recordId   = state.record_id        ?: "";
+		var labelField = presideObjectService.getObjectAttribute( objectName, "labelfield", "label" );
+
+		messageBox.info( translateResource(
+			  uri  = "cms:datamanager.recordAdded.confirmation"
+			, data = [
+				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
+				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+			  ]
+		) );
+
+		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+	}
+
+	public string function _addDraftRecordAction( event, rc, prc ) {
+		var objectName = args.objectName ?: ( prc.objectName ?: "" );
+
+		if ( dataManagerCustomizationService.objectHasCustomization( objectName, "addRecordAction" ) ) {
+			return dataManagerCustomizationService.runCustomization(
+				  objectName = objectName
+				, action     = "addRecordAction"
+				, args       = { objectName=objectName }
+			);
+		} else {
+			arguments.redirectOnSuccess = false;
+			arguments.audit             = true;
+
+			return runEvent(
+				  event          = "admin.DataManager._addRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = arguments
+			);
+		}
 	}
 
 	private array function _getAddRecordActionButtons( event, rc, prc, args={} ) {

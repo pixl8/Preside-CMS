@@ -68,6 +68,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return super._workflowTabTitle( argumentCollection=arguments );
 	}
 
+	private void function getListingHeaderFields( event, rc, prc, args={} ) {
+		var objectName  = prc.objectName ?: "";
+		var labelName  = presideObjectService.getLabelField( objectName=objectName );
+
+		args.gridHeaderLabels[ "label" ] = translateResource( uri="preside-objects.#objectName#:field.#labelName#.listing.title", defaultValue=translateResource( uri="preside-objects.#objectName#:field.#labelName#.title", defaultValue=labelName ) );
+	}
+
 	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
 		var objectName  = prc.objectName ?: "";
 		var queryString = [];
