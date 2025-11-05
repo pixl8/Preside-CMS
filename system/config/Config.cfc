@@ -736,7 +736,8 @@ component {
 				, assets           = [ "upload", "edit", "delete", "download", "pick", "translate" ]
 				, storagelocations = [ "manage" ]
 			 }
-			, webflows                = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
+			, webflows               = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
+			, draftManager           = [ "navigate", "read", "add", "edit", "delete", "review", "publish" ]
 		};
 
 		settings.adminRoles = StructNew( "linked" );
@@ -1047,6 +1048,7 @@ component {
 		settings.enum.webflowSessionType          = [ "active", "activetimedout", "complete", "timedout", "adminarchive" ];
 		settings.enum.webflowPositionType         = [ "start", "middle", "end" ];
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
+		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
 	}
 
 	private void function __setupFormValidationProviders() {

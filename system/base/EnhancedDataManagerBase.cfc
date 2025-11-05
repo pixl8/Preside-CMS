@@ -542,7 +542,7 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 			, eventArguments = { args={
 				  object_name = args.objectName
-				, objectName = "draftmanager_draft"
+				, objectName  = "draftmanager_draft"
 			} }
 		);
 	}

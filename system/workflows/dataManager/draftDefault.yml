@@ -6,6 +6,8 @@ workflow:
   - id: start
     result:
       activateSteps: [ "draft" ]
+      appendState:
+        _status: "draft"
 
   steps:
   - id: draft
@@ -13,12 +15,16 @@ workflow:
     - id: review
       result:
         activateSteps: [ "review" ]
+        appendState:
+          _status: "review"
 
   - id: review
     actions:
     - id: approve
       result:
         activateSteps: [ "publish" ]
+        appendState:
+          _status: "publish"
         preHandlers:
         - event: admin.DraftManager.preApproveAction
         postHandlers:
@@ -26,5 +32,7 @@ workflow:
     - id: reject
       result:
         activateSteps: [ "draft" ]
+        appendState:
+          _status: "reject"
 
   - id: publish

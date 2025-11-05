@@ -69,7 +69,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private void function getListingHeaderFields( event, rc, prc, args={} ) {
-		var objectName  = prc.objectName ?: "";
+		var objectName = prc.objectName ?: "";
 		var labelName  = presideObjectService.getLabelField( objectName=objectName );
 
 		args.gridHeaderLabels[ "label" ] = translateResource( uri="preside-objects.#objectName#:field.#labelName#.listing.title", defaultValue=translateResource( uri="preside-objects.#objectName#:field.#labelName#.title", defaultValue=labelName ) );
@@ -88,6 +88,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var objectName = rc.object_name ?: "";
 
 		args.extraFilters = args.extraFilters ?: [];
+
+		ArrayAppend( args.extraFilters, { filter="_status != 'publish'" } );
 
 		if ( !isEmptyString( objectName ) ) {
 			ArrayAppend( args.extraFilters, { filter={ object_name=objectName } } );
