@@ -528,22 +528,19 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function _publishTab( event, rc, prc, args={} ) {
 		return runEvent(
-			  event          = "admin.dataManager._objectListingViewlet"
+			  event          = "admin.DraftManager._getObjectListing"
 			, private        = true
-			, prePostExempt  = true
-			, eventArguments = { args=args }
+			, prepostExempt  = true
+			, eventArguments = arguments
 		);
 	}
 
 	private string function _draftTab( event, rc, prc, args={} ) {
 		return runEvent(
-			  event          = "admin.dataManager._objectListingViewlet"
+			  event          = "admin.DraftManager._getDraftListing"
 			, private        = true
-			, prePostExempt  = true
-			, eventArguments = { args={
-				  object_name = args.objectName
-				, objectName  = "draftmanager_draft"
-			} }
+			, prepostExempt  = true
+			, eventArguments = arguments
 		);
 	}
 

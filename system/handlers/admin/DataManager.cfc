@@ -2727,7 +2727,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction( argumentCollection=arguments ) ) {
 			runEvent(
-				  event          = "admin.DraftManager.addDraftRecordAction"
+				  event          = "admin.DraftManager._addDraftRecordAction"
 				, private        = true
 				, prepostExempt  = true
 				, eventArguments = args
@@ -3158,7 +3158,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction( argumentCollection=arguments ) ) {
 			runEvent(
-				  event          = "admin.DraftManager.editDraftRecordAction"
+				  event          = "admin.DraftManager._editDraftRecordAction"
 				, private        = true
 				, prepostExempt  = true
 				, eventArguments = args

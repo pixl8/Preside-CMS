@@ -6,7 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
-	public void function addDraftRecordAction( event, rc, prc, args={} ) {
+	private void function _addDraftRecordAction( event, rc, prc, args={} ) {
 		if ( !draftManagerService.isDraftAction() ) {
 			return;
 		}
@@ -36,7 +36,7 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId ) );
 	}
 
-	public void function editDraftRecordAction( event, rc, prc, args={} ) {
+	private void function _editDraftRecordAction( event, rc, prc, args={} ) {
 		if ( !draftManagerService.isDraftAction() ) {
 			return;
 		}
@@ -73,9 +73,27 @@ component extends="preside.system.base.AdminHandler" {
 			StructAppend( rc, DeserializeJSON( prc.record.data ), true );
 		}
 
-		var recordId = _addDraftRecordAction( argumentCollection=arguments );
+		var recordId = _addDraftRecord( argumentCollection=arguments );
 
-		if ( !isEmptyString( recordId ) ) {
+		if ( dataManagerCustomizationService.objectHasCustomization( prc.objectName, "addRecordAction" ) ) {
+			recordId = dataManagerCustomizationService.runCustomization(
+				  objectName = prc.objectName
+				, action     = "addRecordAction"
+				, args       = { objectName=prc.objectName }
+			);
+		} else {
+			arguments.redirectOnSuccess = false;
+			arguments.audit             = true;
+
+			recordId = runEvent(
+				  event          = "admin.DataManager._addRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = arguments
+			);
+		}
+
+		if ( !isEmptyString( local.recordId ?: "" ) ) {
 			wfInstance.appendState( { record_id=recordId } );
 		}
 	}
@@ -99,26 +117,25 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 	}
 
-	public string function _addDraftRecordAction( event, rc, prc ) {
-		var objectName = args.objectName ?: ( prc.objectName ?: "" );
+	private string function _getObjectListing( event, rc, prc, args={} ) {
+		return runEvent(
+			  event          = "admin.DataManager._objectListingViewlet"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = arguments
+		);
+	}
 
-		if ( dataManagerCustomizationService.objectHasCustomization( objectName, "addRecordAction" ) ) {
-			return dataManagerCustomizationService.runCustomization(
-				  objectName = objectName
-				, action     = "addRecordAction"
-				, args       = { objectName=objectName }
-			);
-		} else {
-			arguments.redirectOnSuccess = false;
-			arguments.audit             = true;
-
-			return runEvent(
-				  event          = "admin.DataManager._addRecordAction"
-				, prePostExempt  = true
-				, private        = true
-				, eventArguments = arguments
-			);
-		}
+	private string function _getDraftListing( event, rc, prc, args={} ) {
+		return runEvent(
+			  event          = "admin.dataManager._objectListingViewlet"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args={
+				  object_name = args.objectName
+				, objectName  = "draftmanager_draft"
+			} }
+		);
 	}
 
 	private array function _getAddRecordActionButtons( event, rc, prc, args={} ) {

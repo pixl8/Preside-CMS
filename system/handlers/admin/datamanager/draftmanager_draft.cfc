@@ -79,13 +79,17 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var objectName  = prc.objectName ?: "";
 		var queryString = [];
 
-		ArrayAppend( queryString, "object_name=#objectName#" );
+		if ( !isEmptyString( args.multiActionUrl ?: "" ) ) {
+			args.multiActionUrl = ListAppend( args.multiActionUrl, "_object_name=#objectName#", "&" );
+		}
+
+		ArrayAppend( queryString, "_object_name=#objectName#" );
 
 		return ArrayToList( queryString, "&" );
 	}
 
 	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
-		var objectName = rc.object_name ?: "";
+		var objectName = rc._object_name ?: "";
 
 		args.extraFilters = args.extraFilters ?: [];
 
@@ -147,18 +151,18 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private any function deleteRecordAction( event, rc, prc, batch=false, batchAll=false, batchSrcArgs={} ) {
-		event.setValue( name="postActionUrl", value=event.buildAdminLink( objectName=( prc.record.object_name ?: "" ), operation="listing", queryString="tab=draft" ) );
+		var objectName = rc._object_name ?: ( prc.record.object_name ?: "" );
+
+		arguments.object = "draftmanager_draft";
+		arguments.audit  = true;
+
+		event.setValue( name="postActionUrl", value=event.buildAdminLink( objectName=objectName, operation="listing", queryString="tab=draft" ) );
 
 		runEvent(
 			  event          = "admin.DataManager._deleteRecordAction"
 			, prePostExempt  = true
 			, private        = true
-			, eventArguments = {
-				  audit        = true
-				, batch        = arguments.batch
-				, batchAll     = arguments.batchAll
-				, batchSrcArgs = arguments.batchSrcArgs
-			  }
+			, eventArguments = arguments
 		);
 	}
 
