@@ -13,16 +13,25 @@ component extends="preside.system.base.AdminHandler" {
 
 		var objectName = arguments.object   ?: "";
 		var formData   = arguments.formData ?: {};
+		var label      = _getDraftLabel( objectName=objectName, data=formData );
 
 		var draftId = getPresideObject( "draftmanager_draft" ).insertData(
 			data = {
-				  label       = _getDraftLabel( objectName=objectName, formData=formData )
+				  label       = label
 				, object_name = objectName
 				, record_id   = ""
 				, workflow_id = draftManagerService.getWorkflowId( objectName=objectName )
 				, data        = SerializeJSON( formData )
 			}
 		);
+
+		messageBox.info( translateResource(
+			  uri  = "draftManager:message.add.description"
+			, data = [
+				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
+				, '<a href="#event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId )#">#label#</a>'
+			  ]
+		) );
 
 		setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId ) );
 	}
@@ -34,16 +43,25 @@ component extends="preside.system.base.AdminHandler" {
 
 		var objectName = arguments.object   ?: "";
 		var formData   = arguments.formData ?: {};
+		var label      = _getDraftLabel( objectName=objectName, data=formData );
 
 		var draftId = args.recordId ?: "";
 
 		getPresideObject( "draftmanager_draft" ).updateData(
 			  id   = draftId
 			, data = {
-				  label = _getDraftLabel( objectName=objectName, formData=formData )
+				  label = label
 				, data  = SerializeJSON( formData )
 			  }
 		);
+
+		messageBox.info( translateResource(
+			  uri  = "draftManager:message.edit.description"
+			, data = [
+				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
+				, '<a href="#event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId )#">#label#</a>'
+			  ]
+		) );
 
 		setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId ) );
 	}
@@ -68,12 +86,13 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = prc.record.object_name ?: "";
 		var recordId   = state.record_id        ?: "";
 		var labelField = presideObjectService.getObjectAttribute( objectName, "labelfield", "label" );
+		var label      = _getDraftLabel( objectName=objectName, data=rc );
 
 		messageBox.info( translateResource(
-			  uri  = "cms:datamanager.recordAdded.confirmation"
+			  uri  = "draftManager:message.approve.description"
 			, data = [
 				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
-				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#label#</a>'
 			  ]
 		) );
 
@@ -131,7 +150,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function _getDraftLabel(
 		  required string objectName
-		, required struct formData
+		, required struct data
 	) {
 		var labelName = presideObjectService.getLabelField( objectName=arguments.objectName );
 
@@ -139,13 +158,7 @@ component extends="preside.system.base.AdminHandler" {
 			throw( type="PresideObjectService.no.label.field", message="The object [#arguments.objectName#] has no label field." );
 		}
 
-		var label = arguments.formData[ labelName ] ?: "";
-
-		if ( isEmptyString( label ) ) {
-			label = CreateUUID();
-		}
-
-		return label;
+		return arguments.data[ labelName ] ?: "";
 	}
 
 }
