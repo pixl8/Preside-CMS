@@ -4,6 +4,8 @@ component {
 	property name="customizationService"   inject="dataManagerCustomizationService";
 	property name="datamanagerService"     inject="datamanagerService";
 	property name="messageBox"             inject="messagebox@cbmessagebox";
+	property name="cronUtil"               inject="cronUtil";
+	property name="i18n"                   inject="i18n";
 
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var objectName       = "saved_export";
@@ -28,7 +30,7 @@ component {
 
 		for ( var record in records ) {
 			querySetCell( records, "label", _decorateLabelForListing( record.id ), queryCurrentRow( records ) );
-			querySetCell( records, "schedule", scheduledExportService.cronExpressionToHuman( record.schedule ), queryCurrentRow( records ) );
+			querySetCell( records, "schedule", cronUtil.describeCronTabExression( record.schedule, i18n.getFwLanguageCode() ), queryCurrentRow( records ) );
 		}
 	}
 
@@ -99,7 +101,7 @@ component {
 		if ( !isEmpty( args.record.schedule ?: "" ) && ( args.record.schedule neq "disabled" ) ) {
 			args.exportSchedule = {
 				  raw      = args.record.schedule
-				, readable = scheduledExportService.cronExpressionToHuman( args.record.schedule )
+				, readable = cronUtil.describeCronTabExression( args.record.schedule, i18n.getFwLanguageCode() )
 			};
 
 			if ( !isEmptyString( args.exportSchedule.readable ?: "" ) ) {
