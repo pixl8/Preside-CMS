@@ -6,11 +6,13 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @validAlertLevels.inject  coldbox:setting:enum.systemAlertLevel
+	 * @validAlertLevels.inject coldbox:setting:enum.systemAlertLevel
+	 * @cronUtil.inject         cronUtil
 	 *
 	 */
-	public any function init( required array validAlertLevels ) {
+	public any function init( required array validAlertLevels, required any cronUtil ) {
 		_setValidAlertLevels( arguments.validAlertLevels );
+		_setCronUtil( arguments.cronUtil );
 
 		return this;
 	}
@@ -469,38 +471,11 @@ component {
 	}
 
 	private string function _getNextRunDate( required string schedule, date lastRun=now() ) {
-		var cronTabExpression = _getCrontabExpressionObject( arguments.schedule );
-		var lastRunJodaTime   = _createJodaTimeObject( arguments.lastRun );
-
-		return cronTabExpression.nextTimeAfter( lastRunJodaTime  ).toDate();
+		return _getCronUtil().getNextRunDate( arguments.schedule, arguments.lastRun );
 	}
 
 	private boolean function _crontabExpressionIsValid( required string crontabExpression ) {
-		try {
-			_getCrontabExpressionObject( arguments.cronTabExpression );
-		} catch ( any e ) {
-			$raiseError( e );
-			return false;
-		}
-
-		return true;
-	}
-
-	private any function _getCrontabExpressionObject( required string expression ) {
-		return CreateObject( "java", "fc.cron.CronExpression", _getSchedulingLib() ).init( arguments.expression );
-	}
-
-	private any function _createJodaTimeObject( required date cfmlDateTime ) {
-		return CreateObject( "java", "org.joda.time.DateTime", _getSchedulingLib() ).init( cfmlDateTime );
-	}
-
-	private array function _getSchedulingLib() {
-		return [
-			  "/preside/system/services/taskmanager/lib/cron-parser-2.6-SNAPSHOT.jar"
-			, "/preside/system/services/taskmanager/lib/commons-lang3-3.3.2.jar"
-			, "/preside/system/services/taskmanager/lib/joda-time-2.9.4.jar"
-			, "/preside/system/services/taskmanager/lib/cron-1.0.jar"
-		];
+		return Len( _getCronUtil().validateExpression( arguments.crontabExpression ) ) > 0;
 	}
 
 // GETTERS AND SETTERS
@@ -530,6 +505,13 @@ component {
 	}
 	private void function _setValidAlertLevels( required array validAlertLevels ) {
 		variables._validAlertLevels = arguments.validAlertLevels;
+	}
+
+	private any function _getCronUtil() {
+	    return _cronUtil;
+	}
+	private void function _setCronUtil( required any cronUtil ) {
+	    _cronUtil = arguments.cronUtil;
 	}
 
 }
