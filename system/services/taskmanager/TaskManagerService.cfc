@@ -20,6 +20,7 @@ component displayName="Task Manager Service" {
 	 * @siteService.inject                 siteService
 	 * @threadUtil.inject                  threadUtil
 	 * @executor.inject                    presideTaskManagerExecutor
+	 * @cronUtil.inject                    cronUtil
 	 *
 	 */
 	public any function init(
@@ -33,6 +34,7 @@ component displayName="Task Manager Service" {
 		, required any siteService
 		, required any threadUtil
 		, required any executor
+		, required any cronUtil
 	) {
 		_setConfiguredTasks( arguments.configWrapper.getConfiguredTasks() );
 		_setController( arguments.controller );
@@ -44,6 +46,7 @@ component displayName="Task Manager Service" {
 		_setSiteService( arguments.siteService );
 		_setThreadUtil( arguments.threadUtil );
 		_setExecutor( arguments.executor );
+		_setCronUtil( arguments.cronUtil );
 		_setMachineId();
 
 		_initialiseDb();
@@ -106,16 +109,6 @@ component displayName="Task Manager Service" {
 			  filter = { task_key=arguments.taskKey }
 			, data   = { next_run = getNextRunDate( arguments.taskKey ) }
 		);
-	}
-
-	public string function getValidationErrorMessageForPotentiallyBadCrontabExpression( required string crontabExpression ) {
-		try {
-			_getCrontabExpressionObject( arguments.cronTabExpression );
-		} catch ( any e ) {
-			return e.message;
-		}
-
-		return "";
 	}
 
 	public boolean function taskExists( required string taskKey ) {
@@ -564,7 +557,7 @@ component displayName="Task Manager Service" {
 	}
 
 	public string function getNextRunDate( required string taskKey, date lastRun=Now() ) {
-		var task       = getTask( arguments.taskKey );
+		var task = getTask( arguments.taskKey );
 
 		if ( !task.isScheduled ) {
 			return "";
@@ -573,13 +566,10 @@ component displayName="Task Manager Service" {
 		var taskConfig = getTaskConfiguration( arguments.taskKey );
 		var schedule   = Len( Trim( taskConfig.crontab_definition ?: "" ) ) ? taskConfig.crontab_definition : task.schedule;
 
-		var cronTabExpression = _getCrontabExpressionObject( schedule );
-		var lastRunJodaTime   = _createJodaTimeObject( arguments.lastRun );
-
-		return cronTabExpression.nextTimeAfter( lastRunJodaTime  ).toDate();
+		return _getCronUtil().getNextRunDate( schedule, arguments.lastRun );
 	}
 
-	public array function getAllTaskDetails() {
+	public array function getAllTaskDetails( string locale="EN" ) {
 		var tasks       = _getConfiguredTasks();
 		var taskDetails = [];
 		var dbTaskInfo  = _getTaskDao().selectData(
@@ -587,11 +577,12 @@ component displayName="Task Manager Service" {
 			, useCache     = false
 		);
 		var grouped = [];
+		var cronUtil = _getCronUtil();
 
 		for( var dbRecord in dbTaskInfo ){
 			var detail = dbRecord;
 			detail.append( tasks[ detail.task_key ] ?: {} );
-			detail.schedule = _cronTabExpressionToHuman( Len( Trim( detail.crontab_definition ) ) ? detail.crontab_definition : detail.schedule );
+			detail.schedule = cronUtil.describeCronTabExression( Len( Trim( detail.crontab_definition ) ) ? detail.crontab_definition : detail.schedule, arguments.locale );
 			detail.is_running = taskIsRunning( detail.task_key );
 			if( detail.is_running ){
 				detail.taskHistoryId = getActiveHistoryIdForTask( detail.task_key );
@@ -747,44 +738,12 @@ component displayName="Task Manager Service" {
 	}
 
 // PRIVATE HELPERS
-	private any function _createJodaTimeObject( required date cfmlDateTime ) {
-		return CreateObject( "java", "org.joda.time.DateTime", _getLib() ).init( cfmlDateTime );
-	}
-
-	private any function _getCrontabExpressionObject( required string expression ) {
-		return CreateObject( "java", "fc.cron.CronExpression", _getLib() ).init( arguments.expression );
-	}
-
 	private void function _initialiseDb() {
 		ensureTasksExistInStatusDb();
 	}
 
 	private date function _getOperationDate() {
 		return Now();
-	}
-
-	private string function _cronTabExpressionToHuman( required string expression ) {
-		if ( arguments.expression == "disabled" ) {
-			return "disabled";
-		}
-		return CreateObject( "java", "net.redhogs.cronparser.CronExpressionDescriptor", _getLib() ).getDescription( arguments.expression );
-	}
-
-	private string function _getScheduledTaskUrl( required string siteId ) {
-		var siteSvc    = _getSiteService();
-		var site       = siteSvc.getSite( Len( Trim( arguments.siteId ) ) ? arguments.siteId : siteSvc.getActiveSiteId() );
-		var serverName = ( site.domain ?: cgi.server_name );
-
-		return "http://" & serverName & "/taskmanager/runtasks/";
-	}
-
-	private array function _getLib() {
-		return [
-			  "/preside/system/services/taskmanager/lib/cron-parser-2.6-SNAPSHOT.jar"
-			, "/preside/system/services/taskmanager/lib/commons-lang3-3.3.2.jar"
-			, "/preside/system/services/taskmanager/lib/joda-time-2.9.4.jar"
-			, "/preside/system/services/taskmanager/lib/cron-1.0.jar"
-		];
 	}
 
 	private boolean function _taskIsRunningOnLocalMachine( required any task ){
@@ -915,6 +874,13 @@ component displayName="Task Manager Service" {
 	}
 	private void function _setExecutor( required any executor ) {
 	    _executor = arguments.executor;
+	}
+
+	private any function _getCronUtil() {
+	    return _cronUtil;
+	}
+	private void function _setCronUtil( required any cronUtil ) {
+	    _cronUtil = arguments.cronUtil;
 	}
 
 }
