@@ -140,6 +140,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		arguments.object   = prc.record.object_name ?: "";
 		arguments.recordId = prc.record.record_id   ?: "";
 
+		event.setValue( name="id", value=arguments.recordId );
+
 		arguments.checkExistingRecord = false;
 
 		runEvent(

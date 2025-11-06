@@ -19,7 +19,7 @@ component {
 		return presideObjectService.getObjectAttribute( objectName=arguments.objectName, attributeName="draftManagerEnabled", defaultValue=false );
 	}
 
-	public boolean function isDraftAction( event, rc, prc ) {
+	public boolean function isDraftAction() {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
 			return false;
 		}

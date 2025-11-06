@@ -6,64 +6,61 @@ component extends="preside.system.base.AdminHandler" {
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
-	private void function _addDraftRecordAction( event, rc, prc, args={} ) {
-		if ( !draftManagerService.isDraftAction() ) {
-			return;
-		}
-
+	private void function _saveDraftRecordAction( event, rc, prc, args={} ) {
 		var objectName = arguments.object   ?: "";
+		var recordId   = arguments.recordId ?: "";
 		var formData   = arguments.formData ?: {};
-		var label      = _getDraftLabel( objectName=objectName, data=formData );
 
-		var draftId = getPresideObject( "draftmanager_draft" ).insertData(
-			data = {
-				  label       = label
-				, object_name = objectName
-				, record_id   = ""
-				, workflow_id = draftManagerService.getWorkflowId( objectName=objectName )
-				, data        = SerializeJSON( formData )
-			}
-		);
+		var draftId = _saveDraftData( objectName=objectName, data=formData, recordId=recordId );
 
 		messageBox.info( translateResource(
-			  uri  = "draftManager:message.add.description"
+			  uri  = "draftManager:message.edit.description"
 			, data = [
 				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
-				, '<a href="#event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId )#">#label#</a>'
+				, '<a href="#event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId )#">#renderLabel( objectName="draftmanager_draft", recordId=draftId )#</a>'
 			  ]
 		) );
 
 		setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId ) );
 	}
 
-	private void function _editDraftRecordAction( event, rc, prc, args={} ) {
-		if ( !draftManagerService.isDraftAction() ) {
-			return;
-		}
-
-		var objectName = arguments.object   ?: "";
-		var formData   = arguments.formData ?: {};
-		var label      = _getDraftLabel( objectName=objectName, data=formData );
-
-		var draftId = args.recordId ?: "";
-
-		getPresideObject( "draftmanager_draft" ).updateData(
-			  id   = draftId
-			, data = {
-				  label = label
-				, data  = SerializeJSON( formData )
+	private string function _saveDraftData(
+		  required string objectName
+		,          struct data     = {}
+		,          string recordId = ""
+	) {
+		var draft = getPresideObject( "draftmanager_draft" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = "object_name = :object_name and record_id = :record_id and _status != 'publish'"
+			, filterParams = {
+				  object_name = arguments.objectName
+				, record_id   = arguments.recordId
 			  }
 		);
 
-		messageBox.info( translateResource(
-			  uri  = "draftManager:message.edit.description"
-			, data = [
-				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
-				, '<a href="#event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId )#">#label#</a>'
-			  ]
-		) );
+		var label = _getDraftLabel( objectName=arguments.objectName, data=arguments.data );
 
-		setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId ) );
+		if ( isEmptyString( draft.id ?: "" ) ) {
+			return getPresideObject( "draftmanager_draft" ).insertData(
+				data = {
+					  label       = label
+					, object_name = arguments.objectName
+					, record_id   = arguments.recordId
+					, workflow_id = draftManagerService.getWorkflowId( objectName=arguments.objectName )
+					, data        = SerializeJSON( arguments.data )
+				}
+			);
+		} else {
+			getPresideObject( "draftmanager_draft" ).updateData(
+				  id   = draft.id
+				, data = {
+					  label = label
+					, data  = SerializeJSON( arguments.data )
+				  }
+			);
+
+			return draft.id;
+		}
 	}
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
@@ -72,8 +69,6 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !IsEmpty( prc.record.data ?: {} ) ) {
 			StructAppend( rc, DeserializeJSON( prc.record.data ), true );
 		}
-
-		var recordId = _addDraftRecord( argumentCollection=arguments );
 
 		if ( dataManagerCustomizationService.objectHasCustomization( prc.objectName, "addRecordAction" ) ) {
 			recordId = dataManagerCustomizationService.runCustomization(
@@ -138,23 +133,11 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	private array function _getAddRecordActionButtons( event, rc, prc, args={} ) {
-		// Override to resuse save draft button.
-		args.draftsEnabled = true;
-		args.canSaveDraft  = true;
-
-		return runEvent(
-			  event          = "admin.DataManager._getAddRecordActionButtons"
-			, private        = true
-			, prepostExempt  = true
-			, eventArguments = arguments
-		);
-	}
-
 	private array function _getEditRecordActionButtons( event, rc, prc, args={} ) {
 		// Override to resuse save draft button.
 		args.draftsEnabled = true;
 		args.canSaveDraft  = true;
+		args.canPublish    = true;
 		args.cancelAction  = event.buildAdminLink( objectName=( prc.record.object_name ?: "" ), operation="listing", queryString="tab=draft" );
 
 		return runEvent(
