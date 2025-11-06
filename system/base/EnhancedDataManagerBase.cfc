@@ -21,17 +21,6 @@ component extends="preside.system.base.AdminHandler" {
 		args.objectName           = args.objectName ?: prc.objectName;
 		args.listingCategoryField = Trim( presideObjectService.getObjectAttribute( objectName=args.objectName, attributeName="datamanagerListingCategoryField" ) );
 
-		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) && isTrue( args.allowDraftManager ?: true ) ) {
-			args.tabs = [ "publish", "draft" ];
-
-			return customizationService.runCustomization(
-				  objectName     = args.objectName
-				, action         = "renderTabs"
-				, defaultHandler = "admin.datamanager.#args.objectName#._tabs"
-				, args           = args
-			);
-		}
-
 		var rendered = runEvent(
 			  event          = "admin.dataManager._objectListingViewlet"
 			, private        = true
@@ -523,24 +512,6 @@ component extends="preside.system.base.AdminHandler" {
 			  uri          = "preside-objects.#args.objectName#:viewtab.workflow.title"
 			, defaultValue = translateResource( uri="adminui:viewtab.workflow.title", data=[ flowStatus ] )
 			, data         = [ flowStatus ]
-		);
-	}
-
-	private string function _publishTab( event, rc, prc, args={} ) {
-		return runEvent(
-			  event          = "admin.DraftManager._getObjectListing"
-			, private        = true
-			, prepostExempt  = true
-			, eventArguments = arguments
-		);
-	}
-
-	private string function _draftTab( event, rc, prc, args={} ) {
-		return runEvent(
-			  event          = "admin.DraftManager._getDraftListing"
-			, private        = true
-			, prepostExempt  = true
-			, eventArguments = arguments
 		);
 	}
 

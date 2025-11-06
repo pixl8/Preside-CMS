@@ -53,24 +53,37 @@ component extends="preside.system.base.AdminHandler" {
 		prc.preRenderListing  = ( customizationService.objectHasCustomization( objectName, "preRenderListing"  ) ? customizationService.runCustomization( objectName=objectName, action="preRenderListing"  , args=args ) : "" );
 		prc.postRenderListing = ( customizationService.objectHasCustomization( objectName, "postRenderListing" ) ? customizationService.runCustomization( objectName=objectName, action="postRenderListing" , args=args ) : "" );
 
-		prc.listingView = customizationService.runCustomization(
-			  objectName     = objectName
-			, action         = "listingViewlet"
-			, defaultHandler = "admin.DataManager._objectListingViewlet"
-			, args           = {
-				  objectName          = objectName
-				, gridFields          = prc.gridFields          ?: _getObjectFieldsForGrid( objectName )
-				, sortableFields      = prc.sortableFields      ?: _getObjectSortableFields( objectName )
-				, centerAlignFields   = prc.centerAlignFields   ?: _getObjectCenterAlignFields( objectName )
-				, rightAlignFields    = prc.rightAlignFields    ?: _getObjectRightAlignFields( objectName )
-				, hiddenGridFields    = prc.hiddenGridFields    ?: []
-				, batchEditableFields = prc.batchEditableFields ?: []
-				, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
-				, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
-				, canDelete           = IsTrue( prc.canDelete      ?: "" )
-				, canBatchDelete      = IsTrue( prc.canBatchDelete ?: "" )
-			}
-		);
+		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+			prc.listingView = runEvent(
+				  event          = "admin.DraftManager._getDraftTabs"
+				, private        = true
+				, prepostExempt  = true
+				, eventArguments = {
+					args = {
+						objectName = objectName
+					}
+				  }
+			);
+		} else {
+			prc.listingView = customizationService.runCustomization(
+				  objectName     = objectName
+				, action         = "listingViewlet"
+				, defaultHandler = "admin.DataManager._objectListingViewlet"
+				, args           = {
+					  objectName          = objectName
+					, gridFields          = prc.gridFields          ?: _getObjectFieldsForGrid( objectName )
+					, sortableFields      = prc.sortableFields      ?: _getObjectSortableFields( objectName )
+					, centerAlignFields   = prc.centerAlignFields   ?: _getObjectCenterAlignFields( objectName )
+					, rightAlignFields    = prc.rightAlignFields    ?: _getObjectRightAlignFields( objectName )
+					, hiddenGridFields    = prc.hiddenGridFields    ?: []
+					, batchEditableFields = prc.batchEditableFields ?: []
+					, isMultilingual      = IsTrue( prc.isMultilingual ?: "" )
+					, draftsEnabled       = IsTrue( prc.draftsEnabled  ?: "" )
+					, canDelete           = IsTrue( prc.canDelete      ?: "" )
+					, canBatchDelete      = IsTrue( prc.canBatchDelete ?: "" )
+				}
+			);
+		}
 	}
 
 	private string function _objectListingViewlet( event, rc, prc, args={} ) {

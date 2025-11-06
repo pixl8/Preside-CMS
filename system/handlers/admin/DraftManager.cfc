@@ -112,23 +112,43 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 	}
 
-	private string function _getObjectListing( event, rc, prc, args={} ) {
-		return runEvent(
-			  event          = "admin.DataManager._objectListingViewlet"
-			, private        = true
-			, prePostExempt  = true
-			, eventArguments = arguments
-		);
+	private string function _getDraftTabs( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+		var i18nBase   = "preside-objects.#objectName#:";
+
+		args.tabs = args.tabs ?: [ "default", "draft" ];
+
+		for ( var i=1; i<=ArrayLen( args.tabs ); i++ ) {
+			var tabId = args.tabs[ i ];
+
+			args.tabs[ i ] = {
+				  id        = tabId
+				, iconClass = translateResource( uri="#i18nBase#:viewtab.#tabId#.iconClass", defaultValue=translateResource( uri="preside-objects.draftmanager_draft:viewtab.#tabId#.iconClass", defaultValue=tabId ) )
+				, content   = _getDraftTabContent( argumentCollection=arguments, tabId=tabId, objectName=objectName )
+				, title     = translateResource( uri="#i18nBase#:viewtab.#tabId#.title", defaultValue=translateResource( uri="preside-objects.draftmanager_draft:viewtab.#tabId#.title", defaultValue=tabId ) )
+			};
+		}
+
+		if ( ArrayLen( args.tabs ) ) {
+			event.include( "/css/admin/specific/datamanager/viewtabs/" );
+
+			return renderView( view="/admin/datamanager/_tabs", args=args );
+		}
+
+		return "";
 	}
 
-	private string function _getDraftListing( event, rc, prc, args={} ) {
+	private string function _getDraftTabContent( event, rc, prc, args={} ) {
+		var tabId      = arguments.tabId      ?: "";
+		var objectName = arguments.objectName ?: "";
+
 		return runEvent(
 			  event          = "admin.dataManager._objectListingViewlet"
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = { args={
-				  object_name = args.objectName
-				, objectName  = "draftmanager_draft"
+				  object_name = objectName
+				, objectName  = tabId == "draft" ? "draftmanager_draft" : objectName
 			} }
 		);
 	}

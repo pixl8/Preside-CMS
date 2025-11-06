@@ -6,6 +6,9 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="dataManagerCustomizationService" inject="DataManagerCustomizationService";
 	property name="dataManagerWorkflowService"      inject="DataManagerWorkflowService";
 
+	variables.infoCol3 = [];
+	variables.tabs     = [ "draft" ];
+
 	private void function rootBreadcrumb( event, rc, prc, args={} ) {
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:datamanager" )
@@ -31,7 +34,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var objectName = prc.record.object_name ?: "";
 		var recordId   = prc.record.id          ?: "";
 
-		prc.recordLabel = translateResource( uri="draftManager:breadcrumb.record.title", data=[ prc.recordLabel ] );
+		// prc.recordLabel = translateResource( uri="draftManager:breadcrumb.record.title", data=[ prc.recordLabel ] );
 
 		if ( dataManagerService.isOperationAllowed( objectName=objectName, operation="read" ) ) {
 			event.addAdminBreadCrumb(
@@ -41,7 +44,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		}
 	}
 
-	private string function _defaultTab( event, rc, prc, args={} ) {
+	private string function _draftTab( event, rc, prc, args={} ) {
 		args.objectName = prc.record.object_name ?: "";
 
 		if ( !IsEmpty( args.record.data ?: {} ) ) {
@@ -66,6 +69,14 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		args.objectName = "draftmanager_draft";
 
 		return super._workflowTabTitle( argumentCollection=arguments );
+	}
+
+	private string function preViewRecordContent( event, rc, prc, args={} ) {
+		prc.pageTitle    = translateResource( uri="draftManager:page.view.title"    , data=[ prc.objectTitle ] );
+		prc.pageSubtitle = translateResource( uri="draftManager:page.view.subtitle" , data=[ prc.recordLabel ] );
+		prc.pageIcon     = translateResource( uri="draftManager:page.view.iconClass" );
+
+		return '<div class="alert alert-warning"><i class="fa fa-fw fa-save"></i> #translateResource( uri="draftManager:alert.draft.description", data=[ prc.objectTitle ] )#</div>';
 	}
 
 	private void function getListingHeaderFields( event, rc, prc, args={} ) {
