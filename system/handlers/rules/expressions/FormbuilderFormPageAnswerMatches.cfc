@@ -97,11 +97,11 @@ component {
 
 				switch ( ruleOperator ) {
 					case "anyof"    :
-						ruleResult = ArrayContainsNoCase( ruleValues, formFieldValue );
+						ruleResult = _arrayContainsAnyNoCase( ruleValues, formFieldValues );
 						break;
 
 					case "notanyof" :
-						ruleResult = !ArrayContainsNoCase( ruleValues, formFieldValue );
+						ruleResult = !_arrayContainsAnyNoCase( ruleValues, formFieldValues );
 						break;
 
 					case "allof"    :
@@ -171,6 +171,16 @@ component {
 		}
 
 		return {};
+	}
+
+	private boolean function _arrayContainsAnyNoCase( required array ruleValues, required array formFieldValues ) {
+		for ( var ruleValue in arguments.ruleValues ) {
+			if ( ArrayContainsNoCase( arguments.formFieldValues, ruleValue ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private boolean function _arrayContainsAllNoCase( required array ruleValues, required array formFieldValues ) {
