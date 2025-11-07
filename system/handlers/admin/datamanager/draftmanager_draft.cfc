@@ -114,6 +114,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
+		// Load orignal object form.
 		var objectName = prc.record.object_name ?: "";
 
 		return dataManagerCustomizationService.runCustomization(
@@ -125,6 +126,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private array function getEditRecordActionButtons( event, rc, prc, args={} ) {
+		// Load original object buttons.
 		var objectName = prc.record.object_name ?: "";
 
 		return runEvent(
@@ -135,7 +137,17 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		);
 	}
 
+	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
+		return renderView( view="admin/draftManager/_alert", args={
+			  objectName  = prc.objectName
+			, objectTitle = prc.objectTitle
+			, recordLink  = isEmptyString( args.record.record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record.object_name, recordId=args.record.record_id, operation="viewRecord" )
+			, alertAction = "edit"
+		} );
+	}
+
 	private string function editRecordForm( event, rc, prc, args={} ) {
+		// Load original object data.
 		if ( !IsEmpty( args.record.data ?: {} ) ) {
 			StructAppend( args.record, DeserializeJSON( args.record.data ), true );
 		}
@@ -149,7 +161,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private any function editRecordAction( event, rc, prc ) {
-		// Pretend to be the original object.
+		// Pretend original object action.
 		arguments.object   = prc.record.object_name ?: "";
 		arguments.recordId = prc.record.record_id   ?: "";
 

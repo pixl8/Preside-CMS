@@ -1,16 +1,17 @@
 <cfscript>
+	recordLink  = args.recordLink  ?: "";
+	alertAction = args.alertAction ?: "view";
 	objectName  = args.objectName  ?: "draftmanager_draft";
 	objectTitle = args.objectTitle ?: "";
-	recordLink  = args.recordLink  ?: "";
-	alertType   = objectName == "draftmanager_draft" ? "draft" : "record";
+	objectType  = objectName == "draftmanager_draft" ? "draft" : "record";
 </cfscript>
 
 <cfoutput>
-	<div class="alert alert-info"><i class="fa fa-fw fa-save"></i>
-		#translateResource( uri="draftManager:alert.#alertType#.description", data=[ objectTitle ] )#
+	<div class="alert alert-warning"><i class="fa fa-fw fa-exclamation-triangle"></i>
+		#translateResource( uri="draftManager:alert.#objectType#.#alertAction#.description", data=[ objectTitle ] )#
 
 		<cfif not isEmptyString( recordLink )>
-			#translateResource( uri="draftManager:alert.#alertType#.link", data=[ recordLink ] )#
+			#translateResource( uri="draftManager:alert.#objectType#.#alertAction#.link", data=[ recordLink ] )#
 		</cfif>
 	</div>
 </cfoutput>

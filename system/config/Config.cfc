@@ -318,6 +318,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onGetMainNavigationMenuItems" );
 		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
 		interceptorSettings.customInterceptionPoints.append( "postViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postEditRecord" );
 	}
 
 	private void function __setupCachebox() {

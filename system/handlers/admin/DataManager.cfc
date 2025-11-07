@@ -377,6 +377,7 @@ component extends="preside.system.base.AdminHandler" {
 		var canTranslate  = IsTrue( prc.canTranslate  ?: "" );
 		var resultAction  = rc.resultAction ?: "";
 		var useVersioning = IsTrue( prc.useVersioning ?: "" );
+		var version       = Val( rc.version ?: "" );
 
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
@@ -399,7 +400,7 @@ component extends="preside.system.base.AdminHandler" {
 				, args = {
 					  object  = objectName
 					, id      = recordId
-					, version = rc.version ?: ""
+					, version = version
 					, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
 				  }
 			);
@@ -422,6 +423,8 @@ component extends="preside.system.base.AdminHandler" {
 				, record           = prc.record
 			  }
 		);
+
+		announceInterception( "postEditRecord", { objectName=objectName, recordId=recordId, version=version } );
 
 		var recordLabel         = prc.recordLabel ?: "";
 		var objectTitleSingular = prc.objectTitle ?: ""

@@ -6,63 +6,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
-	private void function _saveDraftRecordAction( event, rc, prc, args={} ) {
-		var objectName = arguments.object   ?: "";
-		var recordId   = arguments.recordId ?: "";
-		var formData   = arguments.formData ?: {};
-
-		var draftId = _saveDraftData( objectName=objectName, data=formData, recordId=recordId );
-
-		messageBox.info( translateResource(
-			  uri  = "draftManager:message.edit.description"
-			, data = [
-				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
-				, '<a href="#event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId )#">#renderLabel( objectName="draftmanager_draft", recordId=draftId )#</a>'
-			  ]
-		) );
-
-		setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId ) );
-	}
-
-	private string function _saveDraftData(
-		  required string objectName
-		,          struct data     = {}
-		,          string recordId = ""
-	) {
-		var draft = getPresideObject( "draftmanager_draft" ).selectData(
-			  selectFields = [ "id" ]
-			, filter       = "object_name = :object_name and record_id = :record_id and _status != 'publish'"
-			, filterParams = {
-				  object_name = arguments.objectName
-				, record_id   = arguments.recordId
-			  }
-		);
-
-		var label = _getDraftLabel( objectName=arguments.objectName, data=arguments.data );
-
-		if ( isEmptyString( draft.id ?: "" ) ) {
-			return getPresideObject( "draftmanager_draft" ).insertData(
-				data = {
-					  label       = label
-					, object_name = arguments.objectName
-					, record_id   = arguments.recordId
-					, workflow_id = draftManagerService.getWorkflowId( objectName=arguments.objectName )
-					, data        = SerializeJSON( arguments.data )
-				}
-			);
-		} else {
-			getPresideObject( "draftmanager_draft" ).updateData(
-				  id   = draft.id
-				, data = {
-					  label = label
-					, data  = SerializeJSON( arguments.data )
-				  }
-			);
-
-			return draft.id;
-		}
-	}
-
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
 		prc.objectName = rc.object = arguments.object = prc.record.object_name ?: "";
 
@@ -96,20 +39,37 @@ component extends="preside.system.base.AdminHandler" {
 	private void function postApproveAction( event, rc, prc, args={}, wfInstance ) {
 		var state = wfInstance.getState();
 
-		var objectName = prc.record.object_name ?: "";
-		var recordId   = state.record_id        ?: "";
-		var labelField = presideObjectService.getObjectAttribute( objectName, "labelfield", "label" );
-		var label      = _getDraftLabel( objectName=objectName, data=rc );
+		var objectName  = prc.record.object_name ?: "";
+		var objectLabel = prc.record.label ?: "";
+		var recordId    = state.record_id        ?: "";
 
 		messageBox.info( translateResource(
 			  uri  = "draftManager:message.approve.description"
 			, data = [
 				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
-				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#label#</a>'
+				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#objectLabel#</a>'
 			  ]
 		) );
 
 		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+	}
+
+	private void function _saveDraftRecordAction( event, rc, prc, args={} ) {
+		var objectName = arguments.object   ?: "";
+		var recordId   = arguments.recordId ?: "";
+		var formData   = arguments.formData ?: {};
+
+		var draftId = draftManagerService.saveDraftData( objectName=objectName, recordId=recordId, data=formData );
+
+		messageBox.info( translateResource(
+			  uri  = "draftManager:message.edit.description"
+			, data = [
+				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
+				, '<a href="#event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId )#">#renderLabel( objectName="draftmanager_draft", recordId=draftId )#</a>'
+			  ]
+		) );
+
+		setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId ) );
 	}
 
 	private string function _getDraftTabs( event, rc, prc, args={} ) {
@@ -123,9 +83,9 @@ component extends="preside.system.base.AdminHandler" {
 
 			args.tabs[ i ] = {
 				  id        = tabId
-				, iconClass = translateResource( uri="#i18nBase#:viewtab.#tabId#.iconClass", defaultValue=translateResource( uri="preside-objects.draftmanager_draft:viewtab.#tabId#.iconClass", defaultValue=tabId ) )
+				, iconClass = translateResource( uri="#i18nBase#:viewtab.#tabId#.iconClass", defaultValue=translateResource( uri="draftManager:viewtab.#tabId#.iconClass", defaultValue=tabId ) )
 				, content   = _getDraftTabContent( argumentCollection=arguments, tabId=tabId, objectName=objectName )
-				, title     = translateResource( uri="#i18nBase#:viewtab.#tabId#.title", defaultValue=translateResource( uri="preside-objects.draftmanager_draft:viewtab.#tabId#.title", defaultValue=tabId ) )
+				, title     = translateResource( uri="#i18nBase#:viewtab.#tabId#.title", defaultValue=translateResource( uri="draftManager:viewtab.#tabId#.title", defaultValue=tabId ) )
 			};
 		}
 
@@ -166,19 +126,6 @@ component extends="preside.system.base.AdminHandler" {
 			, prepostExempt  = true
 			, eventArguments = arguments
 		);
-	}
-
-	private string function _getDraftLabel(
-		  required string objectName
-		, required struct data
-	) {
-		var labelName = presideObjectService.getLabelField( objectName=arguments.objectName );
-
-		if ( isEmptyString( labelName ) ) {
-			throw( type="PresideObjectService.no.label.field", message="The object [#arguments.objectName#] has no label field." );
-		}
-
-		return arguments.data[ labelName ] ?: "";
 	}
 
 }
