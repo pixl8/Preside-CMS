@@ -1,0 +1,23 @@
+component extends="coldbox.system.Interceptor" {
+
+	property name="draftManagerService" inject="delayedInjector:DraftManagerService";
+
+	public void function configure() {}
+
+	public void function postViewRecord( event, interceptData ) {
+		var objectName = interceptData.objectName ?: "";
+		var recordId   = interceptData.recordId     ?: "";
+
+		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+			var draft = draftManagerService.getDraftForRecord( objectName=objectName, recordId=recordId )
+
+			prc.renderedRecord = renderView( view="admin/draftManager/_alert", args={
+				  objectName  = objectName
+				, objectTitle = prc.objectTitle
+				, recordLink  = isEmptyString( draft.id ?: "" ) ? "" : event.buildAdminLink( objectName="draftmanager_draft", recordId=draft.id, operation="viewRecord" )
+			} )
+			& prc.renderedRecord;
+		}
+	}
+
+}

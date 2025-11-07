@@ -49,4 +49,22 @@ component {
 		return dataManagerWorkflowService.getDefaultWorkflowId( objectName="draftmanager_draft" );
 	}
 
+	public struct function getDraftForRecord(
+		  required string objectName
+		, required string recordId
+	) {
+		if ( !$isFeatureEnabled( "draftManager" ) ) {
+			return false;
+		}
+
+		return $getPresideObject( "draftmanager_draft" ).selectData(
+			  filter       = "object_name = :object_name and record_id = :record_id and _status != 'publish'"
+			, filterParams = {
+				  object_name = arguments.objectName
+				, record_id   = arguments.recordId
+			  }
+			, returnType   = "singleRecordStruct"
+		);
+	}
+
 }

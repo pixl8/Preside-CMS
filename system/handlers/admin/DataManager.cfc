@@ -315,6 +315,8 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = { objectName=objectName, recordId=recordId, version=version }
 		);
 
+		announceInterception( "postViewRecord", { objectName=objectName, recordId=recordId, version=version } );
+
 		if ( IsTrue( rc.modalView ?: "" ) ) {
 			event.setLayout( "adminAjaxModal" );
 		}

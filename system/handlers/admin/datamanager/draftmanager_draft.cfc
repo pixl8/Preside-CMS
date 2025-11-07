@@ -34,8 +34,6 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var objectName = prc.record.object_name ?: "";
 		var recordId   = prc.record.id          ?: "";
 
-		// prc.recordLabel = translateResource( uri="draftManager:breadcrumb.record.title", data=[ prc.recordLabel ] );
-
 		if ( dataManagerService.isOperationAllowed( objectName=objectName, operation="read" ) ) {
 			event.addAdminBreadCrumb(
 				  title = prc.recordLabel
@@ -76,7 +74,11 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		prc.pageSubtitle = translateResource( uri="draftManager:page.view.subtitle" , data=[ prc.recordLabel ] );
 		prc.pageIcon     = translateResource( uri="draftManager:page.view.iconClass" );
 
-		return '<div class="alert alert-warning"><i class="fa fa-fw fa-save"></i> #translateResource( uri="draftManager:alert.draft.description", data=[ prc.objectTitle ] )#</div>';
+		return renderView( view="admin/draftManager/_alert", args={
+			  objectName  = prc.objectName
+			, objectTitle = prc.objectTitle
+			, recordLink  = isEmptyString( args.record.record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record.object_name, recordId=args.record.record_id, operation="viewRecord" )
+		} );
 	}
 
 	private void function getListingHeaderFields( event, rc, prc, args={} ) {

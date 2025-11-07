@@ -162,6 +162,7 @@ component {
 			, { class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} }
 			, { class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} }
 			, { class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
+			, { class="preside.system.interceptors.DraftManagerInterceptor"             , properties={} }
 		];
 
 		variables.interceptorSettings = {
@@ -316,6 +317,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postRenderWebflowStep" );
 		interceptorSettings.customInterceptionPoints.append( "onGetMainNavigationMenuItems" );
 		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
+		interceptorSettings.customInterceptionPoints.append( "postViewRecord" );
 	}
 
 	private void function __setupCachebox() {
