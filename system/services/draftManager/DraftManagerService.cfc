@@ -58,10 +58,10 @@ component {
 		}
 
 		return $getPresideObject( "draftmanager_draft" ).selectData(
-			  filter       = "object_name = :object_name and record_id = :record_id and _status != 'publish'"
+			  filter       = "_object_name = :_object_name and _record_id = :_record_id and _status != 'publish'"
 			, filterParams = {
-				  object_name = arguments.objectName
-				, record_id   = arguments.recordId
+				  _object_name = { type="cf_sql_varchar", value=arguments.objectName }
+				, _record_id   = { type="cf_sql_varchar", value=arguments.recordId  }
 			  }
 			, returnType   = "singleRecordStruct"
 		);
@@ -74,10 +74,10 @@ component {
 	) {
 		var draft = $getPresideObject( "draftmanager_draft" ).selectData(
 			  selectFields = [ "id" ]
-			, filter       = "object_name = :object_name and record_id = :record_id and _status != 'publish'"
+			, filter       = "_object_name = :_object_name and _record_id = :_record_id and _status != 'publish'"
 			, filterParams = {
-				  object_name = arguments.objectName
-				, record_id   = arguments.recordId
+				  _object_name = { type="cf_sql_varchar", value=arguments.objectName }
+				, _record_id   = { type="cf_sql_varchar", value=arguments.recordId   }
 			  }
 		);
 
@@ -86,11 +86,11 @@ component {
 		if ( $helpers.isEmptyString( draft.id ?: "" ) ) {
 			return $getPresideObject( "draftmanager_draft" ).insertData(
 				data = {
-					  label       = label
-					, object_name = arguments.objectName
-					, record_id   = arguments.recordId
-					, workflow_id = getWorkflowId( objectName=arguments.objectName )
-					, data        = SerializeJSON( arguments.data )
+					  label        = label
+					, _object_name = arguments.objectName
+					, _record_id   = arguments.recordId
+					, _workflow_id = getWorkflowId( objectName=arguments.objectName )
+					, _data        = SerializeJSON( arguments.data )
 				}
 			);
 		} else {
@@ -98,7 +98,7 @@ component {
 				  id   = draft.id
 				, data = {
 					  label = label
-					, data  = SerializeJSON( arguments.data )
+					, _data = SerializeJSON( arguments.data )
 				  }
 			);
 

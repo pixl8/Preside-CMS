@@ -17,7 +17,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private void function objectBreadcrumb( event, rc, prc, args={} ) {
-		var objectName    = prc.record.object_name ?: "draftmanager_draft";
+		var objectName    = prc.record._object_name ?: "draftmanager_draft";
 		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 
 		prc.objectTitle       = translateResource( uri="#objectURIRoot#title.singular", defaultValue=prc.objectTitle       );
@@ -31,7 +31,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private void function recordBreadcrumb( event, rc, prc, args={} ) {
-		var objectName = prc.record.object_name ?: "";
+		var objectName = prc.record._object_name ?: "";
 		var recordId   = prc.record.id          ?: "";
 
 		if ( dataManagerService.isOperationAllowed( objectName=objectName, operation="read" ) ) {
@@ -43,10 +43,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private string function _draftTab( event, rc, prc, args={} ) {
-		args.objectName = prc.record.object_name ?: "";
+		args.objectName = prc.record._object_name ?: "";
 
-		if ( !IsEmpty( args.record.data ?: {} ) ) {
-			StructAppend( args.record, DeserializeJSON( args.record.data ), true );
+		if ( !IsEmpty( args.record._data ?: "" ) ) {
+			StructAppend( args.record, DeserializeJSON( args.record._data ), true );
 		}
 
 		return runEvent(
@@ -77,7 +77,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return renderView( view="admin/draftManager/_alert", args={
 			  objectName  = prc.objectName
 			, objectTitle = prc.objectTitle
-			, recordLink  = isEmptyString( args.record.record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record.object_name, recordId=args.record.record_id, operation="viewRecord" )
+			, recordLink  = isEmptyString( args.record._record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record._object_name, recordId=args.record._record_id, operation="viewRecord" )
 		} );
 	}
 
@@ -109,13 +109,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		ArrayAppend( args.extraFilters, { filter="_status != 'publish'" } );
 
 		if ( !isEmptyString( objectName ) ) {
-			ArrayAppend( args.extraFilters, { filter={ object_name=objectName } } );
+			ArrayAppend( args.extraFilters, { filter={ _object_name=objectName } } );
 		}
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
 		// Load orignal object form.
-		var objectName = prc.record.object_name ?: "";
+		var objectName = prc.record._object_name ?: "";
 
 		return dataManagerCustomizationService.runCustomization(
 			  objectName     = objectName
@@ -127,7 +127,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	private array function getEditRecordActionButtons( event, rc, prc, args={} ) {
 		// Load original object buttons.
-		var objectName = prc.record.object_name ?: "";
+		var objectName = prc.record._object_name ?: "";
 
 		return runEvent(
 			  event          = "admin.DraftManager._getEditRecordActionButtons"
@@ -141,15 +141,15 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return renderView( view="admin/draftManager/_alert", args={
 			  objectName  = prc.objectName
 			, objectTitle = prc.objectTitle
-			, recordLink  = isEmptyString( args.record.record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record.object_name, recordId=args.record.record_id, operation="viewRecord" )
+			, recordLink  = isEmptyString( args.record._record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record._object_name, recordId=args.record._record_id, operation="viewRecord" )
 			, alertAction = "edit"
 		} );
 	}
 
 	private string function editRecordForm( event, rc, prc, args={} ) {
 		// Load original object data.
-		if ( !IsEmpty( args.record.data ?: {} ) ) {
-			StructAppend( args.record, DeserializeJSON( args.record.data ), true );
+		if ( !IsEmpty( args.record._data ?: "" ) ) {
+			StructAppend( args.record, DeserializeJSON( args.record._data ), true );
 		}
 
 		return runEvent(
@@ -160,10 +160,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		);
 	}
 
-	private any function editRecordAction( event, rc, prc ) {
+	private void function editRecordAction( event, rc, prc ) {
 		// Pretend original object action.
-		arguments.object   = prc.record.object_name ?: "";
-		arguments.recordId = prc.record.record_id   ?: "";
+		arguments.object   = prc.record._object_name ?: "";
+		arguments.recordId = prc.record._record_id   ?: "";
 
 		event.setValue( name="id", value=arguments.recordId );
 
@@ -178,7 +178,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private any function deleteRecordAction( event, rc, prc, batch=false, batchAll=false, batchSrcArgs={} ) {
-		var objectName = rc._object_name ?: ( prc.record.object_name ?: "" );
+		var objectName = rc._object_name ?: ( prc.record._object_name ?: "" );
 
 		arguments.object = "draftmanager_draft";
 		arguments.audit  = true;
@@ -194,7 +194,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private function getWorkflowForRecord( event, rc, prc, recordId="" ) {
-		var objectName = prc.record.object_name ?: "";
+		var objectName = prc.record._object_name ?: "";
 
 		return draftManagerService.getWorkflowId( objectName=objectName );
 	}

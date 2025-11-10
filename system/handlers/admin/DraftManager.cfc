@@ -7,41 +7,65 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
-		prc.objectName = rc.object = arguments.object = prc.record.object_name ?: "";
+		var objectName = ( prc.record._object_name ?: "" );
+		var recordId   = ( prc.record._record_id   ?: "" );
 
-		if ( !IsEmpty( prc.record.data ?: {} ) ) {
-			StructAppend( rc, DeserializeJSON( prc.record.data ), true );
+		if ( !IsEmpty( prc.record._data ?: {} ) ) {
+			StructAppend( rc, DeserializeJSON( prc.record._data ), true );
 		}
 
-		if ( dataManagerCustomizationService.objectHasCustomization( prc.objectName, "addRecordAction" ) ) {
-			recordId = dataManagerCustomizationService.runCustomization(
-				  objectName = prc.objectName
-				, action     = "addRecordAction"
-				, args       = { objectName=prc.objectName }
-			);
-		} else {
-			arguments.redirectOnSuccess = false;
-			arguments.audit             = true;
+		if ( isEmptyString( recordId ) ) {
+			if ( dataManagerCustomizationService.objectHasCustomization( prc.objectName, "addRecordAction" ) ) {
+				recordId = dataManagerCustomizationService.runCustomization(
+					  objectName = objectName
+					, action     = "addRecordAction"
+					, args       = { objectName=objectName }
+				);
+			} else {
+				arguments.audit             = true;
+				arguments.redirectOnSuccess = false;
+				arguments.object            = objectName;
 
-			recordId = runEvent(
-				  event          = "admin.DataManager._addRecordAction"
-				, prePostExempt  = true
-				, private        = true
-				, eventArguments = arguments
-			);
+				recordId = runEvent(
+					  event          = "admin.DataManager._addRecordAction"
+					, prePostExempt  = true
+					, private        = true
+					, eventArguments = arguments
+				);
+			}
+		} else {
+			if ( dataManagerCustomizationService.objectHasCustomization( objectName, "editRecordAction" ) ) {
+				dataManagerCustomizationService.runCustomization(
+					  objectName = objectName
+					, action     = "editRecordAction"
+					, args       = { objectName=objectName, recordId=recordId }
+				);
+			} else {
+				arguments.audit             = true;
+				arguments.redirectOnSuccess = false;
+				arguments.object            = objectName;
+				arguments.recordId          = recordId;
+
+				runEvent(
+					  event          = "admin.DataManager._editRecordAction"
+					, prePostExempt  = true
+					, private        = true
+					, eventArguments = arguments
+				);
+			}
 		}
 
 		if ( !isEmptyString( local.recordId ?: "" ) ) {
-			wfInstance.appendState( { record_id=recordId } );
+			wfInstance.appendState( { _record_id=recordId } );
 		}
 	}
 
 	private void function postApproveAction( event, rc, prc, args={}, wfInstance ) {
 		var state = wfInstance.getState();
 
-		var objectName  = prc.record.object_name ?: "";
-		var objectLabel = prc.record.label ?: "";
-		var recordId    = state.record_id        ?: "";
+		var objectName  = prc.record._object_name ?: "";
+		var objectLabel = prc.record.label        ?: "";
+		var recordId    = state._record_id        ?: "";
 
 		messageBox.info( translateResource(
 			  uri  = "draftManager:message.approve.description"
@@ -107,8 +131,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = { args={
-				  object_name = objectName
-				, objectName  = tabId == "draft" ? "draftmanager_draft" : objectName
+				objectName = tabId == "draft" ? "draftmanager_draft" : objectName
 			} }
 		);
 	}
@@ -118,7 +141,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.draftsEnabled = true;
 		args.canSaveDraft  = true;
 		args.canPublish    = true;
-		args.cancelAction  = event.buildAdminLink( objectName=( prc.record.object_name ?: "" ), operation="listing", queryString="tab=draft" );
+		args.cancelAction  = event.buildAdminLink( objectName=( prc.record._object_name ?: "" ), operation="listing", queryString="tab=draft" );
 
 		return runEvent(
 			  event          = "admin.DataManager._getEditRecordActionButtons"

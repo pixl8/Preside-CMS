@@ -10,14 +10,7 @@ component extends="coldbox.system.Interceptor" {
 		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
 			var recordId = interceptData.recordId ?: "";
 
-			var draft = draftManagerService.getDraftData( objectName=objectName, recordId=recordId )
-
-			prc.renderedRecord = renderView( view="admin/draftManager/_alert", args={
-				  objectName  = objectName
-				, objectTitle = prc.objectTitle
-				, recordLink  = isEmptyString( draft.id ?: "" ) ? "" : event.buildAdminLink( objectName="draftmanager_draft", recordId=draft.id, operation="viewRecord" )
-			} )
-			& prc.renderedRecord;
+			prc.renderedRecord = _getDraftAlert( objectName=objectName, objectTitle=prc.objectTitle, recordId=recordId ) & prc.renderedRecord;
 		}
 	}
 
@@ -27,17 +20,24 @@ component extends="coldbox.system.Interceptor" {
 		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
 			var recordId = interceptData.recordId ?: "";
 
-			var draft = draftManagerService.getDraftData( objectName=objectName, recordId=recordId )
-
-			prc.editRecordForm = renderView( view="admin/draftManager/_alert", args={
-				  objectName  = objectName
-				, objectTitle = prc.objectTitle
-				, recordLink  = isEmptyString( draft.id ?: "" ) ? "" : event.buildAdminLink( objectName="draftmanager_draft", recordId=draft.id, operation="viewRecord" )
-				, alertAction = "edit"
-			} )
-
-			& prc.editRecordForm;
+			prc.editRecordForm = _getDraftAlert( objectName=objectName, objectTitle=prc.objectTitle, recordId=recordId, alertAction="edit" ) & prc.editRecordForm;
 		}
+	}
+
+	private string function _getDraftAlert(
+		  required string objectName
+		, required string objectTitle
+		, required string recordId
+		,          string alertAction = "view"
+	) {
+		var draft = draftManagerService.getDraftData( objectName=arguments.objectName, recordId=arguments.recordId );
+
+		return renderView( view="admin/draftManager/_alert", args={
+			  objectName  = arguments.objectName
+			, objectTitle = arguments.objectTitle
+			, recordLink  = isEmptyString( draft.id ?: "" ) ? "" : getRequestContext().buildAdminLink( objectName="draftmanager_draft", recordId=draft.id, operation="viewRecord" )
+			, alertAction = arguments.alertAction
+		} );
 	}
 
 }
