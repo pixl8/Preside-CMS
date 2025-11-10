@@ -59,10 +59,6 @@ component extends="preside.system.base.adminHandler" {
 		var uriRoot       = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 		var useVersioning = presideObjectService.objectIsVersioned( objectName );
 
-		if ( !IsEmpty( args.record ?: {} ) ) {
-			prc.record = args.record;
-		}
-
 		if ( useVersioning && Val( version ) ) {
 			prc.record       = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
 			prc.sourceRecord = presideObjectService.selectData( objectName=objectName, filter={ id=recordId }, useCache=false );

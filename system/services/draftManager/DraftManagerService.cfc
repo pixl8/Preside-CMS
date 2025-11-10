@@ -4,8 +4,8 @@
  */
 component {
 
-	property name="presideObjectService"       inject="PresideObjectService";
-	property name="dataManagerWorkflowService" inject="DataManagerWorkflowService";
+	property name="presideObjectService"       inject="delayedInjector:PresideObjectService";
+	property name="dataManagerWorkflowService" inject="delayedInjector:DataManagerWorkflowService";
 
 	public any function init() {
 		return this;
@@ -49,7 +49,7 @@ component {
 		return dataManagerWorkflowService.getDefaultWorkflowId( objectName="draftmanager_draft" );
 	}
 
-	public struct function getDraftData(
+	public struct function getDraftDataForObject(
 		  required string objectName
 		, required string recordId
 	) {
@@ -58,16 +58,17 @@ component {
 		}
 
 		return $getPresideObject( "draftmanager_draft" ).selectData(
-			  filter       = "_object_name = :_object_name and _record_id = :_record_id and _status != 'publish'"
-			, filterParams = {
+			  argumentCollection = arguments
+			, filter             = "_object_name = :_object_name and _record_id = :_record_id and _status != 'publish'"
+			, filterParams       = {
 				  _object_name = { type="cf_sql_varchar", value=arguments.objectName }
 				, _record_id   = { type="cf_sql_varchar", value=arguments.recordId  }
 			  }
-			, returnType   = "singleRecordStruct"
+			, returnType         = "singleRecordStruct"
 		);
 	}
 
-	public string function saveDraftData(
+	public string function saveDraftDataForObject(
 		  required string objectName
 		,          string recordId = ""
 		,          struct data     = {}
@@ -86,19 +87,21 @@ component {
 		if ( $helpers.isEmptyString( draft.id ?: "" ) ) {
 			return $getPresideObject( "draftmanager_draft" ).insertData(
 				data = {
-					  label        = label
-					, _object_name = arguments.objectName
-					, _record_id   = arguments.recordId
-					, _workflow_id = getWorkflowId( objectName=arguments.objectName )
-					, _data        = SerializeJSON( arguments.data )
+					  label                  = label
+					, _object_name           = arguments.objectName
+					, _record_id             = arguments.recordId
+					, _workflow_id           = getWorkflowId( objectName=arguments.objectName )
+					, _data                  = SerializeJSON( arguments.data )
+					, _security_user_created = $getAdminLoggedInUserId()
 				}
 			);
 		} else {
 			$getPresideObject( "draftmanager_draft" ).updateData(
 				  id   = draft.id
 				, data = {
-					  label = label
-					, _data = SerializeJSON( arguments.data )
+					  label                   = label
+					, _data                   = SerializeJSON( arguments.data )
+					, _security_user_modified = $getAdminLoggedInUserId()
 				  }
 			);
 

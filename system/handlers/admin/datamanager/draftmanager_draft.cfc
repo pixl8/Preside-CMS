@@ -44,17 +44,43 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	private string function _draftTab( event, rc, prc, args={} ) {
 		args.objectName = prc.record._object_name ?: "";
+		args.recordId   = prc.record._record_id   ?: "";
 
 		if ( !IsEmpty( args.record._data ?: "" ) ) {
-			StructAppend( args.record, DeserializeJSON( args.record._data ), true );
+			var data = DeserializeJSON( args.record._data );
+
+			data.draftmanager_status                 = args.record._status;
+			data.draftmanager_datecreated            = args.record.datecreated;
+			data.draftmanager_datemodified           = args.record.datemodified;
+			data.draftmanager_security_user_created  = args.record._security_user_created;
+			data.draftmanager_security_user_modified = args.record._security_user_modified;
+
+			if ( isEmptyString( args.recordId ) ) {
+				data.datecreated  = "";
+				data.datemodified = "";
+			} else {
+				var record = getPresideObject( args.objectName ).selectData(
+					  id           = args.recordId
+					, selectFields = [ "datecreated", "datemodified" ]
+				);
+
+				data.datecreated  = record.datecreated  ?: "";
+				data.datemodified = record.datemodified ?: "";
+			}
+
+			StructAppend( args.record, data, true );
+
+			prc.record = args.record;
+
+			return runEvent(
+				  event          = "admin.DataHelpers.viewRecord"
+				, private        = true
+				, prepostExempt  = true
+				, eventArguments = arguments
+			);
 		}
 
-		return runEvent(
-			  event          = "admin.DataHelpers.viewRecord"
-			, private        = true
-			, prepostExempt  = true
-			, eventArguments = arguments
-		);
+		return "";
 	}
 
 	private string function _workflowTab( event, rc, prc, args={} ) {

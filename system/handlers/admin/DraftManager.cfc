@@ -83,7 +83,7 @@ component extends="preside.system.base.AdminHandler" {
 		var recordId   = arguments.recordId ?: "";
 		var formData   = arguments.formData ?: {};
 
-		var draftId = draftManagerService.saveDraftData( objectName=objectName, recordId=recordId, data=formData );
+		var draftId = draftManagerService.saveDraftDataForObject( objectName=objectName, recordId=recordId, data=formData );
 
 		messageBox.info( translateResource(
 			  uri  = "draftManager:message.edit.description"
