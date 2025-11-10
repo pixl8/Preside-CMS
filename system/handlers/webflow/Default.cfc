@@ -45,10 +45,15 @@ component {
 			webflowQs = ListAppend( webflowQs, "#key#=#args[ key ]#", "&" );
 		}
 
+		var flowLinkArgs = {
+			  linkto      = event.isAdminRequest() ? "webflow.ajaxLayout" : "webflow.default.ajaxLayout"
+			, queryString = "flowQs=#UrlEncode( ToBase64( webflowQs ) )#"
+		};
+
 		if ( event.isAdminRequest() ) {
-			args.flowLink = event.buildAdminLink( linkto="webflow.ajaxLayout", queryString="flowQs=#UrlEncode( ToBase64( webflowQs ) )#" );
+			args.flowLink = event.buildAdminLink( argumentCollection=flowLinkArgs );
 		} else {
-			args.flowLink = event.buildLink( linkto="webflow.default.ajaxLayout", queryString="flowQs=#UrlEncode( ToBase64( webflowQs ) )#" );
+			args.flowLink = event.buildLink( argumentCollection=flowLinkArgs );
 		}
 
 		return renderView( view="/webflow/default/ajaxRender", args=args );
@@ -123,8 +128,8 @@ component {
 		event.preventPageCache();
 
 		var flowArgs = {};
-		var flowQs    = Trim( rc.flowQs ?: "" );
-		    flowQs    = ListToArray( ToString( ToBinary( UrlDecode( flowQs ) ) ), "&" );
+		var flowQs   = Trim( rc.flowQs ?: "" );
+		    flowQs   = ListToArray( ToString( ToBinary( UrlDecode( flowQs ) ) ), "&" );
 
 		for ( var qs in flowQs ) {
 			if ( ListLen( qs, "=" ) > 1 ) {
