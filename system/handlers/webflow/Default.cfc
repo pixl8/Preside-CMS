@@ -133,7 +133,7 @@ component {
 
 		for ( var qs in flowQs ) {
 			if ( ListLen( qs, "=" ) > 1 ) {
-				flowArgs[ ListFirst( qs, "=" ) ] = ListLast( qs, "=" );
+				flowArgs[ ListFirst( qs, "=" ) ] = ListRest( qs, "=" );
 			}
 		}
 
