@@ -33,7 +33,7 @@ component {
 			}
 
 			locales = locales.map( function( locale ){
-				var localeLabel = i18n.getLocaleLabel( locale=locale, defaultLocale=defaultLocale );
+				var localeLabel = i18n.getLocaleLabel( locale=locale, defaultLocale=locale );
 
 				return {
 					  locale  = arguments.locale
@@ -54,6 +54,7 @@ component {
 			args.defaultValue    = args.defaultValue ?: userDetail.user_language;
 			args.multiple        = false;
 			args.includeLangAttr = args.includeLangAttr ?: true;
+			args.exactMatchOnly  = true;
 
 			if ( args.includeLangAttr ) {
 				args.removeObjectPickerClass = args.removeObjectPickerClass ?: true;
