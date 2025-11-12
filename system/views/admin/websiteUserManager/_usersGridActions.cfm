@@ -21,7 +21,7 @@
 		</cfif>
 
 		<cfif hasCmsPermission( "websiteUserManager.delete" )>
-			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="websiteUserManager.deleteUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteUserManager.deleteUser.prompt', data=[args.display_name] )#"<cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#batchDeletionConfirmationMatch#"</cfif>>
+			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="websiteUserManager.deleteUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteUserManager.deleteUser.prompt', data=[ EncodeForHtmlAttribute( args.display_name ) ] )#" <cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#EncodeForHtmlAttribute( batchDeletionConfirmationMatch )#"</cfif> data-confirmation-message="#EncodeForHtmlAttribute( translateResource( uri='cms:websiteUserManager.deleteUser.confirmationMessage', data=[args.display_name] ) )#">
 				<i class="fa fa-trash-o"></i>
 			</a>
 		<cfelse>
@@ -35,7 +35,7 @@
 		</cfif>
 
 		<cfif hasCmsPermission( "websiteUserManager.impersonate" )>
-			<a class="grey confirmation-prompt" data-context-key="i" href="#event.buildAdminLink( linkTo="websiteUserManager.impersonateUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteUserManager.impersonateUser.prompt', data=[args.display_name] )#">
+			<a class="grey confirmation-prompt" data-context-key="i" href="#event.buildAdminLink( linkTo="websiteUserManager.impersonateUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteUserManager.impersonateUser.prompt', data=[ EncodeForHtmlAttribute( args.display_name ) ] )#">
 				<i class="fa fa-user-md"></i>
 			</a>
 		</cfif>

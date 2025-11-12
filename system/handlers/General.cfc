@@ -29,6 +29,7 @@ component {
 	property name="systemEmailTemplateService"    inject="delayedInjector:systemEmailTemplateService";
 	property name="IgnoreFileService"             inject="delayedInjector:IgnoreFileService";
 	property name="formsService"                  inject="delayedInjector:formsService";
+	property name="dmWorkflowFilterService"       inject="delayedInjector:datamanagerWorkflowFilterService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -39,6 +40,7 @@ component {
 		_startHeartbeats();
 		_setupValidators();
 		_performDbMigrations();
+		_setupDatamanagerWorkflow();
 		_setupEmailTemplating();
 		_runSystemAlertChecks();
 		_writeIgnoreFile();
@@ -356,6 +358,12 @@ component {
 
 			var rules = presideFieldRuleGenerator.generateRulesFromPresideObject( objName );
 			validationEngine.newRuleset( name="PresideObject.#objName#", rules=rules );
+		}
+	}
+
+	private void function _setupDatamanagerWorkflow() {
+		if ( isFeatureEnabled( "datamanagerWorkflow" ) ) {
+			dmWorkflowFilterService.get().registerDynamicFilterExpressions();
 		}
 	}
 

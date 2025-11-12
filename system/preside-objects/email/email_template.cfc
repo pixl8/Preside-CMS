@@ -3,6 +3,7 @@
  *
  * @labelfield         name
  * @datamanagerEnabled true
+ * @dataManagerExportEnabled true
  * @useDrafts          true
  * @feature            emailCenter
  */
@@ -21,7 +22,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 
 	property name="html_body"                 type="string"  dbtype="longtext";
 	property name="text_body"                 type="string"  dbtype="longtext";
-	property name="body_changed_from_default" type="boolean" dbtype="boolean" required=false default=false;
+	property name="body_changed_from_default" type="boolean" dbtype="boolean" required=false default=false excludeDataExport=true;
 
 	property name="attachments" relationship="many-to-many" relatedto="asset" relatedVia="email_template_attachment" feature="assetManager";
 
@@ -43,11 +44,13 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="schedule_end_date"       type="date"    dbtype="datetime"             required=false ignoreChangesForVersioning=true;
 	property name="schedule_unit"           type="string"  dbtype="varchar" maxlength=20 required=false enum="timeUnit" ignoreChangesForVersioning=true;
 	property name="schedule_measure"        type="numeric" dbtype="int"                  required=false ignoreChangesForVersioning=true;
+	property name="schedule_queueing"       type="boolean" dbtype="boolean"              required=false ignoreChangesForVersioning=true cloneable=false;
+	property name="schedule_queue_fail"     type="boolean" dbtype="boolean"              required=false ignoreChangesForVersioning=true cloneable=false;
 	property name="schedule_sent"           type="boolean" dbtype="boolean"              required=false ignoreChangesForVersioning=true cloneable=false;
 	property name="schedule_next_send_date" type="date"    dbtype="datetime"             required=false ignoreChangesForVersioning=true cloneable=false;
 
-	property name="stats_collection_enabled"    type="boolean" dbtype="boolean" default=true indexes="statscollectionenabled";
-	property name="stats_collection_enabled_on" type="numeric" dbtype="int"                  indexes="statscollectionenabledon";
+	property name="stats_collection_enabled"    type="boolean" dbtype="boolean" default=true indexes="statscollectionenabled"   excludeDataExport=true;
+	property name="stats_collection_enabled_on" type="numeric" dbtype="int"                  indexes="statscollectionenabledon" excludeDataExport=true;
 
 	property name="last_sent_date" type="date" dbtype="datetime" required=false ignoreChangesForVersioning=true cloneable=false renderer="dateTimeRelative";
 	property name="datemodified" renderer="dateTimeRelative";
@@ -56,7 +59,26 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="queued_emails"       relationship="one-to-many" relatedto="email_mass_send_queue"    relationshipKey="template"       cloneable=false feature="customEmailTemplates";
 	property name="layout_config_items" relationship="one-to-many" relatedto="email_layout_config_item" relationshipKey="email_template" cloneable=true;
 
-	property name="queued_email_count" formula="Count( distinct ${prefix}queued_emails.id )" type="numeric";
+	property name="queued_email_count" formula="Count( distinct ${prefix}queued_emails.id )" type="numeric" excludeDataExport=true;
 	property name="sent_count"         formula="Count( distinct ${prefix}send_logs.id )"     type="numeric";
 	property name="send_date"          formula="Coalesce( ${prefix}schedule_next_send_date, ${prefix}schedule_date )"  type="date" dbtype="datetime" renderer="emailSendDate";
+
+	property name="stats" relationship="one-to-many" relatedto="email_template_stats" relationshipkey="template" cloneable=false;
+
+	property name="open_rate"  type="numeric" formula="agg:sum{ stats.unique_open_count }"  renderer="emailOpenRate"  excludeDataExport=true;
+	property name="click_rate" type="numeric" formula="agg:sum{ stats.unique_click_count }" renderer="emailClickRate" excludeDataExport=true;
+
+	// Export-specific formula fields
+	property name="send_count_from_stats"     type="numeric" formula="agg:sum{ stats.send_count }"         autofilter=false excludeDataExport=true;
+	property name="unique_opens_count"        type="numeric" formula="agg:sum{ stats.unique_open_count }"  autofilter=false;
+	property name="unique_clicks_count"       type="numeric" formula="agg:sum{ stats.unique_click_count }" autofilter=false;
+	property name="unique_unsubscribes_count" type="numeric" formula="agg:sum{ stats.unsubscribe_count }"  autofilter=false;
+
+	// Percentage fields for export (calculated by EmailTemplate export template)
+	property name="open_rate_percentage"        type="numeric" formula="0" autofilter=false;
+	property name="click_rate_percentage"       type="numeric" formula="0" autofilter=false;
+	property name="unsubscribe_rate_percentage" type="numeric" formula="0" autofilter=false;
+
+	property name="_version_is_draft"   excludeDataExport=true;
+	property name="_version_has_drafts" excludeDataExport=true;
 }

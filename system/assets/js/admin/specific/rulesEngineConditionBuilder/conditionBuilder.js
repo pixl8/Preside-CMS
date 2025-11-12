@@ -242,7 +242,7 @@
 			var definition = this.getExpression( expression.expression );
 
 			if ( typeof definition === "undefined" || definition == null ) {
-				return '<em class="red"><i class="fa fa-fw fa-exclamation-triangle"></i> ' + i18n.translateResource( "cms:rulesEngine.invalid.expression" ) + '</em>';
+				return '<em class="red"><i class="fa fa-fw fa-exclamation-triangle"></i> ' + i18n.translateResource( "cms:rulesEngine.invalid.expression", { data:[ expression.expression ] } ) + '</em>';
 			}
 
 			var text       = definition.text || ""

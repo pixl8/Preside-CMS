@@ -14,7 +14,7 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	event.include( "/css/admin/specific/focalPointPicker/" );
 	event.include( "/js/admin/specific/focalPointPicker/" );

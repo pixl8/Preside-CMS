@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "webflow.instrefconfig.schema.json",
+    "type": "object",
+    "additionalProperties": false,
+    "title":"Webflow instance reference configuration",
+    "description":"Defines the configuration of the instance reference used within an element of the webflow",
+    "required":[],
+    "properties": {
+        "rendererViewlet": { "type": "string", "description": "The coldbox event to run for render instance reference value." },
+        "groupingConfigViewlet": { "type": "string", "description": "The coldbox event to pass instance admin grouping configuration." }
+    }
+}

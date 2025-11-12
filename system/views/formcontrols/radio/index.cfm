@@ -37,11 +37,11 @@
 				<input type="radio"
 				   id="#elementId#"
 				   name="#inputName#"
-				   value="#HtmlEditFormat( selectValue )#"
+				   value="#EncodeForHtmlAttribute( selectValue )#"
 				   class="#inputClass# #extraClasses#"
 				   tabindex="#getNextTabIndex()#"
 				   <cfif checked>checked</cfif>>
-				   #HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
+				   #EncodeForHtmlAttribute( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 				   #htmlAttributes#
 			</label>
 		</div>

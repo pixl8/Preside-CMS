@@ -9,49 +9,65 @@ component {
 	property name="adminLanguages"         inject="coldbox:setting:adminLanguages";
 
 	public string function index( event, rc, prc, args={} ) {
-		var locales      = Duplicate( resourceBundleService.listLocales() );
+		var allLocales   = resourceBundleService.listLocales()
+		var locales      = Duplicate( args.locales ?: allLocales );
 		var adminLocales = IsTrue( args.adminLocales ?: "" );
 		var userDetail   = loginService.getLoggedInUserDetails();
 
-		if ( locales.len() ) {
+		if ( ArrayLen( locales ) ) {
 			var defaultLocale = i18n.getDefaultLocale();
 			var currentLocale = i18n.getfwLocale();
 			args.values       = [];
 			args.labels       = [];
 
-			locales.append( defaultLocale );
-			if ( adminLocales && adminLanguages.len() ) {
-				for( var i=locales.len(); i>0; i-- ) {
-					if ( !adminLanguages.findNoCase( locales[ i ] ) ) {
-						locales.deleteAt( i );
+			if ( !ArrayFindNoCase( locales, defaultLocale ) ) {
+				ArrayAppend( locales, defaultLocale );
+			}
+
+			if ( adminLocales && ArrayLen( adminLanguages ) ) {
+				for( var i=ArrayLen( locales ); i>0; i-- ) {
+					if ( !ArrayFindNoCase( adminLanguages, locales[ i ] ) ) {
+						ArrayDeleteAt( locales, i );
 					}
 				}
 			}
 
 			locales = locales.map( function( locale ){
-				var language = ListFirst( locale, "_" );
-				var country  = ListLen( locale, "_" ) > 1 ? ListRest( locale, "_" ) : "";
+				var localeLabel = i18n.getLocaleLabel( locale=locale, defaultLocale=defaultLocale );
 
 				return {
 					  locale  = arguments.locale
-					, title   = translateResource( uri="locale:title", language=language, country=country )
+					, title   = localeLabel.title
 					, selected = ( arguments.locale == currentLocale )
 				}
 			} ).sort( function( a, b ){
-				if ( a.locale == defaultLocale ) {
-					return -1;
-				}
-
 				return a.title < b.title ? -1 : 1;
+			} ).sort( function( a, b ){
+				return a.locale == defaultLocale ? -1 : 1;
 			} );
 
-			for( var i=1 ; i<=arrayLen( locales ); i++ ) {
-				arrayAppend( args.values, locales[i].locale );
-				arrayAppend( args.labels, locales[i].title );
+			for( var i=1 ; i<=ArrayLen( locales ); i++ ) {
+				ArrayAppend( args.values, locales[i].locale );
+				ArrayAppend( args.labels, locales[i].title );
 			}
 
-			args.defaultValue = userDetail.user_language;
-			args.multiple     = false;
+			args.defaultValue    = args.defaultValue ?: userDetail.user_language;
+			args.multiple        = false;
+			args.includeLangAttr = args.includeLangAttr ?: true;
+
+			if ( args.includeLangAttr ) {
+				args.removeObjectPickerClass = args.removeObjectPickerClass ?: true;
+				args.extraClasses            = args.extraClasses            ?: "form-control";
+				args.optionAttribs           = args.optionAttribs           ?: [];
+
+				if ( IsArray( args.optionAttribs ) && ArrayIsEmpty( args.optionAttribs ) ) {
+					for ( var value in args.values ) {
+						ArrayAppend( args.optionAttribs, {
+							  attribs = { lang=ListChangeDelims( value, "-", "_" ) }
+						} );
+					}
+				}
+			}
 
 			return renderView( view="/formcontrols/select/index", args=args );
 		}

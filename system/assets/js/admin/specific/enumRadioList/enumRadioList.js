@@ -4,14 +4,14 @@
 	}
 
 	$.presideEnumRadioListControl.toggleControl = function( $control ) {
-		var groupName = $control.attr( "name" );
+		const groupName = $control.attr( "name" );
 
 		$( 'input:radio[name="' + groupName + '"]' ).each( function() {
-			var fields = $( this ).data( "toggleFields" );
+			const fields = $( this ).data( "toggleFields" );
 			if ( !fields ) return;
 
 			fields.split( /\s*,\s*/ ).forEach( function( field ) {
-				var selector = "";
+				let selector = "";
 				switch ( field.charAt( 0 ) ) {
 					case "#":
 					case ".":
@@ -25,11 +25,11 @@
 		} );
 
 		if ( $control.is( ":checked" ) ) {
-			var fields = $control.data( "toggleFields" );
+			const fields = $control.data( "toggleFields" );
 			if ( !fields ) return;
 
 			fields.split( /\s*,\s*/ ).forEach( function( field ) {
-				var selector = "";
+				let selector = "";
 				switch ( field.charAt( 0 ) ) {
 					case "#":
 					case ".":
@@ -45,7 +45,7 @@
 
 	$.fn.presideEnumRadioListControl = function() {
 		this.each( function() {
-			var $radio = $( this );
+			const $radio = $( this );
 			$radio.on( "change", function() {
 				$.presideEnumRadioListControl.toggleControl( $( this ) );
 			} );
@@ -54,11 +54,15 @@
 		const handledGroups = new Set();
 
 		this.each( function() {
-			var $radio    = $( this );
-			var groupName = $radio.attr( "name" );
+			const $radio    = $( this );
+			const groupName = $radio.attr( "name" );
 
 			if ( !handledGroups.has( groupName ) ) {
-				$.presideEnumRadioListControl.toggleControl( $radio );
+				const $checked = $( 'input:radio[name="' + groupName + '"]:checked' );
+
+				if ( $checked.length ) {
+					$.presideEnumRadioListControl.toggleControl( $checked );
+				}
 				handledGroups.add( groupName );
 			}
 

@@ -300,7 +300,7 @@ component extends="testbox.system.BaseSpec" {
 		} );
 
 		describe( "getNextRunDate()", function(){
-			it( "should take a cron expression and last run date and run that through our java cron library", function(){
+			it( "should take a cron expression and last run date and run that through our java cron library, adding offset if enabled", function(){
 				var tm             = _getTaskManagerService();
 				var lastRun        = "2014-10-24T09:03:13";
 				var taskKey        = "someKey";
@@ -309,6 +309,22 @@ component extends="testbox.system.BaseSpec" {
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
 				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( config );
+
+				var nextRun = tm.getNextRunDate( taskKey, lastRun );
+
+				expect( nextRun ).toBe( "2014-10-24T09:05:#NumberFormat( mockTaskRunOffsetSeconds, '00' )#" );
+			} );
+
+			it( "should not add an offset if the feature is disabled", function(){
+				var tm             = _getTaskManagerService();
+				var lastRun        = "2014-10-24T09:03:13";
+				var taskKey        = "someKey";
+				var task           = { schedule = "* */5 * * * *", isScheduled=true };
+				var config         = { crontab_definition = "", timeout=100 };
+
+				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( config );
+				tm.$( "$isFeatureEnabled" ).$args( "taskmanagerUseRandomOffset" ).$results( false );
 
 				var nextRun = tm.getNextRunDate( taskKey, lastRun );
 
@@ -342,7 +358,7 @@ component extends="testbox.system.BaseSpec" {
 
 				var nextRun = tm.getNextRunDate( taskKey, lastRun );
 
-				expect( nextRun ).toBe( "2014-10-24T09:10:00" );
+				expect( nextRun ).toBe( "2014-10-24T09:10:#NumberFormat( mockTaskRunOffsetSeconds, '00' )#" );
 			} );
 
 			it( "should return an empty string when task is not a scheduled task", function(){
@@ -620,18 +636,19 @@ component extends="testbox.system.BaseSpec" {
 	private any function _getTaskManagerService( struct dummyConfig={} ) {
 		var mockBox = getMockBox();
 
-		mockColdbox          = mockbox.createStub();
-		mockRc               = mockbox.createStub();
-		mockTaskDao          = mockbox.createStub();
-		mockTaskHistoryDao   = mockbox.createStub();
-		configWrapper        = mockbox.createStub();
-		mockSysConfigService = mockbox.createStub();
-		mockErrorLogService  = mockbox.createStub();
-		mockSiteService      = mockbox.createStub();
-		mockThreadUtil       = mockbox.createStub();
-		mockExecutor         = mockbox.createStub();
-		cronUtil             = new preside.system.services.taskmanager.CronUtil();
-		mockLogger           = _getMockLogger();
+		mockColdbox              = mockbox.createStub();
+		mockRc                   = mockbox.createStub();
+		mockTaskDao              = mockbox.createStub();
+		mockTaskHistoryDao       = mockbox.createStub();
+		configWrapper            = mockbox.createStub();
+		mockSysConfigService     = mockbox.createStub();
+		mockErrorLogService      = mockbox.createStub();
+		mockSiteService          = mockbox.createStub();
+		mockThreadUtil           = mockbox.createStub();
+		mockExecutor             = mockbox.createStub();
+		mockTaskRunOffsetSeconds = RandRange( 1, 59 );
+		cronUtil                 = new preside.system.services.taskmanager.CronUtil();
+		mockLogger               = _getMockLogger();
 
 		configWrapper.$( "getConfiguredTasks", arguments.dummyConfig );
 		mockSysConfigService.$( "getSetting" ).$args( "taskmanager", "scheduledtasks_enabled", false ).$results( true );
@@ -648,6 +665,8 @@ component extends="testbox.system.BaseSpec" {
 		tm.$( "$getErrorLogService", mockErrorLogService );
 		tm.$( "$isFeatureEnabled" ).$args( "sslInternalHttpCalls" ).$results( true );
 		tm.$( "$isFeatureEnabled" ).$args( "sites" ).$results( true );
+		tm.$( "$isFeatureEnabled" ).$args( "taskmanagerUseRandomOffset" ).$results( true );
+		tm.$( "_getRandomOffset", mockTaskRunOffsetSeconds );
 		tm.$( "_setActiveSite" );
 		mockRc.$( "setUseQueryCache" );
 		mockRc.$( "isBackgroundThread", false );

@@ -8,7 +8,7 @@
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) { value = ""; }
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	labels = len( args.labels ) ? args.labels : args.values;
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
@@ -30,7 +30,7 @@
 				type="radio"
 				id="#elementId#"
 				name="#inputName#"
-				value="#HtmlEditFormat( selectValue )#"
+				value="#EncodeForHtmlAttribute( selectValue )#"
 				class="#inputClass#"
 				data-toggle-fields="#toggleFields#"
 				data-toggle-default-fields="#toggleDefaultFields#"
@@ -38,7 +38,7 @@
 				<cfif disabled>disabled="disabled"</cfif>
 				<cfif isChecked> checked="checked"</cfif>
 			>
-			<label for="#elementId#">#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#</label>
+			<label for="#elementId#">#EncodeForHtmlAttribute( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#</label>
 		</div>
 	</cfloop>
 </cfoutput>

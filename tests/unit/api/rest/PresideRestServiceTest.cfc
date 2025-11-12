@@ -1193,6 +1193,7 @@ component extends="testbox.system.BaseSpec"{
 		restService.$( "authenticateRequest" );
 		restService.$( "$getRequestContext", mockRequestContext );
 		mockRequestContext.$( "cachePage" );
+		mockRequestContext.$( "setContentSecurityPolicy" );
 		mockRequestContext.$( "setRestResponse" );
 		mockRequestContext.$( "setRestRequest" );
 

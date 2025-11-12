@@ -154,8 +154,10 @@ component {
 				}
 			}
 
+			var emailLayout = Len( arguments.layout ) ? arguments.layout : messageTemplate.layout;
+
 			message.textBody = _getEmailLayoutService().renderLayout(
-				  layout         = Len( arguments.layout ) ? arguments.layout : messageTemplate.layout
+				  layout         = emailLayout
 				, emailTemplate  = arguments.template
 				, templateDetail = messageTemplate
 				, blueprint      = messageTemplate.email_blueprint
@@ -173,7 +175,7 @@ component {
 				, unsubscribeLink    = unsubscribeLink
 				, viewOnline         = viewOnline
 			);
-			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
+			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles, cacheSuffix=emailLayout } );
 
 			var params = Duplicate( arguments.parameters );
 
@@ -237,10 +239,11 @@ component {
 	 */
 	public string function renderHtmlSnippet(
 		  required string html
-		,          array  styles = []
+		,          array  styles      = []
+		,          string cacheSuffix = ""
 	) {
 		if ( $isFeatureEnabled( "emailStyleInliner" ) && ArrayLen( arguments.styles ) ) {
-			return _getEmailStyleInliner().inlineStyles( arguments.html, arguments.styles );
+			return _getEmailStyleInliner().inlineStyles( arguments.html, arguments.styles, arguments.cacheSuffix );
 		}
 
 		return arguments.html;
@@ -621,7 +624,7 @@ component {
 		if ( $isFeatureEnabled( "emailStyleInliner" ) && ArrayLen( arguments.styles ) ) {
 			for( var paramName in params ) {
 				if ( IsStruct( params[ paramName ] ) && Len( params[ paramName ].html ?: "" ) ) {
-					params[ paramName ].html = renderHtmlSnippet( params[ paramName ].html, arguments.styles );
+					params[ paramName ].html = renderHtmlSnippet( params[ paramName ].html, arguments.styles, arguments.templateDetail.layout ?: "" );
 				}
 			}
 		}
@@ -699,7 +702,7 @@ component {
 			, useRequestCache  = false
 		);
 
-		var updatedData = { schedule_next_send_date = "" };
+		var updatedData = { schedule_next_send_date="", schedule_queueing=false };
 
 		if ( template.sending_method == "scheduled" ) {
 			if ( template.schedule_type == "repeat" ) {
@@ -762,6 +765,27 @@ component {
 		return $getPresideObject( "email_template" ).updateData(
 			  id      = arguments.templateId
 			, data    = { last_sent_date=arguments.lastSentDate }
+		);
+	}
+
+	/**
+	 * Update the queueing flag of email
+	 *
+	 * @autodoc           true
+	 * @templateId.hint   ID of the template to update
+	 * @scheduleQueueing.hint The date of last sent
+	 */
+	public any function updateScheduleQueueingFlag(
+		  required string  templateId
+		, required boolean isQueueing
+		,          boolean queueFailed = false
+	) {
+		return $getPresideObject( "email_template" ).updateData(
+			  id      = arguments.templateId
+			, data    = {
+				  schedule_queueing   = arguments.isQueueing
+				, schedule_queue_fail = arguments.queueFailed
+			}
 		);
 	}
 
@@ -1618,7 +1642,7 @@ component {
 
 		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
 			var styles = _getEmailStyleInliner().readStyles( html );
-			html = _getEmailStyleInliner().inlineStyles( html, styles );
+			html = _getEmailStyleInliner().inlineStyles( html, styles, htmlArgs.layout );
 		}
 
 		var result = {

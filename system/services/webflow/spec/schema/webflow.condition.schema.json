@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "webflow.condition.schema.json",
+    "type": "object",
+    "title": "Workflow condition",
+    "additionalProperties": false,
+    "description":"A condition represents a decision and will evaluate to either true or false when executed.",
+    "required":[ "ref"],
+    "properties":{
+        "ref":{ "type":"string", "description":"Unique identifier for a condition evaluator that has been registered with the workflow engine." },
+        "args":{ "type":"object","description":"Arbitrary set of arguments that will be passed to the condition handler." },
+        "meta":{ "type":"object", "description": "Abitrary metadata that you may use to describe the condition." },
+        "not":{ "type":"boolean", "description": "If set to true (default is false), condition must be false." },
+        "and":{
+            "type":"array",
+            "description": "Optional array of conditions that also must evaluate true for the parent condition to be true",
+            "items": {
+                "type":"object",
+                "$ref":"webflow.condition.schema.json"
+            }
+        },
+        "or":{
+            "type":"array",
+            "description": "Optional array of conditions that alternatively can evaluate true for the parent condition to be true",
+            "items": {
+                "type":"object",
+                "$ref":"webflow.condition.schema.json"
+            }
+        }
+    }
+}

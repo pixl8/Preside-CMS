@@ -32,9 +32,9 @@
 								<div class="radio">
 									<label>
 										<input type="radio"
-											 id="#inputId#_#HtmlEditFormat( itemType.id )#"
+											 id="#inputId#_#EncodeForHtmlAttribute( itemType.id )#"
 											 name="#inputName#"
-											 value="#HtmlEditFormat( itemType.id )#"
+											 value="#EncodeForHtmlAttribute( itemType.id )#"
 											 class="#inputClass# #extraClasses#"
 											 tabindex="#getNextTabIndex()#"
 											 <cfif value eq itemType.id>checked</cfif>

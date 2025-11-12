@@ -16,6 +16,7 @@ component {
 		, boolean showDbSyncScripts            = false
 		, boolean bufferOutput                 = true
 		, boolean allowPingRequests            = false
+		, boolean enableContentSecurityPolicy  = true
 	)  {
 
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
@@ -34,6 +35,7 @@ component {
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts;
 		this.bufferOutput                            = arguments.bufferOutput;
 		this.allowPingRequests                       = arguments.allowPingRequests;
+		this.enableContentSecurityPolicy             = arguments.enableContentSecurityPolicy;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -72,6 +74,7 @@ component {
 		} else {
 			_invalidateSessionIfNotUsed();
 		}
+		_setContentSecurityPolicy();
 		_cleanupCookies();
 	}
 
@@ -86,6 +89,7 @@ component {
 		} else {
 			_invalidateSessionIfNotUsed();
 		}
+		_setContentSecurityPolicy();
 		_cleanupCookies();
 	}
 
@@ -161,6 +165,9 @@ component {
 		this.mappings[ "/cfconcurrent"   ] = presideroot & "/system/externals/cfconcurrent";
 		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
 		this.mappings[ "/javaloader"     ] = presideroot & "/system/modules/cbjavaloader/models/javaloader";
+
+		// legacy support for apps and extensions that were referencing the now defunct workflow extension
+		this.mappings[ "/app/extensions/preside-ext-workflow/modules/cfflow" ] = presideroot & "/system/modules/cfflow";
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
@@ -920,5 +927,19 @@ component {
 		}
 
 		return application._sessionType;
+	}
+
+	private void function _setContentSecurityPolicy() {
+		if ( this.enableContentSecurityPolicy ) {
+			var controller = _getColdboxController();
+
+			if ( !IsNull( local.controller ) ) {
+				var wb = controller.getWirebox();
+
+				if ( wb.containsInstance( "contentSecurityPolicyManager" ) ) {
+					wb.getInstance( "contentSecurityPolicyManager" ).outputPolicyHeader();
+				}
+			}
+		}
 	}
 }

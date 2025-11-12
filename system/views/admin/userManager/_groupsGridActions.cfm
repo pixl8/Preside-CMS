@@ -25,7 +25,7 @@
 			<cfif IsTrue( args.is_catch_all )>
 				<i class="grey fa fa-trash-o"></i>
 			<cfelse>
-				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="usermanager.deleteGroupAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteGroup.prompt', data=[args.label] )#"<cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#batchDeletionConfirmationMatch#"</cfif>>
+				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="usermanager.deleteGroupAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteGroup.prompt', data=[ EncodeForHtmlAttribute( args.label ) ] )#"<cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#batchDeletionConfirmationMatch#"</cfif>>
 					<i class="fa fa-trash-o"></i>
 				</a>
 			</cfif>

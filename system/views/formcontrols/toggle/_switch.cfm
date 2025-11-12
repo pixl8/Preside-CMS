@@ -7,7 +7,7 @@
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) { value = ""; }
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	isChecked  = isTrue( value );
 	isDisabled = isTrue( args.disabled ?: false );

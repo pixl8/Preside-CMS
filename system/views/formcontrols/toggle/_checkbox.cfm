@@ -7,7 +7,7 @@
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) { value = ""; }
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	labels = !isEmptyString( args.checkboxLabel ?: "" ) ? translateResource( args.checkboxLabel, args.checkboxLabel ) : ( args.label ?: "" );
 

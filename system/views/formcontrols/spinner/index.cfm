@@ -14,7 +14,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )

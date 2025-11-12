@@ -48,9 +48,11 @@ component displayName="Task Manager Service" {
 		_setExecutor( arguments.executor );
 		_setCronUtil( arguments.cronUtil );
 		_setMachineId();
+		_setRunningTasks({});
+		_setTaskOffsets({});
 
 		_initialiseDb();
-		_setRunningTasks({});
+
 
 		return this;
 	}
@@ -360,8 +362,14 @@ component displayName="Task Manager Service" {
 	public void function cleanupNoLongerRunningTasks() {
 		var localTaskThreads          = _getRunningTasks();
 		var localTaskThreadIds        = StructKeyArray( localTaskThreads );
+		var stuckTaskCutoffDate       = DateAdd( "d", -( Val( $getPresideSetting( "taskmanager", "stuck_thread_period", 1 ) ) ), Now() );
 		var runningTasksAccordingToDb = _getTaskDao().selectData(
-			  filter = { is_running=true, running_machine=_getMachineId() }
+			  filter       = "is_running = :is_running AND ( running_machine = :running_machine OR last_ran <= :dayFromNow )"
+			, filterParams = {
+				  is_running      = true
+				, running_machine = _getMachineId()
+				, dayFromNow      = { value=stuckTaskCutoffDate, type="cf_sql_timestamp" }
+			}
 		);
 
 		for( var task in runningTasksAccordingToDb ) {
@@ -562,8 +570,13 @@ component displayName="Task Manager Service" {
 
 		var taskConfig = getTaskConfiguration( arguments.taskKey );
 		var schedule   = Len( Trim( taskConfig.crontab_definition ?: "" ) ) ? taskConfig.crontab_definition : task.schedule;
+		var runDate    = _getCronUtil().getNextRunDate( schedule, arguments.lastRun );
 
-		return _getCronUtil().getNextRunDate( schedule, arguments.lastRun );
+		if ( $isFeatureEnabled( "taskmanagerUseRandomOffset" ) ) {
+			runDate = DateAdd( "s", _getRandomOffset( arguments.taskKey ), runDate );
+		}
+
+		return runDate;
 	}
 
 	public array function getAllTaskDetails( string locale="EN" ) {
@@ -847,45 +860,53 @@ component displayName="Task Manager Service" {
 		}
 	}
 
+	private numeric function _getAverageWorkTimeFromClusteredTimes( required array runTimes ) {
+		var centroids = [runTimes[RandRange(1, ArrayLen(runTimes))], runTimes[RandRange(1, arrayLen(RunTimes))]];
+		var clusters  = ArrayNew(1);
 
+		maxIterations = 100;
 
-private numeric function _getAverageWorkTimeFromClusteredTimes( required array runTimes ) {
-	var centroids = [runTimes[RandRange(1, ArrayLen(runTimes))], runTimes[RandRange(1, arrayLen(RunTimes))]];
-	var clusters  = ArrayNew(1);
+		for (i = 1; i <= maxIterations; i++) {
+			clusters = ArrayNew(1);
+			clusters[1] = [];
+			clusters[2] = [];
 
-	maxIterations = 100;
+			for (time in runTimes) {
+				distanceToCluster1 = Abs(time - centroids[1]);
+				distanceToCluster2 = Abs(time - centroids[2])
+				if (distanceToCluster1 < distanceToCluster2) {
+					ArrayAppend(clusters[1], time);
+				} else {
+					ArrayAppend(clusters[2], time);
+				}
+			}
 
-	for (i = 1; i <= maxIterations; i++) {
-		clusters = ArrayNew(1);
-		clusters[1] = [];
-		clusters[2] = [];
+			newCentroids = [ArrayAvg(clusters[1]), ArrayAvg(clusters[2])];
 
-		for (time in runTimes) {
-			distanceToCluster1 = Abs(time - centroids[1]);
-			distanceToCluster2 = Abs(time - centroids[2])
-			if (distanceToCluster1 < distanceToCluster2) {
-				ArrayAppend(clusters[1], time);
+			if ( newCentroids.equals( centroids ) ) {
+				break;
 			} else {
-				ArrayAppend(clusters[2], time);
+				centroids = newCentroids;
 			}
 		}
 
-		newCentroids = [ArrayAvg(clusters[1]), ArrayAvg(clusters[2])];
+		// Identify which cluster is "work" (the one with the higher average)
+		workClusterIndex = (ArrayAvg(clusters[1]) > ArrayAvg(clusters[2])) ? 1 : 2;
+		workTimes = clusters[workClusterIndex];
 
-		if ( newCentroids.equals( centroids ) ) {
-			break;
-		} else {
-			centroids = newCentroids;
-		}
+		return ArrayAvg(workTimes);
 	}
 
-	// Identify which cluster is "work" (the one with the higher average)
-	workClusterIndex = (ArrayAvg(clusters[1]) > ArrayAvg(clusters[2])) ? 1 : 2;
-	workTimes = clusters[workClusterIndex];
+	private numeric function _getRandomOffset( required string taskKey ) {
+		var taskOffsets = _getTaskOffsets();
+		if ( !StructKeyExists( taskOffsets, arguments.taskKey ) ) {
+			taskOffsets[ arguments.taskKey ] = RandRange( 0, 59 );
 
-	return ArrayAvg(workTimes);
-}
+			_setTaskOffsets( taskOffsets );
+		}
 
+		return taskOffsets[ arguments.taskKey ];
+	}
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTasks() {
@@ -992,6 +1013,13 @@ private numeric function _getAverageWorkTimeFromClusteredTimes( required array r
 	}
 	private void function _setCronUtil( required any cronUtil ) {
 	    _cronUtil = arguments.cronUtil;
+	}
+
+	private struct function _getTaskOffsets() {
+		return _taskOffsets;
+	}
+	private void function _setTaskOffsets( required struct taskOffsets ) {
+		_taskOffsets = arguments.taskOffsets;
 	}
 
 }

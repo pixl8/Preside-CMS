@@ -33,6 +33,8 @@ component {
 		var sortable      = IsTrue( config.sortable ?: true );
 		var objectUriRoot = presideObjectService.getResourceBundleUriRoot( object );
 
+		StructDelete( arguments.config, "disabledIfUnfiltered" );
+
 		rc.delete( "value" );
 
 		return renderFormControl(

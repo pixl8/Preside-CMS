@@ -22,7 +22,7 @@
 
 		<cfif hasCmsPermission( "usermanager.delete" )>
 			<cfif args.id != event.getAdminUserId()>
-				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="userManager.deleteUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:usermanager.deleteUser.prompt', data=[args.known_as] )#"<cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#batchDeletionConfirmationMatch#"</cfif>>
+				<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="userManager.deleteUserAction", queryString="id=#args.id#" )#" title="#HtmlEditFormat( translateResource( uri='cms:usermanager.deleteUser.prompt', data=[args.known_as] ) )#"<cfif not isEmptyString( batchDeletionConfirmationMatch )> data-confirmation-match="#batchDeletionConfirmationMatch#"</cfif>>
 					<i class="fa fa-trash-o"></i>
 				</a>
 			<cfelse>

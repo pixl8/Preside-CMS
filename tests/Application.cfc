@@ -11,6 +11,7 @@ component {
 	this.mappings['/mxunit' ]     = currentDir & "testbox/system/compat";
 	this.mappings['/app']         = currentDir & "resources/testSite";
 	this.mappings['/preside']     = currentDir & "../";
+	this.mappings['/cfflow' ]     = currentDir & "../system/modules/cfflow";
 	this.mappings['/coldbox']     = currentDir & "../system/externals/coldbox";
 
 	setting requesttimeout="6000";

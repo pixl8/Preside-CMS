@@ -1,7 +1,7 @@
 /**
  * Expression handler for "File type for {question} matches"
  *
- * @expressionContexts webrequest
+ * @expressionContexts formbuilderSubmission
  * @expressionCategory formbuilder
  * @expressionTags     formbuilderV2Form
  * @feature            rulesEngine and formbuilder

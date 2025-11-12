@@ -22,19 +22,28 @@ component {
 		var labelFields      = labelRendererService.getSelectFieldsForLabel( labelRenderer );
 		var useCache         = IsTrue( args.useCache ?: "" );
 
-		args.defaultValue    = _removeInvalidValues( objectName=targetObject, values=args.defaultValue, bypassTenants=bypassTenants );
+		args.defaultValue    = _removeInvalidValues( objectName=targetObject, values=args.defaultValue, bypassTenants=bypassTenants, targetIdField=targetIdField );
 
 		if ( IsBoolean( ajax ) && ajax ) {
+			var sourceIdField     = Trim( args.sourceIdField     ?: "" );
+			var sourceObjectField = Trim( args.sourceObjectField ?: "" );
+			var sourceObject      = Trim( args.sourceObject      ?: "" );
+			var valueQs           = "defaultValue=#args.defaultValue#";
+
+			if ( Len( sourceObjectField ) && Len( sourceObject ) && Len( sourceIdField ) && Len( savedData[ sourceIdField ] ?: "" ) ) {
+				valueQs = "sourceObject=#sourceObject#&sourceObjectField=#sourceObjectField#&sourceIdValue=#savedData[ sourceIdField ]#";
+			}
+
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&defaultValue=#args.defaultValue#"
+					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&#valueQs#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&defaultValue=#args.defaultValue#&q=%QUERY"
+				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&#valueQs#&q=%QUERY"
 			);
 		} else {
 			var filter = {};
@@ -77,7 +86,7 @@ component {
 		return renderView( view="formcontrols/objectPicker/index", args=args );
 	}
 
-	private string function _removeInvalidValues( required string objectName, required string values, string bypassTenants="" ) {
+	private string function _removeInvalidValues( required string objectName, required string values, string bypassTenants="", string targetIdField="" ) {
 		if ( !len( arguments.values ?: "" ) ) {
 			return "";
 		}
@@ -85,10 +94,10 @@ component {
 		var initialValues = listToArray( arguments.values );
 		var validValues   = presideObjectService.selectData(
 			  objectName    = arguments.objectName
-			, filter        = { id=initialValues }
-			, selectFields  = [ "id" ]
+			, filter        = { "#arguments.targetIdField#"=initialValues }
+			, selectFields  = [ arguments.targetIdField ]
 			, bypassTenants = ListToArray( arguments.bypassTenants )
-		).columnData( "id" );
+		).columnData( arguments.targetIdField );
 
 		var cleanedValues = initialValues.filter( function( value ){
 			return validValues.find( value );

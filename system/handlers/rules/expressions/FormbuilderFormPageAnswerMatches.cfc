@@ -1,12 +1,13 @@
 /**
  * @expressionCategory formbuilderInProgress
  * @expressionContexts webRequest
- * @feature            rulesEngine
+ * @feature            rulesEngine and formbuilder
  */
 component {
 
-	property name="formBuilderService"         inject="FormBuilderService";
-	property name="rulesEngineOperatorService" inject="RulesEngineOperatorService";
+	property name="formBuilderService"           inject="FormBuilderService";
+	property name="rulesEngineOperatorService"   inject="RulesEngineOperatorService";
+	property name="rulesEngineTimePeriodService" inject="RulesEngineTimePeriodService";
 
 	/**
 	 * @formbuilderForm.fieldType   formbuilderForm
@@ -41,24 +42,17 @@ component {
 
 		var formData        = payload.formbuilderSubmission.data ?: {};
 		var formFieldName   = formItem.configuration.name        ?: "";
+		var formFieldName   = formItem.configuration.name        ?: "";
 		var formFieldValue  = formData[ formFieldName ]          ?: "";
 		var formFieldValues = IsJSON( formFieldValue )           ? [] : ListToArray( formFieldValue );
 
 		var ruleConfig   = DeserializeJSON( arguments.formbuilderAnswer );
-		var ruleDataType = ruleConfig.dataType ?: "string";
+		var ruleDataType = ruleConfig.dataType ?: "";
 		var ruleOperator = ruleConfig.operator ?: "eq";
 		var ruleValue    = ruleConfig.value    ?: "";
 		var ruleResult   = false;
 
 		switch ( ruleDataType ) {
-			case "string"  :
-				ruleResult = rulesEngineOperatorService.compareStrings(
-					  leftHandSide  = formFieldValue
-					, operator      = ruleOperator
-					, rightHandSide = ruleValue
-				);
-				break;
-
 			case "numeric" :
 				ruleResult = rulesEngineOperatorService.compareNumbers(
 					  leftHandSide  = Val( formFieldValue )
@@ -103,11 +97,11 @@ component {
 
 				switch ( ruleOperator ) {
 					case "anyof"    :
-						ruleResult = ArrayContainsNoCase( ruleValues, formFieldValue );
+						ruleResult = _arrayContainsAnyNoCase( ruleValues, formFieldValues );
 						break;
 
 					case "notanyof" :
-						ruleResult = !ArrayContainsNoCase( ruleValues, formFieldValue );
+						ruleResult = !_arrayContainsAnyNoCase( ruleValues, formFieldValues );
 						break;
 
 					case "allof"    :
@@ -127,7 +121,36 @@ component {
 				ruleResult = isTrue( ruleOperator ) ? isTrue( formFieldValue ) : isFalse( formFieldValue );
 				break;
 
+			case "string"  :
 			default        :
+				if ( formItem.item_type == "date" ) {
+					if ( IsDate( formFieldValue ) ) {
+						var dateTimeValue  = ParseDateTime( formFieldValue );
+						var dateRangeValue = rulesEngineTimePeriodService.convertTimePeriodToDateRange( arguments.formbuilderAnswer );
+
+						ruleResult = true;
+
+						if ( IsDate( dateRangeValue.from ?: "" ) ) {
+							if ( DateCompare( dateTimeValue, dateRangeValue.from ) == -1 ) {
+								ruleResult = false;
+							}
+						}
+
+						if ( IsDate( dateRangeValue.to ?: "" ) ) {
+							if ( DateCompare( dateTimeValue, dateRangeValue.to ) == 1 ) {
+								ruleResult = false;
+							}
+						}
+					} else {
+						ruleResult = false;
+					}
+				} else {
+					ruleResult = rulesEngineOperatorService.compareStrings(
+						  leftHandSide  = formFieldValue
+						, operator      = ruleOperator
+						, rightHandSide = ruleValue
+					);
+				}
 				break;
 		}
 
@@ -148,6 +171,16 @@ component {
 		}
 
 		return {};
+	}
+
+	private boolean function _arrayContainsAnyNoCase( required array ruleValues, required array formFieldValues ) {
+		for ( var ruleValue in arguments.ruleValues ) {
+			if ( ArrayContainsNoCase( arguments.formFieldValues, ruleValue ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private boolean function _arrayContainsAllNoCase( required array ruleValues, required array formFieldValues ) {

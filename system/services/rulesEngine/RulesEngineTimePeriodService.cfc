@@ -244,6 +244,40 @@ component displayName="RulesEngine Time Period Service" {
 					, from = firstOfNextMonth
 				};
 			break;
+
+			case "lastyear":
+				var firstOfThisYear = CreateDateTime( Year( currentDateTime ), 1, 1, 0, 0, 0 );
+				var firstOfLastYear = DateAdd( "yyyy", -1, firstOfThisYear );
+				var endOfLastYear   = DateAdd( "s"   , -1, firstOfThisYear );
+
+				return {
+					  to   = endOfLastYear
+					, from = firstOfLastYear
+				};
+			break;
+
+			case "thisyear":
+				var firstOfThisYear = CreateDateTime( Year( currentDateTime ), 1, 1, 0, 0, 0 );
+				var firstOfNextYear = DateAdd( "yyyy", 1, firstOfThisYear );
+				var endOfThisYear   = DateAdd( "s"   , -1, firstOfNextYear );
+
+				return {
+					  to   = endOfThisYear
+					, from = firstOfThisYear
+				};
+			break;
+
+			case "nextyear":
+				var nextYearDate      = DateAdd( "yyyy", 1, currentDateTime );
+				var firstOfNextYear   = CreateDateTime( Year( nextYearDate ), 1, 1, 0, 0, 0);
+				var firstOfNext2Years = DateAdd( "yyyy",  1, firstOfNextYear );
+				var endOfNextYear     = DateAdd( "s"   , -1, firstOfNext2Years );
+
+				return {
+					  to   = endOfNextYear
+					, from = firstOfNextYear
+				};
+			break;
 		}
 
 		return {};

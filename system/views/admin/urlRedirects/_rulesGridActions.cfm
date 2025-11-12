@@ -11,7 +11,7 @@
 		</cfif>
 
 		<cfif hasCmsPermission( "urlRedirects.deleteRule" )>
-			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="urlRedirects.deleteRuleAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:urlRedirects.deleteRule.prompt', data=[args.label] )#">
+			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="urlRedirects.deleteRuleAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:urlRedirects.deleteRule.prompt', data=[ EncodeForHtmlAttribute( args.label ) ] )#">
 				<i class="fa fa-trash-o bigger-130"></i>
 			</a>
 		</cfif>

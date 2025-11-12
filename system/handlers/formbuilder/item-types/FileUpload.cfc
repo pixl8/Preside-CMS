@@ -7,13 +7,14 @@ component {
 	property name="storageProviderService"     inject="storageProviderService";
 
 	private any function renderResponse( event, rc, prc, args={} ) {
-		var fileName = Trim( ReReplace( args.response ?: "", "^""(.*?)""$", "\1" ) );
+		var filePath = Trim( ReReplace( args.response ?: "", "^""(.*?)""$", "\1" ) );
+		var fileName = ListLast( filePath, "/" );
 
-		if ( !isEmptyString( fileName ) && fileName != "{}" ) {
+		if ( !isEmptyString( filePath ) && filePath != "{}" ) {
 			if ( args.buildLink ?: true ) {
 				var downloadLink = event.buildLink(
 					  fileStorageProvider = 'formBuilderStorageProvider'
-					, fileStoragePath     = fileName
+					, fileStoragePath     = filePath
 					, fileStoragePrivate  = formBuilderStorageProvider.objectExists( path=args.response ?: "", private=true )
 				);
 
@@ -25,7 +26,6 @@ component {
 
 		return translateResource( "formbuilder.item-types.fileupload:render.empty.response" );
 	}
-
 
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
 		var fileName = Listlast( args.response ?: "", '/\' );
@@ -92,7 +92,7 @@ component {
 		var fieldData  = args.requestData[ fieldName ] ?: "";
 		var fieldValue = rc[ fieldName ]               ?: "";
 
-		if ( IsEmptyString( fieldValue ) && IsStruct( fieldData ) ) {
+		if ( ( IsSimpleValue( fieldValue ) && IsEmptyString( fieldValue ) ) && IsStruct( fieldData ) ) {
 			return fieldData;
 		}
 
@@ -110,7 +110,7 @@ component {
 		var response = args.response ?: "";
 
 		if ( FileExists( response.path ?: "" ) ) {
-			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( Len( response.tempFileInfo.clientFile ?: '' ) ? urlEncode( response.tempFileInfo.clientFile ) : 'uploaded.file' )#";
+			var savedPath = "/#( args.formId ?: '' )#/#CreateUUID()#/#( Len( response.tempFileInfo.clientFile ?: '' ) ? urlEncode( response.tempFileInfo.clientFile ) : 'uploaded.file' )#";
 
 			if ( storageProviderService.providerSupportsFileSystem( formBuilderStorageProvider ) ) {
 				formBuilderStorageProvider.putObjectFromLocalPath(
@@ -129,7 +129,7 @@ component {
 			return savedPath;
 		}
 
-		return SerializeJson( response );
+		return IsEmpty( response ) ? "" :  SerializeJson( response );
 	}
 
 	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {

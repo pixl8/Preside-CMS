@@ -6,7 +6,7 @@
 	defaultValue = args.defaultValue ?: "";
 	maxlength    = args.maxlength    ?: "";
 	placeholder  = args.placeholder  ?: "";
-	placeholder  = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	placeholder  = EncodeForHtmlAttribute( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	multiple     = isTrue( args.multiple ?: "" );
 	inputType    = multiple ? "text" : "email";
 
@@ -15,7 +15,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )

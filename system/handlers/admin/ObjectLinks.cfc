@@ -243,6 +243,10 @@ component {
 			qs &= "&#interceptArgs.extraQs#";
 		}
 
+		if ( Len( dataManagerService.listCategoryField( objectName=objectName ) ) && Len( Trim( rc.activeCategoryId ?: "" ) ) ) {
+			qs &= "&activeCategoryId=#rc.activeCategoryId#";
+		}
+
 		return event.buildAdminLink(
 			  linkto      = "datamanager.getObjectRecordsForAjaxDataTables"
 			, queryString = _queryString( qs, args )

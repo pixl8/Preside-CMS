@@ -8,8 +8,10 @@
  */
 component {
 
-	property name="formBuilderStorageProvider"  inject="FormBuilderStorageProvider";
-	property name="rulesEngineConditionService" inject="RulesEngineConditionService";
+	property name="formBuilderStorageProvider"           inject="FormBuilderStorageProvider";
+	property name="rulesEngineConditionService"          inject="RulesEngineConditionService";
+	property name="formbuilderDraftStorageType"          inject="coldbox:setting:formbuilder.drafts.storage.type";
+	property name="formbuilderDraftStorageDatabaseTable" inject="coldbox:setting:formbuilder.drafts.storage.database.table";
 
 // CONSTRUCTOR
 	/**
@@ -649,10 +651,29 @@ component {
 		return { allowed=true, reason="", content="", message="" };
 	}
 
+	/**
+	 * Evaluates any conditional logic attached to a given form page to determine
+	 * whether that page should be displayed. The evaluation is performed against
+	 * stored or provided submission data using the rules engine.
+	 *
+	 * If no condition is defined for the page, the function will return true by default.
+	 *
+	 * @autodoc
+	 *
+	 * @formId.hint      The ID of the form containing the page to evaluate
+	 * @pageNumber.hint  The page number within the form to evaluate conditions for
+	 * @key.hint         Optional key to retrieve stored submission data
+	 * @payload.hint     A struct of submission data used for evaluating conditions
+	 *                   (defaults to temporary stored submission if not provided)
+	 *
+	 * @return boolean   True if the page should be displayed (condition passes or none exists),
+	 *                   false if the condition evaluation fails
+	 */
 	public boolean function evaluateConditionForPage(
 		  required string  formId
 		, required numeric pageNumber
-		,          struct  payload = getTempStoredSubmission( arguments.formId )
+		,          string  storageKey = ""
+		,          struct  payload    = getTempStoredSubmission( formId=arguments.formId, storageKey=arguments.storageKey )
 	) {
 		var formItems = getFormItems( id=arguments.formId, pageNumber=arguments.pageNumber );
 
@@ -689,60 +710,133 @@ component {
 	}
 
 	/**
-	 * Stores a formbuilder form's submitted values in the user's session temporarily, so
-	 * they can be retrieved when the user has, for instance, logged back in after a timeout.
-	 * File upload fields will be omitted from these stored values.
+	 * Stores a formbuilder form's submitted values in temporary storage (e.g. session or database).
+	 * This allows the data to be restored after an interruption such as a login timeout.
+	 *
+	 * By default, file upload fields will be excluded from storage unless explicitly
+	 * allowed by setting `withFileUpload` to true.
 	 *
 	 * @autodoc
-	 * @formId.hint     The ID of the form you wish to store values for
-	 * @submission.hint The form value collection that will be stored in the session
 	 *
+	 * @formId.hint         The ID of the form whose submission values should be stored
+	 * @submission.hint     A struct of submitted form values to be stored temporarily
+	 * @withFileUpload.hint Whether file upload field values should also be included (default: false)
+	 * @storageKey.hint     Optional key to namespace or identify the stored submission
+	 * @storage.hint        The storage type to use (defaults to `formbuilderDraftStorageType`)
+	 *
+	 * @return string       The key or identifier returned by the storage handler, or an empty string if storage is unavailable
 	 */
-	public void function setTempStoredSubmission(
+	public string function setTempStoredSubmission(
 		  required string  formId
 		, required struct  submission
 		,          boolean withFileUpload = false
+		,          string  storageKey     = ""
+		,          string  storage        = formbuilderDraftStorageType
 	) {
-		var tempStorageKey      = "temp_formbuilder_submission_#formId#";
-		var dataToStore         = Duplicate( arguments.submission );
-		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
-		var fileFields          = ValueArray( $getPresideObject( "formbuilder_formitem" ).selectData(
-			  filter       = { form=arguments.formId, item_type=fileUploadItemTypes }
-			, selectFields = [ "question.field_id" ]
-		), "field_id" );
+		var storageHandler = "formbuilder.storages.#arguments.storage#.setTempData";
 
-		if ( ArrayLen( fileFields ) && !arguments.withFileUpload ) {
-			for( var field in dataToStore ) {
-				if ( ArrayFind( fileFields, field ) ) {
-					StructDelete( dataToStore, field );
+		if ( $getColdbox().handlerExists( storageHandler ) ) {
+			var data = StructCopy( arguments.submission );
+
+			if ( !arguments.withFileUpload ) {
+				var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
+				var fileFields          = ValueArray( $getPresideObject( "formbuilder_formitem" ).selectData(
+					  filter       = { form=arguments.formId, item_type=fileUploadItemTypes }
+					, selectFields = [ "question.field_id" ]
+				), "field_id" );
+
+				if ( ArrayLen( fileFields ) ) {
+					for ( var field in dataToStore ) {
+						if ( ArrayFind( fileFields, field ) ) {
+							StructDelete( data, field );
+						}
+					}
 				}
 			}
+
+			return $getColdbox().runEvent(
+				  event          = storageHandler
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  formId     = arguments.formId
+					, storageKey = arguments.storageKey
+					, data       = data
+				  }
+			);
 		}
 
-		_getSessionStorage().setVar( tempStorageKey, dataToStore );
+		return "";
 	}
 
 	/**
-	 * Retrieves a formbuilder form's submitted values from the user's session temporarily
-	 * for repopulation to a form when the user has logged back in after a timeout.
+	 * Retrieves a formbuilder form's previously stored submission values from
+	 * temporary storage (e.g. session or database). This is typically used to
+	 * repopulate a form after the user returns from an interruption such as a
+	 * login timeout.
 	 *
 	 * @autodoc
-	 * @formId.hint     The ID of the form you wish to retrieve stored values for
 	 *
+	 * @formId.hint     The ID of the form whose stored values should be retrieved
+	 * @storageKey.hint Optional key to namespace or identify the stored submission
+	 * @storage.hint    The storage type to use (defaults to `formbuilderDraftStorageType`)
+	 *
+	 * @return struct   A struct of stored submission values, or an empty struct if none are found
 	 */
-	public struct function getTempStoredSubmission( required string formId, boolean clearSubmission=false ) {
-		var tempStorageKey = "temp_formbuilder_submission_#formId#";
-		var submission     =  _getSessionStorage().getVar( tempStorageKey, StructNew() );
+	public struct function getTempStoredSubmission(
+		  required string  formId
+		,          string  storageKey = ""
+		,          string  storage    = formbuilderDraftStorageType
+	) {
+		var storageHandler = "formbuilder.storages.#arguments.storage#.getTempData";
 
-		if ( arguments.clearSubmission ) {
-			clearTempStoredSubmission( formId=arguments.formId );
+		if ( $getColdbox().handlerExists( storageHandler ) ) {
+			return $getColdbox().runEvent(
+				  event          = storageHandler
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  formId     = arguments.formId
+					, storageKey = arguments.storageKey
+				  }
+			);
 		}
 
-		return submission;
+		return {};
 	}
 
-	public void function clearTempStoredSubmission( required string formId ) {
-		_getSessionStorage().deleteVar( "temp_formbuilder_submission_#formId#" );
+	/**
+	 * Clears a formbuilder form's previously stored submission values from
+	 * temporary storage (e.g. session or database). This is typically used
+	 * once the stored data is no longer needed, such as after a successful
+	 * form submission or when discarding a draft.
+	 *
+	 * @autodoc
+	 *
+	 * @formId.hint     The ID of the form whose stored values should be cleared
+	 * @storageKey.hint Optional key to namespace or identify the stored submission
+	 * @storage.hint    The storage type to use (defaults to `formbuilderDraftStorageType`)
+	 *
+	 * @return void     No return value
+	 */
+	public void function clearTempStoredSubmission(
+		  required string  formId
+		,          string  storageKey = ""
+		,          string  storage    = formbuilderDraftStorageType
+	) {
+		var storageHandler = "formbuilder.storages.#arguments.storage#.clearTempData";
+
+		if ( $getColdbox().handlerExists( storageHandler ) ) {
+			$getColdbox().runEvent(
+				  event          = storageHandler
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  formId     = arguments.formId
+					, storageKey = arguments.storageKey
+				  }
+			);
+		}
 	}
 
 	/**
@@ -757,16 +851,16 @@ component {
 	 */
 	public string function renderForm(
 		  required string formId
-		,          string layout           = "default"
-		,          struct configuration    = {}
-		,          any    validationResult = ""
+		,          string layout            = "default"
+		,          struct configuration     = {}
+		,          any    validationResult  = ""
+		,          string coreLayoutViewlet = "formbuilder.core.formLayout"
 	) {
 		var formConfiguration = getForm( id=arguments.formId );
 		var formPageNumber    = arguments.configuration.formPageNumber ?: 0;
 		var items             = getFormItems( id=arguments.formId, pageNumber=formPageNumber );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
-		var coreLayoutViewlet = "formbuilder.core.formLayout";
 		var formLayoutArgs    = Duplicate( arguments.configuration );
 		var formLayoutViewlet = _getFormBuilderRenderingService().getFormLayoutViewlet( layout=arguments.layout );
 		var idPrefixForFields = _createIdPrefix( formId=arguments.formId );
@@ -809,7 +903,7 @@ component {
 		}
 
 		formLayoutArgs.renderedForm = $renderViewlet(
-			  event = coreLayoutViewlet
+			  event = arguments.coreLayoutViewlet
 			, args  = coreLayoutArgs
 		);
 
@@ -906,15 +1000,16 @@ component {
 
 	public string function renderSummary(
 		  required string formId
-		,          struct submission = getTempStoredSubmission( arguments.formId )
+		,          string storageKey = ""
+		,          struct submission = getTempStoredSubmission( formId=arguments.formId, storageKey=arguments.storageKey )
 	) {
 		var formPageCount = getPageCount( formId=arguments.formId );
 		var renderedPages = CreateObject( "java", "java.lang.StringBuffer" );
 
 		for ( var pageNumber=1; pageNumber<=formPageCount; pageNumber++ ) {
-			if ( evaluateConditionForPage( formId=arguments.formId, pageNumber=pageNumber ) ) {
+			if ( evaluateConditionForPage( formId=arguments.formId, pageNumber=pageNumber, storageKey=arguments.storageKey, payload=arguments.submission ) ) {
 				var renderedItems = CreateObject( "java", "java.lang.StringBuffer" );
-				var formItems = getFormItems( id=arguments.formId, pageNumber=pageNumber );
+				var formItems     = getFormItems( id=arguments.formId, pageNumber=pageNumber );
 
 				for ( var formItem in formItems ) {
 					var formItemResponse = _getFormItemResponsFromSubmission( formItem=formItem, submission=arguments.submission );
@@ -1058,7 +1153,6 @@ component {
 		return render;
 	}
 
-
 	/**
 	 * Returns the submission success message saved
 	 * against the form for the given form ID
@@ -1172,18 +1266,19 @@ component {
 		,          string  ipAddress       = Trim( ListLast( cgi.remote_addr ?: "" ) )
 		,          string  userAgent       = ( cgi.http_user_agent ?: "" )
 		,          boolean validateCaptcha = true
+		,          boolean validateForm    = true
+		,          boolean recordAction    = true
 		,          array   formItems       = []
+		,          struct  data            = {}
 	) {
-		setFormBuilderSubmissionContextData( arguments.formId, arguments.requestData );
-
 		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
 		var formItems         = ArrayLen( arguments.formItems ) ? arguments.formItems : getFormItems( arguments.formId );
 		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
-		var validationResult  = _getFormBuilderValidationService().validateFormSubmission(
+		var validationResult  = arguments.validateForm ? _getFormBuilderValidationService().validateFormSubmission(
 			  formItems      = formItems
 			, submissionData = formData
-		);
+		) : validationEngine.newValidationResult();
 
 		if ( arguments.validateCaptcha && $helpers.isTrue( formConfiguration.use_captcha ?: "" ) ) {
 			if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
@@ -1201,16 +1296,17 @@ component {
 		} );
 
 		if ( validationResult.validated() ) {
-			if ( isV2Form( arguments.formid ) ) {
+			if ( isV2Form( arguments.formId ) ) {
 				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
-					  form          = arguments.formId
-					, submitted_by  = $getWebsiteLoggedInUserId()
-					, form_instance = arguments.instanceId
-					, form_site     = arguments.instanceSite
-					, form_url      = arguments.instanceUrl
-					, form_page     = arguments.instancePage
-					, ip_address    = arguments.ipAddress
-					, user_agent    = arguments.userAgent
+					  form           = arguments.formId
+					, submitted_by   = $getWebsiteLoggedInUserId()
+					, form_instance  = arguments.instanceId
+					, form_site      = arguments.instanceSite
+					, form_url       = arguments.instanceUrl
+					, form_page      = arguments.instancePage
+					, ip_address     = arguments.ipAddress
+					, user_agent     = arguments.userAgent
+					, submitted_data = IsEmpty( arguments.data ) ? NullValue() : SerializeJson( arguments.data )
 				} );
 
 				saveV2Responses( formId=arguments.formId, formData=formData, formItems=formItems, submissionId=submissionId );
@@ -1229,8 +1325,10 @@ component {
 				} );
 			}
 
+			setFormBuilderSubmissionContextData( formId=arguments.formId, submissionId=submissionId, data=arguments.requestData );
+
 			var submission = getSubmission( submissionId );
-			for( var s in submission ) { submission = s; }
+			for ( var s in submission ) { submission = s; }
 
 			if ( isV2Form( formId=arguments.formId ) ) {
 				submission.submitted_data = SerializeJSON( getV2Responses( formId=arguments.formId, submissionId=submissionId ) );
@@ -1241,12 +1339,14 @@ component {
 				, submissionData = submission
 			);
 
-			$recordWebsiteUserAction(
-				  type       = "formbuilder"
-				, action     = "submitform"
-				, identifier = arguments.formId
-				, detail     = submission
-			);
+			if ( arguments.recordAction ) {
+				$recordWebsiteUserAction(
+					  type       = "formbuilder"
+					, action     = "submitform"
+					, identifier = arguments.formId
+					, detail     = submission
+				);
+			}
 
 			if ( $helpers.isTrue( formConfiguration.notification_enabled ?: false ) ) {
 				$createNotification(
@@ -1275,19 +1375,23 @@ component {
 	public any function saveTempSubmission(
 		  required string  formId
 		, required struct  requestData
-		,          array   formItems  = []
-		,          numeric pageNumber = 0
-		,          numeric pageNext   = 0
+		,          string  storageKey   = ""
+		,          boolean validateForm = true
+		,          array   formItems    = []
+		,          numeric pageNumber   = 0
+		,          numeric pageNext     = 0
 	) {
 		var formConfiguration = getForm( arguments.formId );
 		var formData          = getRequestDataForForm( formId=arguments.formId, requestData=arguments.requestData, pageNumber=arguments.pageNumber );
 		var validationResult  = _getValidationEngine().newValidationResult();
 
 		if ( arguments.pageNext > 0 ) {
-			validationResult = _getFormBuilderValidationService().validateFormSubmission(
-				  formItems      = arguments.formItems
-				, submissionData = formData
-			);
+			if ( arguments.validateForm ) {
+				validationResult = _getFormBuilderValidationService().validateFormSubmission(
+					  formItems      = arguments.formItems
+					, submissionData = formData
+				);
+			}
 
 			if ( arguments.pageNumber == 1 && $helpers.isTrue( formConfiguration.use_captcha ?: "" ) ) {
 				if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
@@ -1298,7 +1402,7 @@ component {
 
 		if ( validationResult.validated() ) {
 			var nextPageNumber = arguments.pageNumber + arguments.pageNext;
-			var tempSubmission = getTempStoredSubmission( formId=arguments.formId );
+			var tempSubmission = getTempStoredSubmission( formId=arguments.formId, storageKey=arguments.storageKey );
 
 			tempSubmission.instancePage = tempSubmission.instancePage ?: "";
 			var pageItem = getPageByPageNumber( formId=arguments.formId, pageNumber=arguments.pageNumber );
@@ -1315,13 +1419,13 @@ component {
 				StructAppend( tempSubmission, formData );
 			}
 
-			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=nextPageNumber, payload=tempSubmission ) ) {
+			while ( !evaluateConditionForPage( formId=arguments.formId, pageNumber=nextPageNumber, storageKey=arguments.storageKey, payload=tempSubmission ) ) {
 				nextPageNumber += arguments.pageNext;
 			}
 
 			tempSubmission.formPageNumber = nextPageNumber;
 
-			setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, withFileUpload=true );
+			requestData.storageKey = setTempStoredSubmission( formId=arguments.formId, submission=tempSubmission, storageKey=arguments.storageKey, withFileUpload=true );
 		}
 
 		return validationResult;
@@ -1330,9 +1434,10 @@ component {
 	public struct function prepareTempSubmission(
 		  required string formId
 		, required struct requestData
+		,          string storageKey       = ""
 		,          array  formItems = []
 	) {
-		var tempSubmission      = Duplicate( getTempStoredSubmission( formId=arguments.formId ) );
+		var tempSubmission      = Duplicate( getTempStoredSubmission( formId=arguments.formId, storageKey=arguments.storageKey ) );
 		var fileUploadItemTypes = _getItemTypesService().getFileUploadItemTypes();
 
 		for ( var formItem in arguments.formItems ) {
@@ -1347,7 +1452,7 @@ component {
 					StructDelete( arguments.requestData, formItem.configuration.name ?: "" );
 				}
 			}
-		}
+		};
 
 		StructAppend( tempSubmission, arguments.requestData );
 
@@ -1649,6 +1754,16 @@ component {
 							deleteSubmissionResponses( submissionId=submission.id );
 						}
 					}
+				}
+
+				if ( formbuilderDraftStorageType == "database" ) {
+					$getPresideObject( formbuilderDraftStorageDatabaseTable ).deleteData(
+						  filter       = "form = :form and datecreated < :datecreated"
+						, filterParams = {
+							  form        = { cfsqltype="cf_sql_varchar", value=formbuilderForm.id }
+							, datecreated = DateAdd( "d", -Val( formbuilderForm.submission_remove_after ), Now() )
+						  }
+					);
 				}
 			}
 
@@ -2421,10 +2536,19 @@ component {
 	public struct function getFormBuilderSubmissionContextData() {
 		return $getRequestContext().getValue( name="_formBuilderContext", private=true, defaultValue={} );
 	}
-	public void function setFormBuilderSubmissionContextData( required string formId, required struct data ) {
+	public void function setFormBuilderSubmissionContextData(
+		  required string formId
+		, required struct data
+		,          string submissionId = ""
+	) {
 		$getRequestContext().setValue(
 			  name    = "_formBuilderContext"
-			, value   = { id=arguments.formId, data=arguments.data }
+			, value   = {
+				  id           = arguments.formId // for compatibility
+				, formId       = arguments.formId
+				, submissionId = arguments.submissionId
+				, data         = arguments.data
+			  }
 			, private = true
 		);
 	}
@@ -2726,7 +2850,7 @@ component {
 	}
 
 	private string function _createIdPrefix( required string formId ) {
-		return "formbuilder_" & LCase( Hash( Now() & arguments.formId ) );
+		return "formbuilder_" & LCase( Hash( Now() & arguments.formId ) ) & "_";
 	}
 
 	private struct function _getItemConfigurationForV2Question( required string questionId ) {

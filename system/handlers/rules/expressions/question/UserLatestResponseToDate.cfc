@@ -16,7 +16,7 @@ component {
 	 */
 	private boolean function evaluateExpression(
 		  required string question
-		,          string formId = ""
+		,          string formId = ( payload.formbuilderSubmission.formId ?: "" )
 		,          struct _time  = {}
 	) {
 		var userId = payload.user.id ?: "";
@@ -28,8 +28,6 @@ component {
 		return formBuilderFilterService.evaluateQuestionUserLatestResponseMatch(
 			  argumentCollection = arguments
 			, userId             = userId
-			, formId             = payload.formId ?: ""
-			, submissionId       = payload.submissionId ?: ""
 			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
 	}

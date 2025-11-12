@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "datamanager.join.schema.json",
+    "type": "object",
+    "title": "Join",
+    "additionalProperties": false,
+    "required":[ "id", "waitForSteps", "result" ],
+    "properties":{
+        "id"                 : { "type":"string", "description":"Unique ID of the step (unique to the workflow)" },
+        "waitForSteps"       : { "type":"array" , "description":"Array of Step IDs. These steps must all be complete or skipped in order for this join action to execute." , "items":{"type":"string"} },
+        "result"             : { "type":"object", "description":"The default result to run if no conditional results are defined or matched", "$ref":"datamanager.result.schema.json"},
+        "conditionalResults" : { "type":"array" , "description":"Optional array of conditional results to run should their condition be matched. First matching result wins.", "items":{ "type":"object", "$ref":"datamanager.conditionalresult.schema.json" } }
+    }
+}

@@ -130,39 +130,49 @@ component {
 		 * in all scenarios.
 		 *
 		 */
-		do {
-			records = poService.selectData(
-				  objectName   = recipientObject
-				, selectFields = [ "#idField# as id" ]
-				, filter       = filter
-				, filterParams = filterParams
-				, extraFilters = extraFilters
-				, orderBy      = idField
-				, distinct     = true
-				, maxRows      = pageSize
-				, useCache     = false
-			);
+		try {
+			_getEmailTemplateService().updateScheduleQueueingFlag( templateId=arguments.templateId, isQueueing=true );
 
-			if ( records.recordCount ) {
-				ArrayAppend( batchedSets, ValueArray( records.id ) );
-
-				filter = "#idField# > :#idField#";
-				filterParams[ idField ] = records.id[ records.recordCount ];
-			}
-		} while( records.recordCount == pageSize );
-
-		for( var batch in batchedSets ) {
-			queuedCount += poService.insertDataFromSelect(
-				  objectName = "email_mass_send_queue"
-				, fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
-				, selectDataArgs = {
+			do {
+				records = poService.selectData(
 					  objectName   = recipientObject
-					, selectFields = [ idField, ":template", nowFunction, nowFunction ]
-					, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
-					, extraFilters = [ { filter={ "#idField#"=batch } }, inQueueFilter ]
-				  }
-			);
+					, selectFields = [ "#idField# as id" ]
+					, filter       = filter
+					, filterParams = filterParams
+					, extraFilters = extraFilters
+					, orderBy      = idField
+					, distinct     = true
+					, maxRows      = pageSize
+					, useCache     = false
+				);
+
+				if ( records.recordCount ) {
+					ArrayAppend( batchedSets, ValueArray( records.id ) );
+
+					filter = "#idField# > :#idField#";
+					filterParams[ idField ] = records.id[ records.recordCount ];
+				}
+			} while( records.recordCount == pageSize );
+
+			for( var batch in batchedSets ) {
+				queuedCount += poService.insertDataFromSelect(
+					  objectName = "email_mass_send_queue"
+					, fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
+					, selectDataArgs = {
+						  objectName   = recipientObject
+						, selectFields = [ idField, ":template", nowFunction, nowFunction ]
+						, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
+						, extraFilters = [ { filter={ "#idField#"=batch } }, inQueueFilter ]
+					}
+				);
+			}
+
+			_getEmailTemplateService().updateScheduleQueueingFlag( templateId=arguments.templateId, isQueueing=false );
+		} catch (any e) {
+			$raiseError(e);
+			_getEmailTemplateService().updateScheduleQueueingFlag( templateId=arguments.templateId, isQueueing=false, queueFailed=true );
 		}
+
 		return queuedCount;
 	}
 

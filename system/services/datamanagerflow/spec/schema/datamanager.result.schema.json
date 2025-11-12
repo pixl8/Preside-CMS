@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "datamanager.result.schema.json",
+    "type": "object",
+    "title": "Action result",
+    "additionalProperties": false,
+    "anyOf": [
+        { "required": [ "joins"                   ]},
+        { "required": [ "activateSteps"           ]},
+        { "required": [ "skipSteps"               ]},
+        { "required": [ "completeSteps"           ]},
+        { "required": [ "pendingSteps"            ]},
+        { "required": [ "skipIncompleteSteps"     ]},
+        { "required": [ "activateIncompleteSteps" ]}
+    ],
+    "properties":{
+        "thisStep"                : { "type":"string", "description":"The status to set this state to. Default is 'complete' if not defined. Cannot be 'active'.", "enum":[ "pending","complete","skipped" ] },
+        "activateSteps"           : { "type":"array" , "description":"Optional array of step IDs to transition to an active state" , "items":{"type":"string"} },
+        "skipSteps"               : { "type":"array" , "description":"Optional array of step IDs to transition to a skipped state" , "items":{"type":"string"} },
+        "completeSteps"           : { "type":"array" , "description":"Optional array of step IDs to transition to a complete state", "items":{"type":"string"} },
+        "pendingSteps"            : { "type":"array" , "description":"Optional array of step IDs to transition to a pending state" , "items":{"type":"string"} },
+        "skipIncompleteSteps"     : { "type":"array" , "description":"Optional array of step IDs to transition to a skipped state (if not already skipped or complete)" , "items":{"type":"string"} },
+        "activateIncompleteSteps" : { "type":"array" , "description":"Optional array of step IDs to transition to an active state (if not already skipped or complete)" , "items":{"type":"string"} },
+        "appendState"             : { "type":"object", "description":"Abitrary data to append to the flow state."},
+        "joins"                   : { "type":"array" , "description":"Optional array of join IDs to execute after this result (if all join steps are complete)" , "items":{"type":"string"} },
+        "preHandlers"             : { "type":"array" , "description":"Array of handlers to run before steps are transitioned.", "items":{"type":"object", "$ref":"datamanager.handler.schema.json"} },
+        "postHandlers"            : { "type":"array" , "description":"Array of handlers to run before steps are transitioned.", "items":{"type":"object", "$ref":"datamanager.handler.schema.json"} }
+    }
+}

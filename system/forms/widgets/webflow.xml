@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Webflow: widget
+
+This widget is used to embed a frontend webflow into a page.
+-->
+<form i18nBaseUri="widgets.webflow:" feature="webflow">
+	<tab id="default" sortOrder="10" >
+		<fieldset id="default" sortorder="10">
+			<field name="webflow_configuration" control="webflowPicker" object="webflow_configuration" objectFilters="webflowsForWidget" required="true" ajax="false" sortOrder="10" />
+		</fieldset>
+	</tab>
+</form>

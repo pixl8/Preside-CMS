@@ -27,7 +27,7 @@
 	<cfloop array="#exporters#" index="exporter">
 		<div class="radio">
 			<label>
-				<input class="#inputClass# radio" name="#inputName#" id="#inputId#-#exporter.id#" type="radio"  value="#HtmlEditFormat( exporter.id )#"<cfif ListFindNoCase( value, exporter.id )> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# />
+				<input class="#inputClass# radio" name="#inputName#" id="#inputId#-#exporter.id#" type="radio"  value="#EncodeForHtmlAttribute( exporter.id )#"<cfif ListFindNoCase( value, exporter.id )> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# />
 				<span class="lbl">
 					<span class="title bigger">
 						<i class="fa fa-fw #exporter.iconClass#"></i>

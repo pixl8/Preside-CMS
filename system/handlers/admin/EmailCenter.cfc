@@ -152,7 +152,9 @@ component extends="preside.system.base.AdminHandler" {
 		prc.emailRecipientTypeObject = emailRecipientTypeService.getFilterObjectForRecipientType( template.recipient_type );
 		prc.emailRecipientTypeFk = emailRecipientTypeService.getRecipientIdLogPropertyForRecipientType( template.recipient_type );
 
-		ArrayAppend( gridFields, prc.emailRecipientTypeFk );
+		if ( Len( prc.emailRecipientTypeFk ) ) {
+			ArrayAppend( gridFields, prc.emailRecipientTypeFk );
+		}
 
 		switch( rc.statType ?: "" ) {
 			case "bounces":

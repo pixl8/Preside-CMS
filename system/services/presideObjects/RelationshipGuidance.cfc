@@ -1,4 +1,4 @@
-component singleton=true {
+component singleton=true presideservice=true {
 
 // CONSTRUCTOR
 	/**

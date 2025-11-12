@@ -11,7 +11,7 @@
 		</cfif>
 
 		<cfif hasCmsPermission( "websiteBenefitsManager.delete" )>
-			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="websiteBenefitsManager.deleteBenefitAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteBenefitsManager.deleteBenefit.prompt', data=[args.label] )#">
+			<a class="red confirmation-prompt" data-context-key="d" href="#event.buildAdminLink( linkTo="websiteBenefitsManager.deleteBenefitAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteBenefitsManager.deleteBenefit.prompt', data=[ EncodeForHtmlAttribute( args.label ) ] )#">
 				<i class="fa fa-trash-o bigger-130"></i>
 			</a>
 		</cfif>

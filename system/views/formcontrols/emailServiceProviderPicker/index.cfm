@@ -26,7 +26,7 @@
 		<cfset itemId = inputId & LCase( Hash( item.id ) ) />
 		<div class="checkbox role-picker-#inputType#">
 			<label>
-				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#itemId#" type="#inputType#" value="#HtmlEditFormat( item.id )#"<cfif value == item.id> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# />
+				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#itemId#" type="#inputType#" value="#EncodeForHtmlAttribute( item.id )#"<cfif value == item.id> checked="checked"</cfif> tabindex="#getNextTabIndex()#" #htmlAttributes# />
 				<span class="lbl">
 					<span class="role-title bigger">#item.title#</span><br />
 					<span class="role-desc">#item.description#</span>

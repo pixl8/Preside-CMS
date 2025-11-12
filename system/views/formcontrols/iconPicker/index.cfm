@@ -21,7 +21,7 @@
 		value = savedValue;
 	}
 
-	value = EncodeForHTML( value );
+	value = EncodeForHtmlAttribute( value );
 
 	icons = args.icons ?: [];
 
