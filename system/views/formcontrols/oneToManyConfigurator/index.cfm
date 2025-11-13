@@ -21,8 +21,8 @@
 	formName                = args.formName         ?: "";
 	relationshipKey         = args.relationshipKey  ?: args.sourceObject;
 	labelRenderer           = args.labelRenderer    ?: "";
-	configuratorLabelUrl    = event.buildAdminLink( linkTo="labels.renderJson", querystring="labelRenderer=#labelRenderer#&object=#object#" );
-	configuratorAddUrl      = event.buildAdminLink( linkTo="datamanager.configuratorForm", querystring="object=#object#&formName=#formName#" );
+	configuratorLabelUrl    = args.configuratorLabelUrl ?: event.buildAdminLink( linkTo="labels.renderJson", querystring="labelRenderer=#labelRenderer#&object=#object#" );
+	configuratorAddUrl      = args.configuratorAddUrl   ?: event.buildAdminLink( linkTo="datamanager.configuratorForm", querystring="object=#object#&formName=#formName#" );
 	objectSingularName      = translateResource( "preside-objects.#object#:title.singular" );
 	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ objectSingularName ] );
 
