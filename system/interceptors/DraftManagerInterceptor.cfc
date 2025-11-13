@@ -72,7 +72,7 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	public void function postViewRecord( event, interceptData ) {
-		if ( !isFeatureEnabled( "draftMananger" ) ) {
+		if ( !isFeatureEnabled( "draftManager" ) ) {
 			return;
 		}
 
@@ -80,13 +80,18 @@ component extends="coldbox.system.Interceptor" {
 
 		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
 			var recordId = interceptData.recordId ?: "";
+			var alert    = _getDraftAlert( objectName=objectName, objectTitle=prc.objectTitle, recordId=recordId );
 
-			prc.renderedRecord = _getDraftAlert( objectName=objectName, objectTitle=prc.objectTitle, recordId=recordId ) & prc.renderedRecord;
+			for ( var k in [ "renderedRecord", "preViewRecordContent" ] ) {
+				if ( StructKeyExists( prc, k ) ) {
+					prc[ k ] = _getDraftAlert( objectName=objectName, objectTitle=prc.objectTitle, recordId=recordId ) & prc[ k ];
+				}
+			}
 		}
 	}
 
 	public void function postEditRecord( event, interceptData ) {
-		if ( !isFeatureEnabled( "draftMananger" ) ) {
+		if ( !isFeatureEnabled( "draftManager" ) ) {
 			return;
 		}
 
@@ -105,7 +110,7 @@ component extends="coldbox.system.Interceptor" {
 		, required string recordId
 		,          string alertAction = "view"
 	) {
-		var draft = draftManagerService.getDraftDataForObject( objectName=arguments.objectName, recordId=arguments.recordId );
+		var draft = draftManagerService.getDraftForObject( objectName=arguments.objectName, recordId=arguments.recordId );
 
 		return renderView( view="admin/draftManager/_alert", args={
 			  objectName  = arguments.objectName

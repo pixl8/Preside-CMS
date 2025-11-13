@@ -32,7 +32,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	private void function recordBreadcrumb( event, rc, prc, args={} ) {
 		var objectName = prc.record._object_name ?: "";
-		var recordId   = prc.record.id          ?: "";
+		var recordId   = prc.record.id           ?: "";
 
 		if ( dataManagerService.isOperationAllowed( objectName=objectName, operation="read" ) ) {
 			event.addAdminBreadCrumb(

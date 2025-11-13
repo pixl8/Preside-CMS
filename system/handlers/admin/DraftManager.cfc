@@ -7,8 +7,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
-		var objectName = ( prc.record._object_name ?: "" );
-		var recordId   = ( prc.record._record_id   ?: "" );
+		var objectName = prc.record._object_name ?: "";
+		var recordId   = prc.record._record_id   ?: "";
 
 		if ( !IsEmpty( prc.record._data ?: {} ) ) {
 			StructAppend( rc, DeserializeJSON( prc.record._data ), true );
@@ -61,8 +61,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function postApproveAction( event, rc, prc, args={}, wfInstance ) {
-		var state = wfInstance.getState();
-
+		var state       = wfInstance.getState();
 		var objectName  = prc.record._object_name ?: "";
 		var objectLabel = prc.record.label        ?: "";
 		var recordId    = state._record_id        ?: "";

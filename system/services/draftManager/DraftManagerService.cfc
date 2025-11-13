@@ -49,7 +49,7 @@ component {
 		return dataManagerWorkflowService.getDefaultWorkflowId( objectName="draftmanager_draft" );
 	}
 
-	public struct function getDraftDataForObject(
+	public struct function getDraftForObject(
 		  required string objectName
 		, required string recordId
 	) {
@@ -66,6 +66,19 @@ component {
 			  }
 			, returnType         = "singleRecordStruct"
 		);
+	}
+
+	public struct function getDraftDataForObject(
+		  required string objectName
+		, required string recordId
+	) {
+		if ( !$isFeatureEnabled( "draftManager" ) ) {
+			return false;
+		}
+
+		var draft = getDraftForObject( argumentCollection=arguments );
+
+		return DeserializeJSON( draft._data ?: "" );
 	}
 
 	public string function saveDraftDataForObject(
@@ -87,12 +100,13 @@ component {
 		if ( $helpers.isEmptyString( draft.id ?: "" ) ) {
 			return $getPresideObject( "draftmanager_draft" ).insertData(
 				data = {
-					  label                  = label
-					, _object_name           = arguments.objectName
-					, _record_id             = arguments.recordId
-					, _workflow_id           = getWorkflowId( objectName=arguments.objectName )
-					, _data                  = SerializeJSON( arguments.data )
-					, _security_user_created = $getAdminLoggedInUserId()
+					  label                   = label
+					, _object_name            = arguments.objectName
+					, _record_id              = arguments.recordId
+					, _workflow_id            = getWorkflowId( objectName=arguments.objectName )
+					, _data                   = SerializeJSON( arguments.data )
+					, _security_user_created  = $getAdminLoggedInUserId()
+					, _security_user_modified = $getAdminLoggedInUserId()
 				}
 			);
 		} else {

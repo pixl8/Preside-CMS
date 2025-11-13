@@ -6,7 +6,7 @@ component {
 		var data = args.data ?: "";
 
 		if ( ListLen( data, "." ) > 1 ) {
-			var draft = draftManagerService.getDraftDataForObject( objectName=ListFirst( args.data, "." ), recordId=ListRest( args.data, "." ) );
+			var draft = draftManagerService.getDraftForObject( objectName=ListFirst( args.data, "." ), recordId=ListRest( args.data, "." ) );
 
 			data = draft._status ?: "";
 		}
