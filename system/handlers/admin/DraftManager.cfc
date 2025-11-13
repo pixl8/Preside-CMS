@@ -6,6 +6,10 @@ component extends="preside.system.base.AdminHandler" {
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
+	private struct function getPreviewActionButton( event, rc, prc, args={} ) {
+		return {};
+	}
+
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
 		var objectName = prc.record._object_name ?: "";
 		var recordId   = prc.record._record_id   ?: "";

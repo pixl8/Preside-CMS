@@ -95,6 +95,29 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return super._workflowTabTitle( argumentCollection=arguments );
 	}
 
+	private void function extraTopRightButtonsForViewRecord( event, rc, prc, args={} ) {
+		var objectName = prc.record._object_name ?: "";
+		var recordId   = prc.record._record_id   ?: "";
+		var draftId    = prc.record.id           ?: "";
+
+		var previewAction = customizationService.runCustomization(
+			  objectName = objectName
+			, action     = "getPreviewActionButton"
+			, defaultHandler = "admin.DraftManager.getPreviewActionButton"
+			, args       = {
+				  objectName = objectName
+				, recordId   = recordId
+				, draftId    = draftId
+			}
+		);
+
+		if ( !IsEmpty( previewAction ) ) {
+			var actions = args.actions ?: [];
+
+			ArrayPrepend( actions, previewAction );
+		}
+	}
+
 	private string function preViewRecordContent( event, rc, prc, args={} ) {
 		prc.pageTitle    = translateResource( uri="draftManager:page.view.title"    , data=[ prc.objectTitle ] );
 		prc.pageSubtitle = translateResource( uri="draftManager:page.view.subtitle" , data=[ prc.recordLabel ] );
