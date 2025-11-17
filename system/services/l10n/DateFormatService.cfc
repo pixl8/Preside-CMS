@@ -8,80 +8,218 @@ component {
 		return this;
 	}
 
-    public string function getDayMask() {
-        return $translateResource( uri="dateformat:day.mask");
-    }
+    
 
-    public string function getDateMask() {
-        return $translateResource( uri="dateformat:date.mask");
-    }
-
-    public string function getMonthMask() {
-        return $translateResource( uri="dateformat:month.mask");
-    }
-
-    public string function getDayMonthMask() {
-        return $translateResource( uri="dateformat:daymonth.mask");
-    }
-
-    public string function getYearMask() {
-        return $translateResource( uri="dateformat:year.mask");
-    }
-
-    public string function getDayMonthYearMask() {
-        return $translateResource( uri="dateformat:daymonthyear.mask");
-    }
-
+//SHORT DATE FORMAT FUNCTIONS
     public string function getShortDateFormatMask() {
-        return $translateResource( uri="dateformat:shortdate.mask");
+        return LCase(getSiteLocaleSettings().short_date_format);
     }
 
     public string function getShortDate( required date date ) {
         return LSdateFormat( arguments.date, getShortDateFormatMask() );
     }
 
-    public string function getDateWithFullMonthMask() {
-        return $translateResource( uri="dateformat:fullmonthdate.mask");
+//LONG DATE FORMAT FUNCTIONS
+    public string function getLongFormatMask() {
+        if( _getLongFormat() == "DMY" ) {
+            return "d mmmm yyyy";
+        }
+        else {
+            return "mmmm d yyyy";
+        }
     }
 
-    public string function getDateWithFullMonthName( required date date ) {
-        return LSdateFormat( arguments.date, getDateWithFullMonthMask() );
+    public string function getLongFormatDayMask() {
+        return "d";
     }
 
+    public string function getLongFormatMonthMask() {
+        return "mmmm";
+    }
+
+    public string function getLongFormatYearMask() {
+        return "yyyy";
+    }
+
+    public string function getLongFormatDayMonthMask() {
+        if( _getLongFormat() == "DMY" ) {
+            return "d mmmm";
+        }
+        else {
+            return "mmmm d";
+        }
+    }
+
+    public string function getLongDate( required date date ) {
+        return LSdateFormat( arguments.date, getLongFormatMask() );
+    }
+
+//DATE RANGE FUNCTIONS
     public string function getDateRangeWithSameMonth( required date date1, required date date2, showYear=false ) {
-        var mask               = arguments.showYear ? $translateResource( uri="dateformat:daterange.samemonth.withyear.mask") : $translateResource( uri="dateformat:daterange.samemonthnoyear.mask");
-        var daterangeSeparator = $translateResource( uri="dateformat:daterange.separator");
-        var maskParts          = ListToArray(mask, trim(daterangeSeparator));
-        var part1              = LSDateFormat( arguments.date1, maskParts[1] );
-        var part2              = LSDateFormat( arguments.date2, maskParts[2] );
+        var longFormat         = _getLongFormat();
+        var mask               = getLongFormatMask();
+		var maskNoYear         = getLongFormatDayMonthMask();
+		var dayMask            = getLongFormatDayMask();
+		var yearMask           = getLongFormatYearMask();
 
-        return part1 & daterangeSeparator & part2;
+		if( longFormat == "DMY" ) {
+            var dateRange = LSDateFormat( arguments.date1, dayMask );
+            if( arguments.showYear ) {
+                dateRange &= " - " & LSDateFormat( arguments.date2, mask );
+            }
+            else {
+                dateRange &= " - " & LSDateFormat( arguments.date2, maskNoYear );
+            }
+            return dateRange;
+		}
+		else {
+            var dateRange = "#LSDateFormat( arguments.date1, maskNoYear )# - #LSDateFormat( arguments.date2, dayMask )#";
+            if( arguments.showYear ) {
+                dateRange &= " " & LSDateFormat( arguments.date1, yearMask );
+            }
+            return dateRange;
+		}
     }
 
-    public string function getDateRangeWithDifferentMonthAndSameYear( required date date1, required date date2 ) {
-        var mask               = $translateResource( uri="dateformat:daterange.differentmonthssameyear.mask");
-        var daterangeSeparator = $translateResource( uri="dateformat:daterange.separator");
-        var maskParts          = ListToArray(mask, trim(daterangeSeparator));
-        var part1              = LSDateFormat( arguments.date1, maskParts[1] );
-        var part2              = LSDateFormat( arguments.date2, maskParts[2] );
+    public string function getDateRangeWithDifferentMonthAndSameYear( required date date1, required date date2, showYear=false ) {
+        var longFormat         = _getLongFormat();
+        var mask               = getLongFormatMask();
+		var maskNoYear         = getLongFormatDayMonthMask();
+		var dayMonthMask       = getLongFormatDayMonthMask();
 
-        return part1 & daterangeSeparator & part2;
+        if( !arguments.showYear ) {
+            mask = maskNoYear;
+        }
+
+        if( longFormat == "DMY" ) {
+			return "#LSDateFormat( date1, dayMonthMask )# - #LSDateFormat( date2, mask )#";
+		}
+		else {
+			return "#LSDateFormat( date1, maskNoYear )# - #LSDateFormat( date2, mask )#";
+		}
     }
 
-    public string function getDateRangeWithDifferentMonthAndDifferentYear( required date date1, required date date2 ) {
-        var mask               = $translateResource( uri="dateformat:daterange.differentmonthsdifferentyear.mask");
-        var daterangeSeparator = $translateResource( uri="dateformat:daterange.separator");
-        var maskParts          = ListToArray(mask, trim(daterangeSeparator));
-        var part1              = LSDateFormat( arguments.date1, maskParts[1] );
-        var part2              = LSDateFormat( arguments.date2, maskParts[2] );
+    public string function getDateRangeWithDifferentMonthAndDifferentYear( required date date1, required date date2, showYear=false ) {
+        var mask        = getLongFormatMask();
+        var maskNoYear  = getLongFormatDayMonthMask();
 
-        return part1 & daterangeSeparator & part2;
+        if( !arguments.showYear ) {
+            mask = maskNoYear;
+        }
+
+        return "#LSDateFormat( date1, mask )# - #LSDateFormat( date2, mask )#";
     }
 
-    public string function getDateRangeWithDifferentMonths( required date date1, required date date2 ) {
-        return LSdateFormat( arguments.date1, getDateWithFullMonthMask() ) & " - " & LSdateFormat( arguments.date2, getDateWithFullMonthMask() );
+    public string function getSplitDate( required array dates, boolean compact=false, numeric compactThreshold=30 ) {
+        var dayMask   = getLongFormatDayMask();
+        var dmyOrder  = _getLongFormat();
+        var delimiter = ", ";
+        
+        //sort the dates by year
+		ArraySort(arguments.dates, function(a,b) {
+			return DateCompare(a,b, "y");
+		});
+		
+        //get the unique years from the dates
+        var years = [];
+		for( var date in arguments.dates ) {
+			if( !ArrayContains(years, year(date)) ) {
+				ArrayAppend(years, year(date));
+			}
+		}
+        
+		var formattedDates = [];
+        //loop through the years
+		for(var year in years) {
+			var formattedYearDates = "";
+			var monthDates   = {};
+			var monthNumbers = [];
+
+            //get the dates for the current year
+			var yearDates = ArrayFilter(arguments.dates, function(date) {
+				return year(date) == year;
+			});
+
+			//loop through the dates for the current year
+			for( var date in yearDates ) {
+				var monthNumber = month(date);
+				if( !ArrayContains(monthNumbers, monthNumber) ) {
+					ArrayAppend(monthNumbers, monthNumber);
+				}
+
+				if( !StructKeyExists(monthDates, monthNumber) ) {
+					monthDates[monthNumber] = [];
+				}
+				monthDates[monthNumber].append(LSDateFormat(date, dayMask));
+			}
+
+			//sort the month numbers numerically ascending
+			ArraySort(monthNumbers, "numeric", "asc");
+
+			//loop through the month numbers
+			for( var i=1; i<=ArrayLen(monthNumbers); i++ ) {
+				//get the month number
+				var monthNumber = monthNumbers[i];
+
+				if( dmyOrder == "DMY" ) {
+					formattedYearDates &= ArrayToList(monthDates[monthNumber], delimiter) & " " & MonthAsString(monthNumber) & delimiter;
+				}
+				else if( dmyOrder == "MDY" || dmyOrder == "YMD" ) {
+					formattedYearDates &= MonthAsString(monthNumber) & " " & ArrayToList(monthDates[monthNumber], delimiter) & delimiter;
+				}
+			}
+
+            //strip the trailing delimiter
+			if( Right(formattedYearDates, 2) == delimiter ) {
+				formattedYearDates = Left(formattedYearDates, Len(formattedYearDates) - Len(delimiter));
+			}
+
+            //add the year depending on the day month year order
+			if( dmyOrder == "DMY" || dmyOrder == "MDY" ) {
+				formattedYearDates &= " " & year;
+			}
+			else if( dmyOrder == "YMD" ) {
+				formattedYearDates = year & " " & formattedYearDates;
+			}
+
+			ArrayAppend(formattedDates, formattedYearDates);
+		}
+
+        return ArrayToList(formattedDates, delimiter);
     }
 
+    public function getSiteLocaleSettings() {
+        var event                  = $getRequestContext();
+        var currentSite            = event.getSite();
+        var siteId                 = currentSite.id;
+
+        return $getPresideObject( "site_localisation" ).selectData(
+              filter = { site=siteId }
+            , extraSelectFields = [ "site.locale" ]
+        );
+    }
     
-    
+//PRIVATE FUNCTIONS
+    private struct function _getDefaultSettingsForLocale(){
+        var localeSettings  = getSiteLocaleSettings();
+        var defaultSettings = $getColdbox().getSetting( "datetime.localeDefaults" );
+
+        if(Len(localeSettings.locale) && Structkeyexists(defaultSettings, localeSettings.locale)){
+            return defaultSettings[localeSettings.locale];
+        }
+        else {
+            return defaultSettings["en"];
+        }
+    }
+
+    private string function _getLongFormat() {
+        var defaults = _getDefaultSettingsForLocale();
+
+        if( Len(getSiteLocaleSettings().long_date_format)) {
+            return getSiteLocaleSettings().long_date_format;
+        }
+        else {
+            return defaults.long_date_format;
+        }
+    }
 }
