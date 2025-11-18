@@ -44,7 +44,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( isEmptyString( recordId ) ) {
-			if ( dataManagerCustomizationService.objectHasCustomization( prc.objectName, "addRecordAction" ) ) {
+			if ( dataManagerCustomizationService.objectHasCustomization( objectName, "addRecordAction" ) ) {
 				return dataManagerCustomizationService.runCustomization(
 					  objectName = objectName
 					, action     = "addRecordAction"

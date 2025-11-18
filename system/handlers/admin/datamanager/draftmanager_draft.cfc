@@ -149,7 +149,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		} else if ( ArrayLen( children ) ) {
 			ArrayAppend( actions, {
 				  title     = translateResource( uri="draftManager:action.default.title" )
-				, iconClass = translateResource( uri="draftManager:action.defauilt.iconClass" )
+				, iconClass = translateResource( uri="draftManager:action.default.iconClass" )
 				, btnClass  = "btn-primary-default"
 				, children  = children
 				, id        = "actionButtons"
