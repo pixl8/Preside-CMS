@@ -52,12 +52,13 @@ component extends="preside.system.base.adminHandler" {
 	 * for a given object/record
 	 */
 	private string function displayGroup( event, rc, prc, args={} ) {
-		var objectName    = args.objectName ?: "";
-		var recordId      = args.recordId   ?: "";
-		var props         = args.properties ?: [];
-		var version       = Val( args.version ?: "" );
-		var uriRoot       = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
-		var useVersioning = presideObjectService.objectIsVersioned( objectName );
+		var objectName       = args.objectName ?: "";
+		var recordId         = args.recordId   ?: "";
+		var props            = args.properties ?: [];
+		var version          = Val( args.version ?: "" );
+		var uriRoot          = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+		var useVersioning    = presideObjectService.objectIsVersioned( objectName );
+		var objectProperties = presideObjectService.getObjectProperties( objectName=objectName );
 
 		if ( useVersioning && Val( version ) ) {
 			prc.record       = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
@@ -74,12 +75,16 @@ component extends="preside.system.base.adminHandler" {
 
 		args.renderedProps = [];
 		for ( var propertyName in props ) {
-			var renderedValue = adminDataViewsService.renderField(
-				  objectName   = objectName
-				, propertyName = propertyName
-				, recordId     = recordId
-				, value        = prc.record[ propertyName ] ?: ""
-			);
+			var renderedValue = prc.record[ propertyName ] ?: "";
+
+			if ( StructKeyExists( objectProperties, propertyName ) ) {
+				renderedValue = adminDataViewsService.renderField(
+					  objectName   = objectName
+					, propertyName = propertyName
+					, recordId     = recordId
+					, value        = renderedValue
+				);
+			}
 
 			renderedValue = _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue=renderedValue );
 
