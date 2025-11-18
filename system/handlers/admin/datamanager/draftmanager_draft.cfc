@@ -105,10 +105,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			var sourceRecordId   = prc.record._record_id   ?: "";
 
 			var previewAction = customizationService.runCustomization(
-				  objectName = sourceObjectName
-				, action     = "getPreviewActionButton"
-				, defaultHandler = "admin.DraftManager.getPreviewActionButton"
-				, args       = {
+				  objectName     = sourceObjectName
+				, action         = "getPreviewActionButton"
+				, defaultHandler = "admin.DraftManager.getDraftPreviewActionButton"
+				, args           = {
 					  objectName = sourceObjectName
 					, recordId   = sourceRecordId
 					, draftId    = recordId

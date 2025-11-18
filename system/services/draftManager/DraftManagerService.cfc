@@ -4,8 +4,9 @@
  */
 component {
 
-	property name="presideObjectService"       inject="delayedInjector:PresideObjectService";
-	property name="dataManagerWorkflowService" inject="delayedInjector:DataManagerWorkflowService";
+	property name="presideObjectService"            inject="delayedInjector:PresideObjectService";
+	property name="dataManagerWorkflowService"      inject="delayedInjector:DataManagerWorkflowService";
+	property name="dataManagerCustomizationService" inject="delayedInjector:DataManagerCustomizationService";
 
 	public any function init() {
 		return this;
@@ -125,8 +126,16 @@ component {
 
 	private string function getDraftLabel(
 		  required string objectName
-		, required struct data
+		,          struct data = {}
 	) {
+		if ( dataManagerCustomizationService.objectHasCustomization( objectName=arguments.objectName, action="getDraftLabel" ) ) {
+			return dataManagerCustomizationService.runCustomization(
+				  objectName     = arguments.objectName
+				, action         = "getDraftLabel"
+				, args           = arguments
+			);
+		}
+
 		var labelName = presideObjectService.getLabelField( objectName=arguments.objectName );
 
 		if ( $helpers.isEmptyString( labelName ) ) {
