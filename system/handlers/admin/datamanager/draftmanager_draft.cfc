@@ -125,6 +125,11 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				ArrayAppend( children, "---" );
 			}
 
+			var record = args.record ?: ( prc.record ?: {} );
+			if ( isQuery( record ) ) {
+				record = QueryRowToStruct( record );
+			}
+
 			ArrayAppend( children, {
 				  title     = translateResource( uri="draftManager:action.delete.title" )
 				, icon      = translateResource( uri="draftManager:action.delete.iconClass" )

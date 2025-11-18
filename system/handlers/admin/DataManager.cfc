@@ -3183,6 +3183,8 @@ component extends="preside.system.base.AdminHandler" {
 					, eventArguments = args
 				);
 			} else if ( isEmptyString( arguments.recordId ) ) {
+				// This is intentional to catch cases where a draft is being edited and published.
+				// A normal edit object will always have a recordId.
 				runEvent(
 					  event          = "admin.DraftManager._publishDraftRecordAction"
 					, private        = true
