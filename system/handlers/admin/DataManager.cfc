@@ -53,7 +53,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.preRenderListing  = ( customizationService.objectHasCustomization( objectName, "preRenderListing"  ) ? customizationService.runCustomization( objectName=objectName, action="preRenderListing"  , args=args ) : "" );
 		prc.postRenderListing = ( customizationService.objectHasCustomization( objectName, "postRenderListing" ) ? customizationService.runCustomization( objectName=objectName, action="postRenderListing" , args=args ) : "" );
 
-		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=objectName ) ) {
 			prc.listingView = runEvent(
 				  event          = "admin.DraftManager._getDraftTabs"
 				, private        = true
@@ -2743,7 +2743,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
-		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction() ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction() ) {
 			runEvent(
 				  event          = "admin.DraftManager._saveDraftRecordAction"
 				, private        = true
@@ -2869,7 +2869,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		obj = presideObjectService.getObject( object );
+		obj   = presideObjectService.getObject( object );
 		newId = obj.insertData( data=formData, insertManyToManyRecords=true );
 
 		if ( customizationService.objectHasCustomization( object, "postAddRecordAction" ) ) {
@@ -3174,13 +3174,22 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
-		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction() ) {
-			runEvent(
-				  event          = "admin.DraftManager._saveDraftRecordAction"
-				, private        = true
-				, prepostExempt  = true
-				, eventArguments = args
-			);
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=arguments.object ) ) {
+			if ( draftManagerService.isDraftAction() ) {
+				runEvent(
+					  event          = "admin.DraftManager._saveDraftRecordAction"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = args
+				);
+			} else if ( isEmptyString( arguments.recordId ) ) {
+				runEvent(
+					  event          = "admin.DraftManager._publishDraftRecordAction"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = args
+				);
+			}
 		}
 
 		if ( arguments.draftsEnabled ) {
@@ -3693,7 +3702,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _addRecordActionButtons( event, rc, prc, args={} ) {
-		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
 			args.draftsEnabled = true;
 			args.canSaveDraft  = true;
 			args.canPublish    = true;
@@ -3803,7 +3812,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _editRecordActionButtons( event, rc, prc, args={} ) {
-		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
 			args.draftsEnabled = true;
 			args.canSaveDraft  = true;
 			args.canPublish    = true;
@@ -4361,7 +4370,7 @@ component extends="preside.system.base.AdminHandler" {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
 
-		var e   = "";
+		var e                        = "";
 		var onlyCheckForLoginActions = [ "getObjectRecordsForAjaxSelectControl" ];
 		var useAnyWhereActions       = [
 			  "getChildObjectRecordsForAjaxDataTables"
@@ -4513,7 +4522,6 @@ component extends="preside.system.base.AdminHandler" {
 
 				}
 
-
 				try {
 					prc.recordLabel = renderLabel( prc.objectName, prc.recordId );
 				} catch ( "PresideObjectService.no.label.field" e ) {
@@ -4531,7 +4539,6 @@ component extends="preside.system.base.AdminHandler" {
 			, recordId    = prc.recordId          ?: ""
 			, recordLabel = prc.recordLabel       ?: ""
 		};
-
 
 		customizationService.runCustomization(
 			  objectName     = args.objectName

@@ -137,7 +137,7 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
-		announceInterception( "postViewRecord", { objectName=objectName, recordId=prc.recordId } );
+		announceInterception( "postViewRecord", { objectName=objectName, recordId=recordId } );
 
 		_overrideAdminLayout( argumentCollection=arguments );
 		event.setView( "/admin/datamanager/_viewRecord" );

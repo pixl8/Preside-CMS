@@ -20,10 +20,6 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var objectName    = prc.record._object_name ?: "draftmanager_draft";
 		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 
-		prc.objectTitle       = translateResource( uri="#objectURIRoot#title.singular", defaultValue=prc.objectTitle       );
-		prc.objectTitlePlural = translateResource( uri="#objectURIRoot#title"         , defaultValue=prc.objectTitlePlural );
-		prc.objectIconClass   = translateResource( uri="#objectURIRoot#iconClass"     , defaultValue=prc.objectIconClass   );
-
 		event.addAdminBreadCrumb(
 			  title = prc.objectTitlePlural
 			, link  = event.buildAdminLink( objectName=objectName, operation="listing" )
@@ -95,37 +91,94 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return super._workflowTabTitle( argumentCollection=arguments );
 	}
 
-	private void function extraTopRightButtonsForViewRecord( event, rc, prc, args={} ) {
-		var objectName = prc.record._object_name ?: "";
-		var recordId   = prc.record._record_id   ?: "";
-		var draftId    = prc.record.id           ?: "";
+	private array function getTopRightButtonsForViewRecord() {
+		var objectName   = "draftmanager_draft";
+		var objectTitle  = prc.objectTitle ?: "";
+		var recordId     = prc.recordId    ?: "";
+		var recordLabel  = prc.recordLabel ?: "";
+		var language     = rc.language     ?: "";
+		var actions      = [];
+		var children     = [];
 
-		var previewAction = customizationService.runCustomization(
-			  objectName = objectName
-			, action     = "getPreviewActionButton"
-			, defaultHandler = "admin.DraftManager.getPreviewActionButton"
-			, args       = {
-				  objectName = objectName
-				, recordId   = recordId
-				, draftId    = draftId
+		if ( IsTrue( prc.canView ?: "" ) ) {
+			var sourceObjectName = prc.record._object_name ?: "";
+			var sourceRecordId   = prc.record._record_id   ?: "";
+
+			var previewAction = customizationService.runCustomization(
+				  objectName = sourceObjectName
+				, action     = "getPreviewActionButton"
+				, defaultHandler = "admin.DraftManager.getPreviewActionButton"
+				, args       = {
+					  objectName = sourceObjectName
+					, recordId   = sourceRecordId
+					, draftId    = recordId
+				}
+			);
+
+			if ( !IsEmpty( previewAction ) ) {
+				ArrayPrepend( actions, previewAction );
 			}
+		}
+
+		if ( IsTrue( prc.canDelete ?: "" ) ) {
+			if ( ArrayLen( children ) ) {
+				ArrayAppend( children, "---" );
+			}
+
+			ArrayAppend( children, {
+				  title     = translateResource( uri="draftManager:action.delete.title" )
+				, icon      = translateResource( uri="draftManager:action.delete.iconClass" )
+				, link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
+				, globalKey = "d"
+				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
+				, match     = dataManagerService.useTypedConfirmationForDeletion( objectName ) ? datamanagerService.getDeletionConfirmationMatch( objectName, record ) : ""
+				, id        = "delete"
+			} );
+		}
+
+		if ( isTrue( prc.canEdit ?: "" ) ) {
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="draftManager:action.edit.title" )
+				, iconClass = translateResource( uri="draftManager:action.edit.iconClass" )
+				, link      = event.buildAdminLink( objectName=objectName, operation="editRecord", recordId=recordId )
+				, btnClass  = "btn-primary-default"
+				, globalKey = "e"
+				, children  = children
+				, id        = "actionButtons"
+			} );
+		} else if ( ArrayLen( children ) ) {
+			ArrayAppend( actions, {
+				  title     = translateResource( uri="draftManager:action.default.title" )
+				, iconClass = translateResource( uri="draftManager:action.defauilt.iconClass" )
+				, btnClass  = "btn-primary-default"
+				, children  = children
+				, id        = "actionButtons"
+			} );
+		}
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "extraTopRightButtonsForViewRecord"
+			, args           = { objectName=objectName, actions=actions }
 		);
 
-		if ( !IsEmpty( previewAction ) ) {
-			var actions = args.actions ?: [];
+		announceInterception( "postExtraTopRightButtonsForViewRecord", { objectName=objectName, actions=actions } );
 
-			ArrayPrepend( actions, previewAction );
-		}
+		return actions;
 	}
 
 	private string function preViewRecordContent( event, rc, prc, args={} ) {
-		prc.pageTitle    = translateResource( uri="draftManager:page.view.title"    , data=[ prc.objectTitle ] );
-		prc.pageSubtitle = translateResource( uri="draftManager:page.view.subtitle" , data=[ prc.recordLabel ] );
-		prc.pageIcon     = translateResource( uri="draftManager:page.view.iconClass" );
+		var objectName    = prc.record._object_name ?: "";
+		var recordId      = prc.record._record_id   ?: "";
+		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+
+		prc.recordLabel = prc.record.label ?: "";
+		prc.pageTitle   = prc.recordLabel;
+		prc.pageIcon    = translateResource( uri="#objectURIRoot#iconClass", defaultValue="fa-database" );
 
 		return renderView( view="admin/draftManager/_alert", args={
 			  objectName  = prc.objectName
-			, objectTitle = prc.objectTitle
+			, objectTitle = translateResource( uri="#objectURIRoot#title.singular", defaultValue=objectName )
 			, recordLink  = isEmptyString( args.record._record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record._object_name, recordId=args.record._record_id, operation="viewRecord" )
 		} );
 	}
@@ -160,6 +213,18 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		if ( !isEmptyString( objectName ) ) {
 			ArrayAppend( args.extraFilters, { filter={ _object_name=objectName } } );
 		}
+	}
+
+	private void function addRecordAction( event, rc, prc ) {
+		// Pretend original object action.
+		arguments.object = prc.record._object_name ?: "";
+
+		runEvent(
+			  event          = "admin.DataManager._addRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = arguments
+		);
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
@@ -217,6 +282,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		event.setValue( name="id", value=arguments.recordId );
 
 		arguments.checkExistingRecord = false;
+		arguments.formName            = getEditRecordFormName( argumentCollection=arguments );
 
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"
