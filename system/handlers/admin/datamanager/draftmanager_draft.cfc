@@ -10,19 +10,24 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.tabs     = [ "draft" ];
 
 	private void function rootBreadcrumb( event, rc, prc, args={} ) {
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:datamanager" )
-			, link  = event.buildAdminLink( linkTo="datamanager" )
+		var objectName = prc.record._object_name ?: "draftmanager_draft";
+
+		dataManagerCustomizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "rootBreadcrumb"
+			, defaultHandler = "admin.DraftManager._rootBreadcrumb"
+			, args           = arguments
 		);
 	}
 
 	private void function objectBreadcrumb( event, rc, prc, args={} ) {
-		var objectName    = prc.record._object_name ?: "draftmanager_draft";
-		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+		var objectName = prc.record._object_name ?: "draftmanager_draft";
 
-		event.addAdminBreadCrumb(
-			  title = prc.objectTitlePlural
-			, link  = event.buildAdminLink( objectName=objectName, operation="listing" )
+		dataManagerCustomizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "objectBreadcrumb"
+			, defaultHandler = "admin.DraftManager._objectBreadcrumb"
+			, args           = arguments
 		);
 	}
 

@@ -172,7 +172,7 @@ component extends="preside.system.base.AdminHandler" {
 		return hasPermission;
 	}
 
-	private string function recordBreadcrumb() {
+	private void function recordBreadcrumb() {
 		var objectName  = args.objectName  ?: "";
 		var recordLabel = args.recordLabel ?: "";
 		var recordId    = args.recordId    ?: "";

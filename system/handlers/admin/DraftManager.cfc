@@ -131,6 +131,23 @@ component extends="preside.system.base.AdminHandler" {
 		return "";
 	}
 
+	private void function _rootBreadcrumb( event, rc, prc, args={} ) {
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:datamanager" )
+			, link  = event.buildAdminLink( linkTo="datamanager" )
+		);
+	}
+
+	private void function _objectBreadcrumb( event, rc, prc, args={} ) {
+		var objectName    = prc.record._object_name ?: "draftmanager_draft";
+		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="#objectURIRoot#title", defaultValue=objectName )
+			, link  = event.buildAdminLink( objectName=objectName, operation="listing" )
+		);
+	}
+
 	private string function _getDraftTabContent( event, rc, prc, args={} ) {
 		var tabId      = arguments.tabId      ?: "";
 		var objectName = arguments.objectName ?: "";

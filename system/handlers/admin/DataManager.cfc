@@ -424,8 +424,6 @@ component extends="preside.system.base.AdminHandler" {
 			  }
 		);
 
-		announceInterception( "postEditRecord", { objectName=objectName, recordId=recordId, version=version } );
-
 		var recordLabel         = prc.recordLabel ?: "";
 		var objectTitleSingular = prc.objectTitle ?: ""
 		var editRecordTitle     = translateResource( uri="cms:datamanager.editrecord.title", data=[  objectTitleSingular , recordLabel ] );
@@ -436,6 +434,8 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
 			, link  = ""
 		);
+
+		announceInterception( "postEditRecord", { objectName=objectName, recordId=recordId, version=version } );
 	}
 
 	public void function editRecordAction( event, rc, prc ) {
