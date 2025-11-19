@@ -10,7 +10,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.tabs     = [ "draft" ];
 
 	private void function rootBreadcrumb( event, rc, prc, args={} ) {
-		var objectName = prc.record._object_name ?: "draftmanager_draft";
+		var objectName = prc.record._object_name ?: "";
 
 		dataManagerCustomizationService.runCustomization(
 			  objectName     = objectName
@@ -21,7 +21,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private void function objectBreadcrumb( event, rc, prc, args={} ) {
-		var objectName = prc.record._object_name ?: "draftmanager_draft";
+		var objectName = prc.record._object_name ?: "";
 
 		dataManagerCustomizationService.runCustomization(
 			  objectName     = objectName
@@ -111,7 +111,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 			var previewAction = customizationService.runCustomization(
 				  objectName     = sourceObjectName
-				, action         = "getPreviewActionButton"
+				, action         = "getDraftPreviewActionButton"
 				, defaultHandler = "admin.DraftManager.getDraftPreviewActionButton"
 				, args           = {
 					  objectName = sourceObjectName
@@ -262,9 +262,17 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
-		return renderView( view="admin/draftManager/_alert", args={
+		var objectName    = prc.record._object_name ?: "";
+		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+
+		return dataManagerCustomizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "preRenderEditRecordForm"
+			, args           = args
+		)
+		& renderView( view="admin/draftManager/_alert", args={
 			  objectName  = prc.objectName
-			, objectTitle = prc.objectTitle
+			, objectTitle = translateResource( uri="#objectURIRoot#title.singular", defaultValue=objectName )
 			, recordLink  = isEmptyString( args.record._record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record._object_name, recordId=args.record._record_id, operation="viewRecord" )
 			, alertAction = "edit"
 		} );

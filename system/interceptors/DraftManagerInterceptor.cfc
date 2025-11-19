@@ -97,6 +97,19 @@ component extends="coldbox.system.Interceptor" {
 
 		var objectName = interceptData.objectName ?: "";
 
+		if ( objectName == "draftmanager_draft" ) {
+			var breadcrumbs = event.getAdminBreadCrumbs();
+			var length = ArrayLen( breadcrumbs )
+			if ( length ) {
+				ArrayDeleteAt( breadcrumbs, length );
+
+				event.addAdminBreadCrumb(
+					  title = translateResource( uri="draftManager:breadcrumb.edit.title" )
+					, link  = ""
+				);
+			}
+		}
+
 		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
 			var recordId = interceptData.recordId ?: "";
 
