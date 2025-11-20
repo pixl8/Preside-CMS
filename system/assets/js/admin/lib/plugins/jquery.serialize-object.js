@@ -94,6 +94,10 @@
     function addPair(pair) {
       if (!patterns.validate.test(pair.name)) return this;
       var obj = makeObject(pair.name, encode(pair));
+
+      if ( $('[name="' + pair.name + '"]', $form).attr("type") == "checkbox" && data.hasOwnProperty( pair.name ) ) {
+        obj[ pair.name ] = data[ pair.name ] + ',' + obj[ pair.name ];
+      }
       data = helper.extend(true, data, obj);
       return this;
     }
