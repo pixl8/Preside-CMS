@@ -18,6 +18,7 @@
 	objectPickerClass       = removeObjectPickerClass ?  "" : "object-picker";
 	addMissingValues        = IsTrue( args.addMissingValues   ?: "" );
 	includeEmptyOption      = IsTrue( args.includeEmptyOption ?: "" );
+	exactMatchOnly          = IsTrue( args.exactMatchOnly     ?: "" );
 	labels                  = ( StructKeyExists( args, "labels") && Len( args.labels ) ) ? args.labels : args.values;
 	titles                  = ( StructKeyExists( args, "titles") && Len( args.titles ) ) ? args.titles : labels;
 	optionAttribs           = args.optionAttribs           ?: "";
@@ -72,7 +73,7 @@
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selectValue=EncodeForHTML( selectValue ) />
-			<cfset selected=FindNoCase( value, selectValue ) />
+			<cfset selected=exactMatchOnly ? ( value == selectValue ) : FindNoCase( value, selectValue ) />
 			<cfset valueFound=valueFound || selected />
 			<cfset label=translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) />
 			<cfset title=EncodeForHTML( translateResource( titles[ i ] ?: "", titles[ i ] ?: "" ) ) />
