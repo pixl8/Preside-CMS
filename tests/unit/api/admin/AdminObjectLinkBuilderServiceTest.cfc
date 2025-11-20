@@ -10,11 +10,12 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var operation      = "someoperation";
 				var additionalArgs = { test="tis" }
 
-				mockColdbox.$( "runEvent" ).$args(
-					  event = "admin.objectLinks.build#operation#Link"
-					, private = true
-					, prePostExempt = true
-					, eventArguments = { args={ objectName=objectName, recordId=recordId, test="tis" } }
+				mockCustomizationService.$( "objectHasCustomization" ).$args( objectName, "build#operation#Link" ).$results( false );
+				mockCustomizationService.$( "runCustomization" ).$args(
+					  objectName     = objectName
+					, action         = "build#operation#Link"
+					, defaultHandler = "admin.objectLinks._buildLinkDefault"
+					, args           = { objectName=objectName, action="build#operation#Link", recordId=recordId, test="tis" }
 				).$results( link );
 
 				expect( service.buildlink( objectName=objectName, operation=operation, recordId=recordId, args=additionalArgs ) ).toBe( link );
@@ -32,7 +33,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockCustomizationService.$( "runCustomization" ).$args(
 					  objectName     = objectName
 					, action         = "build#operation#Link"
-					, args           = { objectName=objectName, recordId=recordId, test="tis" }
+					, defaultHandler = "admin.objectLinks._buildLinkDefault"
+					, args           = { objectName=objectName, action="build#operation#Link", recordId=recordId, test="tis" }
 				).$results( link );
 
 				expect( service.buildlink( objectName=objectName, operation=operation, recordId=recordId, args=additionalArgs ) ).toBe( link );
@@ -48,7 +50,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockCustomizationService.$( "runCustomization" ).$args(
 					  objectName     = objectName
 					, action         = "build#operation#Link"
-					, args           = { objectName=objectName, recordId=recordId }
+					, defaultHandler = "admin.objectLinks._buildLinkDefault"
+					, args           = { objectName=objectName, action="build#operation#Link", recordId=recordId }
 				).$results( NullValue() );
 
 				expect( service.buildlink( objectName=objectName, operation=operation, recordId=recordId ) ).toBe( "" );
@@ -64,7 +67,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockCustomizationService.$( "runCustomization" ).$args(
 					  objectName     = objectName
 					, action         = "build#operation#Link"
-					, args           = { objectName=objectName, recordId=recordId }
+					, defaultHandler = "admin.objectLinks._buildLinkDefault"
+					, args           = { objectName=objectName, action="build#operation#Link", recordId=recordId }
 				).$results( { test=true } );
 
 				expect( service.buildlink( objectName=objectName, operation=operation, recordId=recordId ) ).toBe( "" );
@@ -79,7 +83,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockCustomizationService.$( "runCustomization" ).$args(
 					  objectName     = objectName
 					, action         = "buildListingLink"
-					, args           = { objectName=objectName }
+					, defaultHandler = "admin.objectLinks._buildLinkDefault"
+					, args           = { objectName=objectName, action="buildListingLink" }
 				).$results( result );
 
 				expect( service.buildlink( objectName=objectName ) ).toBe( result );
@@ -96,7 +101,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockCustomizationService.$( "runCustomization" ).$args(
 					  objectName     = objectName
 					, action         = "build#defaultOperation#Link"
-					, args           = { objectName=objectName, recordId=recordId }
+					, defaultHandler = "admin.objectLinks._buildLinkDefault"
+					, args           = { objectName=objectName, action="build#defaultOperation#Link", recordId=recordId }
 				).$results( result );
 				service.$( "getDefaultRecordOperation" ).$args( objectName ).$results( defaultOperation );
 
@@ -115,6 +121,12 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "getDefaultRecordOperation" ).$args( objectName ).$results( defaultOperation );
 				mockCustomizationService.$( "objectHasCustomization" ).$args( objectName, "build#defaultOperation#Link" ).$results( false );
 				mockDataManagerService.$( "isObjectAvailableInDataManager" ).$args( objectName ).$results( false );
+				mockCustomizationService.$( "runCustomization" ).$args(
+					  objectName     = objectName
+					, action         = "build#defaultOperation#Link"
+					, defaultHandler = "admin.objectLinks._buildLinkDefault"
+					, args           = { objectName=objectName, action="build#defaultOperation#Link", recordId=recordId }
+				).$results( "" );
 
 				expect( service.buildlink(
 					  objectName = objectName
@@ -135,7 +147,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockCustomizationService.$( "runCustomization" ).$args(
 					  objectName     = "page"
 					, action         = "build#defaultOperation#Link"
-					, args           = { objectName="page", recordId=recordId }
+					, defaultHandler = "admin.objectLinks._buildLinkDefault"
+					, args           = { objectName="page", action="build#defaultOperation#Link", recordId=recordId }
 				).$results( result );
 
 				expect( service.buildlink(
