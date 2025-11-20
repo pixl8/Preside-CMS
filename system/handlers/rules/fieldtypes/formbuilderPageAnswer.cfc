@@ -103,6 +103,7 @@ component {
 					case "time":
 						config.fieldType  = "timeperiod";
 						config.fieldLabel = config.label;
+						config.dataType   = "date";
 						break;
 
 					case "select":

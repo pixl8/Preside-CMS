@@ -314,6 +314,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onEmailTemplatePreFetchRecordsForGridListing" );
 		interceptorSettings.customInterceptionPoints.append( "preRenderWebflowStepForm" );
 		interceptorSettings.customInterceptionPoints.append( "postRenderWebflowStep" );
+		interceptorSettings.customInterceptionPoints.append( "onGetMainNavigationMenuItems" );
+		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
 	}
 
 	private void function __setupCachebox() {
@@ -1104,6 +1106,11 @@ component {
 		settings.formbuilder.submissions                        = settings.formbuilder.submissions         ?: {};
 		settings.formbuilder.submissions.removal                = settings.formbuilder.submissions.removal ?: {};
 		settings.formbuilder.submissions.removal.minAllowedDays = 30;
+
+		settings.formbuilder.drafts                        = settings.formbuilder.drafts ?: {};
+		settings.formbuilder.drafts.storage                = settings.formbuilder.drafts.storage ?: {};
+		settings.formbuilder.drafts.storage.type           = "database";
+		settings.formbuilder.drafts.storage.database.table = "formbuilder_formsubmission_draft";
 	}
 
 	private void function __setupRulesEngine(){
