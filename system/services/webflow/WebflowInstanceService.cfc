@@ -452,6 +452,120 @@ component {
 		return processedTransitions;
 	}
 
+	public struct function getWebflowTransitionsConfigForJourneyChart(
+		  required string  webflowId
+		,          string  webflowRef   = ""
+		,          string  instanceRef  = ""
+		,          string  statuses     = ""
+		,          boolean isHistorical = false
+		,          date    startDate
+		,          date    endDate
+	) {
+		var pointLabels    = {};
+		var transitions    = [];
+		var transitionsMap = [:];
+		var filters        = [ { filter={ reference=arguments.webflowId } } ];
+		var flowConfig     = _getWebflowConfigurator().getFlowConfig( webflowId=arguments.webflowId, instanceRef=arguments.webflowRef );
+		var stepLabels     = _getWebflowConfigurator().getStepLabels( webflowId=arguments.webflowId, instanceRef=arguments.webflowRef );
+		var instanceQuery  = QueryNew( "" );
+
+		if ( Len( arguments.instanceRef ) ) {
+			ArrayAppend( filters, { filter={ sub_reference=arguments.instanceRef } } );
+		}
+
+		if ( StructKeyExists( arguments, "startDate" ) && IsDate( arguments.startDate ) ) {
+			ArrayAppend( filters, {
+				  filter       = "#arguments.isHistorical ? "date_archived" : "datecreated"# > :start"
+				, filterParams = { start={ type="cf_sql_timestamp", value=arguments.startDate } }
+			} );
+		}
+		if ( StructKeyExists( arguments, "endDate" ) && IsDate( arguments.endDate ) ) {
+			ArrayAppend( filters, {
+				  filter       = "#arguments.isHistorical ? "date_archived" : "datecreated"# < :end"
+				, filterParams = { end={ type="cf_sql_timestamp", value=arguments.endDate } }
+			} );
+		}
+
+		if ( arguments.isHistorical ) {
+			if ( Len( arguments.statuses ) ) {
+				ArrayAppend( filters, { filter={ archive_reason=ListToArray( arguments.statuses ) } } );
+			}
+
+			instanceQuery = $getPresideObject( "cfflow_workflow_archived_instance" ).selectData(
+				  extraFilters = filters
+				, selectFields = [ "id" ]
+			);
+		} else {
+			if ( Len( arguments.statuses ) ) {
+				if ( arguments.statuses == "active" ) {
+					ArrayAppend( filters, {
+						  filter       = "datemodified < :datemodified"
+						, filterParams = { datemodified = DateAdd( "n", -1 * Val( flowConfig?.timeout_in_minutes ), Now() ) }
+					} );
+				}
+
+				if ( arguments.statuses == "activetimedout" ) {
+					ArrayAppend( filters, {
+						  filter       = "datemodified >= :datemodified"
+						, filterParams = { datemodified = DateAdd( "n", -1 * Val( flowConfig?.timeout_in_minutes ), Now() ) }
+					} );
+				}
+			}
+
+			instanceQuery = $getPresideObject( "cfflow_workflow_instance" ).selectData(
+				  extraFilters = filters
+				, selectFields = [ "id" ]
+			);
+		}
+
+		for ( var instance in instanceQuery ) {
+			var transitionFrom      = "";
+			var transitionTo        = "";
+			var instanceTransitions = _getStepTransitions( instanceId=instance.id, isArchive=arguments.isHistorical );
+
+			for ( var transition in instanceTransitions ) {
+				if ( transition.action == "start" ) {
+					transitionTo = transition.to;
+				} else if ( transition.action == "next" ) {
+					transitionFrom = transitionTo;
+					transitionTo   = transition.to;
+				} else {
+					transitionFrom = transitionTo;
+					transitionTo   = "";
+				}
+
+				if ( Len( transitionFrom ) && Len( transitionTo ) ) {
+					transitionsMap[ "#transitionFrom#|#transitionTo#" ] = transitionsMap[ "#transitionFrom#|#transitionTo#" ] ?: 0;
+					transitionsMap[ "#transitionFrom#|#transitionTo#" ] += 1;
+				}
+			}
+		}
+
+		var baseI18nUri     = "webflow.#arguments.webflowId#:step.";
+		var stepBaseI18nUri = "webflow.step.";
+
+		for ( var key in transitionsMap ) {
+			var fromKey   = ListFirst( key, "|" );
+			var fromLabel = stepLabels[ fromKey ] ?: fromKey;
+			var toKey     = ListLast(  key, "|" );
+			var toLabel   = stepLabels[ toKey ] ?: toKey;
+
+			pointLabels[ fromLabel ] = pointLabels[ fromLabel ] ?: "#fromLabel# (#transitionsMap[ key ]#)";
+			pointLabels[ toLabel ]   = pointLabels[ toLabel]    ?: "#toLabel# (#transitionsMap[ key ]#)";
+
+			ArrayAppend( transitions, {
+				  from = fromLabel
+				, to   = toLabel
+				, flow = transitionsMap[ key ]
+			} );
+		}
+
+		return {
+			  transitions = transitions
+			, labels      = pointLabels
+		};
+	}
+
 	public struct function prepareInstanceRuleFilter(
 		  required string  type
 		, required string  webflowId

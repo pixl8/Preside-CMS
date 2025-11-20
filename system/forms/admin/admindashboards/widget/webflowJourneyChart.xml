@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="admin.admindashboards.widget.webflowJourneyChart:">
+	<tab id="default">
+		<fieldset id="widget_config" sortorder="10">
+			<field name="type"                sortorder="10" control="radio" values="current,historical" labels="admin.admindashboards.widget.webflowJourneyChart:type.opt.current.label,admin.admindashboards.widget.webflowJourneyChart:type.opt.historical.label" defaultValue="current" />
+			<field name="current_statuses"    sortorder="20" control="select" multiple="true" values="active,activetimedout" labels="enum.webflowSessionType:active.label,enum.webflowSessionType:activetimedout.label" />
+			<field name="historical_statuses" sortorder="30" control="select" multiple="true" values="complete,timedout,adminarchive" labels="enum.webflowSessionType:complete.label,enum.webflowSessionType:timedout.label,enum.webflowSessionType:adminarchive.label" />
+			<field name="webflow"             sortorder="40" control="webflowPicker" required="true" />
+			<field name="instance"            sortorder="50" control="webflowInstancePicker" />
+			<field name="time_period"         sortorder="60" control="timePeriodPicker" pastOnly="true" />
+		</fieldset>
+	</tab>
+</form>

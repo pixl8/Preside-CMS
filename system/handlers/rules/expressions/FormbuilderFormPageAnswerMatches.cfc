@@ -97,11 +97,11 @@ component {
 
 				switch ( ruleOperator ) {
 					case "anyof"    :
-						ruleResult = ArrayContainsNoCase( ruleValues, formFieldValue );
+						ruleResult = _arrayContainsAnyNoCase( ruleValues, formFieldValues );
 						break;
 
 					case "notanyof" :
-						ruleResult = !ArrayContainsNoCase( ruleValues, formFieldValue );
+						ruleResult = !_arrayContainsAnyNoCase( ruleValues, formFieldValues );
 						break;
 
 					case "allof"    :
@@ -124,21 +124,25 @@ component {
 			case "string"  :
 			default        :
 				if ( formItem.item_type == "date" ) {
-					var dateTimeValue  = ParseDateTime( formFieldValue );
-					var dateRangeValue = rulesEngineTimePeriodService.convertTimePeriodToDateRange( arguments.formbuilderAnswer );
+					if ( IsDate( formFieldValue ) ) {
+						var dateTimeValue  = ParseDateTime( formFieldValue );
+						var dateRangeValue = rulesEngineTimePeriodService.convertTimePeriodToDateRange( arguments.formbuilderAnswer );
 
-					ruleResult = true;
+						ruleResult = true;
 
-					if ( IsDate( dateRangeValue.from ?: "" ) ) {
-						if ( DateCompare( dateTimeValue, dateRangeValue.from ) == -1 ) {
-							ruleResult = false;
+						if ( IsDate( dateRangeValue.from ?: "" ) ) {
+							if ( DateCompare( dateTimeValue, dateRangeValue.from ) == -1 ) {
+								ruleResult = false;
+							}
 						}
-					}
 
-					if ( IsDate( dateRangeValue.to ?: "" ) ) {
-						if ( DateCompare( dateTimeValue, dateRangeValue.to ) == 1 ) {
-							ruleResult = false;
+						if ( IsDate( dateRangeValue.to ?: "" ) ) {
+							if ( DateCompare( dateTimeValue, dateRangeValue.to ) == 1 ) {
+								ruleResult = false;
+							}
 						}
+					} else {
+						ruleResult = false;
 					}
 				} else {
 					ruleResult = rulesEngineOperatorService.compareStrings(
@@ -167,6 +171,16 @@ component {
 		}
 
 		return {};
+	}
+
+	private boolean function _arrayContainsAnyNoCase( required array ruleValues, required array formFieldValues ) {
+		for ( var ruleValue in arguments.ruleValues ) {
+			if ( ArrayContainsNoCase( arguments.formFieldValues, ruleValue ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private boolean function _arrayContainsAllNoCase( required array ruleValues, required array formFieldValues ) {
