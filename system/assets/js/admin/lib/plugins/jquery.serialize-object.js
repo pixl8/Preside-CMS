@@ -3,33 +3,41 @@
  * @copyright 2014, macek <paulmacek@gmail.com>
  * @link https://github.com/macek/jquery-serialize-object
  * @license BSD
- * @version 2.2.0
+ * @version 2.5.0
  *
- * Slightly modified for use in Preside, May 2014. Using safe presideJQuery global namespace instead of jQuery + detecting CKEditor textareas
+ * Slightly modified for use in Preside, May 2014 (added to 2.5.0 Nov 2025). Using safe presideJQuery global namespace instead of jQuery + detecting CKEditor textareas
  */
 (function(root, factory) {
 
   // AMD
   if (typeof define === "function" && define.amd) {
-    define(["presideJQuery", "exports"], function($, exports) {
-      factory(root, exports, $);
+    define(["exports", "presideJQuery"], function(exports, $) {
+      return factory(exports, $);
     });
   }
 
   // CommonJS
   else if (typeof exports !== "undefined") {
     var $ = require("presideJQuery");
-    factory(root, exports, $);
+    factory(exports, $);
   }
 
   // Browser
   else {
-    root.FormSerializer = factory(root, {}, (root.presideJQuery || root.Zepto || root.ender || root.$));
+    factory(root, (root.presideJQuery || root.Zepto || root.ender || root.$));
   }
 
-}(this, function(root, exports, $) {
+}(this, function(exports, $) {
 
-  var FormSerializer = exports.FormSerializer = function FormSerializer(helper) {
+  var patterns = {
+    validate: /^[a-z_][a-z0-9_]*(?:\[(?:\d*|[a-z0-9_]+)\])*$/i,
+    key:      /[a-z0-9_]+|(?=\[\])/gi,
+    push:     /^$/,
+    fixed:    /^\d+$/,
+    named:    /^[a-z0-9_]+$/i
+  };
+
+  function FormSerializer(helper, $form) {
 
     // private variables
     var data     = {},
@@ -43,23 +51,23 @@
 
     function makeObject(root, value) {
 
-      var keys = root.match(FormSerializer.patterns.key), k;
+      var keys = root.match(patterns.key), k;
 
       // nest, nest, ..., nest
       while ((k = keys.pop()) !== undefined) {
         // foo[]
-        if (FormSerializer.patterns.push.test(k)) {
+        if (patterns.push.test(k)) {
           var idx = incrementPush(root.replace(/\[\]$/, ''));
           value = build([], idx, value);
         }
 
         // foo[n]
-        else if (FormSerializer.patterns.fixed.test(k)) {
+        else if (patterns.fixed.test(k)) {
           value = build([], k, value);
         }
 
         // foo; foo[bar]
-        else if (FormSerializer.patterns.named.test(k)) {
+        else if (patterns.named.test(k)) {
           value = build({}, k, value);
         }
       }
@@ -74,9 +82,18 @@
       return pushes[key]++;
     }
 
+    function encode(pair) {
+      switch ($('[name="' + pair.name + '"]', $form).attr("type")) {
+        case "checkbox":
+          return pair.value === "on" ? true : pair.value;
+        default:
+          return pair.value;
+      }
+    }
+
     function addPair(pair) {
-      if (!FormSerializer.patterns.validate.test(pair.name)) return this;
-      var obj = makeObject(pair.name, pair.value);
+      if (!patterns.validate.test(pair.name)) return this;
+      var obj = makeObject(pair.name, encode(pair));
       data = helper.extend(true, data, obj);
       return this;
     }
@@ -119,31 +136,19 @@
     this.serialize = serialize;
     this.serializeJSON = serializeJSON;
     this.addCKEditorFields = addCKEditorFields;
-  };
+  }
 
-  FormSerializer.patterns = {
-    validate: /^[a-z][a-z0-9_]*(?:\[(?:\d*|[a-z0-9_]+)\])*$/i,
-    key:      /[a-z0-9_]+|(?=\[\])/gi,
-    push:     /^$/,
-    fixed:    /^\d+$/,
-    named:    /^[a-z0-9_]+$/i
-  };
+  FormSerializer.patterns = patterns;
 
   FormSerializer.serializeObject = function serializeObject() {
-    if (this.length > 1) {
-      return new Error("jquery-serialize-object can only serialize one form at a time");
-    }
-    return new FormSerializer($).
+    return new FormSerializer($, this).
       addPairs(this.serializeArray()).
       addCKEditorFields(this).
       serialize();
   };
 
   FormSerializer.serializeJSON = function serializeJSON() {
-    if (this.length > 1) {
-      return new Error("jquery-serialize-object can only serialize one form at a time");
-    }
-    return new FormSerializer($).
+    return new FormSerializer($, this).
       addPairs(this.serializeArray()).
       addCKEditorFields(this).
       serializeJSON();
@@ -153,6 +158,8 @@
     $.fn.serializeObject = FormSerializer.serializeObject;
     $.fn.serializeJSON   = FormSerializer.serializeJSON;
   }
+
+  exports.FormSerializer = FormSerializer;
 
   return FormSerializer;
 }));
