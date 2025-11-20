@@ -219,18 +219,17 @@ component {
 		var interceptArgs  = { objectName=objectName, extraQs="" };
 		var additionalArgs = [ "useMultiActions", "gridFields", "isMultilingual", "draftsEnabled" ];
 
-		if ( customizationService.objectHasCustomization( objectName, "getAdditionalQueryStringForBuildAjaxListingLink" ) ) {
-			interceptArgs.extraQs = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "getAdditionalQueryStringForBuildAjaxListingLink"
-				, args       = args
-			);
-			interceptArgs.extraQs = interceptArgs.extraQs ?: "";
+		interceptArgs.extraQs = customizationService.runCustomization(
+			  objectName    = objectName
+			, action        = "getAdditionalQueryStringForBuildAjaxListingLink"
+			, args          = args
+			, defaultResult = ""
+		);
+		interceptArgs.extraQs = interceptArgs.extraQs ?: "";
 
-			announceInterception( "postGetExtraQsForBuildAjaxListingLink", interceptArgs );
+		announceInterception( "postGetExtraQsForBuildAjaxListingLink", interceptArgs );
 
-			interceptArgs.extraQs = IsSimpleValue( interceptArgs.extraQs ) ? interceptArgs.extraQs : "";
-		}
+		interceptArgs.extraQs = IsSimpleValue( interceptArgs.extraQs ) ? interceptArgs.extraQs : "";
 
 
 		for( var arg in additionalArgs ) {
@@ -332,6 +331,31 @@ component {
 		return event.buildAdminLink(
 			  linkTo      = "datamanager.manageFilters"
 			, queryString = _queryString( "object=#objectName#", args )
+		);
+	}
+
+	private string function _buildLinkDefault( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		if ( !Len( Trim( objectName ) ) ) {
+			return "";
+		}
+
+		if ( !dataManagerService.isObjectAvailableInDataManager( objectName ) ) {
+			return "";
+		}
+
+		var action = args.action ?: "";
+
+		if ( !Len( Trim( action ) ) ) {
+			return "";
+		}
+
+		return runEvent(
+			  event          = "admin.objectLinks.#action#"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
 		);
 	}
 
