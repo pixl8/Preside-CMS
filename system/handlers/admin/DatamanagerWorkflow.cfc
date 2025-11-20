@@ -81,11 +81,17 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function flowDiagram( event, rc, prc ) {
-		content reset=true type="image/svg+xml";
-		echo( datamanagerWorkflowService.renderFlowDiagram(
+		var svg = datamanagerWorkflowService.renderFlowDiagram(
 			  objectName = rc.objectName ?: ""
 			, recordId   = rc.recordId   ?: ""
-		) );
+		);
+
+		svg = REReplace( svg, "^\uFEFF"                 , "", "one" );
+		svg = REReplace( svg, "^\s+"                    , "", "one" );
+		svg = REReplace( svg, "(?s)(?!\A)<\?xml[^>]*\?>", "", "all" );
+
+		content reset=true type="image/svg+xml";
+		echo( svg );
 		abort;
 	}
 
