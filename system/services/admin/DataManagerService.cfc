@@ -223,17 +223,14 @@ component {
 	}
 
 	public boolean function isOperationAllowed( required string objectName, required string operation ) {
-		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, "isOperationAllowed" ) ) {
-			var result = _getCustomizationService().runCustomization(
-				  objectName = arguments.objectName
-				, action     = "isOperationAllowed"
-				, args       = arguments
-			);
+		var result = _getCustomizationService().runCustomization(
+			  objectName     = arguments.objectName
+			, action         = "isOperationAllowed"
+			, defaultHandler = "admin.datamanager._isOperationAllowed"
+			, args           = { objectName=arguments.objectName, operation=arguments.operation }
+		);
 
-			return IsBoolean( result ?: "" ) && result;
-		}
-
-		return getAllowedOperationsForObject( arguments.objectName ).findNoCase( arguments.operation );
+		return IsBoolean( result ?: "" ) && result;
 	}
 
 	public array function getAllowedOperationsForObject( required string objectName ) {
@@ -956,16 +953,14 @@ component {
 	}
 
 	public string function getDeletionConfirmationMatch( required string objectName, required struct record ) {
-		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, "getRecordDeletionPromptMatch" ) ) {
-			var result = _getCustomizationService().runCustomization(
-				  objectName = arguments.objectName
-				, action     = "getRecordDeletionPromptMatch"
-				, args       = { record=arguments.record }
-			);
+		var result = _getCustomizationService().runCustomization(
+			  objectName = arguments.objectName
+			, action     = "getRecordDeletionPromptMatch"
+			, args       = { record=arguments.record }
+		);
 
-			if ( Len( local.result ?: "" ) ) {
-				return result;
-			}
+		if ( Len( local.result ?: "" ) ) {
+			return result;
 		}
 
 		var defaultMatch = $translateResource( uri="cms:datamanager.delete.record.match", defaultValue="delete" );
