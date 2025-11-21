@@ -17,6 +17,7 @@
 	objectPickerClass       = removeObjectPickerClass ?  "" : "object-picker";
 	addMissingValues        = IsTrue( args.addMissingValues   ?: "" );
 	includeEmptyOption      = IsTrue( args.includeEmptyOption ?: "" );
+	exactMatchOnly          = IsTrue( args.exactMatchOnly     ?: "" );
 	labels                  = ( structKeyExists( args, "labels") && len( args.labels ) ) ? args.labels : args.values;
 	optionAttribs           = args.optionAttribs           ?: "";
 
@@ -69,7 +70,7 @@
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selectValue=EncodeForHTML( selectValue ) />
-			<cfset selected=FindNoCase( value, selectValue ) />
+			<cfset selected=exactMatchOnly ? ( value == selectValue ) : FindNoCase( value, selectValue ) />
 			<cfset valueFound=valueFound || selected />
 			<cfset label=EncodeForHTML( translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) ) />
 			<cfset optAttribs=renderHtmlAttributes( argumentCollection=optionAttribs[ i ] ?: {} ) />
