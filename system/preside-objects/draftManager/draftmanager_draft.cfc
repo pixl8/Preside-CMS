@@ -2,6 +2,7 @@
  * @versioned                       false
  * @dataManagerEnabled              true
  * @datamanagerGridFields           label,_status,datecreated,datemodified
+ * @datamanagerHiddenGridFields     _object_name,_record_id
  * @datamanagerDisallowedOperations clone
  * @datamanagerWorkflowEnabled      true
  * @datamanagerWorkflowDefaultFlow  draftDefault

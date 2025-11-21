@@ -52,18 +52,30 @@ component {
 
 	public struct function getDraftForObject(
 		  required string objectName
-		, required string recordId
+		,          string recordId = ""
+		,          string draftid  = ""
 	) {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
 			return false;
 		}
 
+		var filter = [ "_object_name = :_object_name and _status != 'publish'" ];
+
+		if ( !$helpers.isEmptyString( arguments.recordId ) ) {
+			ArrayAppend( filter, "_record_id = :_record_id" );
+		}
+
+		if ( !$helpers.isEmptyString( arguments.draftid ) ) {
+			ArrayAppend( filter, "id = :id" );
+		}
+
 		return $getPresideObject( "draftmanager_draft" ).selectData(
 			  argumentCollection = arguments
-			, filter             = "_object_name = :_object_name and _record_id = :_record_id and _status != 'publish'"
+			, filter             = ArrayToList( filter, " and " )
 			, filterParams       = {
 				  _object_name = { type="cf_sql_varchar", value=arguments.objectName }
 				, _record_id   = { type="cf_sql_varchar", value=arguments.recordId  }
+				, id           = { type="cf_sql_varchar", value=arguments.draftId  }
 			  }
 			, returnType         = "singleRecordStruct"
 		);
@@ -71,7 +83,8 @@ component {
 
 	public struct function getDraftDataForObject(
 		  required string objectName
-		, required string recordId
+		,          string recordId = ""
+		,          string draftid  = ""
 	) {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
 			return false;
@@ -79,7 +92,7 @@ component {
 
 		var draft = getDraftForObject( argumentCollection=arguments );
 
-		return DeserializeJSON( draft._data ?: "" );
+		return IsEmpty( draft._data ?: "" ) ? {} : DeserializeJSON( draft._data );
 	}
 
 	public string function saveDraftDataForObject(

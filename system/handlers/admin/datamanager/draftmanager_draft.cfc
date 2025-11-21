@@ -17,7 +17,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			  objectName     = objectName
 			, action         = "rootBreadcrumb"
 			, defaultHandler = "admin.DraftManager._rootBreadcrumb"
-			, args           = arguments
+			, args           = args
 		);
 	}
 
@@ -28,7 +28,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			  objectName     = objectName
 			, action         = "objectBreadcrumb"
 			, defaultHandler = "admin.DraftManager._objectBreadcrumb"
-			, args           = arguments
+			, args           = args
 		);
 	}
 
@@ -39,7 +39,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			  objectName     = objectName
 			, action         = "recordBreadcrumb"
 			, defaultHandler = "admin.DraftManager.recordBreadcrumb"
-			, args           = arguments
+			, args           = args
 		);
 	}
 
@@ -97,28 +97,23 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return super._workflowTabTitle( argumentCollection=arguments );
 	}
 
-	private array function getTopRightButtonsForViewRecord() {
-		var objectName   = "draftmanager_draft";
-		var objectTitle  = prc.objectTitle ?: "";
-		var recordId     = prc.recordId    ?: "";
-		var recordLabel  = prc.recordLabel ?: "";
-		var language     = rc.language     ?: "";
-		var actions      = [];
-		var children     = [];
+	private array function getTopRightButtonsForViewRecord( event, rc, prc, args={} ) {
+		var objectName  = "draftmanager_draft";
+		var objectTitle = prc.objectTitle ?: "";
+		var recordId    = prc.recordId    ?: "";
+		var recordLabel = prc.recordLabel ?: "";
+		var language    = rc.language     ?: "";
+		var actions     = [];
+		var children    = [];
 
 		if ( IsTrue( prc.canView ?: "" ) ) {
-			var sourceObjectName = prc.record._object_name ?: "";
-			var sourceRecordId   = prc.record._record_id   ?: "";
+			var sourceObjectName = args.record._object_name ?: "";
 
 			var previewActions = customizationService.runCustomization(
 				  objectName     = sourceObjectName
 				, action         = "getDraftPreviewActionButtons"
-				, defaultHandler = "admin.DraftManager.getDraftPreviewActionButtons"
-				, args           = {
-					  objectName = sourceObjectName
-					, recordId   = sourceRecordId
-					, draftId    = recordId
-				}
+				, defaultHandler = "admin.DraftManager._getDraftPreviewActionButtons"
+				, args           = args
 			);
 
 			if ( !IsEmpty( previewActions ) ) {
@@ -184,8 +179,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var draftId       = prc.record.id           ?: "";
 		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 
-		prc.recordLabel = renderLabel( objectName=objectName, recordId=recordId );
-		// prc.recordLabel = "preViewRecordContent";
+		if ( !isEmptyString( recordId ) ) {
+			prc.recordLabel = renderLabel( objectName=objectName, recordId=recordId );
+		}
+
 		prc.pageTitle   = prc.recordLabel;
 		prc.pageIcon    = translateResource( uri="#objectURIRoot#iconClass", defaultValue="fa-database" );
 

@@ -6,10 +6,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
-	private array function getDraftPreviewActionButtons( event, rc, prc, args={} ) {
-		return [];
-	}
-
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
 		var recordId = _publishDraftRecordAction( argumentCollection=arguments );
 
@@ -175,6 +171,10 @@ component extends="preside.system.base.AdminHandler" {
 			, prepostExempt  = true
 			, eventArguments = arguments
 		);
+	}
+
+	private array function _getDraftPreviewActionButtons( event, rc, prc, args={} ) {
+		return [];
 	}
 
 }
