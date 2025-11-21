@@ -34,14 +34,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	private void function recordBreadcrumb( event, rc, prc, args={} ) {
 		var objectName = prc.record._object_name ?: "";
-		var recordId   = prc.record.id           ?: "";
 
-		if ( dataManagerService.isOperationAllowed( objectName=objectName, operation="read" ) ) {
-			event.addAdminBreadCrumb(
-				  title = prc.recordLabel
-				, link  = event.buildAdminLink( objectName="draftmanager_draft", recordId=recordId, operation="viewRecord" )
-			);
-		}
+		dataManagerCustomizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "recordBreadcrumb"
+			, defaultHandler = "admin.DraftManager.recordBreadcrumb"
+			, args           = arguments
+		);
 	}
 
 	private string function _draftTab( event, rc, prc, args={} ) {
@@ -185,7 +184,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var draftId       = prc.record.id           ?: "";
 		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 
-		prc.recordLabel = prc.record.label ?: "";
+		prc.recordLabel = renderLabel( objectName=objectName, recordId=recordId );
+		// prc.recordLabel = "preViewRecordContent";
 		prc.pageTitle   = prc.recordLabel;
 		prc.pageIcon    = translateResource( uri="#objectURIRoot#iconClass", defaultValue="fa-database" );
 

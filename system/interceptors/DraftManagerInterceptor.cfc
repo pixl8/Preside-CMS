@@ -108,12 +108,6 @@ component extends="coldbox.system.Interceptor" {
 				);
 			}
 		}
-
-		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
-			var recordId = interceptData.recordId ?: "";
-
-			prc.editRecordForm = _getDraftAlert( objectName=objectName, recordId=recordId ) & prc.editRecordForm;
-		}
 	}
 
 	private string function _getDraftAlert(

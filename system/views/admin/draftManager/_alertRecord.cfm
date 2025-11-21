@@ -11,20 +11,17 @@
 </cfscript>
 
 <cfoutput>
-	<div class="alert alert-block alert-#alertType# clearfix">
-		<p>
-			<i class="fa fa-lg fa-fw #alertIconClass#"></i>
-			#translateResource( uri="draftManager:alert.live.description", data=[ objectTitle ] )#
+	<cfif hasDraft>
+		<div class="alert alert-block alert-#alertType# clearfix">
+			<p>
+				<i class="fa fa-lg fa-fw #alertIconClass#"></i>
+				#translateResource( uri="draftManager:alert.live.description", data=[ objectTitle ] )#
+			</p>
 
-			<cfif not isEmptyString( recordId )>
-				#translateResource( uri="draftManager:alert.live.link", data=[ event.buildAdminLink( objectName=objectName, recordId=recordId, operation="viewRecord" ) ] )#
-			</cfif>
-		</p>
-
-		<cfif hasDraft>
 			<br />
 			<i class="fa fa-lg fa-fw"></i>
+			<a class="btn btn-sm btn-primary" href="#event.buildAdminLink( objectName="draftmanager_draft", operation="viewRecord", recordId=draftId )#"><i class="fa fa-fw fa-eye"></i> #translateResource( uri="draftManager:button.view.draft.label" )#</a>
 			<a class="btn btn-sm btn-danger confirmation-prompt" href="#event.buildAdminLink( objectName="draftmanager_draft", operation="deleteRecordAction", recordId=draftId )#" title="#translateResource( uri="draftManager:button.discard.title" )#"><i class="fa fa-fw fa-trash"></i> #translateResource( uri="draftManager:button.discard.label" )#</a>
-		</cfif>
-	</div>
+		</div>
+	</cfif>
 </cfoutput>
