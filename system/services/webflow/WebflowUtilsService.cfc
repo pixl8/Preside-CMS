@@ -4,6 +4,7 @@
  * @presideService true
  */
 component {
+	property name="wfStateIgnoreKeys" inject="coldbox:setting:webflow.state.ignoreKeys";
 
 	public any function init() {
 		return this;
@@ -11,7 +12,7 @@ component {
 
 	public string function prettyPrintSavedState(
 		  required struct savedState
-		,          array  ignoreKeys = [ "_rurl", "_wid" ]
+		,          array  ignoreKeys = wfStateIgnoreKeys
 	) {
 		var args     = Duplicate( arguments );
 		var nl       = Chr( 10 );
