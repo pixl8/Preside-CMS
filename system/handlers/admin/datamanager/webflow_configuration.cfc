@@ -211,7 +211,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var webflowConfigCount = flowDao.selectData( recordCountOnly=true, savedFilters=[ "webflowsNonAdminFlows" ] );
 		var globalStepCount    = stepDao.selectData( recordCountOnly=true, filter={ webflow="" } );
 
-		event.include( "/css/admin/specific/viewtabs/" );
+		event.include( "/css/admin/specific/datamanager/viewTabs/" );
 
 		args.tabs = [ {
 			  id        = "flows"
