@@ -6,8 +6,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
-	private struct function getDraftPreviewActionButton( event, rc, prc, args={} ) {
-		return {};
+	private array function getDraftPreviewActionButtons( event, rc, prc, args={} ) {
+		return [];
 	}
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {

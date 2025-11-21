@@ -111,10 +111,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			var sourceObjectName = prc.record._object_name ?: "";
 			var sourceRecordId   = prc.record._record_id   ?: "";
 
-			var previewAction = customizationService.runCustomization(
+			var previewActions = customizationService.runCustomization(
 				  objectName     = sourceObjectName
-				, action         = "getDraftPreviewActionButton"
-				, defaultHandler = "admin.DraftManager.getDraftPreviewActionButton"
+				, action         = "getDraftPreviewActionButtons"
+				, defaultHandler = "admin.DraftManager.getDraftPreviewActionButtons"
 				, args           = {
 					  objectName = sourceObjectName
 					, recordId   = sourceRecordId
@@ -122,8 +122,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				}
 			);
 
-			if ( !IsEmpty( previewAction ) ) {
-				ArrayPrepend( actions, previewAction );
+			if ( !IsEmpty( previewActions ) ) {
+				ArrayPrepend( actions, previewActions, true );
 			}
 		}
 
