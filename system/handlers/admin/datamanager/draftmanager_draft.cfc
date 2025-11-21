@@ -5,6 +5,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="dataManagerCustomizationService" inject="DataManagerCustomizationService";
 	property name="dataManagerWorkflowService"      inject="DataManagerWorkflowService";
+	property name="adminDataViewsService"           inject="AdminDataViewsService";
 
 	variables.infoCol3 = [];
 	variables.tabs     = [ "draft" ];
@@ -69,6 +70,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				data.datemodified = record.datemodified ?: "";
 			}
 
+			StructDelete( data, "id" );
 			StructAppend( args.record, data, true );
 
 			prc.record = args.record;
@@ -180,16 +182,17 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	private string function preViewRecordContent( event, rc, prc, args={} ) {
 		var objectName    = prc.record._object_name ?: "";
 		var recordId      = prc.record._record_id   ?: "";
+		var draftId       = prc.record.id           ?: "";
 		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 
 		prc.recordLabel = prc.record.label ?: "";
 		prc.pageTitle   = prc.recordLabel;
 		prc.pageIcon    = translateResource( uri="#objectURIRoot#iconClass", defaultValue="fa-database" );
 
-		return renderView( view="admin/draftManager/_alert", args={
-			  objectName  = prc.objectName
-			, objectTitle = translateResource( uri="#objectURIRoot#title.singular", defaultValue=objectName )
-			, recordLink  = isEmptyString( args.record._record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record._object_name, recordId=args.record._record_id, operation="viewRecord" )
+		return renderView( view="admin/draftManager/_alertDraft", args={
+			  objectName = objectName
+			, recordId   = recordId
+			, draftId    = draftId
 		} );
 	}
 
@@ -262,26 +265,29 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
-		var objectName    = prc.record._object_name ?: "";
-		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+		var objectName = prc.record._object_name ?: "";
+		var recordId   = prc.record._record_id   ?: "";
+		var draftId    = prc.record.id           ?: "";
 
 		return dataManagerCustomizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "preRenderEditRecordForm"
 			, args           = args
 		)
-		& renderView( view="admin/draftManager/_alert", args={
-			  objectName  = prc.objectName
-			, objectTitle = translateResource( uri="#objectURIRoot#title.singular", defaultValue=objectName )
-			, recordLink  = isEmptyString( args.record._record_id ?: "" ) ? "" : event.buildAdminLink( objectName=args.record._object_name, recordId=args.record._record_id, operation="viewRecord" )
-			, alertAction = "edit"
+		& renderView( view="admin/draftManager/_alertDraft", args={
+			  objectName  = objectName
+			, recordId    = recordId
+			, draftId     = draftId
 		} );
 	}
 
 	private string function editRecordForm( event, rc, prc, args={} ) {
 		// Load original object data.
 		if ( !IsEmpty( args.record._data ?: "" ) ) {
-			StructAppend( args.record, DeserializeJSON( args.record._data ), true );
+			var data = DeserializeJSON( args.record._data );
+
+			StructDelete( data, "id" );
+			StructAppend( args.record, data, true );
 		}
 
 		return runEvent(

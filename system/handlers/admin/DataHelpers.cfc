@@ -99,6 +99,12 @@ component extends="preside.system.base.adminHandler" {
 			} );
 		}
 
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "postRenderPropsForDisplayGroup"
+			, args           = args
+		);
+
 		return renderView( view="/admin/dataHelpers/displayGroup", args=args );
 	}
 
