@@ -4,14 +4,12 @@
  */
 component {
 
-    property name="dateFormatService" inject="DateFormatService";
-
     function init() {
 		return this;
 	}
 
     public string function getTimeFormatMask(  ){
-        var localeSettings = dateFormatService.getSiteLocaleSettings();
+        var localeSettings = $helpers.getSiteLocaleSettings();
         
         if(localeSettings.time_format == "12h") {
             return "h:mmtt";
@@ -22,7 +20,7 @@ component {
     }
 
     public string function roundHours( string formattedTime ){
-        var localeSettings = dateFormatService.getSiteLocaleSettings();
+        var localeSettings = $helpers.getSiteLocaleSettings();
         
         if(localeSettings.time_format == "12h") {
             return Replace(arguments.formattedTime, ":00", "", "all");
