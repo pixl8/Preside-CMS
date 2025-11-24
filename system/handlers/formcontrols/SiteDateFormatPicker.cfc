@@ -17,9 +17,16 @@ component {
 		}
 
 		for( var item in items ) {
-			var label = translateResource(uri="preside-objects.site_localisation:option.#item#.label", defaultValue="");
 			args.values.append( item );
-			args.labels.append( Len(label) ? label: item );
+
+			var label = translateResource(uri="preside-objects.site:option.#item#.label", defaultValue="");
+			if( Len(label) ) {
+				args.labels.append( label );
+			}
+			else {
+				var newLabel = item & " (" & DateFormat("2025-09-20", item) & ")";
+				args.labels.append( newLabel );
+			}
 		}
 		
 		return renderView( view="formcontrols/select/index", args=args );

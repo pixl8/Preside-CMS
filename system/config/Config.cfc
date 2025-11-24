@@ -1245,21 +1245,21 @@ component {
 	}
 
 	private void function __setupLocaleSettings() {
-		settings.datetime.localeDefaults = {
-			"en" = {
-				  "short_date_format" = "dd/mm/yyyy"
-				, "long_date_format" = "DMY"
+		settings.datetime.regionDefaults = {
+			  uk = {
+				  short_date_format = "dd/mm/yyyy"
+				, long_date_format = "DMY"
+			  }
+			, eu = {
+				  short_date_format = "dd.mm.yyyy"
+				, long_date_format = "DMY"
+			  }
+			, us = {
+				  short_date_format = "mm/dd/yyyy"
+				, long_date_format = "MDY"
+			  }
 
-			},
-			"de" = {
-				  "short_date_format" = "dd.mm.yyyy"
-				, "long_date_format" = "DMY"
-			},
-			"en_US" = {
-				  "short_date_format" = "mm/dd/yyyy"
-				, "long_date_format" = "MDY"
-			}
-		};
+		}
 
 		settings.datetime.formats = {
 			  short = ["dd/mm/yyyy","dd.mm.yyyy","mm/dd/yyyy","yyyy-mm-dd"]
