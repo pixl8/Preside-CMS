@@ -89,6 +89,23 @@ component extends="coldbox.system.Interceptor" {
 		}
 	}
 
+	public void function preEditRecord( event, interceptData ) {
+		if ( !isFeatureEnabled( "draftManager" ) ) {
+			return;
+		}
+
+		var objectName = interceptData.objectName ?: "";
+		var recordId   = interceptData.recordId   ?: "";
+
+		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+			var draft = draftManagerService.getDraftForObject( objectName=objectName, recordId=recordId );
+
+			if ( !isEmptyString( draft.id ?: "" ) ) {
+				setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="editRecord", recordId=draft.id ) );
+			}
+		}
+	}
+
 	public void function postEditRecord( event, interceptData ) {
 		if ( !isFeatureEnabled( "draftManager" ) ) {
 			return;
