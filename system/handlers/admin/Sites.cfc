@@ -9,7 +9,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="siteDao"         inject="presidecms:object:site";
 	property name="aliasDao"        inject="presidecms:object:site_alias_domain";
 	property name="redirectDao"     inject="presidecms:object:site_redirect_domain";
-	property name="localisationDao" inject="presidecms:object:site_localisation";
 	property name="messagebox"      inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event, rc, prc ) {
@@ -64,7 +63,6 @@ component extends="preside.system.base.AdminHandler" {
 		siteTreeService.ensureSystemPagesExistForSite( siteId );
 		siteService.syncSiteRedirectDomains( siteId, rc.redirect_domains ?: "" );
 		siteService.syncSiteAliasDomains( siteId, rc.alias_domains ?: "" );
-		siteService.syncSiteLocalisation( siteId, rc.short_date_format ?: "", rc.long_date_format ?: "", rc.time_format ?: "" );
 
 		messageBox.info( translateResource( "cms:sites.added.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
@@ -89,12 +87,6 @@ component extends="preside.system.base.AdminHandler" {
 		var redirectDomains = redirectDao.selectData( filter={ site=siteId } );
 		if ( redirectDomains.recordCount ) {
 			prc.record.redirect_domains = ValueList( redirectDomains.domain, Chr(13) & Chr(10) );
-		}
-		var localisation = localisationDao.selectData( filter={ site=siteId } );
-		if ( localisation.recordCount ) {
-			prc.record.short_date_format = localisation.short_date_format;
-			prc.record.long_date_format  = localisation.long_date_format;
-			prc.record.time_format       = localisation.time_format;
 		}
 
 		_addRootBreadcrumb( event );
@@ -129,7 +121,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		siteService.syncSiteRedirectDomains( siteId, rc.redirect_domains ?: "" );
 		siteService.syncSiteAliasDomains( siteId, rc.alias_domains ?: "" );
-		siteService.syncSiteLocalisation( siteId, rc.short_date_format ?: "", rc.long_date_format ?: "", rc.time_format ?: "" );
 
 		messageBox.info( translateResource( "cms:sites.saved.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
