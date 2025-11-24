@@ -22,7 +22,7 @@ component {
 			logError( e );
 		}
 
-		if ( isEmptyString( args.defaultValue ) && isEmptyString( args.defaultValue ) && isTrue( sourceProperty.cloneable ?: true ) ) {
+		if ( isEmptyString( args.defaultValue ) && isTrue( sourceProperty.cloneable ?: true ) ) {
 			args.defaultValue = args.savedValue = presideObjectService.getOneToManyConfiguratorJsonString(
 				  sourceObject    = args.sourceObject
 				, sourceId        = args.savedData[ sourceIdField ] ?: ""

@@ -70,7 +70,7 @@ component extends="preside.system.base.adminHandler" {
 				prc.record[ dateCreatedField ] = prc.sourceRecord[ dateCreatedField ];
 			}
 		} else {
-			prc.record = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, allowDraftVersions=true );
+			prc.record = prc.record ?: presideObjectService.selectData( objectName=objectName, filter={ id=recordId }, useCache=false, allowDraftVersions=true );
 		}
 
 		args.renderedProps = [];

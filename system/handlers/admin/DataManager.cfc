@@ -3537,6 +3537,10 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=object ) ) {
+			args.batchEditWarning &= " " & translateResource( uri="draftManager:alert.edit.batch.description" );
+		}
+
 		return renderView( view="/admin/datamanager/_batchEditForm", args=args );
 	}
 

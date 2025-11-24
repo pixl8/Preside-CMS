@@ -133,7 +133,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 			ArrayAppend( children, {
 				  title     = translateResource( uri="draftManager:action.delete.title" )
-				, icon      = translateResource( uri="draftManager:action.delete.iconClass" )
+				, iconClass = translateResource( uri="draftManager:action.delete.iconClass" )
 				, link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
 				, globalKey = "d"
 				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
