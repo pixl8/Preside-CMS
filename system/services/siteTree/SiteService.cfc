@@ -17,14 +17,12 @@ component displayname="Site service" {
 	 * @permissionService.inject     permissionService
 	 * @coldbox.inject               coldbox
 	 * @defaultSiteProtocol.inject   coldbox:setting:defaultSiteProtocol
-	 * @siteLocalisationDao.inject    presidecms:object:site_localisation
 	 *
 	 */
-	public any function init( required any siteDao, required any siteAliasDomainDao, required any siteRedirectDomainDao, required any sessionStorage, required any permissionService, required any coldbox, required string defaultSiteProtocol, required any siteLocalisationDao ) output=false {
+	public any function init( required any siteDao, required any siteAliasDomainDao, required any siteRedirectDomainDao, required any sessionStorage, required any permissionService, required any coldbox, required string defaultSiteProtocol ) output=false {
 		_setSiteDao( arguments.siteDao );
 		_setSiteRedirectDomainDao( arguments.siteRedirectDomainDao );
 		_setSiteAliasDomainDao( arguments.siteAliasDomainDao );
-		_setSiteLocalisationDao( arguments.siteLocalisationDao );
 		_setSessionStorage( arguments.sessionStorage );
 		_setPermissionService( arguments.permissionService );
 		_setColdbox( arguments.coldbox );
@@ -266,24 +264,6 @@ component displayname="Site service" {
 		);
 	}
 
-	/**
-	 * Sync localisation settings with the site record
-	 */
-	public boolean function syncSiteLocalisation( required string siteId, required string shortDateFormat, required string longDateFormat, required string timeFormat ) output=false autodoc=true {
-		var localisationDao = _getSiteLocalisationDao();
-		
-		var existing = localisationDao.selectData( filter={ site = arguments.siteId } );
-		
-		if(existing.recordCount){
-			localisationDao.updateData( filter={ site = arguments.siteId }, data={ short_date_format = arguments.shortDateFormat, long_date_format = arguments.longDateFormat, time_format = arguments.timeFormat } );
-		} else {
-			localisationDao.insertData( { site = arguments.siteId, short_date_format = arguments.shortDateFormat, long_date_format = arguments.longDateFormat, time_format = arguments.timeFormat } );
-		}
-
-		return true;
-	}
-	
-
 // GETTERS AND SETTERS
 	private any function _getSiteDao() output=false {
 		return _siteDao;
@@ -333,13 +313,5 @@ component displayname="Site service" {
 
 	private string function _getDefaultSiteProtocol() output=false {
 		return _defaultSiteProtocol;
-	}
-
-	private any function _getSiteLocalisationDao() output=false {
-		return _siteLocalisationDao;
-	}
-	
-	private void function _setSiteLocalisationDao( required any siteLocalisationDao ) output=false {
-		_siteLocalisationDao = arguments.siteLocalisationDao;
 	}
 }
