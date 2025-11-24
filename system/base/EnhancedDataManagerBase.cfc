@@ -80,6 +80,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.initializeDatamanagerPage( objectName=objectName, recordId=recordId, includeAllFormulaFields=true );
 
+		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId } );
+
 		if ( !isQuery( prc.record ) || !prc.record.recordcount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle ?: objectName  ] ) );
 			setNextEvent( url=event.buildAdminLink( objectName=objectName ) );

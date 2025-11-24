@@ -278,6 +278,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
+		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId, version=version } );
+
 		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ recordLabel ] );
 
@@ -380,6 +382,8 @@ component extends="preside.system.base.AdminHandler" {
 		var version       = Val( rc.version ?: "" );
 
 		_checkPermission( argumentCollection=arguments, key="edit" );
+
+		announceInterception( "preEditRecord", { objectName=objectName, recordId=recordId, version=version } );
 
 		prc.record = queryRowToStruct( prc.record );
 		if ( prc.canTranslate ) {

@@ -317,7 +317,9 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postRenderWebflowStep" );
 		interceptorSettings.customInterceptionPoints.append( "onGetMainNavigationMenuItems" );
 		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
+		interceptorSettings.customInterceptionPoints.append( "preViewRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "preEditRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postEditRecord" );
 	}
 
