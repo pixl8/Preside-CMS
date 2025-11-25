@@ -118,23 +118,19 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = { objectName=objectName, action="viewRecord", record=record, recordId=prc.recordId }
 		);
 
-		prc.preViewRecordContent = "";
-		if ( customizationService.objectHasCustomization( objectName=objectName, action="preViewRecordContent" ) ) {
-			prc.preViewRecordContent = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "preViewRecordContent"
-				, args       = { objectName=objectName, action="preViewRecordContent", record=record, recordId=prc.recordId }
-			);
-		}
+		prc.preViewRecordContent = customizationService.runCustomization(
+			  objectName    = objectName
+			, action        = "preViewRecordContent"
+			, args          = { objectName=objectName, action="preViewRecordContent", record=record, recordId=prc.recordId }
+			, defaultResult = ""
+		);
 
-		prc.postViewRecordContent = "";
-		if ( customizationService.objectHasCustomization( objectName=objectName, action="postViewRecordContent" ) ) {
-			prc.postViewRecordContent = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "postViewRecordContent"
-				, args       = { objectName=objectName, action="postViewRecordContent", record=record, recordId=prc.recordId }
-			);
-		}
+		prc.postViewRecordContent = customizationService.runCustomization(
+			  objectName    = objectName
+			, action        = "postViewRecordContent"
+			, args          = { objectName=objectName, action="postViewRecordContent", record=record, recordId=prc.recordId }
+			, defaultResult = ""
+		);
 
 		_overrideAdminLayout( argumentCollection=arguments );
 		event.setView( "/admin/datamanager/_viewRecord" );

@@ -1230,6 +1230,9 @@ component {
 			, "preside.webflow.step.not.completed"
 			, "preside.webflow.instance.not.cancellable"
 		];
+
+		settings.webflow.state            = settings.webflow.state            ?: {};
+		settings.webflow.state.ignoreKeys = settings.webflow.state.ignoreKeys ?: [ "_rurl", "_wid", "$presideform" ];
 	}
 
 	private void function __loadConfigurationFromExtensions() {
