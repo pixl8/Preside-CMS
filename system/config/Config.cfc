@@ -1048,9 +1048,7 @@ component {
 		settings.enum.webflowSessionType          = [ "active", "activetimedout", "complete", "timedout", "adminarchive" ];
 		settings.enum.webflowPositionType         = [ "start", "middle", "end" ];
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
-		settings.enum.timeFormat                  = [ "12h", "24h" ];
-		settings.enum.shortDateFormatOptions      = [ "d/m/yyyy", "dd/mm/yyyy", "d.m.yyyy", "dd.mm.yyyy", "m/d/yyyy","mm/dd/yyyy", "yyyy-mm-dd" ];
-		settings.enum.longDateFormatOptions       = [ "dd mmmm yyyy", "mmmm dd yyyy", "yyyy mmmm dd" ];
+		settings.enum.timeFormatOptions                  = [ "12h", "24h" ];
 	}
 
 	private void function __setupFormValidationProviders() {
