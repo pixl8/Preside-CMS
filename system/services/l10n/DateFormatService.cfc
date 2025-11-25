@@ -253,13 +253,11 @@ component {
 				formattedYearDates = Left(formattedYearDates, Len(formattedYearDates) - Len(delimiter));
 			}
 
-            //add the year depending on the day month year order
-			if( dmyOrder == "DMY" || dmyOrder == "MDY" ) {
-				formattedYearDates &= " " & year;
+            //add the year
+			if( dmyOrder == "MDY" ) {
+                formattedYearDates &= ",";
 			}
-			else if( dmyOrder == "YMD" ) {
-				formattedYearDates = year & " " & formattedYearDates;
-			}
+            formattedYearDates &= " " & year;
 
 			ArrayAppend(formattedDates, formattedYearDates);
 		}
