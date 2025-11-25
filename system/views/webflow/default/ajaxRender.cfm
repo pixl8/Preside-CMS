@@ -6,6 +6,8 @@
 <cfoutput>
 	<cfif Len( flowLink )>
 		<div class="webflow-form-ajax-submit">
+			#event.renderIncludes( type="css", group="webflowAjax" )#
+
 			<iframe id="webflowAjax" src="#flowLink#" frameborder="0"></iframe>
 		</div>
 	<cfelse>
