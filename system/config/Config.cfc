@@ -151,17 +151,18 @@ component {
 
 	private void function __setupInterceptors() {
 		variables.interceptors = [
-			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
-			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
-			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
-			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
-			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
-			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} },
-			{ class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
+			  { class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} }
+			, { class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} }
+			, { class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} }
+			, { class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} }
+			, { class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} }
+			, { class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
+			, { class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
+			, { class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} }
+			, { class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} }
+			, { class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} }
+			, { class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
+			, { class="preside.system.interceptors.DraftManagerInterceptor"             , properties={} }
 		];
 
 		variables.interceptorSettings = {
@@ -317,6 +318,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postRenderWebflowStep" );
 		interceptorSettings.customInterceptionPoints.append( "onGetMainNavigationMenuItems" );
 		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
+		interceptorSettings.customInterceptionPoints.append( "postViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postEditRecord" );
 	}
 
 	private void function __setupCachebox() {
@@ -737,7 +740,8 @@ component {
 				, assets           = [ "upload", "edit", "delete", "download", "pick", "translate" ]
 				, storagelocations = [ "manage" ]
 			 }
-			, webflows                = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
+			, webflows               = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
+			, draftManager           = [ "navigate", "read", "add", "edit", "delete", "review", "publish" ]
 		};
 
 		settings.adminRoles = StructNew( "linked" );
@@ -1005,6 +1009,7 @@ component {
 			, "devtools.extension"            = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
+			, draftManager                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "cfflow", "datamanager", "datamanagerWorkflow" ] }
 		};
 
 		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {
@@ -1047,6 +1052,7 @@ component {
 		settings.enum.webflowSessionType          = [ "active", "activetimedout", "complete", "timedout", "adminarchive" ];
 		settings.enum.webflowPositionType         = [ "start", "middle", "end" ];
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
+		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
 	}
 
 	private void function __setupFormValidationProviders() {
