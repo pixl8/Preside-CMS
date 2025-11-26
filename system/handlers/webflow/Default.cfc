@@ -37,8 +37,8 @@ component {
 	 */
 	private string function ajaxRender( event, rc, prc, args={} ) {
 		event.preventPageCache();
-		event.include( "/css/frontend/webflow/ajaxLayout/" )
-			 .include( "/js/frontend/webflow/ajaxLayout/"  );
+		event.include( assetId="/css/frontend/webflow/ajaxLayout/", group="webflowAjax" );
+		event.setLayout( "adminModalDialog" );
 
 		var webflowQs = "";
 		for ( var key in args ) {
@@ -336,8 +336,6 @@ component {
 				flowArgs.args[ ReReplaceNoCase( key, "^args\.(.+)$", "\1" ) ] = rc[ key ];
 			}
 		}
-
-		var useAjaxLayout = isTrue( flowArgs.args.useAjaxLayout ?: "" );
 
 		if ( flowArgs.valid ) {
 			var instanceExists = webflowInstanceService.instanceExists( webflowId=flowArgs.webflowId, instanceRef=flowArgs.instanceRef, subReference=flowArgs.subReference );

@@ -44,7 +44,6 @@ component extends="preside.system.base.adminHandler" {
 		args.postRenderRecordRightCol = customizationService.runCustomization( objectName=objectName, action="postRenderRecordRightCol", args=args, defaultResult="" );
 		args.postRenderRecord         = customizationService.runCustomization( objectName=objectName, action="postRenderRecord"        , args=args, defaultResult="" );
 
-
 		return renderView( view="/admin/dataHelpers/viewRecord", args=args );
 	}
 
@@ -53,33 +52,39 @@ component extends="preside.system.base.adminHandler" {
 	 * for a given object/record
 	 */
 	private string function displayGroup( event, rc, prc, args={} ) {
-		var objectName    = args.objectName ?: "";
-		var recordId      = args.recordId   ?: "";
-		var props         = args.properties ?: [];
-		var version       = Val( args.version ?: "" );
-		var uriRoot       = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
-		var useVersioning = presideObjectService.objectIsVersioned( objectName );
+		var objectName       = args.objectName ?: "";
+		var recordId         = args.recordId   ?: "";
+		var props            = args.properties ?: [];
+		var version          = Val( args.version ?: "" );
+		var uriRoot          = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+		var useVersioning    = presideObjectService.objectIsVersioned( objectName );
+		var objectProperties = presideObjectService.getObjectProperties( objectName=objectName );
 
 		if ( useVersioning && Val( version ) ) {
 			prc.record       = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
 			prc.sourceRecord = presideObjectService.selectData( objectName=objectName, filter={ id=recordId }, useCache=false );
-			if ( prc.sourceRecord.recordCount > 0 ) {
-				var dateCreatedField  = presideObjectService.getDateCreatedField( objectName );
 
-				prc.record[ dateCreatedField ]  = prc.sourceRecord[ dateCreatedField ];
+			if ( prc.sourceRecord.recordCount > 0 ) {
+				var dateCreatedField = presideObjectService.getDateCreatedField( objectName );
+
+				prc.record[ dateCreatedField ] = prc.sourceRecord[ dateCreatedField ];
 			}
 		} else {
-			prc.record = prc.record ?: presideObjectService.selectData( objectName=object, filter={ id=recordId }, useCache=false, allowDraftVersions=true );
+			prc.record = prc.record ?: presideObjectService.selectData( objectName=objectName, filter={ id=recordId }, useCache=false, allowDraftVersions=true );
 		}
 
 		args.renderedProps = [];
 		for ( var propertyName in props ) {
-			var renderedValue = adminDataViewsService.renderField(
-				  objectName   = objectName
-				, propertyName = propertyName
-				, recordId     = recordId
-				, value        = prc.record[ propertyName ] ?: ""
-			);
+			var renderedValue = prc.record[ propertyName ] ?: "";
+
+			if ( StructKeyExists( objectProperties, propertyName ) ) {
+				renderedValue = adminDataViewsService.renderField(
+					  objectName   = objectName
+					, propertyName = propertyName
+					, recordId     = recordId
+					, value        = renderedValue
+				);
+			}
 
 			renderedValue = _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue=renderedValue );
 
@@ -93,6 +98,12 @@ component extends="preside.system.base.adminHandler" {
 				, displayTitle  = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="displayPropertyTitle", defaultValue=true )
 			} );
 		}
+
+		customizationService.runCustomization(
+			  objectName     = objectName
+			, action         = "postRenderPropsForDisplayGroup"
+			, args           = args
+		);
 
 		return renderView( view="/admin/dataHelpers/displayGroup", args=args );
 	}
