@@ -79,3 +79,14 @@
 	<cfset var dfService = getSingleton( "dateFormatService" ) />
 	<cfreturn dfService.getSiteLocaleSettings() />
 </cfsilent></cffunction>
+
+<cffunction name="getTimeFormatMask" access="public" returntype="string" output="false"><cfsilent>
+	<cfset var tfService = getSingleton( "timeFormatService" ) />
+	<cfreturn tfService.getTimeFormatMask() />
+</cfsilent></cffunction>
+
+<cffunction name="roundHours" access="public" returntype="string" output="false">
+	<cfargument name="formattedTime" type="string" required="true" /><cfsilent>
+	<cfset var tfService = getSingleton( "timeFormatService" ) />
+	<cfreturn tfService.roundHours( arguments.formattedTime ) />
+</cfsilent></cffunction>
