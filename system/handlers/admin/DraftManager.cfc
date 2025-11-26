@@ -7,6 +7,31 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
+		var recordId = _publishDraftRecordAction( argumentCollection=arguments );
+
+		if ( !isEmptyString( local.recordId ?: "" ) ) {
+			wfInstance.appendState( { _record_id=recordId } );
+		}
+	}
+
+	private void function postApproveAction( event, rc, prc, args={}, wfInstance ) {
+		var state       = wfInstance.getState();
+		var objectName  = prc.record._object_name ?: "";
+		var objectLabel = prc.record.label        ?: "";
+		var recordId    = state._record_id        ?: "";
+
+		messageBox.info( translateResource(
+			  uri  = "draftManager:message.approve.description"
+			, data = [
+				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
+				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#objectLabel#</a>'
+			  ]
+		) );
+
+		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+	}
+
+	private string function _publishDraftRecordAction( event, rc, prc, args={} ) {
 		var objectName = prc.record._object_name ?: "";
 		var recordId   = prc.record._record_id   ?: "";
 
@@ -15,8 +40,8 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( isEmptyString( recordId ) ) {
-			if ( dataManagerCustomizationService.objectHasCustomization( prc.objectName, "addRecordAction" ) ) {
-				recordId = dataManagerCustomizationService.runCustomization(
+			if ( dataManagerCustomizationService.objectHasCustomization( objectName, "addRecordAction" ) ) {
+				return dataManagerCustomizationService.runCustomization(
 					  objectName = objectName
 					, action     = "addRecordAction"
 					, args       = { objectName=objectName }
@@ -26,7 +51,7 @@ component extends="preside.system.base.AdminHandler" {
 				arguments.redirectOnSuccess = false;
 				arguments.object            = objectName;
 
-				recordId = runEvent(
+				return runEvent(
 					  event          = "admin.DataManager._addRecordAction"
 					, prePostExempt  = true
 					, private        = true
@@ -53,28 +78,9 @@ component extends="preside.system.base.AdminHandler" {
 					, eventArguments = arguments
 				);
 			}
+
+			return recordId;
 		}
-
-		if ( !isEmptyString( local.recordId ?: "" ) ) {
-			wfInstance.appendState( { _record_id=recordId } );
-		}
-	}
-
-	private void function postApproveAction( event, rc, prc, args={}, wfInstance ) {
-		var state       = wfInstance.getState();
-		var objectName  = prc.record._object_name ?: "";
-		var objectLabel = prc.record.label        ?: "";
-		var recordId    = state._record_id        ?: "";
-
-		messageBox.info( translateResource(
-			  uri  = "draftManager:message.approve.description"
-			, data = [
-				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
-				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#objectLabel#</a>'
-			  ]
-		) );
-
-		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
 	}
 
 	private void function _saveDraftRecordAction( event, rc, prc, args={} ) {
@@ -121,6 +127,23 @@ component extends="preside.system.base.AdminHandler" {
 		return "";
 	}
 
+	private void function _rootBreadcrumb( event, rc, prc, args={} ) {
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:datamanager" )
+			, link  = event.buildAdminLink( linkTo="datamanager" )
+		);
+	}
+
+	private void function _objectBreadcrumb( event, rc, prc, args={} ) {
+		var objectName    = prc.record._object_name ?: "draftmanager_draft";
+		var objectURIRoot = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="#objectURIRoot#title", defaultValue=objectName )
+			, link  = event.buildAdminLink( objectName=objectName, operation="listing" )
+		);
+	}
+
 	private string function _getDraftTabContent( event, rc, prc, args={} ) {
 		var tabId      = arguments.tabId      ?: "";
 		var objectName = arguments.objectName ?: "";
@@ -148,6 +171,10 @@ component extends="preside.system.base.AdminHandler" {
 			, prepostExempt  = true
 			, eventArguments = arguments
 		);
+	}
+
+	private array function _getDraftPreviewActionButtons( event, rc, prc, args={} ) {
+		return [];
 	}
 
 }

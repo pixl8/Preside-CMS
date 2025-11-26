@@ -53,7 +53,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.preRenderListing  = customizationService.runCustomization( objectName=objectName, action="preRenderListing" , args=args, defaultResult="" );
 		prc.postRenderListing = customizationService.runCustomization( objectName=objectName, action="postRenderListing", args=args, defaultResult="" );
 
-		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=objectName ) ) {
 			prc.listingView = runEvent(
 				  event          = "admin.DraftManager._getDraftTabs"
 				, private        = true
@@ -281,6 +281,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
+		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId, version=version } );
+
 		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
 		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ recordLabel ] );
 
@@ -376,6 +378,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="edit" );
 
+		announceInterception( "preEditRecord", { objectName=objectName, recordId=recordId, version=version } );
+
 		prc.record = queryRowToStruct( prc.record );
 		if ( prc.canTranslate ) {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( objectName, recordId );
@@ -419,8 +423,6 @@ component extends="preside.system.base.AdminHandler" {
 			  }
 		);
 
-		announceInterception( "postEditRecord", { objectName=objectName, recordId=recordId, version=version } );
-
 		var recordLabel         = prc.recordLabel ?: "";
 		var objectTitleSingular = prc.objectTitle ?: ""
 		var editRecordTitle     = translateResource( uri="cms:datamanager.editrecord.title", data=[  objectTitleSingular , recordLabel ] );
@@ -431,6 +433,8 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
 			, link  = ""
 		);
+
+		announceInterception( "postEditRecord", { objectName=objectName, recordId=recordId, version=version } );
 	}
 
 	public void function editRecordAction( event, rc, prc ) {
@@ -2682,7 +2686,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
-		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction() ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction() ) {
 			runEvent(
 				  event          = "admin.DraftManager._saveDraftRecordAction"
 				, private        = true
@@ -2805,7 +2809,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		obj = presideObjectService.getObject( object );
+		obj   = presideObjectService.getObject( object );
 		newId = obj.insertData( data=formData, insertManyToManyRecords=true );
 
 		args.newId = newId;
@@ -3100,13 +3104,24 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
-		if ( draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction() ) {
-			runEvent(
-				  event          = "admin.DraftManager._saveDraftRecordAction"
-				, private        = true
-				, prepostExempt  = true
-				, eventArguments = args
-			);
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=arguments.object ) ) {
+			if ( draftManagerService.isDraftAction() ) {
+				runEvent(
+					  event          = "admin.DraftManager._saveDraftRecordAction"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = args
+				);
+			} else if ( isEmptyString( arguments.recordId ) ) {
+				// This is intentional to catch cases where a draft is being edited and published.
+				// A normal edit object will always have a recordId.
+				runEvent(
+					  event          = "admin.DraftManager._publishDraftRecordAction"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = args
+				);
+			}
 		}
 
 		if ( arguments.draftsEnabled ) {
@@ -3454,6 +3469,10 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=object ) ) {
+			args.batchEditWarning &= " " & translateResource( uri="draftManager:alert.edit.batch.description" );
+		}
+
 		return renderView( view="/admin/datamanager/_batchEditForm", args=args );
 	}
 
@@ -3623,7 +3642,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _addRecordActionButtons( event, rc, prc, args={} ) {
-		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
 			args.draftsEnabled = true;
 			args.canSaveDraft  = true;
 			args.canPublish    = true;
@@ -3730,7 +3749,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _editRecordActionButtons( event, rc, prc, args={} ) {
-		if ( draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
 			args.draftsEnabled = true;
 			args.canSaveDraft  = true;
 			args.canPublish    = true;
@@ -4285,7 +4304,7 @@ component extends="preside.system.base.AdminHandler" {
 		var rc  = event.getCollection();
 		var prc = event.getCollection( private=true );
 
-		var e   = "";
+		var e                        = "";
 		var onlyCheckForLoginActions = [ "getObjectRecordsForAjaxSelectControl" ];
 		var useAnyWhereActions       = [
 			  "getChildObjectRecordsForAjaxDataTables"
@@ -4437,7 +4456,6 @@ component extends="preside.system.base.AdminHandler" {
 
 				}
 
-
 				try {
 					prc.recordLabel = renderLabel( prc.objectName, prc.recordId );
 				} catch ( "PresideObjectService.no.label.field" e ) {
@@ -4455,7 +4473,6 @@ component extends="preside.system.base.AdminHandler" {
 			, recordId    = prc.recordId          ?: ""
 			, recordLabel = prc.recordLabel       ?: ""
 		};
-
 
 		customizationService.runCustomization(
 			  objectName     = args.objectName

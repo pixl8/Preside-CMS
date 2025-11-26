@@ -22,7 +22,7 @@ component {
 			logError( e );
 		}
 
-		if ( isTrue( sourceProperty.cloneable ?: true ) ) {
+		if ( isEmptyString( args.defaultValue ) && isTrue( sourceProperty.cloneable ?: true ) ) {
 			var recordExtraFilters         = [];
 			var configuratorFiltersViewlet = Trim( presideObjectService.getObjectAttribute( targetObject, "configuratorFiltersViewlet" ) );
 

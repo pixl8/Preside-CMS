@@ -80,12 +80,28 @@ component extends="coldbox.system.Interceptor" {
 
 		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
 			var recordId = interceptData.recordId ?: "";
-			var alert    = _getDraftAlert( objectName=objectName, objectTitle=prc.objectTitle, recordId=recordId );
 
 			for ( var k in [ "renderedRecord", "preViewRecordContent" ] ) {
 				if ( StructKeyExists( prc, k ) ) {
-					prc[ k ] = _getDraftAlert( objectName=objectName, objectTitle=prc.objectTitle, recordId=recordId ) & prc[ k ];
+					prc[ k ] = _getDraftAlert( objectName=objectName, recordId=recordId ) & prc[ k ];
 				}
+			}
+		}
+	}
+
+	public void function preEditRecord( event, interceptData ) {
+		if ( !isFeatureEnabled( "draftManager" ) ) {
+			return;
+		}
+
+		var objectName = interceptData.objectName ?: "";
+		var recordId   = interceptData.recordId   ?: "";
+
+		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+			var draft = draftManagerService.getDraftForObject( objectName=objectName, recordId=recordId );
+
+			if ( !isEmptyString( draft.id ?: "" ) ) {
+				setNextEvent( url=event.buildAdminLink( objectName="draftmanager_draft", operation="editRecord", recordId=draft.id ) );
 			}
 		}
 	}
@@ -97,26 +113,30 @@ component extends="coldbox.system.Interceptor" {
 
 		var objectName = interceptData.objectName ?: "";
 
-		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
-			var recordId = interceptData.recordId ?: "";
+		if ( objectName == "draftmanager_draft" ) {
+			var breadcrumbs = event.getAdminBreadCrumbs();
+			var length = ArrayLen( breadcrumbs )
+			if ( length ) {
+				ArrayDeleteAt( breadcrumbs, length );
 
-			prc.editRecordForm = _getDraftAlert( objectName=objectName, objectTitle=prc.objectTitle, recordId=recordId, alertAction="edit" ) & prc.editRecordForm;
+				event.addAdminBreadCrumb(
+					  title = translateResource( uri="draftManager:breadcrumb.edit.title" )
+					, link  = ""
+				);
+			}
 		}
 	}
 
 	private string function _getDraftAlert(
 		  required string objectName
-		, required string objectTitle
 		, required string recordId
-		,          string alertAction = "view"
 	) {
 		var draft = draftManagerService.getDraftForObject( objectName=arguments.objectName, recordId=arguments.recordId );
 
-		return renderView( view="admin/draftManager/_alert", args={
-			  objectName  = arguments.objectName
-			, objectTitle = arguments.objectTitle
-			, recordLink  = isEmptyString( draft.id ?: "" ) ? "" : getRequestContext().buildAdminLink( objectName="draftmanager_draft", recordId=draft.id, operation="viewRecord" )
-			, alertAction = arguments.alertAction
+		return renderView( view="admin/draftManager/_alertRecord", args={
+			  objectName = arguments.objectName
+			, recordId   = arguments.recordId
+			, draftId    = draft.id ?: ""
 		} );
 	}
 

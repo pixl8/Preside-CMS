@@ -14,7 +14,7 @@ component {
 
 		var targetIdField = presideObjectService.getIdField( args.object );
 
-		if ( Len( Trim( args.savedData[ sourceIdField ] ?: "" ) ) ) {
+		if ( IsEmptyString( args.defaultValue ) && Len( Trim( args.savedData[ sourceIdField ] ?: "" ) ) ) {
 			var useVersioning = Val( rc.version ?: "" ) && presideObjectService.objectIsVersioned( sourceObject );
 
 			args.savedValue = presideObjectService.selectManyToManyData(

@@ -80,6 +80,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.initializeDatamanagerPage( objectName=objectName, recordId=recordId, includeAllFormulaFields=true );
 
+		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId } );
+
 		if ( !isQuery( prc.record ) || !prc.record.recordcount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle ?: objectName  ] ) );
 			setNextEvent( url=event.buildAdminLink( objectName=objectName ) );
@@ -133,7 +135,7 @@ component extends="preside.system.base.AdminHandler" {
 			, defaultResult = ""
 		);
 
-		announceInterception( "postViewRecord", { objectName=objectName, recordId=prc.recordId } );
+		announceInterception( "postViewRecord", { objectName=objectName, recordId=recordId } );
 
 		_overrideAdminLayout( argumentCollection=arguments );
 		event.setView( "/admin/datamanager/_viewRecord" );
@@ -168,7 +170,7 @@ component extends="preside.system.base.AdminHandler" {
 		return hasPermission;
 	}
 
-	private string function recordBreadcrumb() {
+	private void function recordBreadcrumb() {
 		var objectName  = args.objectName  ?: "";
 		var recordLabel = args.recordLabel ?: "";
 		var recordId    = args.recordId    ?: "";
