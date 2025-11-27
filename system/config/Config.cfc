@@ -1248,22 +1248,24 @@ component {
 		settings.datetime.regionDefaults = {
 			  uk = {
 				  short_date_format = "dd/mm/yyyy"
-				, long_date_format = "DMY"
+				, long_date_format  = "DMY"
+				, time_format       = "12h"
 			  }
 			, eu = {
 				  short_date_format = "dd.mm.yyyy"
-				, long_date_format = "DMY"
+				, long_date_format  = "DMY"
+				, time_format       = "24h"
 			  }
 			, us = {
 				  short_date_format = "mm/dd/yyyy"
-				, long_date_format = "MDY"
+				, long_date_format  = "MDY"
+				, time_format       = "12h"
 			  }
-
-		}
+		};
 
 		settings.datetime.formats = {
 			  short = ["dd/mm/yyyy","dd.mm.yyyy","mm/dd/yyyy","yyyy-mm-dd"]
-			, long = ["DMY","MDY"]
+			, long  = ["DMY","MDY"]
 		};
 	}
 

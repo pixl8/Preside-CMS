@@ -9,12 +9,13 @@ component {
 	}
 
     public string function getTimeFormatMask(  ){
-        var localeSettings = $helpers.getSiteLocaleSettings();
+        var localeSettings  = $helpers.getSiteLocaleSettings();
+        var defaultSettings = $helpers.getDefaultSettingsForLocale();
+        var time_format     = Len(localeSettings.time_format) ? localeSettings.time_format : defaultSettings.time_format;
         
-        if(localeSettings.time_format == "12h") {
+        if( time_format == "12h" ) {
             return "h:mmtt";
-        }
-        else {
+        }else {
             return "HH:mm";
         }
     }
@@ -22,7 +23,7 @@ component {
     public string function roundHours( string formattedTime ){
         var localeSettings = $helpers.getSiteLocaleSettings();
         
-        if(localeSettings.time_format == "12h") {
+        if ( localeSettings.time_format == "12h" ) {
             return Replace(arguments.formattedTime, ":00", "", "all");
         }
 

@@ -21,10 +21,9 @@ component {
 
 //LONG DATE FORMAT FUNCTIONS
     public string function getLongDateFormatMask() {
-        if( _getLongDateFormat() == "DMY" ) {
+        if ( _getLongDateFormat() == "DMY" ) {
             return "d mmmm yyyy";
-        }
-        else {
+        } else {
             return "mmmm d, yyyy";
         }
     }
@@ -42,10 +41,9 @@ component {
     }
 
     public string function getLongDateFormatDayMonthMask() {
-        if( _getLongDateFormat() == "DMY" ) {
+        if ( _getLongDateFormat() == "DMY" ) {
             return "d mmmm";
-        }
-        else {
+        } else {
             return "mmmm d";
         }
     }
@@ -55,7 +53,7 @@ component {
         var mask          = getLongDateFormatMask();
         var formattedDate = LSdateFormat( arguments.date, mask );
 
-        if( arguments.includeOrdinal && longFormat == "DMY" ) {
+        if ( arguments.includeOrdinal && longFormat == "DMY" ) {
             var dateOrdinal = getDateDayOrdinal( arguments.date );
             formattedDate   = ReReplace( formattedDate, "(\d{1,2})", "\1#dateOrdinal#" ); 
         }
@@ -71,18 +69,16 @@ component {
         var dayMask    = getLongDateFormatDayMask();
         var yearMask   = getLongDateFormatYearMask();
 
-        if( arguments.includeOrdinal && longFormat == "MDY" ) {
+        if ( arguments.includeOrdinal && longFormat == "MDY" ) {
             arguments.includeOrdinal = false;
         }
 
-        if( month( arguments.date1 ) == month( arguments.date2 ) ) {
+        if ( month( arguments.date1 ) == month( arguments.date2 ) ) {
             return getDateRangeWithSameMonth( arguments.date1, arguments.date2, arguments.showYear, includeOrdinal );
-        }
-        else {
-            if( year( arguments.date1 ) == year( arguments.date2 ) ) {
+        } else {
+            if ( year( arguments.date1 ) == year( arguments.date2 ) ) {
                 return getDateRangeWithDifferentMonthAndSameYear( arguments.date1, arguments.date2, arguments.showYear, includeOrdinal );
-            }
-            else {
+            } else {
                 return getDateRangeWithDifferentMonthAndDifferentYear( arguments.date1, arguments.date2, arguments.showYear, includeOrdinal );
             }
         }
@@ -96,22 +92,21 @@ component {
 		var dayMask            = getLongDateFormatDayMask();
 		var yearMask           = getLongDateFormatYearMask();
 
-		if( longFormat == "DMY" ) {
+		if ( longFormat == "DMY" ) {
             var dateRange = LSDateFormat( arguments.date1, dayMask );
-            if( arguments.includeOrdinal ) {
+            if ( arguments.includeOrdinal ) {
                 dateRange &= getDateDayOrdinal( arguments.date1 );
             }
 
             var date2Part = "";
             
-            if( arguments.showYear ) {
+            if ( arguments.showYear ) {
                 date2Part = LSDateFormat( arguments.date2, mask );
-            }
-            else {
+            } else {
                 date2Part = LSDateFormat( arguments.date2, maskNoYear );
             }
 
-            if( arguments.includeOrdinal ) {
+            if ( arguments.includeOrdinal ) {
                 var date2Ordinal = getDateDayOrdinal( arguments.date2 );
                 date2Part = ReReplace( date2Part, "(\d{1,2})", "\1#date2Ordinal#" );
             }
@@ -119,11 +114,10 @@ component {
             dateRange &= " - " & date2Part;
 
             return dateRange;
-		}
-		else {
+		} else {
             var dateRange = "#LSDateFormat( arguments.date1, maskNoYear )# - #LSDateFormat( arguments.date2, dayMask )#";
-            if( arguments.showYear ) {
-                dateRange &= " " & LSDateFormat( arguments.date1, yearMask );
+            if ( arguments.showYear ) {
+                dateRange &= ", " & LSDateFormat( arguments.date1, yearMask );
             }
             return dateRange;
 		}
@@ -135,15 +129,15 @@ component {
 		var maskNoYear         = getLongDateFormatDayMonthMask();
 		var dayMonthMask       = getLongDateFormatDayMonthMask();
 
-        if( !arguments.showYear ) {
+        if ( !arguments.showYear ) {
             mask = maskNoYear;
         }
 
-        if( longFormat == "DMY" ) {
+        if ( longFormat == "DMY" ) {
             var date1Part = LSDateFormat( date1, dayMonthMask );
             var date2Part = LSDateFormat( date2, mask );
 
-            if( arguments.includeOrdinal ) {
+            if ( arguments.includeOrdinal ) {
                 var date1Ordinal = getDateDayOrdinal( arguments.date1 );
                 date1Part = ReReplace( date1Part, "(\d{1,2})", "\1#date1Ordinal#" );
 
@@ -152,8 +146,7 @@ component {
             }
             
 			return "#date1Part# - #date2Part#";
-		}
-		else {
+		} else {
 			return "#LSDateFormat( date1, maskNoYear )# - #LSDateFormat( date2, mask )#";
 		}
     }
@@ -162,14 +155,14 @@ component {
         var mask        = getLongDateFormatMask();
         var maskNoYear  = getLongDateFormatDayMonthMask();
 
-        if( !arguments.showYear ) {
+        if ( !arguments.showYear ) {
             mask = maskNoYear;
         }
 
         var date1Part = LSDateFormat( date1, mask );
         var date2Part = LSDateFormat( date2, mask );
 
-        if( arguments.includeOrdinal ) {
+        if ( arguments.includeOrdinal ) {
             var date1Ordinal = getDateDayOrdinal( arguments.date1 );
             date1Part = ReReplace( date1Part, "(\d{1,2})", "\1#date1Ordinal#" );
 
@@ -193,7 +186,7 @@ component {
         //get the unique years from the dates
         var years = [];
 		for( var date in arguments.dates ) {
-			if( !ArrayContains(years, year(date)) ) {
+			if ( !ArrayContains(years, year(date)) ) {
 				ArrayAppend(years, year(date));
 			}
 		}
@@ -213,22 +206,22 @@ component {
 			//loop through the dates for the current year
 			for( var date in yearDates ) {
 				var monthNumber = month(date);
-				if( !ArrayContains(monthNumbers, monthNumber) ) {
+				if ( !ArrayContains(monthNumbers, monthNumber) ) {
 					ArrayAppend(monthNumbers, monthNumber);
 				}
 
-				if( !StructKeyExists(monthDates, monthNumber) ) {
+				if ( !StructKeyExists(monthDates, monthNumber) ) {
 					monthDates[monthNumber] = [];
 				}
 
                 var monthDate = LSDateFormat(date, dayMask);
 
-                if( arguments.includeOrdinal && dmyOrder == "DMY" ) {
+                if ( arguments.includeOrdinal && dmyOrder == "DMY" ) {
                     var dayOrdinal  = getDateDayOrdinal( date );
                     monthDate &= dayOrdinal;
                 }
 
-				monthDates[monthNumber].append(monthDate);
+                ArrayAppend(monthDates[monthNumber], monthDate);
 			}
 
 			//sort the month numbers numerically ascending
@@ -240,21 +233,20 @@ component {
 				var monthNumber = monthNumbers[i];
                 
 
-				if( dmyOrder == "DMY" ) {
+				if ( dmyOrder == "DMY" ) {
 					formattedYearDates &= ArrayToList(monthDates[monthNumber], delimiter) & " " & MonthAsString(monthNumber) & delimiter;
-				}
-				else if( dmyOrder == "MDY" || dmyOrder == "YMD" ) {
+				} else if ( dmyOrder == "MDY" || dmyOrder == "YMD" ) {
 					formattedYearDates &= MonthAsString(monthNumber) & " " & ArrayToList(monthDates[monthNumber], delimiter) & delimiter;
 				}
 			}
 
             //strip the trailing delimiter
-			if( Right(formattedYearDates, 2) == delimiter ) {
+			if ( Right(formattedYearDates, 2) == delimiter ) {
 				formattedYearDates = Left(formattedYearDates, Len(formattedYearDates) - Len(delimiter));
 			}
 
             //add the year
-			if( dmyOrder == "MDY" ) {
+			if ( dmyOrder == "MDY" ) {
                 formattedYearDates &= ",";
 			}
             formattedYearDates &= " " & year;
@@ -275,40 +267,38 @@ component {
         );
     }
 
-    public struct function getDefaultSettingsForLocale(){
+    public struct function getDefaultSettingsForLocale() {
         var localeSettings  = getSiteLocaleSettings();
         var defaultSettings = $getColdbox().getSetting( "datetime.regionDefaults" );
         var countryCode     = ListLast(localeSettings.locale, "_");
         var regionCode      = $translateResource( uri="enum.isoCountries:#countryCode#.region");
         
-        if(Len(countryCode) && Len(regionCode) && Structkeyexists(defaultSettings, regionCode)){
+        if ( Len(countryCode) && Len(regionCode) && Structkeyexists(defaultSettings, regionCode) ) {
             return defaultSettings[regionCode];
-        }
-        else {
+        } else {
             return defaultSettings["uk"];
         }
     }
 
-    public string function getDateDayOrdinal( required date date ){
+    public string function getDateDayOrdinal( required date date ) {
         var ordinalTypeA = [ "st", "nd", "rd" ];
         var ordinal      = "th"
         var date         = DateFormat( arguments.date, "dd" );
 
-        if( ( val( date[1] ) != 1 ) && ( date[2] > 0 && date[2] <= arrayLen( ordinalTypeA) ) ) {
+        if ( ( val( date[1] ) != 1 ) && ( date[2] > 0 && date[2] <= arrayLen( ordinalTypeA) ) ) {
             ordinal = ordinalTypeA[date[2]];
         }
 
-        return ordinal
+        return ordinal;
     }
     
 //PRIVATE FUNCTIONS
     private string function _getLongDateFormat() {
         var defaults = getDefaultSettingsForLocale();
 
-        if( Len(getSiteLocaleSettings().long_date_format)) {
+        if ( Len(getSiteLocaleSettings().long_date_format)) {
             return getSiteLocaleSettings().long_date_format;
-        }
-        else {
+        } else {
             return defaults.long_date_format;
         }
     }

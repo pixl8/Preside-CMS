@@ -17,15 +17,14 @@ component {
 		}
 
 		for( var item in items ) {
-			args.values.append( item );
+			ArrayAppend(args.values, item);
 
 			var label = translateResource(uri="preside-objects.site:option.#item#.label", defaultValue="");
 			if( Len(label) ) {
-				args.labels.append( label );
-			}
-			else {
+				ArrayAppend(args.labels, label);
+			} else {
 				var newLabel = item & " (" & DateFormat("2025-09-20", item) & ")";
-				args.labels.append( newLabel );
+				ArrayAppend(args.labels, newLabel);
 			}
 		}
 		

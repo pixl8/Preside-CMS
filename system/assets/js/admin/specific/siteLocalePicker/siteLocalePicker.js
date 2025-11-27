@@ -19,6 +19,8 @@
 		if( typeof defaultLocaleSettings != 'undefined' ) {
 			$('#short_date_format').data("uberSelect").select(defaultLocaleSettings.short_date_format);
 			$('#long_date_format').data("uberSelect").select(defaultLocaleSettings.long_date_format);
+			$("input[name=time_format]").prop("checked", false);
+			$("input[name=time_format][value='" + defaultLocaleSettings.time_format + "']").prop('checked', true);
 		}
 	});
-} )( jQuery || presideJQuery );
+} )( presideJQuery );
