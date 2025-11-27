@@ -2471,6 +2471,8 @@ component displayName="AssetManager Service" {
 			, "resize_no_crop"
 			, "created_by"
 			, "updated_by"
+			, "datecreated"
+			, "datemodified"
 		] );
 
 		if ( !Len( Trim( asset.active_version ) ) ) {
@@ -2488,6 +2490,8 @@ component displayName="AssetManager Service" {
 				, resize_no_crop   = asset.resize_no_crop
 				, created_by       = asset.created_by
 				, updated_by       = asset.updated_by
+				, datecreated      = asset.datecreated
+				, datemodified     = asset.datemodified
 			} );
 
 			_getAssetDao().updateData( id=arguments.assetId, data={ active_version=versionId } );
