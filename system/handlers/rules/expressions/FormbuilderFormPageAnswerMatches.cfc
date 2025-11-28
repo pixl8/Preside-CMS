@@ -8,6 +8,7 @@ component {
 	property name="formBuilderService"           inject="FormBuilderService";
 	property name="rulesEngineOperatorService"   inject="RulesEngineOperatorService";
 	property name="rulesEngineTimePeriodService" inject="RulesEngineTimePeriodService";
+	property name="fileTypesService"             inject="FileTypesService";
 
 	/**
 	 * @formbuilderForm.fieldType   formbuilderForm
@@ -44,7 +45,6 @@ component {
 		var formFieldName   = formItem.configuration.name        ?: "";
 		var formFieldName   = formItem.configuration.name        ?: "";
 		var formFieldValue  = formData[ formFieldName ]          ?: "";
-		var formFieldValues = IsJSON( formFieldValue )           ? [] : ListToArray( formFieldValue );
 
 		var ruleConfig   = DeserializeJSON( arguments.formbuilderAnswer );
 		var ruleDataType = ruleConfig.dataType ?: "";
@@ -62,37 +62,58 @@ component {
 				break;
 
 			case "array"   :
-				var ruleValues       = [];
-				var formConfigValues = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
+				var ruleValues      = [];
+				var formFieldValues = [];
 
+				var formConfigValues = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
 				for ( var formConfigValue in formConfigValues ) {
 					if ( Find( formConfigValue, ruleValue ) ) {
 						ArrayAppend( ruleValues, formConfigValue );
 					}
 				}
 
-				if ( formItem.item_type == "matrix" ) {
-					var matrix = runEvent(
-						  event          = "formbuilder.item-types.matrix._getQuestionsAndAnswers"
-						, prePostExempt  = true
-						, private        = true
-						, eventArguments = { args={
-							  itemConfiguration = formItem.configuration ?: {}
-							, response          = formFieldValue
-						  } }
-					);
+				switch ( formItem.item_type ) {
+					case "matrix":
+						var matrix = runEvent(
+							  event          = "formbuilder.item-types.matrix._getQuestionsAndAnswers"
+							, prePostExempt  = true
+							, private        = true
+							, eventArguments = { args={
+								  itemConfiguration = formItem.configuration ?: {}
+								, response          = formFieldValue
+							  } }
+						);
 
-					var ruleProperty = ruleConfig.property ?: "";
-					for ( var item in matrix ) {
-						if ( ruleProperty == ( item.question ?: "" ) && !isEmptyString( item.answer ?: "" ) ) {
-							if ( ArrayContainsNoCase( [ "allof", "noneof" ], ruleOperator ) ) {
-								ArrayAppend( formFieldValues, item.answer );
-							} else {
-								formFieldValue = item.answer;
-								break;
+						var ruleProperty = ruleConfig.property ?: "";
+						for ( var item in matrix ) {
+							if ( ruleProperty == ( item.question ?: "" ) && !isEmptyString( item.answer ?: "" ) ) {
+								if ( ArrayContainsNoCase( [ "allof", "noneof" ], ruleOperator ) ) {
+									ArrayAppend( formFieldValues, item.answer );
+								} else {
+									formFieldValue = item.answer;
+									break;
+								}
 							}
 						}
-					}
+						break;
+
+					case "fileUpload":
+						ruleValues = fileTypesService.expandTypeList( types=ListToArray( ruleValue ) );
+
+						if ( IsStruct( formFieldValue ) ) {
+							var tempFileInfo = formFieldValue.tempFileInfo ?: {};
+
+							if ( ( tempFileInfo.serverFileExt ?: "" ) == ( tempFileInfo.contentSubType ?: "" ) ) {
+								formFieldValues = [ tempFileInfo.serverFileExt ];
+							}
+						}
+						break;
+
+					default:
+						if ( IsSimpleValue( formFieldValue ) && !IsJSON( formFieldValue ) ) {
+							formFieldValues = ListToArray( formFieldValue );
+						}
+						break;
 				}
 
 				switch ( ruleOperator ) {
