@@ -65,13 +65,6 @@ component {
 				var ruleValues      = [];
 				var formFieldValues = [];
 
-				var formConfigValues = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
-				for ( var formConfigValue in formConfigValues ) {
-					if ( Find( formConfigValue, ruleValue ) ) {
-						ArrayAppend( ruleValues, formConfigValue );
-					}
-				}
-
 				switch ( formItem.item_type ) {
 					case "matrix":
 						var matrix = runEvent(
@@ -110,8 +103,15 @@ component {
 						break;
 
 					default:
-						if ( IsSimpleValue( formFieldValue ) && !IsJSON( formFieldValue ) ) {
-							formFieldValues = ListToArray( formFieldValue );
+						var formConfigValues = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
+						for ( var formConfigValue in formConfigValues ) {
+							if ( Find( formConfigValue, ruleValue ) ) {
+								ArrayAppend( ruleValues, formConfigValue );
+							}
+
+							if ( Find( formConfigValue, formFieldValue ) ) {
+								ArrayAppend( formFieldValues, formConfigValue );
+							}
 						}
 						break;
 				}
