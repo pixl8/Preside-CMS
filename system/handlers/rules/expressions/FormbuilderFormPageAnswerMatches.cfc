@@ -67,6 +67,8 @@ component {
 
 				switch ( formItem.item_type ) {
 					case "matrix":
+						ruleValues = ListToArray( ruleValue );
+
 						var matrix = runEvent(
 							  event          = "formbuilder.item-types.matrix._getQuestionsAndAnswers"
 							, prePostExempt  = true
@@ -83,7 +85,7 @@ component {
 								if ( ArrayContainsNoCase( [ "allof", "noneof" ], ruleOperator ) ) {
 									ArrayAppend( formFieldValues, item.answer );
 								} else {
-									formFieldValue = item.answer;
+									formFieldValues = [ item.answer ];
 									break;
 								}
 							}
