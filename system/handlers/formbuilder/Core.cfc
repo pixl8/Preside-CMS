@@ -202,7 +202,7 @@ component {
 
 		args.isFormPage    = formPageNumber > 0;
 		args.isFirstPage   = formPageNumber == 1;
-		args.isLastPage    = formPageNumber == formPageCount && !formUseSummaryPage;
+		args.isLastPage    = formPageNumber == formPageCount && ( !formUseSummaryPage || !args.isFormPage );
 		args.isSummaryPage = formPageNumber > formPageCount  && formUseSummaryPage;
 
 		return renderView( view="/formbuilder/layouts/core/formButtons", args=args );
