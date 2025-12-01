@@ -46,6 +46,7 @@ component {
 		__setupIgnoreFile();
 		__setupWebflow();
 		__loadConfigurationFromExtensions();
+		__setupLocaleSettings();
 	}
 
 // ENVIRONMENT SPECIFIC
@@ -1055,6 +1056,7 @@ component {
 		settings.enum.webflowPositionType         = [ "start", "middle", "end" ];
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
 		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
+		settings.enum.timeFormatOptions           = [ "12h", "24h" ];
 	}
 
 	private void function __setupFormValidationProviders() {
@@ -1249,6 +1251,31 @@ component {
 				CreateObject( cfcPath ).configure( config=variables );
 			}
 		}
+	}
+
+	private void function __setupLocaleSettings() {
+		settings.datetime.regionDefaults = {
+			  uk = {
+				  short_date_format = "dd/mm/yyyy"
+				, long_date_format  = "DMY"
+				, time_format       = "12h"
+			  }
+			, eu = {
+				  short_date_format = "dd.mm.yyyy"
+				, long_date_format  = "DMY"
+				, time_format       = "24h"
+			  }
+			, us = {
+				  short_date_format = "mm/dd/yyyy"
+				, long_date_format  = "MDY"
+				, time_format       = "12h"
+			  }
+		};
+
+		settings.datetime.formats = {
+			  short = ["dd/mm/yyyy","dd.mm.yyyy","mm/dd/yyyy","yyyy-mm-dd"]
+			, long  = ["DMY","MDY"]
+		};
 	}
 
 

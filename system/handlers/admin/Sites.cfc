@@ -89,6 +89,18 @@ component extends="preside.system.base.AdminHandler" {
 			prc.record.redirect_domains = ValueList( redirectDomains.domain, Chr(13) & Chr(10) );
 		}
 
+		var defaultLocaleSettings = getDefaultSettingsForLocale();
+		
+		if ( IsEmpty( prc.record.short_date_format ) ) {
+			prc.record.short_date_format = defaultLocaleSettings.short_date_format;
+		}
+		if ( IsEmpty( prc.record.long_date_format ) ) {
+			prc.record.long_date_format = defaultLocaleSettings.long_date_format;
+		}
+		if ( IsEmpty( prc.record.time_format ) ) {
+			prc.record.time_format = defaultLocaleSettings.time_format;
+		}
+
 		_addRootBreadcrumb( event );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sites.editsite.breadcrumb", data=[ prc.record.name ] )
