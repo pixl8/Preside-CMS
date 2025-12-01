@@ -19,7 +19,9 @@ component {
 		try {
 			var sourceProperty = presideObjectService.getObjectProperty( objectName=args.sourceObject, propertyName=args.name );
 		} catch ( any e ) {
-			logError( e );
+			if ( isTrue( args.logError ?: true ) ) {
+				logError( e );
+			}
 		}
 
 		if ( isTrue( sourceProperty.cloneable ?: true ) ) {
