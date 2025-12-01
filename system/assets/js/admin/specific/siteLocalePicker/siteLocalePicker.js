@@ -12,15 +12,20 @@
 			countryCode = localeParts[0].toUpperCase();
 		}
 
-		var key = 'enum.isoCountries:' + countryCode + '.region';
-
-		var region = cfrequest.isoCountries[key];
+		var key                   = 'enum.isoCountries:' + countryCode + '.region';
+		var region                = cfrequest.isoCountries[key];
 		var defaultLocaleSettings = cfrequest.defaultLocaleSettings[region];
+
 		if( typeof defaultLocaleSettings != 'undefined' ) {
 			$('#short_date_format').data("uberSelect").select(defaultLocaleSettings.short_date_format);
 			$('#long_date_format').data("uberSelect").select(defaultLocaleSettings.long_date_format);
 			$("input[name=time_format]").prop("checked", false);
 			$("input[name=time_format][value='" + defaultLocaleSettings.time_format + "']").prop('checked', true);
+		} else {
+			$('#short_date_format').data("uberSelect").select(cfrequest.defaultLocaleSettings.uk.short_date_format);
+			$('#long_date_format').data("uberSelect").select(cfrequest.defaultLocaleSettings.uk.long_date_format);
+			$("input[name=time_format]").prop("checked", false);
+			$("input[name=time_format][value='" + cfrequest.defaultLocaleSettings.uk.time_format + "']").prop('checked', true);
 		}
 	});
 } )( presideJQuery );
