@@ -10,6 +10,7 @@ component {
 		var sourceIdField  = presideObjectService.getIdField( args.sourceObject );
 		var sortOrderField = presideObjectService.getObjectAttribute( targetObject, "datamanagerSortField", "sort_order" );
 		var hasSortOrder   = StructKeyExists( presideObjectService.getObjectProperties( targetObject ), sortOrderField );
+		var isEdit         = isEmptyString( args.savedData[ "datecreated" ] ?: "" );
 
 		args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
 
@@ -22,7 +23,7 @@ component {
 			logError( e );
 		}
 
-		if ( isTrue( sourceProperty.cloneable ?: true ) ) {
+		if ( !isEdit || isTrue( sourceProperty.cloneable ?: true ) ) {
 			args.defaultValue  = args.savedValue = presideObjectService.getOneToManyConfiguratorJsonString(
 				  sourceObject    = args.sourceObject
 				, sourceId        = args.savedData[ sourceIdField ] ?: ""
