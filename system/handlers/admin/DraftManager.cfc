@@ -146,16 +146,23 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _recordBreadcrumb( event, rc, prc, args={} ) {
-		var objectName  = prc.record._object_name ?: "";
-		var recordId    = prc.record._record_id   ?: "";
-		var recordLabel = renderLabel( objectName=objectName, recordId=recordId );
+		var objectName = args.objectName ?: "";
 
-		if ( dataManagerService.isOperationAllowed( objectName, "read" ) ) {
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
-				, link  = event.buildAdminLink( objectName=objectName, recordId=recordId, operation="viewRecord" )
-			);
+		if ( objectName == "draftmanager_draft" ) {
+			var recordId   = prc.record._record_id   ?: "";
+			var objectName = prc.record._object_name ?: "";
+
+			if ( !isEmptyString( recordId ) ) {
+				args.recordLabel = renderLabel( objectName=objectName, recordId=recordId );
+			}
 		}
+
+		runEvent(
+			  event          = "admin.dataManager._recordBreadcrumb"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
 	}
 
 	private string function _getDraftTabContent( event, rc, prc, args={} ) {
