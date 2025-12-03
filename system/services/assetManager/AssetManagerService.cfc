@@ -1476,6 +1476,32 @@ component displayName="AssetManager Service" {
 		return generatedUrl;
 	}
 
+	public string function getTempPrivateUrl(
+		  required string  id
+		,          string  versionId        = ""
+		,          numeric timeoutInMinutes = 1
+	) {
+		var asset  = "";
+
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			asset = getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] );
+		} else {
+			asset = getAsset( id=arguments.id, selectFields=[ "storage_path", "asset_folder", "active_version" ] );
+		}
+
+		if ( asset.recordCount ) {
+			var storageProvider = getStorageProviderForFolder( asset.asset_folder );
+			if ( StructKeyExists( storageProvider, "getTemporaryPrivateObjectUrl" ) ) {
+				return storageProvider.getTemporaryPrivateObjectUrl(
+					  path             = asset.storage_path
+					, timeoutInMinutes = arguments.timeoutInMinutes
+				);
+			}
+		}
+
+		return "";
+	}
+
 	public string function getDerivativeUrl(
 		  required string assetId
 		, required string derivativeName
