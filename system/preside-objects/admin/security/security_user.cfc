@@ -25,6 +25,8 @@ component extends="preside.system.base.SystemPresideObject" labelfield="known_as
 	property name="last_logged_out"                 type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true                       sortorder=150;
 	property name="last_request_made"               type="date"     dbtype="datetime"                required=false ignoreChangesForVersioning=true                       sortorder=160;
 	property name="subscribed_to_all_notifications" type="boolean"  dbtype="boolean"                 required=false default=false                                         sortorder=170;
+	property name="user_admin_date_format"          type="string"   dbtype="varchar" maxlength="50"  required=false;
+	property name="user_time_format"                type="string"   dbtype="varchar" maxlength="10"  required=false enum="timeFormatOptions";
 
 	property name="groups"        relationship="many-to-many" relatedTo="security_group" sortOrder=1000;
 
