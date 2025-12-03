@@ -123,18 +123,31 @@ component {
 					);
 				}
 
-				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
-				if ( type.serveAsAttachment ) {
-					header name="Content-Disposition" value="attachment; filename=""#filename#""";
-				} else {
-					header name="Content-Disposition" value="inline; filename=""#filename#""";
-				}
 
 				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
 					setNextEvent(
 						  url        = assetPublicUrl
 						, statusCode = type.trackDownloads ? 302 : 301
 					);
+				} else if ( !Len( Trim( derivativeName ) ) && !isTrashed ) {
+					var tempPrivateUrl = assetManagerService.getTempPrivateUrl(
+						  id        = assetId
+						, versionId = versionId
+					);
+
+					if ( Len( Trim( tempPrivateUrl ) ) ) {
+						setNextEvent(
+							  url        = tempPrivateUrl
+							, statusCode = 302
+						);
+					}
+				}
+
+				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
+				if ( type.serveAsAttachment ) {
+					header name="Content-Disposition" value="attachment; filename=""#filename#""";
+				} else {
+					header name="Content-Disposition" value="inline; filename=""#filename#""";
 				}
 
 				if ( Len( Trim( derivativeName ) ) ) {
