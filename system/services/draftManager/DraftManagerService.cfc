@@ -56,7 +56,7 @@ component {
 		,          string draftid  = ""
 	) {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
-			return false;
+			return {};
 		}
 
 		var filter = [ "_object_name = :_object_name and _status != 'publish'" ];
