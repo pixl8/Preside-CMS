@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="presideObjectService"            inject="PresideObjectService";
+	property name="dataManagerService"              inject="DataManagerService";
 	property name="dataManagerWorkflowService"      inject="DataManagerWorkflowService";
 	property name="dataManagerCustomizationService" inject="DataManagerCustomizationService";
 	property name="draftManagerService"             inject="DraftManagerService";
@@ -142,6 +143,19 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="#objectURIRoot#title", defaultValue=objectName )
 			, link  = event.buildAdminLink( objectName=objectName, operation="listing" )
 		);
+	}
+
+	private void function _recordBreadcrumb( event, rc, prc, args={} ) {
+		var objectName  = prc.record._object_name ?: "";
+		var recordId    = prc.record._record_id   ?: "";
+		var recordLabel = renderLabel( objectName=objectName, recordId=recordId );
+
+		if ( dataManagerService.isOperationAllowed( objectName, "read" ) ) {
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
+				, link  = event.buildAdminLink( objectName=objectName, recordId=recordId, operation="viewRecord" )
+			);
+		}
 	}
 
 	private string function _getDraftTabContent( event, rc, prc, args={} ) {

@@ -38,7 +38,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		dataManagerCustomizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "recordBreadcrumb"
-			, defaultHandler = "admin.DraftManager.recordBreadcrumb"
+			, defaultHandler = "admin.DraftManager._recordBreadcrumb"
 			, args           = args
 		);
 	}
