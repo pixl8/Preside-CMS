@@ -87,7 +87,7 @@ component {
 		,          string draftid  = ""
 	) {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
-			return false;
+			return {};
 		}
 
 		var draft = getDraftForObject( argumentCollection=arguments );
