@@ -98,7 +98,7 @@ component {
 						if ( IsStruct( formFieldValue ) ) {
 							var tempFileInfo = formFieldValue.tempFileInfo ?: {};
 
-							if ( ( tempFileInfo.serverFileExt ?: "" ) == ( tempFileInfo.contentSubType ?: "" ) ) {
+							if ( ( tempFileInfo.serverFileExt ?: "" ) == ( tempFileInfo.clientFileExt ?: "" ) ) {
 								formFieldValues = [ tempFileInfo.serverFileExt ];
 							}
 						}
