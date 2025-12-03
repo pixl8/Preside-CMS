@@ -138,26 +138,8 @@ component {
 
 					case "fileupload":
 						config.multiple = true;
-						config.sortable = true;
 						config.dataType = "array";
-						config.type     = "select";
-						config.values   = [];
-						config.labels   = [];
-
-						if ( isEmptyString( formItem.configuration.accept ?: "" ) ) {
-							var assetTypes = getSetting( name="assetManager.types", defaultValue=[] );
-							for ( var assetType in assetTypes ) {
-								for ( var fileType in assetTypes[ assetType ] ) {
-									ArrayAppend( config.values, fileType );
-								}
-							}
-						} else {
-							config.values = assetManagerService.expandTypeList( ListToArray( formItem.configuration.accept, "," ) );
-						}
-
-						for ( var fileType in config.values ) {
-							ArrayAppend( config.labels, translateResource( "filetypes:#fileType#.picker.label" ) );
-						}
+						config.type     = "fileTypePicker";
 						break;
 
 					case "checkbox":
