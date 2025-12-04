@@ -35,14 +35,17 @@ component extends="preside.system.base.AdminHandler" {
 	private string function _publishDraftRecordAction( event, rc, prc, args={} ) {
 		var objectName = prc.record._object_name ?: "";
 		var recordId   = prc.record._record_id   ?: "";
+		var draftId    = prc.record.id           ?: "";
 
 		if ( !IsEmpty( prc.record._data ?: {} ) ) {
 			StructAppend( rc, DeserializeJSON( prc.record._data ), true );
 		}
 
+		StructAppend( rc, { _draft_id=draftId }, true );
+
 		if ( isEmptyString( recordId ) ) {
 			if ( dataManagerCustomizationService.objectHasCustomization( objectName, "addRecordAction" ) ) {
-				return dataManagerCustomizationService.runCustomization(
+				recordId = dataManagerCustomizationService.runCustomization(
 					  objectName = objectName
 					, action     = "addRecordAction"
 					, args       = { objectName=objectName }
@@ -52,7 +55,7 @@ component extends="preside.system.base.AdminHandler" {
 				arguments.redirectOnSuccess = false;
 				arguments.object            = objectName;
 
-				return runEvent(
+				recordId = runEvent(
 					  event          = "admin.DataManager._addRecordAction"
 					, prePostExempt  = true
 					, private        = true
@@ -79,9 +82,9 @@ component extends="preside.system.base.AdminHandler" {
 					, eventArguments = arguments
 				);
 			}
-
-			return recordId;
 		}
+
+		return recordId;
 	}
 
 	private void function _saveDraftRecordAction( event, rc, prc, args={} ) {

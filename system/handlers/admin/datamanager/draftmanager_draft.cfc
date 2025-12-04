@@ -133,7 +133,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 			ArrayAppend( children, {
 				  title     = translateResource( uri="draftManager:action.delete.title" )
-				, iconClass = translateResource( uri="draftManager:action.delete.iconClass" )
+				, icon      = translateResource( uri="draftManager:action.delete.iconClass" )
 				, link      = event.buildAdminLink( objectName=objectName, operation="deleteRecordAction", recordId=recordId )
 				, globalKey = "d"
 				, prompt    = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitle, stripTags( recordLabel ) ] )
@@ -305,12 +305,21 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		arguments.checkExistingRecord = false;
 		arguments.formName            = getEditRecordFormName( argumentCollection=arguments );
 
-		runEvent(
-			  event          = "admin.DataManager._editRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = arguments
-		);
+		if ( draftManagerService.isDraftAction() ) {
+			runEvent(
+				  event          = "admin.DataManager._editRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = arguments
+			);
+		} else {
+			runEvent(
+				  event          = "admin.DraftManager._publishDraftRecordAction"
+				, private        = true
+				, prepostExempt  = true
+				, eventArguments = arguments
+			);
+		}
 	}
 
 	private any function deleteRecordAction( event, rc, prc, batch=false, batchAll=false, batchSrcArgs={} ) {

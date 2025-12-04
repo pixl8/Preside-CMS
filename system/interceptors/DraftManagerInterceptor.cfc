@@ -127,6 +127,34 @@ component extends="coldbox.system.Interceptor" {
 		}
 	}
 
+	public void function postAddRecordAction( event, interceptData ) {
+		if ( !isFeatureEnabled( "draftManager" ) ) {
+			return;
+		}
+
+		var objectName = interceptData.object         ?: "";
+		var draftId    = interceptData.rc._draft_id   ?: "";
+		var saveAction = interceptData.rc._saveAction ?: "";
+
+		if ( !isEmptyString( draftId ) && saveAction == "publish" ) {
+			draftManagerService.updateDraftStatusForObject( objectName=objectName, draftId=draftId, status="publish" );
+		}
+	}
+
+	public void function postEditRecordAction( event, interceptData ) {
+		if ( !isFeatureEnabled( "draftManager" ) ) {
+			return;
+		}
+
+		var objectName = interceptData.object         ?: ""	;
+		var draftId    = interceptData.rc._draft_id   ?: "";
+		var saveAction = interceptData.rc._saveAction ?: "";
+
+		if ( !isEmptyString( draftId ) && saveAction == "publish" ) {
+			draftManagerService.updateDraftStatusForObject( objectName=objectName, draftId=draftId, status="publish" );
+		}
+	}
+
 	private string function _getDraftAlert(
 		  required string objectName
 		, required string recordId
