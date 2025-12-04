@@ -109,7 +109,7 @@ component {
 			  }
 		);
 
-		var label = getDraftLabel( objectName=arguments.objectName, data=arguments.data );
+		var label = _getDraftLabel( objectName=arguments.objectName, data=arguments.data );
 
 		if ( $helpers.isEmptyString( draft.id ?: "" ) ) {
 			return $getPresideObject( "draftmanager_draft" ).insertData(
@@ -172,7 +172,7 @@ component {
 		) > 0;
 	}
 
-	private string function getDraftLabel(
+	private string function _getDraftLabel(
 		  required string objectName
 		,          struct data = {}
 	) {

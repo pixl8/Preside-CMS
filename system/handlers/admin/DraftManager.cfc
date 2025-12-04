@@ -6,6 +6,15 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataManagerCustomizationService" inject="DataManagerCustomizationService";
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
+	property name="sessionStorage"                  inject="SessionStorage";
+
+	public void function previewDraft( event, rc, prc ) {
+		var redirectUrl = rc.redirect_url ?: event.buildLink( page="homepage" );
+
+		sessionStorage.setVar( name="_presideAdminShowNonLiveContent", value=true );
+
+		setNextEvent( url=redirectUrl );
+	}
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
 		var recordId = _publishDraftRecordAction( argumentCollection=arguments );
