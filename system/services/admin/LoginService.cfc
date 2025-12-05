@@ -77,7 +77,7 @@ component displayName="Admin login service" {
 			_persistUserSession( usr );
 
 			if ( arguments.recordLogin ) {
-				recordLogin();
+				this.recordLogin();
 			}
 
 			if ( arguments.rememberLogin ) {
