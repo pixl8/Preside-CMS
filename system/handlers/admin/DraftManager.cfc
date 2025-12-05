@@ -17,7 +17,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
-		var recordId = _publishDraftRecordAction( argumentCollection=arguments );
+		var recordId = _publishDraftRecordAction( argumentCollection=arguments, redirectOnSuccess=false );
 
 		if ( !isEmptyString( local.recordId ?: "" ) ) {
 			wfInstance.appendState( { _record_id=recordId } );

@@ -269,6 +269,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return dataManagerCustomizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "preRenderEditRecordForm"
+			, defaultResult  = ""
 			, args           = args
 		)
 		& renderView( view="admin/draftManager/_alertDraft", args={
