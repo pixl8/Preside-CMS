@@ -61,7 +61,7 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			} else {
 				arguments.audit             = true;
-				arguments.redirectOnSuccess = false;
+				arguments.redirectOnSuccess = arguments.redirectOnSuccess ?: true;
 				arguments.object            = objectName;
 
 				recordId = runEvent(
@@ -80,7 +80,7 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			} else {
 				arguments.audit             = true;
-				arguments.redirectOnSuccess = false;
+				arguments.redirectOnSuccess = arguments.redirectOnSuccess ?: true;
 				arguments.object            = objectName;
 				arguments.recordId          = recordId;
 
@@ -227,7 +227,7 @@ component extends="preside.system.base.AdminHandler" {
 			return getRequestContext().buildLink( page="homepage" );
 		}
 
-		if ( domain == getRequestContext().getServerName() & getRequestContext().getPortSuffix() ) {
+		if ( domain == ( getRequestContext().getServerName() & getRequestContext().getPortSuffix() ) ) {
 			return arguments.redirectUrl;
 		}
 
