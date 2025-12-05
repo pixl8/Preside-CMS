@@ -213,10 +213,6 @@ component extends="preside.system.base.AdminHandler" {
 	private string function _validateRedirectUrl(
 		required string redirectUrl
 	) {
-		if ( REFindNoCase( "^/", arguments.redirectUrl ) ) {
-			return arguments.redirectUrl;
-		}
-
 		if ( !REFindNoCase( "^https?://", arguments.redirectUrl ) ) {
 			return getRequestContext().buildLink( page="homepage" );
 		}
