@@ -12,6 +12,7 @@
 			mockCookieService = getMockBox().createEmptyMock( "preside.system.services.cfmlScopes.CookieService" );
 			mockGoogleAuthenticator = getMockBox().createEmptyMock( "preside.system.services.authentication.GoogleAuthenticator" );
 			mockQrCodeGenerator = getMockBox().createEmptyMock( "preside.system.services.qrcodes.QrCodeGenerator" );
+			mockRequestContext = getMockBox().createStub();
 			loginService = new preside.system.services.admin.loginService(
 				  logger              = _getTestLogger()
 				, userDao             = _getPresideObjectService( forceNewInstance=true ).getObject( "security_user" )
@@ -24,10 +25,12 @@
 				, qrCodeGenerator     = mockQrCodeGenerator
 			);
 
+			mockRequestContext.$( "isBackgroundThread", false );
 			loginService = getMockBox().createMock( object=loginService );
 			loginService.$( "$audit" );
 			loginService.$( "_autoLogin", false );
 			loginService.$( "_deleteRememberMeCookie" );
+			loginService.$( "$getRequestContext", mockRequestContext );
 		</cfscript>
 	</cffunction>
 
