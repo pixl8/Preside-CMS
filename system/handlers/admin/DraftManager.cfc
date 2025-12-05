@@ -9,11 +9,11 @@ component extends="preside.system.base.AdminHandler" {
 	property name="sessionStorage"                  inject="SessionStorage";
 
 	public void function previewDraft( event, rc, prc ) {
-		var redirectUrl = rc.redirect_url ?: event.buildLink( page="homepage" );
+		var redirectUrl = URLDecode( rc.redirect_url ?: "" );
 
 		sessionStorage.setVar( name="_presideAdminShowNonLiveContent", value=true );
 
-		setNextEvent( url=redirectUrl );
+		setNextEvent( url=_validateRedirectUrl( redirectUrl=redirectUrl ) );
 	}
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
@@ -208,6 +208,30 @@ component extends="preside.system.base.AdminHandler" {
 
 	private array function _getDraftPreviewActionButtons( event, rc, prc, args={} ) {
 		return [];
+	}
+
+	private string function _validateRedirectUrl(
+		required string redirectUrl
+	) {
+		if ( REFindNoCase( "^/", arguments.redirectUrl ) ) {
+			return arguments.redirectUrl;
+		}
+
+		if ( !REFindNoCase( "^https?://", arguments.redirectUrl ) ) {
+			return getRequestContext().buildLink( page="homepage" );
+		}
+
+		var domain = REReplace( ListFirst( arguments.redirectUrl, "?&" ), "^https?://([^/]+).*$", "\1" );
+
+		if ( !Len( domain ) ) {
+			return getRequestContext().buildLink( page="homepage" );
+		}
+
+		if ( domain == getRequestContext().getServerName() & getRequestContext().getPortSuffix() ) {
+			return arguments.redirectUrl;
+		}
+
+		return getRequestContext().buildLink( page="homepage" );
 	}
 
 }
