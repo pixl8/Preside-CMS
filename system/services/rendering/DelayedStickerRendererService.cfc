@@ -38,20 +38,20 @@ component {
 
 			stickerData = DeserializeJSON( stickerData );
 
-			for( include in stickerData.includes ?: [] ) {
+			for( var include in stickerData.includes ?: [] ) {
 				event.include( assetId=include, group=group );
 			}
-			for( key in stickerData.adhoc ?: {} ) {
-				adhocArgs = {
+			for( var key in stickerData.adhoc ?: {} ) {
+				var adhocArgs = {
 					  url   = stickerData.adhoc[ key ].url
 					, type  = stickerData.adhoc[ key ].type
 					, media = stickerData.adhoc[ key ].media
 				};
 				adhocArgs.append( stickerData.adhoc[ key ].extraAttributes );
-				event.includeUrl( argumentCollection=adhocArgs );
+				event.includeUrl( argumentCollection=adhocArgs, group=group );
 			}
 			if ( !isEmpty( stickerData.data ?: {} ) ) {
-				event.includeData( stickerData.data );
+				event.includeData( stickerData.data, group );
 			}
 
 			return event.renderIncludes( type=type, group=group, delayed=false );
