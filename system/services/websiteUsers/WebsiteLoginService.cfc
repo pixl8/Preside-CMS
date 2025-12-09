@@ -601,6 +601,7 @@ component displayName="Website login service" {
 
 		for( var u in user ){
 			u.session_authenticated = $helpers.isTrue( existingSession.session_authenticated ?: "" );
+			u.impersonated          = $helpers.isTrue( existingSession.impersonated          ?: "" );
 
 			_setUserSession( u );
 
