@@ -600,7 +600,7 @@ component displayName="Website login service" {
 		for( var u in user ){
 			u.session_authenticated = $helpers.isTrue( existingSession.session_authenticated ?: "" );
 
-			_setUserSession( user );
+			_setUserSession( u );
 
 			return;
 		}
