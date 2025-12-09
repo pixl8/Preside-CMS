@@ -195,7 +195,9 @@ component displayName="Website login service" {
 	 *
 	 */
 	public boolean function isAutoLoggedIn() autodoc=true {
-		return _getSessionStorage().exists( name=_getSessionKey() ) && !getLoggedInUserDetails().session_authenticated;
+		var user = getLoggedInUserDetails();
+
+		return StructCount( user ) && $helpers.isFalse( user.session_authenticated ?: "" );
 	}
 
 	/**
@@ -591,13 +593,18 @@ component displayName="Website login service" {
 	}
 
 	public void function reloadLoggedInUserDetails( string userId=getLoggedInUserId() ) {
-		var user = _getUserDao().selectData(
+		var existingSession = getLoggedInUserDetails();
+		var user            = _getUserDao().selectData(
 			  filter   = { id=arguments.userId, active=true }
 			, useCache = false
 		);
 
-		if ( user.recordCount ) {
-			_setUserSession( $helpers.queryRowToStruct( user ) );
+		for( var u in user ){
+			u.session_authenticated = $helpers.isTrue( existingSession.session_authenticated ?: "" );
+
+			_setUserSession( user );
+
+			return;
 		}
 	}
 
