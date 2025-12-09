@@ -36,7 +36,6 @@ component {
 		_configureVariousServices(); // important for this to happen first
 		_populateDefaultLanguages();
 		_setupCatchAllAdminUserGroup();
-		_startHeartbeats();
 		_setupValidators();
 		_performDbMigrations();
 		_setupEmailTemplating();
@@ -44,6 +43,8 @@ component {
 		_writeIgnoreFile();
 
 		announceInterception( "onApplicationStart" );
+
+		_startHeartbeats();
 	}
 
 	public void function applicationEnd( event, rc, prc ) {
