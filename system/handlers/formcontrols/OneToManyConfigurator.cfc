@@ -25,7 +25,9 @@ component {
 
 					shouldHaveDefaultValue = isFalse( sourceProperty.cloneable ?: true );
 				} catch ( any e ) {
-					logError( e );
+					if ( isTrue( args.logError ?: true ) ) {
+						logError( e );
+					}
 				}
 			}
 
