@@ -6,31 +6,39 @@ component {
 	property name="presideObjectService" inject="PresideObjectService";
 
 	public string function index( event, rc, prc, args={} ) {
-		var targetObject   = args.relatedTo ?: "";
-		var sourceIdField  = presideObjectService.getIdField( args.sourceObject );
+		var targetObject   = args.relatedTo    ?: "";
+		var sourceObject   = args.sourceObject ?: "";
+		var sourceIdField  = presideObjectService.getIdField( sourceObject );
 		var sortOrderField = presideObjectService.getObjectAttribute( targetObject, "datamanagerSortField", "sort_order" );
 		var hasSortOrder   = StructKeyExists( presideObjectService.getObjectProperties( targetObject ), sortOrderField );
 
 		args.labelRenderer = args.labelRenderer ?: presideObjectService.getObjectAttribute( targetObject, "labelRenderer" );
+		args.defaultValue  = args.defaultValue  ?: "";
+		args.savedValue    = args.savedValue    ?: args.defaultValue;
 
-		args.defaultValue = args.defaultValue ?: "";
-		args.savedValue   = args.savedValue   ?: "";
+		if ( isEmptyString( args.defaultValue ?: "" ) ) {
+			var shouldHaveDefaultValue = true;
 
-		try {
-			var sourceProperty = presideObjectService.getObjectProperty( objectName=args.sourceObject, propertyName=args.name );
-		} catch ( any e ) {
-			logError( e );
-		}
+			if ( REFindNoCase("\.cloneRecord\b", rc.event ?: "" ) ) {
+				try {
+					var sourceProperty = presideObjectService.getObjectProperty( objectName=sourceObject, propertyName=args.name );
 
-		if ( isTrue( sourceProperty.cloneable ?: true ) ) {
-			args.defaultValue  = args.savedValue = presideObjectService.getOneToManyConfiguratorJsonString(
-				  sourceObject    = args.sourceObject
-				, sourceId        = args.savedData[ sourceIdField ] ?: ""
-				, relatedTo       = args.relatedTo                  ?: NullValue()
-				, relationshipKey = args.relationshipKey            ?: NullValue()
-				, specificVersion = rc.version                      ?: NullValue()
-				, labelRenderer   = args.labelRenderer
-			);
+					shouldHaveDefaultValue = isFalse( sourceProperty.cloneable ?: true );
+				} catch ( any e ) {
+					logError( e );
+				}
+			}
+
+			if ( shouldHaveDefaultValue ) {
+				args.defaultValue  = args.savedValue = presideObjectService.getOneToManyConfiguratorJsonString(
+					  sourceObject    = args.sourceObject
+					, sourceId        = args.savedData[ sourceIdField ] ?: ""
+					, relatedTo       = args.relatedTo                  ?: NullValue()
+					, relationshipKey = args.relationshipKey            ?: NullValue()
+					, specificVersion = rc.version                      ?: NullValue()
+					, labelRenderer   = args.labelRenderer
+				);
+			}
 		}
 
 		args.object        = targetObject;
