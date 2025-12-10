@@ -109,7 +109,11 @@ component {
 
 				for ( var submissionPage in submissionPages ) {
 					var formItemPage = formBuilderService.getPage( formId=formId, formItemId=submissionPage );
-					ArrayAppend( submissionFormItems, formBuilderService.getFormItems( id=formId, pageNumber=formItemPage.page_number ), true );
+					var formItems    = formBuilderService.getFormItems( id=formId, pageNumber=( formItemPage.page_number ?: 0 ) );
+
+					if ( ArrayLen( formItems ) ) {
+						ArrayAppend( submissionFormItems, formItems, true );
+					}
 				}
 			}
 
