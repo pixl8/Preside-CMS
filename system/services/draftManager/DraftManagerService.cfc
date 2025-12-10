@@ -53,10 +53,10 @@ component {
 	public struct function getDraftForObject(
 		  required string objectName
 		,          string recordId = ""
-		,          string draftid  = ""
+		,          string draftId  = ""
 	) {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
-			return false;
+			return {};
 		}
 
 		var filter = [ "_object_name = :_object_name and _status != 'publish'" ];
@@ -87,7 +87,7 @@ component {
 		,          string draftid  = ""
 	) {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
-			return false;
+			return {};
 		}
 
 		var draft = getDraftForObject( argumentCollection=arguments );
@@ -109,7 +109,7 @@ component {
 			  }
 		);
 
-		var label = getDraftLabel( objectName=arguments.objectName, data=arguments.data );
+		var label = _getDraftLabel( objectName=arguments.objectName, data=arguments.data );
 
 		if ( $helpers.isEmptyString( draft.id ?: "" ) ) {
 			return $getPresideObject( "draftmanager_draft" ).insertData(
@@ -137,7 +137,42 @@ component {
 		}
 	}
 
-	private string function getDraftLabel(
+	public boolean function updateDraftStatusForObject(
+		  required string objectName
+		,          string recordId = ""
+		,          string draftId  = ""
+		,          string status   = ""
+	) {
+		if ( !$isFeatureEnabled( "draftManager" ) ) {
+			return false;
+		}
+
+		var filter = [ "_object_name = :_object_name and _status != :_status" ];
+
+		if ( !$helpers.isEmptyString( arguments.recordId ) ) {
+			ArrayAppend( filter, "_record_id = :_record_id" );
+		}
+
+		if ( !$helpers.isEmptyString( arguments.draftid ) ) {
+			ArrayAppend( filter, "id = :id" );
+		}
+
+		return $getPresideObject( "draftmanager_draft" ).updateData(
+			  argumentCollection = arguments
+			, filter             = ArrayToList( filter, " and " )
+			, filterParams       = {
+				  _object_name = { type="cf_sql_varchar", value=arguments.objectName }
+				, _record_id   = { type="cf_sql_varchar", value=arguments.recordId   }
+				, _status      = { type="cf_sql_varchar", value=arguments.status     }
+				, id           = { type="cf_sql_varchar", value=arguments.draftId    }
+			  }
+			, data               = {
+				_status          = arguments.status
+			  }
+		) > 0;
+	}
+
+	private string function _getDraftLabel(
 		  required string objectName
 		,          struct data = {}
 	) {

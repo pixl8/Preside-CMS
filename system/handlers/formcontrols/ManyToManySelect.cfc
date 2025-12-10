@@ -9,8 +9,9 @@ component {
 		var sourceObject  = args.sourceObject ?: "";
 		var sourceIdField = presideObjectService.getIdField( sourceObject );
 
-		args.object   = args.relatedTo ?: "";
-		args.multiple = true;
+		args.defaultValue = args.defaultValue ?: "";
+		args.object       = args.relatedTo    ?: "";
+		args.multiple     = true;
 
 		var targetIdField = presideObjectService.getIdField( args.object );
 

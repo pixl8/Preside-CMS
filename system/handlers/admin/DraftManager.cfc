@@ -1,13 +1,23 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="presideObjectService"            inject="PresideObjectService";
+	property name="dataManagerService"              inject="DataManagerService";
 	property name="dataManagerWorkflowService"      inject="DataManagerWorkflowService";
 	property name="dataManagerCustomizationService" inject="DataManagerCustomizationService";
 	property name="draftManagerService"             inject="DraftManagerService";
 	property name="messageBox"                      inject="messagebox@cbmessagebox";
+	property name="sessionStorage"                  inject="SessionStorage";
+
+	public void function previewDraft( event, rc, prc ) {
+		var redirectUrl = URLDecode( rc.redirect_url ?: "" );
+
+		sessionStorage.setVar( name="_presideAdminShowNonLiveContent", value=true );
+
+		setNextEvent( url=_validateRedirectUrl( redirectUrl=redirectUrl ) );
+	}
 
 	private void function preApproveAction( event, rc, prc, args={}, wfInstance ) {
-		var recordId = _publishDraftRecordAction( argumentCollection=arguments );
+		var recordId = _publishDraftRecordAction( argumentCollection=arguments, redirectOnSuccess=false );
 
 		if ( !isEmptyString( local.recordId ?: "" ) ) {
 			wfInstance.appendState( { _record_id=recordId } );
@@ -34,24 +44,27 @@ component extends="preside.system.base.AdminHandler" {
 	private string function _publishDraftRecordAction( event, rc, prc, args={} ) {
 		var objectName = prc.record._object_name ?: "";
 		var recordId   = prc.record._record_id   ?: "";
+		var draftId    = prc.record.id           ?: "";
 
 		if ( !IsEmpty( prc.record._data ?: {} ) ) {
 			StructAppend( rc, DeserializeJSON( prc.record._data ), true );
 		}
 
+		StructAppend( rc, { _draft_id=draftId }, true );
+
 		if ( isEmptyString( recordId ) ) {
 			if ( dataManagerCustomizationService.objectHasCustomization( objectName, "addRecordAction" ) ) {
-				return dataManagerCustomizationService.runCustomization(
+				recordId = dataManagerCustomizationService.runCustomization(
 					  objectName = objectName
 					, action     = "addRecordAction"
 					, args       = { objectName=objectName }
 				);
 			} else {
 				arguments.audit             = true;
-				arguments.redirectOnSuccess = false;
+				arguments.redirectOnSuccess = arguments.redirectOnSuccess ?: true;
 				arguments.object            = objectName;
 
-				return runEvent(
+				recordId = runEvent(
 					  event          = "admin.DataManager._addRecordAction"
 					, prePostExempt  = true
 					, private        = true
@@ -67,7 +80,7 @@ component extends="preside.system.base.AdminHandler" {
 				);
 			} else {
 				arguments.audit             = true;
-				arguments.redirectOnSuccess = false;
+				arguments.redirectOnSuccess = arguments.redirectOnSuccess ?: true;
 				arguments.object            = objectName;
 				arguments.recordId          = recordId;
 
@@ -78,9 +91,9 @@ component extends="preside.system.base.AdminHandler" {
 					, eventArguments = arguments
 				);
 			}
-
-			return recordId;
 		}
+
+		return recordId;
 	}
 
 	private void function _saveDraftRecordAction( event, rc, prc, args={} ) {
@@ -144,6 +157,26 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	private void function _recordBreadcrumb( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		if ( objectName == "draftmanager_draft" ) {
+			var recordId   = prc.record._record_id   ?: "";
+			var objectName = prc.record._object_name ?: "";
+
+			if ( !isEmptyString( recordId ) ) {
+				args.recordLabel = renderLabel( objectName=objectName, recordId=recordId );
+			}
+		}
+
+		runEvent(
+			  event          = "admin.dataManager._recordBreadcrumb"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+	}
+
 	private string function _getDraftTabContent( event, rc, prc, args={} ) {
 		var tabId      = arguments.tabId      ?: "";
 		var objectName = arguments.objectName ?: "";
@@ -175,6 +208,26 @@ component extends="preside.system.base.AdminHandler" {
 
 	private array function _getDraftPreviewActionButtons( event, rc, prc, args={} ) {
 		return [];
+	}
+
+	private string function _validateRedirectUrl(
+		required string redirectUrl
+	) {
+		if ( !REFindNoCase( "^https?://", arguments.redirectUrl ) ) {
+			return getRequestContext().buildLink( page="homepage" );
+		}
+
+		var domain = REReplace( ListFirst( arguments.redirectUrl, "?&" ), "^https?://([^/]+).*$", "\1" );
+
+		if ( !Len( domain ) ) {
+			return getRequestContext().buildLink( page="homepage" );
+		}
+
+		if ( domain == ( getRequestContext().getServerName() & getRequestContext().getPortSuffix() ) ) {
+			return arguments.redirectUrl;
+		}
+
+		return getRequestContext().buildLink( page="homepage" );
 	}
 
 }

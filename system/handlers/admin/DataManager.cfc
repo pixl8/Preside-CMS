@@ -328,11 +328,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function addRecord( event, rc, prc ) {
-		_checkPermission( argumentCollection=arguments, key="add" );
-
 		var objectName          = prc.objectName ?: "";
 		var objectTitleSingular = prc.objectTitle ?: "";
-		var addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] );
+
+		_checkPermission( argumentCollection=arguments, key="add" );
+
+		announceInterception( "preAddRecord", { objectName=objectName } );
+
+		var addRecordTitle = translateResource( uri="cms:datamanager.addrecord.title", data=[  objectTitleSingular  ] );
 
 		prc.pageIcon      = "plus";
 		prc.pageTitle     = addRecordTitle;
@@ -353,6 +356,8 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:datamanager.addrecord.breadcrumb.title", data=[ objectTitleSingular ] )
 			, link  = ""
 		);
+
+		announceInterception( "postAddRecord", { objectName=objectName } );
 	}
 
 	public void function addRecordAction( event, rc, prc ) {
@@ -2736,6 +2741,8 @@ component extends="preside.system.base.AdminHandler" {
 				, args       = args
 			);
 
+			announceInterception( "postAddRecordAction", args );
+
 			if ( !redirectOnSuccess ) {
 				return newId;
 			}
@@ -3112,15 +3119,6 @@ component extends="preside.system.base.AdminHandler" {
 					, prepostExempt  = true
 					, eventArguments = args
 				);
-			} else if ( isEmptyString( arguments.recordId ) ) {
-				// This is intentional to catch cases where a draft is being edited and published.
-				// A normal edit object will always have a recordId.
-				runEvent(
-					  event          = "admin.DraftManager._publishDraftRecordAction"
-					, private        = true
-					, prepostExempt  = true
-					, eventArguments = args
-				);
 			}
 		}
 
@@ -3174,6 +3172,8 @@ component extends="preside.system.base.AdminHandler" {
 				, action     = "postEditRecordAction"
 				, args       = args
 			);
+
+			announceInterception( "postEditRecordAction", args );
 
 			if ( redirectOnSuccess ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );

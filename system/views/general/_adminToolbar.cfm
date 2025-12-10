@@ -77,11 +77,22 @@
 									</a>
 								</li>
 								<li class="no-border-left">
-									<a data-toggle="preside-dropdown" href="##" class="dropdown-toggle">
-										<i class="fa fa-eye-slash fa-lg fa-fw"></i>
-										#translateResource( 'cms:admintoolbar.show.hide' )#
-										<i class="fa fa-caret-down"></i>
-									</a>
+
+									<cfif event.showNonLiveContent()>
+										<a data-toggle="preside-dropdown" href="##" class="dropdown-toggle orange">
+											<i class="fa fa-eye-slash fa-lg fa-fw"></i>&nbsp;
+											#translateResource( uri="cms:admintoolbar.view.draft" )#
+
+											<i class="fa fa-caret-down"></i>
+										</a>
+									<cfelse>
+										<a data-toggle="preside-dropdown" href="##" class="dropdown-toggle">
+											<i class="fa fa-eye fa-lg fa-fw "></i>&nbsp;
+											#translateResource( uri="cms:admintoolbar.view.live" )#
+
+											<i class="fa fa-caret-down"></i>
+										</a>
+									</cfif>
 
 									<ul class="user-menu dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
 										<li>
@@ -116,7 +127,7 @@
 								<li>
 									&nbsp;
 									<a class="pr-0 orange" href="#event.buildAdminLink( objectName="website_user", operation="viewRecord", recordId=getLoggedinUserId() )#">
-										<i class="fa fa-fw fa-lg fa-mask orange"></i>
+										<i class="fa fa-fw fa-lg fa-mask"></i>&nbsp;
 										#translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ getLoggedInUserDetails().email_address ] )#
 									</a>
 									<a class="p-0" href="#event.buildLink( linkto="login.logout" )#">

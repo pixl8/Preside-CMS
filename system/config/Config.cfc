@@ -321,8 +321,12 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
 		interceptorSettings.customInterceptionPoints.append( "preViewRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "preAddRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postAddRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postAddRecordAction" );
 		interceptorSettings.customInterceptionPoints.append( "preEditRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postEditRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postEditRecordAction" );
 	}
 
 	private void function __setupCachebox() {
