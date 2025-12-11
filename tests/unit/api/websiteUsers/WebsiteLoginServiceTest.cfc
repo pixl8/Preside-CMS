@@ -472,6 +472,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockResetDao          = getMockbox().createStub();
 		mockUserLoginTokenDao = getMockbox().createStub();
 		mockRequestContext    = getMockbox().createStub();
+		mockHelpers           = getMockbox().createStub();
 		mockBCryptService     = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 		mockSysConfigService  = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
 		mockEmailService      = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
@@ -497,6 +498,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockResetDao.$( "insertData", 1 );
 		mockResetDao.$( "deleteData", 1 );
 		mockRequestContext.$( "isBackgroundThread", false );
+		service.$property( propertyName="$helpers", mock=mockHelpers );
+		mockHelpers.$( method="isTrue", callBack=function( val ){
+			return IsBoolean( arguments.val ) && arguments.val;
+		} );
+		mockHelpers.$( method="isFalse", callBack=function( val ){
+			return !IsBoolean( arguments.val ) || !arguments.val;
+		} );
+
 
 		return service;
 	}
