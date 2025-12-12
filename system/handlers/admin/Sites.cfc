@@ -344,7 +344,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object      = "site"
-				, gridFields  = "name,domain,path"
+				, gridFields  = "name,domain,path,locale"
 				, actionsView = "/admin/sites/_sitesGridActions"
 				, extraFilters = [ { filter="deleted is null or deleted = :deleted", filterParams={ deleted=false } } ]
 			}
