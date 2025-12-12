@@ -6,7 +6,7 @@ component output=false {
 		var dateFormatMask   = translateResource( uri="cms:dateFormat");
 		
 		if ( IsStruct(adminUserDetails) ) {
-			if ( StructKeyExists(adminUserDetails, "user_admin_date_format") && Len(adminUserDetails.user_admin_date_format) ) {
+			if ( Len( adminUserDetails.user_admin_date_format ?: "" ) ) {
 				dateFormatMask = adminUserDetails.user_admin_date_format;
 			}
 		}

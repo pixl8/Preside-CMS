@@ -7,11 +7,11 @@ component output=false {
 		var timeFormatMask  = translateResource( uri="cms:timeFormat");
 		
 		if ( IsStruct(adminUserDetails) ) {
-			if ( StructKeyExists(adminUserDetails, "user_admin_date_format") && Len(adminUserDetails.user_admin_date_format) ) {
+			if ( Len( adminUserDetails.user_admin_date_format ?: "" ) ) {
 				dateFormatMask = adminUserDetails.user_admin_date_format;
 			}
 
-			if( StructKeyExists(adminUserDetails, "user_time_format") && Len(adminUserDetails.user_time_format) ) {
+			if( Len( adminUserDetails.user_time_format ?: "" ) ) {
 				if ( adminUserDetails.user_time_format == "24h" ) {
 					timeFormatMask = "HH:mm:ss";
 				} else {
