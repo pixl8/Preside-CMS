@@ -7,13 +7,13 @@ component {
 
 	public string function index( event, rc, prc, args={} ) output=false {
 		var settings       = getSetting( "datetime.formats" );
-		var dateFormatType = args.dateFormatType ?: "";
-		var items          = settings[dateFormatType];
+		var dateFormatType = args.dateFormatType ?: ""		
+		var items          = settings[dateFormatType] ?: [];
 		args.labels        = [ "" ];
 		args.values        = [ "" ];
-
-		if ( !items.len() ) {
-		    return "";
+		
+		if ( !ArrayLen(items) ) {
+			return "";
 		}
 
 		for( var item in items ) {
@@ -23,8 +23,8 @@ component {
 			if( Len(label) ) {
 				ArrayAppend(args.labels, label);
 			} else {
-				var newLabel = item & " (" & DateFormat("2025-09-20", item) & ")";
-				ArrayAppend(args.labels, newLabel);
+				label = item & " (" & DateFormat("2025-09-20", item) & ")";
+				ArrayAppend(args.labels, label);
 			}
 		}
 		
