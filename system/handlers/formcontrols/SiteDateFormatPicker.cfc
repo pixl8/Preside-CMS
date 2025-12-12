@@ -8,24 +8,29 @@ component {
 	public string function index( event, rc, prc, args={} ) output=false {
 		var settings       = getSetting( "datetime.formats" );
 		var dateFormatType = args.dateFormatType ?: "";
-		var items          = settings[dateFormatType];
 		args.labels        = [ "" ];
 		args.values        = [ "" ];
-		
-		if ( !items.len() ) {
-		    return "";
-		}
 
-		for( var item in items ) {
-			ArrayAppend(args.values, item);
-
-			var label = translateResource(uri="preside-objects.site:option.#item#.label", defaultValue="");
-			if( Len(label) ) {
-				ArrayAppend(args.labels, label);
-			} else {
-				var newLabel = item & " (" & DateFormat("2025-09-20", item) & ")";
-				ArrayAppend(args.labels, newLabel);
+		if ( Len(dateFormatType) ) {
+			var items          = settings[dateFormatType];
+			
+			if ( !ArrayLen(items) ) {
+				return "";
 			}
+
+			for( var item in items ) {
+				ArrayAppend(args.values, item);
+
+				var label = translateResource(uri="preside-objects.site:option.#item#.label", defaultValue="");
+				if( Len(label) ) {
+					ArrayAppend(args.labels, label);
+				} else {
+					label = item & " (" & DateFormat("2025-09-20", item) & ")";
+					ArrayAppend(args.labels, label);
+				}
+			}
+		} else {
+			return "";
 		}
 		
 		return renderView( view="formcontrols/select/index", args=args );
