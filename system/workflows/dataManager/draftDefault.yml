@@ -1,0 +1,38 @@
+version: 1.0.0
+workflow:
+  id: draftDefault
+
+  initialActions:
+  - id: start
+    result:
+      activateSteps: [ "draft" ]
+      appendState:
+        _status: "draft"
+
+  steps:
+  - id: draft
+    actions:
+    - id: review
+      result:
+        activateSteps: [ "review" ]
+        appendState:
+          _status: "review"
+
+  - id: review
+    actions:
+    - id: approve
+      result:
+        activateSteps: [ "publish" ]
+        appendState:
+          _status: "publish"
+        preHandlers:
+        - event: admin.DraftManager.preApproveAction
+        postHandlers:
+        - event: admin.DraftManager.postApproveAction
+    - id: reject
+      result:
+        activateSteps: [ "draft" ]
+        appendState:
+          _status: "reject"
+
+  - id: publish

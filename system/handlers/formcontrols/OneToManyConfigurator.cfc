@@ -25,11 +25,20 @@ component {
 
 					shouldHaveDefaultValue = isFalse( sourceProperty.cloneable ?: true );
 				} catch ( any e ) {
-					logError( e );
+					if ( isTrue( args.logError ?: true ) ) {
+						logError( e );
+					}
 				}
 			}
 
 			if ( shouldHaveDefaultValue ) {
+				var recordExtraFilters         = [];
+				var configuratorFiltersViewlet = Trim( presideObjectService.getObjectAttribute( targetObject, "configuratorFiltersViewlet" ) );
+
+				if ( Len( configuratorFiltersViewlet ) && getController().viewletExists( configuratorFiltersViewlet ) ) {
+					recordExtraFilters = renderViewlet( event=configuratorFiltersViewlet, args=args );
+				}
+
 				args.defaultValue  = args.savedValue = presideObjectService.getOneToManyConfiguratorJsonString(
 					  sourceObject    = args.sourceObject
 					, sourceId        = args.savedData[ sourceIdField ] ?: ""
@@ -37,6 +46,7 @@ component {
 					, relationshipKey = args.relationshipKey            ?: NullValue()
 					, specificVersion = rc.version                      ?: NullValue()
 					, labelRenderer   = args.labelRenderer
+					, extraFilters    = IsArray( recordExtraFilters ) ? recordExtraFilters : []
 				);
 			}
 		}

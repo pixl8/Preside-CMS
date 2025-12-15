@@ -1634,6 +1634,7 @@ component displayName="Preside Object Service" {
 		,          string relationshipKey
 		,          string labelRenderer
 		,          string specificVersion
+		,          array  extraFilters = []
 	) {
 		var targetObject   = arguments.relatedTo       ?: "";
 		var targetFk       = arguments.relationshipKey ?: arguments.sourceObject;
@@ -1650,6 +1651,7 @@ component displayName="Preside Object Service" {
 			var records = selectData(
 				  objectName       = targetObject
 				, filter           = { "#targetFk#"=arguments.sourceId }
+				, extraFilters     = arguments.extraFilters
 				, selectFields     = labelFields.append( "#targetObject#.#targetIdField# as id" )
 				, orderBy          = orderBy
 				, useCache         = false

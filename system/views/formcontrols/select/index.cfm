@@ -13,16 +13,19 @@
 	values                  = args.values                  ?: "";
 	resultTemplate          = args.resultTemplate          ?: "";
 	selectedTemplate        = args.selectedTemplate        ?: "";
+	skipHtmlEncodeForLabel  = args.skipHtmlEncodeForLabel  ?: false;
 	removeObjectPickerClass = args.removeObjectPickerClass ?: false;
 	objectPickerClass       = removeObjectPickerClass ?  "" : "object-picker";
 	addMissingValues        = IsTrue( args.addMissingValues   ?: "" );
 	includeEmptyOption      = IsTrue( args.includeEmptyOption ?: "" );
 	exactMatchOnly          = IsTrue( args.exactMatchOnly     ?: "" );
-	labels                  = ( structKeyExists( args, "labels") && len( args.labels ) ) ? args.labels : args.values;
+	labels                  = ( StructKeyExists( args, "labels") && Len( args.labels ) ) ? args.labels : args.values;
+	titles                  = ( StructKeyExists( args, "titles") && Len( args.titles ) ) ? args.titles : labels;
 	optionAttribs           = args.optionAttribs           ?: "";
 
 	if ( IsSimpleValue( values        ) ) { values        = ListToArray( values        ); }
 	if ( IsSimpleValue( labels        ) ) { labels        = ListToArray( labels        ); }
+	if ( IsSimpleValue( titles        ) ) { titles        = ListToArray( titles        ); }
 	if ( IsSimpleValue( optionAttribs ) ) { optionAttribs = ListToArray( optionAttribs ); }
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
@@ -72,15 +75,16 @@
 			<cfset selectValue=EncodeForHTML( selectValue ) />
 			<cfset selected=exactMatchOnly ? ( value == selectValue ) : FindNoCase( value, selectValue ) />
 			<cfset valueFound=valueFound || selected />
-			<cfset label=EncodeForHTML( translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) ) />
+			<cfset label=translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) />
+			<cfset title=EncodeForHTML( translateResource( titles[ i ] ?: "", titles[ i ] ?: "" ) ) />
 			<cfset optAttribs=renderHtmlAttributes( argumentCollection=optionAttribs[ i ] ?: {} ) />
 			<option
 				value="#selectValue#"
-				title="#label#"
+				title="#title#"
 				<cfif selected> selected="selected"</cfif>
 				#optAttribs#
 			>
-				#label#
+				#skipHtmlEncodeForLabel ? label : EncodeForHTML( label )#
 			</option>
 		</cfloop>
 		<cfif value.len() && !valueFound && addMissingValues>

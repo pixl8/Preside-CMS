@@ -6,6 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="permissionService"          inject="permissionService";
 	property name="adminDataViewsService"      inject="adminDataViewsService";
 	property name="datamanagerWorkflowService" inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
+	property name="draftManagerService"        inject="featureInjector:draftManager:DraftManagerService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 	variables.permissionSubBase  = "";
@@ -79,6 +80,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.initializeDatamanagerPage( objectName=objectName, recordId=recordId, includeAllFormulaFields=true );
 
+		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId } );
+
 		if ( !isQuery( prc.record ) || !prc.record.recordcount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle ?: objectName  ] ) );
 			setNextEvent( url=event.buildAdminLink( objectName=objectName ) );
@@ -118,23 +121,21 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = { objectName=objectName, action="viewRecord", record=record, recordId=prc.recordId }
 		);
 
-		prc.preViewRecordContent = "";
-		if ( customizationService.objectHasCustomization( objectName=objectName, action="preViewRecordContent" ) ) {
-			prc.preViewRecordContent = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "preViewRecordContent"
-				, args       = { objectName=objectName, action="preViewRecordContent", record=record, recordId=prc.recordId }
-			);
-		}
+		prc.preViewRecordContent = customizationService.runCustomization(
+			  objectName    = objectName
+			, action        = "preViewRecordContent"
+			, args          = { objectName=objectName, action="preViewRecordContent", record=record, recordId=prc.recordId }
+			, defaultResult = ""
+		);
 
-		prc.postViewRecordContent = "";
-		if ( customizationService.objectHasCustomization( objectName=objectName, action="postViewRecordContent" ) ) {
-			prc.postViewRecordContent = customizationService.runCustomization(
-				  objectName = objectName
-				, action     = "postViewRecordContent"
-				, args       = { objectName=objectName, action="postViewRecordContent", record=record, recordId=prc.recordId }
-			);
-		}
+		prc.postViewRecordContent = customizationService.runCustomization(
+			  objectName    = objectName
+			, action        = "postViewRecordContent"
+			, args          = { objectName=objectName, action="postViewRecordContent", record=record, recordId=prc.recordId }
+			, defaultResult = ""
+		);
+
+		announceInterception( "postViewRecord", { objectName=objectName, recordId=recordId } );
 
 		_overrideAdminLayout( argumentCollection=arguments );
 		event.setView( "/admin/datamanager/_viewRecord" );
@@ -169,7 +170,7 @@ component extends="preside.system.base.AdminHandler" {
 		return hasPermission;
 	}
 
-	private string function recordBreadcrumb() {
+	private void function recordBreadcrumb() {
 		var objectName  = args.objectName  ?: "";
 		var recordLabel = args.recordLabel ?: "";
 		var recordId    = args.recordId    ?: "";
@@ -401,14 +402,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _tabs( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
-		var i18nBase   = "preside-objects.#objectName#:";
+		var objectName      = args.objectName ?: "";
+		var i18nBase        = "preside-objects.#objectName#:";
 		var i18nDefaultBase = "adminui:";
 
-		args.tabs    = Duplicate( variables.tabs ?: [ "default" ] );
+		args.tabs    = args.tabs ?: ( Duplicate( variables.tabs ?: [ "default" ] ) );
 		args.maxTabs = variables.maxTabCount;
 
 		_addWorkflowTab( argumentCollection=arguments );
+
 		announceInterception( "preRenderDataManagerObjectTabs", args );
 
 		for( var i=1; i<=args.tabs.len(); i++ ) {
@@ -421,6 +423,7 @@ component extends="preside.system.base.AdminHandler" {
 				, title     = customizationService.runCustomization( objectName=objectName, action="_#tabId#TabTitle", args=args, defaultResult=translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) ) )
 			};
 		}
+
 		for( var i=args.tabs.len(); i>0; i-- ) {
 			if ( !Len( Trim( args.tabs[ i ].content ?: "" ) ) ) {
 				args.tabs.deleteAt( i );
@@ -431,6 +434,7 @@ component extends="preside.system.base.AdminHandler" {
 			event.include( "/css/admin/specific/datamanager/viewtabs/" );
 			return renderView( view="/admin/datamanager/_tabs", args=args );
 		}
+
 		return "";
 	}
 

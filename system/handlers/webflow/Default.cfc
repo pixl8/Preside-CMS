@@ -31,6 +31,34 @@ component {
 		);
 	}
 
+	/**
+	 * @cacheable false
+	 *
+	 */
+	private string function ajaxRender( event, rc, prc, args={} ) {
+		event.preventPageCache();
+		event.include( assetId="/css/frontend/webflow/ajaxLayout/", group="webflowAjax" );
+		event.setLayout( "adminModalDialog" );
+
+		var webflowQs = "";
+		for ( var key in args ) {
+			webflowQs = ListAppend( webflowQs, "#key#=#args[ key ]#", "&" );
+		}
+
+		var flowLinkArgs = {
+			  linkto      = event.isAdminRequest() ? "webflow.ajaxLayout" : "webflow.default.ajaxLayout"
+			, queryString = "flowQs=#UrlEncode( ToBase64( webflowQs ) )#"
+		};
+
+		if ( event.isAdminRequest() ) {
+			args.flowLink = event.buildAdminLink( argumentCollection=flowLinkArgs );
+		} else {
+			args.flowLink = event.buildLink( argumentCollection=flowLinkArgs );
+		}
+
+		return renderView( view="/webflow/default/ajaxRender", args=args );
+	}
+
 // PUBLIC ACTIONS
 	public void function submitAction( event, rc, prc ) {
 		_processSubmission( event, rc, prc, function( flowArgs ){
@@ -92,6 +120,28 @@ component {
 		} );
 	}
 
+	/**
+	 * @cacheable false
+	 *
+	 */
+	public string function ajaxLayout( event, rc, prc, args={} ) {
+		event.preventPageCache();
+
+		var flowArgs = {};
+		var flowQs   = Trim( rc.flowQs ?: "" );
+		    flowQs   = ListToArray( ToString( ToBinary( UrlDecode( flowQs ) ) ), "&" );
+
+		for ( var qs in flowQs ) {
+			if ( ListLen( qs, "=" ) > 1 ) {
+				flowArgs[ ListFirst( qs, "=" ) ] = ListRest( qs, "=" );
+			}
+		}
+
+		flowArgs.layout        = "";
+		flowArgs.useAjaxLayout = true;
+
+		return renderViewlet( event="webflow.default.render", args=flowArgs );
+	}
 
 // VIEWLETS
 	private string function layout( event, rc, prc, args={} ){
@@ -169,15 +219,22 @@ component {
 	}
 
 	private string function actions( event, rc, prc, args={} ){
+		var extraQs       = "";
+		var useAjaxLayout = isTrue( args.useAjaxLayout ?: false );
+
+		if ( useAjaxLayout ) {
+			extraQs = "&args.useAjaxLayout=true&_rurl=#args.returnUrl ?: ""#";
+		}
+
 		if ( IsTrue( args.hasNext ?: "" ) && IsFalse( args.disableNext ?: "" ) ) {
 			args.nextButton = renderViewlet( event="webflow.default.nextButton", args=args );
 		}
 		if ( IsTrue( args.hasPrev ?: "" ) && IsFalse( args.disablePrev ?: "" )  ) {
-			args.prevLink = args.prevLink ?: event.buildLink( linkto="webflow.default.backAction", queryString="csrfToken=#event.getCsrfToken()#&_wid=#UrlEncode( args.obfuscatedFields )#" );
+			args.prevLink   = args.prevLink ?: event.buildLink( linkto="webflow.default.backAction", queryString="csrfToken=#event.getCsrfToken()#&_wid=#UrlEncode( args.obfuscatedFields )##extraQs#" );
 			args.prevButton = renderViewlet( event="webflow.default.prevButton", args=args );
 		}
 		if ( IsTrue( args.canCancel ?: "" ) ) {
-			args.cancelLink = args.cancelLink ?: event.buildLink( linkto="webflow.default.cancelAction", queryString="csrfToken=#event.getCsrfToken()#&_wid=#UrlEncode( args.obfuscatedFields )#" )
+			args.cancelLink   = args.cancelLink ?: event.buildLink( linkto="webflow.default.cancelAction", queryString="csrfToken=#event.getCsrfToken()#&_wid=#UrlEncode( args.obfuscatedFields )##extraQs#" )
 			args.cancelButton = renderViewlet( event="webflow.default.cancelButton", args=args );
 		}
 
@@ -206,6 +263,7 @@ component {
 			, short       = true
 		);
 
+		args.useAjaxLayout      = args.useAjaxLayout    ?: false;
 		args.progressBarClass   = args.progressBarClass ?: webflowProgressBarClass;
 		args.progressIndicators = webflowProgressService.getProgressIndicators( instance );
 		args.stepCount          = ArrayLen( args.progressIndicators );
@@ -237,7 +295,7 @@ component {
 				args.currentStepTitle = step.title;
 			}
 
-			if ( !isComplete && step.status == "complete" ) {
+			if ( !isComplete && step.status == "complete" && !args.useAjaxLayout ) {
 				step.link = Replace( backToStepBaseLink, "{stepid}", step.step );
 			} else {
 				step.link = "";
@@ -270,6 +328,9 @@ component {
 		var flowArgs = decryptWebflowArgs();
 		flowArgs.args = {};
 
+		var returnUrl     = Trim( rc._rurl ?: "" );
+		    returnUrl     = Len( returnUrl ) ? hexToString( returnUrl ) : "";
+
 		for( var key in rc ) {
 			if ( ReFindNoCase( "^args\..+$", key ) ) {
 				flowArgs.args[ ReReplaceNoCase( key, "^args\.(.+)$", "\1" ) ] = rc[ key ];
@@ -278,12 +339,17 @@ component {
 
 		if ( flowArgs.valid ) {
 			var instanceExists = webflowInstanceService.instanceExists( webflowId=flowArgs.webflowId, instanceRef=flowArgs.instanceRef, subReference=flowArgs.subReference );
+
 			if ( !instanceExists || event.validateCsrfToken( rc.csrfToken ?: "" ) ) {
 				if ( !webflowInstanceService.currentStepIgnoresExpiryOnSubmission( webflowId=flowArgs.webflowId, instanceRef=flowArgs.instanceRef, subReference=flowArgs.subReference ) ) {
 					_expiredCheck( argumentCollection=arguments, args=flowArgs );
 				}
 				try {
 					processFn( flowArgs );
+
+					if ( Len( Trim( rc._rurl ?: "" ) ) && ReFindNoCase( "complete=", rc._rurl ) ) {
+						returnUrl = rc._rurl;
+					}
 				} catch( any e ) {
 					if ( !arrayFindNoCase( webflowExceptions.safe ?: [], e.type ?: "" ) ) {
 						logError( e );
@@ -295,10 +361,10 @@ component {
 			}
 		} else {
 			_persistError( event, rc, prc, "webflow:error.missing.submission.args" )
-			setNextEvent( url=len( cgi.http_referer ?: "" ) ? cgi.http_referer : event.getSiteUrl() );
+			setNextEvent( url=Len( returnUrl ) ? returnUrl : ( Len( cgi.http_referer ?: "" ) ? cgi.http_referer : event.getSiteUrl() ) );
 		}
 
-		setNextEvent( url=_getRedirectUrl( event, rc, prc, flowArgs ) );
+		setNextEvent( url=Len( returnUrl ) ? returnUrl : _getRedirectUrl( event, rc, prc, flowArgs ) );
 	}
 
 	private void function _expiredCheck( event, rc, prc, args={}, redirect=true ) {

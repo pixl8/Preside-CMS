@@ -18,6 +18,6 @@
 		  objectName      = objectName
 		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=sites.getSitesForAjaxDataTables" )
-		, gridFields      = [ "name", "domain", "path" ]
+		, gridFields      = [ "name", "domain", "path", "locale" ]
 	} )#
 </cfoutput>

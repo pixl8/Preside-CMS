@@ -10,6 +10,8 @@
  */
 component displayName="Admin login service" {
 
+	property name="dummySessionStorage" inject="dummySessionStorage";
+
 // CONSTRUCTOR
 	/**
 	 * @sessionStorage.inject      sessionStorage
@@ -62,17 +64,21 @@ component displayName="Admin login service" {
 	 */
 	public boolean function login(
 		  required string  loginId
-		, required string  password
+		,          string  password             = ""
 		,          boolean rememberLogin        = false
 		,          numeric rememberExpiryInDays = 9
 		,          boolean skipPasswordCheck    = false
+		,          boolean recordLogin          = true
 	) {
-		var usr = _getUserByLoginId( arguments.loginId );
+		var usr     = _getUserByLoginId( arguments.loginId );
 		var success = usr.recordCount && ( arguments.skipPasswordCheck || _getBCryptService().checkPw( arguments.password, usr.password ) );
 
 		if ( success ) {
 			_persistUserSession( usr );
-			recordLogin();
+
+			if ( arguments.recordLogin ) {
+				this.recordLogin();
+			}
 
 			if ( arguments.rememberLogin ) {
 				_setRememberMeCookie( userId=usr.id, loginId=usr.login_id, expiry=arguments.rememberExpiryInDays );
@@ -971,6 +977,9 @@ component displayName="Admin login service" {
 
 // GETTERS AND SETTERS
 	private any function _getSessionStorage() {
+		if ( $getRequestContext().isBackgroundThread() ) {
+			return dummySessionStorage;
+		}
 		return _sessionStorage;
 	}
 	private void function _setSessionStorage( required any sessionStorage ) {

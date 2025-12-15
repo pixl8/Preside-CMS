@@ -605,7 +605,7 @@
 				filterByField = filterByField.split( ',' );
 
 				for( i=0; i<filterBy.length; i++ ) {
-					filterInput = $( "input[name='" + filterBy[ i ] + "']" );
+					filterInput = $( "[name='" + filterBy[ i ] + "']" );
 
 					if ( filterInput.length ) {
 						this.filter_field = filterInput;

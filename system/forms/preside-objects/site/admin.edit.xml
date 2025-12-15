@@ -13,11 +13,16 @@ This form is used for the "edit site" form in the site manager
 			<field binding="site.path"     sortorder="40" control="textinput" />
 			<field binding="site.template" sortorder="50" control="sitetemplatepicker"  />
 		</fieldset>
-		<fieldset id="localisation" sortorder="20">
+	</tab>
+	<tab id="localisation" sortorder="20" title="preside-objects.site:localisation.tab.title">
+		<fieldset id="localisation" sortorder="10">
 			<field binding="site.locale" sortorder="10" control="siteLocalePicker" />
+			<field binding="site.short_date_format" sortorder="20" control="siteDateFormatPicker" dateFormatType="short" />
+			<field binding="site.long_date_format"  sortorder="30" control="siteDateFormatPicker" dateFormatType="long" />
+			<field binding="site.time_format"       sortorder="40" control="enumRadioList" />
 		</fieldset>
 	</tab>
-	<tab id="seo" sortorder="20" title="preside-objects.site:seo.tab.title">
+	<tab id="seo" sortorder="30" title="preside-objects.site:seo.tab.title">
 		<fieldset id="seo" sortorder="10">
 			<field binding="site.hide_from_search"     sortorder="10" />
 			<field binding="site.author"               sortorder="20" />
@@ -25,7 +30,7 @@ This form is used for the "edit site" form in the site manager
 			<field binding="site.browser_title_suffix" sortorder="40" />
 		</fieldset>
 	</tab>
-	<tab id="advanced" sortorder="30" title="preside-objects.site:advanced.tab.title">
+	<tab id="advanced" sortorder="40" title="preside-objects.site:advanced.tab.title">
 		<fieldset id="advanced" sortorder="10">
 			<field name="alias_domains"    sortorder="10" control="textarea"    label="preside-objects.site:field.alias_domains.title"    help="preside-objects.site:field.alias_domains.help" />
 			<field name="redirect_domains" sortorder="20" control="textarea"    label="preside-objects.site:field.redirect_domains.title" help="preside-objects.site:field.redirect_domains.help" />
