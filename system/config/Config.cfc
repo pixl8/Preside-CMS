@@ -1277,7 +1277,7 @@ component {
 		};
 
 		settings.datetime.formats = {
-			  admin = ["dd mmm yyyy","dd.mm.yyyy","mmm dd yyyy"]
+			  admin = ["dd/mm/yyyy","dd mmm yyyy","dd.mm.yyyy","mmm dd yyyy","mm/dd/yyyy","mm-dd-yyyy"]
 			, short = ["dd/mm/yyyy","dd.mm.yyyy","mm/dd/yyyy","yyyy-mm-dd"]
 			, long  = ["DMY","MDY"]
 		};
