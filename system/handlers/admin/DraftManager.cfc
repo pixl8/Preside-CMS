@@ -178,15 +178,31 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _getDraftTabContent( event, rc, prc, args={} ) {
-		var tabId      = arguments.tabId      ?: "";
-		var objectName = arguments.objectName ?: "";
+		var tabId          = arguments.tabId      ?: "";
+		var objectName     = arguments.objectName ?: "";
+		var sortableFields = [];
+
+		if ( tabId != "draft" ) {
+			sortableFields = ListToArray( presideObjectService.getObjectAttribute(
+				  objectName    = objectName
+				, attributeName = "datamanagerSortableFields"
+				, defaultValue  = ""
+			) );
+
+			if ( IsEmpty( sortableFields ) ) {
+				sortableFields = dataManagerService.listGridFields( objectName );
+			}
+
+			ArrayDelete( sortableFields, "draftmanager_status" );
+		}
 
 		return runEvent(
 			  event          = "admin.dataManager._objectListingViewlet"
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = { args={
-				objectName = tabId == "draft" ? "draftmanager_draft" : objectName
+				  objectName     = tabId == "draft" ? "draftmanager_draft" : objectName
+				, sortableFields = sortableFields
 			} }
 		);
 	}
