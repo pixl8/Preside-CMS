@@ -8,6 +8,16 @@ component {
 		return content;
 	}
 
+	public string function adminView( event, rc, prc, args={} ){
+		var rendered = default( argumentCollection=arguments );
+
+		if ( Len( Trim( rendered ) ) ) {
+			return autoLoadMore( content=rendered, maxRows=3 );
+		}
+
+		return "";
+	}
+
 	public string function admindatatable( event, rc, prc, args={} ){
 		var content = HtmlEditFormat( args.data ?: "" );
 
