@@ -164,17 +164,33 @@ component extends="preside.system.base.adminHandler" {
 		var objectName    = args.objectName   ?: "";
 		var propertyName  = args.propertyName ?: "";
 		var recordId      = args.recordId     ?: "";
+		var data          = args.data         ?: "";
 		var relatedObject = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
 		var labelRenderer = presideObjectService.getObjectAttribute( objectName=relatedObject, attributeName="labelRenderer" );
 		var hasNoLabel    = isTrue( presideObjectService.getObjectAttribute( objectName=relatedObject, attributeName="noLabel" ) );
 		var labelField    = hasNoLabel ? "id" : "${labelfield}";
-		var selectFields  = [ "#propertyName#.id", "#propertyName#.#labelField# as label" ];
-		var records       = presideObjectService.selectData( objectName=objectName, id=recordId, selectFields=selectFields, forceJoins="inner" );
-		var baseLink      = event.buildadminLink( objectName=relatedObject, recordId="{recordId}" );
+		var records       = QueryNew( "" );
+		var baseLink      = event.buildAdminLink( objectName=relatedObject, recordId="{recordId}" );
 		var list          = [];
 		var label         = "";
 
-		for( var record in records ) {
+		if ( isEmptyString( data ) ) {
+			records = presideObjectService.selectData(
+				  objectName   = objectName
+				, id           = recordId
+				, selectFields = [ "#propertyName#.id", "#propertyName#.#labelField# as label" ]
+				, forceJoins   = "inner"
+			);
+		} else {
+			records = presideObjectService.selectData(
+				  objectName   = relatedObject
+				, selectFields = [ "id", "#labelField# as label" ]
+				, filter       = "id in ( :relatedRecordIds )"
+				, filterParams = { relatedRecordIds={ type="cf_sql_varchar", value=data, list=true } }
+			);
+		}
+
+		for ( var record in records ) {
 			label = Len( labelRenderer ) ? renderLabel( relatedObject, record.id ) : record.label;
 			if ( !isEmptyString( label ) ) {
 				if ( Len( baseLink ) ) {
