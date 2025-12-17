@@ -50,7 +50,10 @@ component extends="preside.system.base.AdminHandler" {
 			StructAppend( rc, DeserializeJSON( prc.record._data ), true );
 		}
 
-		StructAppend( rc, { _draft_id=draftId }, true );
+		StructAppend( rc, {
+			  _draft_id   = draftId
+			, _saveAction = "publish"
+		}, true );
 
 		if ( isEmptyString( recordId ) ) {
 			if ( dataManagerCustomizationService.objectHasCustomization( objectName, "addRecordAction" ) ) {
