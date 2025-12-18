@@ -1,6 +1,7 @@
 component extends="coldbox.system.Interceptor" {
 
-	property name="draftManagerService" inject="delayedInjector:DraftManagerService";
+	property name="draftManagerService"   inject="delayedInjector:DraftManagerService";
+	property name="adminDataViewsService" inject="delayedInjector:AdminDataViewsService";
 
 	public void function configure() {}
 
@@ -67,6 +68,32 @@ component extends="coldbox.system.Interceptor" {
 				};
 
 				ArrayAppend( propertyNames, "draftmanager_security_user_modified" );
+			}
+		}
+	}
+
+	public void function preRenderRecordForViewRecord( event, interceptData ) {
+		if ( !isFeatureEnabled( "draftManager" ) ) {
+			return;
+		}
+
+		var objectName         = interceptData.objectName ?: "";
+		var showDraftViewGroup = false;
+
+		if ( draftManagerService.checkManagerEnabled( objectName=objectName ) ) {
+			var draft = draftManagerService.getDraftForObject( objectName=objectName, recordId=( interceptData.recordId ?: "" ) );
+
+			showDraftViewGroup = !IsEmpty( draft );
+		}
+
+		if ( showDraftViewGroup ) {
+			interceptData.viewGroups = StructCopy( adminDataViewsService.listViewGroupsForObject( objectName=objectName ) );
+		} else {
+			for ( var i=1; i<=ArrayLen( interceptData.viewGroups.right ); i++ ) {
+				if ( interceptData.viewGroups.right[ i ].id == "draftManager" ) {
+					ArrayDeleteAt( interceptData.viewGroups.right, i );
+					break;
+				}
 			}
 		}
 	}
