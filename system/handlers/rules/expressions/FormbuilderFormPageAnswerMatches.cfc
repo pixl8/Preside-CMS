@@ -95,11 +95,15 @@ component {
 					case "fileUpload":
 						ruleValues = fileTypesService.expandTypeList( types=ListToArray( ruleValue ) );
 
-						if ( IsStruct( formFieldValue ) ) {
+						if ( IsStruct( formFieldValue )  ) {
 							var tempFileInfo = formFieldValue.tempFileInfo ?: {};
 
-							if ( ( tempFileInfo.serverFileExt ?: "" ) == ( tempFileInfo.clientFileExt ?: "" ) ) {
-								formFieldValues = [ tempFileInfo.serverFileExt ];
+							if ( !IsEmpty( tempFileInfo ) ) {
+								var serverFileExt = tempFileInfo.serverFileExt  ?: "";
+
+								if ( !isEmptyString( serverFileExt ) ) {
+									formFieldValues = [ serverFileExt ];
+								}
 							}
 						}
 						break;
