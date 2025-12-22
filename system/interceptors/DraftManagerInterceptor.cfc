@@ -84,11 +84,11 @@ component extends="coldbox.system.Interceptor" {
 			var draft = draftManagerService.getDraftForObject( objectName=objectName, recordId=( interceptData.recordId ?: "" ) );
 
 			showDraftViewGroup = !IsEmpty( draft );
+
+			interceptData.viewGroups = StructCopy( adminDataViewsService.listViewGroupsForObject( objectName=objectName ) );
 		}
 
-		if ( showDraftViewGroup ) {
-			interceptData.viewGroups = StructCopy( adminDataViewsService.listViewGroupsForObject( objectName=objectName ) );
-		} else {
+		if ( !showDraftViewGroup ) {
 			for ( var i=1; i<=ArrayLen( interceptData.viewGroups.right ); i++ ) {
 				if ( interceptData.viewGroups.right[ i ].id == "draftManager" ) {
 					ArrayDeleteAt( interceptData.viewGroups.right, i );
