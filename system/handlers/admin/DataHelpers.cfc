@@ -19,7 +19,9 @@ component extends="preside.system.base.adminHandler" {
 	private string function viewRecord( event, rc, prc, args={} ) {
 		var objectName = args.objectName ?: "";
 
-		args.viewGroups = adminDataViewsService.listViewGroupsForObject( objectName );
+		args.viewGroups = StructCopy( adminDataViewsService.listViewGroupsForObject( objectName ) );
+
+		announceInterception( "preRenderRecordForViewRecord", args );
 
 		args.preRenderRecord         = customizationService.runCustomization( objectName=objectName, action="preRenderRecord"        , args=args, defaultResult="" );
 		args.preRenderRecordLeftCol  = customizationService.runCustomization( objectName=objectName, action="preRenderRecordLeftCol" , args=args, defaultResult="" );
@@ -43,6 +45,8 @@ component extends="preside.system.base.adminHandler" {
 		args.postRenderRecordLeftCol  = customizationService.runCustomization( objectName=objectName, action="postRenderRecordLeftCol" , args=args, defaultResult="" );
 		args.postRenderRecordRightCol = customizationService.runCustomization( objectName=objectName, action="postRenderRecordRightCol", args=args, defaultResult="" );
 		args.postRenderRecord         = customizationService.runCustomization( objectName=objectName, action="postRenderRecord"        , args=args, defaultResult="" );
+
+		announceInterception( "postRenderRecordForViewRecord", args );
 
 		return renderView( view="/admin/dataHelpers/viewRecord", args=args );
 	}
