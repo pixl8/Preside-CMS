@@ -47,6 +47,18 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		args.objectName = prc.record._object_name ?: "";
 		args.recordId   = prc.record._record_id   ?: "";
 
+		if ( ( args.record._status ?: "" ) == "publish" ) {
+			messageBox.info( translateResource(
+				  uri  = "draftManager:message.published.description"
+				, data = [
+					  translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName )
+					, '<a href="#event.buildAdminLink( objectName=args.objectName, operation="viewRecord", recordId=args.recordId )#">#renderLabel( objectName=args.objectName, recordId=args.recordId )#</a>'
+				  ]
+			) );
+
+			setNextEvent( url=event.buildAdminLink( objectName=args.objectName ) );
+		}
+
 		if ( !IsEmpty( args.record._data ?: "" ) ) {
 			var data = DeserializeJSON( args.record._data );
 

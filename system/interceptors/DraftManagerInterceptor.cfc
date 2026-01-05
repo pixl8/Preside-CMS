@@ -146,7 +146,7 @@ component extends="coldbox.system.Interceptor" {
 			return;
 		}
 
-		var objectName = interceptData.object         ?: ""	;
+		var objectName = interceptData.object         ?: "";
 		var draftId    = interceptData.rc._draft_id   ?: "";
 		var saveAction = interceptData.rc._saveAction ?: "";
 
