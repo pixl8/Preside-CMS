@@ -779,16 +779,22 @@ component {
 	}
 
 	private struct function _getExistingSingletonFlowForStartupCheck( required string webflowId ) {
+		var currentSiteId = $getRequestContext().getSiteId();
+
 		if ( !StructKeyExists( request, "_webflowSingletonsStartupCache" ) ) {
 			request._webflowSingletonsStartupCache = {};
+		}
+
+		if ( !StructKeyExists( request._webflowSingletonsStartupCache, currentSiteId ) ) {
+			request._webflowSingletonsStartupCache[ currentSiteId ] = {};
 
 			var rawflows = $getPresideObject( "webflow_configuration" ).selectData( filter="instance_ref is null" );
 			for( var f in rawFlows ) {
-				request._webflowSingletonsStartupCache[ f.webflow_id ] = f;
+				request._webflowSingletonsStartupCache[ currentSiteId ][ f.webflow_id ] = f;
 			}
 		}
 
-		return request._webflowSingletonsStartupCache[ arguments.webflowId ] ?: {};
+		return request._webflowSingletonsStartupCache[ currentSiteId ][ arguments.webflowId ] ?: {};
 	}
 
 	private struct function _getExistingNonSingletonFlowForStartupCheck( required string webflowId, required string instanceRef, string siteId="" ) {
