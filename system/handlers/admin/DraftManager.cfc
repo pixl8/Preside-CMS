@@ -51,7 +51,9 @@ component extends="preside.system.base.AdminHandler" {
 
 			StructAppend( data, rc, true );
 
-			rc = data;
+			for ( var k in data ) {
+				event.setValue( name=k, value=data[ k ] );
+			}
 		}
 
 		StructAppend( rc, { _draft_id=draftId }, true );
