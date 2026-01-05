@@ -47,7 +47,11 @@ component extends="preside.system.base.AdminHandler" {
 		var draftId    = prc.record.id           ?: "";
 
 		if ( !IsEmpty( prc.record._data ?: {} ) ) {
-			StructAppend( rc, DeserializeJSON( prc.record._data ), true );
+			var data = DeserializeJSON( prc.record._data );
+
+			StructAppend( data, rc, true );
+
+			rc = data;
 		}
 
 		StructAppend( rc, { _draft_id=draftId }, true );
