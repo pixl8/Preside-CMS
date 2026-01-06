@@ -31,7 +31,7 @@ component extends="preside.system.base.AdminHandler" {
 		var recordId    = state._record_id        ?: "";
 
 		messageBox.info( translateResource(
-			  uri  = "draftManager:message.approve.description"
+			  uri  = "draftManager:message.publish.description"
 			, data = [
 				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
 				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#objectLabel#</a>'
