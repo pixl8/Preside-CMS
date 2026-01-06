@@ -75,9 +75,9 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="unique_unsubscribes_count" type="numeric" formula="agg:sum{ stats.unsubscribe_count }"  autofilter=false;
 
 	// Percentage fields for export (calculated by EmailTemplate export template)
-	property name="open_rate_percentage"        type="numeric" formula="0" autofilter=false;
-	property name="click_rate_percentage"       type="numeric" formula="0" autofilter=false;
-	property name="unsubscribe_rate_percentage" type="numeric" formula="0" autofilter=false;
+	property name="open_rate_percentage"        type="numeric" formula="min( 0 )" autofilter=false;
+	property name="click_rate_percentage"       type="numeric" formula="min( 0 )" autofilter=false;
+	property name="unsubscribe_rate_percentage" type="numeric" formula="min( 0 )" autofilter=false;
 
 	property name="_version_is_draft"   excludeDataExport=true;
 	property name="_version_has_drafts" excludeDataExport=true;
