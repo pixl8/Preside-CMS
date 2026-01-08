@@ -779,13 +779,13 @@ component {
 	}
 
 	private struct function _getExistingSingletonFlowForStartupCheck( required string webflowId ) {
-		var sitesEnabled = $isFeatureEnabled( "sites" );
+		var isSiteTenanted = _webflowConfigSiteTenanted();
 
 		if ( !StructKeyExists( request, "_webflowSingletonsStartupCache" ) ) {
 			request._webflowSingletonsStartupCache = {};
 		}
 
-		if ( sitesEnabled ) {
+		if ( isSiteTenanted ) {
 			var currentSiteId = $getRequestContext().getSiteId();
 
 			if ( !StructKeyExists( request._webflowSingletonsStartupCache, currentSiteId ) ) {
