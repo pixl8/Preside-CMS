@@ -796,7 +796,7 @@ component {
 			return request._webflowSingletonsStartupCache[ currentSiteId ][ arguments.webflowId ] ?: {};
 		}
 
-		if ( !StructKeyExists( request._webflowSingletonsStartupCache, arguments.webflowId ) ) {
+		if ( StructIsEmpty( request._webflowSingletonsStartupCache ) ) {
 			_populateSingletonFlowCache( request._webflowSingletonsStartupCache );
 		}
 
