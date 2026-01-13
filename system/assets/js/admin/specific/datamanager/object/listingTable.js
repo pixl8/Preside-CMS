@@ -53,8 +53,9 @@
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
 			  , $tableFilter, filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
-			  , filtersPopulated=false
-			  , hasPreFilters=false;
+			  , filtersPopulated = false
+			  , hasPreFilters    = false
+			  , hasFilterVal     = $filterDiv.find( "[name=filter]" ).val().length > 0;
 
 			if ( allowFilter ) {
 				$tableFilter = $( `#${tableId}-filter` );
@@ -241,6 +242,12 @@
 					},
 					fnFiltersPopulatedCallback: function() {
 						return allowFilter ? filtersPopulated : true;
+					},
+					fnStateLoadParams: function( oSettings, oData ) {
+						if ( hasFilterVal && allowFilter && typeof oData.oFilter !== "undefined" ) {
+							oData.oFilter = undefined;
+						}
+						return oData;
 					},
 					fnCookieCallback: function( sName, oData, sExpires, sPath ) {
 						if ( allowFilter ) {
@@ -491,6 +498,11 @@
 				// toggles between filter mode + basic search mode
 				if ( allowUseFilter ) {
 					$filterLink.on( "click", toggleAdvancedFilter );
+
+					if ( hasFilterVal ) {
+						$filterDiv.removeClass( "hide" );
+						$filterLink.find( "i.fa" ).removeClass( "fa-caret-right" ).addClass( "fa-caret-down" );
+					}
 				}
 
 				// filter change listener

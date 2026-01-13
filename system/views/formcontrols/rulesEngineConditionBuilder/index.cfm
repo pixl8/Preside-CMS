@@ -9,12 +9,15 @@
 	maxLength    = Val( args.maxLength ?: 0 );
 	isFilter     = IsTrue( args.isFilter ?: "" ) ? "true" : "false"; // deliberate stringifying of booleans here
 	showCount    = IsTrue( args.showCount ?: isFilter );
+	showPreview  = IsTrue( args.showPreview ?: "" );
 	object       = args.object ?: "";
 	compact      = IsTrue( args.compact ?: "" );
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
+	} else {
+		value = ToString( ToBinary( UrlDecode( value ) ) );
 	}
 
 	value = EncodeForHtmlAttribute( value );
@@ -56,10 +59,21 @@
 					</div>
 				</div>
 			</div>
-			<cfif showCount>
+			<cfif showCount || showPreview>
 				<div class="row">
 					<div class="col-md-12">
-						<p class="grey rules-engine-condition-builder-filter-count">#translateResource( uri="cms:rulesEngine.filter.builder.record.count.message", data=[ '<span class="rules-engine-condition-builder-filter-count-count">0</span>'] )#</p>
+						<p class="grey rules-engine-condition-builder-filter-count">
+							<cfif showCount>
+								#translateResource( uri="cms:rulesEngine.filter.builder.record.count.message", data=[ '<span class="rules-engine-condition-builder-filter-count-count">0</span>'] )#
+							</cfif>
+
+							<cfif showPreview>
+								<a class="btn btn-link btn-link-info rules-engine-condition-builder-filter-preview" href="##" target="_blank">
+									<i class="fa fa-fw fa-external-link-alt"></i>
+									#translateResource( uri="cms:rulesEngine.filter.builder.record.preview.label" )#
+								</a>
+							</cfif>
+						</p>
 					</div>
 				</div>
 			</cfif>
