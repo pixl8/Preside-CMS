@@ -46,7 +46,7 @@ component {
 
 		args.showPreview = isTrue( args.showPreview ?: args.isFilter ) && hasReadPermission;
 		if ( args.showPreview ) {
-			expressionData.rulesEngineFilterPreviewEndpoint = event.buildAdminLink( linkTo="rulesengine.getFilterPreviewUrl" );
+			expressionData[ "filter-builder-#fieldId#" ].rulesEngineFilterPreviewEndpoint = event.buildAdminLink( linkTo="rulesengine.getFilterPreviewUrl" );
 		}
 
 		event.include( "/js/admin/specific/rulesEngineConditionBuilder/"  )
