@@ -55,7 +55,7 @@
 			  , $tableFilter, filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
 			  , filtersPopulated = false
 			  , hasPreFilters    = false
-			  , hasFilterVal     = $filterDiv.find( "[name=filter]" ).val().length > 0;
+			  , hasFilterVal     = $filterDiv.find( "[name=filter]" ).length > 0 && $filterDiv.find( "[name=filter]" ).val().length > 0;
 
 			if ( allowFilter ) {
 				$tableFilter = $( `#${tableId}-filter` );

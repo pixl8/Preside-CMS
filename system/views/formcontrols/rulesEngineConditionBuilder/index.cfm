@@ -17,7 +17,11 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	} else {
-		value = ToString( ToBinary( UrlDecode( value ) ) );
+		try {
+			value = ToString( ToBinary( UrlDecode( value ) ) );
+		} catch ( any e ) {
+			// fallback when it's not valid base64
+		}
 	}
 
 	value = EncodeForHtmlAttribute( value );
