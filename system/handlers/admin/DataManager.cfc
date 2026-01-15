@@ -1602,6 +1602,21 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	private string function _objectSegmentationTags( event, rc, prc, args={} ) {
+		args.recordId   = args.recordId   ?: ( prc.recordId   ?: "" );
+		args.objectName = args.objectName ?: ( prc.objectName ?: "" );
+
+		if ( !rulesEngineFilterService.objectSupportsSegmentationTag( objectName=args.objectName ) && !Len( args.recordId ) ) {
+			return "";
+		}
+
+		args.segmentationTags = rulesEngineFilterService.getObjectRecordSegmentationTags( objectName=args.objectName, recordId=args.recordId );
+
+		event.include( "/css/admin/specific/datamanager/segmentationTags/" );
+
+		return renderView( view="admin/datamanager/_objectSegmentationTags", args=args );
+	}
+
 	public void function addSegmentationFilter( event, rc, prc ) {
 		var objectName = prc.objectName ?: "";
 		var useSegmentationFilters = rulesEngineFilterService.objectSupportsSegmentationFilters( objectName );
@@ -1619,6 +1634,12 @@ component extends="preside.system.base.AdminHandler" {
 		prc.formName     = "preside-objects.rules_engine_condition.admin.add.segmentation.filter";
 		prc.submitAction = event.buildAdminLink( linkto="datamanager.addSegmentationFilterAction" );
 		prc.cancelAction = event.buildAdminLink( linkto="datamanager.manageFilters", queryString="object=#objectName#&tab=segmentation")
+
+		if ( rulesEngineFilterService.objectSupportsSegmentationTag( objectName=objectName ) ) {
+			event.include( "/js/admin/specific/rulesEngine/toggleTagSection/" );
+		} else {
+			prc.formName = formsService.getMergedFormName( prc.formName, "preside-objects.rules_engine_condition.admin.tag.disabled" );
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.managefilters.breadcrumb.title" )
