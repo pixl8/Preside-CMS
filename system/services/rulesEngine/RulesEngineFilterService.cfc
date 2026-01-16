@@ -340,6 +340,37 @@ component displayName="Rules Engine Filter Service" {
 		return Len( idField ) && (!IsBoolean( useSegmentation ) || useSegmentation );
 	}
 
+	public boolean function objectSupportsSegmentationTag( required string objectName ) {
+		if ( !objectSupportsSegmentationFilters( objectName=arguments.objectName ) ) {
+			return false;
+		}
+
+		var useSegmentationTag = $getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerUseSegmentationTag"
+		);
+
+		return IsBoolean( useSegmentationTag ) && useSegmentationTag;
+	}
+
+	public query function getObjectRecordSegmentationTags(
+		  required string objectName
+		, required string recordId
+	) {
+		return $getPresideObject( "rules_engine_filter_data" ).selectData(
+			  filter       = {
+				  "rules_engine_filter_data.object_name" = arguments.objectName
+				, "rules_engine_filter_data.record_id"   = arguments.recordId
+				, "filter.segmentation_tag_enabled"      = true
+			}
+			, selectFields = [
+				  "filter.id"
+				, "filter.segmentation_tag_colour AS tag_colour"
+				, "COALESCE( filter.segmentation_tag_label, filter.condition_name ) AS tag_label"
+			]
+		);
+	}
+
 	public query function getSegmentationFilter( required string filterId ) {
 		return $getPresideObject( "rules_engine_condition" ).selectData(
 			  filter       = "id = :id and is_segmentation_filter = :is_segmentation_filter and filter_object is not null"
