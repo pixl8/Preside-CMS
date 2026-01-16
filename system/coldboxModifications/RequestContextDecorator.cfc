@@ -1121,7 +1121,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 	function setHTTPHeader( string statusCode, string statusText="", string name, string value="", boolean overwrite=false ){
 		if ( StructKeyExists( arguments, "statusCode" ) ) {
-			getPageContext().getResponse().setStatus( javaCast( "int", arguments.statusCode ), javaCast( "string", arguments.statusText ) );
+			getPageContext().getResponse().setStatus( javaCast( "int", arguments.statusCode ) );
 		} else if ( StructKeyExists( arguments, "name" ) ) {
 			if ( arguments.overwrite ) {
 				getPageContext().getResponse().setHeader( javaCast( "string", arguments.name ), javaCast( "string", arguments.value ) );
