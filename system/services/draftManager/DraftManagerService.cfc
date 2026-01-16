@@ -12,6 +12,18 @@ component {
 		return this;
 	}
 
+	public boolean function checkManagerEnabled( required string objectName ) {
+		if ( dataManagerCustomizationService.objectHasCustomization( objectName=arguments.objectName, action="isDraftManagerEnabled" ) ) {
+			return dataManagerCustomizationService.runCustomization(
+				  objectName = arguments.objectName
+				, action     = "isDraftManagerEnabled"
+				, args       = arguments
+			);
+		}
+
+		return isManagerEnabled( objectName=arguments.objectName );
+	}
+
 	public boolean function isManagerEnabled( required string objectName ) {
 		if ( !$isFeatureEnabled( "draftManager" ) ) {
 			return false;
@@ -178,9 +190,9 @@ component {
 	) {
 		if ( dataManagerCustomizationService.objectHasCustomization( objectName=arguments.objectName, action="getDraftLabel" ) ) {
 			return dataManagerCustomizationService.runCustomization(
-				  objectName     = arguments.objectName
-				, action         = "getDraftLabel"
-				, args           = arguments
+				  objectName = arguments.objectName
+				, action     = "getDraftLabel"
+				, args       = arguments
 			);
 		}
 

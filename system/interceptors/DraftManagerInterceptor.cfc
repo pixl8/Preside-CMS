@@ -1,6 +1,7 @@
 component extends="coldbox.system.Interceptor" {
 
-	property name="draftManagerService" inject="delayedInjector:DraftManagerService";
+	property name="draftManagerService"   inject="delayedInjector:DraftManagerService";
+	property name="adminDataViewsService" inject="delayedInjector:AdminDataViewsService";
 
 	public void function configure() {}
 
@@ -71,6 +72,32 @@ component extends="coldbox.system.Interceptor" {
 		}
 	}
 
+	public void function preRenderRecordForViewRecord( event, interceptData ) {
+		if ( !isFeatureEnabled( "draftManager" ) ) {
+			return;
+		}
+
+		var objectName         = interceptData.objectName ?: "";
+		var showDraftViewGroup = false;
+
+		if ( draftManagerService.checkManagerEnabled( objectName=objectName ) ) {
+			var draft = draftManagerService.getDraftForObject( objectName=objectName, recordId=( interceptData.recordId ?: "" ) );
+
+			showDraftViewGroup = !IsEmpty( draft );
+
+			interceptData.viewGroups = StructCopy( adminDataViewsService.listViewGroupsForObject( objectName=objectName ) );
+		}
+
+		if ( !showDraftViewGroup ) {
+			for ( var i=1; i<=ArrayLen( interceptData.viewGroups.right ); i++ ) {
+				if ( interceptData.viewGroups.right[ i ].id == "draftManager" ) {
+					ArrayDeleteAt( interceptData.viewGroups.right, i );
+					break;
+				}
+			}
+		}
+	}
+
 	public void function postViewRecord( event, interceptData ) {
 		if ( !isFeatureEnabled( "draftManager" ) ) {
 			return;
@@ -78,7 +105,7 @@ component extends="coldbox.system.Interceptor" {
 
 		var objectName = interceptData.objectName ?: "";
 
-		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+		if ( draftManagerService.checkManagerEnabled( objectName=objectName ) ) {
 			var recordId = interceptData.recordId ?: "";
 
 			for ( var k in [ "renderedRecord", "preViewRecordContent" ] ) {
@@ -97,7 +124,7 @@ component extends="coldbox.system.Interceptor" {
 		var objectName = interceptData.objectName ?: "";
 		var recordId   = interceptData.recordId   ?: "";
 
-		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+		if ( draftManagerService.checkManagerEnabled( objectName=objectName ) ) {
 			var draft = draftManagerService.getDraftForObject( objectName=objectName, recordId=recordId );
 
 			if ( !isEmptyString( draft.id ?: "" ) ) {
@@ -146,7 +173,7 @@ component extends="coldbox.system.Interceptor" {
 			return;
 		}
 
-		var objectName = interceptData.object         ?: ""	;
+		var objectName = interceptData.object         ?: "";
 		var draftId    = interceptData.rc._draft_id   ?: "";
 		var saveAction = interceptData.rc._saveAction ?: "";
 

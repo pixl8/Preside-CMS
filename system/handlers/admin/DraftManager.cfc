@@ -31,7 +31,7 @@ component extends="preside.system.base.AdminHandler" {
 		var recordId    = state._record_id        ?: "";
 
 		messageBox.info( translateResource(
-			  uri  = "draftManager:message.approve.description"
+			  uri  = "draftManager:message.publish.description"
 			, data = [
 				  translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName )
 				, '<a href="#event.buildAdminLink( objectName=objectName, operation="viewRecord", recordId=recordId )#">#objectLabel#</a>'
@@ -47,10 +47,19 @@ component extends="preside.system.base.AdminHandler" {
 		var draftId    = prc.record.id           ?: "";
 
 		if ( !IsEmpty( prc.record._data ?: {} ) ) {
-			StructAppend( rc, DeserializeJSON( prc.record._data ), true );
+			var data = DeserializeJSON( prc.record._data );
+
+			StructAppend( data, rc, true );
+
+			for ( var k in data ) {
+				event.setValue( name=k, value=data[ k ] );
+			}
 		}
 
-		StructAppend( rc, { _draft_id=draftId }, true );
+		StructAppend( rc, {
+			  _draft_id   = draftId
+			, _saveAction = "publish"
+		}, true );
 
 		if ( isEmptyString( recordId ) ) {
 			if ( dataManagerCustomizationService.objectHasCustomization( objectName, "addRecordAction" ) ) {
@@ -83,6 +92,7 @@ component extends="preside.system.base.AdminHandler" {
 				arguments.redirectOnSuccess = arguments.redirectOnSuccess ?: true;
 				arguments.object            = objectName;
 				arguments.recordId          = recordId;
+				arguments.successUrl        = event.buildAdminLink( objectname=arguments.object, operation="listing" );
 
 				runEvent(
 					  event          = "admin.DataManager._editRecordAction"

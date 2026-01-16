@@ -4,6 +4,7 @@
 component extends="preside.system.handlers.dataExportTemplates.Default" {
 
 	public array function getSelectFields( event, rc, prc, objectName, templateConfig, suppliedFields ) {
+		var fieldPrefix    = "";
 		var requiredFields = [
 			  "send_count_from_stats"
 			, "unique_opens_count"
@@ -14,9 +15,13 @@ component extends="preside.system.handlers.dataExportTemplates.Default" {
 			, "unsubscribe_rate_percentage"
 		];
 
+		if ( arguments.objectName == "email_template_send_log" ) {
+			fieldPrefix = "email_template.";
+		}
+
 		for ( var field in requiredFields ) {
 			if ( !ArrayFindNoCase( arguments.suppliedFields, field ) ) {
-				ArrayAppend( arguments.suppliedFields, field );
+				ArrayAppend( arguments.suppliedFields, "#fieldPrefix##field#" );
 			}
 		}
 
