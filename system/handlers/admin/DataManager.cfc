@@ -53,7 +53,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.preRenderListing  = customizationService.runCustomization( objectName=objectName, action="preRenderListing" , args=args, defaultResult="" );
 		prc.postRenderListing = customizationService.runCustomization( objectName=objectName, action="postRenderListing", args=args, defaultResult="" );
 
-		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.checkManagerEnabled( objectName=objectName ) ) {
 			prc.listingView = runEvent(
 				  event          = "admin.DraftManager._getDraftTabs"
 				, private        = true
@@ -2691,7 +2691,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
-		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction() ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.checkManagerEnabled( objectName=arguments.object ) && draftManagerService.isDraftAction() ) {
 			runEvent(
 				  event          = "admin.DraftManager._saveDraftRecordAction"
 				, private        = true
@@ -3111,7 +3111,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
 
-		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=arguments.object ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.checkManagerEnabled( objectName=arguments.object ) ) {
 			if ( draftManagerService.isDraftAction() ) {
 				runEvent(
 					  event          = "admin.DraftManager._saveDraftRecordAction"
@@ -3469,7 +3469,7 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
-		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=object ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.checkManagerEnabled( objectName=object ) ) {
 			args.batchEditWarning &= " " & translateResource( uri="draftManager:alert.edit.batch.description" );
 		}
 
@@ -3642,7 +3642,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _addRecordActionButtons( event, rc, prc, args={} ) {
-		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.checkManagerEnabled( objectName=args.objectName ) ) {
 			args.draftsEnabled = true;
 			args.canSaveDraft  = true;
 			args.canPublish    = true;
@@ -3749,7 +3749,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _editRecordActionButtons( event, rc, prc, args={} ) {
-		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.isManagerEnabled( objectName=args.objectName ) ) {
+		if ( isFeatureEnabled( "draftManager" ) && draftManagerService.checkManagerEnabled( objectName=args.objectName ) ) {
 			args.draftsEnabled = true;
 			args.canSaveDraft  = true;
 			args.canPublish    = true;
@@ -4119,7 +4119,13 @@ component extends="preside.system.base.AdminHandler" {
 			return ListToArray( rc.gridFields );
 		}
 
-		return dataManagerService.listGridFields( arguments.objectName );
+		var gridFields = dataManagerService.listGridFields( arguments.objectName );
+
+		if ( !draftManagerService.checkManagerEnabled( objectName=arguments.objectName ) ) {
+			ArrayDelete( gridFields, "draftmanager_status" );
+		}
+
+		return gridFields;
 	}
 
 	private array function _getObjectSortableFields( required string objectName ) {

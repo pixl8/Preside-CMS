@@ -78,7 +78,7 @@ component extends="coldbox.system.Interceptor" {
 
 		var objectName = interceptData.objectName ?: "";
 
-		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+		if ( draftManagerService.checkManagerEnabled( objectName=objectName ) ) {
 			var recordId = interceptData.recordId ?: "";
 
 			for ( var k in [ "renderedRecord", "preViewRecordContent" ] ) {
@@ -97,7 +97,7 @@ component extends="coldbox.system.Interceptor" {
 		var objectName = interceptData.objectName ?: "";
 		var recordId   = interceptData.recordId   ?: "";
 
-		if ( draftManagerService.isManagerEnabled( objectName=objectName ) ) {
+		if ( draftManagerService.checkManagerEnabled( objectName=objectName ) ) {
 			var draft = draftManagerService.getDraftForObject( objectName=objectName, recordId=recordId );
 
 			if ( !isEmptyString( draft.id ?: "" ) ) {
