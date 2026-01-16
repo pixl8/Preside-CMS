@@ -92,6 +92,7 @@ component extends="preside.system.base.AdminHandler" {
 				arguments.redirectOnSuccess = arguments.redirectOnSuccess ?: true;
 				arguments.object            = objectName;
 				arguments.recordId          = recordId;
+				arguments.successUrl        = event.buildAdminLink( objectname=arguments.object, operation="listing" );
 
 				runEvent(
 					  event          = "admin.DataManager._editRecordAction"
