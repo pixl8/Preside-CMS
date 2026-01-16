@@ -18,7 +18,7 @@
 		value = "";
 	} else {
 		try {
-			value = ToString( ToBinary( UrlDecode( value ) ) );
+			value = IsJSON( value ) ? value : ToString( ToBinary( UrlDecode( value ) ) );
 		} catch ( any e ) {
 			// fallback when it's not valid base64
 		}
