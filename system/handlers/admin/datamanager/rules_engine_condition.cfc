@@ -117,7 +117,20 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
+		args.selectFields = args.selectFields ?: [];
 		args.extraFilters = args.extraFilters ?: [];
+
+		if ( ArrayContains( args.selectFields, "segmentation_last_count" ) ) {
+			if ( !ArrayContains( args.selectFields, "id" ) ) {
+				ArrayAppend( args.selectFields, "id" );
+			}
+			if ( !ArrayContains( args.selectFields, "is_segmentation_filter" ) ) {
+				ArrayAppend( args.selectFields, "is_segmentation_filter" );
+			}
+			if ( !ArrayContains( args.selectFields, "filter_object" ) ) {
+				ArrayAppend( args.selectFields, "filter_object" );
+			}
+		}
 
 		rulesEngineFilterService.getRulesEngineSelectArgsForEdit( args=args );
 
@@ -136,6 +149,30 @@ component extends="preside.system.base.AdminHandler" {
 			ArrayAppend( args.extraFilters, { filter={ is_segmentation_filter=true } } );
 		} else {
 			ArrayAppend( args.extraFilters, { filter = "rules_engine_condition.is_segmentation_filter is null or rules_engine_condition.is_segmentation_filter = :is_segmentation_filter", filterParams={ is_segmentation_filter=false } } );
+		}
+	}
+
+	private void function postFetchRecordsForGridListing( event, rc, prc, args={} ) {
+		if ( QueryColumnExists( args.records,   "segmentation_last_count" )
+			&& QueryColumnExists( args.records, "is_segmentation_filter" )
+			&& QueryColumnExists( args.records, "filter_object" )
+		) {
+			for ( var record in args.records ) {
+				if ( isFalse( record.is_segmentation_filter ) ) {
+					var count = 0;
+					var filter = rulesEngineFilterService.prepareFilter(
+				  		  objectName = record.filter_object
+						, filterId   = record.id
+					);
+					var count = rulesEngineFilterService.getMatchingRecordCount(
+						  objectName      = record.filter_object
+						, expressionArray = []
+						, savedFilters    = []
+						, extraFilters    = [ filter ]
+					);
+					QuerySetCell( args.records, "segmentation_last_count", count , QueryCurrentRow( args.records ) );
+				}
+			}
 		}
 	}
 
