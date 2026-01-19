@@ -42,6 +42,15 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 			var expiry = expiry=_getUnixTimeStamp() + _getSessionTimeoutInSeconds();
 
 			StructDelete( storage, "sessionId" );
+
+			for ( var key in storage.cbox_flash_scope ?: {} ) {
+				if ( IsStruct( storage.cbox_flash_scope[ key ] ) ) {
+					if ( StructKeyExists( storage.cbox_flash_scope[ key ], "content" ) && IsStruct( storage.cbox_flash_scope[ key ].content ) ) {
+						StructDelete( storage.cbox_flash_scope[ key ].content, "binary" );
+					}
+				}
+			}
+
 			var value = SerializeJson( storage );
 
 			if ( Len( Trim( sessionId ) ) ) {
