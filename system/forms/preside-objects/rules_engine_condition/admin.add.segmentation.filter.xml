@@ -30,8 +30,8 @@ This form is used for creating a segmentation filter
 			<field binding="rules_engine_condition.segmentation_tag_enabled" sortorder="10" />
 		</fieldset>
 		<fieldset id="tag_config" sortorder="20">
-			<field binding="rules_engine_condition.segmentation_tag_label"   sortorder="20" />
-			<field binding="rules_engine_condition.segmentation_tag_colour"  sortorder="30" />
+			<field binding="rules_engine_condition.segmentation_tag_label" sortorder="10" />
+			<field binding="rules_engine_condition.segmentation_tag_icon"  sortorder="20" />
 		</fieldset>
 	</tab>
 </form>
