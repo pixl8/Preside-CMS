@@ -365,7 +365,7 @@ component displayName="Rules Engine Filter Service" {
 			}
 			, selectFields = [
 				  "filter.id"
-				, "filter.segmentation_tag_colour AS tag_colour"
+				, "filter.segmentation_tag_icon AS tag_icon"
 				, "COALESCE( filter.segmentation_tag_label, filter.condition_name ) AS tag_label"
 			]
 		);
