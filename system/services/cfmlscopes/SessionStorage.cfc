@@ -42,6 +42,10 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 			var expiry = expiry=_getUnixTimeStamp() + _getSessionTimeoutInSeconds();
 
 			StructDelete( storage, "sessionId" );
+
+			_cleanStruct( storage );
+
+
 			var value = SerializeJson( storage );
 
 			if ( Len( Trim( sessionId ) ) ) {
@@ -254,5 +258,48 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 		return IsBoolean( request._presideSessionUsed ?: "" ) && request._presideSessionUsed;
 	}
 
+	private void function _cleanStruct( required struct strct ) {
+		for( var key in arguments.strct ) {
+			if ( IsSimpleValue( arguments.strct[ key ] ) ) {
+				continue;
+			}
+			if ( IsStruct( arguments.strct[ key ] ) ) {
+				_cleanStruct( arguments.strct[ key ] );
+				continue;
+			}
 
+			if ( IsArray( arguments.strct[ key ] ) ) {
+				var isByteArray = isinstanceof(arguments.strct[key], "byte[]");
+				if ( !isByteArray ) {
+					_cleanArray( arguments.strct[ key ] );
+					continue;
+				}
+			}
+
+			StructDelete( arguments.strct, key );
+		}
+	}
+
+	private void function _cleanArray( required array arr ) {
+		for ( var i=ArrayLen( arguments.arr ); i>0; i-- ) {
+			var item = arguments.arr[ i ];
+			if ( IsSimpleValue( item ) ) {
+				continue;
+			}
+			if ( IsStruct( item ) ) {
+				_cleanStruct( item );
+				continue;
+			}
+			if ( IsArray( item ) ) {
+				var isByteArray = isinstanceof(item, "byte[]");
+				if ( !isByteArray ) {
+					_cleanArray( item );
+					continue;
+				}
+				ArrayDeleteAt( arguments.arr, i );
+			}
+
+			ArrayDelete( arguments.arr, i );
+		}
+	}
 }
