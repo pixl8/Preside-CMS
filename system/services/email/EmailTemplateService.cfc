@@ -1618,8 +1618,8 @@ component {
 		, template
 		, viewOnline
 	) {
-		var siteId   = $getRequestContext().getSiteId() ?: "";
-		var cacheKey = siteId & ( $helpers.isTrue( arguments.useDefaultContent ?: "" ) ? "default" : "saved" ) & "rawhtml" & arguments.template;
+		var siteId    = $getRequestContext().getSiteId() ?: "";
+		var cacheKey  = siteId & ( $helpers.isTrue( arguments.useDefaultContent ?: "" ) ? "default" : "saved" ) & "rawhtml" & arguments.template;
 		var fromCache = _getTemplateCache().get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
