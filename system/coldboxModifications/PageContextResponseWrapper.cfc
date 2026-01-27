@@ -98,7 +98,10 @@ component {
 		return variables.resp.resetBuffer();
 	}
 	function sendError( num, message ) {
-		return variables.resp.sendError( arguments.num, arguments.message );
+		if ( StructKeyExists( arguments, "message" ) ) {
+			return variables.resp.sendError( arguments.num, arguments.message );
+		}
+		return variables.resp.sendError( arguments.num );
 	}
 	function sendRedirect( url ) {
 		return variables.resp.sendRedirect( arguments.url );
