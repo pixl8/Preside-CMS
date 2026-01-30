@@ -95,3 +95,22 @@
 	<cfset var tfService = getSingleton( "timeFormatService" ) />
 	<cfreturn tfService.roundHours( argumentCollection=arguments ) />
 </cfsilent></cffunction>
+
+<cffunction name="getAdminDateFormatMask" access="public" returntype="string" output="false"><cfsilent>
+	<cfset var dfService = getSingleton( "dateFormatService" ) />
+	<cfreturn dfService.getAdminDateFormatMask( argumentCollection=arguments ) />
+</cfsilent></cffunction>
+
+<cffunction name="getFormattedAdminDate" access="public" returntype="string" output="false">
+	<cfargument name="date" type="date" required="true" /><cfsilent>
+
+	<cfset var dfService = getSingleton( "dateFormatService" ) />
+	<cfreturn dfService.getFormattedAdminDate( argumentCollection=arguments ) />
+</cfsilent></cffunction>
+
+<cffunction name="getFormattedAdminDateTime" access="public" returntype="string" output="false">
+	<cfargument name="dateTime" type="date" required="true" /><cfsilent>
+
+	<cfset var dfService = getSingleton( "dateFormatService" ) />
+	<cfreturn dfService.getFormattedAdminDateTime( argumentCollection=arguments ) />
+</cfsilent></cffunction>
