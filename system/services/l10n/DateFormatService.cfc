@@ -334,7 +334,6 @@ component {
     public string function getFormattedAdminDateTime( required date dateTime ) {
         var dateFormatMask    = getAdminDateFormatMask();
 		var timeFormatMask    = getAdminTimeFormatMask();
-		var formattedDateTime = LSparseDateTime( arguments.dateTime );
 
         return LSdateFormat( LSparseDateTime( arguments.dateTime ), dateFormatMask ) & " " & LStimeFormat( arguments.dateTime, timeFormatMask );
     }
