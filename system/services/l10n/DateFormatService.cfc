@@ -312,7 +312,6 @@ component {
         var timeFormatMask   = $translateResource( uri="cms:timeFormat");
         
         if ( IsStruct(adminUserDetails) ) {
-
 			if( Len( adminUserDetails.user_time_format ?: "" ) ) {
 				if ( adminUserDetails.user_time_format == "24h" ) {
 					timeFormatMask = "HH:mm:ss";
@@ -328,14 +327,14 @@ component {
     public string function getFormattedAdminDate( required date date ) {
         var dateFormatMask = getAdminDateFormatMask();
         
-        return LSdateFormat( LSparseDateTime( arguments.date ), dateFormatMask );
+        return LSdateFormat( arguments.date, dateFormatMask );
     }
     
     public string function getFormattedAdminDateTime( required date dateTime ) {
         var dateFormatMask    = getAdminDateFormatMask();
 		var timeFormatMask    = getAdminTimeFormatMask();
 
-        return LSdateFormat( LSparseDateTime( arguments.dateTime ), dateFormatMask ) & " " & LStimeFormat( arguments.dateTime, timeFormatMask );
+        return LSdateFormat( arguments.dateTime, dateFormatMask ) & " " & LStimeFormat( arguments.dateTime, timeFormatMask );
     }
     
 //PRIVATE FUNCTIONS
