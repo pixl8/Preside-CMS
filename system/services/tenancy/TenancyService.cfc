@@ -34,7 +34,8 @@ component displayName="Tenancy service" {
 
 		if ( tenant.len() ) {
 			var config          = _getTenancyConfig();
-			var preserveIndexes = $helpers.isTrue( objectMeta.tenantPreserveIndexes ?: ( config.preserveIndexes ?: "" ) );
+			var preserveIndexes = objectMeta.tenantPreserveIndexes ?: ( config.preserveIndexes ?: "" );
+			    preserveIndexes = IsBoolean( preserveIndexes ) && preserveIndexes;
 
 			if ( !StructKeyExists( config, tenant ) ) {
 				throw(
