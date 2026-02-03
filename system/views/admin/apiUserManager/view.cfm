@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfscript>
 	usr     = prc.record ?: {};
 	apis    = prc.apis ?: [];

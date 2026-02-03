@@ -1,3 +1,4 @@
+<!---@feature admin and websiteBenefits--->
 <cfscript>
 	objectName          = "website_benefit";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );

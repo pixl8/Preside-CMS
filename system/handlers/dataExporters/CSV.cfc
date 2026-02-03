@@ -1,7 +1,7 @@
 /**
  * @exportFileExtension csv
  * @exportMimeType      text/csv
- *
+ * @feature             dataExport
  */
 component {
 

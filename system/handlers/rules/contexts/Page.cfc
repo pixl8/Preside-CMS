@@ -1,6 +1,7 @@
 /**
  * Handler for the page rules engine context
  *
+ * @feature rulesEngine and sitetree
  */
 component {
 

@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfset id = rc.id ?: ""/>
 <cfoutput>
 	#renderView( view="/admin/datamanager/_objectVersionHistoryTable", args={

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	topic = rc.topic ?: "";
 

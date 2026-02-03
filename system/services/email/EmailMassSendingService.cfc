@@ -4,6 +4,7 @@
  * @autodoc        true
  * @singleton      true
  * @presideService true
+ * @feature        customEmailTemplates
  *
  */
 component {
@@ -24,7 +25,7 @@ component {
 	 * @emailTemplateService.inject      emailTemplateService
 	 * @emailRecipientTypeService.inject emailRecipientTypeService
 	 * @emailService.inject              emailService
-	 * @rulesEngineFilterService.inject  rulesEngineFilterService
+	 * @rulesEngineFilterService.inject  featureInjector:rulesEngine:rulesEngineFilterService
 	 *
 	 */
 	public any function init(
@@ -129,39 +130,49 @@ component {
 		 * in all scenarios.
 		 *
 		 */
-		do {
-			records = poService.selectData(
-				  objectName   = recipientObject
-				, selectFields = [ "#idField# as id" ]
-				, filter       = filter
-				, filterParams = filterParams
-				, extraFilters = extraFilters
-				, orderBy      = idField
-				, distinct     = true
-				, maxRows      = pageSize
-				, useCache     = false
-			);
+		try {
+			_getEmailTemplateService().updateScheduleQueueingFlag( templateId=arguments.templateId, isQueueing=true );
 
-			if ( records.recordCount ) {
-				ArrayAppend( batchedSets, ValueArray( records.id ) );
-
-				filter = "#idField# > :#idField#";
-				filterParams[ idField ] = records.id[ records.recordCount ];
-			}
-		} while( records.recordCount == pageSize );
-
-		for( var batch in batchedSets ) {
-			queuedCount += poService.insertDataFromSelect(
-				  objectName = "email_mass_send_queue"
-				, fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
-				, selectDataArgs = {
+			do {
+				records = poService.selectData(
 					  objectName   = recipientObject
-					, selectFields = [ idField, ":template", nowFunction, nowFunction ]
-					, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
-					, extraFilters = [ { filter={ "#idField#"=batch } }, inQueueFilter ]
-				  }
-			);
+					, selectFields = [ "#idField# as id" ]
+					, filter       = filter
+					, filterParams = filterParams
+					, extraFilters = extraFilters
+					, orderBy      = idField
+					, distinct     = true
+					, maxRows      = pageSize
+					, useCache     = false
+				);
+
+				if ( records.recordCount ) {
+					ArrayAppend( batchedSets, ValueArray( records.id ) );
+
+					filter = "#idField# > :#idField#";
+					filterParams[ idField ] = records.id[ records.recordCount ];
+				}
+			} while( records.recordCount == pageSize );
+
+			for( var batch in batchedSets ) {
+				queuedCount += poService.insertDataFromSelect(
+					  objectName = "email_mass_send_queue"
+					, fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
+					, selectDataArgs = {
+						  objectName   = recipientObject
+						, selectFields = [ idField, ":template", nowFunction, nowFunction ]
+						, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
+						, extraFilters = [ { filter={ "#idField#"=batch } }, inQueueFilter ]
+					}
+				);
+			}
+
+			_getEmailTemplateService().updateScheduleQueueingFlag( templateId=arguments.templateId, isQueueing=false );
+		} catch (any e) {
+			$raiseError(e);
+			_getEmailTemplateService().updateScheduleQueueingFlag( templateId=arguments.templateId, isQueueing=false, queueFailed=true );
 		}
+
 		return queuedCount;
 	}
 
@@ -190,32 +201,35 @@ component {
 			, unit          = template.sending_limit_unit
 			, measure       = template.sending_limit_measure
 		) : [];
-		var blueprintFilter = template.blueprint_filter ?: "";
-		if ( blueprintFilter.len() ) {
-			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
-			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
-				  objectName      = recipientObject
-				, expressionArray = filterExpression
-			);
-			extraFilters.append( recipientFilter );
-		}
-		if ( Len( Trim( template.recipient_filter ?: "" ) ) ) {
-			var isSegmentationFilter = _getRulesEngineFilterService().isSegmentationFilter( filterid=template.recipient_filter );
 
-			if ( isSegmentationFilter ) {
-				var recipientFilter = _getRulesEngineFilterService().prepareSegmentationFilter(
-					  objectName = recipientObject
-					, filterId   = template.recipient_filter
-				);
-			} else {
-				var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
+		if ( $isFeatureEnabled( "rulesEngine" ) ) {
+			var blueprintFilter = template.blueprint_filter ?: "";
+			if ( Len( blueprintFilter ) ) {
+				var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.blueprint_filter );
 				var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
 					  objectName      = recipientObject
 					, expressionArray = filterExpression
 				);
+				extraFilters.append( recipientFilter );
 			}
+			if ( Len( Trim( template.recipient_filter ?: "" ) ) ) {
+				var isSegmentationFilter = _getRulesEngineFilterService().isSegmentationFilter( filterid=template.recipient_filter );
 
-			ArrayAppend( extraFilters, recipientFilter )
+				if ( isSegmentationFilter ) {
+					var recipientFilter = _getRulesEngineFilterService().prepareSegmentationFilter(
+						  objectName = recipientObject
+						, filterId   = template.recipient_filter
+					);
+				} else {
+					var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
+					var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
+						  objectName      = recipientObject
+						, expressionArray = filterExpression
+					);
+				}
+
+				ArrayAppend( extraFilters, recipientFilter )
+			}
 		}
 
 		extraFilters.append( _getDuplicateCheckFilter( recipientObject, arguments.templateId ) );

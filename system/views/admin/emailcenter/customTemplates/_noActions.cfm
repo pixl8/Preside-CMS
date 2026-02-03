@@ -1,0 +1,1 @@
+<!---@feature admin and customEmailTemplates--->

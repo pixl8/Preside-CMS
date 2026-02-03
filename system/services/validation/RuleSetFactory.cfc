@@ -1,3 +1,6 @@
+/**
+ * @nowirebox
+ */
 component {
 
 	public array function newRuleset( any rules ){

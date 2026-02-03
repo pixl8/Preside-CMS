@@ -1,3 +1,6 @@
+/**
+ * @feature dataExport
+ */
 component {
 
 	private void function preRenderConfigForm( event, rc, prc, objectName="", renderFormArgs={} ) {

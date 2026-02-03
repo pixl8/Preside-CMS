@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.type"        type="string"/>
 <cfparam name="args.action"      type="string"/>
 <cfparam name="args.datecreated" type="date"/>

@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms
+ */
 component {
 
 	property name="presideObjectService" inject="presideObjectService";
@@ -6,12 +9,13 @@ component {
 		var sourceObject  = args.sourceObject ?: "";
 		var sourceIdField = presideObjectService.getIdField( sourceObject );
 
-		args.object   = args.relatedTo ?: "";
-		args.multiple = true;
+		args.defaultValue = args.defaultValue ?: "";
+		args.object       = args.relatedTo    ?: "";
+		args.multiple     = true;
 
 		var targetIdField = presideObjectService.getIdField( args.object );
 
-		if ( Len( Trim( args.savedData[ sourceIdField ] ?: "" ) ) ) {
+		if ( IsEmptyString( args.defaultValue ) && Len( Trim( args.savedData[ sourceIdField ] ?: "" ) ) ) {
 			var useVersioning = Val( rc.version ?: "" ) && presideObjectService.objectIsVersioned( sourceObject );
 
 			args.savedValue = presideObjectService.selectManyToManyData(

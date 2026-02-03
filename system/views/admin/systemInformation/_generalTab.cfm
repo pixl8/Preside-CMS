@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	pageTitle          = args.pageTitle          ?: "";
 	presideCmsVersion  = args.presideCmsVersion  ?: "";

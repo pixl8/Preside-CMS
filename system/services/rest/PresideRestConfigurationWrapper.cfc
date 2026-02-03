@@ -2,9 +2,9 @@
  * An object to provide configuration fetching for the REST platform
  * dependent on the request context (current resource, etc.).
  *
- * @autodoc
- * @singleton
- *
+ * @autodoc   true
+ * @singleton true
+ * @feature   restFramework
  */
 component {
 

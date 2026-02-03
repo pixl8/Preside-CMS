@@ -1,6 +1,7 @@
 /**
  * SMTP Service provider for email sending with plain SMTP.
  *
+ * @feature emailCenter
  */
 component {
 	property name="emailService"  inject="emailService";

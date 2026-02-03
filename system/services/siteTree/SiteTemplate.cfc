@@ -1,3 +1,6 @@
+/**
+ * @nowirebox
+ */
 component accessors=true {
 	property name="id"          type="string";
 	property name="title"       type="string";

@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	assetId      = rc.asset                  ?: "";
 	asset        = prc.asset                 ?: StructNew();

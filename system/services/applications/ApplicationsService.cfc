@@ -2,9 +2,10 @@
  * Provides logic for dealing with configured applications
  * for the Preside admin system.
  *
- * @autodoc
- * @singleton
- * @presideservice
+ * @autodoc        true
+ * @singleton      true
+ * @presideservice true
+ * @feature        admin
  *
  */
 component {

@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -17,7 +18,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )
@@ -47,20 +48,20 @@
 			<cfset selected = IsSimpleValue( selectedValue ) && ListFindNoCase( value, simpleValue ) />
 
 			<cfif isTrue( selected ) && ListLen( simpleValue, "." ) == 1>
-				<option value="#HtmlEditFormat( simpleValue )#">
-					#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
+				<option value="#EncodeForHtmlAttribute( simpleValue )#">
+					#EncodeForHtmlAttribute( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 				</option>
 			</cfif>
 
 			<cfif !IsSimpleValue( selectedValue )>
-				<optgroup id="#simpleValue#" label="#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#">
+				<optgroup id="#simpleValue#" label="#EncodeForHtmlAttribute( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#">
 					<cfloop array="#selectedValue[ simpleValue ].fields ?: []#" index="j" item="relatedField">
 						<cfset nestedValue = "#simpleValue#.#relatedField#" />
 						<cfset selected    = ListFindNoCase( value, nestedValue ) />
 
 						<cfif isTrue( selected )>
-							<option value="#HtmlEditFormat( nestedValue )#">
-								#HtmlEditFormat( translateResource( selectedValue[ simpleValue ].labels[j] ?: "", selectedValue[ simpleValue ].labels[j] ?: "" ) )#
+							<option value="#EncodeForHtmlAttribute( nestedValue )#">
+								#EncodeForHtmlAttribute( translateResource( selectedValue[ simpleValue ].labels[j] ?: "", selectedValue[ simpleValue ].labels[j] ?: "" ) )#
 							</option>
 						</cfif>
 					</cfloop>

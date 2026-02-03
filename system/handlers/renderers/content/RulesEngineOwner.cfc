@@ -1,3 +1,6 @@
+/**
+ * @feature rulesEngine
+ */
 component {
 
 	private string function default( event, rc, prc, args={} ){

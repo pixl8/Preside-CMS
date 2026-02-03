@@ -7,7 +7,7 @@ It gets mixed in with the [[form-sitetreepageeditform]] and its purpose is to re
 
 >>> There is no 'add' form for the homepage page type because there can only be and must always be a single homepage in a given site (subject to change).
 -->
-<form>
+<form feature="sitetree">
 	<tab id="main">
 		<fieldset id="main">
 			<field name="parent_page" deleted="true" />

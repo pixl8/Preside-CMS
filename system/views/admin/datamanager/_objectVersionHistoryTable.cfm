@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.objectName"    type="string";
 	param name="args.datasourceUrl" type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="action=dataManager.getRecordHistoryForAjaxDataTables&object=#args.objectName#&id=#id#" );

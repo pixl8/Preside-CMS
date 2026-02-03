@@ -5,7 +5,8 @@
  *
  * @singleton      true
  * @presideService true
- * @autodoc
+ * @autodoc        true
+ * @feature        admin
  */
 component {
 
@@ -244,6 +245,13 @@ component {
 				defaults.iconClass   = $translateResource( uri="cms:admin.view.system.group.iconclass"  , defaultValue=""                   );
 				defaults.sortOrder   = 1;
 				defaults.column      = "right";
+			break;
+			case "draftManager":
+				defaults.title       = $translateResource( uri="draftManager:viewgroup.draft.title"      , defaultValue=arguments.groupName  );
+				defaults.description = $translateResource( uri="draftManager:viewgroup.draft.description", defaultValue=""                   );
+				defaults.iconClass   = $translateResource( uri="draftManager:viewgroup.draft.iconclass"  , defaultValue=""                   );
+				defaults.sortOrder   = $translateResource( uri="draftManager:viewgroup.draft.sortOrder"  , defaultValue=1                    );
+				defaults.column      = $translateResource( uri="draftManager:viewgroup.draft.column"     , defaultValue="right"              );
 			break;
 		}
 

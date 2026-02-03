@@ -1,3 +1,6 @@
+/**
+ * @nowirebox true
+ */
 component extends="coldbox.system.logging.AbstractAppender" {
 
 // CONSTRUCTOR

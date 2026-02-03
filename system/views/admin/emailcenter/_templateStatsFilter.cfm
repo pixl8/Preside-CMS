@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	templateId = rc.id ?: ( args.templateId ?: "" );
 	containerClass = args.containerClass ?: "pull-left";

@@ -1,9 +1,10 @@
 /**
  * Abstraction wrapper for taskmanager configuration.
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        taskManager
  */
 component displayName="TaskManager Configuration Wrapper" {
 

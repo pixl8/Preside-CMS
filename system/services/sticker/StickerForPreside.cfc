@@ -1,13 +1,13 @@
 /**
  * @presideService true
  * @singleton      true
- *
+ * @feature        sticker
  */
 component {
 
 	/**
-	 * @delayedStickerRendererService.inject delayedStickerRendererService
-	 * @delayedViewletRendererService.inject delayedViewletRendererService
+	 * @delayedStickerRendererService.inject featureInjector:delayedViewlets:delayedStickerRendererService
+	 * @delayedViewletRendererService.inject featureInjector:delayedViewlets:delayedViewletRendererService
 	 *
 	 */
 	public any function init(
@@ -30,12 +30,20 @@ component {
 	public any function includeData()    { return _getSticker().includeData   ( argumentCollection=arguments ); }
 	public any function includeUrl()     { return _getSticker().includeUrl    ( argumentCollection=arguments ); }
 
-	public any function renderIncludes( boolean delayed=_getDelayedViewletRendererService().isDelayableContext() ) {
-		if ( arguments.delayed ) {
+	public any function renderIncludes( boolean delayed=_isDelayableContext() ) {
+		if ( arguments.delayed && $isFeatureEnabled( "delayedViewlets" ) ) {
 			return _getDelayedStickerRendererService().renderDelayedStickerTag( argumentCollection=arguments, memento=_getSticker().getMemento() );
 		} else {
-			return _getSticker().renderIncludes( argumentCollection=arguments );
+			var rendered = _getSticker().renderIncludes( argumentCollection=arguments );
+
+			_addCspSourcesFromExternalRenderedIncludes( rendered );
+
+			return rendered;
 		}
+	}
+
+	public function reload() {
+		_initSticker();
 	}
 
 // PRIVATE HELPERS
@@ -64,6 +72,28 @@ component {
 		sticker.load();
 
 		_setSticker( sticker );
+	}
+
+	private void function _addCspSourcesFromExternalRenderedIncludes( required string rendered ) {
+		var event          = $getRequestContext();
+		var externalStyles = ReFind( '<link\s.*href="((https?://|//)[^"/]+)', arguments.rendered, 1, true, "all" );
+
+		for( var match in externalStyles ) {
+			if ( Len( Trim( match.match[ 2 ] ?: "" ) ) ) {
+				event.addToContentSecurityPolicy( "style-src", match.match[ 2 ] );
+			}
+		}
+
+		var externalScripts = ReFind( '<script src="((https?://|//)[^"/]+)', arguments.rendered, 1, true, "all" );
+		for( var match in externalScripts ) {
+			if ( Len( Trim( match.match[ 2 ] ?: "" ) ) ) {
+				event.addToContentSecurityPolicy( "script-src", match.match[ 2 ] );
+			}
+		}
+	}
+
+	private function _isDelayableContext() {
+		return $isFeatureEnabled( "delayedViewlets" ) && _getDelayedViewletRendererService().isDelayableContext()
 	}
 
 // GETTERS AND SETTERS

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="cms:emailcenter.customTemplates.send.test.form.">
+<form i18nBaseUri="cms:emailcenter.customTemplates.send.test.form." feature="emailCenter">
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
 			<field name="send_to"   control="textarea"     required="true" />

@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	renderer        = args.renderer        ?: "";
 	rendererContext = args.rendererContext ?: "readonly";
@@ -15,4 +16,4 @@
 	);
 </cfscript>
 
-<cfoutput><span class="read-only" #htmlAttributes#>#( HTMLEditFormat( value ) )#</span></cfoutput>
+<cfoutput><span class="read-only" #htmlAttributes#>#( EncodeForHtmlAttribute( value ) )#</span></cfoutput>

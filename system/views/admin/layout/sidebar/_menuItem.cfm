@@ -1,4 +1,6 @@
+<!---@feature admin--->
 <cfparam name="args.active"       type="boolean" default="false" />
+<cfparam name="args.id"           type="string"  default="" />
 <cfparam name="args.link"         type="string"  default="" />
 <cfparam name="args.title"        type="string"  default="" />
 <cfparam name="args.icon"         type="string"  default="" />
@@ -7,7 +9,7 @@
 <cfparam name="args.gotoKey"      type="string"  default="" />
 
 <cfoutput>
-	<li <cfif args.active> class="active"</cfif>>
+	<li <cfif args.active> class="active"</cfif> data-item-id="#args.id#">
 		<cfif Len( Trim( args.subMenu ) ) or args.subMenuItems.len()>
 			<a class="dropdown-toggle" href="##">
 				<i class="menu-icon fa fa-fw #args.icon#"></i>

@@ -1,3 +1,6 @@
+/**
+ * @feature admin and urlRedirects
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="ruleDao"             inject="presidecms:object:url_redirect_rule";

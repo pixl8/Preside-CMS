@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	private string function prompt( event, rc, prc, args={} ) {

@@ -3,7 +3,8 @@
  * For now, just a simple front to a datastore for storing state
  * with a status and owner.
  *
- * @singleton
+ * @singleton true
+ * @feature   presideBasicWorkflow
  */
 component {
 

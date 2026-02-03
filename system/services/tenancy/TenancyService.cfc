@@ -26,10 +26,16 @@ component displayName="Tenancy service" {
 
 		var tenant = ( objectMeta.tenant ?: "" ).trim();
 
+		if ( tenant == "site" && !$isFeatureEnabled( "sites" ) ) {
+			objectMeta.tenant = "";
+			objectMeta.siteFiltered = false;
+			return;
+		}
+
 		if ( tenant.len() ) {
-			var config = _getTenancyConfig();
-			if ( siteFiltered ) {
-			}
+			var config          = _getTenancyConfig();
+			var preserveIndexes = objectMeta.tenantPreserveIndexes ?: ( config.preserveIndexes ?: "" );
+			    preserveIndexes = IsBoolean( preserveIndexes ) && preserveIndexes;
 
 			if ( !StructKeyExists( config, tenant ) ) {
 				throw(
@@ -58,19 +64,18 @@ component displayName="Tenancy service" {
 				prop = objectMeta.properties[ prop ];
 
 				if ( Len( Trim( prop.indexes ?: "" ) ) ) {
-					var newIndexDefinition = "";
+					var newIndexDefinition = preserveIndexes ? prop.indexes : "";
 
 					for( var ix in ListToArray( prop.indexes ) ) {
-						var indexName = ListFirst( ix, "|" ) & "|1";
-						if ( !ListFindNoCase( fkProperty.indexes, indexName ) ) {
-							fkProperty.indexes = ListAppend( fkProperty.indexes, indexName );
+						var indexName = ListFirst( ix, "|" ) & ( preserveIndexes ? "_tnt" : "" );
+						var indexPos  = Val( ListRest( ix, "|" ) ) ? Val( ListRest( ix, "|" ) ) : 1;
+						var fkIndex   = indexName & "|1";
+
+						if ( !ListFindNoCase( fkProperty.indexes, fkIndex ) ) {
+							fkProperty.indexes = ListAppend( fkProperty.indexes, fkIndex );
 						}
 
-						if ( ListLen( ix, "|" ) > 1 ) {
-							newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
-						} else {
-							newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
-						}
+						newIndexDefinition = ListAppend( newIndexDefinition, indexName & "|" & indexPos+1 );
 					}
 
 					prop.indexes = newIndexDefinition;

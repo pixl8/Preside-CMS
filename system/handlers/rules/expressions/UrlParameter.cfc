@@ -3,6 +3,7 @@
  *
  * @expressionCategory browser
  * @expressionContexts webrequest
+ * @feature            rulesEngine
  */
 component {
 

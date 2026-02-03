@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	position = args.position ?: "bottom-right";
 	alerts   = args.alerts   ?: [];

@@ -16,7 +16,7 @@ component hint="Display system version information" extends="preside.system.base
 
 		var headers  = [ "Service", "Version" ];
 		var versions = [
-			  [ translateResource( uri="cms:systemInformation.cms.th" )              , updateManagerService.getCurrentVersion() ]
+			  [ translateResource( uri="cms:systemInformation.cms.th" )              , updateManagerService.getCurrentVersionAndBuildDate() ]
 			, [ translateResource( uri="cms:systemInformation.applicationServer.th" ), productName & ' (' & productVersion & ')' ]
 			, [ translateResource( uri="cms:systemInformation.dataBase.th" )         , databaseName & ' (' & databaseVersion & ')' ]
 			, [ translateResource( uri="cms:systemInformation.java.th" )             , javaVersion ]

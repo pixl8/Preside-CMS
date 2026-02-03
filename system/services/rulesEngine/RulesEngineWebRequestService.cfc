@@ -2,16 +2,16 @@
  * This service is deprecated. Use [[api-rulesengineconditionservice]]
  * instead.
  *
- * @singleton
- * @presideservice
- * @autodoc
- *
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        rulesEngine
  */
 component displayName="RulesEngine Web Request Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @conditionService.inject    rulesEngineConditionService
+	 * @conditionService.inject rulesEngineConditionService
 	 *
 	 */
 	public any function init( required any conditionService) {

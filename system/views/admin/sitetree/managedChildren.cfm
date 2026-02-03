@@ -1,7 +1,9 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	pageType        = rc.pageType         ?: "";
 	parentId        = rc.parent           ?: "";
 	canAddChildren  = prc.canAddChildren  ?: false;
+	canSortChildren = prc.canSortChildren ?: false;
 	gridFields      = prc.gridFields      ?: [];
 	cleanGridFields = prc.cleanGridFields ?: [];
 	gridFieldTitles = prc.gridFieldTitles ?: [];
@@ -21,14 +23,24 @@
 </cfscript>
 
 <cfoutput>
-	<cfif canAddChildren>
+	<cfif canAddChildren || canSortChildren>
 		<div class="top-right-button-group">
-			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parentId#&page_type=#pageType#" )#" data-global-key="a">
-				<button class="btn btn-success btn-sm">
-					<i class="fa fa-plus"></i>
-					#addRecordTitle#
-				</button>
-			</a>
+			<cfif canAddChildren>
+				<a class="pull-right inline" href="#event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parentId#&page_type=#pageType#" )#" data-global-key="a">
+					<button class="btn btn-success btn-sm">
+						<i class="fa fa-plus"></i>
+						#addRecordTitle#
+					</button>
+				</a>
+			</cfif>
+			<cfif canSortChildren>
+				<a class="pull-right inline" href="#event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#parentId#" )#" data-global-key="s">
+					<button class="btn btn-info btn-sm">
+						<i class="fa fa-sort-amount-asc"></i>
+						#translateResource( uri="cms:datamanager.sortRecords.title", data=[ objectTitle ] )#
+					</button>
+				</a>
+			</cfif>
 		</div>
 	</cfif>
 

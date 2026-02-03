@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	basedOnFormId    = rc.id ?: "";
 	validationResult = rc.validationResult ?: "";

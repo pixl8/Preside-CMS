@@ -1,9 +1,18 @@
+<!---@feature admin and sites--->
 <cfscript>
 	param name="args.sites"       type="array";
 	param name="args.currentSite" type="struct";
 
 	hasManagementPerms = hasCmsPermission( "sites.manage" );
-	showSiteNavigation = isFeatureEnabled( "sites" ) && ( hasManagementPerms || args.sites.len() );
+	hasMultipleSites   = args.sites.len() > 0;
+
+	if ( !isFeatureEnabled( "sites" ) ) {
+		showSiteNavigation = false;
+	} else if ( isFeatureEnabled( "siteSwitcher" ) ) {
+		showSiteNavigation = hasManagementPerms || hasMultipleSites;
+	} else {
+		showSiteNavigation = hasMultipleSites;
+	}
 </cfscript>
 
 <cfoutput>

@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -13,7 +14,7 @@
 	fieldKeys       = [ "second", "minute", "hour", "dayofmonth", "monthofyear", "dayofweek" ];
 	args.fieldValue = {};
 
-	if ( !isEmpty( value ) ) {
+	if ( !isEmpty( value ) && value != "disabled" ) {
 		savedFieldValue = listToArray( value, " " );
 
 		for ( i=1; i<=arrayLen( savedFieldValue ); i++ ) {
@@ -30,7 +31,7 @@
 </cfscript>
 
 <cfoutput>
-	<input type="hidden" class="cron-picker #inputClass#" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( value )#" #htmlAttributes# />
+	<input type="hidden" class="cron-picker #inputClass#" id="#inputId#" name="#inputName#" value="#EncodeForHtmlAttribute( value )#" #htmlAttributes# />
 
 	<cfloop array="#options#" item="option">
 		#renderFormControl(

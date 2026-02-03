@@ -4,6 +4,7 @@
  * @singleton      true
  * @presideService true
  * @autdoc         true
+ * @feature        sites
  */
 component displayname="Site service" {
 
@@ -16,7 +17,7 @@ component displayname="Site service" {
 	 * @permissionService.inject     permissionService
 	 * @coldbox.inject               coldbox
 	 * @defaultSiteProtocol.inject   coldbox:setting:defaultSiteProtocol
-	 * 
+	 *
 	 */
 	public any function init( required any siteDao, required any siteAliasDomainDao, required any siteRedirectDomainDao, required any sessionStorage, required any permissionService, required any coldbox, required string defaultSiteProtocol ) output=false {
 		_setSiteDao( arguments.siteDao );
@@ -40,7 +41,11 @@ component displayname="Site service" {
 	 * Returns a query of all the registered sites
 	 */
 	public query function listSites() output=false autodoc=true {
-		return _getSiteDao().selectData( orderBy="name" );
+		return _getSiteDao().selectData(
+			  orderBy      = "name"
+			, filter       = "deleted is null or deleted=:deleted"
+			, filterParams = { deleted=false }
+		);
 	}
 
 	/**

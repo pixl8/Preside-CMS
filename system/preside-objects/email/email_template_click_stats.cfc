@@ -9,6 +9,7 @@
  * @nodatecreated  true
  * @nolabel        true
  * @tablePrefix    psys_
+ * @feature        emailCenter
  *
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email template" {

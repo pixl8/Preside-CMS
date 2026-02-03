@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	configForm = prc.configForm ?: "";
 </cfscript>

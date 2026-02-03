@@ -1,6 +1,7 @@
 /**
  * The asset meta object represents a single item of extracted meta data from an asset file
  *
+ * @feature assetManager
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="key" displayName="Asset meta data" versioned=false {
  	property name="asset"         relationship="many-to-one"                   required=true   uniqueindexes="assetmeta|1" ondelete="cascade";

@@ -1,3 +1,4 @@
+<!---@feature websiteUsers and siteTree--->
 <cfparam name="args.title"           field="page.title" editable="true" />
 <cfparam name="args.login_required"  field="login.login_required" default="The resource you are attempting to access requires a secure login. Please login using the form below." />
 <cfparam name="args.login_failed"    field="login.login_failed"   default="The email address and password combination you supplied did not match our records. Please try again." />
@@ -37,11 +38,11 @@
     </cfswitch>
 
     <form action="#event.buildLink( linkTo="login.attemptLogin" )#" method="post">
-        <input type="hidden" name="postLoginUrl" value="#args.postLoginUrl#">
+        <input type="hidden" name="postLoginUrl" value="#EncodeForHtmlAttribute( args.postLoginUrl )#">
 
         <div class="form-group">
             <label for="loginId">#translateResource( uri="page-types.login:emailaddress.label" )#</label>
-            <input type="email" id="loginId" name="loginId" value="#args.loginId#" class="form-control">
+            <input type="email" id="loginId" name="loginId" value="#EncodeForHtmlAttribute( args.loginId )#" class="form-control">
         </div>
 
         <div class="form-group">

@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfparam name="args.embargo_date" />
 <cfparam name="args.expiry_date"  />
 <cfparam name="args.active"       />

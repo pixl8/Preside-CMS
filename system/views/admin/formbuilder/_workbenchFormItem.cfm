@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfparam name="args.id"            type="string" />
 <cfparam name="args.type"          type="struct" />
 <cfparam name="args.formId"        type="string" />
@@ -15,40 +16,39 @@
 	    data-config-clone="#event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype=#args.type.id#&itemid=#args.id#&clone=true' )#"
 	    data-config-title="#translateResource( uri='formbuilder:itemconfig.modal.title', data=[ args.type.title ] )#">
 
-		<div class="pull-left">
+		<span class="item-type-placeholder">
 			<i class="fa fa-fw #args.type.iconClass#"></i>&nbsp;
 			#args.placeholder#
-		</div>
-		<div class="pull-right">
-			<span class="item-type-name">#args.type.title#</span>
-			<div class="action-buttons btn-group">
-				<cfif args.type.requiresConfiguration>
-					<a href="##" class="edit-link">
-						<i class="fa fa-pencil"></i>
+		</span>
+
+		<span class="item-type-name">#args.type.title#</span>
+
+		<span class="item-type-actions action-buttons btn-group">
+			<cfif args.type.requiresConfiguration>
+				<a href="##" class="edit-link">
+					<i class="fa fa-pencil"></i>
+				</a>
+
+				<cfif not args.isV2>
+					<a href="##" class="clone-link" title="#translateResource( uri='formbuilder:clone.item.link.title', data=[ args.type.title ] )#">
+						<i class="fa fa-fw fa-clone"></i>
 					</a>
-
-					<cfif not args.isV2>
-						<a href="##" class="clone-link" title="#translateResource( uri='formbuilder:clone.item.link.title', data=[ args.type.title ] )#">
-							<i class="fa fa-fw fa-clone"></i>
-						</a>
-					</cfif>
-				<cfelse>
-					<a class="grey disabled"><i class="fa fa-fw"></i></a>
-
-					<cfif not args.isV2>
-						<a class="grey disabled"><i class="fa fa-fw"></i></a>
-					</cfif>
 				</cfif>
+			<cfelse>
+				<a class="grey disabled"><i class="fa fa-fw"></i></a>
 
-				<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.item.link.title', data=[ args.type.title ] )#">
-					<i class="fa fa-trash"></i>
-				</a>
+				<cfif not args.isV2>
+					<a class="grey disabled"><i class="fa fa-fw"></i></a>
+				</cfif>
+			</cfif>
 
-				<a href="##" class="sort-link">
-					<i class="fa fa-reorder"></i>
-				</a>
-			</div>
-		</div>
-		<div class="clearfix"></div>
+			<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.#( args.item_type == "page" ? "page" : "item" )#.link.title', data=[ args.configuration.label ?: args.type.title ] )#">
+				<i class="fa fa-trash"></i>
+			</a>
+
+			<a href="##" class="sort-link">
+				<i class="fa fa-reorder"></i>
+			</a>
+		</span>
 	</li>
 </cfoutput>

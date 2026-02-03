@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	params = args.params ?: [];
 	event.include( "/css/admin/specific/emailcenter/emailparams/" );

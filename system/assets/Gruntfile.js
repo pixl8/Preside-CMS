@@ -67,9 +67,6 @@ module.exports = function( grunt ) {
 					src  : ["js/admin/coretop/*.js", "!js/admin/coretop/*.min.js" ],
 					dest : 'js/admin/coretop/_coretop.min.js'
 				}, {
-					src:["js/admin/coretop/ie/*.js", "!js/admin/coretop/ie/*.min.js" ],
-					dest: 'js/admin/coretop/ie/_ie.min.js'
-				},{
 					src:["js/admin/devtools/*.js", "!js/admin/devtools/*.min.js" ],
 					dest: 'js/admin/devtools/_devtools.min.js'
 				}, {
@@ -84,7 +81,7 @@ module.exports = function( grunt ) {
 					  	"js/admin/lib/plugins/jquery.moment.js", // must come first
 					  	"js/admin/lib/plugins/*.js"
 					  ]
-					, dest : "js/admin/lib/plugins-1.7.015.min.js"
+					, dest : "js/admin/lib/plugins-1.8.001.min.js"
 				},{
 					  src  : ["js/admin/lib/ace/ace.js", "js/admin/lib/ace/ace-elements.js"]
 					, dest : "js/admin/lib/ace-1.0.0.min.js"
@@ -92,11 +89,8 @@ module.exports = function( grunt ) {
 					  src  : "js/admin/lib/bootstrap-3.0.0.003.js"
 					, dest : "js/admin/lib/bootstrap-3.0.0.003.min.js"
 				},{
-					  src  : "js/admin/lib/jquery-1.10.2.js"
-					, dest : "js/admin/lib/jquery-1.10.2.min.js"
-				},{
-					  src  : "js/admin/lib/jquery-2.0.3.js"
-					, dest : "js/admin/lib/jquery-2.0.3.min.js"
+					  src  : "js/admin/lib/jquery-2.2.5-sec.js"
+					, dest : "js/admin/lib/jquery-2.2.5-sec.min.js"
 				},{
 					  src  : "js/admin/lib/jquery-ui-1.11.4.js"
 					, dest : "js/admin/lib/jquery-ui-1.11.4.min.js"

@@ -4,6 +4,7 @@
  *
  * @nolabel   true
  * @versioned false
+ * @feature   emailCenter
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="content_hash" type="string" dbtype="varchar" maxlength=32 required=true uniqueindexes="sentcontent";

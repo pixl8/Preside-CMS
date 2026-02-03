@@ -4,7 +4,7 @@
  * @isSystemPageType     true
  * @parentSystemPageType login
  * @pagetypeViewlet      login.resetPassword
- * @feature              websiteUsers
+ * @feature              siteTree && websiteUsers
  *
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Page type: Reset password" {

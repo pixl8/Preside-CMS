@@ -1,9 +1,10 @@
 /**
  * Provides logic around actions in form builder
  *
- * @autodoc
- * @singleton
- * @presideservice
+ * @autodoc        true
+ * @singleton      true
+ * @presideservice true
+ * @feature        formbuilder
  */
 component {
 
@@ -319,13 +320,13 @@ component {
 		for( var savedAction in configuredActions ) {
 			var allowedToFire = !Len( Trim( savedAction.condition ?: "" ) ) || conditionService.evaluateCondition(
 				  conditionId = savedAction.condition
-				, context     = "formbuilderSubmission"
+				, context     = "webrequest"
 			);
 
 			if ( allowedToFire ) {
 				coldbox.runEvent(
 					  event          = savedAction.action.submissionHandler
-					, eventArguments = { args={ configuration = savedAction.configuration, submissionData=arguments.submissionData } }
+					, eventArguments = { args={ configuration=savedAction.configuration, submissionData=arguments.submissionData } }
 					, private        = true
 					, prePostExempt  = true
 				);

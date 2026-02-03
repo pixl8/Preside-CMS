@@ -13,8 +13,8 @@
 				;
 
 				if ( $address.val().length > 0 ) {
-					var matches     = $address.val().match( /^(.*:\/\/)/g )
-					  , protocol    = matches ? matches[ 0 ] : $protocol.val()
+					var matches     = $address.val().match(/^(https?:\/\/)/i)
+					  , protocol    = matches ? matches[0].toLowerCase() : $protocol.val()
 					  , $uberSelect = $protocol.data( "uberSelect" )
 					;
 
@@ -28,7 +28,7 @@
 						$protocol.val( protocol );
 					}
 
-					$address.val( $address.val().replace( /^https?:\/\//, "" ) );
+					$address.val( $address.val().replace( /^(https?:\/\/)/i, "" ) );
 
 					$hidden.val( $protocol.val() + $address.val() );
 				} else {

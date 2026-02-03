@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	leftCol                  = args.leftCol  ?: "";
 	rightCol                 = args.rightCol ?: "";

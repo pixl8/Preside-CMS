@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms
+ */
 component {
 	property name="presideObjectService" inject="PresideObjectService";
 	property name="dataExportService"    inject="DataExportService";
@@ -15,11 +18,20 @@ component {
 
 				if ( !isEmptyString( savedValue ) ) {
 					var savedValueArray = listToArray( savedValue );
+					var parentOnlyArray = [];
+
+					for ( var value in savedValueArray ) {
+						var parentKey = ListFirst( value, "." );
+						if ( !ArrayContains( parentOnlyArray, parentKey ) ) {
+							ArrayAppend( parentOnlyArray, parentKey );
+						}
+					}
+
 					var valuesArrLength = arrayLen( args.values );
 
 					args.values.each( function( item, index ) {
-						if ( isTrue( arrayFind( savedValueArray, item ) ) ) {
-							var savedArrIndex = arrayFind( savedValueArray, item );
+						if ( isTrue( arrayFind( parentOnlyArray, item ) ) ) {
+							var savedArrIndex = arrayFind( parentOnlyArray, item );
 							    savedArrIndex = ( savedArrIndex > valuesArrLength ) ? valuesArrLength : savedArrIndex;
 
 							args.values.swap( savedArrIndex, index );

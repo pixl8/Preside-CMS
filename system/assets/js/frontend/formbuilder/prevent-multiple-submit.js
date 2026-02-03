@@ -7,7 +7,9 @@
 
 			$form.on( "submit", function( event ) {
 				if ( $( this ).valid() ) {
-					$( submitBtn, $form ).prop( "disabled", true );
+					setTimeout( function() { // Allows the form submission to start before disabling the button.
+						$( submitBtn, $form ).prop( "disabled", true );
+					}, 0 );
 				}
 			} );
 

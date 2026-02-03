@@ -1,3 +1,4 @@
+<!---@feature admin and taskmanager--->
 <cfscript>
 	task        = rc.task     ?: "";
 	history     = prc.history ?: QueryNew( "" );

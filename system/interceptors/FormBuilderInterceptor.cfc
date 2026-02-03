@@ -4,7 +4,9 @@ component extends="coldbox.system.Interceptor" {
 	public void function configure() {}
 
 	public void function onApplicationStart() {
-		formBuilderService.updateUsesGlobalQuestions();
+		if ( isFeatureEnabled( "formbuilder2" ) ) {
+			formBuilderService.updateUsesGlobalQuestions();
+		}
 	}
 
 	public void function preDeleteObjectData( event, interceptData ) {

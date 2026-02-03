@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	content    = args.content ?: "";
 	activeTab  = IsTrue( args.treeView ?: "" ) ? "tree" : "grid";

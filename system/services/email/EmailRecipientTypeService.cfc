@@ -4,6 +4,7 @@
  * @singleton      true
  * @presideservice true
  * @autodoc        true
+ * @feature        emailCenter
  *
  */
 component displayName="Email Recipient Type Service" {

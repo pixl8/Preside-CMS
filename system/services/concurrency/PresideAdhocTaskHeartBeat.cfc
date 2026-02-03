@@ -35,6 +35,29 @@ component extends="AbstractHeartBeat" {
 		} catch( any e ) {
 			$raiseError( e );
 		}
+
+		if ( _doCleanupRun() ) {
+			try {
+				_getAdhocTaskmanagerService().processStaleLockedTasks();
+			} catch( any e ) {
+				$raiseError( e );
+			}
+			try {
+				_getAdhocTaskmanagerService().failInactiveRunningTasks();
+			} catch( any e ) {
+				$raiseError( e );
+			}
+		}
+	}
+
+// PRIVATE HELPERS
+	private function _doCleanupRun() {
+		if ( !StructKeyExists( variables, "lastCleanupRun" ) || DateDiff( 'n', variables.lastCleanupRun, Now() ) >= 5 ) {
+			variables.lastCleanupRun = Now();
+			return true;
+		}
+
+		return false;
 	}
 
 

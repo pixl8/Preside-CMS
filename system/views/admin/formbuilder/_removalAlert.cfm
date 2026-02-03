@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	removeDays                 = Val( args.submission_remove_after    ?: "" );
 	submissionToBeRemovedCount = Val( args.submissionToBeRemovedCount ?: "" );

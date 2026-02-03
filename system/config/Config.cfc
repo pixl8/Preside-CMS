@@ -43,7 +43,10 @@ component {
 		__setupFullPageCaching();
 		__setupHeartbeatsAndServices();
 		__setupNotifications();
+		__setupIgnoreFile();
+		__setupWebflow();
 		__loadConfigurationFromExtensions();
+		__setupLocaleSettings();
 	}
 
 // ENVIRONMENT SPECIFIC
@@ -53,6 +56,11 @@ component {
 
 		settings.features[ "devtools.new"       ].enabled = true;
 		settings.features[ "devtools.extension" ].enabled = true;
+
+		settings.ignoreFile.read  = false;
+		settings.ignoreFile.write = true;
+
+		settings.environmentBannerConfig = { icon="fa-code", cssClass="alert-info" };
 	}
 
 // SPECIFIC AREAS
@@ -79,6 +87,7 @@ component {
 			, "preside-ext-vips"
 			, "preside-ext-db-perf-enhancements"
 			, "preside-ext-email-log-performance"
+			, "preside-ext-workflow"
 		];
 
 		settings.activeExtensions = application.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
@@ -92,7 +101,8 @@ component {
 			local = "^local\.,\.local(:[0-9]+)?$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
 		};
 
-		settings.environmentMessage = "";
+		settings.environmentMessage      = "";
+		settings.environmentBannerConfig = { icon="fa-desktop", cssClass="alert-danger", display=false };
 	}
 
 	private void function __setupColdbox() {
@@ -113,7 +123,7 @@ component {
 			, pluginsExternalLocation   = "preside.system.plugins"
 			, viewsExternalLocation     = "/preside/system/views"
 			, layoutsExternalLocation   = "/preside/system/layouts"
-			, modulesExternalLocation   = [ "/app/extensions", "/preside/system/modules" ]
+			, modulesExternalLocation   = [ "/app/extensions_app", "/app/extensions", "/preside/system/modules" ]
 			, handlersExternalLocation  = "preside.system.handlers"
 			, applicationStartHandler   = "General.applicationStart"
 			, applicationEndHandler     = "General.applicationEnd"
@@ -136,20 +146,24 @@ component {
 			, unknownTranslation = "**NOT FOUND**"
 		};
 
-		settings.adminLanguages = [];
+		settings.adminLanguages    = [];
+		settings.frontendLanguages = [ "en" ];
 	}
 
 	private void function __setupInterceptors() {
 		variables.interceptors = [
-			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
-			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
-			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
-			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
-			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} },
-			{ class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} },
-			{ class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} },
+			  { class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} }
+			, { class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} }
+			, { class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} }
+			, { class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} }
+			, { class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} }
+			, { class="preside.system.interceptors.AdminLayoutInterceptor"              , properties={} }
+			, { class="preside.system.interceptors.WebsiteUserImpersonationInterceptor" , properties={} }
+			, { class="preside.system.interceptors.ScheduledExportDownloadInterceptor"  , properties={} }
+			, { class="preside.system.interceptors.FormBuilderInterceptor"              , properties={} }
+			, { class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} }
+			, { class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
+			, { class="preside.system.interceptors.DraftManagerInterceptor"             , properties={} }
 		];
 
 		variables.interceptorSettings = {
@@ -186,6 +200,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"                  );
 		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"                 );
 		interceptorSettings.customInterceptionPoints.append( "postInitializePresideSiteteePage"      );
+		interceptorSettings.customInterceptionPoints.append( "preInitializeDummyPresideSiteTreePage" );
 		interceptorSettings.customInterceptionPoints.append( "postInitializeDummyPresideSiteTreePage");
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"                   );
@@ -201,6 +216,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                        );
 		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                        );
 		interceptorSettings.customInterceptionPoints.append( "onLogout"                              );
+		interceptorSettings.customInterceptionPoints.append( "postLogout"                            );
 		interceptorSettings.customInterceptionPoints.append( "onAdminLoginSuccess"                   );
 		interceptorSettings.customInterceptionPoints.append( "onAdminLoginFailure"                   );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                       );
@@ -256,6 +272,10 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailMessage"               );
 		interceptorSettings.customInterceptionPoints.append( "preRenderEmailLayout"                  );
 		interceptorSettings.customInterceptionPoints.append( "postRenderEmailLayout"                 );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailParameters"             );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailParameters"            );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailPreviewParameters"      );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareEmailPreviewParameters"     );
 		interceptorSettings.customInterceptionPoints.append( "preRenderContent"                      );
 		interceptorSettings.customInterceptionPoints.append( "postRenderContent"                     );
 		interceptorSettings.customInterceptionPoints.append( "onGenerateEmailUnsubscribeLink"        );
@@ -279,6 +299,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraEditRecordActionButtons"   );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtonsForEditRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postGetExtraCloneRecordActionButtons"  );
+		interceptorSettings.customInterceptionPoints.append( "postGetExtraSortRecordsActionButtons"  );
 		interceptorSettings.customInterceptionPoints.append( "postExtraTopRightButtons"              );
 		interceptorSettings.customInterceptionPoints.append( "preValidateForm"		                 );
 		interceptorSettings.customInterceptionPoints.append( "preRenderLabelSelectData"		         );
@@ -292,6 +313,22 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postRenderDelayedViewlets"             );
 		interceptorSettings.customInterceptionPoints.append( "preRunCustomization"                   );
 		interceptorSettings.customInterceptionPoints.append( "postRunCustomization"                  );
+		interceptorSettings.customInterceptionPoints.append( "onEmailTemplateGetAdditionalQueryStringForBuildAjaxListingLink" );
+		interceptorSettings.customInterceptionPoints.append( "onEmailTemplatePreFetchRecordsForGridListing" );
+		interceptorSettings.customInterceptionPoints.append( "preRenderWebflowStepForm" );
+		interceptorSettings.customInterceptionPoints.append( "postRenderWebflowStep" );
+		interceptorSettings.customInterceptionPoints.append( "onGetMainNavigationMenuItems" );
+		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
+		interceptorSettings.customInterceptionPoints.append( "preViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "preAddRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postAddRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postAddRecordAction" );
+		interceptorSettings.customInterceptionPoints.append( "preEditRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postEditRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postEditRecordAction" );
+		interceptorSettings.customInterceptionPoints.append( "preRenderRecordForViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "postRenderRecordForViewRecord" );
 	}
 
 	private void function __setupCachebox() {
@@ -360,6 +397,7 @@ component {
 			, "websiteUserManager"
 			, "formbuilder"
 			, "emailcenter"
+			, "webflow"
 		];
 
 		settings.adminConfigurationMenuItems = [
@@ -377,6 +415,7 @@ component {
 			, "taskmanager"
 			, "savedexport"
 			, "apiManager"
+			, "workflow"
 			, "systemInformation"
 		];
 
@@ -560,11 +599,21 @@ component {
 			, icon          = "fa-link"
 			, title         = "cms:links.navigation.link"
 			, permissionKey = "presideobject.link.read"
+			, feature       = "cms"
+		};
+		settings.adminMenuItems.workflow = {
+			  feature       = "webflow"
+			, permissionKey = "webflow.navigate"
+			, buildLinkArgs = { objectName="webflow_configuration" }
+			, activeChecks  = { datamanagerObject="webflow_configuration" }
+			, title         = "preside-objects.webflow_configuration:title"
+			, icon          = "fa-code-fork"
 		};
 		settings.adminMenuItems.maintenanceMode = {
 			  permissionKey = "maintenanceMode.configure"
 			, buildLinkArgs = { linkTo="maintenanceMode" }
 			, activeChecks  = { handlerPatterns="^admin\.maintenanceMode\." }
+			, feature       = "maintenanceMode"
 			, icon          = "fa-medkit"
 			, title         = "cms:maintenanceMode"
 		};
@@ -623,9 +672,10 @@ component {
 			, title         = "cms:taskmanager"
 		};
 		settings.adminMenuItems.urlRedirects = {
-			  permissionKey = "urlRedirects.navigate"
-			, buildLinkArgs = { linkTo="urlRedirects" }
-			, activeChecks  = { handlerPatterns="^admin\.urlRedirects\." }
+			  feature       = "urlRedirects"
+			, permissionKey = "urlRedirects.navigate"
+			, buildLinkArgs = { objectName="url_redirect_rule" }
+			, activeChecks  = { datamanagerObject="url_redirect_rule" }
 			, icon          = "fa-code-fork"
 			, title         = "cms:urlRedirects.navigation.link"
 		};
@@ -663,7 +713,7 @@ component {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, systemInformation      = [ "navigate" ]
-			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule" ]
+			, urlRedirects           = [ "navigate", "read", "addRule", "editRule", "deleteRule", "batchdelete", "batchedit", "manageContextPerms", "viewversions", "clone", "managefilters", "usefilters" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "deleteForm" ,"lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, formquestions          = [ "navigate", "read", "add", "edit", "delete", "batchdelete", "batchedit", "clone", "managefilters", "usefilters" ]
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
@@ -699,6 +749,8 @@ component {
 				, assets           = [ "upload", "edit", "delete", "download", "pick", "translate" ]
 				, storagelocations = [ "manage" ]
 			 }
+			, webflows               = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
+			, draftManager           = [ "navigate", "read", "add", "edit", "delete", "review", "publish" ]
 		};
 
 		settings.adminRoles = StructNew( "linked" );
@@ -708,9 +760,10 @@ component {
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*", "formquestions.*" ];
 		settings.adminRoles.emailcentremanager = [ "cms.access", "emailCenter.*", "!emailCenter.queue.*" ];
-		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*" ];
+		settings.adminRoles.rulesenginemanager = [ "cms.access", "rulesEngine.*", "datamanager.managefilters" ];
 		settings.adminRoles.savedExportManager = [ "cms.access", "savedExport.*" ];
 		settings.adminRoles.savedExportAccess  = [ "cms.access", "savedExport.navigate", "savedExport.read" ];
+		settings.adminRoles.webflowAdmin       = [ "cms.access", "webflows.*" ];
 	}
 
 	private void function __setupWebsiteUsers() {
@@ -738,6 +791,11 @@ component {
 		settings.autoRestoreDeprecatedFields = true;
 		settings.useQueryCacheDefault        = true;
 		settings.mssql = { useVarcharMaxForText = false }
+		settings.datasourceConnection = {
+			  retries      = Val( settings.env.DATASOURCE_CONNECTION_RETRIES     ?: 0   )
+			, retryPause   = Val( settings.env.DATASOURCE_CONNECTION_RETRY_PAUSE ?: 100 )
+			, failureRegex = settings.env.DATASOURCE_CONNECTION_FAILURE_REGEX ?: "Communications link failure"
+		};
 
 		settings.queryTimeout = {
 			  default                 = Val( settings.env.QUERY_TIMEOUT ?: 0 )
@@ -761,6 +819,14 @@ component {
 				  filter       = "email_template.recipient_type = :email_template.recipient_type or ( email_template.recipient_type is null and email_blueprint.recipient_type = :email_template.recipient_type )"
 				, filterParams = { "email_template.recipient_type" = "websiteUser" }
 			  }
+			, webflowsForWidget = {
+				  filter       = "( hide_from_widget is null or hide_from_widget = :hide_from_widget ) and ( is_admin_flow is null or is_admin_flow = :is_admin_flow )"
+				, filterParams = { hide_from_widget=false, is_admin_flow=false }
+			  }
+			, webflowsNonAdminFlows = {
+				  filter       = "is_admin_flow is null or is_admin_flow = :is_admin_flow"
+				, filterParams = { is_admin_flow=false }
+			  }
 		};
 	}
 
@@ -779,6 +845,7 @@ component {
 		// these settings useful for Preside applications that are fixed
 		// admin applications with the 'site' feature disabled
 		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
+		settings.forcePort      = settings.env.FORCE_PORT ?: "";
 		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
 		settings.defaultSiteProtocol = settings.defaultSiteProtocol ?: ( settings.env.DEFAULT_SITE_PROTOCOL ?: _getCurrentProtocol() );
 	}
@@ -853,7 +920,7 @@ component {
 				, autoGrow_onStartup              = true
 				, emailProtection                 = 'encode'
 				, removePlugins                   = 'iframe,wsc,scayt'
-				, disallowedContent               = 'font; *[align]; *{line-height,margin*}'
+				, disallowedContent               = 'font; *[align,contenteditable]; *{line-height,margin*}'
 				, scayt_sLang                     = "en_GB"
 				, pasteFromWordDisallow           = [
 					  "span"  // Strip all span elements
@@ -873,7 +940,7 @@ component {
 		settings.formControls            = {};
 		settings.autoTrimFormSubmissions = { admin=false, frontend=false };
 
-		settings.formControls.iconPicker.icons = [ "500px", "accessible-icon", "accusoft", "acquisitions-incorporated", "ad", "address-book", "address-card", "adjust", "adn", "adobe", "adversal", "affiliatetheme", "air-freshener", "airbnb", "algolia", "align-center", "align-justify", "align-left", "align-right", "alipay", "allergies", "amazon", "amazon-pay", "ambulance", "american-sign-language-interpreting", "amilia", "anchor", "android", "angellist", "angle-double-down", "angle-double-left", "angle-double-right", "angle-double-up", "angle-down", "angle-left", "angle-right", "angle-up", "angry", "angrycreative", "angular", "ankh", "app-store", "app-store-ios", "apper", "apple", "apple-alt", "apple-pay", "archive", "archway", "arrow-alt-circle-down", "arrow-alt-circle-left", "arrow-alt-circle-right", "arrow-alt-circle-up", "arrow-circle-down", "arrow-circle-left", "arrow-circle-right", "arrow-circle-up", "arrow-down", "arrow-left", "arrow-right", "arrow-up", "arrows-alt", "arrows-alt-h", "arrows-alt-v", "artstation", "assistive-listening-systems", "asterisk", "asymmetrik", "at", "atlas", "atlassian", "atom", "audible", "audio-description", "autoprefixer", "avianex", "aviato", "award", "aws", "baby", "baby-carriage", "backspace", "backward", "bacon", "balance-scale", "balance-scale-left", "balance-scale-right", "ban", "band-aid", "bandcamp", "barcode", "bars", "baseball-ball", "basketball-ball", "bath", "battery-empty", "battery-full", "battery-half", "battery-quarter", "battery-three-quarters", "battle-net", "bed", "beer", "behance", "behance-square", "bell", "bell-slash", "bezier-curve", "bible", "bicycle", "biking", "bimobject", "binoculars", "biohazard", "birthday-cake", "bitbucket", "bitcoin", "bity", "black-tie", "blackberry", "blender", "blender-phone", "blind", "blog", "blogger", "blogger-b", "bluetooth", "bluetooth-b", "bold", "bolt", "bomb", "bone", "bong", "book", "book-dead", "book-medical", "book-open", "book-reader", "bookmark", "bootstrap", "border-all", "border-none", "border-style", "bowling-ball", "box", "box-open", "boxes", "braille", "brain", "bread-slice", "briefcase", "briefcase-medical", "broadcast-tower", "broom", "brush", "btc", "buffer", "bug", "building", "bullhorn", "bullseye", "burn", "buromobelexperte", "bus", "bus-alt", "business-time", "buysellads", "calculator", "calendar", "calendar-alt", "calendar-check", "calendar-day", "calendar-minus", "calendar-plus", "calendar-times", "calendar-week", "camera", "camera-retro", "campground", "canadian-maple-leaf", "candy-cane", "cannabis", "capsules", "car", "car-alt", "car-battery", "car-crash", "car-side", "caret-down", "caret-left", "caret-right", "caret-square-down", "caret-square-left", "caret-square-right", "caret-square-up", "caret-up", "carrot", "cart-arrow-down", "cart-plus", "cash-register", "cat", "cc-amazon-pay", "cc-amex", "cc-apple-pay", "cc-diners-club", "cc-discover", "cc-jcb", "cc-mastercard", "cc-paypal", "cc-stripe", "cc-visa", "centercode", "centos", "certificate", "chair", "chalkboard", "chalkboard-teacher", "charging-station", "chart-area", "chart-bar", "chart-line", "chart-pie", "check", "check-circle", "check-double", "check-square", "cheese", "chess", "chess-bishop", "chess-board", "chess-king", "chess-knight", "chess-pawn", "chess-queen", "chess-rook", "chevron-circle-down", "chevron-circle-left", "chevron-circle-right", "chevron-circle-up", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "child", "chrome", "chromecast", "church", "circle", "circle-notch", "city", "clinic-medical", "clipboard", "clipboard-check", "clipboard-list", "clock", "clone", "closed-captioning", "cloud", "cloud-download-alt", "cloud-meatball", "cloud-moon", "cloud-moon-rain", "cloud-rain", "cloud-showers-heavy", "cloud-sun", "cloud-sun-rain", "cloud-upload-alt", "cloudscale", "cloudsmith", "cloudversify", "cocktail", "code", "code-branch", "codepen", "codiepie", "coffee", "cog", "cogs", "coins", "columns", "comment", "comment-alt", "comment-dollar", "comment-dots", "comment-medical", "comment-slash", "comments", "comments-dollar", "compact-disc", "compass", "compress", "compress-arrows-alt", "concierge-bell", "confluence", "connectdevelop", "contao", "cookie", "cookie-bite", "copy", "copyright", "cotton-bureau", "couch", "cpanel", "creative-commons", "creative-commons-by", "creative-commons-nc", "creative-commons-nc-eu", "creative-commons-nc-jp", "creative-commons-nd", "creative-commons-pd", "creative-commons-pd-alt", "creative-commons-remix", "creative-commons-sa", "creative-commons-sampling", "creative-commons-sampling-plus", "creative-commons-share", "creative-commons-zero", "credit-card", "critical-role", "crop", "crop-alt", "cross", "crosshairs", "crow", "crown", "crutch", "css3", "css3-alt", "cube", "cubes", "cut", "cuttlefish", "d-and-d", "d-and-d-beyond", "dashcube", "database", "deaf", "delicious", "democrat", "deploydog", "deskpro", "desktop", "dev", "deviantart", "dharmachakra", "dhl", "diagnoses", "diaspora", "dice", "dice-d20", "dice-d6", "dice-five", "dice-four", "dice-one", "dice-six", "dice-three", "dice-two", "digg", "digital-ocean", "digital-tachograph", "directions", "discord", "discourse", "divide", "dizzy", "dna", "dochub", "docker", "dog", "dollar-sign", "dolly", "dolly-flatbed", "donate", "door-closed", "door-open", "dot-circle", "dove", "download", "draft2digital", "drafting-compass", "dragon", "draw-polygon", "dribbble", "dribbble-square", "dropbox", "drum", "drum-steelpan", "drumstick-bite", "drupal", "dumbbell", "dumpster", "dumpster-fire", "dungeon", "dyalog", "earlybirds", "ebay", "edge", "edit", "egg", "eject", "elementor", "ellipsis-h", "ellipsis-v", "ello", "ember", "empire", "envelope", "envelope-open", "envelope-open-text", "envelope-square", "envira", "equals", "eraser", "erlang", "ethereum", "ethernet", "etsy", "euro-sign", "evernote", "exchange-alt", "exclamation", "exclamation-circle", "exclamation-triangle", "expand", "expand-arrows-alt", "expeditedssl", "external-link-alt", "external-link-square-alt", "eye", "eye-dropper", "eye-slash", "facebook", "facebook-f", "facebook-messenger", "facebook-square", "fan", "fantasy-flight-games", "fast-backward", "fast-forward", "fax", "feather", "feather-alt", "fedex", "fedora", "female", "fighter-jet", "figma", "file", "file-alt", "file-archive", "file-audio", "file-code", "file-contract", "file-csv", "file-download", "file-excel", "file-export", "file-image", "file-import", "file-invoice", "file-invoice-dollar", "file-medical", "file-medical-alt", "file-pdf", "file-powerpoint", "file-prescription", "file-signature", "file-upload", "file-video", "file-word", "fill", "fill-drip", "film", "filter", "fingerprint", "fire", "fire-alt", "fire-extinguisher", "firefox", "first-aid", "first-order", "first-order-alt", "firstdraft", "fish", "fist-raised", "flag", "flag-checkered", "flag-usa", "flask", "flickr", "flipboard", "flushed", "fly", "folder", "folder-minus", "folder-open", "folder-plus", "font", "font-awesome", "font-awesome-alt", "font-awesome-flag", "font-awesome-logo-full", "fonticons", "fonticons-fi", "football-ball", "fort-awesome", "fort-awesome-alt", "forumbee", "forward", "foursquare", "free-code-camp", "freebsd", "frog", "frown", "frown-open", "fulcrum", "funnel-dollar", "futbol", "galactic-republic", "galactic-senate", "gamepad", "gas-pump", "gavel", "gem", "genderless", "get-pocket", "gg", "gg-circle", "ghost", "gift", "gifts", "git", "git-alt", "git-square", "github", "github-alt", "github-square", "gitkraken", "gitlab", "gitter", "glass-cheers", "glass-martini", "glass-martini-alt", "glass-whiskey", "glasses", "glide", "glide-g", "globe", "globe-africa", "globe-americas", "globe-asia", "globe-europe", "gofore", "golf-ball", "goodreads", "goodreads-g", "google", "google-drive", "google-play", "google-plus", "google-plus-g", "google-plus-square", "google-wallet", "gopuram", "graduation-cap", "gratipay", "grav", "greater-than", "greater-than-equal", "grimace", "grin", "grin-alt", "grin-beam", "grin-beam-sweat", "grin-hearts", "grin-squint", "grin-squint-tears", "grin-stars", "grin-tears", "grin-tongue", "grin-tongue-squint", "grin-tongue-wink", "grin-wink", "grip-horizontal", "grip-lines", "grip-lines-vertical", "grip-vertical", "gripfire", "grunt", "guitar", "gulp", "h-square", "hacker-news", "hacker-news-square", "hackerrank", "hamburger", "hammer", "hamsa", "hand-holding", "hand-holding-heart", "hand-holding-usd", "hand-lizard", "hand-middle-finger", "hand-paper", "hand-peace", "hand-point-down", "hand-point-left", "hand-point-right", "hand-point-up", "hand-pointer", "hand-rock", "hand-scissors", "hand-spock", "hands", "hands-helping", "handshake", "hanukiah", "hard-hat", "hashtag", "hat-wizard", "haykal", "hdd", "heading", "headphones", "headphones-alt", "headset", "heart", "heart-broken", "heartbeat", "helicopter", "highlighter", "hiking", "hippo", "hips", "hire-a-helper", "history", "hockey-puck", "holly-berry", "home", "hooli", "hornbill", "horse", "horse-head", "hospital", "hospital-alt", "hospital-symbol", "hot-tub", "hotdog", "hotel", "hotjar", "hourglass", "hourglass-end", "hourglass-half", "hourglass-start", "house-damage", "houzz", "hryvnia", "html5", "hubspot", "i-cursor", "ice-cream", "icicles", "icons", "id-badge", "id-card", "id-card-alt", "igloo", "image", "images", "imdb", "inbox", "indent", "industry", "infinity", "info", "info-circle", "instagram", "intercom", "internet-explorer", "invision", "ioxhost", "italic", "itch-io", "itunes", "itunes-note", "java", "jedi", "jedi-order", "jenkins", "jira", "joget", "joint", "joomla", "journal-whills", "js", "js-square", "jsfiddle", "kaaba", "kaggle", "key", "keybase", "keyboard", "keycdn", "khanda", "kickstarter", "kickstarter-k", "kiss", "kiss-beam", "kiss-wink-heart", "kiwi-bird", "korvue", "landmark", "language", "laptop", "laptop-code", "laptop-medical", "laravel", "lastfm", "lastfm-square", "laugh", "laugh-beam", "laugh-squint", "laugh-wink", "layer-group", "leaf", "leanpub", "lemon", "less", "less-than", "less-than-equal", "level-down-alt", "level-up-alt", "life-ring", "lightbulb", "line", "link", "linkedin", "linkedin-in", "linode", "linux", "lira-sign", "list", "list-alt", "list-ol", "list-ul", "location-arrow", "lock", "lock-open", "long-arrow-alt-down", "long-arrow-alt-left", "long-arrow-alt-right", "long-arrow-alt-up", "low-vision", "luggage-cart", "lyft", "magento", "magic", "magnet", "mail-bulk", "mailchimp", "male", "mandalorian", "map", "map-marked", "map-marked-alt", "map-marker", "map-marker-alt", "map-pin", "map-signs", "markdown", "marker", "mars", "mars-double", "mars-stroke", "mars-stroke-h", "mars-stroke-v", "mask", "mastodon", "maxcdn", "medal", "medapps", "medium", "medium-m", "medkit", "medrt", "meetup", "megaport", "meh", "meh-blank", "meh-rolling-eyes", "memory", "mendeley", "menorah", "mercury", "meteor", "microchip", "microphone", "microphone-alt", "microphone-alt-slash", "microphone-slash", "microscope", "microsoft", "minus", "minus-circle", "minus-square", "mitten", "mix", "mixcloud", "mizuni", "mobile", "mobile-alt", "modx", "monero", "money-bill", "money-bill-alt", "money-bill-wave", "money-bill-wave-alt", "money-check", "money-check-alt", "monument", "moon", "mortar-pestle", "mosque", "motorcycle", "mountain", "mouse-pointer", "mug-hot", "music", "napster", "neos", "network-wired", "neuter", "newspaper", "nimblr", "node", "node-js", "not-equal", "notes-medical", "npm", "ns8", "nutritionix", "object-group", "object-ungroup", "odnoklassniki", "odnoklassniki-square", "oil-can", "old-republic", "om", "opencart", "openid", "opera", "optin-monster", "osi", "otter", "outdent", "page4", "pagelines", "pager", "paint-brush", "paint-roller", "palette", "palfed", "pallet", "paper-plane", "paperclip", "parachute-box", "paragraph", "parking", "passport", "pastafarianism", "paste", "patreon", "pause", "pause-circle", "paw", "paypal", "peace", "pen", "pen-alt", "pen-fancy", "pen-nib", "pen-square", "pencil-alt", "pencil-ruler", "penny-arcade", "people-carry", "pepper-hot", "percent", "percentage", "periscope", "person-booth", "phabricator", "phoenix-framework", "phoenix-squadron", "phone", "phone-alt", "phone-slash", "phone-square", "phone-square-alt", "phone-volume", "photo-video", "php", "pied-piper", "pied-piper-alt", "pied-piper-hat", "pied-piper-pp", "piggy-bank", "pills", "pinterest", "pinterest-p", "pinterest-square", "pizza-slice", "place-of-worship", "plane", "plane-arrival", "plane-departure", "play", "play-circle", "playstation", "plug", "plus", "plus-circle", "plus-square", "podcast", "poll", "poll-h", "poo", "poo-storm", "poop", "portrait", "pound-sign", "power-off", "pray", "praying-hands", "prescription", "prescription-bottle", "prescription-bottle-alt", "print", "procedures", "product-hunt", "project-diagram", "pushed", "puzzle-piece", "python", "qq", "qrcode", "question", "question-circle", "quidditch", "quinscape", "quora", "quote-left", "quote-right", "quran", "r-project", "radiation", "radiation-alt", "rainbow", "random", "raspberry-pi", "ravelry", "react", "reacteurope", "readme", "rebel", "receipt", "recycle", "red-river", "reddit", "reddit-alien", "reddit-square", "redhat", "redo", "redo-alt", "registered", "remove-format", "renren", "reply", "reply-all", "replyd", "republican", "researchgate", "resolving", "restroom", "retweet", "rev", "ribbon", "ring", "road", "robot", "rocket", "rocketchat", "rockrms", "route", "rss", "rss-square", "ruble-sign", "ruler", "ruler-combined", "ruler-horizontal", "ruler-vertical", "running", "rupee-sign", "sad-cry", "sad-tear", "safari", "salesforce", "sass", "satellite", "satellite-dish", "save", "schlix", "school", "screwdriver", "scribd", "scroll", "sd-card", "search", "search-dollar", "search-location", "search-minus", "search-plus", "searchengin", "seedling", "sellcast", "sellsy", "server", "servicestack", "shapes", "share", "share-alt", "share-alt-square", "share-square", "shekel-sign", "shield-alt", "ship", "shipping-fast", "shirtsinbulk", "shoe-prints", "shopping-bag", "shopping-basket", "shopping-cart", "shopware", "shower", "shuttle-van", "sign", "sign-in-alt", "sign-language", "sign-out-alt", "signal", "signature", "sim-card", "simplybuilt", "sistrix", "sitemap", "sith", "skating", "sketch", "skiing", "skiing-nordic", "skull", "skull-crossbones", "skyatlas", "skype", "slack", "slack-hash", "slash", "sleigh", "sliders-h", "slideshare", "smile", "smile-beam", "smile-wink", "smog", "smoking", "smoking-ban", "sms", "snapchat", "snapchat-ghost", "snapchat-square", "snowboarding", "snowflake", "snowman", "snowplow", "socks", "solar-panel", "sort", "sort-alpha-down", "sort-alpha-down-alt", "sort-alpha-up", "sort-alpha-up-alt", "sort-amount-down", "sort-amount-down-alt", "sort-amount-up", "sort-amount-up-alt", "sort-down", "sort-numeric-down", "sort-numeric-down-alt", "sort-numeric-up", "sort-numeric-up-alt", "sort-up", "soundcloud", "sourcetree", "spa", "space-shuttle", "speakap", "speaker-deck", "spell-check", "spider", "spinner", "splotch", "spotify", "spray-can", "square", "square-full", "square-root-alt", "squarespace", "stack-exchange", "stack-overflow", "stackpath", "stamp", "star", "star-and-crescent", "star-half", "star-half-alt", "star-of-david", "star-of-life", "staylinked", "steam", "steam-square", "steam-symbol", "step-backward", "step-forward", "stethoscope", "sticker-mule", "sticky-note", "stop", "stop-circle", "stopwatch", "store", "store-alt", "strava", "stream", "street-view", "strikethrough", "stripe", "stripe-s", "stroopwafel", "studiovinari", "stumbleupon", "stumbleupon-circle", "subscript", "subway", "suitcase", "suitcase-rolling", "sun", "superpowers", "superscript", "supple", "surprise", "suse", "swatchbook", "swimmer", "swimming-pool", "symfony", "synagogue", "sync", "sync-alt", "syringe", "table", "table-tennis", "tablet", "tablet-alt", "tablets", "tachometer-alt", "tag", "tags", "tape", "tasks", "taxi", "teamspeak", "teeth", "teeth-open", "telegram", "telegram-plane", "temperature-high", "temperature-low", "tencent-weibo", "tenge", "terminal", "text-height", "text-width", "th", "th-large", "th-list", "the-red-yeti", "theater-masks", "themeco", "themeisle", "thermometer", "thermometer-empty", "thermometer-full", "thermometer-half", "thermometer-quarter", "thermometer-three-quarters", "think-peaks", "thumbs-down", "thumbs-up", "thumbtack", "ticket-alt", "times", "times-circle", "tint", "tint-slash", "tired", "toggle-off", "toggle-on", "toilet", "toilet-paper", "toolbox", "tools", "tooth", "torah", "torii-gate", "tractor", "trade-federation", "trademark", "traffic-light", "train", "tram", "transgender", "transgender-alt", "trash", "trash-alt", "trash-restore", "trash-restore-alt", "tree", "trello", "tripadvisor", "trophy", "truck", "truck-loading", "truck-monster", "truck-moving", "truck-pickup", "tshirt", "tty", "tumblr", "tumblr-square", "tv", "twitch", "twitter", "twitter-square", "typo3", "uber", "ubuntu", "uikit", "umbrella", "umbrella-beach", "underline", "undo", "undo-alt", "uniregistry", "universal-access", "university", "unlink", "unlock", "unlock-alt", "untappd", "upload", "ups", "usb", "user", "user-alt", "user-alt-slash", "user-astronaut", "user-check", "user-circle", "user-clock", "user-cog", "user-edit", "user-friends", "user-graduate", "user-injured", "user-lock", "user-md", "user-minus", "user-ninja", "user-nurse", "user-plus", "user-secret", "user-shield", "user-slash", "user-tag", "user-tie", "user-times", "users", "users-cog", "usps", "ussunnah", "utensil-spoon", "utensils", "vaadin", "vector-square", "venus", "venus-double", "venus-mars", "viacoin", "viadeo", "viadeo-square", "vial", "vials", "viber", "video", "video-slash", "vihara", "vimeo", "vimeo-square", "vimeo-v", "vine", "vk", "vnv", "voicemail", "volleyball-ball", "volume-down", "volume-mute", "volume-off", "volume-up", "vote-yea", "vr-cardboard", "vuejs", "walking", "wallet", "warehouse", "water", "wave-square", "waze", "weebly", "weibo", "weight", "weight-hanging", "weixin", "whatsapp", "whatsapp-square", "wheelchair", "whmcs", "wifi", "wikipedia-w", "wind", "window-close", "window-maximize", "window-minimize", "window-restore", "windows", "wine-bottle", "wine-glass", "wine-glass-alt", "wix", "wizards-of-the-coast", "wolf-pack-battalion", "won-sign", "wordpress", "wordpress-simple", "wpbeginner", "wpexplorer", "wpforms", "wpressr", "wrench", "x-ray", "xbox", "xing", "xing-square", "y-combinator", "yahoo", "yammer", "yandex", "yandex-international", "yarn", "yelp", "yen-sign", "yin-yang", "yoast", "youtube", "youtube-square", "zhihu" ];
+		settings.formControls.iconPicker.icons = [ "500px", "accessible-icon", "accusoft", "acquisitions-incorporated", "ad", "address-book", "address-card", "adjust", "adn", "adobe", "adversal", "affiliatetheme", "air-freshener", "airbnb", "algolia", "align-center", "align-justify", "align-left", "align-right", "alipay", "allergies", "amazon", "amazon-pay", "ambulance", "american-sign-language-interpreting", "amilia", "anchor", "android", "angellist", "angle-double-down", "angle-double-left", "angle-double-right", "angle-double-up", "angle-down", "angle-left", "angle-right", "angle-up", "angry", "angrycreative", "angular", "ankh", "app-store", "app-store-ios", "apper", "apple", "apple-alt", "apple-pay", "archive", "archway", "arrow-alt-circle-down", "arrow-alt-circle-left", "arrow-alt-circle-right", "arrow-alt-circle-up", "arrow-circle-down", "arrow-circle-left", "arrow-circle-right", "arrow-circle-up", "arrow-down", "arrow-left", "arrow-right", "arrow-up", "arrows-alt", "arrows-alt-h", "arrows-alt-v", "artstation", "assistive-listening-systems", "asterisk", "asymmetrik", "at", "atlas", "atlassian", "atom", "audible", "audio-description", "autoprefixer", "avianex", "aviato", "award", "aws", "baby", "baby-carriage", "backspace", "backward", "bacon", "balance-scale", "balance-scale-left", "balance-scale-right", "ban", "band-aid", "bandcamp", "barcode", "bars", "baseball-ball", "basketball-ball", "bath", "battery-empty", "battery-full", "battery-half", "battery-quarter", "battery-three-quarters", "battle-net", "bed", "beer", "behance", "behance-square", "bell", "bell-slash", "bezier-curve", "bible", "bicycle", "biking", "bimobject", "binoculars", "biohazard", "birthday-cake", "bitbucket", "bitcoin", "bity", "black-tie", "blackberry", "blender", "blender-phone", "blind", "blog", "blogger", "blogger-b", "bluetooth", "bluetooth-b", "bold", "bolt", "bomb", "bone", "book", "book-dead", "book-medical", "book-open", "book-reader", "bookmark", "bootstrap", "border-all", "border-none", "border-style", "bowling-ball", "box", "box-open", "boxes", "braille", "brain", "bread-slice", "briefcase", "briefcase-medical", "broadcast-tower", "broom", "brush", "btc", "buffer", "bug", "building", "bullhorn", "bullseye", "burn", "buromobelexperte", "bus", "bus-alt", "business-time", "buysellads", "calculator", "calendar", "calendar-alt", "calendar-check", "calendar-day", "calendar-minus", "calendar-plus", "calendar-times", "calendar-week", "camera", "camera-retro", "campground", "canadian-maple-leaf", "candy-cane", "capsules", "car", "car-alt", "car-battery", "car-crash", "car-side", "caret-down", "caret-left", "caret-right", "caret-square-down", "caret-square-left", "caret-square-right", "caret-square-up", "caret-up", "carrot", "cart-arrow-down", "cart-plus", "cash-register", "cat", "cc-amazon-pay", "cc-amex", "cc-apple-pay", "cc-diners-club", "cc-discover", "cc-jcb", "cc-mastercard", "cc-paypal", "cc-stripe", "cc-visa", "centercode", "centos", "certificate", "chair", "chalkboard", "chalkboard-teacher", "charging-station", "chart-area", "chart-bar", "chart-line", "chart-pie", "check", "check-circle", "check-double", "check-square", "cheese", "chess", "chess-bishop", "chess-board", "chess-king", "chess-knight", "chess-pawn", "chess-queen", "chess-rook", "chevron-circle-down", "chevron-circle-left", "chevron-circle-right", "chevron-circle-up", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "child", "chrome", "chromecast", "church", "circle", "circle-notch", "city", "clinic-medical", "clipboard", "clipboard-check", "clipboard-list", "clock", "clone", "closed-captioning", "cloud", "cloud-download-alt", "cloud-meatball", "cloud-moon", "cloud-moon-rain", "cloud-rain", "cloud-showers-heavy", "cloud-sun", "cloud-sun-rain", "cloud-upload-alt", "cloudscale", "cloudsmith", "cloudversify", "cocktail", "code", "code-branch", "codepen", "codiepie", "coffee", "cog", "cogs", "coins", "columns", "comment", "comment-alt", "comment-dollar", "comment-dots", "comment-medical", "comment-slash", "comments", "comments-dollar", "compact-disc", "compass", "compress", "compress-arrows-alt", "concierge-bell", "confluence", "connectdevelop", "contao", "cookie", "cookie-bite", "copy", "copyright", "cotton-bureau", "couch", "cpanel", "creative-commons", "creative-commons-by", "creative-commons-nc", "creative-commons-nc-eu", "creative-commons-nc-jp", "creative-commons-nd", "creative-commons-pd", "creative-commons-pd-alt", "creative-commons-remix", "creative-commons-sa", "creative-commons-sampling", "creative-commons-sampling-plus", "creative-commons-share", "creative-commons-zero", "credit-card", "critical-role", "crop", "crop-alt", "cross", "crosshairs", "crow", "crown", "crutch", "css3", "css3-alt", "cube", "cubes", "cut", "cuttlefish", "d-and-d", "d-and-d-beyond", "dashcube", "database", "deaf", "delicious", "democrat", "deploydog", "deskpro", "desktop", "dev", "deviantart", "dharmachakra", "dhl", "diagnoses", "diaspora", "dice", "dice-d20", "dice-d6", "dice-five", "dice-four", "dice-one", "dice-six", "dice-three", "dice-two", "digg", "digital-ocean", "digital-tachograph", "directions", "discord", "discourse", "divide", "dizzy", "dna", "dochub", "docker", "dog", "dollar-sign", "dolly", "dolly-flatbed", "donate", "door-closed", "door-open", "dot-circle", "dove", "download", "draft2digital", "drafting-compass", "dragon", "draw-polygon", "dribbble", "dribbble-square", "dropbox", "drum", "drum-steelpan", "drumstick-bite", "drupal", "dumbbell", "dumpster", "dumpster-fire", "dungeon", "dyalog", "earlybirds", "ebay", "edge", "edit", "egg", "eject", "elementor", "ellipsis-h", "ellipsis-v", "ello", "ember", "empire", "envelope", "envelope-open", "envelope-open-text", "envelope-square", "envira", "equals", "eraser", "erlang", "ethereum", "ethernet", "etsy", "euro-sign", "evernote", "exchange-alt", "exclamation", "exclamation-circle", "exclamation-triangle", "expand", "expand-arrows-alt", "expeditedssl", "external-link-alt", "external-link-square-alt", "eye", "eye-dropper", "eye-slash", "facebook", "facebook-f", "facebook-messenger", "facebook-square", "fan", "fantasy-flight-games", "fast-backward", "fast-forward", "fax", "feather", "feather-alt", "fedex", "fedora", "female", "fighter-jet", "figma", "file", "file-alt", "file-archive", "file-audio", "file-code", "file-contract", "file-csv", "file-download", "file-excel", "file-export", "file-image", "file-import", "file-invoice", "file-invoice-dollar", "file-medical", "file-medical-alt", "file-pdf", "file-powerpoint", "file-prescription", "file-signature", "file-upload", "file-video", "file-word", "fill", "fill-drip", "film", "filter", "fingerprint", "fire", "fire-alt", "fire-extinguisher", "firefox", "first-aid", "first-order", "first-order-alt", "firstdraft", "fish", "fist-raised", "flag", "flag-checkered", "flag-usa", "flask", "flickr", "flipboard", "flushed", "fly", "folder", "folder-minus", "folder-open", "folder-plus", "font", "font-awesome", "font-awesome-alt", "font-awesome-flag", "font-awesome-logo-full", "fonticons", "fonticons-fi", "football-ball", "fort-awesome", "fort-awesome-alt", "forumbee", "forward", "foursquare", "free-code-camp", "freebsd", "frog", "frown", "frown-open", "fulcrum", "funnel-dollar", "futbol", "galactic-republic", "galactic-senate", "gamepad", "gas-pump", "gavel", "gem", "genderless", "get-pocket", "gg", "gg-circle", "ghost", "gift", "gifts", "git", "git-alt", "git-square", "github", "github-alt", "github-square", "gitkraken", "gitlab", "gitter", "glass-cheers", "glass-martini", "glass-martini-alt", "glass-whiskey", "glasses", "glide", "glide-g", "globe", "globe-africa", "globe-americas", "globe-asia", "globe-europe", "gofore", "golf-ball", "goodreads", "goodreads-g", "google", "google-drive", "google-play", "google-plus", "google-plus-g", "google-plus-square", "google-wallet", "gopuram", "graduation-cap", "gratipay", "grav", "greater-than", "greater-than-equal", "grimace", "grin", "grin-alt", "grin-beam", "grin-beam-sweat", "grin-hearts", "grin-squint", "grin-squint-tears", "grin-stars", "grin-tears", "grin-tongue", "grin-tongue-squint", "grin-tongue-wink", "grin-wink", "grip-horizontal", "grip-lines", "grip-lines-vertical", "grip-vertical", "gripfire", "grunt", "guitar", "gulp", "h-square", "hacker-news", "hacker-news-square", "hackerrank", "hamburger", "hammer", "hamsa", "hand-holding", "hand-holding-heart", "hand-holding-usd", "hand-lizard", "hand-paper", "hand-peace", "hand-point-down", "hand-point-left", "hand-point-right", "hand-point-up", "hand-pointer", "hand-rock", "hand-scissors", "hand-spock", "hands", "hands-helping", "handshake", "hanukiah", "hard-hat", "hashtag", "hat-wizard", "haykal", "hdd", "heading", "headphones", "headphones-alt", "headset", "heart", "heart-broken", "heartbeat", "helicopter", "highlighter", "hiking", "hippo", "hips", "hire-a-helper", "history", "hockey-puck", "holly-berry", "home", "hooli", "hornbill", "horse", "horse-head", "hospital", "hospital-alt", "hospital-symbol", "hot-tub", "hotdog", "hotel", "hotjar", "hourglass", "hourglass-end", "hourglass-half", "hourglass-start", "house-damage", "houzz", "hryvnia", "html5", "hubspot", "i-cursor", "ice-cream", "icicles", "icons", "id-badge", "id-card", "id-card-alt", "igloo", "image", "images", "imdb", "inbox", "indent", "industry", "infinity", "info", "info-circle", "instagram", "intercom", "internet-explorer", "invision", "ioxhost", "italic", "itch-io", "itunes", "itunes-note", "java", "jedi", "jedi-order", "jenkins", "jira", "joget", "joint", "joomla", "journal-whills", "js", "js-square", "jsfiddle", "kaaba", "kaggle", "key", "keybase", "keyboard", "keycdn", "khanda", "kickstarter", "kickstarter-k", "kiss", "kiss-beam", "kiss-wink-heart", "kiwi-bird", "korvue", "landmark", "language", "laptop", "laptop-code", "laptop-medical", "laravel", "lastfm", "lastfm-square", "laugh", "laugh-beam", "laugh-squint", "laugh-wink", "layer-group", "leaf", "leanpub", "lemon", "less", "less-than", "less-than-equal", "level-down-alt", "level-up-alt", "life-ring", "lightbulb", "line", "link", "linkedin", "linkedin-in", "linode", "linux", "lira-sign", "list", "list-alt", "list-ol", "list-ul", "location-arrow", "lock", "lock-open", "long-arrow-alt-down", "long-arrow-alt-left", "long-arrow-alt-right", "long-arrow-alt-up", "low-vision", "luggage-cart", "lyft", "magento", "magic", "magnet", "mail-bulk", "mailchimp", "male", "mandalorian", "map", "map-marked", "map-marked-alt", "map-marker", "map-marker-alt", "map-pin", "map-signs", "markdown", "marker", "mars", "mars-double", "mars-stroke", "mars-stroke-h", "mars-stroke-v", "mask", "mastodon", "maxcdn", "medal", "medapps", "medium", "medium-m", "medkit", "medrt", "meetup", "megaport", "meh", "meh-blank", "meh-rolling-eyes", "memory", "mendeley", "menorah", "mercury", "meteor", "microchip", "microphone", "microphone-alt", "microphone-alt-slash", "microphone-slash", "microscope", "microsoft", "minus", "minus-circle", "minus-square", "mitten", "mix", "mixcloud", "mizuni", "mobile", "mobile-alt", "modx", "monero", "money-bill", "money-bill-alt", "money-bill-wave", "money-bill-wave-alt", "money-check", "money-check-alt", "monument", "moon", "mortar-pestle", "mosque", "motorcycle", "mountain", "mouse-pointer", "mug-hot", "music", "napster", "neos", "network-wired", "neuter", "newspaper", "nimblr", "node", "node-js", "not-equal", "notes-medical", "npm", "ns8", "nutritionix", "object-group", "object-ungroup", "odnoklassniki", "odnoklassniki-square", "oil-can", "old-republic", "om", "opencart", "openid", "opera", "optin-monster", "osi", "otter", "outdent", "page4", "pagelines", "pager", "paint-brush", "paint-roller", "palette", "palfed", "pallet", "paper-plane", "paperclip", "parachute-box", "paragraph", "parking", "passport", "pastafarianism", "paste", "patreon", "pause", "pause-circle", "paw", "paypal", "peace", "pen", "pen-alt", "pen-fancy", "pen-nib", "pen-square", "pencil-alt", "pencil-ruler", "penny-arcade", "people-carry", "pepper-hot", "percent", "percentage", "periscope", "person-booth", "phabricator", "phoenix-framework", "phoenix-squadron", "phone", "phone-alt", "phone-slash", "phone-square", "phone-square-alt", "phone-volume", "photo-video", "php", "pied-piper", "pied-piper-alt", "pied-piper-hat", "pied-piper-pp", "piggy-bank", "pills", "pinterest", "pinterest-p", "pinterest-square", "pizza-slice", "place-of-worship", "plane", "plane-arrival", "plane-departure", "play", "play-circle", "playstation", "plug", "plus", "plus-circle", "plus-square", "podcast", "poll", "poll-h", "portrait", "pound-sign", "power-off", "pray", "praying-hands", "prescription", "prescription-bottle", "prescription-bottle-alt", "print", "procedures", "product-hunt", "project-diagram", "pushed", "puzzle-piece", "python", "qq", "qrcode", "question", "question-circle", "quidditch", "quinscape", "quora", "quote-left", "quote-right", "quran", "r-project", "radiation", "radiation-alt", "rainbow", "random", "raspberry-pi", "ravelry", "react", "reacteurope", "readme", "rebel", "receipt", "recycle", "red-river", "reddit", "reddit-alien", "reddit-square", "redhat", "redo", "redo-alt", "registered", "remove-format", "renren", "reply", "reply-all", "replyd", "republican", "researchgate", "resolving", "restroom", "retweet", "rev", "ribbon", "ring", "road", "robot", "rocket", "rocketchat", "rockrms", "route", "rss", "rss-square", "ruble-sign", "ruler", "ruler-combined", "ruler-horizontal", "ruler-vertical", "running", "rupee-sign", "sad-cry", "sad-tear", "safari", "salesforce", "sass", "satellite", "satellite-dish", "save", "schlix", "school", "screwdriver", "scribd", "scroll", "sd-card", "search", "search-dollar", "search-location", "search-minus", "search-plus", "searchengin", "seedling", "sellcast", "sellsy", "server", "servicestack", "shapes", "share", "share-alt", "share-alt-square", "share-square", "shekel-sign", "shield-alt", "ship", "shipping-fast", "shirtsinbulk", "shoe-prints", "shopping-bag", "shopping-basket", "shopping-cart", "shopware", "shower", "shuttle-van", "sign", "sign-in-alt", "sign-language", "sign-out-alt", "signal", "signature", "sim-card", "simplybuilt", "sistrix", "sitemap", "sith", "skating", "sketch", "skiing", "skiing-nordic", "skull", "skull-crossbones", "skyatlas", "skype", "slack", "slack-hash", "slash", "sleigh", "sliders-h", "slideshare", "smile", "smile-beam", "smile-wink", "smog", "smoking", "smoking-ban", "sms", "snapchat", "snapchat-ghost", "snapchat-square", "snowboarding", "snowflake", "snowman", "snowplow", "socks", "solar-panel", "sort", "sort-alpha-down", "sort-alpha-down-alt", "sort-alpha-up", "sort-alpha-up-alt", "sort-amount-down", "sort-amount-down-alt", "sort-amount-up", "sort-amount-up-alt", "sort-down", "sort-numeric-down", "sort-numeric-down-alt", "sort-numeric-up", "sort-numeric-up-alt", "sort-up", "soundcloud", "sourcetree", "spa", "space-shuttle", "speakap", "speaker-deck", "spell-check", "spider", "spinner", "splotch", "spotify", "spray-can", "square", "square-full", "square-root-alt", "squarespace", "stack-exchange", "stack-overflow", "stackpath", "stamp", "star", "star-and-crescent", "star-half", "star-half-alt", "star-of-david", "star-of-life", "staylinked", "steam", "steam-square", "steam-symbol", "step-backward", "step-forward", "stethoscope", "sticker-mule", "sticky-note", "stop", "stop-circle", "stopwatch", "store", "store-alt", "strava", "stream", "street-view", "strikethrough", "stripe", "stripe-s", "stroopwafel", "studiovinari", "stumbleupon", "stumbleupon-circle", "subscript", "subway", "suitcase", "suitcase-rolling", "sun", "superpowers", "superscript", "supple", "surprise", "suse", "swatchbook", "swimmer", "swimming-pool", "symfony", "synagogue", "sync", "sync-alt", "syringe", "table", "table-tennis", "tablet", "tablet-alt", "tablets", "tachometer-alt", "tag", "tags", "tape", "tasks", "taxi", "teamspeak", "teeth", "teeth-open", "telegram", "telegram-plane", "temperature-high", "temperature-low", "tencent-weibo", "tenge", "terminal", "text-height", "text-width", "th", "th-large", "th-list", "the-red-yeti", "theater-masks", "themeco", "themeisle", "thermometer", "thermometer-empty", "thermometer-full", "thermometer-half", "thermometer-quarter", "thermometer-three-quarters", "think-peaks", "thumbs-down", "thumbs-up", "thumbtack", "ticket-alt", "times", "times-circle", "tint", "tint-slash", "tired", "toggle-off", "toggle-on", "toilet", "toilet-paper", "toolbox", "tools", "tooth", "torah", "torii-gate", "tractor", "trade-federation", "trademark", "traffic-light", "train", "tram", "transgender", "transgender-alt", "trash", "trash-alt", "trash-restore", "trash-restore-alt", "tree", "trello", "tripadvisor", "trophy", "truck", "truck-loading", "truck-monster", "truck-moving", "truck-pickup", "tshirt", "tty", "tumblr", "tumblr-square", "tv", "twitch", "twitter", "twitter-square", "typo3", "uber", "ubuntu", "uikit", "umbrella", "umbrella-beach", "underline", "undo", "undo-alt", "uniregistry", "universal-access", "university", "unlink", "unlock", "unlock-alt", "untappd", "upload", "ups", "usb", "user", "user-alt", "user-alt-slash", "user-astronaut", "user-check", "user-circle", "user-clock", "user-cog", "user-edit", "user-friends", "user-graduate", "user-injured", "user-lock", "user-md", "user-minus", "user-ninja", "user-nurse", "user-plus", "user-secret", "user-shield", "user-slash", "user-tag", "user-tie", "user-times", "users", "users-cog", "usps", "ussunnah", "utensil-spoon", "utensils", "vaadin", "vector-square", "venus", "venus-double", "venus-mars", "viacoin", "viadeo", "viadeo-square", "vial", "vials", "viber", "video", "video-slash", "vihara", "vimeo", "vimeo-square", "vimeo-v", "vine", "vk", "vnv", "voicemail", "volleyball-ball", "volume-down", "volume-mute", "volume-off", "volume-up", "vote-yea", "vr-cardboard", "vuejs", "walking", "wallet", "warehouse", "water", "wave-square", "waze", "weebly", "weibo", "weight", "weight-hanging", "weixin", "whatsapp", "whatsapp-square", "wheelchair", "whmcs", "wifi", "wikipedia-w", "wind", "window-close", "window-maximize", "window-minimize", "window-restore", "windows", "wine-bottle", "wine-glass", "wine-glass-alt", "wix", "wizards-of-the-coast", "wolf-pack-battalion", "won-sign", "wordpress", "wordpress-simple", "wpbeginner", "wpexplorer", "wpforms", "wpressr", "wrench", "x-ray", "xbox", "xing", "xing-square", "y-combinator", "yahoo", "yammer", "yandex", "yandex-international", "yarn", "yelp", "yen-sign", "yin-yang", "yoast", "youtube", "youtube-square", "zhihu" ];
 	}
 
 	private void function __setupWidgetsAndSiteTemplates() {
@@ -883,60 +950,80 @@ component {
 
 	private void function __setupFeatures() {
 		settings.features = {
-			  cms                             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, sitetree                        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, sites                           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, assetManager                    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, websiteUsers                    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, websiteBenefits                 = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, datamanager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, batchOperationSelectAll         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, useDistinctForDatatables        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, systemConfiguration             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, cmsUserManager                  = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, errorLogs                       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, redirectErrorPages              = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, auditTrail                      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, systemInformation               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, passwordPolicyManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, formbuilder                     = { enabled=true , siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
-			, formbuilder2                    = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			  admin                           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, cms                             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, presideForms                    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sitetree                        = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
+			, sites                           = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
+			, sticker                         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms" ] }
+			, taskManager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, taskmanagerUseRandomOffset      = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "taskmanager" ] }
+			, adhocTasks                      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, assetManager                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, websiteUsers                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
+			, websiteBenefits                 = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "websiteUsers" ] }
+			, datamanager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, batchOperationSelectAll         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, useDistinctForDatatables        = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, systemConfiguration             = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, cmsUserManager                  = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, errorLogs                       = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, redirectErrorPages              = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
+			, auditTrail                      = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, systemInformation               = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, passwordPolicyManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, formbuilder                     = { enabled=true , siteTemplates=[ "*" ], widgets=[ "formbuilderform" ]   , dependsOn=[ "cms" ] }
+			, formbuilder2                    = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "formbuilder"   ] }
 			, multilingual                    = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, dataexport                      = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, dataExporterNDJSON              = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, twoFactorAuthentication         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, rulesEngine                     = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ] }
-			, emailCenter                     = { enabled=true , siteTemplates=[ "*" ] }
-			, emailCenterResend               = { enabled=false, siteTemplates=[ "*" ] }
-			, emailStyleInliner               = { enabled=true , siteTemplates=[ "*" ] }
-			, emailLinkShortener              = { enabled=true , siteTemplates=[ "*" ] }
-			, emailOverwriteDomain            = { enabled=false, siteTemplates=[ "*" ] }
-			, emailTrackingBotDetection       = { enabled=false, siteTemplates=[ "*" ] }
-			, customEmailTemplates            = { enabled=true , siteTemplates=[ "*" ] }
-			, apiManager                      = { enabled=false, siteTemplates=[ "*" ] }
-			, restTokenAuth                   = { enabled=false, siteTemplates=[ "*" ] }
-			, adminCsrfProtection             = { enabled=true , siteTemplates=[ "*" ] }
-			, fullPageCaching                 = { enabled=false, siteTemplates=[ "*" ] }
-			, fullPageCachingForLoggedInUsers = { enabled=false, siteTemplates=[ "*" ] }
+			, dataexport                      = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "datamanager"   ] }
+			, dataExporterNDJSON              = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "dataexport"   ] }
+			, twoFactorAuthentication         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin"   ] }
+			, rulesEngine                     = { enabled=true , siteTemplates=[ "*" ], widgets=[ "conditionalContent" ], dependsOn=[ "datamanager" ] }
+			, emailCenter                     = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ]  }
+			, emailCenterResend               = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "emailCenter" ] }
+			, emailStyleInliner               = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "emailCenter" ] }
+			, emailLinkShortener              = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "emailCenter" ] }
+			, emailOverwriteDomain            = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "emailCenter" ] }
+			, emailTrackingBotDetection       = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "emailCenter" ] }
+			, customEmailTemplates            = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "emailCenter" ] }
+			, restFramework                   = { enabled=true , siteTemplates=[ "*" ] }
+			, apiManager                      = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
+			, restTokenAuth                   = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "apiManager" ] }
+			, adminCsrfProtection             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
+			, fullPageCaching                 = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "cms" ] }
+			, fullPageCachingForLoggedInUsers = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "websiteUsers" ] }
+			, delayedViewlets                 = { enabled=true , siteTemplates=[ "*" ] }
 			, healthchecks                    = { enabled=true , siteTemplates=[ "*" ] }
-			, emailQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ] }
-			, adhocTaskHeartBeat              = { enabled=true , siteTemplates=[ "*" ] }
-			, taskmanagerHeartBeat            = { enabled=true , siteTemplates=[ "*" ] }
-			, systemAlertsHeartBeat           = { enabled=true , siteTemplates=[ "*" ] }
-			, scheduledExportHeartBeat        = { enabled=true , siteTemplates=[ "*" ] }
-			, segmentationFiltersHeartbeat    = { enabled=true , siteTemplates=[ "*" ] }
-			, assetQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ] }
-			, assetQueue                      = { enabled=false , siteTemplates=[ "*" ] }
+			, emailQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "customEmailTemplates" ] }
+			, adhocTaskHeartBeat              = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "adhocTasks" ] }
+			, taskmanagerHeartBeat            = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "taskManager" ] }
+			, systemAlertsHeartBeat           = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
+			, scheduledExportHeartBeat        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "dataexport"  ] }
+			, segmentationFiltersHeartbeat    = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "rulesEngine" ] }
+			, assetQueue                      = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "assetmanager" ] }
+			, assetQueueHeartBeat             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "assetQueue" ] }
 			, queryCachePerObject             = { enabled=false, siteTemplates=[ "*" ] }
+			, presideBasicWorkflow            = { enabled=true, siteTemplates=[ "*" ] }
+			, dbLogAppender                   = { enabled=true, siteTemplates=[ "*" ] }
+			, maintenanceMode                 = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "admin" ] }
+			, cfflow                          = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "admin" ] }
+			, webflow                         = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "cfflow" ] }
+			, datamanagerWorkflow             = { enabled=true, siteTemplates=[ "*" ]                                   , dependsOn=[ "cfflow", "datamanager" ] }
 			, sslInternalHttpCalls            = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, sslInternalHttpCalls            = { enabled=_luceeGreaterThanFour(), siteTemplates=[ "*" ] }
 			, presideSessionManagement        = { enabled=_usePresideSessionManagement(), siteTemplates=[ "*" ] }
-			, "devtools.reload"               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.cache"                = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.extension"            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ] }
+			, "devtools.reload"               = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, "devtools.cache"                = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, "devtools.extension"            = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
+			, draftManager                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "cfflow", "datamanager", "datamanagerWorkflow" ] }
 		};
+
+		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {
+			settings.features.taskmanagerUseRandomOffset.enabled = settings.env.TASKMANAGER_USE_RANDOM_OFFSET;
+		}
 	}
 
 	private void function __setupEnums() {
@@ -968,10 +1055,28 @@ component {
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
 		settings.enum.systemAlertLevel            = [ "critical", "warning", "advisory" ];
+		settings.enum.adminToolbarModes           = [ "fixed", "reveal", "none" ];
+		settings.enum.cspConfigMode               = [ "disabled", "manual" ];
+		settings.enum.cfflowStepStatus            = [ "pending", "active", "skipped", "complete" ];
+		settings.enum.webflowSessionType          = [ "active", "activetimedout", "complete", "timedout", "adminarchive" ];
+		settings.enum.webflowPositionType         = [ "start", "middle", "end" ];
+		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
+		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
+		settings.enum.timeFormatOptions           = [ "12h", "24h" ];
 	}
 
 	private void function __setupFormValidationProviders() {
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "recaptchaValidator", "rulesEngineConditionService", "enumService", "EmailCenterValidators" ];
+		settings.validationProviders = [];
+		settings.coreValidationProviders = [
+			  "presideObjectValidators"
+			, "passwordPolicyValidator"
+			, "recaptchaValidator"
+			, "rulesEngineConditionService"
+			, "enumService"
+			, "EmailCenterValidators"
+			, "FormbuilderValidators"
+			, "ContentSecurityPolicyManager"
+		];
 	}
 
 	private void function __setupStaticAssetConfiguration() {
@@ -1018,15 +1123,20 @@ component {
 		settings.formbuilder.submissions                        = settings.formbuilder.submissions         ?: {};
 		settings.formbuilder.submissions.removal                = settings.formbuilder.submissions.removal ?: {};
 		settings.formbuilder.submissions.removal.minAllowedDays = 30;
+
+		settings.formbuilder.drafts                        = settings.formbuilder.drafts ?: {};
+		settings.formbuilder.drafts.storage                = settings.formbuilder.drafts.storage ?: {};
+		settings.formbuilder.drafts.storage.type           = "database";
+		settings.formbuilder.drafts.storage.database.table = "formbuilder_formsubmission_draft";
 	}
 
 	private void function __setupRulesEngine(){
 		settings.rulesEngine = { contexts={} };
-		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser" ] };
+		settings.rulesEngine.contexts.webrequest            = { subcontexts=[ "user", "page", "adminuser", "formBuilderSubmission" ] };
 		settings.rulesEngine.contexts.page                  = { feature="sitetree", object="page" };
 		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
-		settings.rulesEngine.contexts.adminuser             = { object="security_user" };
-		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder", subcontexts=[ "webrequest" ] };
+		settings.rulesEngine.contexts.adminuser             = { feature="admin", object="security_user" };
+		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder" };
 	}
 
 	private void function __setupTenancy() {
@@ -1082,6 +1192,13 @@ component {
 
 		settings.heartbeats.taskmanager.poolSize  = Val( settings.env.TASKMANAGER_POOL_SIZE  ?: 0 );
 		settings.heartbeats.adhocTask.poolSize    = Val( settings.env.ADHOCTASK_POOL_SIZE    ?: 0 );
+
+		settings.heartbeats.adhocTask.staleTaskSettings = {
+			  lockedMinAgeInMinutes          = 5
+			, lockedMaxAgeInMinutes          = ( 7 * 24 * 60 ) // one week (i.e. ignore stale tasks over one week old to avoid restarting very old tasks with unexpected results)
+			, inactiveRunningMinAgeInMinutes = 360
+			, inactiveRunningMaxAgeInMinutes = ( 7 * 24 * 60 ) // one week (i.e. ignore stale tasks over one week old to avoid restarting very old tasks with unexpected results)
+		};
 	}
 
 	private void function __setupNotifications() {
@@ -1092,14 +1209,80 @@ component {
 		settings.devConsoleToggleKeyCode = 96;
 	}
 
+	private void function __setupIgnoreFile(){
+		settings.ignoreFile = {
+			  read  = true
+			, write = false
+			, path  = ExpandPath( "/.presideignore.json" )
+		};
+	}
+
+	private void function __setupWebflow() {
+		settings.webflow       = settings.webflow       ?: {};
+		settings.webflow.forms = settings.webflow.forms ?: {};
+
+		settings.webflow.forms.context             = settings.webflow.forms.context             ?: "website";
+		settings.webflow.forms.adminContext        = settings.webflow.forms.adminContext        ?: "admin";
+		settings.webflow.forms.fieldLayout         = settings.webflow.forms.fieldLayout         ?: "webflow.forms.fieldLayout";
+		settings.webflow.forms.fieldsetLayout      = settings.webflow.forms.fieldsetLayout      ?: "webflow.forms.fieldsetLayout";
+		settings.webflow.forms.tabLayout           = settings.webflow.forms.tabLayout           ?: "webflow.forms.tabLayout";
+		settings.webflow.forms.layout              = settings.webflow.forms.layout              ?: "webflow.forms.layout";
+		settings.webflow.forms.includeValidationJs = settings.webflow.forms.includeValidationJs ?: false;
+		settings.webflow.forms.jqueryRef           = settings.webflow.forms.jqueryRef           ?: "jquery";
+
+		settings.webflow.layout      = settings.webflow.layout      ?: {};
+		settings.webflow.layout.args = settings.webflow.layout.args ?: {};
+
+		settings.webflow.layout.progressBar       = settings.webflow.layout.progressBar       ?: {};
+		settings.webflow.layout.progressBar.class = settings.webflow.layout.progressBar.class ?: "";
+
+		settings.webflow.exceptions      = settings.webflow.exceptions      ?: {};
+		settings.webflow.exceptions.safe = settings.webflow.exceptions.safe ?: [
+			  "preside.webflow.instance.not.active"
+			, "preside.webflow.step.not.active"
+			, "preside.webflow.action.not.permitted"
+			, "preside.webflow.step.not.completed"
+			, "preside.webflow.instance.not.cancellable"
+		];
+
+		settings.webflow.state            = settings.webflow.state            ?: {};
+		settings.webflow.state.ignoreKeys = settings.webflow.state.ignoreKeys ?: [ "_rurl", "_wid", "$presideform" ];
+	}
+
 	private void function __loadConfigurationFromExtensions() {
 		for( var ext in settings.activeExtensions ){
 			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
-				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
+				var cfcPath = ext.componentPath & ".config.Config";
 
 				CreateObject( cfcPath ).configure( config=variables );
 			}
 		}
+	}
+
+	private void function __setupLocaleSettings() {
+		settings.datetime.regionDefaults = {
+			  uk = {
+				  short_date_format = "dd/mm/yyyy"
+				, long_date_format  = "DMY"
+				, time_format       = "12h"
+			  }
+			, eu = {
+				  short_date_format = "dd.mm.yyyy"
+				, long_date_format  = "DMY"
+				, time_format       = "24h"
+			  }
+			, us = {
+				  short_date_format = "mm/dd/yyyy"
+				, long_date_format  = "MDY"
+				, time_format       = "12h"
+			  }
+		};
+
+		settings.datetime.formats = {
+			  admin = ["dd/mm/yyyy","dd mmm yyyy","dd.mm.yyyy","mmm dd yyyy","mm/dd/yyyy","mm-dd-yyyy"]
+			, short = ["dd/mm/yyyy","dd.mm.yyyy","mm/dd/yyyy","yyyy-mm-dd"]
+			, long  = ["DMY","MDY"]
+		};
 	}
 
 
@@ -1266,7 +1449,7 @@ component {
 		derivatives.openGraphImage = {
 			  permissions = "inherit"
 			, autoQueue   = [ "image" ]
-			, transformations = [ { method="shrinkToFit", args={ width=400, height=400 } } ]
+			, transformations = [ { method="shrinkToFit", args={ width=1200, height=1200 } } ]
 		};
 
 		return derivatives;
@@ -1336,6 +1519,7 @@ component {
 			  spacer  = { isFormField=false }
 			, content = { isFormField=false }
 			, section = { isFormField=false }
+			, page    = { isFormField=false }
 		} };
 
 		fbSettings.actions = [
@@ -1354,17 +1538,17 @@ component {
 		var recipientTypes   = {};
 		var serviceProviders = {};
 
-		templates.cmsWelcome = { feature="cms", group="presideadmin", recipientType="adminUser", parameters=[
+		templates.cmsWelcome = { feature="admin", group="presideadmin", recipientType="adminUser", parameters=[
 			  { id="reset_password_link", required=true }
 			, { id="welcome_message", required=true }
 			, "created_by"
 			, "site_url"
 		] };
-		templates.resetCmsPassword = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetCmsPassword = { feature="admin", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetCmsPasswordForTokenExpiry = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetCmsPasswordForTokenExpiry = { feature="admin", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
@@ -1373,7 +1557,7 @@ component {
 			, { id="submission_preview"  , required=true }
 			, { id="notification_subject", required=false }
 		] };
-		templates.notification = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
+		templates.notification = { feature="admin", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  { id="admin_link"          , required=true  }
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
@@ -1396,7 +1580,7 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetTwoFactorAuthentication = { feature="cms", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
+		templates.resetTwoFactorAuthentication = { feature="admin", group="presideadmin", recipientType="adminUser", saveContent=false, parameters=[
 			  "site_url"
 			, "site_admin_url"
 		] };
@@ -1407,7 +1591,7 @@ component {
 			, filterObject           = "security_user"
 			, gridFields             = [ "known_as", "email_address" ]
 			, recipientIdLogProperty = "security_user_recipient"
-			, feature                = "cms"
+			, feature                = "admin"
 		};
 		recipientTypes.websiteUser = {
 			  parameters             = [ "display_name", "login_id", "email_address" ]

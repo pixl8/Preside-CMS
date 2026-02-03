@@ -1,5 +1,9 @@
+/**
+ * @feature presideForms
+ */
 component {
-	property name="scheduledExportService" inject="ScheduledExportService";
+	property name="cronUtil" inject="cronUtil";
+	property name="i18n"     inject="i18n";
 
 	private string function index( event, rc, prc, args={} ) {
 		var inputName    = args.name         ?: "";
@@ -32,7 +36,7 @@ component {
 		var expression = rc.expression ?: "";
 
 		if ( !isEmpty( expression ) ) {
-			return scheduledExportService.cronExpressionToHuman( expression );
+			return cronUtil.describeCronTabExression( expression, i18n.getFWLanguageCode() );
 		}
 		return "";
 	}

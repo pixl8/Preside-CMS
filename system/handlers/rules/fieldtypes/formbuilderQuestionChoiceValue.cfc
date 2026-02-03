@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine to retrieve a select list of values for a multi-choice question
  *
+ * @feature rulesEngine and formbuilder
  */
 component {
 	property name="formBuilderService"   inject="formBuilderService";

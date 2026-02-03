@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	objectName          = "email_blueprint"
 	gridFields          = [ "name", "datecreated", "datemodified" ];

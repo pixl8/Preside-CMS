@@ -4,7 +4,7 @@ Data export: configuration form base
 
 This form is used as a base for configuring data exports.
 -->
-<form i18nBaseUri="cms:dataexport.config.form.">
+<form i18nBaseUri="cms:dataexport.config.form." feature="dataExport">
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
 			<field name="filename"     control="hidden"                required="true" sortorder="10" />

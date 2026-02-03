@@ -1,4 +1,6 @@
+<!---@feature admin--->
 <cfparam name="args.active"     type="boolean" default="false" />
+<cfparam name="args.id"         type="string"  default="" />
 <cfparam name="args.link"       type="string"  default="" />
 <cfparam name="args.title"      type="string"  default="" />
 <cfparam name="args.icon"       type="string"  default="" />
@@ -24,7 +26,7 @@
 		<li class="divider"></li>
 	<cfelse>
 		<cfif hasSubMenu>
-			<li class="dropdown dropdown-hover<cfif args.active> active</cfif>">
+			<li class="dropdown dropdown-hover<cfif args.active> active</cfif>" data-item-id="#args.id#">
 				<a href="##" class="dropdown-menu-anchor">
 					<i class="dropdown-menu-icon fa fa-fw #args.icon#"></i>
 					<span class="dropdown-menu-title">#args.title#</span>
@@ -35,7 +37,7 @@
 				</ul>
 			</li>
 		<cfelse>
-			<li<cfif args.active> class="active"</cfif>>
+			<li<cfif args.active> class="active"</cfif> data-item-id="#args.id#">
 				<a href="#args.link#"<cfif Len( Trim( args.gotoKey ) )> data-goto-key="#args.gotoKey#"</cfif>>
 					<i class="menu-icon fa fa-fw #args.icon#"></i>
 					#args.title#

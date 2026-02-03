@@ -1,3 +1,4 @@
+<!---@feature presideForms and siteTree--->
 <cfscript>
 	inputName          = args.name         ?: "";
 	inputId            = args.id           ?: "";
@@ -22,7 +23,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )

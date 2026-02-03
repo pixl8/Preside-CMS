@@ -1,6 +1,7 @@
 /**
  * @singleton      true
  * @presideService true
+ * @feature        adhocTasks
  *
  */
 component extends="PresideTaskManagerExecutor" {

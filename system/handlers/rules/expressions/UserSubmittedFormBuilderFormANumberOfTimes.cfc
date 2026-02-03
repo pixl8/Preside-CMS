@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User has submitted a form builder form a number of times"
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers and formbuilder
  */
 component {
 	property name="formBuilderFilterService"   inject="formBuilderFilterService";

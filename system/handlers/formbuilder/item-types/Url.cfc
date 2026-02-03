@@ -1,3 +1,7 @@
+/**
+ * @feature formBuilder
+ *
+ */
 component {
 	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";

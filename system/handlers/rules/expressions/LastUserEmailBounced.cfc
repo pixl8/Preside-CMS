@@ -3,7 +3,7 @@
  *
  * @expressionCategory email
  * @expressionContexts user
- * @feature            websiteusers
+ * @feature            rulesEngine and websiteusers and emailCenter
  */
 component {
 

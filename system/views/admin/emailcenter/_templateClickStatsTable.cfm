@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	clickStats = args.clickStats ?: {};
 	event.include( "/css/admin/specific/emailcenter/clickstatstable/" );

@@ -1,19 +1,24 @@
+/**
+ * @feature formBuilder and emailCenter
+ */
 component {
 
 	property name="emailService"       inject="emailService";
 	property name="formBuilderService" inject="formBuilderService";
 
 	private void function onSubmit( event, rc, prc, args={} ) {
+		var formId       = args.submissionData.form    ?: "";
 		var replyToField = args.configuration.reply_to ?: "";
 		var replyTo      = [];
-		var submission   = deserializeJSON( args.submissionData.submitted_data ?: "{}" );
+		var submission   = DeserializeJson( args.submissionData.submitted_data ?: "{}" );
 
-		if ( len( replyToField ) ) {
-			var formItem = formBuilderService.getFormItem( replyToField );
-			var email    = submission[ formItem.configuration.name ] ?: "";
+		if ( Len( replyToField ) ) {
+			var formItem  = formBuilderService.getFormItem( replyToField );
+			var formField = formBuilderService.isV2Form( formId ) ? formItem.questionId : formItem.configuration.name;
+			var email     = submission[ formField ] ?: "";
 
-			if ( len( email ) ) {
-				replyTo.append( email );
+			if ( !isEmptyString( email ) ) {
+				ArrayAppend( replyTo, email )
 			}
 		}
 

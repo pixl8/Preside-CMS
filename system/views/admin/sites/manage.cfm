@@ -1,3 +1,4 @@
+<!---@feature admin and sites--->
 <cfscript>
 	objectName          = "site";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
@@ -17,6 +18,6 @@
 		  objectName      = objectName
 		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=sites.getSitesForAjaxDataTables" )
-		, gridFields      = [ "name", "domain", "path" ]
+		, gridFields      = [ "name", "domain", "path", "locale" ]
 	} )#
 </cfoutput>

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.recordId" type="string" />
 
 <cfoutput>

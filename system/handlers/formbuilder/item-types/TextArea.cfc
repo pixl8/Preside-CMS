@@ -1,3 +1,6 @@
+/**
+ * @feature formBuilder
+ */
 component {
 
 	private string function renderInput( event, rc, prc, args={} ) {
@@ -13,6 +16,16 @@ component {
 			, required           = IsTrue( args.mandatory ?: "" )
 			, defaultValue       = args.defaultvalue ?: ""
 		);
+	}
+
+	private array function getValidationRules( event, rc, prc, args={} ) {
+		var rules = [];
+
+		if ( !IsNumeric( args.maxlength ?: "" ) ) {
+			ArrayAppend( rules, { fieldname=args.name, validator="maxlength", params={ length=50000 } } );
+		}
+
+		return rules;
 	}
 
 	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {

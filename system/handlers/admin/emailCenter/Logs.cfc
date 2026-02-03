@@ -1,3 +1,6 @@
+/**
+ * @feature admin and emailCenter
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="emailLoggingService" inject="emailLoggingService";
@@ -38,6 +41,11 @@ component extends="preside.system.base.AdminHandler" {
 		prc.hasSavedHtmlBody = resendEnabled && len( prc.log.html_body ?: "" ) > 0;
 		prc.hasSavedTextBody = resendEnabled && len( prc.log.text_body ?: "" ) > 0;
 		prc.hasSavedContent  = prc.hasSavedHtmlBody || prc.hasSavedTextBody;
+
+		if ( ( prc.log.email_template ?: "" ) == "formbuilderSubmissionNotification" ) {
+			var sendArgs       = DeserializeJSON( prc.log.send_args );
+			prc.log.recipients = sendArgs.configuration.recipients ?: "";
+		}
 
 		event.noLayout();
 	}

@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	recordId = rc.id      ?: "";
 	version  = rc.version ?: "";

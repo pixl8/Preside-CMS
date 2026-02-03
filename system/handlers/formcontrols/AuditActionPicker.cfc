@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms
+ */
 component {
 
 	property name="auditService" inject="auditService";

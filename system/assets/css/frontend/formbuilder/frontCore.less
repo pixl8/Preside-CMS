@@ -1,34 +1,131 @@
-
 .input-icon {
-  position: relative;
-  display: flex;
+	position: relative;
+	display: flex;
 }
 
 .input-icon > [class*="fa-"] {
-  padding: 0 3px;
-  position: absolute;
-  top: 1px;
-  line-height: 28px;
+	padding: 0 3px;
+	position: absolute;
+	top: 1px;
+	line-height: 28px;
 }
 
 .input-icon.input-icon-right > [class*="fa-"] {
-  left: auto;
-  right: 3px;
+	left: auto;
+	right: 3px;
 }
 
 .input-sign {
-  position: relative;
-    display: inherit;
+	position: relative;
+		display: inherit;
 }
 
 .input-sign > [class*="sign"] {
-  padding: 0 3px;
-  position: absolute;
-  top: 1px;
-  line-height: 28px;
+	padding: 0 3px;
+	position: absolute;
+	top: 1px;
+	line-height: 28px;
 }
 
 .input-sign.input-sign-right > [class*="sign"] {
-  right: auto;
-  right: 3px;
+	right: auto;
+	right: 3px;
+}
+
+.progress-wrapper {
+	display   : flex;
+	column-gap: 13px;
+
+	.progress {
+		width         : 100%;
+		margin-bottom : 0;
+
+		&-text {
+			line-height : inherit;
+			white-space : nowrap;
+		}
+	}
+}
+
+.formbuilder-form {
+
+	.progress-wrapper {
+		margin-bottom : 30px;
+	}
+
+	.form-buttons {
+		display         : flex;
+		justify-content : space-between;
+		flex-direction  : row-reverse;
+	}
+}
+
+.formbuilder-page {
+
+	&-header {
+		display         : flex;
+		justify-content : space-between;
+		align-items     : center;
+		gap             : 10px;
+		margin-bottom   : 30px;
+
+		&-text {
+
+			h3 {
+				margin-top : 0;
+			}
+
+		}
+
+		&-buttons {
+			margin-right : -10px;
+		}
+	}
+
+	&-toggler {
+		background-color : transparent;
+		border           : 0;
+		padding          : 10px;
+	}
+
+	&.is-summary {
+		border-width  : 1px;
+		border-style  : solid;
+		border-color  : #e5e5e5;
+		border-radius : 8px;
+		margin-bottom : 32px;
+
+		.formbuilder-page {
+
+			&-header {
+				padding       : 12px 24px;
+				margin-bottom : 0;
+
+				&-text {
+
+					>:last-child {
+						margin-bottom : 0;
+					}
+				}
+			}
+
+			&-content {
+				border-top-width : 1px;
+				border-top-style : solid;
+				border-top-color : #e5e5e5;
+
+				&-wrapper {
+					padding : 24px;
+
+					> :first-child {
+						margin-top : 0;
+					}
+
+					> :last-child {
+						margin-bottom : 0;
+					}
+				}
+			}
+		}
+	}
 }

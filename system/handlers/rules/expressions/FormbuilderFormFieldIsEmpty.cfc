@@ -1,7 +1,8 @@
 /**
  * @expressionContexts  formbuilderSubmission
- * @expressionCategory  formbuilder
+ * @expressionCategory  formbuilderInProgress
  * @expressionTags      formbuilderV1Form
+ * @feature             rulesEngine and formbuilder
  */
 component {
 

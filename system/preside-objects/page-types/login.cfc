@@ -3,7 +3,7 @@
  *
  * @isSystemPageType true
  * @pagetypeViewlet  login.loginPage
- * @feature          websiteUsers
+ * @feature          siteTree && websiteUsers
  *
  */
 

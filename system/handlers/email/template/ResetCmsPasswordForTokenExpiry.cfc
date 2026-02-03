@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	property name="LoginService" inject="LoginService";

@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="args.viewlink">
 <cfparam name="args.viewlogtitle">
 <cfoutput>

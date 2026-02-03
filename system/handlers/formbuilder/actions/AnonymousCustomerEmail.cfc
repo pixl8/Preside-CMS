@@ -1,23 +1,26 @@
+/**
+ * @feature formBuilder and emailCenter
+ */
 component {
 
 	property name="emailService"       inject="emailService";
 	property name="formBuilderService" inject="formBuilderService";
 
 	private void function onSubmit( event, rc, prc, args={} ) {
-		if ( !isLoggedIn() ) {
-			var template  = Trim( args.configuration.emailTemplate ?: "" );
-			var fieldItem = formBuilderService.getFormItem( Trim( args.configuration.emailField ?: "" ) );
-			var field     = fieldItem.configuration.name ?: "";
-			var fieldId   = fieldItem.questionId         ?: "";
-			var data      = {};
+		var template  = Trim( args.configuration.emailTemplate ?: "" );
+		var fieldItem = formBuilderService.getFormItem( Trim( args.configuration.emailField ?: "" ) );
+		var field     = fieldItem.configuration.name ?: "";
+		var fieldId   = fieldItem.questionId         ?: "";
+		var data      = {};
 
+		if ( !isEmptyString( template ) ) {
 			try {
 				data = DeserializeJson( args.submissionData.submitted_data ?: "" );
 			} catch( any e ) {}
 
 			var address = formbuilderService.isV2Form( args.submissionData.form ?: "" ) ? Trim( data[ fieldId ] ?: "" ) : Trim( data[ field ] ?: "" );
 
-			if ( template.len() && address.len() ) {
+			if ( !isEmptyString( address ) ) {
 				emailService.send(
 					  template    = template
 					, recipientId = address

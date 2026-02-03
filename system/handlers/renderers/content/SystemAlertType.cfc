@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	private string function default( event, rc, prc, args={} ){

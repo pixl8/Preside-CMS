@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	private array function _selectFields( event, rc, prc ) {

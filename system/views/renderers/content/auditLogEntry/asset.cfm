@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfparam name="args.id"            type="string" />
 <cfparam name="args.action"        type="string" />
 <cfparam name="args.known_as"      type="string" />

@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name          ?: "";
 	inputId      = args.id            ?: "";
@@ -6,11 +7,6 @@
 	labels       = !isEmptyString( args.checkboxLabel ?: "" ) ? translateResource( args.checkboxLabel ?: "", args.checkboxLabel ?: "" ) : ( args.label ?: "" );
 	value        = event.getValue( name=inputName, defaultValue=defaultValue );
 	checked      = isTrue( value );
-
-	if ( !IsSimpleValue( value ) ) {
-		value = "";
-	}
-	value = HtmlEditFormat( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )

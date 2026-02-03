@@ -18,16 +18,41 @@ component extends="coldbox.system.web.routing.Router" {
 			}
 		} );
 
-		addRouteHandler( getModel( dsl="delayedInjector:errorRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:adminRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:assetRouteHandler" ) );
+		var featureService = getModel( "featureService" );
+
+		if ( featureService.isFeatureEnabled( "cms" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:errorRouteHandler" ) );
+		}
+
+		if ( featureService.isFeatureEnabled( "admin" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:adminRouteHandler" ) );
+		}
+
+		if ( featureService.isFeatureEnabled( "assetmanager" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:assetRouteHandler" ) );
+		}
+
 		addRouteHandler( getModel( dsl="delayedInjector:plainStoredFileRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:rulesEngineConditionsExpressionsJsHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:rulesEngineFilterExpressionsJsHandler" ) );
+
+		if ( featureService.isFeatureEnabled( "rulesEngine" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:rulesEngineConditionsExpressionsJsHandler" ) );
+			addRouteHandler( getModel( dsl="delayedInjector:rulesEngineFilterExpressionsJsHandler" ) );
+		}
+
 		addRouteHandler( getModel( dsl="delayedInjector:staticAssetRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:emailRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:defaultPresideRouteHandler" ) );
-		addRouteHandler( getModel( dsl="delayedInjector:restRouteHandler" ) );
+
+		if ( featureService.isFeatureEnabled( "emailCenter" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:emailRouteHandler" ) );
+		}
+
+		if ( featureService.isFeatureEnabled( "siteTree" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:defaultPresideRouteHandler" ) );
+		}
+
+		if ( featureService.isFeatureEnabled( "restFramework" ) ) {
+			addRouteHandler( getModel( dsl="delayedInjector:restRouteHandler" ) );
+		}
+
 		addRouteHandler( getModel( dsl="delayedInjector:standardRouteHandler" ) );
 
 		setSetting( "presideRoutes", presideRoutes );
@@ -59,13 +84,18 @@ component extends="coldbox.system.web.routing.Router" {
 		return uri;
 	}
 
-	public void function addRouteHandler( required any routeHandler ) {
-		ArrayAppend( variables.presideRoutes, arguments.routeHandler );
+	public void function addRouteHandler( routeHandler ) {
+		if ( !IsNull( arguments.routeHandler ) ) {
+			ArrayAppend( variables.presideRoutes, arguments.routeHandler );
+		}
 	}
 
 // overriding getModel() to ensure we always use delayed injector in our Routes.cfm which loads while the interceptors are loading
 	public any function getModel( string name, string dsl, struct initArguments={} ) {
 		if ( StructKeyExists( arguments, "name" ) ) {
+			if ( !getController().getWirebox().containsInstance( arguments.name ) ) {
+				return;
+			}
 			arguments.dsl = "delayedInjector:" & arguments.name;
 		} else if ( StructKeyExists( arguments, "dsl" ) && !arguments.dsl.reFindNoCase( "^delayedInjector:" ) && !arguments.dsl.reFindNoCase( "^provider:" ) ) {
 			arguments.dsl = "delayedInjector:" & arguments.dsl;

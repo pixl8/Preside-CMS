@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	param name="args.id"                 type="string";
 	param name="args.parent_page"        type="string";

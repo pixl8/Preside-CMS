@@ -1,3 +1,6 @@
+/**
+ * @feature formbuilder and websiteusers
+ */
 component {
 	property name="websiteUserDao"  inject="presidecms:object:website_user";
 	property name="securityUserDao" inject="presidecms:object:security_user";

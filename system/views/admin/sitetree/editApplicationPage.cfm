@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	pageId           = rc.id ?: "";
 	validationResult = rc.validationResult ?: "";

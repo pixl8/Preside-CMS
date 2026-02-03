@@ -70,7 +70,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
 		}
-		if ( !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+		if ( !loginService.twoFactorAuthenticationRequired() ) {
 			_redirectToDefaultAdminEvent( event );
 		}
 
@@ -91,17 +91,13 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
 		}
-		if ( !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+		if ( !loginService.twoFactorAuthenticationRequired() ) {
 			_redirectToDefaultAdminEvent( event );
 		}
 
 		var postLoginUrl  = event.getValue( name="postLoginUrl", defaultValue="" );
 		var unsavedData   = sessionStorage.getVar( "_unsavedFormData", {} );
-		var authenticated = loginService.attemptTwoFactorAuthentication(
-			  token = ( rc.oneTimeToken ?: "" )
-			, ipAddress = event.getClientIp()
-			, userAgent = event.getUserAgent()
-		);
+		var authenticated = loginService.attemptTwoFactorAuthentication( token=( rc.oneTimeToken ?: "" ) );
 
 		if ( authenticated ) {
 			if ( Len( Trim( postLoginUrl ) ) ) {
@@ -124,6 +120,10 @@ component extends="preside.system.base.AdminHandler" {
 		var emailAddress         = rc.email_address ?: "";
 		var password             = rc.password ?: "";
 		var passwordConfirmation = rc.passwordConfirmation ?: "";
+
+		if ( !loginService.isUserDatabaseNotConfigured() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
+		}
 
 		if ( !Len( Trim( emailAddress ) ) || !Len( Trim( password ) ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={

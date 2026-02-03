@@ -1,24 +1,86 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="datamanagerService"    inject="datamanagerService";
-	property name="customizationService"  inject="dataManagerCustomizationService";
-	property name="presideObjectService"  inject="presideObjectService";
-	property name="permissionService"     inject="permissionService";
-	property name="adminDataViewsService" inject="adminDataViewsService";
-	property name="messageBox"            inject="messagebox@cbmessagebox";
+	property name="datamanagerService"         inject="datamanagerService";
+	property name="customizationService"       inject="dataManagerCustomizationService";
+	property name="presideObjectService"       inject="presideObjectService";
+	property name="permissionService"          inject="permissionService";
+	property name="adminDataViewsService"      inject="adminDataViewsService";
+	property name="datamanagerWorkflowService" inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
+	property name="draftManagerService"        inject="featureInjector:draftManager:DraftManagerService";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 	variables.permissionSubBase  = "";
 	variables.systemDateRenderer = { renderer = "datetime", context="relative" };
 	variables.permissionKeyCache = {};
 	variables.maxTabCount        = 6;
 	variables.sidebarNavigation  = false;
+	variables.infoCardStyle      = "default";
 
 // PUBLIC ACTIONS
+	private string function listingViewlet( event, rc, prc, args={} ) {
+		args.objectName           = args.objectName ?: prc.objectName;
+		args.listingCategoryField = Trim( presideObjectService.getObjectAttribute( objectName=args.objectName, attributeName="datamanagerListingCategoryField" ) );
+
+		var rendered = runEvent(
+			  event          = "admin.dataManager._objectListingViewlet"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+
+		if ( Len( args.listingCategoryField ) ) {
+			args.allListingCategories = [];
+
+			var categoryFieldSelectFields = [];
+			var categoryFieldSourceObj    = "";
+			var categoryFieldProps        = presideObjectService.getObjectProperty( objectName=args.objectName, propertyName=args.listingCategoryField );
+
+			switch( categoryFieldProps.relationship ?: "" ) {
+				case "many-to-one":
+					categoryFieldSelectFields = [ "#args.listingCategoryField#.id AS id" ];
+					categoryFieldSourceObj    = categoryFieldProps.relatedto ?: "";
+				break;
+
+				case "many-to-many":
+					categoryFieldSelectFields = [ "GROUP_CONCAT( DISTINCT #args.listingCategoryField#.id ) AS id" ];
+					categoryFieldSourceObj    = categoryFieldProps.relatedto ?: "";
+				break;
+			}
+
+			if ( ArrayLen( categoryFieldSelectFields ) && Len( categoryFieldSourceObj ) ) {
+				var categoryFieldQuery = presideObjectService.selectData(
+					  objectName   = args.objectName
+					, selectFields = categoryFieldSelectFields
+					, orderBy      = presideObjectService.getLabelField( objectName=categoryFieldSourceObj )
+					, groupBy      = "#args.listingCategoryField#.id"
+				);
+
+				for ( var row in categoryFieldQuery ) {
+					if ( Len( Trim( row.id ?: "" ) ) ) {
+						ArrayAppend( args.allListingCategories, {
+							  id    = row.id
+							, label = renderLabel( categoryFieldSourceObj, row.id )
+						} );
+					}
+				}
+			}
+
+			if ( ArrayLen( args.allListingCategories ) ) {
+				args.currentListingView = rendered;
+				return renderView( view="/admin/datamanager/_listingWithCategories", args=args );
+			}
+		}
+
+		return rendered;
+	}
+
 	public void function viewRecord( event, rc, prc ){
 		var objectName = event.getCurrentEvent().reReplaceNoCase( "admin\.datamanager\.(.*?)\.viewRecord", "\1" );
 		var recordId = rc.id ?: "";
 
 		event.initializeDatamanagerPage( objectName=objectName, recordId=recordId, includeAllFormulaFields=true );
+
+		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId } );
 
 		if ( !isQuery( prc.record ) || !prc.record.recordcount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle ?: objectName  ] ) );
@@ -59,8 +121,28 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = { objectName=objectName, action="viewRecord", record=record, recordId=prc.recordId }
 		);
 
+		prc.preViewRecordContent = customizationService.runCustomization(
+			  objectName    = objectName
+			, action        = "preViewRecordContent"
+			, args          = { objectName=objectName, action="preViewRecordContent", record=record, recordId=prc.recordId }
+			, defaultResult = ""
+		);
+
+		prc.postViewRecordContent = customizationService.runCustomization(
+			  objectName    = objectName
+			, action        = "postViewRecordContent"
+			, args          = { objectName=objectName, action="postViewRecordContent", record=record, recordId=prc.recordId }
+			, defaultResult = ""
+		);
+
+		announceInterception( "postViewRecord", { objectName=objectName, recordId=recordId } );
+
 		_overrideAdminLayout( argumentCollection=arguments );
 		event.setView( "/admin/datamanager/_viewRecord" );
+
+		if ( IsTrue( rc.modalView ?: "" ) ) {
+			event.setLayout( "adminAjaxModal" );
+		}
 	}
 
 // CUSTOMIZATIONS
@@ -88,12 +170,16 @@ component extends="preside.system.base.AdminHandler" {
 		return hasPermission;
 	}
 
-	private string function recordBreadcrumb() {
+	private void function recordBreadcrumb() {
 		var objectName  = args.objectName  ?: "";
 		var recordLabel = args.recordLabel ?: "";
 		var recordId    = args.recordId    ?: "";
 		var currentTab  = rc.tab ?: "";
 		var firstTab    = variables.tabs[ 1 ] ?: "";
+
+		if ( IsStruct( firstTab ) ) {
+			firstTab = firstTab.id;
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:datamanager.viewrecord.breadcrumb.title", data=[ recordLabel ] )
@@ -101,7 +187,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		if ( variables.sidebarNavigation && Len( currentTab ) && currentTab != firstTab ) {
-			var tabTitle = translateResource( uri="preside-objects.#objectName#:viewtab.#currentTab#.title", defaultValue=translateResource( uri="adminui:viewtab.#currentTab#.title", default="" ) );
+			var tabTitle = translateResource( uri="preside-objects.#objectName#:viewtab.#currentTab#.title", defaultValue=translateResource( uri="adminui:viewtab.#currentTab#.title", defaultValue="" ) );
 			if ( Len( tabTitle ) ) {
 				event.addAdminBreadCrumb(
 					  title = tabTitle
@@ -119,6 +205,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( Len( Trim( queryString ) ) ) {
 			qs &= "&#queryString#";
+		}
+
+		if ( IsTrue( args.modalView ?: "" ) ) {
+			qs &= "&modalView=true";
 		}
 
 		return event.buildAdminLink( linkto="datamanager.#objectName#.viewRecord", queryString=qs );
@@ -144,9 +234,10 @@ component extends="preside.system.base.AdminHandler" {
 			args.infoDescription = _render( args.infoDescription );
 		}
 
-		args.col1 = Duplicate( variables.infoCol1 ?: [] );
-		args.col2 = Duplicate( variables.infoCol2 ?: [] );
-		args.col3 = Duplicate( variables.infoCol3 ?: [ "created", "modified" ] );
+		args.col1 = Duplicate( args.col1 ?: ( variables.infoCol1 ?: [] ) );
+		args.col2 = Duplicate( args.col2 ?: ( variables.infoCol2 ?: [] ) );
+		args.col3 = Duplicate( args.col3 ?: ( variables.infoCol3 ?: [ "created", "modified" ] ) );
+		args.infoCardStyle = variables.infoCardStyle;
 
 		announceInterception( "preRenderDataManagerObjectInfoCard", args );
 
@@ -155,15 +246,23 @@ component extends="preside.system.base.AdminHandler" {
 				var field = args[ "col#i#" ][ n ];
 				var rendered = _render( field );
 
-				if ( rendered.trim().len() ) {
-					args[ "col#i#" ][ n ] = rendered;
+				if ( Len( Trim( rendered ?: "" ) ) ) {
+					if ( infoCardStyle == "definitionList" ) {
+						args[ "col#i#" ][ n ] = {
+							  title = translateResource( uri="preside-objects.#objectName#:infocard.#field#", defaultValue=translateObjectProperty( objectName, field ) )
+							, value = rendered
+						};
+
+					} else {
+						args[ "col#i#" ][ n ] = rendered;
+					}
 				} else {
-					args[ "col#i#" ].deleteAt( n );
+					ArrayDeleteAt( args[ "col#i#" ], n );
 				}
 			}
 		}
 
-		if ( args.col1.len() || args.col2.len() || args.col3.len() ) {
+		if ( ArrayLen( args.col1 ) || ArrayLen( args.col2 ) || ArrayLen( args.col3 ) ) {
 			if ( !IsArray( args.infoColSizes ?: "" ) ) {
 				if ( IsArray( variables.infoColSizes ?: "" ) && ArrayLen( variables.infoColSizes ) == 3 ) {
 					args.infoColSizes = variables.infoColSizes;
@@ -193,6 +292,8 @@ component extends="preside.system.base.AdminHandler" {
 		args.tabs       = Duplicate( variables.tabs ?: [ "default" ] );
 		args.currentTab = rc.tab ?: "";
 
+		_addWorkflowTab( argumentCollection=arguments );
+
 		announceInterception( "preRenderDataManagerObjectTabs", args );
 
 		var sidebarMenuItems = [];
@@ -204,7 +305,7 @@ component extends="preside.system.base.AdminHandler" {
 			menuItem = _buildSidebarMenuItem( argumentCollection=arguments, tabId=tabId );
 			if ( StructCount( menuItem ) ) {
 				if ( firstTab == "" ) {
-					firstTab = tabId;
+					firstTab = IsStruct( tabId ) ? tabId.id : tabId;
 				}
 				if ( args.currentTab == "" && arrayIsEmpty( sidebarMenuItems ) ) {
 					menuItem.active = true;
@@ -214,7 +315,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var activeTab        = ArrayFind( args.availableTabs, args.currentTab ) ? args.currentTab : firstTab;
-		var activeTabContent = renderViewlet( event="admin.datamanager.#objectName#._#activeTab#Tab", args=args );
+		var activeTabContent = customizationService.runCustomization( objectName=objectName, action="_#activeTab#Tab", args=args )
 
 		if ( ArrayLen( sidebarMenuItems ) ) {
 			prc.adminSidebarItems  = sidebarMenuItems;
@@ -301,12 +402,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _tabs( event, rc, prc, args={} ) {
-		var objectName = args.objectName ?: "";
-		var i18nBase   = "preside-objects.#objectName#:";
+		var objectName      = args.objectName ?: "";
+		var i18nBase        = "preside-objects.#objectName#:";
 		var i18nDefaultBase = "adminui:";
 
-		args.tabs    = Duplicate( variables.tabs ?: [ "default" ] );
+		args.tabs    = args.tabs ?: ( Duplicate( variables.tabs ?: [ "default" ] ) );
 		args.maxTabs = variables.maxTabCount;
+
+		_addWorkflowTab( argumentCollection=arguments );
 
 		announceInterception( "preRenderDataManagerObjectTabs", args );
 
@@ -315,16 +418,12 @@ component extends="preside.system.base.AdminHandler" {
 
 			args.tabs[ i ] = {
 				  id        = tabId
-				, iconClass = translateResource( uri=i18nBase & "viewtab.#tabId#.iconclass", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.iconclass" ) )
-				, content   = renderViewlet( event="admin.datamanager.#objectName#._#tabId#Tab", args=args )
+				, iconClass = translateResource( uri=i18nBase & "viewtab.#tabId#.iconclass", defaultValue=translateResource( uri=i18nDefaultBase & "viewtab.#tabId#.iconclass", defaultValue="" ) )
+				, content   = customizationService.runCustomization( objectName=objectName, action="_#tabId#Tab", args=args )
+				, title     = customizationService.runCustomization( objectName=objectName, action="_#tabId#TabTitle", args=args, defaultResult=translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) ) )
 			};
-
-			if ( getController().viewletExists( "admin.datamanager.#objectName#._#tabId#TabTitle" ) ) {
-				args.tabs[ i ].title = renderViewlet( event="admin.datamanager.#objectName#._#tabId#TabTitle", args=args );
-			} else {
-				args.tabs[ i ].title = translateResource( uri=i18nBase & "viewtab.#tabId#.title", defaultValue=translateResource( i18nDefaultBase & "viewtab.#tabId#.title" ) );
-			}
 		}
+
 		for( var i=args.tabs.len(); i>0; i-- ) {
 			if ( !Len( Trim( args.tabs[ i ].content ?: "" ) ) ) {
 				args.tabs.deleteAt( i );
@@ -335,6 +434,7 @@ component extends="preside.system.base.AdminHandler" {
 			event.include( "/css/admin/specific/datamanager/viewtabs/" );
 			return renderView( view="/admin/datamanager/_tabs", args=args );
 		}
+
 		return "";
 	}
 
@@ -377,6 +477,42 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = args.objectName ?: "";
 
 		return "<p><em class=""light-grey""><i class=""fa fa-fw fa-exclamation-triangle""></i> TODO: implement your own <code>admin.datamanager.#objectName#._defaultTab</code> viewlet for your entity.</em></p>";
+	}
+
+	private string function _auditTrailTab( event, rc, prc, args={} ) {
+		return renderViewlet( event="admin.audittrail.recordTrailViewlet", args={ recordId=args.recordId ?: "" } );
+	}
+
+	private string function _workflowTab( event, rc, prc, args={} ) {
+		args.workflowId = datamanagerWorkflowService.getWorkflowIdForRecord(
+			  objectName = args.objectName
+			, recordId   = args.recordId
+		);
+		args.history = datamanagerWorkflowService.getTransitionHistory(
+			  objectName = args.objectName
+			, recordId   = args.recordId
+		);
+		args.diagramUrl = event.buildAdminLink(
+			  linkto      = "datamanagerWorkflow.flowDiagram"
+			, queryString = "objectName=#args.objectName#&recordId=#args.recordId#"
+		);
+
+		return renderView( view="/admin/datamanagerWorkflow/workflowTabViewForRecord", args=args );
+	}
+
+	private string function _workflowTabTitle( event, rc, prc, args={} ) {
+		var flowStatus = adminDataViewsService.renderField(
+			  objectName   = args.objectName
+			, propertyName = "datamanager_workflow_status"
+			, recordId     = args.recordId
+			, value        = args.record.datamanager_workflow_status ?: ""
+		);
+
+		return translateResource(
+			  uri          = "preside-objects.#args.objectName#:viewtab.workflow.title"
+			, defaultValue = translateResource( uri="adminui:viewtab.workflow.title", data=[ flowStatus ] )
+			, data         = [ flowStatus ]
+		);
 	}
 
 	private string function _getNonVersionDateCreated( required string objectName, required string recordId ) {
@@ -456,6 +592,22 @@ component extends="preside.system.base.AdminHandler" {
 		var allKeys = permissionService.listPermissionKeys();
 
 		return ArrayFindNoCase( allKeys, arguments.key );
+	}
+
+	private void function _addWorkflowTab( event, rc, prc, args={} ) {
+		if ( !isFeatureEnabled( "datamanagerWorkflow" ) ) {
+			return;
+		}
+
+		var objectName = args.objectName ?: "";
+		var recordId   = prc.recordId    ?: "";
+
+		if ( datamanagerWorkflowService.hasWorkflow( objectName=objectName, recordId=recordId ) ) {
+			args.tabs = args.tabs ?: [];
+			if ( !ArrayFind( args.tabs, "workflow" ) ) {
+				ArrayAppend( args.tabs, "workflow" );
+			}
+		}
 	}
 
 }

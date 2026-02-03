@@ -5,6 +5,7 @@
  * @singleton      true
  * @presideservice true
  * @autodoc        true
+ * @feature        emailCenter
  */
 component displayname="Email Bot Detection Service" {
 

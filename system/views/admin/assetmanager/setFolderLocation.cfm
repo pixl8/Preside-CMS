@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	folderId       = rc.folder ?: "";
 	formId         = "set-folder-location";

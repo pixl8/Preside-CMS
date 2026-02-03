@@ -1,9 +1,13 @@
-component  {
+/**
+ * @feature presideForms and rulesEngine
+ */
+component {
 
 	public string function index( event, rc, prc, args={} ) {
 		var context             = args.ruleContext ?: "webrequest";
+		var contextData         = UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) );
 		var multiple            = IsTrue( args.multiple ?: "" );
-		var prefetchCacheBuster = CreateUUId();
+		var prefetchCacheBuster = CreateUUID();
 
 		args.object        = "rules_engine_condition";
 		args.labelrenderer = "rules_engine_condition";
@@ -21,13 +25,13 @@ component  {
 		if ( args.quickAdd ) {
 			args.quickAddUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickAddConditionForm"
-				, querystring = "context=#context#&multiple=#multiple#&contextData=" & UrlEncodedFormat( SerializeJson( args.rulesEngineContextData ?: {} ) )
+				, querystring = "context=#context#&multiple=#multiple#&contextData=#contextData#"
 			);
 		}
 		if ( args.quickEdit ) {
 			args.quickEditUrl = event.buildAdminLink(
 				  linkTo      = "rulesEngine.quickEditConditionForm"
-				, querystring = "context=#context#&multiple=#multiple#&id="
+				, querystring = "context=#context#&multiple=#multiple#&contextData=#contextData#&id="
 			);
 		}
 

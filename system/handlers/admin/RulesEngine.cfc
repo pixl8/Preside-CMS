@@ -1,3 +1,6 @@
+/**
+ * @feature admin and rulesEngine
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="rulesEngineContextService"    inject="rulesEngineContextService";
@@ -5,7 +8,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineFieldTypeService"  inject="rulesEngineFieldTypeService";
 	property name="rulesEngineFilterService"     inject="rulesEngineFilterService";
 	property name="rulesEngineExpressionService" inject="rulesEngineExpressionService";
-	property name="dataManagerService"           inject="dataManagerService";
+	property name="dataManagerService"           inject="featureInjector:datamanager:dataManagerService";
 	property name="messageBox"                   inject="messagebox@cbmessagebox";
 	property name="presideObjectService"         inject="PresideObjectService";
 	property name="formsService"                 inject="formsService";
@@ -35,6 +38,11 @@ component extends="preside.system.base.AdminHandler" {
 		fieldConfig.delete( "fieldType"  );
 
 		prc.configScreen = rulesEngineFieldTypeService.renderConfigScreen(
+			  fieldType          = fieldType
+			, currentValue       = fieldValue
+			, fieldConfiguration = fieldConfig
+		);
+		prc.configDescription = rulesEngineFieldTypeService.renderConfigScreenDescription(
 			  fieldType          = fieldType
 			, currentValue       = fieldValue
 			, fieldConfiguration = fieldConfig
@@ -172,6 +180,14 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function quickEditConditionForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
+		prc.contextData  = {};
+
+		try {
+			prc.contextData = DeSerializeJson( rc.contextData ?: "" );
+			if ( !IsStruct( prc.contextData ) ) {
+				prc.contextData = {};
+			}
+		} catch( any e ) {}
 
 		prc.record = rulesEngineConditionService.getConditionRecord( rc.id ?: "" );
 

@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'websiteUserAction' type
  *
+ * @feature rulesEngine and websiteUsers
  */
 component {
 

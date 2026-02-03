@@ -1,3 +1,4 @@
+<!---@feature admin and rulesEngine--->
 <cfscript>
 	segmentationFilters = args.segmentationFilters ?: [];
 	favourites          = args.favourites          ?: QueryNew( "" );

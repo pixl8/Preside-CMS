@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	folder             = rc.folder ?: "";
 	folderTitle        = prc.folder.label ?: translateResource( "cms:assetmanager.root.folder" );

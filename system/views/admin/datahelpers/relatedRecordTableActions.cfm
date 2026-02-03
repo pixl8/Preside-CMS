@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.viewRecordLink" type="string" />
 
 <cfoutput>

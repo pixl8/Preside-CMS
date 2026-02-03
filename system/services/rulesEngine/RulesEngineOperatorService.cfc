@@ -1,9 +1,9 @@
 /**
  * Provides methods for comparing data using a configured operator
  *
- * @autodoc
- * @singleton
- *
+ * @autodoc   true
+ * @singleton true
+ * @feature   rulesEngine
  */
 component displayName="RulesEngine Operator Service" {
 

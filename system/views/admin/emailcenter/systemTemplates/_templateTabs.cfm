@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="args.body"                              default="" />
 <cfparam name="args.tab"                               default="preview" />
 <cfparam name="args.canEdit"            type="boolean" default="false" />

@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	param name="args.control"   type="string";
 	param name="args.label"     type="string";
@@ -35,7 +36,7 @@
 		</div>
 		<cfif Len( Trim( args.help ) )>
 			<div class="col-sm-1">
-				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#HtmlEditFormat( args.help )#" title="#translateResource( 'cms:help.popover.title' )#"></span>
+				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#EncodeForHtmlAttribute( args.help )#" title="#translateResource( 'cms:help.popover.title' )#"></span>
 			</div>
 		</cfif>
 	</div>

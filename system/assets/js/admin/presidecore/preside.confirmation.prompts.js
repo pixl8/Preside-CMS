@@ -3,13 +3,17 @@
 	$( "body" ).on( "click", ".confirmation-prompt", function( e ) {
 		e.preventDefault();
 
-		var $link = $( this )
-		  , title = ""
+		var $link   = $( this )
+		  , title   = ""
+		  , message = ""
 		;
 
 		if( !$link.data( "confirmationPrompt" ) ) {
 			title = $link.data( "title" ) || $link.attr( "title" );
 			title = title.charAt( 0 ).toLowerCase() + title.slice( 1 );
+
+			message = $link.data( "message" ) || $link.attr( "message" );
+
 			var hasChildren = $link.attr( "data-has-children" );
 			if( hasChildren > 0 ) {
 				$link.data( "confirmationPrompt",  i18n.translateResource( "cms:child.confirmation.prompt", { data:[ hasChildren, title ] } ) );
@@ -23,6 +27,10 @@
 		  , match    = ""
 		;
 
+		if ( message && message.length > 0 ) {
+			$message.append( "<div class=\"help-block\">" + message + "</div>" );
+		}
+
 		if( typeof $link.data( "confirmation-match" ) !== "undefined" ) {
 			match =  $link.data( "confirmation-match" );
 
@@ -33,7 +41,7 @@
 		}
 
 		var confirmationDialog = presideBootbox.dialog( {
-			  title   : "Confirmation"
+			  title   : i18n.translateResource( "cms:confirmation.prompt.title" )
 			, message : $message
 			, buttons : {
 				  cancel  : {

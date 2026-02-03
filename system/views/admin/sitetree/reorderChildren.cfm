@@ -1,9 +1,9 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	page             = event.getValue( name="page", defaultValue=QueryNew(''), private=true );
 	childPages       = event.getValue( name="childPages", defaultValue=QueryNew(''), private=true );
 	formId           = "editForm-" & CreateUUId();
 
-	prc.pageIcon     = "sort-by-attributes";
 	prc.pageTitle    = translateResource( uri="cms:sitetree.reorderChildren.title", data=[ prc.page.title ] );
 </cfscript>
 

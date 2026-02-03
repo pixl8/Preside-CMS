@@ -1,7 +1,7 @@
 /**
- * @singleton
- * @presideservice
- *
+ * @singleton      true
+ * @presideservice true
+ * @feature        cms
  */
 component {
 
@@ -21,11 +21,18 @@ component {
 		var poService = $getPresideObjectService();
 
 		if ( poService.isPageType( arguments.object ) || arguments.object == "page" ) {
-			return _getSiteTreeService().editPage(
-				  id           = arguments.recordId
-				, isDraft      = true
-				, "#property#" = arguments.content
-			);
+			try {
+				_getSiteTreeService().editPage(
+					  id           = arguments.recordId
+					, isDraft      = true
+					, "#property#" = arguments.content
+				);
+			} catch (any e) {
+				$raiseError(e);
+				return false;
+			}
+
+			return true;
 		}
 
 		var result = poService.updateData(

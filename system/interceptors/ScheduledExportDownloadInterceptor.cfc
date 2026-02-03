@@ -12,7 +12,7 @@ component extends="coldbox.system.Interceptor" {
 
 		if ( storageProvider == "ScheduledExportStorageProvider" ) {
 			if ( !loginService.isLoggedIn() ) {
-				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				setNextEvent( url=event.buildAdminLink( linkto="file.download", queryString="file=#ToBase64( event.getCurrentUrl() )#" ) );
 			}
 
 			auditService.log(

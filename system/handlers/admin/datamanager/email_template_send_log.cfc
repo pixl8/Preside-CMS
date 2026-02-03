@@ -1,3 +1,6 @@
+/**
+ * @feature admin and emailCenter
+ */
 component {
 
 	private string function buildListingLink( event, rc, prc, args={} ) {

@@ -4,7 +4,7 @@
  * @isSystemPageType      true
  * @pagetypeViewlet       errors.notFound
  * @allowedChildPageTypes none
+ * @feature               siteTree
  *
  */
-
 component extends="preside.system.base.SystemPresideObject" displayName="Page type: Not found" {}

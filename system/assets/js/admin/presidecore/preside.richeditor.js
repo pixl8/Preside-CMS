@@ -7,6 +7,7 @@ PresideRichEditor = ( function( $ ){
 	PresideRichEditor.prototype.init = function( elementToReplace ){
 		var $elementToReplace     = $( elementToReplace )
 		  , config                = {}
+		  , placeholder           = $elementToReplace.attr( "placeholder" )        || cfrequest.ckeditorDefaultPlaceholder || ""
 		  , toolbar               = $elementToReplace.data( "toolbar" )            || cfrequest.ckeditorDefaultToolbar
 		  , width                 = $elementToReplace.data( "width" )              || cfrequest.ckeditorDefaultWidth
 		  , minHeight             = $elementToReplace.data( "minHeight" )          || cfrequest.ckeditorDefaultMinHeight
@@ -22,6 +23,9 @@ PresideRichEditor = ( function( $ ){
 		  , pasteFromWordDisallow = []
 		  , editor;
 
+		if ( placeholder && placeholder.length ) {
+			config.editorplaceholder = placeholder;
+		}
 		if ( toolbar && toolbar.length ) {
 			config.toolbar = this.parseToolbarConfig( toolbar );
 		}

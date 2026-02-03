@@ -1,6 +1,9 @@
+/**
+ * @feature emailCenter
+ */
 component {
 
-	property name="emailTemplateService" inject="EmailTemplateService";
+	property name="emailTemplateService" inject="featureInjector:emailCenter:EmailTemplateService";
 
 	private void function runAsync() {
 		var templates = emailTemplateService.getTemplates( custom=true );

@@ -1,3 +1,4 @@
+<!---@feature formbuilder--->
 <cfscript>
 	label         = args.label ?: "";
 	isCollapsible = isTrue( args.is_collapsible ?: false );

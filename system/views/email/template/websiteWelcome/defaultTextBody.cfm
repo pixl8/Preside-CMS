@@ -1,3 +1,4 @@
+<!---@feature emailCenter and websiteUsers--->
 Welcome ${display_name},
 
 We have just created your user account on the ${site_url} website using your email address: ${email_address}

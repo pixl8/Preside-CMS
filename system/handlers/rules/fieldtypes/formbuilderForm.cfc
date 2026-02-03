@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine to retrieve a Question picker
  *
+ * @feature rulesEngine and formbuilder
  */
 component {
 	property name="presideObjectService" inject="presideObjectService";
@@ -32,7 +33,11 @@ component {
 		var filterBy      = "question";
 		var filterByField = "items.question";
 
-		rc.delete( "value" );
+		StructDelete( rc, "value" );
+
+		if ( isEmptyString( arguments.value ) ) {
+			arguments.value = config.formId ?: "";
+		}
 
 		return renderFormControl(
 			  argumentCollection = arguments.config

@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName        = args.name         ?: "";
 	inputId          = args.id           ?: "";
@@ -32,7 +33,6 @@
 				if ( not IsSimpleValue( value ) ) {
 					value = "";
 				}
-				value = HtmlEditFormat( value );
 			</cfscript>
 			<tr>
 				<td>
@@ -48,7 +48,7 @@
 							   name     = "#questionInputId#"
 							   id       = "#elementId#"
 							   tabindex = "#getNextTabIndex()#"
-							   value    = "#HtmlEditFormat( answer )#"
+							   value    = "#EncodeForHtmlAttribute( answer )#"
 							   <cfif selected> checked="checked"</cfif>
 							   #htmlAttributes#
 						>

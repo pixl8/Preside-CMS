@@ -4,9 +4,10 @@
  * \n
  * Introduced in *10.10.39*.
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        websiteUsers
  */
 component displayName="Website user impersonation service" {
 

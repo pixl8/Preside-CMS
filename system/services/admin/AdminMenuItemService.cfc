@@ -5,6 +5,7 @@
  * @presideService true
  * @singleton      true
  * @autodoc        true
+ * @feature        admin
  */
 component {
 
@@ -31,14 +32,15 @@ component {
 	 * @legacyViewBase Base view path to be used for menu backward compatibility. e.g. for default Preside admin sidebar menu, this is /admin/layout/sidebar/{itemid}
 	 */
 	public array function prepareMenuItemsForRequest(
-		  required array  menuItems
-		,          string legacyViewBase = "/admin/layout/sidebar/"
+		  required array   menuItems
+		,          string  legacyViewBase = "/admin/layout/sidebar/"
+		,          boolean runActiveChecks = true
 	) {
 		var prepared = [];
 
 		for( var itemId in menuItems ) {
 			if ( itemShouldBeIncluded( itemId, arguments.legacyViewBase ) ) {
-				var config = prepareItemForRequest( itemId, arguments.legacyViewBase );
+				var config = prepareItemForRequest( itemId, arguments.legacyViewBase, arguments.runActiveChecks );
 				if ( StructCount( config ) ) {
 					ArrayAppend( prepared, config );
 				}
@@ -50,13 +52,101 @@ component {
 		return prepared;
 	}
 
+	public string function getActiveItemForRequest( required array menuItems ) {
+		var settings       = _getItemSettings();
+		var requestContext = $getRequestContext();
+		var prc            = requestContext.getCollection( private=true );
+		var dmObject       = requestContext.isDataManagerRequest() ? ( prc.objectName ?: "" ) : "";
+		var flatItems      = [];
+		var expandItems    = function( children ){
+			for( var childId in children ) {
+				var childItem = settings[ childId ] ?: {};
+				if ( StructKeyExists( childItem, "subMenuItems" ) && IsArray( childItem.subMenuItems ) && ArrayLen( childItem.subMenuItems ) ) {
+					expandItems( childItem.subMenuItems );
+				} else {
+					ArrayAppend( flatItems, childId );
+				}
+			}
+		};
+
+		expandItems( arguments.menuItems );
+
+		// first check dm object patterns as these are cheapest
+		if ( Len( dmObject ) ) {
+			for( var itemId in flatItems ) {
+				var item = settings[ itemId ] ?: {};
+
+				if ( StructIsEmpty( item ) ) {
+					continue;
+				}
+
+				var datamanagerObject = item.activeChecks.datamanagerObject ?: "";
+				if ( ( IsArray( datamanagerObject ) && ArrayLen( datamanagerObject ) ) || ( IsSimpleValue( datamanagerObject ) && Len( Trim( datamanagerObject ) ) ) ) {
+					if ( IsSimpleValue( datamanagerObject ) ) {
+						datamanagerObject = [ Trim( datamanagerObject ) ];
+					}
+
+					for( var objectName in datamanagerObject ) {
+						if ( objectName == dmObject ) {
+							return itemId;
+						}
+					}
+				}
+			}
+		}
+
+		// next cheapest, request pattern check
+		var currentHandler = $getRequestContext().getCurrentEvent();
+		for( var itemId in flatItems ) {
+			var item = settings[ itemId ] ?: {};
+
+			if ( StructIsEmpty( item ) ) {
+				continue;
+			}
+
+			var handlerPatterns = item.activeChecks.handlerPatterns ?: "";
+			if ( ( IsArray( handlerPatterns ) && ArrayLen( handlerPatterns ) ) || ( IsSimpleValue( handlerPatterns ) && Len( Trim( handlerPatterns ) ) ) ) {
+				if ( IsSimpleValue( handlerPatterns ) ) {
+					handlerPatterns = [ Trim( handlerPatterns ) ];
+				}
+
+				for( var pattern in handlerPatterns ) {
+					if ( ReFindNoCase( pattern, currentHandler ) ) {
+						return itemId;
+					}
+				}
+			}
+		}
+
+		// finally, run handlers for complex checks
+		for( var itemId in flatItems ) {
+			var item = settings[ itemId ] ?: {};
+
+			if ( StructIsEmpty( item ) || StructCount( item.activeChecks ?: {} ) ) {
+				continue;
+			}
+			var isActive = runItemHandlerAction(
+				  itemId        = itemId
+				, action        = "isActive"
+				, args          = item
+				, defaultResult = false
+			);
+
+			if ( isActive ) {
+				return itemId;
+			}
+		}
+
+		return "";
+	}
+
 // PUBLIC FOR EASY TESTING, BUT CONSIDERED PRIVATE
 	/**
 	 * Returns dynamically calculated config for an item, with support for recursion
 	 * on child menu items
 	 *
 	 */
-	public struct function prepareItemForRequest( required string itemId, required string legacyViewBase ) {
+	public struct function prepareItemForRequest( required string itemId, required string legacyViewBase, boolean runActiveChecks=true ) {
 		var config = StructCopy( getRawItemConfig( arguments.itemId, arguments.legacyViewBase ) );
 
 		if ( itemIsSeparator( arguments.itemId ) || itemIsLegacyViewImplementation( arguments.itemId, arguments.legacyViewBase ) || StructIsEmpty( config ) ) {
@@ -68,7 +158,7 @@ component {
 			for( var i=ArrayLen( config.subMenuItems ); i>0; i-- ) {
 				if ( IsSimpleValue( config.subMenuItems[ i ] ) ) {
 					if ( itemShouldBeIncluded( config.subMenuItems[ i ], arguments.legacyViewBase ) ) {
-						config.subMenuItems[ i ] = prepareItemForRequest( config.subMenuItems[ i ], arguments.legacyViewBase );
+						config.subMenuItems[ i ] = prepareItemForRequest( config.subMenuItems[ i ], arguments.legacyViewBase, arguments.runActiveChecks );
 						if ( StructIsEmpty( config.subMenuItems[ i ] ) ) {
 							ArrayDeleteAt( config.subMenuItems, i );
 						}
@@ -77,13 +167,9 @@ component {
 					}
 				}
 			}
-
-			if ( !ArrayLen( config.subMenuItems ) ) {
-				return {};
-			}
 		}
 
-		config.active = itemIsActive( itemId, config );
+		config.active = arguments.runActiveChecks && itemIsActive( itemId, config );
 		config.link   = buildItemLink( itemId, config );
 
 		config.title = config.title ?: "admin.menuitem:#arguments.itemId#.title";
@@ -93,8 +179,14 @@ component {
 
 		runItemHandlerAction( arguments.itemId, "prepare", config );
 
-		if ( IsArray( config.subMenuItems ?: "" ) && ArrayLen( config.subMenuItems ) ) {
-			_trimSeparators( config.subMenuItems );
+		if ( IsArray( config.subMenuItems ?: "" ) ) {
+			if ( ArrayLen( config.subMenuItems ) ) {
+				_trimSeparators( config.subMenuItems );
+			}
+
+			if ( !Len( Trim( config.link ?: "" ) ) && !ArrayLen( config.subMenuItems ) ) {
+				return {};
+			}
 		}
 
 		return config;
@@ -176,11 +268,17 @@ component {
 		}
 
 		if ( itemIsLegacyViewImplementation( arguments.itemId, arguments.legacyViewBase ) ) {
-			return { view=arguments.legacyViewBase & arguments.itemId }
+			return { id=arguments.itemId, view=arguments.legacyViewBase & arguments.itemId }
 		}
 
 		var itemSettings = _getItemSettings();
-		return itemSettings[ arguments.itemId ] ?: {};
+		var settings     = StructCopy( itemSettings[ arguments.itemId ] ?: {} );
+
+		if ( StructCount( settings ) ) {
+			settings.id = arguments.itemId;
+		}
+
+		return settings;
 	}
 
 	/**
@@ -335,9 +433,13 @@ component {
 
 // GETTERS AND SETTERS
 	private struct function _getItemSettings() {
-	    return _itemSettings;
+	    return variables._itemSettings;
 	}
 	private void function _setItemSettings( required struct itemSettings ) {
-	    _itemSettings = arguments.itemSettings;
+		variables._itemSettings = {};
+		for( var itemId in arguments.itemSettings ) {
+			variables._itemSettings[ itemId ]    = StructCopy( arguments.itemSettings[ itemId ] );
+			variables._itemSettings[ itemId ].id = itemId;
+		}
 	}
 }

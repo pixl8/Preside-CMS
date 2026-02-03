@@ -1,7 +1,11 @@
+/**
+ * @feature admin and rulesEngine
+ */
 component {
 	property name="validationEngine"    inject="ValidationEngine";
-	property name="conditionService"    inject="RulesEngineConditionService";
+	property name="conditionService"    inject="featureInjector:rulesEngine:RulesEngineConditionService";
 	property name="systemAlertsService" inject="SystemAlertsService";
+
 
 	private void function runCheck( required systemAlertCheck check ) {
 		var invalidRules = [];

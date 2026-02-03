@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	buttons = args.actionButtons ?: [];
 </cfscript>
@@ -6,7 +7,7 @@
 	<div class="col-md-offset-2">
 		<cfloop array="#args.actionButtons#" item="button">
 			<cfif button.type == "link">
-				<a href="#button.href#" class="btn #( button.class ?: '' )#"<cfif Len( Trim( button.globalKey ?: '' ))> data-global-key="#button.globalKey#"</cfif>>
+				<a href="#button.href#" class="btn #( button.class ?: '' )#"<cfif Len( Trim( button.globalKey ?: '' ))> data-global-key="#button.globalKey#"</cfif> <cfif Len( Trim( button.id ?: '' ))> id="#button.id#"</cfif>>
 					<cfif Len( Trim( button.iconClass ?: "" ) )>
 						<i class="fa fa-fw #button.iconClass# bigger-110"></i>
 					</cfif>

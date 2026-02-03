@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.id"   type="string"  />
 <cfparam name="args.read" type="boolean" />
 

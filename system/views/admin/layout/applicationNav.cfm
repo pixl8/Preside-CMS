@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	selected     = args.selectedApplication ?: "cms";
 	applications = args.applications ?: [];

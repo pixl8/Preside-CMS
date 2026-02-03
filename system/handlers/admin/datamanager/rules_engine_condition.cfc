@@ -1,3 +1,6 @@
+/**
+ * @feature admin and rulesEngine
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="rulesEngineFilterService"    inject="RulesEngineFilterService";
@@ -42,7 +45,7 @@ component extends="preside.system.base.AdminHandler" {
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var objectName = "rules_engine_condition";
 
-		if ( Len( Trim( rc.filterobject ?: "" ) ) ) {
+		if ( Len( Trim( rc.filterobject ?: "" ) ) && ( rc.filterobject != "rules_engine_condition" ) ) {
 			_checkProxyPermissionForObjectFilters( argumentCollection=arguments );
 		}
 
@@ -132,7 +135,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( IsTrue( rc.segmentationFilters ?: "" ) || IsTrue( args.treeView ?: "" ) ) {
 			ArrayAppend( args.extraFilters, { filter={ is_segmentation_filter=true } } );
 		} else {
-			ArrayAppend( args.extraFilters, { filter = "is_segmentation_filter is null or is_segmentation_filter = :is_segmentation_filter", filterParams={ is_segmentation_filter=false } } );
+			ArrayAppend( args.extraFilters, { filter = "rules_engine_condition.is_segmentation_filter is null or rules_engine_condition.is_segmentation_filter = :is_segmentation_filter", filterParams={ is_segmentation_filter=false } } );
 		}
 	}
 
@@ -254,7 +257,7 @@ component extends="preside.system.base.AdminHandler" {
 		var operationSource = event.getAdminOperationSource();
 		var filterObject    = prc.record.filter_object ?: ( rc.filterObject ?: "" );
 
-		if ( Len( filterObject ) && ( operationSource == "manageObjectFilters" || operationSource == "manageSegmentationFilters" ) ) {
+		if ( Len( filterObject ) && ( filterObject != "rules_engine_condition" ) && ( operationSource == "manageObjectFilters" || operationSource == "manageSegmentationFilters" ) ) {
 			customizationService.runCustomization(
 				  objectName     = filterObject
 				, action         = "objectBreadcrumb"

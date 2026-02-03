@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfoutput>
 	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "rest_user"

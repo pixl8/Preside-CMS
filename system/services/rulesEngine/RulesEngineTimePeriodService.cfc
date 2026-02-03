@@ -1,9 +1,9 @@
 /**
  * Provides methods for converting a saved time period into a date range
  *
- * @autodoc
- * @singleton
- *
+ * @autodoc   true
+ * @singleton true
+ * @feature   rulesEngine
  */
 component displayName="RulesEngine Time Period Service" {
 
@@ -28,6 +28,8 @@ component displayName="RulesEngine Time Period Service" {
 			return {};
 		};
 
+		var currentDateTime = _getCurrentDateTime();
+
 		switch( timePeriod.type ?: "" ) {
 			case "between":
 				if ( IsDate( timePeriod.date1 ?: "" ) && IsDate( timePeriod.date2 ?: "" ) ) {
@@ -36,12 +38,12 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 			case "since":
 				if ( IsDate( timePeriod.date1 ?: "" ) ) {
-					return { from=timePeriod.date1, to=_getCurrentDateTime() };
+					return { from=timePeriod.date1, to=currentDateTime };
 				}
 			break;
 			case "until":
 				if ( IsDate( timePeriod.date1 ?: "" ) ) {
-					return { from=_getCurrentDateTime(), to=timePeriod.date1 };
+					return { from=currentDateTime, to=timePeriod.date1 };
 				}
 			break;
 			case "before":
@@ -70,36 +72,37 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 			case "recent":
 				try {
-					var fromDate = DateAdd( ( timePeriod.unit ?: "" ), -( timePeriod.measure ?: "" ), _getCurrentDateTime() );
+					var fromDate = DateAdd( ( timePeriod.unit ?: "" ), -( timePeriod.measure ?: "" ), currentDateTime );
 				} catch( any e ) {
 					return {};
 				}
 
 				return {
-					  from = CreateDate( Year( fromDate ), Month( fromDate ), Day( fromDate ) )
-					, to   = _getCurrentDateTime()
+					  from = fromDate
+					, to   = currentDateTime
 				};
 			break;
 
 			case "upcoming":
 				try {
-					var toDate = DateAdd( ( timePeriod.unit ?: "" ), ( timePeriod.measure ?: "" ), _getCurrentDateTime() );
+					var toDate = DateAdd( ( timePeriod.unit ?: "" ), ( timePeriod.measure ?: "" ), currentDateTime );
 				} catch( any e ) {
 					return {};
 				}
 
 				return {
-					  to   = CreateDate( Year( toDate ), Month( toDate ), Day( toDate ) )
-					, from = _getCurrentDateTime()
+					  to   = toDate
+					, from = currentDateTime
 				};
 			break;
 
 			case "future":
-			return { from=_getCurrentDateTime() };
+				return { from=currentDateTime };
+			break;
 
 			case "futureplus":
 				try {
-					return { from = DateAdd( ( timePeriod.unit ?: "" ), ( timePeriod.measure ?: "" ), _getCurrentDateTime() ) };
+					return { from = DateAdd( ( timePeriod.unit ?: "" ), ( timePeriod.measure ?: "" ), currentDateTime ) };
 				} catch( any e ) {
 					return {};
 				}
@@ -107,7 +110,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "futureequal":
 				try {
-					var futureDate = DateAdd( "d", ( timePeriod.measure ?: "" ), _getCurrentDateTime() );
+					var futureDate = DateAdd( "d", ( timePeriod.measure ?: "" ), currentDateTime );
 					var fromDate   = CreateDate( Year( futureDate ), Month( futureDate ), Day( futureDate ) );
 
 					return {
@@ -120,11 +123,12 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "past":
-			return { to=_getCurrentDateTime() };
+				return { to=currentDateTime };
+			break;
 
 			case "pastminus":
 				try {
-					return { to = DateAdd( ( timePeriod.unit ?: "" ), 0-( timePeriod.measure ?: "" ), _getCurrentDateTime() ) };
+					return { to = DateAdd( ( timePeriod.unit ?: "" ), 0-( timePeriod.measure ?: "" ), currentDateTime ) };
 				} catch( any e ) {
 					return {};
 				}
@@ -132,7 +136,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "pastequal":
 				try {
-					var pastDate = DateAdd( "d", 0-( timePeriod.measure ?: "" ), _getCurrentDateTime() );
+					var pastDate = DateAdd( "d", 0-( timePeriod.measure ?: "" ), currentDateTime );
 					var fromDate = CreateDate( Year( pastDate ), Month( pastDate ), Day( pastDate ) );
 
 					return {
@@ -145,14 +149,8 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "yesterday":
-				var dateFrom = DateAdd( "d", -1, _getCurrentDateTime() );
-					dateFrom.setHour( "0" );
-					dateFrom.setMinute( "0" );
-					dateFrom.setSecond( "0" );
-				var dateTo = Duplicate( dateFrom );
-					dateTo.setHour( "23" );
-					dateTo.setMinute( "59" );
-					dateTo.setSecond( "59" );
+				var dateFrom        = DateAdd( "d", -1, CreateDateTime( Year( currentDateTime ), Month( currentDateTime ), Day( currentDateTime ) ) );
+				var dateTo          = CreateDateTime( Year( dateFrom ), Month( dateFrom ), Day( dateFrom ), 23, 59, 59 );
 
 				return {
 					  to   = dateTo
@@ -161,14 +159,8 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "today":
-				var dateFrom = _getCurrentDateTime();
-					dateFrom.setHour( "0" );
-					dateFrom.setMinute( "0" );
-					dateFrom.setSecond( "0" );
-				var dateTo = Duplicate( dateFrom );
-					dateTo.setHour( "23" );
-					dateTo.setMinute( "59" );
-					dateTo.setSecond( "59" );
+				var dateFrom        = CreateDateTime( Year( currentDateTime ), Month( currentDateTime ), Day( currentDateTime ) );
+				var dateTo          = CreateDateTime( Year( dateFrom )       , Month( dateFrom )       , Day( dateFrom ), 23, 59, 59 );
 
 				return {
 					  to   = dateTo
@@ -177,14 +169,8 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "tomorrow":
-				var dateFrom = DateAdd( "d", 1, _getCurrentDateTime() );
-					dateFrom.setHour( "0" );
-					dateFrom.setMinute( "0" );
-					dateFrom.setSecond( "0" );
-				var dateTo = Duplicate( dateFrom );
-					dateTo.setHour( "23" );
-					dateTo.setMinute( "59" );
-					dateTo.setSecond( "59" );
+				var dateFrom        = DateAdd( "d", 1, CreateDateTime( Year( currentDateTime ), Month( currentDateTime ), Day( currentDateTime ) ) );
+				var dateTo          = CreateDateTime( Year( dateFrom ), Month( dateFrom ), Day( dateFrom ), 23, 59, 59 );
 
 				return {
 					  to   = dateTo
@@ -193,15 +179,9 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "lastweek":
-				var offsetDay = DayOfWeek(_getCurrentDateTime());
-				var dateFrom  = DateAdd( "d", 1 - offsetDay - 7, _getCurrentDateTime() );
-					dateFrom.setHour( "0" );
-					dateFrom.setMinute( "0" );
-					dateFrom.setSecond( "0" );
-				var dateTo = DateAdd( "d", 6, dateFrom );
-					dateTo.setHour( "23" );
-					dateTo.setMinute( "59" );
-					dateTo.setSecond( "59" );
+				var offsetDay       = DayOfWeek( currentDateTime );
+				var dateFrom        = DateAdd( "d", 1 - offsetDay - 7, CreateDateTime( Year( currentDateTime ), Month( currentDateTime ), Day( currentDateTime ) ) );
+				var dateTo          = DateAdd( "d", 6                , CreateDateTime( Year( dateFrom )       , Month( dateFrom )       , Day( dateFrom ), 23, 59, 59 ) );
 
 				return {
 					  to   = dateTo
@@ -210,15 +190,9 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "thisweek":
-				var offsetDay = DayOfWeek(_getCurrentDateTime());
-				var dateFrom  = DateAdd( "d", 1 - offsetDay, _getCurrentDateTime() );
-					dateFrom.setHour( "0" );
-					dateFrom.setMinute( "0" );
-					dateFrom.setSecond( "0" );
-				var dateTo = DateAdd( "d", 6, dateFrom );
-					dateTo.setHour( "23" );
-					dateTo.setMinute( "59" );
-					dateTo.setSecond( "59" );
+				var offsetDay       = DayOfWeek( currentDateTime );
+				var dateFrom        = DateAdd( "d", 1 - offsetDay, CreateDateTime( Year( currentDateTime ), Month( currentDateTime ), Day( currentDateTime ) ) );
+				var dateTo          = DateAdd( "d", 6            , CreateDateTime( Year( dateFrom )       , Month( dateFrom )       , Day( dateFrom ), 23, 59, 59 ) );
 
 				return {
 					  to   = dateTo
@@ -227,15 +201,9 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "nextweek":
-				var offsetDay = DayOfWeek(_getCurrentDateTime());
-				var dateFrom  = DateAdd( "d", 1 - offsetDay + 7, _getCurrentDateTime() );
-					dateFrom.setHour( "0" );
-					dateFrom.setMinute( "0" );
-					dateFrom.setSecond( "0" );
-				var dateTo = DateAdd( "d", 6, dateFrom );
-					dateTo.setHour( "23" );
-					dateTo.setMinute( "59" );
-					dateTo.setSecond( "59" );
+				var offsetDay       = DayOfWeek( currentDateTime );
+				var dateFrom        = DateAdd( "d", 1 - offsetDay + 7, CreateDateTime( Year( currentDateTime ), Month( currentDateTime ), Day( currentDateTime ) ) );
+				var dateTo          = DateAdd( "d", 6                , CreateDateTime( Year( dateFrom )       , Month( dateFrom )       , Day( dateFrom ), 23, 59, 59 ) );
 
 				return {
 					  to   = dateTo
@@ -244,12 +212,10 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "lastmonth":
-				var firstOfThisMonth = CreateDateTime(year(_getCurrentDateTime()), month(_getCurrentDateTime()), 1, 0, 0, 0);
+				var firstOfThisMonth = CreateDateTime( Year( currentDateTime ), Month( currentDateTime ), 1, 0, 0, 0 );
 				var firstOfLastMonth = DateAdd( "m", -1, firstOfThisMonth );
-				var endOfLastMonth   = DateAdd( "d", -1, firstOfThisMonth );
-					endOfLastMonth.setHour( "23" );
-					endOfLastMonth.setMinute( "59" );
-					endOfLastMonth.setSecond( "59" );
+				var endOfLastMonth   = DateAdd( "s", -1, firstOfThisMonth );
+
 				return {
 					  to   = endOfLastMonth
 					, from = firstOfLastMonth
@@ -257,12 +223,10 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "thismonth":
-				var firstOfThisMonth = CreateDateTime(year(_getCurrentDateTime()), month(_getCurrentDateTime()), 1, 0, 0, 0);
+				var firstOfThisMonth = CreateDateTime( Year( currentDateTime ), Month( currentDateTime ), 1, 0, 0, 0 );
 				var firstOfNextMonth = DateAdd( "m", 1, firstOfThisMonth );
-				var endOfThisMonth   = DateAdd( "d", -1, firstOfNextMonth );
-					endOfThisMonth.setHour( "23" );
-					endOfThisMonth.setMinute( "59" );
-					endOfThisMonth.setSecond( "59" );
+				var endOfThisMonth   = DateAdd( "s", -1, firstOfNextMonth );
+
 				return {
 					  to   = endOfThisMonth
 					, from = firstOfThisMonth
@@ -270,16 +234,48 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 
 			case "nextmonth":
-				var nextMonthDate      = DateAdd( "m", 1, _getCurrentDateTime() );
-				var firstOfNextMonth   = CreateDateTime(year(nextMonthDate), month(nextMonthDate), 1, 0, 0, 0);
+				var nextMonthDate      = DateAdd( "m", 1, currentDateTime );
+				var firstOfNextMonth   = CreateDateTime( Year( nextMonthDate ), Month( nextMonthDate ), 1, 0, 0, 0);
 				var firstOfNext2Months = DateAdd( "m", 1, firstOfNextMonth );
-				var endOfNextMonth     = DateAdd( "d", -1, firstOfNext2Months );
-					endOfNextMonth.setHour( "23" );
-					endOfNextMonth.setMinute( "59" );
-					endOfNextMonth.setSecond( "59" );
+				var endOfNextMonth     = DateAdd( "s", -1, firstOfNext2Months );
+
 				return {
 					  to   = endOfNextMonth
 					, from = firstOfNextMonth
+				};
+			break;
+
+			case "lastyear":
+				var firstOfThisYear = CreateDateTime( Year( currentDateTime ), 1, 1, 0, 0, 0 );
+				var firstOfLastYear = DateAdd( "yyyy", -1, firstOfThisYear );
+				var endOfLastYear   = DateAdd( "s"   , -1, firstOfThisYear );
+
+				return {
+					  to   = endOfLastYear
+					, from = firstOfLastYear
+				};
+			break;
+
+			case "thisyear":
+				var firstOfThisYear = CreateDateTime( Year( currentDateTime ), 1, 1, 0, 0, 0 );
+				var firstOfNextYear = DateAdd( "yyyy", 1, firstOfThisYear );
+				var endOfThisYear   = DateAdd( "s"   , -1, firstOfNextYear );
+
+				return {
+					  to   = endOfThisYear
+					, from = firstOfThisYear
+				};
+			break;
+
+			case "nextyear":
+				var nextYearDate      = DateAdd( "yyyy", 1, currentDateTime );
+				var firstOfNextYear   = CreateDateTime( Year( nextYearDate ), 1, 1, 0, 0, 0);
+				var firstOfNext2Years = DateAdd( "yyyy",  1, firstOfNextYear );
+				var endOfNextYear     = DateAdd( "s"   , -1, firstOfNext2Years );
+
+				return {
+					  to   = endOfNextYear
+					, from = firstOfNextYear
 				};
 			break;
 		}

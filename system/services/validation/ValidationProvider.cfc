@@ -1,3 +1,6 @@
+/**
+ * @nowirebox
+ */
 component {
 
 	public any function init( required any sourceCfc ) output=false {

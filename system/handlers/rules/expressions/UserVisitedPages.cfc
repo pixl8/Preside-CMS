@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User has visited any/all of the following pages"
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers and siteTree
  */
 component {
 

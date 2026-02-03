@@ -2,15 +2,16 @@
  * Provides logic for querying viewlets that exist
  * in the system.
  *
- * @autodoc
- * @singleton
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
  */
 component {
 
 // constructor
 	/**
 	 * @sourceDirectories.inject presidecms:directories
-	 * @siteService.inject       siteService
+	 * @siteService.inject       featureInjector:sites:siteService
 	 */
 	public any function init( required array sourceDirectories, required any siteService ) {
 		_setSiteService( arguments.siteService );
@@ -31,7 +32,7 @@ component {
 	 */
 	public array function listPossibleViewlets( string filter="" ) {
 		var cachedResults = _getCachedResults();
-		var cacheKey      = _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) & arguments.filter;
+		var cacheKey      = _getActiveSiteTemplate() & arguments.filter;
 
 		if ( !StructKeyExists( cachedResults, cacheKey ) ) {
 			var viewlets = Duplicate( _getCoreViewlets() );
@@ -170,6 +171,10 @@ component {
 		return actions.keyArray();
 	}
 
+	private function _getActiveSiteTemplate() {
+		return $isFeatureEnabled( "sites" ) ? _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) : "";
+	}
+
 // GETTERS AND SETTERS
 	private array function _getCoreViewlets() {
 		return _coreViewlets;
@@ -179,7 +184,7 @@ component {
 	}
 
 	private array function _getSiteTemplateViewlets() {
-		return _siteTemplateViewlets[ _getSiteService().getActiveSiteTemplate( emptyIfDefault=true ) ] ?: [];
+		return _siteTemplateViewlets[ _getActiveSiteTemplate() ] ?: [];
 	}
 	private void function _setSiteTemplateViewlets( required struct siteTemplateViewlets ) {
 		_siteTemplateViewlets = arguments.siteTemplateViewlets;

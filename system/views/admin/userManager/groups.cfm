@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	objectName          = "security_group";
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );

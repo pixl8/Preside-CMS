@@ -4,6 +4,7 @@
  * @autodoc        true
  * @singleton      true
  * @presideService true
+ * @feature        emailCenter
  */
 component {
 
@@ -140,7 +141,7 @@ component {
 		} );
 
 		if ( updated ) {
-			if ( !$helpers.isEmptyString( arguments.templateId ) ) {
+			if ( !$helpers.isEmptyString( arguments.templateId ) && _getEmailTemplateService().templateExists( id=arguments.templateId ) ) {
 				_getEmailTemplateService().updateLastSentDate( templateId=arguments.templateId, lastSentDate=now );
 			}
 
@@ -163,8 +164,8 @@ component {
 	public void function markAsFailed( required string id, required string reason, string code="" ) {
 		var errorCode = Len( Trim( arguments.code ) ) ? Val( arguments.code ) : "";
 		var updated = $getPresideObject( "email_template_send_log" ).updateData(
-			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( opened is null or opened = :opened )"
-			, filterParams = { id=arguments.id, failed=false, opened=false }
+			  filter       = "id = :id and ( failed is null or failed = :failed ) and ( delivered is null or delivered = :delivered )"
+			, filterParams = { id=arguments.id, failed=false, delivered=false }
 			, data={
 				  failed        = true
 				, failed_date   = _getNow()
@@ -173,13 +174,11 @@ component {
 			  }
 		);
 
-		if ( updated ) {
-			recordActivity(
-				  messageId = arguments.id
-				, activity  = "fail"
-				, extraData = { reason=arguments.reason, code=errorCode }
-			);
-		}
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "fail"
+			, extraData = { reason=arguments.reason, code=errorCode }
+		);
 	}
 
 
@@ -803,6 +802,7 @@ component {
 			, "email_template_send_log.email_template"
 			, "email_template_send_log.datecreated"
 			, "email_template_send_log.resend_of"
+			, "email_template_send_log.send_args"
 			, "email_template.name"
 			, "email_template.recipient_type"
 		];

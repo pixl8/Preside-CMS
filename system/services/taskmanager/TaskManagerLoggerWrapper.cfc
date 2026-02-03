@@ -3,7 +3,8 @@
  * so that the task can maintain a task run log in a space that is unique
  * to the running task.
  *
- * @autodoc
+ * @autodoc true
+ * @feature taskManager || adhocTaskManager
  *
  */
 component displayName="TaskManager Logger Wrapper" {

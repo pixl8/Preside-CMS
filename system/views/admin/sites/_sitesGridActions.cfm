@@ -1,3 +1,4 @@
+<!---@feature admin and sites--->
 <cfparam name="args.id"   type="string" />
 <cfparam name="args.name" type="string" />
 

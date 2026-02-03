@@ -1,3 +1,4 @@
+<!---@feature admin and urlRedirects--->
 <cfoutput>
 	#renderView( view="/admin/datamanager/_addRecordForm", args={
 		  objectName            = "url_redirect_rule"

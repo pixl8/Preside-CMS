@@ -1,6 +1,7 @@
 /**
  * Viewlets for form field layouts within the form builder
  *
+ * @feature formBuilder
  */
 component {
 

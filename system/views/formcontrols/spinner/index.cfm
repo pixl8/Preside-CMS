@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name          ?: "";
 	inputId      = args.id            ?: "";
@@ -13,7 +14,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )
@@ -24,5 +25,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="number" id="#inputId#" class="#inputClass#" name="#inputName#" value="#value#"<cfif isNumeric( minValue )> min="#minValue#"</cfif><cfif isNumeric( maxValue )> max="#maxValue#"</cfif> step="#step#" tabindex="#getNextTabIndex()#" #htmlAttributes# />
+	<input type="number" id="#inputId#" class="form-control #inputClass#" name="#inputName#" value="#value#"<cfif isNumeric( minValue )> min="#minValue#"</cfif><cfif isNumeric( maxValue )> max="#maxValue#"</cfif><cfif Len( Trim( placeholder ) )> placeholder="#EncodeForHTMLAttribute( placeholder )#"</cfif> step="#step#" tabindex="#getNextTabIndex()#" #htmlAttributes# />
 </cfoutput>

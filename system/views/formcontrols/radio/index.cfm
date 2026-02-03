@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName      = args.name            ?: "";
 	inputId        = args.id              ?: "";
@@ -15,8 +16,6 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
-
-	value = HtmlEditFormat( value );
 	valueFound = false;
 
 	htmlAttributes = renderHtmlAttributes(
@@ -38,11 +37,11 @@
 				<input type="radio"
 				   id="#elementId#"
 				   name="#inputName#"
-				   value="#HtmlEditFormat( selectValue )#"
+				   value="#EncodeForHtmlAttribute( selectValue )#"
 				   class="#inputClass# #extraClasses#"
 				   tabindex="#getNextTabIndex()#"
 				   <cfif checked>checked</cfif>>
-				   #HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
+				   #EncodeForHtmlAttribute( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 				   #htmlAttributes#
 			</label>
 		</div>

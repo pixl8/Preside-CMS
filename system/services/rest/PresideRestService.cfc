@@ -2,9 +2,10 @@
  * An object to provide the Preside REST platform's
  * business logic.
  *
- * @autodoc
- * @singleton
- * @presideService
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
+ * @feature        restFramework
  *
  */
 component {
@@ -59,6 +60,7 @@ component {
 		var event        = $getRequestContext();
 
 		event.cachePage( false );
+		event.setContentSecurityPolicy( "default-src 'none'; frame-ancestors 'none';" );
 		event.setRestResponse( restResponse );
 		event.setRestRequest( restRequest );
 

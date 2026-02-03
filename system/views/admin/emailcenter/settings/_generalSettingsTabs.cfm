@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="args.body"                   default="" />
 <cfparam name="args.tab"                    default="general" />
 <cfparam name="args.providers" type="array" default="#ArrayNew(1)#" />

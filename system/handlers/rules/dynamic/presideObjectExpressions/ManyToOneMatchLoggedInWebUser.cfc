@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * many-to-one property's value matches the logged in admin user ID
  *
+ * @feature rulesEngine and websiteUsers
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

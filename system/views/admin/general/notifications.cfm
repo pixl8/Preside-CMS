@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	msgBox = getModel( "messagebox@cbmessagebox" );
 	msg = Duplicate( msgBox.getMessage() );

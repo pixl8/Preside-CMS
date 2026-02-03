@@ -2,7 +2,7 @@
  * @singleton      true
  * @presideService true
  * @autodoc        true
- *
+ * @feature        emailCenter
  */
 component {
 	property name="emailTemplateService" inject="delayedInjector:emailTemplateService";

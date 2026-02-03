@@ -1,4 +1,9 @@
+/**
+ * @feature sitetree
+ */
 component extends="preside.system.base.AdminHandler" {
+
+	property name="pageTypesService" inject="pageTypesService";
 
 	private string function buildViewRecordLink( event, rc, prc, args={} ) {
 		return buildEditRecordLink( argumentCollection=arguments );
@@ -10,7 +15,11 @@ component extends="preside.system.base.AdminHandler" {
 
 	private void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
 		args.extraFilters = args.extraFilters ?: [];
-		args.extraFilters.append( { filter={ trashed = false } } );
+
+		ArrayAppend( args.extraFilters, { filter={
+			  trashed   = false
+			, page_type = pageTypesService.listSiteTreePageTypes()
+		} } );
 	}
 
 	private void function postDecorateRecordsForGridListing( event, rc, prc, args={} ) {

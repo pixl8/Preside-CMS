@@ -283,3 +283,11 @@ input.ace[type="checkbox"] {
 .widget-body .table.no-top-border {
 	border-top: none;
 }
+
+a.disabled, a[disabled], a[disabled="disabled"] {
+	color: @default-disabled-font-colour !important;
+
+	&:hover {
+		cursor: not-allowed;
+	}
+}

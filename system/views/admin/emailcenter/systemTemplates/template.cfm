@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
     templateid    = rc.template  ?: "";
     version       = rc.version   ?: "";

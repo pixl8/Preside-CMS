@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and admin
+ */
 component {
 	property name="permissionService" inject="permissionService";
 

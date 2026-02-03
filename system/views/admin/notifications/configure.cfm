@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	topics             = prc.topics             ?: [];
 	selectedTopic      = prc.selectedTopic      ?: "";

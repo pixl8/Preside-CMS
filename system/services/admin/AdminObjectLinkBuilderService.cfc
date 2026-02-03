@@ -5,6 +5,7 @@
  * @autodoc        true
  * @presideService true
  * @singleton      true
+ * @feature        admin
  */
 component {
 
@@ -41,7 +42,7 @@ component {
 		,          string recordId   = ""
 		,          struct args       = {}
 	) {
-		if ( $getPresideObjectService().isPageType( arguments.objectName ) ) {
+		if ( $isFeatureEnabled( "sitetree" ) && $getPresideObjectService().isPageType( arguments.objectName ) ) {
 			arguments.objectName = "page";
 		}
 
@@ -54,28 +55,19 @@ component {
 		}
 
 		var customizationAction = "build#arguments.operation#Link";
-		var customizationArgs   = { objectName=arguments.objectName };
+		var customizationArgs   = { objectName=arguments.objectName, action=customizationAction };
 
 		customizationArgs.append( arguments.args );
 		if ( Len( Trim( arguments.recordId ) ) ) {
 			customizationArgs.recordId = arguments.recordId;
 		}
 
-		var result = "";
-		if ( _getCustomizationService().objectHasCustomization( arguments.objectName, customizationAction ) ) {
-			result = _getCustomizationService().runCustomization(
-				  objectName = arguments.objectName
-				, action     = customizationAction
-				, args       = customizationArgs
-			);
-		} else if ( _getDataManagerService().isObjectAvailableInDataManager( arguments.objectName ) ) {
-			result = $getColdbox().runEvent(
-				  event          = "admin.objectLinks.#customizationAction#"
-				, private        = true
-				, prePostExempt  = true
-				, eventArguments = { args=customizationArgs }
-			);
-		}
+		var result = _getCustomizationService().runCustomization(
+			  objectName     = arguments.objectName
+			, action         = customizationAction
+			, defaultHandler = "admin.objectLinks._buildLinkDefault"
+			, args           = customizationArgs
+		);
 
 		result = result ?: "";
 		result = IsSimpleValue( result ) ? result : "";

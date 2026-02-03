@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="args.action"            type="string" />
 <cfparam name="args.known_as"          type="string" />
 <cfparam name="args.userLink"          type="string" />

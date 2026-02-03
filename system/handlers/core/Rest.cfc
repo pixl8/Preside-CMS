@@ -1,3 +1,6 @@
+/**
+ * @feature restFramework
+ */
 component {
 
 	property name="presideRestService" inject="presideRestService";

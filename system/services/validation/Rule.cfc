@@ -1,3 +1,6 @@
+/**
+ * @nowirebox
+ */
 component accessors=true {
 	property name="fieldName"       type="string" default="";
 	property name="validator"       type="string" default="";

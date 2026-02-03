@@ -4,6 +4,7 @@
  * @singleton      true
  * @autodoc        true
  * @presideService true
+ * @feature        emailStyleInliner
  */
 component {
 	variables._lib   = [];
@@ -33,19 +34,19 @@ component {
 	 * @autodoc   true
 	 * @html.hint the original HTML
 	 */
-	public string function inlineStyles( required string html, array styles ) {
+	public string function inlineStyles( required string html, array styles, string cacheSuffix="" ) {
  		if ( !$helpers.hasTags( arguments.html ) ) {
 			return arguments.html;
 		}
 
-		var cacheKey = "htmlInlineStyles-#Hash( arguments.html )#";
+		var cacheKey = "htmlInlineStyles-#Hash( arguments.html )#" & arguments.cacheSuffix;
 		var fromCache = _getTemplateCache().get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
 			return fromCache;
 		}
 
-		arguments.html = trim( arguments.html );
+		arguments.html = Trim( arguments.html );
 
 		var innerHtmlOnly = !FindNoCase( "</html>", arguments.html );
 
@@ -162,10 +163,9 @@ component {
 	}
 
 	private array function _getElementsWithStylesToApply( required any doc, required array styles ) {
-		var elems         = [];
-		var elemStyles    = [];
+		var elems = {};
 
-		for( var style in styles ) {
+		for( var style in arguments.styles ) {
 			try {
 				var selectedElements = doc.select( style.selector );
 			} catch( any e ) {
@@ -173,14 +173,16 @@ component {
 			}
 
 			for ( var selectedElem in selectedElements ) {
-				var index = ArrayFind( elems, selectedElem );
-				if ( !index ) {
-					ArrayAppend( elems, selectedElem );
-					ArrayAppend( elemStyles, StructNew( "linked" ) );
-					index = ArrayLen( elems );
-				}
-				var elemStyle = elemStyles[ index ];
+				var hashCode = selectedElem.hashCode();
 
+				if ( !StructKeyExists( elems, hashCode ) ) {
+					elems[ hashCode ] = {
+						  element = selectedElem
+						, styles  = StructNew( "linked" )
+					};
+				}
+
+				var elemStyle = elems[ hashCode ].styles;
 
 				if ( !StructCount( elemStyle ) ) {
 					var existingInlineStyles = ListToArray( selectedElem.attr( "style" ), ";" );
@@ -210,22 +212,22 @@ component {
 			}
 		}
 
-		var index = 1;
-		for( var elem in elemStyles ) {
-			var style = "";
-			for( var prop in elem ) {
-				style = ListAppend( style, "#prop#:#elem[ prop ].value#", ";" );
+		var result = [];
+		for( var hashCode in elems ) {
+			var elemStyles  = elems[ hashcode ].styles;
+			var plainStyles = [];
+
+			for( var prop in elemStyles ) {
+				ArrayAppend( plainStyles, "#prop#:#elemStyles[ prop ].value#" );
 			}
 
-			elems[ index ] = {
-				  element = elems[ index ]
-				, style   = style
-			};
-
-			index++;
+			ArrayAppend( result, {
+				  element = elems[ hashCode ].element
+				, style   = ArrayToList( plainStyles, ";" )
+			} );
 		}
 
-		return elems;
+		return result;
 	}
 
 	private array function _orderStylesBySelectorPrecedence( required array styles ) {

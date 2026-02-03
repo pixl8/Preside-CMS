@@ -1,21 +1,21 @@
-<cfscript>
+<cfscript> 
 	reporter  = url.reporter  ?: "simple";
 	scope     = url.scope     ?: "full";
 	directory = url.directory ?: "";
-	testbox   = new testbox.system.TestBox( options={}, reporter=reporter, directory={
+	testbox   = new testbox.system.TestBox( options={ coverage={ enabled=true } }, directory={
 		  recurse  = true
-		, mapping  = Len( directory ) ? "integration.api.#directory#" : "integration"
+		, mapping  = Len( directory ) ? "unit.api.#directory#" : "unit"
 		, filter   = function( required path ){
 			if ( scope=="quick" ) {
-				excludes = [
+				var excludes = [
 					  "presideObjects/PresideObjectServiceTest"
 					, "security/CsrfProtectionServiceTest"
 					, "admin/LoginServiceTest"
 					, "admin/AuditServiceTest"
 					, "sitetree/SiteServiceTest"
 				];
-				for( exclude in excludes ) {
-					if ( ReFindNoCase( exclude, path ) ) {
+				for( var exclude in excludes ) {
+					if ( ReFindNoCase( listLast( exclude, "/" ), path ) ) {
 						return false;
 					}
 				}
@@ -25,7 +25,6 @@
 		}
 	} );
 
-	results = Trim( testbox.run() );
-
+	results = Trim( testbox.run( reporter=reporter ) );
 	content reset=true; echo( results ); abort;
 </cfscript>

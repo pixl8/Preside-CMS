@@ -6,7 +6,9 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	property name="presideObjectService"  inject="delayedInjector:presideObjectService";
 	property name="controller"            inject="delayedInjector:coldbox";
 	property name="sessionStorage"        inject="delayedInjector:sessionStorage";
+	property name="featureService"        inject="delayedInjector:featureService";
 	property name="adminLanguages"        inject="coldbox:setting:adminLanguages";
+	property name="frontendLanguages"     inject="coldbox:setting:frontendLanguages";
 	property name="unknownTranslation"    inject="coldbox:setting:unknownTranslation";
 
 	variables._localeCache = {};
@@ -24,13 +26,13 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 
 	public string function translateResource(
 		  required string uri
-		,          string defaultValue = unknownTranslation
-		,          string language     = getFWLanguageCode()
-		,          string country      = getFWCountryCode()
-		,          array  data         = []
-
+		,          string defaultValue     = unknownTranslation
+		,          string language         = getFWLanguageCode()
+		,          string country          = getFWCountryCode()
+		,          array  data             = []
+		,          boolean ignoreDebugMode = false
 	) output=false {
-		if ( _isDebugMode() ) {
+		if ( _isDebugMode() && !arguments.ignoreDebugMode ) {
 			return arguments.uri;
 		}
 
@@ -78,8 +80,10 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			var bundles = [ "cms" ];
 			var js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
 
-			for( var widget in widgetsService.getWidgets() ) {
-				ArrayAppend( bundles, "widgets." & widget );
+			if ( featureService.get().isFeatureEnabled( "cms" ) ) {
+				for( var widget in widgetsService.getWidgets() ) {
+					ArrayAppend( bundles, "widgets." & widget );
+				}
 			}
 			for( var po in presideObjectService.listObjects() ) {
 				ArrayAppend( bundles, "preside-objects." & po );
@@ -109,8 +113,10 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 			var bundles = [ "cms" ];
 			var content = "";
 
-			for( var widget in widgetsService.getWidgets() ) {
-				ArrayAppend( bundles, "widgets." & widget );
+			if ( featureService.get().isFeatureEnabled( "cms" ) ) {
+				for( var widget in widgetsService.getWidgets() ) {
+					ArrayAppend( bundles, "widgets." & widget );
+				}
 			}
 			for( var po in presideObjectService.listObjects() ) {
 				ArrayAppend( bundles, "preside-objects." & po );
@@ -136,14 +142,34 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 		return resourceBundleService.isValidResourceUri( arguments.uri );
 	}
 
+	public struct function getLocaleLabel( required string locale, required string defaultLocale ) {
+		var language = ListFirst( arguments.locale, "_" );
+		var country  = ListLen( arguments.locale, "_" ) > 1 ? ListRest( arguments.locale, "_" ) : "";
+
+		var title = translateResource( uri="locale:title", language=language, country=country );
+		var flag  = translateResource( uri="locale:flag" , language=language, country=country );
+
+		if ( arguments.locale != arguments.defaultLocale ) {
+			var defaultTitle = translateResource( uri="locale:title" );
+			if ( title == defaultTitle ) {
+				title = arguments.locale;
+				flag  = "Unknown.png";
+			}
+		}
+
+		return { title=title, flag=flag };
+	}
+
 	public any function setfwLocale( required string locale ) output=false {
 		var event = controller.getRequestService().getContext();
-		if ( event.isAdminRequest() && adminLanguages.len() && !adminLanguages.findNoCase( arguments.locale ) ) {
-			if ( adminLanguages.len() == 1 ) {
+		if ( event.isAdminRequest() && ArrayLen( adminLanguages ) && !ArrayFindNoCase( adminLanguages, arguments.locale ) ) {
+			if ( ArrayLen( adminLanguages ) == 1 ) {
 				arguments.locale = adminLanguages[ 1 ];
 			} else {
 				arguments.locale = controller.getSetting( "default_locale" );
 			}
+		} else if ( ArrayLen( frontendLanguages ) && !ArrayFindNoCase( frontendLanguages, arguments.locale ) ) {
+			arguments.locale = ( ArrayLen( frontendLanguages ) == 1 ) ? ArrayFirst( frontendLanguages ) : controller.getSetting( "default_locale" );
 		}
 
 		request._cbfwlocale = arguments.locale;
@@ -159,12 +185,14 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 
 			var event = controller.getRequestService().getContext();
 
-			if ( event.isAdminRequest() && adminLanguages.len() && !adminLanguages.findNoCase( request._cbfwlocale ) ) {
-				if ( adminLanguages.len() == 1 ) {
+			if ( event.isAdminRequest() && ArrayLen( adminLanguages ) && !ArrayFindNoCase( adminLanguages, request._cbfwlocale ) ) {
+				if ( ArrayLen( adminLanguages ) == 1 ) {
 					request._cbfwlocale = adminLanguages[ 1 ];
 				} else {
 					request._cbfwlocale = controller.getSetting( "default_locale" );
 				}
+			} else if ( ArrayLen( frontendLanguages ) && !ArrayFindNoCase( frontendLanguages, request._cbfwlocale ) ) {
+				request._cbfwlocale = ( ArrayLen( frontendLanguages ) == 1 ) ? ArrayFirst( frontendLanguages ) : controller.getSetting( "default_locale" );
 			}
 		}
 

@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine to retrieve a Question picker
  *
+ * @feature rulesEngine and formbuilder
  */
 component {
 	property name="presideObjectService" inject="presideObjectService";

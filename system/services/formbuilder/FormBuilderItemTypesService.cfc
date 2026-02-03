@@ -1,10 +1,10 @@
 /**
  * Provides logic around interacting with configured form builder item types
  *
- * @singleton
- * @presideservice
- * @autodoc
- *
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        formbuilder
  */
 component {
 

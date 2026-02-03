@@ -51,6 +51,7 @@
 		<cfargument name="coldbox"                   type="any"     required="false" />
 		<cfargument name="msSqlUseVarcharMaxForText" type="boolean" required="false" default="false" />
 		<cfargument name="throwOnLongTableName"      type="boolean" required="false" default="false" />
+		<cfargument name="delayInit"                 type="boolean" required="false" default="false" />
 
 		<cfscript>
 			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
@@ -70,6 +71,7 @@
 					, interceptorService = arguments.interceptorService
 					, featureService = mockFeatureService
 					, adapterFactory = adapterFactory
+					, ignoreFileService = _getMockIgnoreFileService()
 				);
 				var schemaVersioning = new preside.system.services.presideObjects.sqlSchemaVersioning(
 					  adapterFactory = adapterFactory
@@ -86,7 +88,7 @@
 				);
 				var relationshipGuidance = new preside.system.services.presideObjects.relationshipGuidance(
 					  objectReader = objReader
-					, selectDataViewService = createStub()
+					, selectDataViewService = arguments.selectDataViewService
 				);
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
@@ -128,7 +130,6 @@
 					, reloadDb               = false
 					, throwOnLongTableName   = arguments.throwOnLongTableName
 				);
-				request[ key ].postInit();
 
 				request[ key ] = getMockbox().createMock( object=request[ key ] );
 
@@ -140,6 +141,10 @@
 				request[ key ].$( "$getColdbox", coldbox );
 				mockRequestContext.$( "showNonLiveContent", false );
 				coldbox.$( "handlerExists", false );
+
+				if ( !arguments.delayInit ) {
+					request[ key ].postInit();
+				}
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];
@@ -301,6 +306,20 @@
 			  dbInfoService             = new preside.system.services.database.DbInfoService()
 			, msSqlUseVarcharMaxForText = false
 		).getAdapter( application.dsn ) />
+	</cffunction>
+
+	<cffunction name="_getMockIgnoreFileService" access="private" returntype="any" output="false">
+		<cfscript>
+			var mock = CreateEmptyMock(  "preside.system.services.utility.IgnoreFileService" );
+
+			mock.$( "read" );
+			mock.$( "write" );
+			mock.$( "ignore" );
+			mock.$( "isIgnored", false );
+			mock.$( "getIgnored", {} );
+
+			return mock;
+		</cfscript>
 	</cffunction>
 
 </cfcomponent>

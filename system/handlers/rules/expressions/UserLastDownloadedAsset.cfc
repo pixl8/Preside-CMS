@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User has downloaded an asset within the last x days"
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers and assetManager
  */
 component {
 

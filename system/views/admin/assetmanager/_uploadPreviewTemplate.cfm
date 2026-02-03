@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <tr class="asset-preview">
 	<td class="upload-preview"><img class="preview-thumbnail" width="50" height="50" /></td>
 	<td class="upload-type">{{{type}}}</td>

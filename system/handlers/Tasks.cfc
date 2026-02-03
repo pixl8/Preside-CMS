@@ -1,13 +1,14 @@
 /**
  * Core tasks for the task manager
  *
+ * @feature taskManager
  */
 component {
 
 	property name="emailLoggingService"     inject="emailLoggingService";
 	property name="notificationService"     inject="notificationService";
 	property name="workflowService"         inject="WorkflowService";
-	property name="websiteLoginService"     inject="websiteLoginService";
+	property name="websiteLoginService"     inject="featureInjector:websiteUsers:websiteLoginService";
 	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
 	property name="assetQueueService"       inject="assetQueueService";
 	property name="batchOperationService"   inject="dataManagerBatchOperationService";

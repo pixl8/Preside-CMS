@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	notification = prc.notification ?: {};
 </cfscript>

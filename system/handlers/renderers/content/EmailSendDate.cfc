@@ -1,3 +1,6 @@
+/**
+ * @feature emailCenter
+ */
 component {
 
 	property name="emailMassSendingService" inject="emailMassSendingService";

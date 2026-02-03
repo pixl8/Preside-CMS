@@ -1,3 +1,4 @@
+<!---@feature cms--->
 <cfset crumbs = event.getBreadCrumbs() />
 <cfoutput>
 	<cfloop array="#crumbs#" index="i" item="crumb">

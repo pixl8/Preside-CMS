@@ -19,8 +19,6 @@
 
 	modalClasses = prc.modalClasses ?: "";
 
-
-	event.include( assetId="/js/admin/coretop/ie/", group="top" );
 	event.include( assetId="/js/admin/coretop/", group="top" );
 	topJs = event.renderIncludes( type="js", group="top" );
 </cfscript>

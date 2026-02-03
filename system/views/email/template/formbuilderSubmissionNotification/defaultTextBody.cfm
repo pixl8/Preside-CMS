@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter and formbuilder--->
 <cfoutput>
 ${submission_preview}
 

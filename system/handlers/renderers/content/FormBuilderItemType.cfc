@@ -1,3 +1,6 @@
+/**
+ * @feature formbuilder
+ */
 component {
 
 	private string function default( event, rc, prc, args={} ){

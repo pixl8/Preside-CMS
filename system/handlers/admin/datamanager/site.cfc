@@ -1,3 +1,6 @@
+/**
+ * @feature admin and sites
+ */
 component {
 
 	private string function buildViewRecordLink( event, rc, prc, args={} ) {

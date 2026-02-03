@@ -1,7 +1,8 @@
 /**
  * @datamanagerEnabled true
- * @versioned false
- * @nolabel
+ * @versioned          false
+ * @nolabel            true
+ * @feature            admin
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Website user login token" {
 	property name="user"   relationship="many-to-one" relatedTo="security_user"              uniqueindexes="userHomepage|1";

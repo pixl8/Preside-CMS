@@ -1,9 +1,10 @@
+<!---@feature presideForms and rulesEngine--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
 	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
-	placeholder  = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	placeholder  = EncodeForHtmlAttribute( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue = args.defaultValue ?: "";
 	maxLength    = Val( args.maxLength ?: 0 );
 	isFilter     = IsTrue( args.isFilter ?: "" ) ? "true" : "false"; // deliberate stringifying of booleans here
@@ -16,7 +17,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	if ( isFilter ) {
 		conditionPaneTitle     = translateResource( "cms:rulesEngine.filter.builder.condition.pane.title" );
@@ -45,7 +46,7 @@
 					<div class="rules-engine-condition-builder-expressions-pane">
 						<label class="block clearfix">
 							<span class="block input-icon input-icon-right">
-								<input class="rules-engine-condition-builder-expression-search form-control" placeholder="#HtmlEditFormat( translateResource( 'cms:rulesEngine.expression.search.placeholder' ) )#">
+								<input class="rules-engine-condition-builder-expression-search form-control" placeholder="#EncodeForHtmlAttribute( translateResource( 'cms:rulesEngine.expression.search.placeholder' ) )#">
 								<i class="fa fa-search fa-fw light-grey"></i>
 							</span>
 						</label>

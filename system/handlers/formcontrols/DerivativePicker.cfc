@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and assetManager
+ */
 component {
 
 	property name="assetManagerService"  inject="AssetManagerService";

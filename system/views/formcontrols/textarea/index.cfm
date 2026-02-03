@@ -1,9 +1,10 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
 	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
-	placeholder  = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	placeholder  = EncodeForHtmlAttribute( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue = args.defaultValue ?: "";
 	maxlength    = args.maxlength    ?: "";
 	minlength    = args.minlength    ?: "";
@@ -13,7 +14,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )

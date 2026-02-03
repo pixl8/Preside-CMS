@@ -1,10 +1,17 @@
+/**
+ * @feature formBuilder
+ */
 component {
-	property name="formbuilderService" inject="formbuilderService";
+
+	property name="formbuilderService" inject="FormbuilderService";
 
 	private function index( event, rc, prc, args={} ) {
 		var pageCachingEnabled = isFeatureEnabled( "fullPageCaching" );
 
 		event.include( assetId="/js/frontend/formbuilder/" );
+		event.cachePage( false );
+		event.preventPageCache();
+
 		if ( pageCachingEnabled ) {
 			event.include( "recaptcha-js" );
 		}
@@ -28,12 +35,15 @@ component {
 	}
 
 	private string function _renderForm( event, rc, prc, args={} ) {
-		var formId    = args.form   ?: "";
-		var layout    = args.layout ?: "";
-		var rendered  = "";
-		var savedData = formBuilderService.getTempStoredSubmission( formId );
+		var formId = args.form   ?: "";
+		var layout = args.layout ?: "";
 
-		StructAppend( rc, savedData );
+		var storageKey = args.storageKey = args._sk = ( rc._sk ?: "" );
+
+		var rendered       = "";
+		var tempSubmission = formBuilderService.getTempStoredSubmission( formId=formId, storageKey=storageKey );
+
+		StructAppend( rc, tempSubmission );
 
 		if ( Len( Trim( formId ) ) ) {
 			if( !formbuilderService.formExists( formId ) ){
@@ -56,9 +66,24 @@ component {
 				return checkAccess.content;
 			}
 
-			if ( !StructIsEmpty( savedData ) ) {
+			if ( isTrue( tempSubmission.checkAccess ?: "" ) ) {
 				var resubmitMessage = formbuilderService.formHasFileUploadFields( formId ) ? "resubmit.after.login.with.files" : "resubmit.after.login";
 				rendered &= '<div class="alert alert-info"><p>' & translateResource( "formbuilder:#resubmitMessage#") & '</p></div>';
+			}
+
+			var requestData = event.getCollectionWithoutSystemVars();
+
+			args.instanceSite = args.instanceSite ?: event.getSiteId();
+			args.instanceUrl  = args.instanceUrl  ?: event.getCurrentUrl();
+
+			args.formPageCount  = formbuilderService.getPageCount( formId=formId );
+			args.formPageNumber = args.formPageCount ? ( requestData.formPageNumber ?: 1  ) : 0;
+
+			var page = formbuilderService.getPageByPageNumber( formId=formId, pageNumber=args.formPageNumber );
+			args.instancePage = args.formPageCount ? ( tempSubmission.instancePage ?: ( page.id ?: "" ) ) : "";
+
+			while ( !formbuilderService.evaluateConditionForPage( formId=formId, pageNumber=args.formPageNumber, storageKey=storageKey ) ) {
+				args.formPageNumber += requestData.formPageNext ?: 1;
 			}
 
 			rendered &= formbuilderService.renderForm(

@@ -1,9 +1,10 @@
 /**
  * Provides image manipulation logic using ImageMagick
  *
- * @autodoc
- * @singleton
- * @presideservice
+ * @autodoc        true
+ * @singleton      true
+ * @presideservice true
+ * @feature        assetManager
  *
  */
 component displayname="ImageMagick"  {

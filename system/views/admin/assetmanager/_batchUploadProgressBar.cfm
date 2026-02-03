@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfoutput>
 	<p>#translateResource( "cms:assetmanager.upload.steps.batch.upload.progress.description" )#</p>
 

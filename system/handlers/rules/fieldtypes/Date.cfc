@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'date type'
  *
+ * @feature rulesEngine
  */
 component {
 

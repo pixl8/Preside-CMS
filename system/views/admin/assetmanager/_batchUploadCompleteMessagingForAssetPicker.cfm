@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfoutput>
 	<div class="alert alert-success complete-success">
 		<p><i class="fa fa-fw fa-check"></i> #translateResource( 'cms:assetmanager.upload.success.message' )#</p>

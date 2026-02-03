@@ -2,7 +2,7 @@
  * @singleton      true
  * @presideService true
  * @autodoc        true
- *
+ * @feature        emailCenter
  */
 component {
 
@@ -22,9 +22,9 @@ component {
 	 * @emailRecipientTypeService.inject  emailRecipientTypeService
 	 * @emailLayoutService.inject         emailLayoutService
 	 * @emailSendingContextService.inject emailSendingContextService
-	 * @emailStyleInliner.inject          emailStyleInliner
+	 * @emailStyleInliner.inject          featureInjector:emailStyleInliner:emailStyleInliner
 	 * @emailStatsService.inject          emailStatsService
-	 * @assetManagerService.inject        assetManagerService
+	 * @assetManagerService.inject        featureInjector:assetManager:assetManagerService
 	 * @emailSettings.inject              coldbox:setting:email
 	 * @templateCache.inject              cachebox:emailTemplateCache
 	 * @timeSeriesUtils.inject            timeSeriesUtils
@@ -154,8 +154,10 @@ component {
 				}
 			}
 
+			var emailLayout = Len( arguments.layout ) ? arguments.layout : messageTemplate.layout;
+
 			message.textBody = _getEmailLayoutService().renderLayout(
-				  layout         = Len( arguments.layout ) ? arguments.layout : messageTemplate.layout
+				  layout         = emailLayout
 				, emailTemplate  = arguments.template
 				, templateDetail = messageTemplate
 				, blueprint      = messageTemplate.email_blueprint
@@ -173,7 +175,7 @@ component {
 				, unsubscribeLink    = unsubscribeLink
 				, viewOnline         = viewOnline
 			);
-			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles } );
+			message.htmlBody = $renderContent( renderer="richeditor", data=preppedHtml.html, context="email", args={ styles=preppedHtml.styles, cacheSuffix=emailLayout } );
 
 			var params = Duplicate( arguments.parameters );
 
@@ -237,10 +239,11 @@ component {
 	 */
 	public string function renderHtmlSnippet(
 		  required string html
-		,          array  styles = []
+		,          array  styles      = []
+		,          string cacheSuffix = ""
 	) {
 		if ( $isFeatureEnabled( "emailStyleInliner" ) && ArrayLen( arguments.styles ) ) {
-			return _getEmailStyleInliner().inlineStyles( arguments.html, arguments.styles );
+			return _getEmailStyleInliner().inlineStyles( arguments.html, arguments.styles, arguments.cacheSuffix );
 		}
 
 		return arguments.html;
@@ -430,8 +433,14 @@ component {
 	 * @autodoc true
 	 * @id.hint ID of the template to check
 	 */
-	public boolean function templateExists( required string id ) {
-		return $getPresideObject( "email_template" ).dataExists( id=arguments.id );
+	public boolean function templateExists( required string id ){
+		var cacheKey = "_emailTemplateExists#arguments.id#";
+
+		if ( !StructKeyExists( request, cacheKey ) ) {
+			request[ cacheKey ] = $getPresideObject( "email_template" ).dataExists( id=arguments.id, usecache=true );
+		}
+
+		return request[ cacheKey ];
 	}
 
 	/**
@@ -449,31 +458,50 @@ component {
 		,          numeric version           = 0
 		,          boolean fromVersionTable  = ( arguments.allowDrafts || arguments.version )
 		,          array   extraSelectFields = []
+		,          boolean useRequestCache   = true
 	){
-		var template = $getPresideObject( "email_template" ).selectData(
-			  id                 = arguments.id
-			, allowDraftVersions = arguments.allowDrafts
-			, fromversionTable   = arguments.fromVersionTable
-			, specificVersion    = arguments.version
-			, extraSelectFields  = arguments.extraSelectFields
-			, useCache           = false
-		);
-
-		for( var t in template ) {
-			if ( ( t.email_blueprint ?: "" ).len() ) {
-				var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=t.email_blueprint );
-				if ( blueprint.recordCount ) {
-					t.layout           = blueprint.layout;
-					t.recipient_type   = blueprint.recipient_type;
-					t.blueprint_filter = blueprint.recipient_filter;
-					t.service_provider = blueprint.service_provider;
-				}
-			}
-
-			return t;
+		if ( arguments.useRequestCache ) {
+			var cacheKey = "_emailTemplate#Hash( SerializeJson( arguments ) )#";
 		}
 
-		return {};
+		if ( !arguments.useRequestCache || !StructKeyExists( request, cacheKey ) ) {
+			var template = $getPresideObject( "email_template" ).selectData(
+				  id                 = arguments.id
+				, allowDraftVersions = arguments.allowDrafts
+				, fromversionTable   = arguments.fromVersionTable
+				, specificVersion    = arguments.version
+				, extraSelectFields  = arguments.extraSelectFields
+				, useCache           = false
+			);
+
+			if ( !template.recordCount ) {
+				if ( arguments.useRequestCache ) {
+					request[ cacheKey ] = {};
+				}
+
+				return {};
+			}
+
+			for( var t in template ) {
+				if ( ( t.email_blueprint ?: "" ).len() ) {
+					var blueprint = $getPresideObject( "email_blueprint" ).selectData( id=t.email_blueprint );
+					if ( blueprint.recordCount ) {
+						t.layout           = blueprint.layout;
+						t.recipient_type   = blueprint.recipient_type;
+						t.blueprint_filter = blueprint.recipient_filter;
+						t.service_provider = blueprint.service_provider;
+					}
+				}
+
+				if ( arguments.useRequestCache ) {
+					request[ cacheKey ] = t;
+				}
+
+				return t;
+			}
+		}
+
+		return arguments.useRequestCache ? request[ cacheKey ] : {};
 	}
 
 	/**
@@ -569,6 +597,8 @@ component {
 		,          array  styles = []
 		,          array  detectedParams
 	) {
+		$announceInterception( "prePrepareEmailParameters", arguments );
+
 		var anythingToDo = !StructKeyExists( arguments, "detectedParams" ) || ArrayLen( arguments.detectedParams );
 		if ( !anythingToDo ) {
 			return {};
@@ -594,10 +624,12 @@ component {
 		if ( $isFeatureEnabled( "emailStyleInliner" ) && ArrayLen( arguments.styles ) ) {
 			for( var paramName in params ) {
 				if ( IsStruct( params[ paramName ] ) && Len( params[ paramName ].html ?: "" ) ) {
-					params[ paramName ].html = renderHtmlSnippet( params[ paramName ].html, arguments.styles );
+					params[ paramName ].html = renderHtmlSnippet( params[ paramName ].html, arguments.styles, arguments.templateDetail.layout ?: "" );
 				}
 			}
 		}
+
+		$announceInterception( "postPrepareEmailParameters", params );
 
 		return params;
 	}
@@ -614,6 +646,8 @@ component {
 		  required string template
 		, required string recipientType
 	) {
+		$announceInterception( "prePrepareEmailPreviewParameters", arguments );
+
 		var params = _getEmailRecipientTypeService().getPreviewParameters(
 			recipientType = arguments.recipientType
 		);
@@ -622,6 +656,8 @@ component {
 				template = arguments.template
 			) );
 		}
+
+		$announceInterception( "postPrepareEmailPreviewParameters", params );
 
 		return params;
 	}
@@ -659,8 +695,14 @@ component {
 	 * @markAsSent.hint Whether or not to mark a 'fixedschedule' template as sent
 	 */
 	public string function updateScheduledSendFields( required string templateId, boolean markAsSent=false ) {
-		var template    = getTemplate( id=arguments.templateId, allowDrafts=true, fromVersionTable=false );
-		var updatedData = { schedule_next_send_date = "" };
+		var template    = getTemplate(
+			  id               = arguments.templateId
+			, allowDrafts      = true
+			, fromVersionTable = false
+			, useRequestCache  = false
+		);
+
+		var updatedData = { schedule_next_send_date="", schedule_queueing=false };
 
 		if ( template.sending_method == "scheduled" ) {
 			if ( template.schedule_type == "repeat" ) {
@@ -709,18 +751,42 @@ component {
 		return saveTemplate( id=arguments.templateId, template=updatedData, isDraft=( template._version_is_draft ?: false ) );
 	}
 
-/**
+	/**
 	 * Update the date of last email sent
 	 *
 	 * @autodoc           true
 	 * @templateId.hint   ID of the template to update
 	 * @lastSentDate.hint The date of last sent
 	 */
-	public string function updateLastSentDate(
+	public any function updateLastSentDate(
 		  required string templateId
-		, required string lastSentDate
+		, required any    lastSentDate
 	) {
-		return saveTemplate( id=arguments.templateId, template={ last_sent_date=arguments.lastSentDate } );
+		return $getPresideObject( "email_template" ).updateData(
+			  id      = arguments.templateId
+			, data    = { last_sent_date=arguments.lastSentDate }
+		);
+	}
+
+	/**
+	 * Update the queueing flag of email
+	 *
+	 * @autodoc           true
+	 * @templateId.hint   ID of the template to update
+	 * @scheduleQueueing.hint The date of last sent
+	 */
+	public any function updateScheduleQueueingFlag(
+		  required string  templateId
+		, required boolean isQueueing
+		,          boolean queueFailed = false
+	) {
+		return $getPresideObject( "email_template" ).updateData(
+			  id      = arguments.templateId
+			, data    = {
+				  schedule_queueing   = arguments.isQueueing
+				, schedule_queue_fail = arguments.queueFailed
+			}
+		);
 	}
 
 	/**
@@ -775,6 +841,10 @@ component {
 		,          boolean allowDrafts      = false
 		,          boolean fromVersionTable = arguments.allowDrafts
   	) {
+  		if ( !$isFeatureEnabled( "assetManager" ) ) {
+  			return [];
+  		}
+
 		var assetManagerService = _getAssetManagerService()
 		var attachments         = [];
 		var assets              = $getPresideObject( "email_template" ).selectData(
@@ -1572,7 +1642,7 @@ component {
 
 		if ( $isFeatureEnabled( "emailStyleInliner" ) ) {
 			var styles = _getEmailStyleInliner().readStyles( html );
-			html = _getEmailStyleInliner().inlineStyles( html, styles );
+			html = _getEmailStyleInliner().inlineStyles( html, styles, htmlArgs.layout );
 		}
 
 		var result = {

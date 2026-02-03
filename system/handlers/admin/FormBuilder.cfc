@@ -1,3 +1,6 @@
+/**
+ * @feature formbuilder
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="formBuilderService"          inject="formBuilderService";
@@ -7,7 +10,6 @@ component extends="preside.system.base.AdminHandler" {
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
 	property name="adHocTaskManagerService"     inject="adHocTaskManagerService";
 	property name="submissionRemovalMinDays"    inject="coldbox:setting:formbuilder.submissions.removal.minAllowedDays";
-
 
 // PRE-HANDLER
 	public void function preHandler( event, action, eventArguments ) {
@@ -120,6 +122,10 @@ component extends="preside.system.base.AdminHandler" {
 				placeholder = translateResource( uri="preside-objects.formbuilder_formitem:field.question.placeholder.custom", data=[ prc.itemTypeConfig.title ] )
 			} } };
 		} else {
+			if ( ( item.item_type ?: "" ) == "page" ) {
+				prc.additionalFormArgs = { fields={ condition={ rulesEngineContextData={ formId=formId } } } };
+			}
+
 			prc.formName = prc.itemTypeConfig.configFormName ?: "";
 		}
 	}
@@ -144,7 +150,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( validationResult.validated() && formBuilderService.isV2Form( formId ) && itemTypeConfig.isFormField ) {
 			var formItems = formBuilderService.getFormItems( formId );
 			for ( var item in formItems ) {
-				if ( itemId != item.id && questionId == item.questionId ?: "" ) {
+				if ( itemId != item.id && questionId == (item.questionId ?: "") ) {
 					validationResult.addError(
 						  fieldName = "question"
 						, message   = translateResource( uri="preside-objects.formbuilder_formitem:field.question.duplicate.error" )
@@ -380,6 +386,9 @@ component extends="preside.system.base.AdminHandler" {
 
 		var theQuestion        =      formBuilderService.getQuestion( questionId );
 
+		if ( !isFeatureEnabled( "websiteUsers" ) ) {
+			exportFields = ListDeleteAt( exportFields, ListFind( exportFields, "submitted_by" ) );
+		}
 		if ( !theQuestion.recordCount ) {
 			event.adminNotFound();
 		}
@@ -411,6 +420,10 @@ component extends="preside.system.base.AdminHandler" {
 		var questionId   = args.questionId   ?: "";
 		var exportFields = args.exportFields ?: "id,submission_type,submission_reference,submitted_by,datecreated,is_website_user,parent_name";
 		var exporter     = args.exporter     ?: "Excel"
+
+		if ( !isFeatureEnabled( "websiteUsers" ) ) {
+			exportFields = ListDeleteAt( exportFields, ListFind( exportFields, "submitted_by" ) );
+		}
 
 		formBuilderService.exportQuestionResponses(
 			  questionId        = questionId
@@ -705,7 +718,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object          = "formbuilder_form"
 				, useMultiActions = prc.canDelete
-				, gridFields      = "name,description,locked,active,active_from,active_to"
+				, gridFields      = "name,description,locked,active,active_from,active_to,datemodified"
 				, actionsView     = "admin.formbuilder.formDataTableGridFields"
 			}
 		);
@@ -723,13 +736,14 @@ component extends="preside.system.base.AdminHandler" {
 		var useMultiActions = canDelete;
 		var checkboxCol     = [];
 		var optionsCol      = [];
-		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ];
+		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "form_page", "submitted_data" ];
 		var dtHelper        = getModel( "JQueryDatatablesHelpers" );
+		var sortOrder       = dtHelper.getSortOrder();
 		var results         = formbuilderService.getSubmissionsForGridListing(
 			  formId                = formId
 			, startRow              = dtHelper.getStartRow()
 			, maxRows               = dtHelper.getMaxRows()
-			, orderBy               = dtHelper.getSortOrder()
+			, orderBy               = Len( sortOrder ) ? sortOrder : "datecreated desc"
 			, searchQuery           = dtHelper.getSearchQuery()
 			, sFilterExpression     = sFilterExpression
 			, savedFilterExpIdLists = savedFilterExpIdLists
@@ -737,6 +751,10 @@ component extends="preside.system.base.AdminHandler" {
 		var records = Duplicate( results.records );
 		var viewSubmissionTitle   = translateResource( "formbuilder:view.submission.modal.title" );
 		var deleteSubmissionTitle = translateResource( "formbuilder:delete.submission.prompt" );
+
+		if ( !isFeatureEnabled( "websiteUsers" ) ) {
+			ArrayDelete( gridFields, "submitted_by" );
+		}
 
 		for( var record in records ){
 			for( var field in gridFields ){
@@ -855,6 +873,89 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function importFormFields( event, rc, prc, args ) {
+		prc.pageTitle = translateResource( "formbuilder:importFormFields.page.title" );
+		prc.pageIcon  = "file-import";
+
+		event.addAdminBreadCrumb(
+			  title = prc.pageTitle
+			, link  = ""
+		);
+	}
+
+	public string function importFormFieldsAction( event, rc, prc, args ) {
+		var formId = rc.id ?: "";
+
+		var formData         = event.getCollectionWithoutSystemVars()
+		var validationResult = validateForms( formData );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+
+			formData.validationResult = validationResult;
+
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importFormFields", queryString="id=#formId#" ), persistStruct=formData );
+		}
+
+		try {
+			var data = DeserializeJSON( ToString( formData.formFieldsFile.binary ?: "{}" ) );
+
+			var taskId = createTask(
+				  event             = "admin.FormBuilder.importFormFieldsInBackgroundThread"
+				, args              = { formId=formId, data=data }
+				, runNow            = true
+				, adminOwner        = event.getAdminUserId()
+				, discardOnComplete = false
+				, title             = "formbuilder:task.form.delete.title"
+				, returnUrl         = event.buildAdminLink( linkto="formbuilder.manageForm", queryString="id=#formId#" )
+			);
+
+			setNextEvent( url=event.buildAdminLink(
+				  linkTo      = "adhoctaskmanager.progress"
+				, queryString = "taskId=" & taskId
+			) );
+		} catch ( any e ) {
+			logError( e );
+
+			messageBox.error( translateResource( uri="formbuilder:importFormFields.message.error" ) );
+
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.importFormFields", queryString="id=#formId#" ), persistStruct=formData );
+		}
+	}
+
+	private void function importFormFieldsInBackgroundThread( event, rc, prc, args={}, logger, progress ) {
+		var canProgress = StructKeyExists( arguments, "progress" );
+
+		logMessage( logger, "info", "Start importing the form fields..." );
+
+		formBuilderService.importFormFields(
+			  formId   = args.formId ?: ""
+			, data     = args.data   ?: {}
+			, logger   = logger
+			, progress = progress
+		);
+
+		if ( canProgress ) {
+			arguments.progress.setProgress( 100 );
+		}
+
+		logMessage( logger, "info", "Finished import." );
+	}
+
+	public string function exportFormFieldsAction( event, rc, prc, args ) {
+		var filePath = formBuilderService.exportFormFields( formId=rc.id ?: "" );
+
+		if ( isEmptyString( filePath ) ) {
+			event.notFound();
+		}
+
+		var fileName = ListLast( filePath, "/" );
+
+		header name="Content-Disposition" value="attachment; filename=""#fileName#""";
+		content reset=true file=filePath deletefile=true type="application/json";
+		abort;
+	}
+
 	private void function deleteFormInBgThread( event, rc, prc, args={}, logger, progress ) {
 		logMessage( arguments.logger, "info", "Start deleting the form and all its data..." );
 
@@ -928,6 +1029,8 @@ component extends="preside.system.base.AdminHandler" {
 		args.locked      = IsTrue( args.locked ?: "" );
 		args.canLock     = hasCmsPermission( permissionKey="formbuilder.lockForm" );
 		args.canActivate = !args.locked && hasCmsPermission( permissionKey="formbuilder.activateForm" );
+		args.canEdit     = hasCmsPermission( permissionKey="formbuilder.editform" );
+		args.canDelete   = hasCmsPermission( permissionKey="formbuilder.deleteform" );
 
 		return renderView( view="/admin/formbuilder/_statusControls", args=args );
 	}

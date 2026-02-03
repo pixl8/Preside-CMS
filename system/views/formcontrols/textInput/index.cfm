@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -8,14 +9,14 @@
 	disabled     = isTrue( args.disabled ?: "" );
 	autocomplete = args.autocomplete ?: "";
 	placeholder  = args.placeholder  ?: "";
-	placeholder  = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	placeholder  = EncodeForHtmlAttribute( translateResource( uri=placeholder, defaultValue=placeholder ) );
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	htmlAttributes = renderHtmlAttributes(
 		  attribs      = ( args.attribs      ?: {} )

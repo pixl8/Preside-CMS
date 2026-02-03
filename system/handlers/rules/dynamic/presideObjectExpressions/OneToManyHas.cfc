@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * one-to-many relationships has any relationships
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

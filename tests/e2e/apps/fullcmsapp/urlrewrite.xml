@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 4.0//EN" "http://www.tuckey.org/res/dtds/urlrewrite4.0.dtd">
+<urlrewrite>
+    <rule>
+        <note>
+            Disable CFML Admin Contexts
+        </note>
+        <condition type="remote-addr" operator="notequal" next="or">127.0.0.1</condition>
+        <condition name="host"        operator="notequal" next="or">127.0.0.1</condition>
+        <from>^/(railo-context|lucee|cfide|bluedragon)/admin.*$</from>
+        <set type="status">404</set>
+        <to last="true">/404.html</to>
+    </rule>
+
+    <rule>
+        <note>
+            Remove query string when it contains cfid, cftoken, or jsessionid.
+            This is to prevent accidental or deliberate session leaking.
+        </note>
+        <condition type="query-string" operator="equal">\b(cfid|cftoken|jsessionid)=</condition>
+        <from>^(.*)$</from>
+        <to type="permanent-redirect" last="true">$1</to>
+    </rule>
+
+    <rule>
+        <note>
+            Remove bulk of URL when it contains suspicious ;jsessionid= or ;cftoken=, etc.
+            This is to put an end to suspicious session fixation attack scanning.
+        </note>
+        <from>^(.*);(jsessionid|cftoken|cfid)=.*$</from>
+        <to type="permanent-redirect" last="true">$1</to>
+    </rule>
+
+    <rule>
+        <name>Add trailing slash to directories without a trailing slash</name>
+        <from>^(.*\/[^/\.]+)$</from>
+        <to type="permanent-redirect" last="true">$1/</to>
+    </rule>
+
+    <rule>
+        <note>
+            All request to *.html or ending in / will be rewritten to /index.cfm
+        </note>
+        <from>^(/((.*?)(\.html|/))?)$</from>
+        <to last="true">%{context-path}/index.cfm</to>
+    </rule>
+
+    <rule>
+        <note>
+            All request to system static assets that live under /preside/system/assets
+            should go through CFML and will be rewritten to /index.cfm
+        </note>
+        <from>^/preside/system/assets/.*$</from>
+        <to last="true">%{context-path}/index.cfm</to>
+    </rule>
+
+    <rule>
+        <note>
+            All the following requests should not be allowed and should return with a 404
+            We block any request to:
+
+            * the application folder (where all the logic and views for your site lives)
+            * the uploads folder (should be configured to be somewhere else anyways)
+            * this url rewrite file!
+            * logs
+            * Application.cfc
+        </note>
+        <from>^/(application/|preside/|uploads/|urlrewrite\.xml\b|logs/.*\.log|Application\.cfc\b)</from>
+        <set type="status">404</set>
+        <to last="true">/404.html</to>
+    </rule>
+</urlrewrite>

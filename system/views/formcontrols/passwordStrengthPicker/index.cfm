@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -6,7 +7,7 @@
 	strengths    = args.strengths    ?: [];
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
-	if ( IsSimpleValue( value ) ) {
+	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
 

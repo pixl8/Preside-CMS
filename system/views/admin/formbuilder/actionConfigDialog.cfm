@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	configFormName = prc.actionConfig.configFormName ?: "";
 	savedData      = prc.savedData ?: {};

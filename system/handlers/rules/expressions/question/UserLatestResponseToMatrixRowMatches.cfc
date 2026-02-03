@@ -1,7 +1,8 @@
 /**
  * @expressionCategory formbuilder
  * @expressionContexts user
- * @feature            websiteusers
+ * @expressionTags     formbuilderV2Form
+ * @feature            rulesEngine and websiteusers and formbuilder
  */
 component {
 
@@ -18,7 +19,7 @@ component {
 		  required string question
 		, required string row
 		, required string value
-		,          string formId = ( payload.formId ?: "" )
+		,          string formId = ( payload.formbuilderSubmission.formId ?: "" )
 		,          string _all   = false
 	) {
 		var userId = payload.user.id ?: "";
@@ -30,8 +31,6 @@ component {
 		return formBuilderFilterService.evaluateQuestionUserLatestResponseMatch(
 			  argumentCollection = arguments
 			, userId             = userId
-			, formId             = arguments.formId
-			, submissionId       = payload.submissionId ?: ""
 			, extraFilters       = prepareFilters( argumentCollection=arguments )
 		);
 	}

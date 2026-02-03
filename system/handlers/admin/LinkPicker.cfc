@@ -1,3 +1,6 @@
+/**
+ * @feature admin and cms
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="presideObjectService" inject="presideObjectService";

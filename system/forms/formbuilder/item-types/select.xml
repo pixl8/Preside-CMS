@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.item-types.select:">
+<form i18nBaseUri="formbuilder.item-types.select:" feature="formbuilder">
 	<tab id="default">
 		<fieldset id="default">
 			<field name="multiple"           control="yesNoSwitch" required="false" sortorder="32" />
@@ -9,7 +9,12 @@
 	<tab id="values">
 		<fieldset id="values">
 			<field name="datamanagerObject" control="dataManagerObjectPicker" required="false" sortorder="10" />
-			<field name="values"            control="textarea"                required="false" sortorder="20" defaultvalue="" />
+			<field name="values"            control="textarea"                required="false" sortorder="20" defaultvalue="">
+				<rule validator="responseMaxLength">
+					<param name="itemType" value="select" />
+					<param name="length"   value="200" />
+				</rule>
+			</field>
 			<field name="labels"            control="textarea"                required="false" sortorder="30" defaultvalue="" />
 			<field name="defaultvalue"      control="textinput"               required="false" sortorder="40" defaultvalue="" />
 		</fieldset>

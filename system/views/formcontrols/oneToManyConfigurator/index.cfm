@@ -1,10 +1,11 @@
+<!---@feature presideForms and admin--->
 <cfscript>
 	object                  = args.object           ?: "";
 	inputName               = args.name             ?: "";
 	inputId                 = args.id               ?: "";
 	inputClass              = args.class            ?: "";
 	placeholder             = args.placeholder      ?: "";
-	placeholder             = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	placeholder             = EncodeForHtmlAttribute( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue            = args.defaultValue     ?: "";
 	records                 = args.records          ?: QueryNew('');
 	extraClasses            = args.extraClasses     ?: "";
@@ -20,8 +21,8 @@
 	formName                = args.formName         ?: "";
 	relationshipKey         = args.relationshipKey  ?: args.sourceObject;
 	labelRenderer           = args.labelRenderer    ?: "";
-	configuratorLabelUrl    = event.buildAdminLink( linkTo="labels.renderJson", querystring="labelRenderer=#labelRenderer#&object=#object#" );
-	configuratorAddUrl      = event.buildAdminLink( linkTo="datamanager.configuratorForm", querystring="object=#object#&formName=#formName#" );
+	configuratorLabelUrl    = args.configuratorLabelUrl ?: event.buildAdminLink( linkTo="labels.renderJson", querystring="labelRenderer=#labelRenderer#&object=#object#" );
+	configuratorAddUrl      = args.configuratorAddUrl   ?: event.buildAdminLink( linkTo="datamanager.configuratorForm", querystring="object=#object#&formName=#formName#" );
 	objectSingularName      = translateResource( "preside-objects.#object#:title.singular" );
 	configuratorModalTitle  = translateResource( uri=args.quickAddModalTitle ?: "cms:datamanager.configurator.add.modal.title", data=[ objectSingularName ] );
 
@@ -47,7 +48,7 @@
 		   <cfif disabled>disabled</cfif>
 		   tabindex         = "#getNextTabIndex()#"
 		   data-placeholder = "#placeholder#"
-		   data-value       = "#HtmlEditFormat( value )#"
+		   data-value       = "#EncodeForHtmlAttribute( value )#"
 		   <cfif IsBoolean( multiple ) && multiple>
 		   	multiple      = "multiple"
 		   </cfif>

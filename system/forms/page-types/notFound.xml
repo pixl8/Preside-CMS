@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form>
+<form feature="sitetree">
 	<tab id="main">
 		<fieldset id="main">
 			<field name="active" deleted="true" />

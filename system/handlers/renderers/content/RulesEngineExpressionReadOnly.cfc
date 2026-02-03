@@ -1,3 +1,6 @@
+/**
+ * @feature rulesEngine
+ */
 component {
 
 	property name="expressionService" inject="rulesEngineExpressionService";

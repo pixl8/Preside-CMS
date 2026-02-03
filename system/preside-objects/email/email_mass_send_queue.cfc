@@ -3,6 +3,7 @@
  *
  * @nolabel   true
  * @versioned false
+ * @feature   customEmailTemplates
  */
 component extends="preside.system.base.SystemPresideObject" {
 	property name="id" type="numeric" dbtype="bigint" generator="increment";

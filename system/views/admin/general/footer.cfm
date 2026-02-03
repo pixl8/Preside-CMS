@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.isGitClone"     type="boolean" />
 <cfparam name="args.currentVersion" type="string"  />
 

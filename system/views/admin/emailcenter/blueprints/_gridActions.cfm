@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfparam name="args.deleteRecordLink"  type="string" />
 <cfparam name="args.editRecordLink"    type="string" />
 <cfparam name="args.previewRecordLink"    type="string" />
@@ -20,7 +21,7 @@
 		</cfif>
 
 		<cfif args.canDelete>
-			<a class="confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
+			<a class="confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#EncodeForHtmlAttribute( args.deleteRecordTitle )#">
 				<i class="fa fa-trash-o"></i>
 			</a>
 		</cfif>

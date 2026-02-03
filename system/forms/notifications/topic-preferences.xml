@@ -4,8 +4,8 @@ Notifications: topic preferences form
 
 This form is used for managing a user's notification preferences for specific topics
 -->
-<form>
-	<tab id="basic" sortorder="10" >
+<form feature="admin">
+	<tab id="basic" sortorder="10">
 		<fieldset id="basic" sortorder="10">
 			<field sortorder="10" binding="admin_notification_subscription.get_email_notifications" />
 		</fieldset>

@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User's email address matches pattern"
  *
- * @feature websiteUsers
  * @expressionContexts user
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers and emailCenter
  */
 component {
 

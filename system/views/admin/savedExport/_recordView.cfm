@@ -1,3 +1,4 @@
+<!---@feature admin and dataExport--->
 <cfscript>
 	record         = args.record         ?: {};
 	objI18nBase    = args.objI18nBase    ?: "";

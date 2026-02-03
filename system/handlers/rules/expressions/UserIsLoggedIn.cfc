@@ -1,9 +1,9 @@
 /**
  * Expression handler for "User is/is not logged in"
  *
- * @feature websiteUsers
  * @expressionContexts webrequest
  * @expressionCategory website_user
+ * @feature            rulesEngine and websiteUsers
  */
 component {
 

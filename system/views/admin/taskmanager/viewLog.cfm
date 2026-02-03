@@ -1,3 +1,4 @@
+<!---@feature admin and taskmanager--->
 <cfscript>
 	log = prc.log ?: {};
 	canRunTasks = hasCmsPermission( "taskmanager.run" );

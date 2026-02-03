@@ -1,4 +1,8 @@
+/**
+ * @feature assetManager
+ */
 component {
+
 	property name="imageManipulationService" inject="imageManipulationService";
 
 	private binary function resize( event, rc, prc, args={} ) {

@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	canAdd    = IsTrue( prc.canAdd ?: "" );
 	canDelete = IsTrue( prc.canDelete ?: "" );
@@ -21,7 +22,7 @@
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = "formbuilder_form"
-		, gridFields      = [ "name", "description", "locked", "active", "active_from", "active_to" ]
+		, gridFields      = [ "name", "description", "locked", "active", "active_from", "active_to", "datemodified" ]
 		, datasourceUrl   = event.buildAdminLink( "formbuilder.getFormsForAjaxDataTables" )
 		, useMultiActions = canDelete
 		, multiActionUrl  = event.buildAdminLink( "formbuilder.multiRecordAction" )

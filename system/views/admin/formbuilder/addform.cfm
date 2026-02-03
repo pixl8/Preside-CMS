@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
 	formId = "addForm-" & CreateUUId();
 	formAction = event.buildAdminLink( 'formbuilder.addFormAction' );

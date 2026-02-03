@@ -2,6 +2,7 @@
  * Handler for display logic of the datamanager
  * Admin Menu Item.
  *
+ * @feature admin and datamanager
  */
 component {
 

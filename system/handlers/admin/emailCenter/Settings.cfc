@@ -1,7 +1,10 @@
+/**
+ * @feature admin and emailCenter
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="emailServiceProviderService" inject="emailServiceProviderService";
-	property name="siteService"                 inject="siteService";
+	property name="siteService"                 inject="featureInjector:sites:siteService";
 	property name="systemConfigurationService"  inject="systemConfigurationService";
 	property name="emailCenterValidators"       inject="emailCenterValidators";
 	property name="messagebox"                  inject="messagebox@cbmessagebox";
@@ -27,12 +30,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) {
-		var siteId     = Trim( rc.site ?: "" );
-		var categoryId = "email";
+		var categoryId   = "email";
+		var isSiteConfig = false;
 
-		prc.sites = siteService.listSites();
+		if ( isFeatureEnabled( "sites" ) ) {
+			var siteId = Trim( rc.site ?: "" );
+			prc.sites = siteService.listSites();
+			isSiteConfig = prc.sites.recordCount > 1 && Len( siteId.len() );
+		}
 
-		var isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
 		if ( isSiteConfig ) {
 			prc.savedData = systemConfigurationService.getCategorySettings(
 				  category        = categoryId
@@ -54,7 +60,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function saveGeneralSettingsAction( event, rc, prc ) {
 		var categoryId = "email";
-		var siteId     = rc.site ?: "";
+		var siteId     = isFeatureEnabled( "sites" ) ? ( rc.site ?: "" ) : "";
 
 		var formName = "email.settings.general";
 		var formData = event.getCollectionForForm( formName );
@@ -128,17 +134,22 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function provider( event, rc, prc ) {
 		var providerId = rc.id ?: "";
-		var siteId     = rc.site ?: "";
+		var isSiteConfig = false;
 
 		prc.provider = emailServiceProviderService.getProvider( providerId );
 		if ( prc.provider.isEmpty() ) {
 			event.notFound();
 		}
 
-		prc.sites    = siteService.listSites();
 		prc.formName = emailServiceProviderService.getProviderConfigFormName( providerId );
 
-		var isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
+
+		if ( isFeatureEnabled( "sites" ) ) {
+			var siteId     = rc.site ?: "";
+			prc.sites    = siteService.listSites();
+			isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
+		}
+
 		if ( isSiteConfig ) {
 			prc.savedData = emailServiceProviderService.getProviderSettings(
 				  provider        = providerId

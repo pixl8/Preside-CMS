@@ -1,3 +1,6 @@
+/**
+ * @feature admin and websiteBenefits
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="websitePermissionService" inject="websitePermissionService";

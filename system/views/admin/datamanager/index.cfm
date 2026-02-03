@@ -1,3 +1,4 @@
+<!---@feature admin and datamanager--->
 <cfscript>
 	objectGroups       = event.getValue( name="objectGroups", defaultValue=[], private=true );
 

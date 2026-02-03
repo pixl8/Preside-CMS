@@ -26,7 +26,13 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" {
 
 // PRIVATE HELPERS
 	private any function _processPresideObjectDsl( required string objectName ) {
-		return _getInjector().getInstance( "presideObjectService" ).getObject( arguments.objectName );
+		var poService = _getInjector().getInstance( "presideObjectService" );
+
+		if ( poService.objectExists( arguments.objectName ) ) {
+			return _getInjector().getInstance( "presideObjectService" ).getObject( arguments.objectName );
+		}
+
+		return "";
 	}
 
 	private string function _processSystemSettingDsl( required string settingString ) {
@@ -97,7 +103,6 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" {
 
 		throw( type="preside.missing.service", message="The service, [#arguments.serviceName#], does not exist. This error was caused by a wirebox injection using DSL: [presidecms:dynamicservice:#serviceName#]." );
 	}
-
 
 // GETTERS AND SETTERS
 	private any function _getInjector() {

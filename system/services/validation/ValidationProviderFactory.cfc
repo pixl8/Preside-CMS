@@ -1,3 +1,6 @@
+/**
+ * @nowirebox
+ */
 component {
 
 	public ValidationProvider function createProvider( required any sourceCfc ) output=false {

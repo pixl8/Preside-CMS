@@ -1,9 +1,10 @@
 /**
  * Provides logic for interacting Preside's [[auditing|Audit log system]]
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        auditTrail
  */
 component displayName="Audit Service" {
 
@@ -167,7 +168,8 @@ component displayName="Audit Service" {
 
 	public query function getLoggedActions() {
 		return $getPresideObject( "audit_log" ).selectData(
-			  selectFields = [ "distinct action", "type" ]
+			  selectFields = [ "action", "type" ]
+			, distinct     = true
 		);
 	}
 

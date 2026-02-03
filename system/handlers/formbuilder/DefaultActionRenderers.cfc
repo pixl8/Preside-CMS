@@ -1,3 +1,6 @@
+/**
+ * @feature formBuilder
+ */
 component {
 
 	private string function adminPlaceholder( event, rc, prc, args={} ) {

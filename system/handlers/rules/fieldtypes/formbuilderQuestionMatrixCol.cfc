@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine to retrieve a select list of columns for a matrix question
  *
+ * @feature rulesEngine and formbuilder
  */
 component {
 

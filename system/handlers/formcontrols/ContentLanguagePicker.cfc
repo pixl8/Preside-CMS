@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and multilingual
+ */
 component {
 
 	private string function index( event, rc, prc, args={} ) {

@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfoutput>
 	<div class="top-right-button-group">
 		#renderViewlet( "admin.assetmanager.storageProviderPicker" )#

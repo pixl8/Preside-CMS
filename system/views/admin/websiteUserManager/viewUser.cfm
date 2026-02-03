@@ -1,3 +1,4 @@
+<!---@feature admin and websiteUsers--->
 <cfscript>
 	userId     = rc.id ?: "";
 	userRecord = prc.record ?: {};

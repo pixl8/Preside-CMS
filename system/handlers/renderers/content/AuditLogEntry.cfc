@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	property name="presideObjectService"       inject="presideObjectService";
@@ -5,8 +8,7 @@ component {
 	property name="taskmanagerService"         inject="taskmanagerService";
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailLayoutService"         inject="emailLayoutService";
-	property name="formBuilderService"         inject="formBuilderService";
-	property name="formBuilderActionsService"  inject="FormBuilderActionsService";
+	property name="formBuilderService"         inject="featureInjector:formbuilder:formBuilderService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
@@ -180,17 +182,39 @@ component {
 	}
 
 	private string function emailtemplate( event, rc, prc, args={} ) {
-		var action     = args.action            ?: "";
-		var known_as   = args.known_as          ?: "";
-		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
-		var recordId   = args.record_id         ?: "";
-		var label      = renderLabel( "email_template", recordId );
-		var type       = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "customtemplates";
-		var recordUrl  = event.buildAdminLink( linkTo="emailcenter.#type#.template", queryString="template=" & recordId );
-		var recordLink = '<a href="#recordUrl#">#label#</a>';
+		var action = args.action ?: "";
 
-		return translateResource( uri="auditlog.emailtemplate:#action#.message", data=[ userLink, recordLink ] );
+		var known_as = args.known_as ?: "";
+		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+
+		var recordId    = args.record_id ?: "";
+		var recordType  = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "customtemplates";
+		var recordLabel = renderLabel( "email_template", recordId );
+		var recordUrl   = event.buildAdminLink( linkTo="emailcenter.#recordType#.template", queryString="template=#recordId#" );
+		var recordLink  = '<a href="#recordUrl#">#recordLabel#</a>';
+
+		var data = [ userLink, recordLink ];
+
+		switch ( action ) {
+			case "sendTestEmail":
+				var to = ArrayToList( args.detail.to ?: [], ", " );
+
+				var recipientId    = args.detail.recipient ?: "";
+				var recipientLabel = renderLabel( "website_user", recipientId );
+				var recipientUrl   = event.buildAdminLink( linkto="usermanager.viewUser", queryString="id=#recipientId#" );
+				var recipientLink  = '<a href="#recipientUrl#">#recipientLabel#</a>';
+
+				ArrayAppend( data, [ to, recipientLink ], true );
+				break;
+
+			case "sendManualEmail":
+				ArrayAppend( data, args.detail.queuedCount ?: "" );
+				break;
+		}
+
+		return translateResource( uri="auditlog.emailtemplate:#action#.message", data=data );
 	}
+
 
 	private string function emailLayout( event, rc, prc, args={} ) {
 		var action     = args.action            ?: "";
@@ -239,6 +263,10 @@ component {
 	}
 
 	private string function formbuilder( event, rc, prc, args={} ) {
+		if ( !isFeatureEnabled( "formbuilder" ) ) {
+			return "";
+		}
+
 		var action = args.action ?: "";
 
 		var userHtml = '<a href="#( args.userLink ?: "" )#">#( args.known_as ?: "" )#</a>';

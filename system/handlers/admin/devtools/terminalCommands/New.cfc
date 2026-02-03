@@ -3,13 +3,14 @@ component hint="Create various preside system entities such as widgets and page 
 	property name="jsonRpc2Plugin"     inject="JsonRpc2";
 	property name="scaffoldingService" inject="scaffoldingService";
 
+
 	private function index( event, rc, prc ) {
 		var params = jsonRpc2Plugin.getRequestParams();
-		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform", "formcontrol", "emailtemplate", "ruleexpression", "notification" ];
+		var validTargets = _getValidTargets();
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
-		if ( !ArrayLen( params ) || !ArrayFindNoCase( validTargets, params[1] ) ) {
+		if ( !ArrayLen( params ) || !ArrayFindNoCase( StructKeyArray( validTargets ), params[1] ) ) {
 			var message = newLine();
 
 			message &= writeText( text="Usage: ", type="help", bold=true );
@@ -17,26 +18,10 @@ component hint="Create various preside system entities such as widgets and page 
 
 			message &= writeText( text="Valid target types:", type="help", newline=2 );
 
-			message &= writeText( text="    widget         ", type="help", bold=true )
-					& writeText( text=" : Creates files for a new preside widget", type="help", newline=true )
-					& writeText( text="    pagetype       ", type="help", bold=true )
-					& writeText( text=" : Creates files for a new page type", type="help", newline=true )
-					& writeText( text="    object         ", type="help", bold=true )
-					& writeText( text=" : Creates a new preside object", type="help", newline=true )
-					& writeText( text="    extension      ", type="help", bold=true )
-					& writeText( text=" : Creates a new preside extension", type="help", newline=true )
-					& writeText( text="    configform     ", type="help", bold=true )
-					& writeText( text=" : Creates a new system config form", type="help", newline=true )
-					& writeText( text="    formcontrol    ", type="help", bold=true )
-					& writeText( text=" : Creates a new form control", type="help", newline=true )
-					& writeText( text="    emailtemplate  ", type="help", bold=true )
-					& writeText( text=" : Creates a new email template", type="help", newline=true )
-					& writeText( text="    ruleexpression ", type="help", bold=true )
-					& writeText( text=" : Creates a new rules engine expression", type="help", newline=true )
-					& writeText( text="    notification   ", type="help", bold=true )
-					& writeText( text=" : Creates a new notification", type="help", newline=true )
-					& writeText( text="    terminalcommand", type="help", bold=true )
-					& writeText( text=" : Creates a new terminal command!", type="help", newline=true );
+			for( var target in validTargets ) {
+				message &= writeText( text="    #target##RepeatString( " ", 15-Len( target ) )#", type="help", bold=true )
+				        &  writeText( text=" : #validTargets[ target ].help#", type="help", newline=true );
+			}
 
 			return message;
 		}
@@ -538,5 +523,35 @@ component hint="Create various preside system entities such as widgets and page 
 		}
 
 		return msg;
+	}
+
+// helpers
+	private function _getValidTargets() {
+		if ( !StructKeyExists( variables, "_validTargets" ) ) {
+			variables._validTargets = {
+				  terminalcommand = { help="Creates a new terminal command!" }
+				, object          = { help="Creates a new preside object" }
+				, extension       = { help="Creates a new preside extension" }
+				, configform      = { help="Creates a new system config form" }
+				, formcontrol     = { help="Creates a new form control" }
+				, notification    = { help="Creates a new notification" }
+			};
+			if ( isFeatureEnabled( "cms" )  ) {
+				variables._validTargets.widget = { help="Creates files for a new preside widget" };
+				if ( isFeatureEnabled( "sitetree" ) ) {
+					variables._validTargets.pagetype = { help="Creates files for a new page type" };
+				}
+			}
+
+			if ( isFeatureEnabled( "emailCenter" ) ) {
+				variables._validTargets.emailtemplate = { help="Creates a new email template" };
+			}
+
+			if ( isFeatureEnabled( "rulesEngine" ) ) {
+				variables._validTargets.ruleexpression = { help="Creates a new rules engine expression" };
+			}
+		}
+
+		return variables._validTargets;
 	}
 }

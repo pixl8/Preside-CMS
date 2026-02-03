@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	param name="args.label" type="string";
 	param name="args.id"    type="string";

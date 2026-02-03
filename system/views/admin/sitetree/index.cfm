@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	site = event.getSite();
 

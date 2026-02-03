@@ -1,3 +1,4 @@
+<!---@feature assetManager--->
 <cfscript>
 	imageUrl = event.buildLink( assetId=args.id ?: '', derivative=args.derivative ?: "" );
 	altText  = Len( Trim( args.alt_text ?: "" ) ) ? args.alt_text : ( args.title ?: "" );

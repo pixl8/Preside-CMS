@@ -1,3 +1,4 @@
+<!---@feature admin and rulesEngine--->
 <cfscript>
 	param name="args.addRecordAction"  type="string"  default=event.buildAdminLink( linkTo='rulesEngine.quickEditConditionAction' );
 	param name="args.validationResult" type="any"     default=( rc.validationResult ?: '' );
@@ -25,6 +26,7 @@
 			, formId           = formId
 			, savedData        = prc.record ?: {}
 			, validationResult = args.validationResult
+			, additionalArgs   = { fields={ expressions={ contextData=prc.contextData ?: {} } } }
 		)#
 	</form>
 </cfoutput>

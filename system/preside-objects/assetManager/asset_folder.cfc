@@ -1,5 +1,7 @@
 /**
  * An asset folder is a hierarchy of named storage locations for assets (see [[presideobject-asset]])
+ *
+ * @feature assetManager
  */
 component output="false" extends="preside.system.base.SystemPresideObject" displayName="Asset folder" {
 	property name="label" uniqueindexes="folderName|2";
@@ -25,6 +27,6 @@ component output="false" extends="preside.system.base.SystemPresideObject" displ
 	property name="storage_location" relationship="many-to-one" relatedTo="asset_storage_location" required=false;
 	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest";
 
-	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="loggedInUserId" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="loggedInUserId" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="LoggedInUser.loggedInUserId" generate="insert" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="LoggedInUser.loggedInUserId" generate="always" ondelete="set-null-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 }

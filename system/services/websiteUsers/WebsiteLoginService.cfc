@@ -3,9 +3,10 @@
  * \n
  * See also: [[websiteusersandpermissioning]]
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        websiteUsers
  */
 component displayName="Website login service" {
 
@@ -89,6 +90,21 @@ component displayName="Website login service" {
 	}
 
 	/**
+	 * For background threads, allows the thread to assume that a specific user is logged in
+	 *
+	 */
+	public function spoofUserLoginInBgThread( required string userId ) {
+		var user = _getUserDao().selectData(
+			  filter   = { id=arguments.userId, active=true }
+			, useCache = false
+		);
+
+		if ( user.recordCount ) {
+			request._bgThreadUser = $helpers.queryRowToStruct( user );
+		}
+	}
+
+	/**
 	 * Impersonates a login
 	 *
 	 * @userId.hint      ID of the user whom to impersonate
@@ -155,6 +171,8 @@ component displayName="Website login service" {
 				_getUserLoginTokenDao().deleteData( filter={ series = cookieValue.series } );
 			}
 		}
+
+		$announceInterception( "postLogout" );
 	}
 
 	/**
@@ -177,7 +195,9 @@ component displayName="Website login service" {
 	 *
 	 */
 	public boolean function isAutoLoggedIn() autodoc=true {
-		return _getSessionStorage().exists( name=_getSessionKey() ) && !getLoggedInUserDetails().session_authenticated;
+		var user = getLoggedInUserDetails();
+
+		return StructCount( user ) && $helpers.isFalse( user.session_authenticated ?: "" );
 	}
 
 	/**
@@ -204,6 +224,9 @@ component displayName="Website login service" {
 	 * If no user is logged in, an empty structure will be returned.
 	 */
 	public struct function getLoggedInUserDetails() autodoc=true {
+		if ( $getRequestContext().isBackgroundThread() ) {
+			return request._bgThreadUser ?: {};
+		}
 		var userDetails = _getSessionStorage().getVar( name=_getSessionKey(), default={} );
 
 		return !IsNull( local.userDetails ) && IsStruct( userDetails ) ? userDetails : {};
@@ -570,13 +593,19 @@ component displayName="Website login service" {
 	}
 
 	public void function reloadLoggedInUserDetails( string userId=getLoggedInUserId() ) {
-		var user = _getUserDao().selectData(
+		var existingSession = getLoggedInUserDetails();
+		var user            = _getUserDao().selectData(
 			  filter   = { id=arguments.userId, active=true }
 			, useCache = false
 		);
 
-		if ( user.recordCount ) {
-			_setUserSession( $helpers.queryRowToStruct( user ) );
+		for( var u in user ){
+			u.session_authenticated = $helpers.isTrue( existingSession.session_authenticated ?: "" );
+			u.impersonated          = $helpers.isTrue( existingSession.impersonated          ?: "" );
+
+			_setUserSession( u );
+
+			return;
 		}
 	}
 

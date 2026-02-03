@@ -2,8 +2,9 @@
  * Service for managing multiple authentication providers
  * and authenticating requests
  *
- * @singleton
- * @presideService
+ * @singleton      true
+ * @presideService true
+ * @feature        apiManager
  */
 component {
 

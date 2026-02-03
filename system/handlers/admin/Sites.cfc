@@ -1,3 +1,6 @@
+/**
+ * @feature admin and sites
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="siteService"     inject="siteService";
@@ -84,6 +87,18 @@ component extends="preside.system.base.AdminHandler" {
 		var redirectDomains = redirectDao.selectData( filter={ site=siteId } );
 		if ( redirectDomains.recordCount ) {
 			prc.record.redirect_domains = ValueList( redirectDomains.domain, Chr(13) & Chr(10) );
+		}
+
+		var defaultLocaleSettings = getDefaultSettingsForLocale();
+		
+		if ( IsEmpty( prc.record.short_date_format ) ) {
+			prc.record.short_date_format = defaultLocaleSettings.short_date_format;
+		}
+		if ( IsEmpty( prc.record.long_date_format ) ) {
+			prc.record.long_date_format = defaultLocaleSettings.long_date_format;
+		}
+		if ( IsEmpty( prc.record.time_format ) ) {
+			prc.record.time_format = defaultLocaleSettings.time_format;
 		}
 
 		_addRootBreadcrumb( event );
@@ -329,7 +344,7 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, eventArguments = {
 				  object      = "site"
-				, gridFields  = "name,domain,path"
+				, gridFields  = "name,domain,path,locale"
 				, actionsView = "/admin/sites/_sitesGridActions"
 				, extraFilters = [ { filter="deleted is null or deleted = :deleted", filterParams={ deleted=false } } ]
 			}

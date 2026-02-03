@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	ckeditorSettings = getSetting( name="ckeditor", defaultValue={} );
 	configFile       = ckeditorSettings.defaults.configFile ?: "/ckeditorExtensions/config.js";

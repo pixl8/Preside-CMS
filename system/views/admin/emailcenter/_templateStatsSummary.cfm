@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	queued    = NumberFormat( Val( args.stats.queued    ?: "" ) );
 	sent      = NumberFormat( Val( args.stats.sent      ?: "" ) );

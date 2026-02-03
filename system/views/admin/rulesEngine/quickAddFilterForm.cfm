@@ -1,3 +1,4 @@
+<!---@feature admin and rulesEngine--->
 <cfscript>
 	param name="args.addRecordAction"  type="string"  default=event.buildAdminLink( linkTo='rulesEngine.quickAddFilterAction' );
 	param name="args.validationResult" type="any"     default=( rc.validationResult ?: '' );

@@ -1,6 +1,10 @@
+/**
+ * @feature admin
+ */
 component {
-	property name="i18n"       inject="i18n";
-	property name="appMapping" inject="coldbox:setting:appMapping";
+	property name="i18n"                    inject="i18n";
+	property name="extensionManagerService" inject="extensionManagerService";
+	property name="appMapping"              inject="coldbox:setting:appMapping";
 
 	function download( event, rc, prc ) {
 		var staticAssetPath = _translatePath( rc.staticAssetPath ?: "" );
@@ -27,8 +31,9 @@ component {
 	private boolean function _fileExists( required string fullPath ) {
 		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
 		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
+		var appExtensionsDirectory  = ExpandPath( "/#appMapping#/extensions_app/" );
 
-		if ( ( fullPath.left( rootAllowedDirectory.len() ) != rootAllowedDirectory && fullPath.left( extensionsDirectory.len() ) != extensionsDirectory ) || fullPath contains ".." ) {
+		if ( ( Left( fullPath, Len( rootAllowedDirectory ) ) != rootAllowedDirectory && Left( fullPath, Len( extensionsDirectory ) ) != extensionsDirectory && Left( fullPath, Len( appExtensionsDirectory ) ) != appExtensionsDirectory ) || fullPath contains ".." ) {
 			return false;
 		}
 
@@ -83,6 +88,13 @@ component {
 	}
 
 	private string function _translatePath( required string path ) {
-		return ReReplace( arguments.path, "^/preside/system/assets/extension/", "/#appMapping#/extensions/" );
+		if ( ReFind( "^/preside/system/assets/extension/", arguments.path ) ) {
+			var extName = ReReplace( arguments.path, "^/preside/system/assets/extension/(.*?)/.*", "\1" );
+			var extDir  = extensionManagerService.isAppExtension( extName ) ? "extensions_app" : "extensions";
+
+			return ReReplace( arguments.path, "^/preside/system/assets/extension/", "/#appMapping#/#extDir#/" );
+		}
+
+		return arguments.path;
 	}
 }

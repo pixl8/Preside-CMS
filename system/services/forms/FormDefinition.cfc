@@ -4,7 +4,8 @@
  * an API abstraction for adding/modifying and removing fields, fieldsets
  * and tabs
  *
- * @autodoc
+ * @autodoc   true
+ * @nowirebox true
  */
 component {
 

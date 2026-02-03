@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfoutput>
 	<p class="sorting-link">
 		<a id="sort-up" href="##"><i class="bigger-110 fa #translateResource( "formcontrols.multiSelectPanel:sortUp.icon" )#"></i></a>

@@ -4,7 +4,7 @@ Richeditor: image form
 
 This form is used for the add/edit image screen in the richeditor.
 -->
-<form>
+<form feature="cms">
 	<tab id="main" sortorder="10" title="cms:ckeditor.imagepicker.main.tab">
 		<fieldset id="main" sortorder="10">
 			<field sortorder="10" name="asset"       control="assetPicker" required="true"  label="cms:ckeditor.imagepicker.asset.label" allowedTypes="image" />

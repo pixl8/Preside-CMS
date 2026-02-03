@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -20,7 +21,7 @@
 		value = savedValue;
 	}
 
-	value = EncodeForHTML( value );
+	value = EncodeForHtmlAttribute( value );
 
 	icons = args.icons ?: [];
 

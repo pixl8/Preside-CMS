@@ -4,6 +4,7 @@
  * @labelrenderer           formbuilder_question
  * @datamanagerGridFields   item_type,field_id,field_label,full_question_text,datemodified
  * @datamanagerSearchFields field_id,field_label,item_type,full_question_text
+ * @feature                 formbuilder2
  */
 component displayname="Form builder: global question" extends="preside.system.base.SystemPresideObject" {
 	property name="item_type"          type="string"  dbtype="varchar" required=true  maxlength=100 batcheditable=false indexes="itemtype" renderer="formbuilderItemType";

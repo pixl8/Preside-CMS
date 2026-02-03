@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	objectName   = prc.objectName   ?: "";
 	submitAction = prc.submitAction ?: "";

@@ -1,3 +1,4 @@
+<!---@feature admin and apiManager--->
 <cfscript>
 	apis           = prc.apis ?: [];
 	configLinkBase = prc.configLinkBase ?: "";

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.objectName"          type="string";
 	param name="args.batchEditableFields" type="array"   default=[];
@@ -9,8 +10,6 @@
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ objectTitle ] );
 </cfscript>
 <cfoutput>
-	#renderViewlet( event="admin.datamanager._selectAllControl", args=args )#
-
 	<cfif args.batchEditableFields.len()>
 		<div class="btn-group batch-update-menu">
 			<button data-toggle="dropdown" class="btn btn-info">

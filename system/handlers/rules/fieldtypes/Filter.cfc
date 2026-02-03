@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'filter' type
  *
+ * @feature rulesEngine
  */
 component {
 

@@ -5,6 +5,7 @@
  * @autodoc        true
  * @presideService true
  * @singleton      true
+ * @feature        admin
  */
 component {
 

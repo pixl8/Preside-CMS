@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	templateId    = rc.id ?: "";
 	canSendTest   = IsTrue( args.canSendTest   ?: "" );

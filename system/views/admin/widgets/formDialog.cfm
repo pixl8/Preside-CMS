@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	widget = prc.widget ?: {};
 

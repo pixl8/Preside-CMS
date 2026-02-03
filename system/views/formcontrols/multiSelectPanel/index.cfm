@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -17,7 +18,7 @@
 		value = "";
 	}
 
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	event.include( "/css/admin/specific/multiSelectPanel/" )
 	     .include( "/js/admin/specific/multiSelectPanel/"  );

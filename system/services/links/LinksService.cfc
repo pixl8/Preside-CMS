@@ -1,6 +1,6 @@
 /**
- * @singleton
- *
+ * @singleton true
+ * @feature   cms
  */
 component {
 
@@ -25,10 +25,11 @@ component {
 		}
 
 		switch( link.type ){
-			case "email"        : return _buildEmailHref       ( link ); break;
-			case "url"          : return _buildUrlHref         ( link ); break;
-			case "sitetreelink" : return _buildSitetreelinkHref( link ); break;
-			case "asset"        : return _buildAssetlinkHref   ( link ); break;
+			case "email"        : return _buildEmailHref       ( link );
+			case "url"          : return _buildUrlHref         ( link );
+			case "sitetreelink" : return _buildSitetreelinkHref( link );
+			case "asset"        : return _buildAssetlinkHref   ( link );
+			case "anchor"       : return _buildAnchorLinkHref  ( link );
 		}
 
 		return "";
@@ -73,12 +74,18 @@ component {
 	}
 
 	private string function _buildSitetreelinkHref( required query link ) {
-		var anchor = len( link.page_anchor ?: "" ) ? "##" & link.page_anchor : "";
-		return _getRequestContext().buildLink( page=link.page ) & anchor;
+		var qs     = Len( Trim( link.query_string ?: "" ) ) ? "?#link.query_string#" : "";
+		var anchor = Len( link.page_anchor ?: "" ) ? "##" & link.page_anchor : "";
+
+		return _getRequestContext().buildLink( page=link.page ) & qs & anchor;
 	}
 
 	private string function _buildAssetlinkHref( required query link ) {
 		return _getRequestContext().buildLink( assetId=link.asset );
+	}
+
+	private string function _buildAnchorLinkHref( required query link ){
+		return "##" & ( arguments.link.page_anchor ?: "" );
 	}
 
 	private any function _getRequestContext() {

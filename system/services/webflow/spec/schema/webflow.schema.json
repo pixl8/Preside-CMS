@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "webflow.schema.json",
+    "type": "object",
+    "title":"Webflow definition",
+    "additionalProperties": false,
+    "description":"Container object for a complete Preside webflow definition",
+    "required": [
+        "version",
+        "webflow"
+    ],
+    "properties": {
+        "version": {
+            "type": "string",
+            "description": "Version number of the schema to validate against (i.e. this document)",
+            "enum": [
+                "1.0.0"
+            ]
+        },
+        "webflow": {
+            "type": "object",
+            "description": "Container object for the webflow definition",
+            "required":[ "id", "steps" ],
+            "additionalProperties": false,
+            "properties":{
+                "id":{ "type":"string", "description":"Unique identifier for the webflow template" },
+                "feature":{ "type":"string", "description":"Preside feature that must be enabled in order for this flow to be registered" },
+                "singleton":{ "type":"boolean", "description":"Whether or not more than one configured instance of this flow can exist, or not." },
+                "adminFlow":{ "type":"boolean", "description":"Whether or not this flow is for admin purpose only, or not." },
+                "hideFromWidget":{ "type":"boolean", "description":"Whether or not this flow is hide from widget, or not." },
+                "meta":{ "type":"object", "description":"Abitrary struct of metadata to describe/enhance the webflow definition" },
+                "init":{ "type":"object", "$ref": "webflow.init.schema.json" },
+                "layout":{ "type": "object", "$ref":"webflow.layout.schema.json", "description":"Explicit webflow layout viewlet in which to display steps" },
+                "preCancelHandler":{ "type": "object", "$ref":"webflow.handler.schema.json", "description":"Handler action that is triggered before a webflow instance is cancelled." },
+                "postCancelHandler":{ "type": "object", "$ref":"webflow.handler.schema.json", "description":"Handler action that is triggered after a webflow instance is cancelled." },
+                "instRefConfig":{ "type": "object", "$ref":"webflow.instrefconfig.schema.json", "description":"Configuration related to webflow instance reference." },
+                "steps": {
+                    "type": "array",
+                    "minItems": 2,
+                    "description": "The steps of the flow. Any webflow must have at least two steps.",
+                    "items": {
+                        "$ref": "webflow.step.schema.json"
+                    }
+                }
+            }
+
+        }
+    }
+}

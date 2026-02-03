@@ -1,6 +1,7 @@
 /**
  * Handler for admin user interactions
  *
+ * @feature admin
  */
 component {
 	property name="adminUserDao" inject="presidecms:object:security_user";

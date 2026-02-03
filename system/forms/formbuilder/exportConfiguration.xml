@@ -4,7 +4,7 @@ Data export: formbuilder export configuration form
 
 This form is used for configuring the fields and format of an export of formbuilder data
 -->
-<form i18nBaseUri="cms:dataexport.config.form.">
+<form i18nBaseUri="cms:dataexport.config.form." feature="formbuilder">
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
 			<field name="exportFields" control="dataExportFieldPicker" required="true" sortorder="20" />

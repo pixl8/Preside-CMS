@@ -1,0 +1,34 @@
+version: 1.0.0
+webflow:
+  id: my.webflow.with.postactions
+  singleton: false
+  steps:
+  - id: step-1
+  - id: step-2
+    condition:
+      ref: condition.test
+    next:
+    - step-4
+  - id: step-3
+    prev:
+    - step-1
+    postactions:
+    - direction: both
+      handler:
+        event: test.event
+        args:
+          arg: test
+      condition:
+        ref: preside.IsLoggedIn
+    - direction: forward
+      handler:
+        event: test.event.2
+        args:
+          arg: test.2
+    - direction: back
+      handler:
+        event: test.event.3
+        args:
+          arg: test.3
+  - id: step-4
+  - id: step-5

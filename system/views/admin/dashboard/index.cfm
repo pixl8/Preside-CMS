@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	prc.pageIcon     = "dashboard";
 	prc.pageTitle    = "Dashboard";

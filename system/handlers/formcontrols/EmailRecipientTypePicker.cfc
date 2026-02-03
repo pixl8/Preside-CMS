@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and emailCenter
+ */
 component {
 
 	property name="emailRecipientTypeService" inject="emailRecipientTypeService";

@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -18,5 +19,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="hidden" class="#inputClass#" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( value )#" #htmlAttributes# />
+	<input type="hidden" class="#inputClass#" id="#inputId#" name="#inputName#" value="#EncodeForHtmlAttribute( value )#" #htmlAttributes# />
 </cfoutput>

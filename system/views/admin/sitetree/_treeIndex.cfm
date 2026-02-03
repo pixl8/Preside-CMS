@@ -1,32 +1,19 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	site = event.getSite();
 
 	prc.pageIcon  = "sitemap";
 	prc.pageTitle = site.name ?: translateResource( "cms:sitetree" );
 
-	activeTree          = prc.activeTree ?: [];
-	trashCount          = prc.trashCount ?: 0;
+	activeTree      = prc.activeTree      ?: [];
+	trashCount      = prc.trashCount      ?: 0;
+	topRightButtons = prc.topRightButtons ?: "";
 </cfscript>
 
 <cfoutput>
-	<div class="top-right-button-group">
-		<cfif hasCmsPermission( permissionKey="sites.manage" )>
-			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="sites.editSite", queryString="id=" & site.id )#">
-				<button class="btn btn-sm">
-					<i class="fa fa-cogs"></i>
-					#translateResource( 'cms:sitetree.edit.site.settings.btn' )#
-				</button>
-			</a>
-		</cfif>
-		<cfif isFeatureEnabled( "fullPageCaching" ) && hasCmsPermission( permissionkey="sitetree.clearcaches" )>
-			<a class="pull-right inline confirmation-prompt" href="#event.buildAdminLink( linkTo="sitetree.clearPageCacheAction" )#" title="#HtmlEditFormat( translateResource( "cms:sitetree.flush.cache.prompt" ) )#">
-				<button class="btn btn-sm btn-warning">
-					<i class="fa fa-refresh"></i>
-					#translateResource( 'cms:sitetree.flush.cache.btn' )#
-				</button>
-			</a>
-		</cfif>
-	</div>
+	<cfif not isEmptyString( topRightButtons )>
+		<div class="top-right-button-group">#topRightButtons#</div>
+	</cfif>
 
 	<div class="info-bar">#renderViewlet( event='admin.sitetree.searchBox' )#</div>
 

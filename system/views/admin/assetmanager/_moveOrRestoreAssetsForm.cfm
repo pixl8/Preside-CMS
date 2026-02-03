@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfoutput>
 	<div id="restore-assets-form" class="hide">
 		<form class="form-horizontal row" action="#event.buildAdminLink( linkTo = "assetmanager.restoreAssetsAction" )#" method="post">

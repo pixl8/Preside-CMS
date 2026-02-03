@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	param name="args.title"          type="string";
 	param name="args.id"             type="string";
@@ -7,7 +8,7 @@
 	param name="args.isActive"       type="boolean";
 	param name="args.canViewHistory" type="boolean";
 
-	safeTitle = HtmlEditFormat( args.title );
+	safeTitle = EncodeForHtmlAttribute( args.title );
 </cfscript>
 
 <cfoutput>

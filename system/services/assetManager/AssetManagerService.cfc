@@ -1,9 +1,10 @@
 /**
  * Provides APIs for programatically interacting with the Asset Manager (see [[assetmanager]] for more details)
  *
- * @singleton
- * @presideService
- * @autodoc
+ * @singleton      true
+ * @presideService true
+ * @autodoc        true
+ * @feature        assetManager
  */
 component displayName="AssetManager Service" {
 
@@ -13,10 +14,10 @@ component displayName="AssetManager Service" {
 	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @storageLocationService.inject     storageLocationService
 	 * @storageProviderService.inject     storageProviderService
+	 * @fileTypesService.inject           fileTypesService
 	 * @assetQueueService.inject          presidecms:dynamicservice:assetQueue
 	 * @derivativeGeneratorService.inject presidecms:dynamicservice:derivativeGenerator
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
-	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
 	 * @derivativeLimits.inject           coldbox:setting:assetManager.derivativeLimits
 	 * @renderedAssetCache.inject         cachebox:renderedAssetCache
@@ -29,8 +30,8 @@ component displayName="AssetManager Service" {
 		, required any    assetQueueService
 		, required any    derivativeGeneratorService
 		, required any    renderedAssetCache
+		, required any    fileTypesService
 		,          struct configuredDerivatives  = {}
-		,          struct configuredTypesByGroup = {}
 		,          struct derivativeLimits       = {}
 		,          struct configuredFolders      = {}
 	) {
@@ -40,21 +41,23 @@ component displayName="AssetManager Service" {
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
 		_setAssetQueueService( arguments.assetQueueService );
+		_setFileTypesService( arguments.fileTypesService );
 		_setDerivativeGeneratorService( arguments.derivativeGeneratorService );
 		_setRenderedAssetCache( arguments.renderedAssetCache );
 		_setDerivativeLimits( arguments.derivativeLimits );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setConfiguredFolders( arguments.configuredFolders );
-		_setConfiguredTypesByGroup( arguments.configuredTypesByGroup );
 
 		return this;
 	}
 
 	public void function postInit() {
+		if ( !$isFeatureEnabled( "assetManager" ) ) {
+			return;
+		}
 		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( _getConfiguredFolders() );
-		_setupConfiguredFileTypesAndGroups( _getConfiguredTypesByGroup() );
 	}
 
 // PUBLIC API METHODS
@@ -477,29 +480,6 @@ component displayName="AssetManager Service" {
 		return tree;
 	}
 
-	public array function expandTypeList( required array types, boolean prefixExtensionsWithPeriod=false ) {
-		var expanded = [];
-		var types    = _getTypes();
-
-		for( var typeName in arguments.types ){
-			if ( StructKeyExists( types, typeName ) ) {
-				expanded.append( typeName );
-			} else {
-				for( var typeName in listTypesForGroup( typeName ) ){
-					expanded.append( typeName );
-				}
-			}
-		}
-
-		if ( arguments.prefixExtensionsWithPeriod ) {
-			for( var i=1; i <= expanded.len(); i++ ){
-				expanded[i] = "." & expanded[i];
-			}
-		}
-
-		return expanded;
-	}
-
 	public struct function getAssetsForGridListing(
 		  numeric startRow    = 1
 		, numeric maxRows     = 10
@@ -557,7 +537,7 @@ component displayName="AssetManager Service" {
 		var assetDao            = _getAssetDao();
 		var filter              = "( asset.is_trashed = :is_trashed and asset_folder.hidden = :asset_folder.hidden )";
 		var params              = { is_trashed=false, "asset_folder.hidden"=false };
-		var types               = _getTypes();
+		var types               = _getFileTypesService().getTypes();
 		var records             = "";
 		var result              = [];
 		var noPermissionFolders = _userNoPermissionAssetFolders();
@@ -688,7 +668,7 @@ component displayName="AssetManager Service" {
 	 *
 	 */
 	public string function addAsset(
-		           binary  fileBinary
+				   binary  fileBinary
 		,          string  filePath          = ""
 		, required string  fileName
 		, required string  folder
@@ -1232,27 +1212,8 @@ component displayName="AssetManager Service" {
 		return false;
 	}
 
-	public struct function getAssetType( string filename="", string name=ListLast( arguments.fileName, "." ), boolean throwOnMissing=false ) {
-		var types = _getTypes();
-
-		if ( StructKeyExists( types, arguments.name ) ) {
-			return types[ arguments.name ];
-		}
-
-		if ( not arguments.throwOnMissing ) {
-			return {};
-		}
-
-		throw(
-			  type    = "assetManager.fileTypeNotFound"
-			, message = "The file type, [#arguments.name#], could not be found"
-		);
-	}
-
-	public array function listTypesForGroup( required string groupName ) {
-		var groups = _getGroups();
-
-		return groups[ arguments.groupName ] ?: [];
+	public boolean function assetExists( required string id ) {
+		return _getAssetDao().dataExists( id=arguments.id );
 	}
 
 	public query function getAsset( required string id, array selectFields=[], boolean throwOnMissing=false ) {
@@ -1470,6 +1431,32 @@ component displayName="AssetManager Service" {
 		}
 
 		return generatedUrl;
+	}
+
+	public string function getTempPrivateUrl(
+		  required string  id
+		,          string  versionId        = ""
+		,          numeric timeoutInMinutes = 1
+	) {
+		var asset  = "";
+
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			asset = getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] );
+		} else {
+			asset = getAsset( id=arguments.id, selectFields=[ "storage_path", "asset_folder", "active_version" ] );
+		}
+
+		if ( asset.recordCount ) {
+			var storageProvider = getStorageProviderForFolder( asset.asset_folder );
+			if ( StructKeyExists( storageProvider, "getTemporaryPrivateObjectUrl" ) ) {
+				return storageProvider.getTemporaryPrivateObjectUrl(
+					  path             = asset.storage_path
+					, timeoutInMinutes = arguments.timeoutInMinutes
+				);
+			}
+		}
+
+		return "";
 	}
 
 	public string function getDerivativeUrl(
@@ -1983,8 +1970,8 @@ component displayName="AssetManager Service" {
 		for( var derivative in derivatives ) {
 			if ( StructKeyExists( derivatives[ derivative ], "inEditor" ) ) {
 				if( IsBoolean( derivatives[ derivative ].inEditor ?: "" ) && derivatives[ derivative ].inEditor ){
-				    publicDerivatives.append( derivative );
-			   	}
+					publicDerivatives.append( derivative );
+				   }
 			}
 		}
 
@@ -2344,6 +2331,17 @@ component displayName="AssetManager Service" {
 		return false;
 	}
 
+// BACKWARD COMPAT FUNCTIONS THAT HAVE BEEN MOVED
+	public array function listTypesForGroup( required string groupName ) {
+		return _getFileTypesService().listTypesForGroup( argumentCollection=arguments );
+	}
+	public array function expandTypeList( required array types, boolean prefixExtensionsWithPeriod=false ) {
+		return _getFileTypesService().expandTypeList( argumentCollection=arguments );
+	}
+	public struct function getAssetType( string filename="", string name=ListLast( arguments.fileName, "." ), boolean throwOnMissing=false ) {
+		return _getFileTypesService().getAssetType( argumentCollection=arguments );
+	}
+
 // PRIVATE HELPERS
 	private void function _migrateFromLegacyRecycleBinApproach() {
 		var folderDao   = _getFolderDao();
@@ -2450,31 +2448,6 @@ component displayName="AssetManager Service" {
 		return [];
 	}
 
-	private void function _setupConfiguredFileTypesAndGroups( required struct typesByGroup ) {
-		var types  = {};
-		var groups = {};
-
-		for( var groupName in typesByGroup ){
-			if ( IsStruct( typesByGroup[ groupName ] ) ) {
-				groups[ groupName ] = StructKeyArray( typesByGroup[ groupName ] );
-				for( var typeName in typesByGroup[ groupName ] ) {
-					var type = typesByGroup[ groupName ][ typeName ];
-					types[ typeName ] = {
-						  typeName          = typeName
-						, groupName         = groupName
-						, extension         = type.extension ?: typeName
-						, mimetype          = type.mimetype  ?: ""
-						, serveAsAttachment = IsBoolean( type.serveAsAttachment ?: "" ) && type.serveAsAttachment
-						, trackDownloads    = IsBoolean( type.trackDownloads    ?: "" ) && type.trackDownloads
-					};
-				}
-			}
-		}
-
-		_setGroups( groups );
-		_setTypes( types );
-	}
-
 	private void function _saveAssetMetaData( required string assetId, required struct metaData, string versionId="" ) {
 		var dao = _getAssetMetaDao();
 
@@ -2524,6 +2497,8 @@ component displayName="AssetManager Service" {
 			, "resize_no_crop"
 			, "created_by"
 			, "updated_by"
+			, "datecreated"
+			, "datemodified"
 		] );
 
 		if ( !Len( Trim( asset.active_version ) ) ) {
@@ -2541,6 +2516,8 @@ component displayName="AssetManager Service" {
 				, resize_no_crop   = asset.resize_no_crop
 				, created_by       = asset.created_by
 				, updated_by       = asset.updated_by
+				, datecreated      = asset.datecreated
+				, datemodified     = asset.datemodified
 			} );
 
 			_getAssetDao().updateData( id=arguments.assetId, data={ active_version=versionId } );
@@ -2744,6 +2721,13 @@ component displayName="AssetManager Service" {
 		_defaultStorageProvider = arguments.defaultStorageProvider;
 	}
 
+	private any function _getFileTypesService() {
+		return _fileTypesService;
+	}
+	private void function _setFileTypesService( required any fileTypesService ) {
+		_fileTypesService = arguments.fileTypesService;
+	}
+
 	private struct function _getConfiguredDerivatives() {
 		return _configuredDerivatives;
 	}
@@ -2756,20 +2740,6 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setRootFolderId( required string rootFolderId ) {
 		_rootFolderId = arguments.rootFolderId;
-	}
-
-	private any function _getGroups() {
-		return _groups;
-	}
-	private void function _setGroups( required any groups ) {
-		_groups = arguments.groups;
-	}
-
-	private struct function _getTypes() {
-		return _types;
-	}
-	private void function _setTypes( required struct types ) {
-		_types = arguments.types;
 	}
 
 	private any function _getAssetDao() {
@@ -2814,28 +2784,28 @@ component displayName="AssetManager Service" {
 	}
 
 	private any function _getRenderedAssetCache() {
-	    return _renderedAssetCache;
+		return _renderedAssetCache;
 	}
 	private void function _setRenderedAssetCache( required any renderedAssetCache ) {
-	    _renderedAssetCache = arguments.renderedAssetCache;
+		_renderedAssetCache = arguments.renderedAssetCache;
 	}
 
 	private any function _getAssetQueueService() {
-	    return _assetQueueService;
+		return _assetQueueService;
 	}
 	private void function _setAssetQueueService( required any assetQueueService ) {
-	    _assetQueueService = arguments.assetQueueService;
+		_assetQueueService = arguments.assetQueueService;
 	}
 
 	private any function _getDerivativeGeneratorService() {
-	    return _derivativeGeneratorService;
+		return _derivativeGeneratorService;
 	}
 	private void function _setDerivativeGeneratorService( required any derivativeGeneratorService ) {
-	    _derivativeGeneratorService = arguments.derivativeGeneratorService;
+		_derivativeGeneratorService = arguments.derivativeGeneratorService;
 	}
 
 	private struct function _getDerivativeLimits() {
-	    return _derivativeLimits;
+		return _derivativeLimits;
 	}
 	private void function _setDerivativeLimits( required struct derivativeLimits ) {
 		_derivativeLimits = {
@@ -2847,17 +2817,17 @@ component displayName="AssetManager Service" {
 	}
 
 	private struct function _getConfiguredFolders() {
-	    return _configuredFolders;
+		return _configuredFolders;
 	}
 	private void function _setConfiguredFolders( required struct configuredFolders ) {
-	    _configuredFolders = arguments.configuredFolders;
+		_configuredFolders = arguments.configuredFolders;
 	}
 
 	private struct function _getConfiguredTypesByGroup() {
-	    return _configuredTypesByGroup;
+		return _configuredTypesByGroup;
 	}
 	private void function _setConfiguredTypesByGroup( required struct configuredTypesByGroup ) {
-	    _configuredTypesByGroup = arguments.configuredTypesByGroup;
+		_configuredTypesByGroup = arguments.configuredTypesByGroup;
 	}
 
 }

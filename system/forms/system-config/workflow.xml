@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Workflow: system configuration
+
+This form is used to configure the workflow (cfflow based flows) system.
+-->
+<form i18nBaseUri="system-config.workflow:">
+	<tab id="default" sortOrder="10" >
+		<fieldset id="default" sortOrder="10" >
+			<field name="allowed_redirect_domain" control="textArea" required="false" sortOrder="10" />
+		</fieldset>
+	</tab>
+</form>

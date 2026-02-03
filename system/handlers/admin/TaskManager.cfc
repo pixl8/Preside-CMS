@@ -1,6 +1,11 @@
+/**
+ * @feature admin and taskManager
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="taskManagerService"         inject="taskManagerService";
+	property name="cronUtil"                   inject="cronUtil";
+	property name="i18n"                       inject="i18n";
 	property name="logRendererUtil"            inject="logRendererUtil";
 	property name="taskHistoryDao"             inject="presidecms:object:taskmanager_task_history";
 	property name="systemConfigurationService" inject="systemConfigurationService";
@@ -20,7 +25,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function index( event, rc, prc ) {
 		prc.activeTaskGroup    = 1;
-		prc.taskGroups         = taskManagerService.getAllTaskDetails();
+		prc.taskGroups         = taskManagerService.getAllTaskDetails( i18n.getFWLanguageCode() );
 		prc.autoRunningEnabled = systemConfigurationService.getSetting( "taskmanager", "scheduledtasks_enabled", false );
 
 		if ( len( rc.tab ?: "" ) ) {
@@ -102,7 +107,7 @@ component extends="preside.system.base.AdminHandler" {
 		var formName         = "taskmanager.task_configuration";
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = validateForm( formName, formData );
-		var crontabError     = taskManagerService.getValidationErrorMessageForPotentiallyBadCrontabExpression( formData.crontab_definition ?: "" );
+		var crontabError     = cronUtil.validateExpression( formData.crontab_definition ?: "" );
 
 		if ( Len( Trim( crontabError ) ) ) {
 			validationResult.addError( fieldName="crontab_definition", message=crontabError );

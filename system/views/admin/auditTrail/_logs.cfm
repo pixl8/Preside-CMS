@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.logs" type="query" />
 <cfscript>
 	prevLogDate = Trim( rc.latestDate ?: "" );

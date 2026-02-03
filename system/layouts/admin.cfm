@@ -1,6 +1,7 @@
 <cfscript>
 	body             = renderView();
 	navbar           = renderView( 'admin/layout/navbar' );
+	envBanner        = renderViewlet( 'admin.layout.environmentBanner' );
 	siteAlerts       = renderViewlet( 'admin.layout.siteAlerts' );
 	breadcrumbs      = renderView( 'admin/layout/breadcrumbs' );
 	sideBarNav       = renderView( '/admin/layout/sideBarNavigation' );
@@ -36,10 +37,11 @@
 	bottomJs   = event.renderIncludes( "js" );
 
 	event.include( assetId="/js/admin/coretop/", group="top" );
-	event.include( assetId="/js/admin/coretop/ie/", group="top" );
 	topJs      = event.renderIncludes( "js", "top" );
 
 	htmlTitle = translateResource( uri="cms:cms.title" ) & " :: " & ( prc.pageTitle ?: translateResource( uri="cms:cms.tagline", defaultValue="" ) );
+
+	event.addToContentSecurityPolicy( "img-src", "//www.gravatar.com" );
 
 	header name="cache-control" value="no-store";
 	header name="expires"       value="Fri, 20 Nov 2015 00:00:00 GMT";
@@ -61,12 +63,14 @@
 	</head>
 
 	<body class="preside-theme no-skin">
+		#envBanner#
+
 		<div class="outer-container">
 			#navbar#
 			#siteAlerts#
 
 			<div class="main-container" id="main-container">
-				<script type="text/javascript">
+				<script type="text/javascript" nonce="#event.getRequestNonce()#">
 					try{ace.settings.check('main-container' , 'fixed')}catch(e){}
 				</script>
 

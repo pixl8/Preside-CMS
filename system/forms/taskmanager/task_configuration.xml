@@ -4,11 +4,14 @@ Taskmanager: Task configuration form
 
 This form is used for configuring indivual tasks in the task manager
 -->
-<form>
+<form feature="taskmanager">
 	<tab id="default">
-		<fieldset id="default">
+		<fieldset id="default" sortorder="10">
 			<field binding="taskmanager_task.enabled" />
 			<field binding="taskmanager_task.crontab_definition" control="textinput" required="true" />
+		</fieldset>
+		<fieldset id="overrunalerts" sortorder="20">
+			<field binding="taskmanager_task.overrun_min_runtime"   control="spinner" required="false" />
 		</fieldset>
 	</tab>
 </form>

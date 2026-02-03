@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	enforced = IsTrue( prc.enforced ?: "" );
 	enabled  = IsTrue( prc.enabled  ?: "" );

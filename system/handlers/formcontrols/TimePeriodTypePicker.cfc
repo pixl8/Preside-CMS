@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms
+ */
 component {
 
 	private string function index( event, rc, prc, args={} ) {
@@ -8,17 +11,17 @@ component {
 		args.labels = [];
 
 		if ( !futureOnly ) {
-			args.values.append( [ "recent", "since", "before", "past", "pastminus", "pastequal", "yesterday", "lastweek", "lastmonth" ], true );
+			ArrayAppend( args.values, [ "recent", "since", "before", "past", "pastminus", "pastequal", "yesterday", "lastweek", "lastmonth", "lastyear" ], true  );
 		}
 
-		args.values.append( [ "today", "thisweek", "thismonth" ], true );
+		ArrayAppend( args.values, [ "today", "thisweek", "thismonth", "thisyear" ], true );
 
 		if ( !pastOnly ) {
-			args.values.append( [ "upcoming", "until", "after", "future", "futureplus", "futureequal", "tomorrow", "nextweek", "nextmonth" ], true );
+			ArrayAppend( args.values, [ "upcoming", "until", "after", "future", "futureplus", "futureequal", "tomorrow", "nextweek", "nextmonth", "nextyear" ], true );
 		}
 
 		for( var value in args.values ){
-			args.labels.append( translateResource( "cms:time.period.type.#value#.label" ) );
+			ArrayAppend( args.labels, translateResource( "cms:time.period.type.#value#.label" ) );
 		}
 
 		return renderView( view="/formControls/select/index", args=args );

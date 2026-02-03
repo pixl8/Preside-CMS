@@ -39,6 +39,8 @@ component {
 			return {
 				  filter       = filter.filter       ?: {}
 				, filterParams = filter.filterParams ?: {}
+				, having       = filter.having       ?: ""
+				, extraJoins   = filter.extraJoins   ?: []
 			};
 		}
 

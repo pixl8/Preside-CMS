@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.url"    default=""           />
 <cfparam name="args.width"  default="560"        />
 <cfparam name="args.height" default="315"        />

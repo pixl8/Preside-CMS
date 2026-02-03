@@ -2,9 +2,10 @@
  * Service to provide batch operation logic. i.e. logic for batch record
  * operations kicked off from datamanager datatables.
  *
- * @singleton
- * @presideservice
- * @autodoc
+ * @singleton      true
+ * @presideservice true
+ * @autodoc        true
+ * @feature        admin
  */
 component displayName="Data manager batch operation service" {
 
@@ -271,13 +272,11 @@ component displayName="Data manager batch operation service" {
 			}
 
 			// pre delete hooks
-			if ( customizationService.objectHasCustomization( arguments.objectName, "preBatchDeleteRecordsAction" ) ) {
-				customizationService.runCustomization(
-					  objectName = arguments.objectName
-					, action     = "preBatchDeleteRecordsAction"
-					, args       = args
-				);
-			}
+			customizationService.runCustomization(
+				  objectName = arguments.objectName
+				, action     = "preBatchDeleteRecordsAction"
+				, args       = args
+			);
 
 			recordIds = ValueArray( args.records.id );
 
@@ -334,13 +333,11 @@ component displayName="Data manager batch operation service" {
 			}
 
 			// post delete hooks
-			if ( customizationService.objectHasCustomization( arguments.objectName, "postBatchDeleteRecordsAction" ) ) {
-				customizationService.runCustomization(
-					  objectName = arguments.objectName
-					, action     = "postBatchDeleteRecordsAction"
-					, args       = args
-				);
-			}
+			customizationService.runCustomization(
+				  objectName = arguments.objectName
+				, action     = "postBatchDeleteRecordsAction"
+				, args       = args
+			);
 
 			// finish up
 			if ( !moreToFetch ) {

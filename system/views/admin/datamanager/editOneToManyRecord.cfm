@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	record          = prc.record         ?: "";
 	object          = rc.object          ?: "";

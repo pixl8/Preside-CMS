@@ -1,9 +1,12 @@
+/**
+ * @feature siteTree
+ */
 component {
 	property name="siteTreeSvc" inject="siteTreeService";
 
 <!--- VIEWLETS --->
 
-	private string function mainNavigation( event, rc, prc, args={} ) {
+	private function mainNavigation( event, rc, prc, args={} ) {
 		var activeTree = ListToArray( event.getPageProperty( "ancestorList" ) );
 		    activeTree.append( event.getCurrentPageId() );
 
@@ -15,10 +18,10 @@ component {
 			, activeTree      = activeTree
 		);
 
-		return renderView( view="core/navigation/mainNavigation", args=args );
+		announceInterception( "onGetMainNavigationMenuItems", args );
 	}
 
-	private string function subNavigation( event, rc, prc, args={} ) {
+	private function subNavigation( event, rc, prc, args={} ) {
 		var startLevel = args.startLevel ?: 2;
 		var activeTree = ListToArray( event.getPageProperty( "ancestorList" ) );
 		    activeTree.append( event.getCurrentPageId() );
@@ -45,7 +48,9 @@ component {
 			, isSubMenu         = true
 		);
 
-		return renderView( view=( args.view ?: "/core/navigation/subNavigation" ) , args=args );
+		announceInterception( "onGetSubNavigationMenuItems", args );
+
+		event.setViewletView( args.view ?: "/core/navigation/subNavigation" );
 	}
 
 	private string function htmlSiteMap( event, rc, prc, args={} ) {
@@ -53,8 +58,6 @@ component {
 			  selectFields = [ "page.id", "page.title", "page.active", "page.exclude_from_sitemap" ]
 			, format       = "nestedArray"
 		);
-
-		return renderView( view="/core/navigation/htmlSiteMap", args=args );
 	}
 
 	private string function restrictedMenuItem( event, rc, prc, args={} ) {
@@ -66,9 +69,9 @@ component {
 			args.delayRestricted = false;
 			args.menuItems       = [ item ];
 
-			return renderView( view=itemView, args=args );
+			return event.setViewletView( itemView );
 		}
 
-		return "";
+		return event.noViewletView();
 	}
 }

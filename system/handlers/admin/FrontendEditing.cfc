@@ -1,3 +1,6 @@
+/**
+ * @feature admin and cms
+ */
 component {
 
 	property name="frontendEditingService" inject="frontendEditingService";

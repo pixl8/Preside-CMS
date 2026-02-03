@@ -1,7 +1,7 @@
 /**
  * @singleton      true
  * @presideservice true
- *
+ * @feature        admin
  */
 component {
 

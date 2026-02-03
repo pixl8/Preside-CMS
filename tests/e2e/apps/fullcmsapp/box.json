@@ -1,0 +1,9 @@
+{
+    "name":"End to End test site",
+    "version":"1.0.0",
+    "author":"",
+    "slug":"End to End test site",
+    "createPackageDirectory":false,
+    "private":true,
+    "dependencies":{}
+}

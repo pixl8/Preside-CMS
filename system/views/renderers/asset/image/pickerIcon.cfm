@@ -1,3 +1,4 @@
+<!---@feature assetManager and admin--->
 <cfscript>
 	imgSrc     = event.buildLink( assetId=args.id ?: "", derivative='pickerIcon' );
 	imgTitle   = HtmlEditFormat( args.label ?: '' );

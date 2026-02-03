@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfoutput>
 	<div class="batch-update-select-all">
 		<label>

@@ -576,7 +576,7 @@ component {
 			  name         = "_version_number"
 			, required     = true
 			, type         = "numeric"
-			, dbtype       = "int"
+			, dbtype       = "bigint"
 			, indexes      = ""
 			, control      = "none"
 			, maxLength    = 0
@@ -697,7 +697,8 @@ component {
 		}
 
 		if ( StructKeyExists( objMeta.properties, idField ) ) {
-			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id" ] = { unique=false, fields="#idField#,_version_number" };
+			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id_solo" ] = { unique=false, fields=idField };
+			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id"      ] = { unique=false, fields="#idField#,_version_number" }; // naming here off, but backwards compatible issue. See https://presidecms.atlassian.net/browse/PRESIDECMS-3022
 		}
 	}
 
@@ -761,7 +762,7 @@ component {
 			, tablePrefix = "_"
 			, versioned   = false
 			, properties  = {
-				  id            = { name="id"         , type="numeric", dbtype="int"      , control="none", maxLength=0, generator="increment", relationship="none", relatedTo="none", required=true, pk=true }
+				  id            = { name="id"         , type="numeric", dbtype="bigint"   , control="none", maxLength=0, generator="increment", relationship="none", relatedTo="none", required=true, pk=true }
 				, datecreated   = { name="datecreated", type="date"   , dbtype="timestamp", control="none", maxLength=0, generator="none"     , relationship="none", relatedto="none", required=true }
 			}
 		} };

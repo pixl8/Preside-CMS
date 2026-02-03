@@ -5,17 +5,21 @@
  * @autodoc        true
  * @presideService true
  * @singleton      true
- *
+ * @feature        rulesEngine
  */
 component displayName="Rules Engine Filter Service" {
 
 // CONSTRUCTOR
 	/**
 	 * @expressionService.inject rulesEngineExpressionService
-	 *
+	 * @tenancyService.inject    tenancyService
 	 */
-	public any function init( required any expressionService ) {
+	public any function init(
+		  required any expressionService
+		, required any tenancyService
+	) {
 		_setExpressionService( arguments.expressionService );
+		_setTenancyService( arguments.tenancyService );
 
 		return this;
 	}
@@ -311,7 +315,7 @@ component displayName="Rules Engine Filter Service" {
 		}
 
 		args.extraFilters.append( {
-			  filter       = "( owner is null or owner=:owner or ( user_groups.id in (:user_groups.id) and allow_group_edit = 1 ) )"
+			  filter       = "( rules_engine_condition.owner is null or rules_engine_condition.owner=:owner or ( user_groups.id in (:user_groups.id) and rules_engine_condition.allow_group_edit = 1 ) )"
 			, filterParams = {
 				  owner            = adminUserId
 				, "user_groups.id" = $getAdminPermissionService().listUserGroups( adminUserId )
@@ -601,6 +605,7 @@ component displayName="Rules Engine Filter Service" {
 		var objectName      = arguments.filter.filter_object;
 		var filterId        = arguments.filter.id;
 		var idField         = $getPresideObjectService().getIdField( objectName );
+		var bypassTenants   = [];
 		var preparedFilters = [ prepareFilter(
 			  objectName         = objectName
 			, filterId           = filterId
@@ -614,13 +619,19 @@ component displayName="Rules Engine Filter Service" {
 			) );
 		}
 
+		var objectTenant = _getTenancyService().getObjectTenant( objectName=objectName );
+		if ( Len( Trim( objectTenant ) ) ) {
+			bypassTenants = ListToArray( objectTenant );
+		}
+
 		return $getPresideObjectService().insertDataFromSelect(
 			  objectName     = "rules_engine_filter_holding_data"
 			, fieldList      = [ "filter", "object_name", "record_id", "holding_id" ]
 			, selectDataArgs = {
-				  objectName   = objectName
-				, selectFields = [ "'#filterId#'", "'#objectName#'", "#objectName#.#idField#", "'#arguments.holdingId#'" ]
-				, extraFilters = preparedFilters
+				  objectName    = objectName
+				, selectFields  = [ "'#filterId#'", "'#objectName#'", "#objectName#.#idField#", "'#arguments.holdingId#'" ]
+				, extraFilters  = preparedFilters
+				, bypassTenants = bypassTenants
 			}
 		);
 	}
@@ -699,4 +710,10 @@ component displayName="Rules Engine Filter Service" {
 		_expressionService = arguments.expressionService;
 	}
 
+	private any function _getTenancyService() {
+		return _tenancyService;
+	}
+	private void function _setTenancyService( required any tenancyService ) {
+		_tenancyService = arguments.tenancyService;
+	}
 }

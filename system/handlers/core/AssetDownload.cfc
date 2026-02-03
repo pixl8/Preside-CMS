@@ -1,8 +1,11 @@
+/**
+ * @feature assetManager
+ */
 component {
 
 	property name="assetManagerService"          inject="assetManagerService";
 	property name="assetQueueService"            inject="presidecms:dynamicservice:assetQueue";
-	property name="websiteUserActionService"     inject="websiteUserActionService";
+	property name="websiteUserActionService"     inject="featureInjector:websiteUsers:websiteUserActionService";
 	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 	property name="queueMaxWaitAttempts"         inject="coldbox:setting:assetManager.queue.downloadWaitSeconds";
 	property name="publicCacheAge"               inject="coldbox:setting:assetManager.cacheExpiry.public";
@@ -20,6 +23,11 @@ component {
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
+
+		if ( !assetManagerService.assetExists( id=assetId ) ) {
+			event.renderData( data="404 not found", type="text", statusCode=404 );
+			return;
+		}
 
 		var asset             = "";
 		var assetSelectFields = [ "asset.title", "asset.file_name", "asset.is_trashed" ];
@@ -106,24 +114,40 @@ component {
 					, asset          = asset
 				} );
 
-				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
-				if ( type.serveAsAttachment ) {
+				if ( type.trackDownloads && isFeatureEnabled( "websiteUsers" ) ) {
 					websiteUserActionService.recordAction(
 						  action     = "download"
 						, type       = "asset"
 						, userId     = getLoggedInUserId()
 						, identifier = assetId
 					);
-					header name="Content-Disposition" value="attachment; filename=""#filename#""";
-				} else {
-					header name="Content-Disposition" value="inline; filename=""#filename#""";
 				}
+
 
 				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
 					setNextEvent(
 						  url        = assetPublicUrl
-						, statusCode = type.serveAsAttachment ? 302 : 301
+						, statusCode = type.trackDownloads ? 302 : 301
 					);
+				} else if ( !Len( Trim( derivativeName ) ) && !isTrashed ) {
+					var tempPrivateUrl = assetManagerService.getTempPrivateUrl(
+						  id        = assetId
+						, versionId = versionId
+					);
+
+					if ( Len( Trim( tempPrivateUrl ) ) ) {
+						setNextEvent(
+							  url        = tempPrivateUrl
+							, statusCode = 302
+						);
+					}
+				}
+
+				var filename = _getFilenameForAsset( Len( Trim( asset.file_name ) ) ? asset.file_name : asset.title, type.extension );
+				if ( type.serveAsAttachment ) {
+					header name="Content-Disposition" value="attachment; filename=""#filename#""";
+				} else {
+					header name="Content-Disposition" value="inline; filename=""#filename#""";
 				}
 
 				if ( Len( Trim( derivativeName ) ) ) {

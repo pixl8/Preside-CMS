@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	preRenderListing  = prc.preRenderListing  ?: "";
 	postRenderListing = prc.postRenderListing ?: "";

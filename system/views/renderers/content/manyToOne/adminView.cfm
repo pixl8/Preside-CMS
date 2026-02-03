@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.recordLink"  default="" />
 <cfparam name="args.recordLabel" default="" />
 

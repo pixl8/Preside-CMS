@@ -1,3 +1,4 @@
+<!---@feature cms--->
 <cfscript>
 	siteKey          = getSystemSetting( 'recaptcha', 'site_key' );
 	validationResult = rc.validationResult ?: "";

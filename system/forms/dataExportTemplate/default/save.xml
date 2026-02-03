@@ -5,7 +5,7 @@ Data export: default template form for saving exports
 Default implementation used in conjunction with the dataExport.saveExportConfiguration.base form saving
 a data export with the default template
 -->
-<form>
+<form feature="dataExport">
 	<tab id="filters">
 		<fieldset id="fields" sortorder="10">
 			<field binding="saved_export.fields" control="dataExportPanelPicker" required="true" sortorder="10" />

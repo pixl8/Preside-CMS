@@ -1,3 +1,4 @@
+<!---@feature presideForms and assetManager--->
 <cfscript>
 	inputName          = args.name             ?: "";
 	inputId            = args.id               ?: "";
@@ -36,7 +37,7 @@
 			tabindex="#getNextTabIndex()#"
 			data-placeholder="#placeholder#"
 			data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
-			data-value="#HtmlEditFormat( value )#"
+			data-value="#EncodeForHtmlAttribute( value )#"
 			data-prefetch-url="#prefetchUrl#"
 			data-remote-url="#remoteUrl#"
 			data-browser-url="#browserUrl#"

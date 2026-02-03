@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
@@ -6,6 +7,7 @@
 	icon         = args.icon         ?: "";
 	defaultValue = args.defaultValue ?: "";
 	multiple     = isTrue( args.multiple ?: "" );
+	inputType    = multiple ? "text" : "email";
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
@@ -23,7 +25,7 @@
 <cfoutput>
 	<label>
 		<span class="block <cfif Len( Trim( icon ) )>input-icon input-icon-right</cfif>">
-			<input type="email" class="#inputClass# span12" placeholder="#placeholder#" multiple="#multiple#" name="#inputName#" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" #htmlAttributes# />
+			<input type="#inputType#" class="#inputClass# span12" placeholder="#placeholder#" name="#inputName#" value="#EncodeForHtmlAttribute( value )#" tabindex="#getNextTabIndex()#"<cfif multiple> multiple</cfif> #htmlAttributes# />
 			<cfif Len( Trim ( icon ) )>
 				<i class="fa fa-#icon#"></i>
 			</cfif>

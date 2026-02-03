@@ -1,8 +1,27 @@
-<cfparam name="args.responses" type="array"/>
+<!---@feature admin and formbuilder--->
+<cfparam name="args.responses"  type="array"  default=[] />
+<cfparam name="args.noResponse" type="string" default="#translateResource( "formbuilder:no.response.placeholder" )#" />
 
-<cfif args.responses.len()>
-	<cfoutput>
-<cfloop array="#args.responses#" item="response" index="i">#( response.item.configuration.label ?: response.item.configuration.name )#:<cfif Len( Trim( response.rendered ) )>#response.rendered#<cfelse>#translateResource( "formbuilder:no.response.placeholder" )#</cfif>
-</cfloop>
-	</cfoutput>
-</cfif>
+<cfscript>
+	var lines = [];
+	for ( var response in args.responses ) {
+		var hasRendered = StructKeyExists( response, "rendered" );
+		var line        = ( response.item.configuration.label ?: response.item.configuration.name );
+
+		if ( hasRendered ) {
+			line &= ": " ;
+
+			if ( Len( Trim( response.rendered ) ) ) {
+				line &= response.rendered;
+			} else {
+				line &= args.noResponse;
+			}
+		} else {
+			line &= Chr( 10 ) & "--------------";
+		}
+
+		ArrayAppend( lines, Trim( line ) );
+	}
+</cfscript>
+
+<cfoutput>#ArrayToList( lines, Chr( 10 ) )#</cfoutput>

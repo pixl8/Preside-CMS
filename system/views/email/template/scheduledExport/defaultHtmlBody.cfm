@@ -1,3 +1,4 @@
+<!---@feature emailCenter and dataExport--->
 <cfoutput>
 <p>Hi ${known_as},</p>
 <p>Please find the following link for the saved export: ${saved_export_name}.</p>

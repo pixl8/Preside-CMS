@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	formId                 = "translate-page-form";
 	pageId                 = rc.id ?: "";

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.items" type="array">
 
 <cfoutput>

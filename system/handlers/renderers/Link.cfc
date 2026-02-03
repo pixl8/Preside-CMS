@@ -1,3 +1,6 @@
+/**
+ * @feature cms
+ */
 component {
 
 	property name="linkDao"      inject="presidecms:object:link";

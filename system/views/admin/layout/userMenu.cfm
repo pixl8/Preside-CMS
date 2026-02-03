@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	if ( event.isAdminRequest() ) {
 		logoutUrl = event.buildAdminLink( linkTo="login.logout" );

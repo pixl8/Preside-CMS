@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	cancelLink     = prc.cancelLink     ?: "";
 	previewCurrent = prc.previewCurrent ?: {};

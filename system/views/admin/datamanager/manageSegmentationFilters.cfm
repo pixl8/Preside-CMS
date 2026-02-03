@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	hasAnyFilters = isTrue( args.hasAnyFilters ?: "" );
 	objectName    = rc.object ?: "";

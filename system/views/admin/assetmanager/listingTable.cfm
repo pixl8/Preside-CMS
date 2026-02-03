@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfscript>
 	activeFolder = Trim( rc.folder  ?: "" );
 	rootFolder   = prc.rootFolderId ?: 0;

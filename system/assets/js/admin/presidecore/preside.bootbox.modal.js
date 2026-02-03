@@ -30,7 +30,9 @@
 					} );
 				}
 
+				$( "body" ).trigger( "preShowPresideBootboxModal", [ modal ] );
 				modal.modal( "show" );
+				$( "body" ).trigger( "onShowPresideBootboxModal", [ modal ] );
 			};
 
 			initModalConfig = function( callback ){

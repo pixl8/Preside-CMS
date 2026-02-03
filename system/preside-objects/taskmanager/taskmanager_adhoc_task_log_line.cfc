@@ -6,6 +6,7 @@
  * @noLabel        true
  * @nodatemodified true
  * @nodatecreated  true
+ * @feature        adhocTasks
  */
 component extends="preside.system.base.SystemPresideObject"  {
 	property name="id" required=true type="numeric" dbtype="bigint" generator="increment";

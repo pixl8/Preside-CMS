@@ -1,8 +1,14 @@
+<!---@feature admin and formbuilder--->
 <cfscript>
-	theForm   = prc.form ?: QueryNew( '' );
-	formId    = theForm.id;
-	canDelete = prc.canDelete = hasCmsPermission( "formbuilder.deleteSubmissions" );
-	v2Form    = isTrue( theForm.uses_global_questions ?: "" );
+	theForm    = prc.form ?: QueryNew( '' );
+	formId     = theForm.id;
+	canDelete  = prc.canDelete = hasCmsPermission( "formbuilder.deleteSubmissions" );
+	v2Form     = isTrue( theForm.uses_global_questions ?: "" );
+	gridFields = [ "datecreated", "form_instance", "form_page", "submitted_data" ];
+
+	if ( isFeatureEnabled( "websiteUsers" ) ) {
+		ArrayPrepend( gridFields, "submitted_by" );
+	}
 </cfscript>
 
 <cfoutput>
@@ -20,7 +26,7 @@
 					, useMultiActions   = canDelete
 					, multiActionUrl    = event.buildAdminLink( linkTo='formbuilder.deleteSubmissionsAction', querystring="formId=#formId#" )
 					, datasourceUrl     = event.buildAdminLink( linkTo='formbuilder.listSubmissionsForAjaxDataTable', querystring="formId=#formId#" )
-					, gridFields        = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ]
+					, gridFields        = gridFields
 					, allowSearch       = true
 					, filterContextData = { formId=formId }
 					, excludeFilterExpressionTags = v2Form ? "formbuilderV1Form" : "formbuilderV2Form"

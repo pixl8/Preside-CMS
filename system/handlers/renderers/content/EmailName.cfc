@@ -1,3 +1,6 @@
+/**
+ * @feature admin and emailCenter
+ */
 component {
 
 	public string function adminDatatable( event, rc, prc, args={} ) {

@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	renderedProps = args.renderedProps ?: [];
 	title         = args.title         ?: "";

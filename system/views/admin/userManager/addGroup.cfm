@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	prc.pageIcon  = "group";
 	prc.pageTitle = translateResource( "cms:usermanager.addGroup.page.title" );

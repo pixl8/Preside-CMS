@@ -8,6 +8,7 @@
  * @nodatemodified true
  * @nodatecreated  true
  * @nolabel        true
+ * @feature        emailCenter
  *
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Email template" {

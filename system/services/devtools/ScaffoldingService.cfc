@@ -1,9 +1,13 @@
-component singleton=true {
+/**
+ * @singleton true
+ * @feature   admin
+ */
+component {
 
 // CONSTRUCTOR
 	/**
-	 * @widgetsService.inject       WidgetsService
-	 * @pageTypesService.inject     PageTypesService
+	 * @widgetsService.inject       featureInjector:cms:WidgetsService
+	 * @pageTypesService.inject     featureInjector:sitetree:PageTypesService
 	 * @presideObjectService.inject PresideObjectService
 	 * @appMapping.inject           coldbox:setting:appMapping
 	 * @notificationDao.inject      presidecms:object:admin_notification

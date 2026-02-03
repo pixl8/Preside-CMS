@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="args.objectName"     type="string" />
 <cfparam name="args.recordId"       type="string" />
 <cfparam name="args.editRecordLink" type="string" />

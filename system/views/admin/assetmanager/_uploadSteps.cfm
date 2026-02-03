@@ -1,3 +1,4 @@
+<!---@feature admin and assetManager--->
 <cfparam name="args.activeStep" type="numeric" default="1"/>
 
 <cfscript>

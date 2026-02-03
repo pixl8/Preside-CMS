@@ -3,9 +3,10 @@
  * and controls + helpers around choosing render
  * layouts, etc.
  *
- * @autodoc
- * @singleton
- * @presideservice
+ * @autodoc        true
+ * @singleton      true
+ * @presideservice true
+ * @feature        formbuilder
  */
  component {
 

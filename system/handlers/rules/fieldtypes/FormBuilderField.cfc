@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'form builder field type'
  *
+ * @feature rulesEngine and formBuilder
  */
 component {
 

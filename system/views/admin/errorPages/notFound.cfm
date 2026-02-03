@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	prc.pageTitle    = translateResource( "cms:notfound.page.title"    );
 	prc.pageSubTitle = translateResource( "cms:notfound.page.subtitle" );

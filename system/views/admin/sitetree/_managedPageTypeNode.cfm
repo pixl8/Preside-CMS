@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfparam name="args.depth"    type="numeric" />
 <cfparam name="args.pagetype" type="string" />
 <cfparam name="args.parentId" type="string" />

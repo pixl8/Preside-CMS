@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	property name="maintenanceModeService"   inject="maintenanceModeService";
@@ -5,8 +8,30 @@ component {
 	property name="adminMenuItemService"     inject="adminMenuItemService";
 	property name="adminLanguages"           inject="coldbox:setting:adminLanguages";
 	property name="adminSideBarItems"        inject="coldbox:setting:adminSideBarItems";
+	property name="environmentBannerConfig"  inject="coldbox:setting:environmentBannerConfig";
+	property name="environmentMessage"       inject="coldbox:setting:environmentMessage";
 	property name="applicationsService"      inject="applicationsService";
 	property name="i18n"                     inject="i18n";
+
+	private string function environmentBanner( event, rc, prc, args={} ) {
+		var shouldDisplay = isTrue( environmentBannerConfig.display ?: true );
+
+		if ( !shouldDisplay ) {
+			return "";
+		}
+
+		var environment   = controller.getConfigSettings().environment;
+		var envDefaultMsg = translateResource(
+			  uri          = "cms:environment.#environment#.label"
+			, defaultValue = translateResource( uri="cms:environment.default.label", data=[ UCase( environment ) ] )
+		);
+
+		args.iconClass = environmentBannerConfig.icon     ?: "";
+		args.cssClass  = environmentBannerConfig.cssClass ?: "alert-danger";
+		args.message   = Len( Trim( environmentMessage ) ) ? environmentMessage : ( environmentBannerConfig.message ?: envDefaultMsg );
+
+		return renderView( view="/admin/layout/environmentBanner", args=args );
+	}
 
 	private string function siteAlerts( event, rc, prc, args={} ) {
 		args.inMaintenanceMode = maintenanceModeService.isMaintenanceModeActive();
@@ -29,21 +54,18 @@ component {
 
 			if ( args.locales.len() > 1 ) {
 				args.locales = args.locales.map( function( locale ){
-					var language = ListFirst( locale, "_" );
-					var country  = ListLen( locale, "_" ) > 1 ? ListRest( locale, "_" ) : "";
+					var localeLabel = i18n.getLocaleLabel( locale=locale, defaultLocale=defaultLocale );
 
 					return {
 						  locale  = arguments.locale
-						, title   = translateResource( uri="locale:title", language=language, country=country )
-						, flag    = translateResource( uri="locale:flag" , language=language, country=country )
+						, title   = localeLabel.title
+						, flag    = localeLabel.flag
 						, selected = ( arguments.locale == currentLocale )
 					}
 				} ).sort( function( a, b ){
-					if ( a.locale == defaultLocale ) {
-						return -1;
-					}
-
 					return a.title < b.title ? -1 : 1;
+				} ).sort( function( a, b ){
+					return a.locale == defaultLocale ? -1 : 1;
 				} );
 
 				args.selectedLocale = args.locales[1];
@@ -67,6 +89,7 @@ component {
 		var preparedMenuItems = adminMenuItemService.prepareMenuItemsForRequest(
 			  menuItems      = args.menuItems      ?: adminSideBarItems
 			, legacyViewBase = args.legacyViewBase ?: "/admin/layout/sidebar/"
+			, runActiveChecks = isTrue( args.runActiveChecks ?: "" )
 		);
 
 		return renderViewlet( event="admin.layout.renderMenuItems", args={

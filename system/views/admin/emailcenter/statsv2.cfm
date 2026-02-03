@@ -1,5 +1,7 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	stats                = args.stats ?: {};
+	recipientStatField   = args.recipientStatField ?: "recipient";
 	clickTrackingEnabled = stats.uniqueClickCount || isTrue( prc.record.track_clicks );
 	dateFields = {
 		  bounces      = "hard_bounced_date"
@@ -177,11 +179,19 @@
 							</h4>
 						</div>
 						<div class="panel-body">
+							<cfscript>
+								gridFields = [ dateFields[ stat ] ];
+
+								if ( Len( recipientStatField ) ) {
+									ArrayPrepend( gridFields, recipientStatField );
+								}
+							</cfscript>
+
 							#renderView( view="/admin/datamanager/_objectDataTable", args={
 								  objectName        = "email_template_send_log"
 								, useMultiActions   = false
 								, datasourceUrl     = event.buildAdminLink( linkTo="emailCenter.getFilteredRecipientsForStatsTables", queryString="id=#args.templateId#&statType=#stat#" )
-								, gridFields        = [ args.recipientStatField ?: "recipient", dateFields[ stat ] ]
+								, gridFields        = gridFields
 								, draftsEnabled     = false
 								, allowSearch       = false
 								, allowFilter       = false

@@ -1,3 +1,4 @@
+<!---@feature presideForms and assetManager--->
 <cfscript>
 	inputName      = args.name            ?: "";
 	inputId        = args.id              ?: "";
@@ -13,7 +14,7 @@
 	if ( !IsSimpleValue( value ) ) {
 		value = "";
 	}
-	value = HtmlEditFormat( value );
+	value = EncodeForHtmlAttribute( value );
 
 	event.include( "/css/admin/specific/focalPointPicker/" );
 	event.include( "/js/admin/specific/focalPointPicker/" );

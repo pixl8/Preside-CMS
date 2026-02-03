@@ -1,8 +1,10 @@
+<!---@feature admin and customEmailTemplates--->
 <cfparam name="args.body"                                  default="" />
 <cfparam name="args.tab"                                   default="preview" />
 <cfparam name="args.canEdit"                type="boolean" default="false" />
 <cfparam name="args.canConfigureLayout"     type="boolean" default="false" />
 <cfparam name="args.canEditSendOptions"     type="boolean" default="false" />
+<cfparam name="args.isScheduleQueueing"     type="boolean" default="false" />
 
 <cfscript>
 	templateId = rc.id      ?: "";
@@ -17,7 +19,7 @@
 		, link   = ( args.tab == "preview" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#templateId#&version=#version#" )
 	});
 
-	if ( args.canEdit ) {
+	if ( args.canEdit && !args.isScheduleQueueing ) {
 		tabs.append({
 			  id     = "edit"
 			, icon   = "fa-pencil green"
@@ -28,7 +30,7 @@
 	}
 
 
-	if ( args.canEditSendOptions ) {
+	if ( args.canEditSendOptions && !args.isScheduleQueueing ) {
 		tabs.append({
 			  id     = "settings"
 			, icon   = "fa-cogs orange"
@@ -38,7 +40,7 @@
 		});
 	}
 
-	if ( args.canConfigureLayout ) {
+	if ( args.canConfigureLayout && !args.isScheduleQueueing ) {
 		tabs.append({
 			  id     = "layout"
 			, icon   = "fa-align-justify grey"

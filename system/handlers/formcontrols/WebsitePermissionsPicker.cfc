@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and websiteUsers
+ */
 component {
 	property name="websitePermissionService" inject="websitePermissionService";
 

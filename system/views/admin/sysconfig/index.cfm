@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfparam name="prc.categories" type="array" />
 
 <cfoutput>

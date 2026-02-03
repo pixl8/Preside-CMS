@@ -8,6 +8,7 @@
  * @noid               true
  * @nodatemodified     true
  * @nodatecreated      true
+ * @feature            rulesEngine
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Rules engine: filter data" {
 	property name="filter"      required=true relationship="many-to-one" relatedto="rules_engine_condition" ondelete="cascade-if-no-cycle-check" indexes="record|1";

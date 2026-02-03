@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	logs        = prc.logs    ?: [];
 	dateFrom    = rc.dateFrom ?: "";

@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and sites
+ */
 component {
 
 	property name="siteTemplatesService" inject="siteTemplatesService";

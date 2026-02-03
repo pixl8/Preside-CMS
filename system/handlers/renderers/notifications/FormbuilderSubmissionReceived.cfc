@@ -1,3 +1,6 @@
+/**
+ * @feature formbuilder
+ */
 component {
 
 	property name="formBuilderService" inject="FormBuilderService";

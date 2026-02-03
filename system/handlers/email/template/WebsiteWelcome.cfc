@@ -1,3 +1,6 @@
+/**
+ * @feature websiteUsers
+ */
 component {
 
 	private struct function prepareParameters(

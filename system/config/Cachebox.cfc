@@ -178,7 +178,7 @@ component {
 			var cacheboxConfigFile = ReReplace( ext.directory, "/$", "" ) & "/config/Cachebox.cfc";
 
 			if ( FileExists( cacheboxConfigFile ) ) {
-				var mappedPath = appMappingPath & ".extensions.#ListLast( ext.directory, '\/' )#.config.Cachebox";
+				var mappedPath = "#ext.componentPath#.config.Cachebox";
 
 				CreateObject( "component", mappedPath ).configure( cachebox );
 			}

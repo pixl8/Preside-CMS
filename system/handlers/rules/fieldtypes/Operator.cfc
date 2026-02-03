@@ -1,6 +1,7 @@
 /**
  * Handler for rules engine 'operator type'
  *
+ * @feature rulesEngine
  */
 component {
 
@@ -52,6 +53,19 @@ component {
 			, defaultValue = arguments.value
 			, required     = true
 		);
+	}
+
+	private string function renderConfigScreenDescription( string value="", struct config={} ) {
+		var variety = "string";
+
+		switch( config.variety ?: "" ) {
+			case "date":
+			case "numeric":
+			case "period":
+				variety = config.variety;
+		}
+
+		return translateResource( uri="cms:rulesEngine.operator.#variety#.config.description", defaultValue="" );
 	}
 
 }

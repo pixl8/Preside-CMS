@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfparam name="args.id" type="string" />
 
 <cfoutput>

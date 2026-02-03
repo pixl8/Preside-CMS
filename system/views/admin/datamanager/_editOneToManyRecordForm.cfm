@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.editRecordAction"        type="string" default=event.buildAdminLink( linkTo='datamanager.editOneToManyRecordAction' );
 	param name="args.object"                  type="string";

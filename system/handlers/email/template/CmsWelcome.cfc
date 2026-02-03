@@ -1,3 +1,6 @@
+/**
+ * @feature admin
+ */
 component {
 
 	private struct function prepareParameters(

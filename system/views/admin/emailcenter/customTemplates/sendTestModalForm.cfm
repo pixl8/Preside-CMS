@@ -1,3 +1,4 @@
+<!---@feature admin and customEmailTemplates--->
 <cfscript>
 	formAction = prc.formAction ?: "";
 	formName   = prc.formName   ?: "";

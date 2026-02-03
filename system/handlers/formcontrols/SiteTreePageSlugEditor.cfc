@@ -1,3 +1,6 @@
+/**
+ * @feature presideForms and siteTree
+ */
 component {
 	public string function index( event, rc, prc, args={} ) {
 		var parentPage = rc.parent_page ?: ( prc.page.parent_page ?: "" );

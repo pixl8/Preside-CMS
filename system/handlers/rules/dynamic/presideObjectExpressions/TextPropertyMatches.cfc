@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * string property's value matches the supplied text
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 
@@ -27,6 +28,12 @@ component extends="preside.system.base.AutoObjectExpressionHandler" {
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
+		switch ( arguments._stringOperator ) {
+			case "oneof":
+			case "noneof":
+				arguments.value = ListItemTrim( arguments.value );
+		}
+
 		var paramName     = "textPropertyMatches" & Replace( LCase( CreateUUId() ), "-", "", "all" );
 		var filterSql     = "#arguments.objectName#.#propertyName# ${operator} :#paramName#";
 		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };

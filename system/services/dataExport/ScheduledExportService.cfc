@@ -1,15 +1,19 @@
 /**
  * @singleton      true
  * @presideService true
+ * @feature        dataExport
  */
 component {
 	/**
-	 * @threadUtil.inject    threadUtil
+	 * @threadUtil.inject threadUtil
+	 * @cronUtil.inject   cronUtil
 	 */
 	public any function init(
 		  required any threadUtil
+		, required any cronUtil
 	) {
 		_setThreadUtil( arguments.threadUtil );
+		_setCronUtil( arguments.cronUtil );
 
 		_setMachineId();
 		_setRunningExports({});
@@ -101,29 +105,11 @@ component {
 			var detail = getExportDetail( arguments.recordId );
 
 			if ( !isEmpty( detail ) and !isEmpty( detail.schedule ?: "" ) ) {
-				$getPresideObject( "saved_export" ).updateData( id=arguments.recordId, data={ next_run=getNextRunDate( detail.schedule ) } );
+				$getPresideObject( "saved_export" ).updateData( id=arguments.recordId, data={ next_run=_getCronUtil().getNextRunDate( detail.schedule ) } );
 			}
 		} catch (any e) {
 			$raiseError( e );
 		}
-	}
-
-	public string function getNextRunDate( required string schedule, date lastRun=now() ) {
-		if ( !Len( Trim( arguments.schedule ) ) || arguments.schedule == "disabled" ) {
-			return "";
-		}
-
-		var cronTabExpression = _getCrontabExpressionObject( arguments.schedule );
-		var lastRunJodaTime   = _createJodaTimeObject( arguments.lastRun );
-
-		return cronTabExpression.nextTimeAfter( lastRunJodaTime  ).toDate();
-	}
-
-	public string function cronExpressionToHuman( required string expression ) {
-		if ( arguments.expression == "disabled" ) {
-			return "Disabled";
-		}
-		return CreateObject( "java", "net.redhogs.cronparser.CronExpressionDescriptor", _getLib() ).getDescription( arguments.expression );
 	}
 
 	public void function sendScheduledExports() {
@@ -208,7 +194,7 @@ component {
 			  id   = arguments.exportId
 			, data = {
 				  is_running      = true
-				, next_run        = ( ( exportDetail.schedule ?: "" ) eq "disabled" ) ? "" : getNextRunDate( exportDetail.schedule ?: "" )
+				, next_run        = ( ( exportDetail.schedule ?: "" ) eq "disabled" ) ? "" : _getCronUtil().getNextRunDate( exportDetail.schedule ?: "" )
 				, running_thread  = arguments.threadId
 				, running_machine = _getMachineId()
 			  }
@@ -232,7 +218,7 @@ component {
 			, data = {
 				  is_running           = false
 				, last_ran             = now()
-				, next_run             = ( ( exportRecord.schedule ?: "" ) eq "disabled" ) ? "" : getNextRunDate( exportRecord.schedule ?: "" )
+				, next_run             = ( ( exportRecord.schedule ?: "" ) eq "disabled" ) ? "" : _getCronUtil().getNextRunDate( exportRecord.schedule ?: "" )
 				, was_last_run_success = false
 				, last_run_time_taken  = ""
 				, running_thread       = ""
@@ -263,7 +249,7 @@ component {
 			, data = {
 				  is_running           = false
 				, last_ran             = now()
-				, next_run             = ( ( exportRecord.schedule ?: "" ) eq "disabled" ) ? "" : getNextRunDate( exportRecord.schedule ?: "" )
+				, next_run             = ( ( exportRecord.schedule ?: "" ) eq "disabled" ) ? "" : _getCronUtil().getNextRunDate( exportRecord.schedule ?: "" )
 				, was_last_run_success = arguments.success
 				, last_run_time_taken  = arguments.timeTaken
 				, running_thread       = ""
@@ -339,23 +325,6 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private array function _getLib() {
-		return [
-			  "/preside/system/services/taskmanager/lib/cron-parser-2.6-SNAPSHOT.jar"
-			, "/preside/system/services/taskmanager/lib/commons-lang3-3.3.2.jar"
-			, "/preside/system/services/taskmanager/lib/joda-time-2.9.4.jar"
-			, "/preside/system/services/taskmanager/lib/cron-1.0.jar"
-		];
-	}
-
-	private any function _createJodaTimeObject( required date cfmlDateTime ) {
-		return CreateObject( "java", "org.joda.time.DateTime", _getLib() ).init( cfmlDateTime );
-	}
-
-	private any function _getCrontabExpressionObject( required string expression ) {
-		return CreateObject( "java", "fc.cron.CronExpression", _getLib() ).init( arguments.expression );
-	}
-
 	private boolean function _exportIsRunningOnLocalMachine( required any task ){
 		var runningTasks = _getRunningExports();
 		var threadRef    = runningTasks[ task.running_thread ].thread ?: NullValue();
@@ -394,5 +363,12 @@ component {
 	}
 	private void function _setThreadUtil( required any threadUtil ) {
 		_threadUtil = arguments.threadUtil;
+	}
+
+	private any function _getCronUtil() {
+	    return _cronUtil;
+	}
+	private void function _setCronUtil( required any cronUtil ) {
+	    _cronUtil = arguments.cronUtil;
 	}
 }

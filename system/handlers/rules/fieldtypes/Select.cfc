@@ -1,37 +1,58 @@
 /**
  * Handler for rules engine 'select type'
  *
+ * @feature rulesEngine
  */
 component {
 
-	property name="presideObjectService" inject="presideObjectService";
-
 	private string function renderConfiguredField( string value="", struct config={} ) {
-		var values        = ListToArray( config.values ?: "" );
-		var labels        = _getLabels( config );
-		var items         = [];
+		var values = config.values ?: [];
+		var labels = config.labels ?: [];
 
-		for( var v in ListToArray( arguments.value ) ) {
-			var index = values.findNoCase( v );
+		if ( IsSimpleValue( values ) ) {
+			values = ListToArray( values );
+		}
+
+		if ( IsSimpleValue( labels ) ) {
+			labels = ListToArray( labels );
+		}
+
+		labels = _getLabels( values, labels, config.labelUriRoot ?: "" );
+
+		var items  = [];
+		for ( var value in ListToArray( arguments.value ) ) {
+			var index = ArrayFindNoCase( values, value );
+
 			if ( index ) {
-				items.append( labels[ index ] );
+				ArrayAppend( items, labels[ index ] );
 			}
 		}
 
-		if( items.isEmpty() ) {
+		if ( !ArrayLen( items ) ) {
 			return config.defaultLabel ?: translateResource( "cms:rulesEngine.fieldtype.select.default.label" )
 		}
 
-		return items.toList( ", " );
+		return ArrayToList( items, ", " );
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
-		var values        = ListToArray( config.values ?: "" );
-		var labels        = _getLabels( config );
-		var multiple      = IsTrue( config.multiple ?: true );
-		var sortable      = IsTrue( config.sortable ?: true );
+		var values = config.values ?: [];
+		var labels = config.labels ?: [];
 
-		rc.delete( "value" );
+		if ( IsSimpleValue( values ) ) {
+			values = ListToArray( values );
+		}
+
+		if ( IsSimpleValue( labels ) ) {
+			labels = ListToArray( labels );
+		}
+
+		labels = _getLabels( values, labels, config.labelUriRoot ?: "" );
+
+		var multiple = IsTrue( config.multiple ?: true );
+		var sortable = IsTrue( config.sortable ?: true );
+
+		StructDelete( rc, "value" );
 
 		return renderFormControl(
 			  name         = "value"
@@ -48,22 +69,18 @@ component {
 	}
 
 // helpers
-	private array function _getLabels( config ) {
-		var values        = ListToArray( config.values ?: "" );
-		var labels        = ListToArray( config.labels ?: "" );
-		var labelUriRoot  = config.labelUriRoot ?: "";
-
-		if ( values.len() && !labels.len() ) {
-			if ( labelUriRoot.len() ) {
-				for( var value in values ) {
-					labels.append( translateResource( labelUriRoot & value ) );
-				}
+	private array function _getLabels( required array values, array labels=[], string labelUriRoot="" ) {
+		if ( ArrayLen( arguments.values ) && !ArrayLen( arguments.labels ) ) {
+			if ( isEmptyString( arguments.labelUriRoot ) ) {
+				arguments.labels = arguments.values;
 			} else {
-				labels = values;
+				for ( var value in arguments.values ) {
+					ArrayAppend( arguments.labels, translateResource( uri="#labelUriRoot##value#" ) );
+				}
 			}
 		}
 
-		return labels;
+		return arguments.labels;
 	}
 
 }

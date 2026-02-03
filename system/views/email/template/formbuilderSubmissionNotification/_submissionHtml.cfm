@@ -1,10 +1,13 @@
+<!---@feature admin and emailCenter and formbuilder--->
 <cfparam name="args.submissionData" type="struct">
 
 <cfoutput>
 	<table style="border-spacing: 0; border-collapse: collapse; vertical-align: top; text-align: left; margin: 0 auto; padding: 0;">
-		<tr>
-			<th colspan="2" valign="top" style="padding-bottom:18px;font-size:18px;">#renderContent( 'websiteUser', args.submissionData.submitted_by, [ "email" ] )#</th>
-		</tr>
+		<cfif isFeatureEnabled( "websiteUsers" )>
+			<tr>
+				<th colspan="2" valign="top" style="padding-bottom:18px;font-size:18px;">#renderContent( 'websiteUser', args.submissionData.submitted_by, [ "email" ] )#</th>
+			</tr>
+		</cfif>
 		<tr>
 			<th style="width:35%;padding-right:5px;" valign="top">#translateResource( "preside-objects.formbuilder_formsubmission:field.datecreated.title")#</th>
 			<td valign="top">#renderField( 'formbuilder_formsubmission', 'datecreated', args.submissionData.datecreated )#</td>

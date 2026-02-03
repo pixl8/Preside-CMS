@@ -21,34 +21,77 @@ component {
 		return _getExtensions();
 	}
 
+	public boolean function extensionExists( required string extensionId ) {
+		var mappings = _getMappedExtensions();
+
+		return StructKeyExists( mappings, arguments.extensionId );
+	}
+
+	public struct function getExtension( required string extensionId ) {
+		var mappings = _getMappedExtensions();
+
+		return mappings[ arguments.extensionId ] ?: {};
+	}
+
+	public string function getExtensionDirectory( required string extensionId ) {
+		var mappings = _getMappedExtensions();
+
+		return mappings[ arguments.extensionId ].directory ?: "";
+	}
+
+	public string function getExtensionComponentPath( required string extensionId ) {
+		var mappings = _getMappedExtensions();
+
+		return mappings[ arguments.extensionId ].componentPath ?: "";
+	}
+
+	public boolean function isAppExtension( required string extensionId ) {
+		var mappings = _getMappedExtensions();
+
+		return StructKeyExists( mappings, arguments.extensionId ) && mappings[ arguments.extensionId ].isAppLocal;
+	}
+
+
 // PRIVATE HELPERS
 	private void function _readExtensions( required string appMapping, required array ignoreExtensions ) {
 		var appCacheKey = "__presideappExtensions";
 
 		if ( !StructKeyExists( application, appCacheKey ) ) {
-			appMapping = "/" & appMapping.reReplace( "^/", "" );
+			arguments.appMapping = "/" & ReReplace( arguments.appMapping, "^/", "" );
 
 			var appDir        = ExpandPath( appMapping );
-			var extensionsDir = ListAppend( appDir, "extensions", _getDirDelimiter() );
-			var manifestFiles = DirectoryList( extensionsDir, true, "path", "manifest.json" );
 			var extensions    = [];
+			var args          = arguments;
+			var readDir = function( dir, appLocal ) {
+				var manifestFiles = DirectoryList( arguments.dir, true, "path", "manifest.json" );
 
-			for( var manifestFile in manifestFiles ) {
-				if ( !_isExtensionManifest( manifestFile, extensionsDir ) ) {
-					continue;
-				}
+				for( var manifestFile in manifestFiles ) {
+					if ( !_isExtensionManifest( manifestFile, arguments.dir ) ) {
+						continue;
+					}
 
-				var extension = _parseManifest( manifestFile, appMapping );
-				if ( !ArrayFindNoCase( arguments.ignoreExtensions, extension.id ) ) {
-					ArrayAppend( extensions, extension );
+					var extension = _parseManifest( manifestFile, appMapping );
+					if ( !ArrayFindNoCase( args.ignoreExtensions, extension.id ) ) {
+						extension.isAppLocal = arguments.appLocal;
+						ArrayAppend( extensions, extension );
+					}
 				}
-			}
+			};
+
+			readDir( ListAppend( appDir, "extensions"    , _getDirDelimiter() ), false );
+			readDir( ListAppend( appDir, "extensions_app", _getDirDelimiter() ), true );
+
 
 			extensions = _sortExtensions( extensions );
 			application[ appCacheKey ] = extensions;
 		}
 
 		_setExtensions( application[ appCacheKey ] );
+		var mapped = {};
+		for( var ext in application[ appCacheKey ] ) {
+			mapped[ ext.id ] = ext;
+		}
+		_setMappedExtensions( mapped );
 	}
 
 	private struct function _parseManifest( required string manifestFile, required string appMapping ) {
@@ -81,10 +124,12 @@ component {
 			throw( type="ExtensionManager.invalidManifest", message=message );
 		}
 
-		manifest[ "directory" ] = GetDirectoryFromPath( arguments.manifestFile ).reReplaceNoCase( "[\\/]$", "" ).replace( appDir, appMapping );
-		manifest[ "name"      ] = ListLast( manifest.directory, "\/" );
+		manifest.directory     = Replace( Replace( ReReplaceNoCase( GetDirectoryFromPath( arguments.manifestFile ), "[\\/]$", "" ), appDir, appMapping ), "\", "/", "all" );
+		manifest.componentPath = Replace( ReReplace( manifest.directory, "^/", "" ), "/", ".", "all" );
+		manifest.name          = ListLast( manifest.directory, "\/" );
+
 		if ( manifest.name == "preside-extension" ) {
-			manifest[ "name" ] = ListGetAt( manifest.directory, ListLen( manifest.directory, "\/" )-1, "\/" );
+			manifest.name = ListGetAt( manifest.directory, ListLen( manifest.directory, "\/" )-1, "\/" );
 		}
 
 		manifest[ "dependsOn" ] = manifest.dependson ?: [];
@@ -107,18 +152,18 @@ component {
 				var extA = extensions[ i ];
 				var extB = extensions[ i+1 ];
 
-				if ( extA.dependsOn.len() ) {
+				if ( ArrayLen( extA.dependsOn ) ) {
 					for( var n=i+1; n<=extensionCount; n++ ) {
 						var extC = extensions[ n ];
 
-						if ( extA.dependsOn.findNoCase( extC.id ) ) {
-							arrayDeleteAt(extensions, n);
-							arrayInsertAt(extensions, i, extC);
+						if ( ArrayFindNoCase( extA.dependsOn, extC.id ) ) {
+							ArrayDeleteAt( extensions, n );
+							ArrayInsertAt( extensions, i, extC );
 							swapped = true;
 							break;
 						}
 					}
-				} else if ( extA.id > extB.id && !extB.dependsOn.findNoCase( extA.id ) ) {
+				} else if ( extA.id > extB.id && !ArrayFindNoCase( extB.dependsOn, extA.id ) ) {
 					var tmp = extB;
 					extensions[ i+1 ] = extA;
 					extensions[ i ]   = tmp;
@@ -153,6 +198,14 @@ component {
 
 	private void function _setExtensions( required array extensions ) {
 		_extensions = arguments.extensions;
+	}
+
+	private struct function _getMappedExtensions() {
+		return _dirMappings;
+	}
+
+	private void function _setMappedExtensions( required struct dirMappings ) {
+		_dirMappings = arguments.dirMappings;
 	}
 
 	private string function _getDirDelimiter() {

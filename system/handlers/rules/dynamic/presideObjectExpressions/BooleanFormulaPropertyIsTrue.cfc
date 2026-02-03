@@ -2,6 +2,7 @@
  * Dynamic expression handler for checking whether or not a preside object
  * boolean formula property's value is true / fase
  *
+ * @feature rulesEngine
  */
 component extends="preside.system.base.AutoObjectExpressionHandler" {
 

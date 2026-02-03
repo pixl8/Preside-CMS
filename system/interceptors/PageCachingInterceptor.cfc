@@ -3,13 +3,29 @@ component extends="coldbox.system.Interceptor" {
 	property name="cache"                         inject="cachebox:PresidePageCache";
 	property name="delayedViewletRendererService" inject="delayedInjector:delayedViewletRendererService";
 	property name="delayedStickerRendererService" inject="delayedInjector:delayedStickerRendererService";
-	property name="loginService"                  inject="delayedInjector:websiteLoginService";
 	property name="websiteUserActionService"      inject="delayedInjector:websiteUserActionService";
+	property name="i18n"                          inject="delayedInjector:i18n";
+	property name="defaultLocale"                 inject="coldbox:setting:default_locale";
 
 // PUBLIC
 	public void function configure() {}
 
 	public void function onRequestCapture( event ) {
+		var adminUser   = event.getAdminUserDetails();
+		var adminLocale = Len( adminUser.user_language ?: "" ) ? adminUser.user_language : defaultLocale;
+		var siteDetail  = event.getSite();
+		var siteLocale  = Len( siteDetail.locale ?: "" ) ? siteDetail.locale : defaultLocale;
+
+		if ( event.isAdminRequest() ) {
+			if ( adminLocale != i18n.getFwLocale() ) {
+				i18n.setFwLocale( locale=adminLocale );
+			}
+		} else {
+			if ( siteLocale != i18n.getFwLocale() ) {
+				i18n.setFwLocale( locale=siteLocale );
+			}
+		}
+
 		if ( event.cachePage() ) {
 			var cacheKey = _getCacheKey( event );
 			var cached   = cache.get( cacheKey );
@@ -19,7 +35,7 @@ component extends="coldbox.system.Interceptor" {
 				event.checkPageAccess();
 				event.setXFrameOptionsHeader();
 				event.setHTTPHeader( name="X-Cache", value="HIT" );
-				var viewletsRendered = delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" );
+				var viewletsRendered = isFeatureEnabled( "delayedViewlets" ) ? delayedViewletRendererService.renderDelayedViewlets( cached.body ?: "" ) : ( cached.body ?: "" );
 				var contentType      = cached.contentType ?: "";
 				var pageId           = event.getCurrentPageId();
 				var xframeOptions    = prc.xframeoptions ?: "DENY";
@@ -28,7 +44,7 @@ component extends="coldbox.system.Interceptor" {
 					event.setHTTPHeader( name="X-Frame-Options", value=UCase( xframeOptions ), overwrite=true );
 				}
 
-				if ( Len( Trim( pageId ) ) ) {
+				if ( Len( Trim( pageId ) ) && isFeatureEnabled( "websiteUsers" ) ) {
 					websiteUserActionService.recordAction(
 						  action     = "pagevisit"
 						, type       = "request"
@@ -41,7 +57,7 @@ component extends="coldbox.system.Interceptor" {
 				if ( len( contentType ) ) {
 					content type=contentType;
 				}
-				echo( delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered ) );
+				echo( isFeatureEnabled( "delayedViewlets" ) ? delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered ) : viewletsRendered );
 				abort;
 			}
 		}
@@ -66,8 +82,10 @@ component extends="coldbox.system.Interceptor" {
 			event.setHTTPHeader( name="X-Cache", value="MISS" );
 		}
 
-		var viewletsRendered          = delayedViewletRendererService.renderDelayedViewlets( content );
-		interceptData.renderedContent = delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered );
+		if ( isFeatureEnabled( "delayedViewlets" ) ) {
+			var viewletsRendered          = delayedViewletRendererService.renderDelayedViewlets( content );
+			interceptData.renderedContent = delayedStickerRendererService.renderDelayedStickerIncludes( viewletsRendered );
+		}
 	}
 
 	public void function postUpdateObjectData( event, interceptData ) {
@@ -85,7 +103,7 @@ component extends="coldbox.system.Interceptor" {
 
 // PRIVATE HELPERS
 	private string function _getCacheKey( event ) {
-		var isLoggedIn = loginService.get().isLoggedIn();
+		var isLoggedIn = isLoggedIn();
 		var fullUrl    = event.getBaseUrl() & event.getCurrentUrl();
 		var isAjax     = event.isAjax();
 

@@ -1,3 +1,4 @@
+<!---@feature admin and sitetree--->
 <cfscript>
 	languageId = rc.language ?: "";
 	object     = prc.versionedObjectName ?: "page";

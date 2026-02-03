@@ -1,4 +1,4 @@
-component {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="labelRendererService" inject="LabelRendererService";
 

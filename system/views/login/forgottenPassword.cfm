@@ -1,3 +1,4 @@
+<!---@feature websiteUsers and siteTree--->
 <cfparam name="args.title"                            field="page.title" editable="true" />
 <cfparam name="args.loginId_not_found"                field="forgotten_password.loginId_not_found" default="Sorry, your email address is not found in the system." />
 <cfparam name="args.invalid_reset_token"              field="forgotten_password.invalid_reset_token" default="Invalid reset token." />

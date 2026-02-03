@@ -1,7 +1,10 @@
+/**
+ * @feature admin and assetManager
+ */
 component extends="preside.system.base.AdminHandler" {
 
 	property name="assetManagerService"              inject="assetManagerService";
-	property name="websitePermissionService"         inject="websitePermissionService";
+	property name="websitePermissionService"         inject="featureInjector:websiteUsers:websitePermissionService";
 	property name="formsService"                     inject="formsService";
 	property name="presideObjectService"             inject="presideObjectService";
 	property name="contentRendererService"           inject="contentRendererService";
@@ -460,15 +463,17 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.addFolder", querystring="folder=#formData.parent_folder#" ), persistStruct=formData );
 		}
 
-		websitePermissionService.syncContextPermissions(
-			  context       = "asset"
-			, contextKey    = newFolderId
-			, permissionKey = "assets.access"
-			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-		);
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			websitePermissionService.syncContextPermissions(
+				  context       = "asset"
+				, contextKey    = newFolderId
+				, permissionKey = "assets.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
+		}
 
 		messageBox.info( translateResource( uri="cms:assetmanager.folder.added.confirmation", data=[ formData.label ?: '' ] ) );
 		if ( Val( rc._addanother ?: 0 ) ) {
@@ -488,15 +493,17 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		prc.record = queryRowToStruct( prc.record );
 
-		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
-			  context       = "asset"
-			, contextKey    = prc.record.id
-			, permissionKey = "assets.access"
-		);
-		prc.record.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
-		prc.record.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
-		prc.record.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
-		prc.record.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			var contextualAccessPerms = websitePermissionService.getContextualPermissions(
+				context       = "asset"
+				, contextKey    = prc.record.id
+				, permissionKey = "assets.access"
+			);
+			prc.record.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
+			prc.record.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
+			prc.record.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
+			prc.record.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+		}
 	}
 
 	function editFolderAction( event, rc, prc ) {
@@ -530,15 +537,17 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editFolder", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=formData );
 		}
 
-		websitePermissionService.syncContextPermissions(
-			  context       = "asset"
-			, contextKey    = folderId
-			, permissionKey = "assets.access"
-			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-		);
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			websitePermissionService.syncContextPermissions(
+				  context       = "asset"
+				, contextKey    = folderId
+				, permissionKey = "assets.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
+		}
 
 		messageBox.info( translateResource( uri="cms:assetmanager.folder.edited.confirmation", data=[ prc.folder.label ?: '' ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
@@ -729,15 +738,17 @@ component extends="preside.system.base.AdminHandler" {
 	function editAsset( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
 
-		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
-			  context       = "asset"
-			, contextKey    = rc.asset
-			, permissionKey = "assets.access"
-		);
-		prc.asset.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
-		prc.asset.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
-		prc.asset.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
-		prc.asset.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+		if ( isFeatureEnabled( "websiteUsers" ) ) {
+			var contextualAccessPerms = websitePermissionService.getContextualPermissions(
+				  context       = "asset"
+				, contextKey    = rc.asset
+				, permissionKey = "assets.access"
+			);
+			prc.asset.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
+			prc.asset.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
+			prc.asset.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
+			prc.asset.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+		}
 
 		event.include( "/js/admin/specific/owlcarousel/"  )
 		     .include( "/css/admin/specific/owlcarousel/" );
@@ -795,7 +806,7 @@ component extends="preside.system.base.AdminHandler" {
 			success = false;
 		}
 
-		if ( success ) {
+		if ( success && isFeatureEnabled( "websiteUsers" ) ) {
 			websitePermissionService.syncContextPermissions(
 				  context       = "asset"
 				, contextKey    = assetId

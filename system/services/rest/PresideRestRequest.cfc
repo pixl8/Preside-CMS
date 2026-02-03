@@ -1,7 +1,8 @@
 /**
  * Object to represent a REST request. Used in REST requests (see [[restframework]]).
  *
- * @autodoc true
+ * @autodoc   true
+ * @nowirebox true
  */
 component accessors=true displayName="Preside REST Request" {
 

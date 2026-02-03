@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="widgets.jssnippetwidget:" categories="system,js,default">
+<form i18nBaseUri="widgets.jssnippetwidget:" categories="system,js,default" feature="cms">
 	<tab id="main">
 		<fieldset id="externaljs">
 			<field sortorder="10" name="source_url"      control="textinput"   />

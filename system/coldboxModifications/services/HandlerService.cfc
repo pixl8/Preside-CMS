@@ -13,17 +13,26 @@ component extends="coldbox.system.web.services.HandlerService" {
 		var handlerMappings              = [];
 		var siteTemplateHandlerMappings  = {};
 
+		variables.featureService    = controller.getWirebox().getInstance( "featureService" );
+		variables.ignoreFileService = controller.getWirebox().getInstance( "ignoreFileService" );
+		variables.useSiteTemplates  = featureService.isFeatureEnabled( "sites" );
+
 		ArrayAppend( handlerMappings, { invocationPath=handlersInvocationPath, handlers=getHandlerListing( handlersPath, handlersInvocationPath ) } );
 
-		_addSiteTemplateHandlerMappings( "#appMapping#/site-templates/", "#appMappingPath#.site-templates", siteTemplateHandlerMappings );
-		for( var i=activeExtensions.len(); i>0; i-- ) {
+		if ( useSiteTemplates ) {
+			_addSiteTemplateHandlerMappings( "#appMapping#/site-templates/", "#appMappingPath#.site-templates", siteTemplateHandlerMappings, ignoreFileService );
+		}
+
+		for( var i=ArrayLen( activeExtensions ); i>0; i-- ) {
 			var ext = activeExtensions[ i ];
-			var extensionHandlersPath   = ExpandPath( "#appMapping#/extensions/#ext.name#/handlers" );
-			var extensionInvocationPath = "#appMappingPath#.extensions.#ext.name#.handlers";
+			var extensionHandlersPath   = ExpandPath( "#ext.directory#/handlers" );
+			var extensionInvocationPath = ext.componentPath & ".handlers";
 
 			ArrayAppend( handlerMappings, { invocationPath=extensionInvocationPath, handlers=getHandlerListing( extensionHandlersPath, extensionInvocationPath ) } );
 
-			_addSiteTemplateHandlerMappings( "#appMapping#/extensions/#ext.name#/site-templates/", "#appMappingPath#.extensions.#ext.name#.site-templates", siteTemplateHandlerMappings );
+			if ( useSiteTemplates ) {
+				_addSiteTemplateHandlerMappings( "#ext.directory#/site-templates/", "#ext.componentPath#.site-templates", siteTemplateHandlerMappings );
+			}
 		}
 
 		variables.registeredHandlers = {};
@@ -43,33 +52,41 @@ component extends="coldbox.system.web.services.HandlerService" {
 		variables.siteTemplateHandlerMappings = siteTemplateHandlerMappings;
 	}
 
-	public array function getHandlerListing( required string directory, string invocationPath ) {
-		var i                = 1;
-		var thisAbsolutePath = "";
-		var cleanHandler     = "";
-		var fileArray        = ArrayNew(1);
-		var files            = DirectoryList( arguments.directory, true, "query", "*.cfc" );
-		var actions          = "";
+	public array function getHandlerListing( required string directory, string invocationPath, any ignoreFileService ) {
+		var i                  = 1;
+		var thisAbsolutePath   = "";
+		var cleanHandler       = "";
+		var fullInvocationPath = "";
+		var fileArray          = ArrayNew(1);
+		var files              = DirectoryList( arguments.directory, true, "query", "*.cfc" );
+		var actions            = "";
+		var meta               = "";
 
 		// Convert windows \ to java /
 		arguments.directory = replace(arguments.directory,"\","/","all");
 
 		// Iterate, clean and register
 		for (i=1; i lte files.recordcount; i=i+1 ){
-
 			thisAbsolutePath = replace(files.directory[i],"\","/","all") & "/";
 			cleanHandler = replacenocase(thisAbsolutePath,arguments.directory,"","all") & files.name[i];
-
-			// Clean OS separators to dot notation.
 			cleanHandler = removeChars(replacenocase(cleanHandler,"/",".","all"),1,1);
-
-			//Clean Extension
 			cleanHandler = controller.getUtil().ripExtension(cleanhandler);
+			fullInvocationPath = ListAppend( arguments.invocationPath, cleanHandler, "." );
 
-			//Add data to array
-			actions = _getCfcMethods( getComponentMetaData( ListAppend( arguments.invocationPath, cleanHandler, "." ) ) );
+			if ( ignoreFileService.isIgnored( "handler", fullInvocationPath ) ) {
+				continue;
+			}
 
-			ArrayAppend( fileArray , { name=cleanHandler, actions=Duplicate( actions ) } );
+			meta = GetComponentMetaData( fullInvocationPath );
+
+			if ( _isFeatureDisabled( meta ) ) {
+				ignoreFileService.ignore( "handler", fullInvocationPath );
+				continue;
+			}
+
+			actions = _getCfcMethods(  meta );
+
+			ArrayAppend( fileArray, { name=cleanHandler, actions=Duplicate( actions ) } );
 		}
 
 		return fileArray;
@@ -92,7 +109,7 @@ component extends="coldbox.system.web.services.HandlerService" {
 		var moduleReceived  = "";
 
 		if( !isModuleCall ){
-			if ( Len( Trim( currentSite.template ?: "" ) ) && StructKeyExists( variables.siteTemplateHandlerMappings, currentSite.template ) ) {
+			if ( useSiteTemplates && Len( Trim( currentSite.template ?: "" ) ) && StructKeyExists( variables.siteTemplateHandlerMappings, currentSite.template ) ) {
 				for ( var handlerSource in variables.siteTemplateHandlerMappings[ currentSite.template ] ) {
 					handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 
@@ -230,6 +247,18 @@ component extends="coldbox.system.web.services.HandlerService" {
 		}
 
 		return methods.keyArray();
+	}
+
+	private boolean function _isFeatureDisabled( meta ) {
+		if ( StructKeyExists( arguments.meta, "feature" ) ) {
+			if ( Len( arguments.meta.feature ) ) {
+				return !featureService.isFeatureEnabled( arguments.meta.feature );
+			}
+		} else if ( StructCount( arguments.meta.extends ?: {} ) ) {
+			return _isFeatureDisabled( arguments.meta.extends );
+		}
+
+		return false;
 	}
 
 	private string function _listHandlerNames( required array handlers ) {

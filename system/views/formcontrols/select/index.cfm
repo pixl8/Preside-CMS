@@ -1,3 +1,4 @@
+<!---@feature presideForms--->
 <cfscript>
 	inputName               = args.name                    ?: "";
 	inputId                 = args.id                      ?: "";
@@ -10,14 +11,22 @@
 	deselectable            = args.deselectable            ?: true;
 	extraClasses            = args.extraClasses            ?: "";
 	values                  = args.values                  ?: "";
+	resultTemplate          = args.resultTemplate          ?: "";
+	selectedTemplate        = args.selectedTemplate        ?: "";
+	skipHtmlEncodeForLabel  = args.skipHtmlEncodeForLabel  ?: false;
 	removeObjectPickerClass = args.removeObjectPickerClass ?: false;
 	objectPickerClass       = removeObjectPickerClass ?  "" : "object-picker";
 	addMissingValues        = IsTrue( args.addMissingValues   ?: "" );
 	includeEmptyOption      = IsTrue( args.includeEmptyOption ?: "" );
-	labels                  = ( structKeyExists( args, "labels") && len( args.labels ) ) ? args.labels : args.values;
+	exactMatchOnly          = IsTrue( args.exactMatchOnly     ?: "" );
+	labels                  = ( StructKeyExists( args, "labels") && Len( args.labels ) ) ? args.labels : args.values;
+	titles                  = ( StructKeyExists( args, "titles") && Len( args.titles ) ) ? args.titles : labels;
+	optionAttribs           = args.optionAttribs           ?: "";
 
-	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
-	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
+	if ( IsSimpleValue( values        ) ) { values        = ListToArray( values        ); }
+	if ( IsSimpleValue( labels        ) ) { labels        = ListToArray( labels        ); }
+	if ( IsSimpleValue( titles        ) ) { titles        = ListToArray( titles        ); }
+	if ( IsSimpleValue( optionAttribs ) ) { optionAttribs = ListToArray( optionAttribs ); }
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
@@ -32,7 +41,7 @@
 		extraClasses = ListAppend( extraClasses, "non-deselectable", " " );
 	}
 
-	value      = htmlEditFormat( value );
+	value      = EncodeForHTML( value );
 	valueFound = false;
 
 	htmlAttributes = renderHtmlAttributes(
@@ -52,6 +61,8 @@
 		data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 		data-value="#value#"
 		data-display-limit="0"
+		data-result-template-format="#resultTemplate#"
+		data-selected-template-format="#selectedTemplate#"
 		<cfif IsBoolean( multiple ) && multiple>
 			multiple="multiple"
 		</cfif>
@@ -62,15 +73,18 @@
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selectValue=EncodeForHTML( selectValue ) />
-			<cfset selected=ListFindNoCase( value, selectValue ) />
+			<cfset selected=exactMatchOnly ? ( value == selectValue ) : FindNoCase( value, selectValue ) />
 			<cfset valueFound=valueFound || selected />
-			<cfset label=EncodeForHTML( translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) ) />
+			<cfset label=translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) />
+			<cfset title=EncodeForHTML( translateResource( titles[ i ] ?: "", titles[ i ] ?: "" ) ) />
+			<cfset optAttribs=renderHtmlAttributes( argumentCollection=optionAttribs[ i ] ?: {} ) />
 			<option
 				value="#selectValue#"
-				title="#label#"
+				title="#title#"
 				<cfif selected> selected="selected"</cfif>
+				#optAttribs#
 			>
-				#label#
+				#skipHtmlEncodeForLabel ? label : EncodeForHTML( label )#
 			</option>
 		</cfloop>
 		<cfif value.len() && !valueFound && addMissingValues>

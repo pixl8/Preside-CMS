@@ -3,8 +3,9 @@
  * for all APIs to do with managing maintenance
  * mode.
  *
- * @singleton
- * @presideService
+ * @singleton      true
+ * @presideService true
+ * @feature        maintenanceMode
  */
 component {
 

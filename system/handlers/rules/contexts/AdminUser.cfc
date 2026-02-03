@@ -1,6 +1,7 @@
 /**
  * Handler for the admin user rules engine context
  *
+ * @feature rulesEngine and admin
  */
 component {
 

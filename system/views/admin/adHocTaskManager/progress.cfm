@@ -1,3 +1,4 @@
+<!---@feature admin and adhocTasks--->
 <cfscript>
 	taskId         = rc.taskId ?: "";
 	task           = prc.task ?: QueryNew('');

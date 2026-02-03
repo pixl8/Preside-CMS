@@ -1,6 +1,7 @@
 /**
- * @singleton
- * @presideservice
+ * @singleton      true
+ * @presideservice true
+ * @feature        sitetree
  *
  */
 component {
@@ -14,7 +15,7 @@ component {
 	 * @coldboxController.inject           coldbox
 	 * @presideObjectService.inject        presideObjectService
 	 * @versioningService.inject           versioningService
-	 * @websitePermissionService.inject    websitePermissionService
+	 * @websitePermissionService.inject    featureInjector:websiteUsers:websitePermissionService
 	 * @rulesEngineConditionService.inject rulesEngineConditionService
 	 * @cloningService.inject              presideObjectCloningService
 	 * @cachebox.inject                    cachebox
@@ -246,6 +247,7 @@ component {
 			  ]
 			, filter             = filter
 			, extraFilters       = extra
+			, savedFilters       = [ "enabledPageTypes" ]
 			, maxRows            = arguments.maxRows
 			, orderBy            = "page._hierarchy_sort_order"
 			, allowDraftVersions = true
@@ -372,15 +374,16 @@ component {
 
 	public query function getDescendants(
 		  required string  id
-		,          numeric depth        = 0
-		,          array   selectFields = []
-		,          boolean allowDrafts  = $getRequestContext().showNonLiveContent()
+		,          numeric depth         = 0
+		,          array   selectFields  = []
+		,          boolean allowDrafts   = $getRequestContext().showNonLiveContent()
+		,          boolean includeHidden = false
 	) {
 		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
 
 		if ( page.recordCount ) {
-			var allowedPageTypes = _getPageTypesService().listSiteTreePageTypes();
+			var allowedPageTypes = _getPageTypesService().listSiteTreePageTypes( includeHidden=arguments.includeHidden );
 
 			args = {
 				  filter             = "_hierarchy_lineage like :_hierarchy_lineage and page_type in ( :page_type )"
@@ -612,8 +615,10 @@ component {
 				    fetchChildren = fetchChildren && !Val( child.exclude_children_from_navigation );
 				    fetchChildren = fetchChildren && ( expandAllSiblings || activeTree.find( child.id ) );
 
-				if (  fetchChildren  ) {
-					child.children = getNavChildren( child.id, currentDepth+1, getManagedChildTypesForParentType( child.page_type ) );
+				if ( fetchChildren ) {
+					if ( _getPageTypesService().pageTypeExists( child.page_type ) ) {
+						child.children = getNavChildren( child.id, currentDepth+1, getManagedChildTypesForParentType( child.page_type ) );
+					}
 				}
 
 				var page = {
@@ -661,7 +666,7 @@ component {
 		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
 		var filter         = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
 		var filterParams   = {};
-		var savedFilters   = [];
+		var savedFilters   = [ "enabledPageTypes" ];
 
 		if ( !arguments.includeInactive ) {
 			filter &= " and active = '1'";
@@ -834,13 +839,18 @@ component {
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
 
-			var pageDataHasChanged     = _getVersioningService().dataHasChanged( objectName="page", recordId=arguments.id, newData=arguments );
+			var isPublishingDraftPage  = !arguments.isDraft && $helpers.isTrue( existingPage._version_is_draft );
+			var pageDataHasChanged     = isPublishingDraftPage || _getVersioningService().dataHasChanged( objectName="page", recordId=arguments.id, newData=arguments );
 			var pageTypeDataHasChanged = false;
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
 				pageType               = _getPageTypesService().getPageType( existingPage.page_type );
 				pageTypeObj            = _getPresideObject( pageType.getPresideObject() );
 				pageTypeDataHasChanged = _getVersioningService().dataHasChanged( objectName=pageType.getPresideObject(), recordId=arguments.id, newData=arguments );
+			}
+
+			if ( !pageDataHasChanged && !pageTypeDataHasChanged ) {
+				return updated;
 			}
 
 			updated = pobj.updateData(

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.item-types.fileupload:">
+<form i18nBaseUri="formbuilder.item-types.fileupload:" feature="formbuilder">
 	<tab id="default">
 		<fieldset id="default">
 			<field name="accept"           control="filetypepicker"  required="false"  sortorder="34"  multiple="true" defaultvalue="" />

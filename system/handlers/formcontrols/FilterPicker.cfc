@@ -1,4 +1,7 @@
-component  {
+/**
+ * @feature presideForms and rulesEngine
+ */
+component {
 
 	public string function index( event, rc, prc, args={} ) {
 		var filterObject        = args.filterObject ?: ( rc.filterObject ?: "" );

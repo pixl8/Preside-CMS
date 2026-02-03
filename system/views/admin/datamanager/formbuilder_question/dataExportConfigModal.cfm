@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder2--->
 <cfparam name="args.objectName"            />
 <cfparam name="args.defaultExporter"       default="" />
 

@@ -4,7 +4,7 @@ Email service provider config form: SMTP
 
 This form is used for configuring the SMTP mail server and other mail related settings
 -->
-<form i18nBaseUri="email.serviceProvider.smtp:">
+<form i18nBaseUri="email.serviceProvider.smtp:" feature="emailCenter">
 	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
 			<field sortorder="10" name="server"           control="textinput"   required="false" />

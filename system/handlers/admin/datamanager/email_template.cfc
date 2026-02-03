@@ -1,3 +1,6 @@
+/**
+ * @feature admin and emailCenter
+ */
 component {
 
 	property name="formsService" inject="formsService";
@@ -52,4 +55,24 @@ component {
 		return formName;
 	}
 
+	private string function getAdditionalQueryStringForBuildAjaxListingLink( event, rc, prc, args={} ) {
+		var interceptArgs = {
+			  objectName            = prc.objectName ?: ""
+			, recordId              = prc.recordid   ?: ""
+			, additionalQueryString = ""
+		};
+		
+		announceInterception( "onEmailTemplateGetAdditionalQueryStringForBuildAjaxListingLink", interceptArgs );
+	
+		return interceptArgs.additionalQueryString;
+	}
+
+	public void function preFetchRecordsForGridListing( event, rc, prc, args={} ) {
+		var interceptArgs = {
+			  args = arguments.args
+			, rc   = arguments.rc
+		}
+
+		announceInterception( "onEmailTemplatePreFetchRecordsForGridListing", interceptArgs );
+	}
 }

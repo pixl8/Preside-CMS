@@ -1,4 +1,20 @@
 .view-record-detail-card {
 	margin-top    : 0;
 	margin-bottom : 20px;
+
+	.info-card-dl {
+		dt {
+			margin-top: 0.5em;
+
+			&:first-child {
+				margin-top: 0;
+			}
+		}
+	}
+
+	.readall-wrapper {
+		.readall-hide::after {
+			background : linear-gradient(to bottom, rgba(255, 255, 255, 0), #f7f7f5 75%);
+		}
+	}
 }

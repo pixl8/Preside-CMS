@@ -1,3 +1,6 @@
+/**
+ * @feature admin and dataExport
+ */
 component {
 	property name="scheduledExportService" inject="ScheduledExportService";
 	property name="datamanagerService"        inject="datamanagerService";

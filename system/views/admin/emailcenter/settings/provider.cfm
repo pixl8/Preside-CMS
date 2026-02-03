@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <cfscript>
 	providerId   = rc.id ?: "";
 	formId       = "email-provider-settings";

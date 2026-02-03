@@ -1,3 +1,4 @@
+<!---@feature admin and emailCenter--->
 <p>Hi ${known_as},</p>
 
 <p>Your two factor authentication has been reset by admin for your <b>${site_url}</b> account: <b>${email_address}</b>.</p>

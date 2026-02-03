@@ -6,7 +6,9 @@ component {
 
 	// run the migration
 	public void function run( coldbox ) {
-		_convertOldEmailActivityClicks( coldbox );
+		if ( arguments.coldbox.getWirebox().getInstance( "featureService" ).isFeatureEnabled( "emailCenter" ) ) {
+			_convertOldEmailActivityClicks( coldbox );
+		}
 	}
 
 // private helpers

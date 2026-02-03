@@ -2,18 +2,27 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @logger.inject                defaultLogger
-	 * @defaultQueryTimeout.inject   coldbox:setting:queryTimeout.default
-	 * @defaultBgQueryTimeout.inject coldbox:setting:queryTimeout.backgroundThreadDefault
+	 * @logger.inject                 defaultLogger
+	 * @defaultQueryTimeout.inject    coldbox:setting:queryTimeout.default
+	 * @defaultBgQueryTimeout.inject  coldbox:setting:queryTimeout.backgroundThreadDefault
+	 * @connectionRetries.inject      coldbox:setting:datasourceConnection.retries
+	 * @connectionRetryPause.inject   coldbox:setting:datasourceConnection.retryPause
+	 * @connectionFailureRegex.inject coldbox:setting:datasourceConnection.failureRegex
 	 */
 	public any function init(
 		  required any     logger
-		,          numeric defaultQueryTimeout   = 0
-		,          numeric defaultBgQueryTimeout = 0
+		,          numeric defaultQueryTimeout    = 0
+		,          numeric defaultBgQueryTimeout  = 0
+		,          numeric connectionRetries      = 0
+		,          numeric connectionRetryPause   = 100
+		,          string  connectionFailureRegex = "Communications link failure"
 	) {
 		_setLogger( arguments.logger );
 		_setDefaultQueryTimeout( arguments.defaultQueryTimeout );
 		_setDefaultBgQueryTimeout( arguments.defaultBgQueryTimeout );
+		_setConnectionRetries( arguments.connectionRetries );
+		_setConnectionRetryPause( arguments.connectionRetryPause );
+		_setConnectionFailureRegex( arguments.connectionFailureRegex );
 
 		return this;
 	}
@@ -36,7 +45,6 @@ component singleton=true {
 		_getLogger().debug( arguments.sql );
 
 		if ( arguments.returntype == "info" ) {
-			var info = "";
 			options.result = "info";
 		} else if ( arguments.returntype == "array" ) {
 			options.returntype = "array";
@@ -86,13 +94,29 @@ component singleton=true {
 			}
 		}
 
-		result = QueryExecute( sql=arguments.sql, params=params, options=options );
+		var connectionAttempts   = 0;
+		var connectionRetries    = _getConnectionRetries();
+		var connectionRetryPause = _getConnectionRetryPause();
 
-		if ( arguments.returntype eq "info" ) {
-			return info;
-		} else {
-			return result;
-		}
+		do {
+			try {
+				result = _queryExecute(
+					  sql        = arguments.sql
+					, params     = params
+					, options    = options
+					, returnType = arguments.returntype
+				);
+				break;
+			} catch( database e ) {
+				if ( ReFindNoCase( _getConnectionFailureRegex(), e.message ) && connectionAttempts < connectionRetries ) {
+					sleep( connectionRetryPause );
+				} else {
+					rethrow;
+				}
+			}
+		} while( ++connectionAttempts <= connectionRetries );
+
+		return result;
 	}
 
 	public string function obfuscateSqlForPreside( required string sql ) {
@@ -125,8 +149,8 @@ component singleton=true {
 		var preClause  = arguments.sql.reReplaceNoCase( "^(.*?\swhere)\s.*$", "\1" );
 		var postClause = arguments.sql.reReplaceNoCase( "^.*?\swhere\s", " " );
 
-		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not null", "all" );
-		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is null", "all" );
+		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#\b", " is not null", "all" );
+		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#\b", " is null", "all" );
 
 		return preClause & postClause
 	}
@@ -153,25 +177,54 @@ component singleton=true {
 		return _getDefaultQueryTimeout();
 	}
 
-// GETTERS AND SETTERS
-	private any function _getLogger() output=false {
-		return _logger;
+	// here to help mocking with tests
+	private any function _queryExecute( sql, params, options, returntype ) {
+		var info   = "";
+		var result = QueryExecute( sql=arguments.sql, params=arguments.params, options=arguments.options );
+
+		return arguments.returntype == "info" ? info : result;
 	}
-	private void function _setLogger( required any logger ) output=false {
-		_logger = arguments.logger;
+
+// GETTERS AND SETTERS
+	private any function _getLogger() {
+	    return _logger;
+	}
+	private void function _setLogger( required any logger ) {
+	    _logger = arguments.logger;
 	}
 
 	private numeric function _getDefaultQueryTimeout() {
-		return _defaultQueryTimeout;
+	    return _defaultQueryTimeout;
 	}
 	private void function _setDefaultQueryTimeout( required numeric defaultQueryTimeout ) {
-		_defaultQueryTimeout = arguments.defaultQueryTimeout;
+	    _defaultQueryTimeout = arguments.defaultQueryTimeout;
 	}
 
 	private numeric function _getDefaultBgQueryTimeout() {
-		return _defaultBgQueryTimeout;
+	    return _defaultBgQueryTimeout;
 	}
 	private void function _setDefaultBgQueryTimeout( required numeric defaultBgQueryTimeout ) {
-		_defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
+	    _defaultBgQueryTimeout = arguments.defaultBgQueryTimeout;
+	}
+
+	private numeric function _getConnectionRetries() {
+	    return _connectionRetries;
+	}
+	private void function _setConnectionRetries( required numeric connectionRetries ) {
+	    _connectionRetries = arguments.connectionRetries;
+	}
+
+	private numeric function _getConnectionRetryPause() {
+	    return _connectionRetryPause;
+	}
+	private void function _setConnectionRetryPause( required numeric connectionRetryPause ) {
+	    _connectionRetryPause = arguments.connectionRetryPause;
+	}
+
+	private string function _getConnectionFailureRegex() {
+	    return _connectionFailureRegex;
+	}
+	private void function _setConnectionFailureRegex( required string connectionFailureRegex ) {
+	    _connectionFailureRegex = arguments.connectionFailureRegex;
 	}
 }

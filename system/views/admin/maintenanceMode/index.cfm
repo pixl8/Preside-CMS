@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	formId        = "maintenance-mode-settings";
 	savedSettings = prc.settings ?: {};

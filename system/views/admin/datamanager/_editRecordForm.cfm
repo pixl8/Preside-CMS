@@ -1,3 +1,4 @@
+<!---@feature admin--->
 <cfscript>
 	param name="args.object"                  type="string";
 	param name="args.id"                      type="string";

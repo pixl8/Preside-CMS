@@ -1,3 +1,6 @@
+/**
+ * @feature dataExport
+ */
 component {
 	private struct function prepareParameters( required string filepath, string savedExportName="", numeric numberOfRecords=0 ) {
 		var downloadLink = event.buildLink(

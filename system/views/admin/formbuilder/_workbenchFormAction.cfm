@@ -1,3 +1,4 @@
+<!---@feature admin and formbuilder--->
 <cfparam name="args.id"            type="string" />
 <cfparam name="args.action"        type="struct" />
 <cfparam name="args.configuration" type="struct" />
@@ -9,7 +10,7 @@
 </cfscript>
 
 <cfoutput>
-	<li class="item-type ui-draggable form-item"
+	<li class="item-type ui-draggable form-item form-action"
 	    data-id="#args.id#"
 	    data-item-template="false"
 	    data-item-type="#args.action.id#"
@@ -17,10 +18,11 @@
 	    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.actionConfigDialog', queryString='action=#args.action.id#&actionId=#args.id#&formId=#formId#' )#"
 	    data-config-title="#translateResource( uri='formbuilder:action.config.modal.title', data=[ args.action.title ] )#">
 
-		<div class="pull-left">
+		<span class="item-type-placeholder">
 			#args.placeholder#
-		</div>
-		<div class="pull-right">
+		</span>
+
+		<span class="item-type-actions action-buttons btn-group">
 			<cfif Len( Trim( args.condition ) )>
 				<span class="light-grey">
 					<i class="fa fa-fw fa-map-signs"></i>
@@ -40,7 +42,6 @@
 					<i class="fa fa-reorder"></i>
 				</a>
 			</div>
-		</div>
-		<div class="clearfix"></div>
+		</span>
 	</li>
 </cfoutput>
