@@ -329,6 +329,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postEditRecordAction" );
 		interceptorSettings.customInterceptionPoints.append( "preRenderRecordForViewRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postRenderRecordForViewRecord" );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailHtmlContent" );
+		interceptorSettings.customInterceptionPoints.append( "postGetLayoutConfig" );
 	}
 
 	private void function __setupCachebox() {
