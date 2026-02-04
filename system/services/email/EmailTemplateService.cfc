@@ -1621,7 +1621,7 @@ component {
 	) {
 		$announceInterception( "prePrepareEmailHtmlContent", arguments );
 
-		var cacheKey  = arguments.cacheSuffix ?: ( $helpers.isTrue( arguments.useDefaultContent ?: "" ) ? "default" : "saved" ) & "rawhtml" & arguments.template;
+		var cacheKey  = arguments.cacheSuffix & ( $helpers.isTrue( arguments.useDefaultContent ?: "" ) ? "default" : "saved" ) & "rawhtml" & arguments.template;
 		var fromCache = _getTemplateCache().get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
