@@ -15,13 +15,6 @@ component {
 	}
 
 	private string function dataExport( event, rc, prc, args={} ) {
-		var link = getPresideObject( "link" ).selectData( id=args.data ?: "" );
-
-		if ( !link.recordCount ) {
-			return "Link not found";
-		}
-
-		return linksService.getLinkUrl( link.id );
+		return getLinkUrl( args.data ?: "" );
 	}
-
 }
