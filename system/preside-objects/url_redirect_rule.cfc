@@ -16,4 +16,5 @@ component extends="preside.system.base.SystemPresideObject" displayName="URL Red
 	property name="keep_query_string"  type="boolean" dbtype="boolean"               required=false default=false;
 
 	property name="redirect_to_link" relationship="many-to-one" relatedto="link" required=true;
+	property name="rendered_redirect_link" type="string" dbtype="text" formula="${prefix}redirect_to_link" adminRenderer="none" dataExportRenderer="Link" searchSearchable=false autofilter=false;
 }
