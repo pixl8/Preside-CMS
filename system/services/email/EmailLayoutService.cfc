@@ -287,7 +287,7 @@ component {
 			  config = config
 			, args   = arguments
 		};
-		$announceInterception( "postGetLayoutConfig", interceptorArgs );
+		$announceInterception( "postGetEmailLayoutConfig", interceptorArgs );
 
 		return interceptorArgs.config;
 	}

@@ -330,7 +330,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preRenderRecordForViewRecord" );
 		interceptorSettings.customInterceptionPoints.append( "postRenderRecordForViewRecord" );
 		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailHtmlContent" );
-		interceptorSettings.customInterceptionPoints.append( "postGetLayoutConfig" );
+		interceptorSettings.customInterceptionPoints.append( "postGetEmailLayoutConfig" );
 	}
 
 	private void function __setupCachebox() {
