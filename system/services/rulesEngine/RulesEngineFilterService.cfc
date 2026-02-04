@@ -605,6 +605,7 @@ component displayName="Rules Engine Filter Service" {
 		var objectName      = arguments.filter.filter_object;
 		var filterId        = arguments.filter.id;
 		var idField         = $getPresideObjectService().getIdField( objectName );
+		var idFieldType     = _getFieldDbType( objectName, idField );
 		var fullIdField     = "#objectName#.#idField#";
 		var bypassTenants   = [];
 		var preparedFilters = [ prepareFilter(
@@ -660,7 +661,7 @@ component displayName="Rules Engine Filter Service" {
 				);
 
 				filter       = "#fullIdField# > :lastRecordId";
-				filterParams = { lastRecordId = { type="cf_sql_varchar", value=ArrayLast( recordIds ) } };
+				filterParams = { lastRecordId = { type=idFieldType, value=ArrayLast( recordIds ) } };
 			}
 		} while( ArrayLen( recordIds ) == pageSize );
 
@@ -731,6 +732,18 @@ component displayName="Rules Engine Filter Service" {
 		);
 
 		return DateAdd( unit, filter.segmentation_frequency_measure, Now() );
+	}
+
+	private function _getFieldDbType( required string objectName, required string fieldName ) {
+		var poService = $getPresideObjectService();
+		var dbAdapter = poService.getDbAdapterForObject( arguments.objectName );
+		var dbType    = poService.getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.fieldName
+			, attributeName = "dbType"
+			, defaultValue  = "varchar"
+		);
+		return dbAdapter.sqlDataTypeToCfSqlDatatype( dbType );
 	}
 
 // GETTERS AND SETTERS
