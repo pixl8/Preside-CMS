@@ -636,6 +636,7 @@ component displayName="Rules Engine Filter Service" {
 		var objectName      = arguments.filter.filter_object;
 		var filterId        = arguments.filter.id;
 		var idField         = $getPresideObjectService().getIdField( objectName );
+		var fullIdField     = "#objectName#.#idField#";
 		var bypassTenants   = [];
 		var preparedFilters = [ prepareFilter(
 			  objectName         = objectName
@@ -655,16 +656,46 @@ component displayName="Rules Engine Filter Service" {
 			bypassTenants = ListToArray( objectTenant );
 		}
 
-		return $getPresideObjectService().insertDataFromSelect(
-			  objectName     = "rules_engine_filter_holding_data"
-			, fieldList      = [ "filter", "object_name", "record_id", "holding_id" ]
-			, selectDataArgs = {
-				  objectName    = objectName
-				, selectFields  = [ "'#filterId#'", "'#objectName#'", "#objectName#.#idField#", "'#arguments.holdingId#'" ]
+		var object      = $getPresideObject( objectName );
+		var poService   = $getPresideObjectService();
+		var recordIds   = [];
+		var filter      = "";
+		var filterParams = {};
+		var pageSize     = 100;
+		var totalRecords = 0;
+
+		do {
+			recordIds = object.selectData(
+				  selectFields  = [ "#fullIdField# as id" ]
+				, filter        = filter
+				, filterParams  = filterParams
 				, extraFilters  = preparedFilters
 				, bypassTenants = bypassTenants
+				, orderBy       = fullIdField
+				, maxRows       = pageSize
+				, useCache      = false
+				, returnType    = "arrayOfValues"
+				, columnKey     = "id"
+			);
+
+			if ( ArrayLen( recordIds ) ) {
+				totalRecords += poService.insertDataFromSelect(
+					  objectName     = "rules_engine_filter_holding_data"
+					, fieldList      = [ "filter", "object_name", "record_id", "holding_id" ]
+					, selectDataArgs = {
+						  objectName    = objectName
+						, selectFields  = [ "'#filterId#'", "'#objectName#'", "#fullIdField#", "'#arguments.holdingId#'" ]
+						, extraFilters  = [ { filter = { "#fullIdField#" = recordIds } } ]
+						, bypassTenants = bypassTenants
+					}
+				);
+
+				filter       = "#fullIdField# > :lastRecordId";
+				filterParams = { lastRecordId = { type="cf_sql_varchar", value=ArrayLast( recordIds ) } };
 			}
-		);
+		} while( ArrayLen( recordIds ) == pageSize );
+
+		return totalRecords;
 	}
 
 	private void function _clearHoldingTable( required string holdingId ) {
