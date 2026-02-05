@@ -2,8 +2,6 @@
  * @feature cms
  */
 component {
-	property name="linksService" inject="LinksService";
-
 	public string function default( event, rc, prc, args={} ){
 		var linkId = args.data ?: "";
 
