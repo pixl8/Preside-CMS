@@ -2184,7 +2184,13 @@ component displayName="Preside Object Service" {
 					recordCount = selectData( objectName=foreignObjName, selectFields=["count(*) as record_count"], filter=filter, useCache=false ).record_count;
 
 					if ( Val( recordCount ) ) {
-						ArrayAppend( blocking, { objectName=foreignObjName, recordcount=recordcount, fk=join.fk } );
+						ArrayAppend( blocking, {
+							  objectName  = foreignObjName
+							, recordcount = recordcount
+							, fk          = join.fk
+							, i18nBase    = getResourceBundleUriRoot( objectName=foreignObjName )
+							, isPageType  = isPageType( objectName=foreignObjName )
+						} );
 					}
 				}
 			}
