@@ -307,6 +307,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postRunCustomization"                  );
 		interceptorSettings.customInterceptionPoints.append( "onEmailTemplateGetAdditionalQueryStringForBuildAjaxListingLink" );
 		interceptorSettings.customInterceptionPoints.append( "onEmailTemplatePreFetchRecordsForGridListing" );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailHtmlContent" );
+		interceptorSettings.customInterceptionPoints.append( "postGetEmailLayoutConfig" );
 	}
 
 	private void function __setupCachebox() {
