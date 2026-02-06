@@ -26,7 +26,8 @@
 						<li>
 							<i class="fa fa-database"></i>
 
-							#translateResource( "preside-objects.#blocker.objectName#:title" )#, #translateResource( uri="cms:datamanager.x.related.records", data=[blocker.recordcount] )#
+							#translateResource( uri="#blocker.i18nBase ?: "preside-objects.#blocker.objectName#:"##isTrue( blocker.isPageType ?: "" ) ? "name" : "title"#", defaultValue=blocker.objectName )#,
+							#translateResource( uri="cms:datamanager.x.related.records", data=[blocker.recordcount] )#
 						</li>
 					</cfloop>
 				</ul>
