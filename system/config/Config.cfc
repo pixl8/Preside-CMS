@@ -317,6 +317,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postRenderWebflowStep" );
 		interceptorSettings.customInterceptionPoints.append( "onGetMainNavigationMenuItems" );
 		interceptorSettings.customInterceptionPoints.append( "onGetSubNavigationMenuItems" );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailHtmlContent" );
+		interceptorSettings.customInterceptionPoints.append( "postGetEmailLayoutConfig" );
 	}
 
 	private void function __setupCachebox() {
