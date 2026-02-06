@@ -7,8 +7,9 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="dataManagerWorkflowService"      inject="DataManagerWorkflowService";
 	property name="adminDataViewsService"           inject="AdminDataViewsService";
 
-	variables.infoCol3 = [];
-	variables.tabs     = [ "draft" ];
+	variables.permissionBase = "draftManager";
+	variables.infoCol3       = [];
+	variables.tabs           = [ "draft" ];
 
 	private void function rootBreadcrumb( event, rc, prc, args={} ) {
 		var objectName = prc.record._object_name ?: "";
