@@ -283,7 +283,13 @@ component {
 			}
 		}
 
-		return config;
+		var interceptorArgs = {
+			  config = config
+			, args   = arguments
+		};
+		$announceInterception( "postGetEmailLayoutConfig", interceptorArgs );
+
+		return interceptorArgs.config;
 	}
 
 // PRIVATE HELPERS

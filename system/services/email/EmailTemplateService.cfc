@@ -1605,8 +1605,11 @@ component {
 		, unsubscribeLink
 		, template
 		, viewOnline
+		, cacheSuffix = ""
 	) {
-		var cacheKey = ( $helpers.isTrue( arguments.useDefaultContent ?: "" ) ? "default" : "saved" ) & "rawhtml" & arguments.template;
+		$announceInterception( "prePrepareEmailHtmlContent", arguments );
+
+		var cacheKey  = arguments.cacheSuffix & ( $helpers.isTrue( arguments.useDefaultContent ?: "" ) ? "default" : "saved" ) & "rawhtml" & arguments.template;
 		var fromCache = _getTemplateCache().get( cacheKey );
 
 		if ( !IsNull( local.fromCache ) ) {
