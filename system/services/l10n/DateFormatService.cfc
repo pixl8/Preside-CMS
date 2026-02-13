@@ -10,7 +10,7 @@ component {
 
 // SHORT DATE FORMAT FUNCTIONS
 	public string function getShortDateFormatMask() {
-		return LCase( getSiteLocaleSettings().short_date_format );
+		return LCase( getSiteLocaleSettings().short_date_format ?: "" );
 	}
 
 	public string function getShortDate( required date date ) {
@@ -277,8 +277,8 @@ component {
 	public struct function getDefaultSettingsForLocale() {
 		var localeSettings  = getSiteLocaleSettings();
 		var defaultSettings = $getColdbox().getSetting( "datetime.regionDefaults" );
-		var countryCode     = ListLast( localeSettings.locale, "_" );
-		var regionCode      = $translateResource( uri="enum.isoCountries:#countryCode#.region");
+		var countryCode     = Len( localeSettings.locale ?: "" ) ? ListLast( localeSettings.locale, "_" ) : "";
+		var regionCode      = $translateResource( uri="enum.isoCountries:#countryCode#.region", defaultValue="" );
 
 		if ( Len( countryCode ) && Len( regionCode ) && StructKeyExists( defaultSettings, regionCode ) ) {
 			return defaultSettings[ regionCode ];

@@ -65,7 +65,7 @@
 	<cfreturn getSingleton( "dateFormatService" ).getDateDayOrdinal( argumentCollection=arguments ) />
 </cfsilent></cffunction>
 
-<cffunction name="getSiteLocaleSettings" access="public" returntype="query" output="false"><cfsilent>
+<cffunction name="getSiteLocaleSettings" access="public" returntype="struct" output="false"><cfsilent>
 	<cfreturn getSingleton( "dateFormatService" ).getSiteLocaleSettings() />
 </cfsilent></cffunction>
 
