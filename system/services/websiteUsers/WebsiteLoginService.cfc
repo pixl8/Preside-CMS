@@ -679,6 +679,15 @@ component displayName="Website login service" {
 		}
 
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var allowRememberMe = _getSystemConfigurationService().getSetting( "website_users", "allow_remember_me", true );
+
+			if ( $helpers.isFalse( allowRememberMe ) ) {
+				_deleteRememberMeCookie();
+
+				request._presideWebsiteAutoLoginResult = false;
+				return false;
+			}
+
 			var cookieValue = _readRememberMeCookie();
 			var user        = _getUserRecordFromCookie( cookieValue, securityAlertCallback );
 
