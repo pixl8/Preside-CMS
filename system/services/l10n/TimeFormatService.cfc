@@ -11,7 +11,7 @@ component {
 	public string function getTimeFormatMask(){
 		var localeSettings  = $helpers.getSiteLocaleSettings();
 		var defaultSettings = $helpers.getDefaultSettingsForLocale();
-		var time_format     = Len( localeSettings.time_format ) ? localeSettings.time_format : defaultSettings.time_format;
+		var time_format     = Len( localeSettings.time_format ?: "" ) ? localeSettings.time_format : defaultSettings.time_format;
 
 		if ( time_format == "12h" ) {
 			return "h:mmtt";
