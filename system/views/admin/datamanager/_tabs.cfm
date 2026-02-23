@@ -41,7 +41,7 @@
 					<a class="dropdown-toggle" data-toggle="dropdown" href="##" role="button" aria-haspopup="true" aria-expanded="false">
 						&hellip; <span class="caret"></span>
 					</a>
-					<ul class="dropdown-menu pull-right">
+					<ul class="dropdown-menu view-record-detail-dropdown pull-right">
 						<cfloop from="#( maxTabs + 1 )#" to="#ArrayLen( tabs )#" index="i">
 							<cfset tab = tabs[ i ] />
 							<li<cfif tab.id eq activeTab> class="active"</cfif>>
