@@ -499,6 +499,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockResetDao.$( "deleteData", 1 );
 		mockRequestContext.$( "isBackgroundThread", false );
 		service.$property( propertyName="$helpers", mock=mockHelpers );
+		mockSysConfigService.$( "getSetting" ).$args( "website_users", "allow_remember_me", true ).$results( true );
 		mockHelpers.$( method="isTrue", callBack=function( val ){
 			return IsBoolean( arguments.val ) && arguments.val;
 		} );
