@@ -32,7 +32,7 @@
 
 		errorPlacement: function (error, element) {
 			if(element.is(':checkbox') || element.is(':radio')) {
-				var controls = element.closest('div[class*="col-"]');
+				var controls = element.closest('.form-group > div');
 				if(controls.find(':checkbox,:radio').length > 1) controls.append(error);
 				else error.insertAfter(element.nextAll('.lbl:eq(0)').eq(0));
 			}
