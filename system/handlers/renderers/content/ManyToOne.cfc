@@ -23,9 +23,11 @@ component {
 		);
 		labelRenderer = presideObjectService.getObjectAttribute( fkObjectName, "labelRenderer" );
 
-		args.recordLink  = event.buildAdminLink( objectName=fkObjectName, recordId=fkId );
-		args.recordLabel = renderLabel( objectName=fkObjectName, recordId=fkId, labelRenderer=labelRenderer );
-		args.labelIsHtml = labelRendererService.rendersHtml( labelRenderer );
+		if( Len( fkObjectName ) && presideObjectService.dataExists( objectName=fkObjectName, id=fkId ) ){
+			args.recordLink  = event.buildAdminLink( objectName=fkObjectName, recordId=fkId );
+			args.recordLabel = renderLabel( objectName=fkObjectName, recordId=fkId, labelRenderer=labelRenderer );
+			args.labelIsHtml = labelRendererService.rendersHtml( labelRenderer );
+		}
 
 		return renderView( view="/renderers/content/manyToOne/adminView", args=args );
 	}
