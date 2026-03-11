@@ -3,6 +3,8 @@
 	categoryField     = args.listingCategoryField ?: "";
 	listingCategories = args.allListingCategories ?: [];
 	listingView       = args.currentListingView   ?: "";
+	allRecordsLink    = args.allRecordsLink       ?: event.buildAdminLink( objectName=objectName );
+	categoryLinkBase  = args.categoryLinkBase     ?: event.buildAdminLink( objectName=objectName, queryString="activeCategoryId={activeCategoryId}" );
 	activeCategoryId  = Trim( rc.activeCategoryId ?: "" );
 </cfscript>
 
@@ -11,7 +13,7 @@
 		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">
 				<li<cfif !Len( activeCategoryId )> class="active"</cfif>>
-					<a href="#event.buildAdminLink( objectName=objectName )#">
+					<a href="#allRecordsLink#">
 						#translateResource(
 							  uri          = "preside-objects.#objectName#:datamanager.records.category.all.label"
 							, defaultValue = translateResource( uri="cms:datamanager.records.category.all.label" )
@@ -20,7 +22,7 @@
 				</li>
 				<cfloop array="#listingCategories#" item="listingCategory">
 					<li<cfif activeCategoryId eq listingCategory.id> class="active"</cfif>>
-						<a href="#event.buildAdminLink( objectName=objectName, queryString="activeCategoryId=#listingCategory.id#" )#">
+						<a href="#ReplaceNoCase( categoryLinkBase, "{activeCategoryId}", listingCategory.id )#">
 							#listingCategory.label#
 						</a>
 					</li>
