@@ -38,6 +38,11 @@ component extends="preside.system.base.SystemPresideObject" displayName="Rules e
 	property name="segmentation_last_count"       type="numeric" dbtype="int" required=false default=0 batcheditable=false ignoreChangesForVersioning=true;
 	property name="segmentation_last_time_taken"  type="numeric" dbtype="int" required=false default=0 batcheditable=false ignoreChangesForVersioning=true renderer="taskTimeTaken";
 
+	property name="segmentation_tag_enabled" type="boolean" dbtype="boolean" default=false;
+	property name="segmentation_tag_label"   type="string"  dbtype="varchar" maxlength=200 control="textInput";
+	property name="segmentation_tag_icon"    type="string"  dbtype="varchar" maxlength=50  control="iconPicker" includeEmptyOption="true";
+	property name="segmentation_tag_preview" type="string"  formula="${prefix}id" renderer="rulesEngineSegmentationTag";
+
 	// helper formula fields for displays
 	property name="kind" type="string" formula="case when ${prefix}filter_object is null then 'condition' else 'filter' end" autofilter="false" renderer="enumlabel" enum="rulesEngineConditionType" control="none";
 	property name="applies_to" type="string" formula="coalesce( ${prefix}filter_object, ${prefix}context )" renderer="rulesEngineAppliesTo"  autofilter="false" control="none";

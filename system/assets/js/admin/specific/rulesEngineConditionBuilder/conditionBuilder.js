@@ -4,6 +4,7 @@
 	  , defaultRenderFieldEndpoint    = cfrequest.rulesEngineRenderFieldEndpoint   || ""
 	  , defaultEditFieldEndpoint      = cfrequest.rulesEngineEditFieldEndpoint     || ""
 	  , defaultFilterCountEndpoint    = cfrequest.rulesEngineFilterCountEndpoint   || ""
+	  , defaultFilterPreviewEndpoint  = cfrequest.rulesEngineFilterPreviewEndpoint || ""
 	  , defaultContextData            = cfrequest.rulesEngineContextData           || {}
 	  , defaultPreSavedFilters        = cfrequest.rulesEnginePreSavedFilters       || ""
 	  , defaultPreRulesEngineFilters  = cfrequest.rulesEnginePreRulesEngineFilters || ""
@@ -16,10 +17,12 @@
 			, $ruleList
 			, isFilter
 			, $filterCount
+			, $filterPreview
 			, objectName
 			, renderFieldEndpoint
 			, editFieldEndpoint
 			, filterCountEndpoint
+			, filterPreviewEndpoint
 			, contextData
 			, preSavedFilters
 			, preRulesEngineFilters
@@ -35,14 +38,16 @@
 			this.renderFieldEndpoint   = renderFieldEndpoint;
 			this.editFieldEndpoint     = editFieldEndpoint;
 			this.filterCountEndpoint   = filterCountEndpoint;
+			this.filterPreviewEndpoint = filterPreviewEndpoint;
 			this.contextData           = contextData;
 			this.preSavedFilters       = preSavedFilters;
 			this.preRulesEngineFilters = preRulesEngineFilters;
 			this.context               = context;
 
 			if ( this.isFilter ) {
-				this.$filterCount = $filterCount;
-				this.objectName   = objectName;
+				this.$filterCount   = $filterCount;
+				this.$filterPreview = $filterPreview;
+				this.objectName     = objectName;
 			}
 
 			this.setupBehaviors();
@@ -95,6 +100,7 @@
 			var lis, $selectedLi, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
 
 			this.updateFilterCount();
+			this.updateFilterPreviewUrl();
 
 			transformExpressionsToHtmlLis = function( expressions, depth, index ) {
 				var lis             = []
@@ -183,6 +189,27 @@
 				  this.filterCountEndpoint
 				, postData
 				, function( data ){ conditionBuilder.$filterCount.html( data ).removeClass( "loading" ); }
+			);
+		};
+
+		RulesEngineCondition.prototype.updateFilterPreviewUrl = function() {
+			if ( !this.isFilter || !this.$filterPreview.length ) { return; }
+
+			var conditionBuilder = this
+			  , postData         = this.contextData;
+
+			postData.condition  = this.serialize();
+			postData.objectName = this.objectName;
+
+			conditionBuilder.$filterPreview.attr( "href", "" ).addClass( "disabled" );
+			$.post(
+				  this.filterPreviewEndpoint
+				, postData
+				, function( data ){
+					if ( data.length > 0 ) {
+						conditionBuilder.$filterPreview.attr( "href", data ).removeClass( "disabled" );
+					}
+				}
 			);
 		};
 
@@ -667,6 +694,7 @@
 			  , $conditionPanel   = $builderContainer.find( ".rules-engine-condition-builder-condition-pane" )
 			  , $ruleList         = $builderContainer.find( ".rules-engine-condition-builder-rule-list" )
 			  , $filterCount      = $builderContainer.find( ".rules-engine-condition-builder-filter-count-count" )
+			  , $filterPreview    = $builderContainer.find( ".rules-engine-condition-builder-filter-preview" )
 			  , tabIndex          = $formControl.attr( "tabindex" )
 			  , savedCondition    = $formControl.val()
 			  , isFilter          = $formControl.data( "isFilter" ) || false
@@ -686,6 +714,7 @@
 			  , renderFieldEndpoint
 			  , editFieldEndpoint
 			  , filterCountEndpoint
+			  , filterPreviewEndpoint
 			  , contextData
 			  , preSavedFilters
 			  , preRulesEngineFilters
@@ -739,6 +768,7 @@
 							renderFieldEndpoint   = fieldConfig.rulesEngineRenderFieldEndpoint   || defaultRenderFieldEndpoint;
 							editFieldEndpoint     = fieldConfig.rulesEngineEditFieldEndpoint     || defaultEditFieldEndpoint;
 							filterCountEndpoint   = fieldConfig.rulesEngineFilterCountEndpoint   || defaultFilterCountEndpoint;
+							filterPreviewEndpoint = fieldConfig.rulesEngineFilterPreviewEndpoint || defaultFilterPreviewEndpoint;
 							contextData           = fieldConfig.rulesEngineContextData           || defaultContextData;
 							preSavedFilters       = fieldConfig.rulesEnginePreSavedFilters       || defaultPreSavedFilters;
 							preRulesEngineFilters = fieldConfig.rulesEnginePreRulesEngineFilters || defaultPreRulesEngineFilters;
@@ -760,10 +790,12 @@
 								, $ruleList
 								, isFilter
 								, $filterCount
+								, $filterPreview
 								, objectName
 								, renderFieldEndpoint
 								, editFieldEndpoint
 								, filterCountEndpoint
+								, filterPreviewEndpoint
 								, contextData
 								, preSavedFilters
 								, preRulesEngineFilters
