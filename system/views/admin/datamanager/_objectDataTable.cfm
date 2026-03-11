@@ -126,6 +126,7 @@
 							, layout      = ""
 							, compact     = true
 							, showCount   = false
+							, showPreview = false
 						)#
 
 						<cfif allowManageFilter>
