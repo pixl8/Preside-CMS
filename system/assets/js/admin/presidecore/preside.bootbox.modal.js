@@ -71,7 +71,7 @@
 					callback( config );
 				};
 
-				var linkHref = $modalLink.data( 'href' )
+				var linkHref = $modalLink.data( 'href' ) || $modalLink.attr( 'href' )
 				  , hash     = ( linkHref && linkHref.indexOf( '#' ) !== -1 ) ? linkHref.slice( linkHref.indexOf( '#' ) ) : '';
 
 				if ( hash.length ) {
