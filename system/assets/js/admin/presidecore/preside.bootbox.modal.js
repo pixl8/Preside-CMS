@@ -71,12 +71,15 @@
 					callback( config );
 				};
 
-				if ( $modalLink.get(0).hash.length ) {
-					setupConfig( $( $modalLink.get(0).hash ).html() );
+				var linkHref = $modalLink.data( 'href' )
+				  , hash     = ( linkHref && linkHref.indexOf( '#' ) !== -1 ) ? linkHref.slice( linkHref.indexOf( '#' ) ) : '';
+
+				if ( hash.length ) {
+					setupConfig( $( hash ).html() );
 				} else {
 					$.ajax( {
 						  method  : "GET"
-						, url     : $modalLink.data( 'href' )
+						, url     : linkHref
 						, cache   : false
 						, success : function( content ){ setupConfig( content ); }
 					} );
