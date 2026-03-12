@@ -37,7 +37,7 @@
 
 			initModalConfig = function( callback ){
 				var buttonList = ( $modalLink.data( "buttons" ) || "ok cancel" ).split( " " )
-				  , config, i, setupConfig;
+				  , config, i, setupConfig, modalHref;
 
 				setupConfig = function( content ){
 					config = $.extend( {
@@ -71,12 +71,14 @@
 					callback( config );
 				};
 
-				if ( $modalLink.get(0).hash.length ) {
-					setupConfig( $( $modalLink.get(0).hash ).html() );
+				modalHref = $modalLink.data( "href" ) || $modalLink.attr( "href" ) || "";
+
+				if ( modalHref.charAt( 0 ) === "#" ) {
+					setupConfig( $( modalHref ).html() );
 				} else {
 					$.ajax( {
 						  method  : "GET"
-						, url     : $modalLink.data( 'href' )
+						, url     : modalHref
 						, cache   : false
 						, success : function( content ){ setupConfig( content ); }
 					} );
