@@ -76,7 +76,7 @@
 				} else {
 					$.ajax( {
 						  method  : "GET"
-						, url     : $modalLink.attr( 'href' )
+						, url     : $modalLink.data( 'href' )
 						, cache   : false
 						, success : function( content ){ setupConfig( content ); }
 					} );
@@ -97,7 +97,13 @@
 	$( 'body' ).on( "click", '[data-toggle="bootbox-modal"]', function( e ){
 		e.preventDefault();
 
-		var $link = $( this );
+		var $link    = $( this )
+		  , linkHref = $link.attr( 'href' );
+
+		if ( linkHref !== 'javascript:void(0)' ) {
+			$link.data( 'href', linkHref );
+			$link.attr( 'href', 'javascript:void(0)' );
+		}
 
 		if ( !$link.data( "presideBootboxModal" ) ) {
 			$link.presideBootboxModal( {} ).click();
