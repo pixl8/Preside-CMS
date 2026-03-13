@@ -38,8 +38,8 @@
 				$typeControl.on( "change", updateTimePeriodValue );
 				$measureControl.on( "change", updateTimePeriodValue );
 				$unitControl.on( "change", updateTimePeriodValue );
-				$date1Control.on( "dp.change", updateTimePeriodValue );
-				$date2Control.on( "dp.change", updateTimePeriodValue );
+				$date1Control.on( "change dp.change", updateTimePeriodValue );
+				$date2Control.on( "change dp.change", updateTimePeriodValue );
 			};
 
 			showAndHideFieldsBasedOnPeriodType = function(){
