@@ -39,6 +39,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( !Len( Trim( prc.renderedProviders[ provider ] ) ) ) {
 				prc.renderedProviders.delete( provider );
+				position--;
 			}
 		}
 	}
