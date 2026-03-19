@@ -788,49 +788,46 @@ component {
 		var sortOrder      = 0;
 
 		if ( Len( Trim( versionedPivot ) ) and Len( Trim( targetObject ) ) ) {
-			transaction {
-
-				if( useDrafts && arguments.isDraft ){
-					poService.updateData(
-						  objectName = versionedPivot
-						, filter     = { "#sourceFk#"=arguments.sourceObjectId, _version_is_latest_draft=1 }
-						, data       = {
-							_version_is_latest_draft = 0
-						}
-					);
-				}else{
-					poService.updateData(
-						  objectName = versionedPivot
-						, filter     = { "#sourceFk#"=arguments.sourceObjectId, _version_is_latest=1 }
-						, data       = {
-							_version_is_latest = 0
-						}
-					);
-				}
-
-				var recordsToInsert = ListToArray( arguments.values );
-
-				for( var targetId in recordsToInsert ) {
-					var data = {
-						  "#sourceFk#"    = arguments.sourceObjectId
-						, "#targetFk#"    = targetId
-						, sort_order      = ++sortOrder
-						, _version_number = arguments.versionNumber
-						, _version_author = arguments.versionAuthor
-						, _version_is_latest       = !arguments.isDraft
-					};
-
-					if ( useDrafts ) {
-						data._version_is_draft        = arguments.isDraft;
-						data._version_is_latest_draft = arguments.isDraft;
+			if( useDrafts && arguments.isDraft ){
+				poService.updateData(
+					  objectName = versionedPivot
+					, filter     = { "#sourceFk#"=arguments.sourceObjectId, _version_is_latest_draft=1 }
+					, data       = {
+						_version_is_latest_draft = 0
 					}
+				);
+			}else{
+				poService.updateData(
+					  objectName = versionedPivot
+					, filter     = { "#sourceFk#"=arguments.sourceObjectId, _version_is_latest=1 }
+					, data       = {
+						_version_is_latest = 0
+					}
+				);
+			}
 
-					poService.insertData(
-						  objectName = versionedPivot
-						, data       = data
-						, isDraft    = arguments.isDraft
-					);
+			var recordsToInsert = ListToArray( arguments.values );
+
+			for( var targetId in recordsToInsert ) {
+				var data = {
+					  "#sourceFk#"    = arguments.sourceObjectId
+					, "#targetFk#"    = targetId
+					, sort_order      = ++sortOrder
+					, _version_number = arguments.versionNumber
+					, _version_author = arguments.versionAuthor
+					, _version_is_latest       = !arguments.isDraft
+				};
+
+				if ( useDrafts ) {
+					data._version_is_draft        = arguments.isDraft;
+					data._version_is_latest_draft = arguments.isDraft;
 				}
+
+				poService.insertData(
+					  objectName = versionedPivot
+					, data       = data
+					, isDraft    = arguments.isDraft
+				);
 			}
 		}
 	}
@@ -852,26 +849,24 @@ component {
 		var sort_order      = 0;
 
 		if ( Len( Trim( versionedTarget ) ) and Len( Trim( targetObject ) ) ) {
-			transaction {
-				for( var record in recordsToSave ) {
-					if ( record.__fromDb ?: false ) {
-						record = poService.selectData( objectName=targetObject, id=record.id );
-						record = queryRowToStruct( record );
-					}
+			for( var record in recordsToSave ) {
+				if ( record.__fromDb ?: false ) {
+					record = poService.selectData( objectName=targetObject, id=record.id );
+					record = queryRowToStruct( record );
+				}
 
-					record[ targetFk ] = sourceObjectId;
-					record.sort_order  = ++sort_order;
+				record[ targetFk ] = sourceObjectId;
+				record.sort_order  = ++sort_order;
 
-					if ( len( record.id ?: "" ) ) {
-						poService.updateData(
-							  objectName              = targetObject
-							, id                      = record.id
-							, data                    = record
-							, updateManyToManyRecords = true
-							, forceVersionCreation    = true
-							, versionNumber           = arguments.versionNumber
-						);
-					}
+				if ( len( record.id ?: "" ) ) {
+					poService.updateData(
+						  objectName              = targetObject
+						, id                      = record.id
+						, data                    = record
+						, updateManyToManyRecords = true
+						, forceVersionCreation    = true
+						, versionNumber           = arguments.versionNumber
+					);
 				}
 			}
 		}
