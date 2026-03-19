@@ -571,64 +571,62 @@ component displayName="Preside Object Service" {
 			cleanedData._version_is_draft = cleanedData._version_has_drafts = args.isDraft;
 		}
 
-		transaction {
-			if ( requiresVersioning ) {
-				versionNumber = _getVersioningService().saveVersionForInsert(
-					  objectName     = args.objectName
-					, data           = cleanedData
-					, manyToManyData = manyToManyData
-					, versionNumber  = args.versionNumber ? args.versionNumber : getNextVersionNumber()
-					, isDraft        = args.isDraft
-				);
-			}
-
-			sql    = adapter.getInsertSql( tableName = obj.tableName, insertColumns = StructKeyArray( cleanedData ) );
-			params = _convertDataToQueryParams(
-				  objectName        = args.objectName
-				, columnDefinitions = obj.properties
-				, data              = cleanedData
-				, dbAdapter         = adapter
+		if ( requiresVersioning ) {
+			versionNumber = _getVersioningService().saveVersionForInsert(
+				  objectName     = args.objectName
+				, data           = cleanedData
+				, manyToManyData = manyToManyData
+				, versionNumber  = args.versionNumber ? args.versionNumber : getNextVersionNumber()
+				, isDraft        = args.isDraft
 			);
+		}
 
-			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType(), timeout=args.timeout );
+		sql    = adapter.getInsertSql( tableName = obj.tableName, insertColumns = StructKeyArray( cleanedData ) );
+		params = _convertDataToQueryParams(
+			  objectName        = args.objectName
+			, columnDefinitions = obj.properties
+			, data              = cleanedData
+			, dbAdapter         = adapter
+		);
 
-			if ( adapter.requiresManualCommitForTransactions() ){
-				_runSql( sql='commit', dsn=obj.dsn );
-			}
+		result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType(), timeout=args.timeout );
 
-			newId = Len( Trim( newId ) ) ? newId : ( adapter.getGeneratedKey(result) ?: "" );
-			if ( Len( Trim( newId ) ) ) {
-				for( key in manyToManyData ){
-					var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+		if ( adapter.requiresManualCommitForTransactions() ){
+			_runSql( sql='commit', dsn=obj.dsn );
+		}
 
-					if ( relationship == "many-to-many" ) {
-						syncManyToManyData(
-							  sourceObject        = args.objectName
-							, sourceProperty      = key
-							, sourceId            = newId
-							, targetIdList        = manyToManyData[ key ]
-							, requiresVersionSync = false
-							, isDraft             = args.isDraft
+		newId = Len( Trim( newId ) ) ? newId : ( adapter.getGeneratedKey(result) ?: "" );
+		if ( Len( Trim( newId ) ) ) {
+			for( key in manyToManyData ){
+				var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+
+				if ( relationship == "many-to-many" ) {
+					syncManyToManyData(
+						  sourceObject        = args.objectName
+						, sourceProperty      = key
+						, sourceId            = newId
+						, targetIdList        = manyToManyData[ key ]
+						, requiresVersionSync = false
+						, isDraft             = args.isDraft
+					);
+				} else if ( relationship == "one-to-many" ) {
+					var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
+
+					if ( isOneToManyConfigurator ) {
+						syncOneToManyConfiguratorData(
+							  sourceObject     = args.objectName
+							, sourceProperty   = key
+							, sourceId         = newId
+							, configuratorData = manyToManyData[ key ]
+							, versionNumber    = versionNumber
 						);
-					} else if ( relationship == "one-to-many" ) {
-						var isOneToManyConfigurator = isOneToManyConfiguratorObject( args.objectName, key );
-
-						if ( isOneToManyConfigurator ) {
-							syncOneToManyConfiguratorData(
-								  sourceObject     = args.objectName
-								, sourceProperty   = key
-								, sourceId         = newId
-								, configuratorData = manyToManyData[ key ]
-								, versionNumber    = versionNumber
-							);
-						} else {
-							syncOneToManyData(
-								  sourceObject   = args.objectName
-								, sourceProperty = key
-								, sourceId       = newId
-								, targetIdList   = manyToManyData[ key ]
-							);
-						}
+					} else {
+						syncOneToManyData(
+							  sourceObject   = args.objectName
+							, sourceProperty = key
+							, sourceId       = newId
+							, targetIdList   = manyToManyData[ key ]
+						);
 					}
 				}
 			}
@@ -1281,56 +1279,54 @@ component displayName="Preside Object Service" {
 				currentSelect.append( sortOrderField );
 			}
 
-			transaction {
-				var currentRecords = selectData(
-					  objectName   = pivotTable
-					, selectFields = currentSelect
-					, filter       = { "#sourceFk#" = arguments.sourceId }
-					, useCache     = false
+			var currentRecords = selectData(
+				  objectName   = pivotTable
+				, selectFields = currentSelect
+				, filter       = { "#sourceFk#" = arguments.sourceId }
+				, useCache     = false
+			);
+
+			for( var record in currentRecords ) {
+				if ( newRecords.find( record.targetId ) && ( !hasSortOrder || newRecords.find( record.targetId ) == record[ sortOrderField ] ) ) {
+					ArrayDelete( newAddedRecords, record.targetId );
+					ArrayAppend( existingRecords, record.targetId );
+				} else {
+					anythingChanged = true;
+					break;
+				}
+			}
+
+			anythingChanged = anythingChanged || newAddedRecords.len();
+
+			if ( anythingChanged && !arguments.isDraft ) {
+				deleteData(
+					  objectName = pivotTable
+					, filter     = { "#sourceFk#" = arguments.sourceId }
 				);
 
-				for( var record in currentRecords ) {
-					if ( newRecords.find( record.targetId ) && ( !hasSortOrder || newRecords.find( record.targetId ) == record[ sortOrderField ] ) ) {
-						ArrayDelete( newAddedRecords, record.targetId );
-						ArrayAppend( existingRecords, record.targetId );
-					} else {
-						anythingChanged = true;
-						break;
-					}
-				}
 
-				anythingChanged = anythingChanged || newAddedRecords.len();
-
-				if ( anythingChanged && !arguments.isDraft ) {
-					deleteData(
-						  objectName = pivotTable
-						, filter     = { "#sourceFk#" = arguments.sourceId }
-					);
-
-
-					for( var i=1; i <=newRecords.len(); i++ ) {
-						insertData(
-							  objectName    = pivotTable
-							, useVersioning = false
-							, isDraft       = arguments.isDraft
-							, data          = {
-								  "#sourceFk#"       = arguments.sourceId
-								, "#targetFk#"       = newRecords[i]
-								, "#sortOrderField#" = i
-							}
-						);
-					}
-				} else if ( !arguments.isDraft && objectIsVersioned( pivotTable ) && objectUsesDrafts( pivotTable ) ) {
-					updateData(
+				for( var i=1; i <=newRecords.len(); i++ ) {
+					insertData(
 						  objectName    = pivotTable
-						, filter        = { "#sourceFk#" = arguments.sourceId }
 						, useVersioning = false
+						, isDraft       = arguments.isDraft
 						, data          = {
-							  _version_is_draft   = false
-							, _version_has_drafts = false
+							  "#sourceFk#"       = arguments.sourceId
+							, "#targetFk#"       = newRecords[i]
+							, "#sortOrderField#" = i
 						}
 					);
 				}
+			} else if ( !arguments.isDraft && objectIsVersioned( pivotTable ) && objectUsesDrafts( pivotTable ) ) {
+				updateData(
+					  objectName    = pivotTable
+					, filter        = { "#sourceFk#" = arguments.sourceId }
+					, useVersioning = false
+					, data          = {
+						  _version_is_draft   = false
+						, _version_has_drafts = false
+					}
+				);
 			}
 		}
 
@@ -2152,21 +2148,19 @@ component displayName="Preside Object Service" {
 		var totalDeleted   = 0;
 		var blocker        = "";
 
-		transaction {
-			try {
-				for( blocker in blocking ){
-					totalDeleted += deleteData(
-						  objectName = blocker.objectName
-						, filter     = { "#blocker.fk#" = arguments.recordId }
-					);
-				}
-			} catch( database e ) {
-				throw(
-					  type    = "PresideObjectService.CascadeDeleteTooDeep"
-					, message = "A cascading delete of a [#arguments.objectName#] record was prevented due to too many levels of cascade."
-					, detail  = "Preside will only allow a single level of cascaded deletes"
+		try {
+			for( blocker in blocking ){
+				totalDeleted += deleteData(
+					  objectName = blocker.objectName
+					, filter     = { "#blocker.fk#" = arguments.recordId }
 				);
 			}
+		} catch( database e ) {
+			throw(
+				  type    = "PresideObjectService.CascadeDeleteTooDeep"
+				, message = "A cascading delete of a [#arguments.objectName#] record was prevented due to too many levels of cascade."
+				, detail  = "Preside will only allow a single level of cascaded deletes"
+			);
 		}
 
 		return totalDeleted;
