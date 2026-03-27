@@ -5,6 +5,36 @@
  */
 component extends="coldbox.system.ioc.Builder" {
 
+	/**
+	 * ColdBox 6.0 renamed Provider.get() to Provider.$get().
+	 * Override to use Preside's Provider shim that restores get().
+	 */
+	private any function getProviderDSL( required definition, targetObject="", targetID ) {
+		var thisType     = arguments.definition.dsl;
+		var thisTypeLen  = listLen( thisType, ":" );
+		var providerName = "";
+
+		switch ( thisTypeLen ) {
+			case 1: { providerName = arguments.definition.name; break; }
+			case 2: { providerName = getToken( thisType, 2, ":" ); break; }
+			default: { providerName = replaceNoCase( thisType, "provider:", "" ); }
+		}
+
+		var args = {
+			  scopeRegistration : variables.injector.getScopeRegistration()
+			, scopeStorage      : variables.injector.getScopeStorage()
+			, targetObject      : arguments.targetObject
+		};
+
+		if ( variables.injector.containsInstance( providerName ) ) {
+			args.name = providerName;
+		} else {
+			args.dsl = providerName;
+		}
+
+		return new preside.system.coldboxModifications.ioc.Provider( argumentCollection=args );
+	}
+
 	public any function buildCfc( required any mapping, struct initArguments={} ) {
 		var thisMap 	= arguments.mapping;
 		var oModel 		= createObject( "component", thisMap.getPath() );

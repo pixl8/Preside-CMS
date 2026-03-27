@@ -269,6 +269,14 @@
 		<cfreturn getSingleton( "websiteLoginService" ).reloadLoggedInUserDetails( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+<!--- ColdBox 6.0 compatibility: getModel() removed from FrameworkSupertype --->
+	<cffunction name="getModel" access="public" output="false">
+		<cfargument name="name"          type="string" required="false" />
+		<cfargument name="dsl"           type="string" required="false" />
+		<cfargument name="initArguments" type="struct" required="false" default="#structNew()#" /><cfsilent>
+		<cfreturn getInstance( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 <!--- features --->
 	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
 		<cfargument name="feature"      type="string" required="true" />

@@ -10,6 +10,7 @@ component extends="coldbox.system.web.Controller" {
 		services.routingService     = new preside.system.coldboxModifications.services.RoutingService( this );
 		variables.wireBox           = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
 		variables.cacheBox          = CreateObject( "preside.system.coldboxModifications.cachebox.CacheFactory" );
+
 	}
 
 	function getRenderer(){
@@ -258,8 +259,29 @@ component extends="coldbox.system.web.Controller" {
 		return getRequestService().getContext();
 	}
 
-	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) {
+	/**
+	 * Compatibility shim: getSettingStructure() was removed in ColdBox 6.0
+	 * Delegates to the configSettings/coldboxSettings structs directly.
+	 */
+	public struct function getSettingStructure( boolean fwSetting=false, boolean deepCopyFlag=false ) {
 		var target = arguments.fwSetting ? variables.coldboxSettings : variables.configSettings;
+		return arguments.deepCopyFlag ? duplicate( target ) : target;
+	}
+
+	public any function getSetting( required string name, any fwSetting=false, any defaultValue ) {
+		// CB 6.0+ signature: getSetting( name, defaultValue ). If fwSetting
+		// is not a boolean, treat it as defaultValue for compatibility.
+		if ( !IsBoolean( arguments.fwSetting ) ) {
+			arguments.defaultValue = arguments.fwSetting;
+			arguments.fwSetting    = false;
+		}
+		var target = arguments.fwSetting ? variables.coldboxSettings : variables.configSettings;
+
+		// CB 6.0 removed viewsRefMap and layoutsRefMap from config settings.
+		// Preside's custom Renderer still uses them. Lazy-init on first access.
+		if ( !arguments.fwSetting && ListFindNoCase( "viewsRefMap,layoutsRefMap", arguments.name ) && !StructKeyExists( target, arguments.name ) ) {
+			target[ arguments.name ] = {};
+		}
 
 		if ( StructKeyExists( target, arguments.name ) ) {
 			return target[ arguments.name ];

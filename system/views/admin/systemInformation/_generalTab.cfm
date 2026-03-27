@@ -2,6 +2,7 @@
 <cfscript>
 	pageTitle          = args.pageTitle          ?: "";
 	presideCmsVersion  = args.presideCmsVersion  ?: "";
+	coldboxVersion     = args.coldboxVersion     ?: "";
 	applicationServer  = args.applicationServer  ?: "";
 	java               = args.java               ?: "";
 	os                 = args.os                 ?: "";
@@ -13,6 +14,7 @@
 		<thead>
 			<tr>
 				<th>#translateResource( uri="cms:systemInformation.cms.th" )#</th>
+				<th>#translateResource( uri="cms:systemInformation.coldbox.th" )#</th>
 				<th>#translateResource( uri="cms:systemInformation.applicationServer.th" )#</th>
 				<th>#translateResource( uri="cms:systemInformation.dataBase.th" )#</th>
 				<th>#translateResource( uri="cms:systemInformation.java.th" )#</th>
@@ -22,6 +24,7 @@
 		<tbody>
 			<tr>
 				<td>#presideCmsVersion#</td>
+				<td>#coldboxVersion#</td>
 				<td>#applicationServer#</td>
 				<td>#dataBase#</td>
 				<td>#java#</td>

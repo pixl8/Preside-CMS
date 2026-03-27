@@ -913,7 +913,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	private struct function _getViewMappings() {
 		var site          = getRequestContext().getSite();
 		var cacheKey      = "viewsFullMappings" & ( site.template ?: "" );
-		var ignoreFileSvc = getModel( "ignoreFileService" );
+		var ignoreFileSvc = getInstance( "ignoreFileService" );
 
 		lock name="#lockName#" type="readonly" timeout="15" throwontimeout="true" {
 			if ( controller.settingExists( cacheKey ) ) {

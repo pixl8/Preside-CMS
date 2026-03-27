@@ -130,7 +130,7 @@ component {
 			, requestStartHandler       = "General.requestStart"
 			, requestEndHandler         = "General.requestEnd"
 			, missingTemplateHandler    = "General.notFound"
-			, onInvalidEvent            = "General.notFound"
+			, invalidEventHandler       = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
 			, customErrorTemplate       = "/preside/system/coldboxModifications/includes/errorReport.cfm"
 		};

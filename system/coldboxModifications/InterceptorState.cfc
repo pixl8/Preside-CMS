@@ -45,7 +45,8 @@ component {
 
 	public any function process(
 		  required any     event
-		, required any     interceptData
+		,          any     data             = {}
+		,          any     interceptData
 		, required any     buffer
 		,          boolean async            = false
 		,          boolean asyncAll         = false
@@ -53,17 +54,23 @@ component {
 		,          string  asyncPriority    = "NORMAL"
 		,          numeric asyncJoinTimeout = 0
 	) {
+		// ColdBox 6.0+ uses 'data', Preside uses 'interceptData' — normalise
+		if ( !isNull( arguments.interceptData ) ) {
+			arguments.data = arguments.interceptData;
+		}
+
 		if ( arguments.async && !instance.utility.inThread() ) {
 			return processAsync(
 				  event         = arguments.event
-				, interceptData = arguments.interceptData
+				, interceptData = arguments.data
 				, asyncPriority = arguments.asyncPriority
 				, buffer        = arguments.buffer
 			);
 		} else if ( arguments.asyncAll AND NOT instance.utility.inThread() ) {
+			arguments.interceptData = arguments.data;
 			return processAsyncAll( argumentCollection=arguments );
 		} else {
-			processSync( event=arguments.event, interceptData=arguments.interceptData, buffer=arguments.buffer );
+			processSync( event=arguments.event, interceptData=arguments.data, buffer=arguments.buffer );
 		}
 	}
 

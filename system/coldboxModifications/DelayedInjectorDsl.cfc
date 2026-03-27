@@ -6,7 +6,7 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" {
 		return this;
 	}
 
-	public any function process( required any definition, any targetObject ) {
+	public any function process( required any definition, any targetObject, any targetID ) {
 		var thisType    = arguments.definition.dsl;
 		var thisTypeLen = ListLen( thisType, ":" );
 		var injectorDsl = "";

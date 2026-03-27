@@ -19,22 +19,30 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 		variables.controller.getInterceptorService().registerInterceptor( interceptorClass="preside.system.interceptors.PageCachingInterceptor" );
 	}
 
-	public void function onRequestCapture( event, interceptData ) {
-		_announceInterception( "prePresideRequestCapture", interceptData );
-		_checkRedirectDomains( argumentCollection=arguments );
-		if ( featureService.isFeatureEnabled( "sites" ) ) {
-			_detectIncomingSite( argumentCollection=arguments );
-		}
-		_setCustomTenants    ( argumentCollection=arguments );
-		_checkUrlRedirects   ( argumentCollection=arguments );
-		_detectLanguage      ( argumentCollection=arguments );
-		_setPresideUrlPath   ( argumentCollection=arguments );
+	public void function requestCapture( required event ) {
+		var interceptData = {};
+		var presideArgs   = { event=arguments.event, interceptData=interceptData };
 
-		if ( !_routePresideSESRequest( argumentCollection=arguments ) ) {
-			super.onRequestCapture( argumentCollection=arguments );
+		_announceInterception( "prePresideRequestCapture", interceptData );
+		_checkRedirectDomains( argumentCollection=presideArgs );
+		if ( featureService.isFeatureEnabled( "sites" ) ) {
+			_detectIncomingSite( argumentCollection=presideArgs );
+		}
+		_setCustomTenants    ( argumentCollection=presideArgs );
+		_checkUrlRedirects   ( argumentCollection=presideArgs );
+		_detectLanguage      ( argumentCollection=presideArgs );
+		_setPresideUrlPath   ( argumentCollection=presideArgs );
+
+		if ( !_routePresideSESRequest( argumentCollection=presideArgs ) ) {
+			super.requestCapture( argumentCollection=arguments );
 		}
 
 		_announceInterception( "postPresideRequestCapture", interceptData );
+	}
+
+	public void function onRequestCapture( event, interceptData ) {
+		// No-op: In ColdBox 6.0+, routing is handled via requestCapture() above.
+		// This method is kept for backwards compatibility with any interceptor listeners.
 	}
 
 	public void function onBuildLink( event, interceptData ) {

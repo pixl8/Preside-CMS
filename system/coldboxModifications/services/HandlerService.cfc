@@ -2,6 +2,38 @@ component extends="coldbox.system.web.services.HandlerService" {
 
 	variables.handlerBeans = {};
 
+	/**
+	 * Override newHandler to use Preside's EventHandler shim
+	 * which adds back setNextEvent() and getModel() compatibility
+	 */
+	function newHandler( required invocationPath ){
+		if ( NOT variables.wirebox.getBinder().mappingExists( arguments.invocationPath ) ) {
+			wireboxSetup();
+			variables.wirebox
+				.registerNewInstance( name=arguments.invocationPath, instancePath=arguments.invocationPath )
+				.setVirtualInheritance( "preside.system.coldboxModifications.EventHandler" )
+				.addDIConstructorArgument( name="controller", value=controller )
+				.setThreadSafe( true )
+				.setScope(
+					variables.handlerCaching ? variables.wirebox.getBinder().SCOPES.SINGLETON : variables.wirebox.getBinder().SCOPES.NOSCOPE
+				)
+				.setCacheProperties( key="handlers-#arguments.invocationPath#" );
+		}
+		return variables.wirebox.getInstance( arguments.invocationPath );
+	}
+
+	private function wireboxSetup(){
+		super.wireboxSetup();
+		if ( NOT variables.wirebox.getBinder().mappingExists( "preside.system.coldboxModifications.EventHandler" ) ) {
+			variables.wirebox
+				.registerNewInstance(
+					  name         = "preside.system.coldboxModifications.EventHandler"
+					, instancePath = "preside.system.coldboxModifications.EventHandler"
+				)
+				.addDIConstructorArgument( name="controller", value=controller );
+		}
+	}
+
 	public void function registerHandlers() {
 		var appMapping                   = "/" & controller.getSetting( "appMapping" ).reReplace( "^/", "" );
 		var appMappingPath               = controller.getSetting( "appMappingPath" );

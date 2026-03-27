@@ -49,7 +49,8 @@ component extends="coldbox.system.ioc.Injector" {
 			// Register All Custom Listeners
 			registerListeners();
 			// Create our object builder
-			variables.builder = new preside.system.coldboxModifications.ioc.Builder( this );
+			variables.builder       = new preside.system.coldboxModifications.ioc.Builder( this );
+			variables.objectBuilder = variables.builder;
 			// Register Custom DSL Builders
 			variables.builder.registerCustomBuilders();
 			// Register Life Cycle Scopes
@@ -78,6 +79,8 @@ component extends="coldbox.system.ioc.Injector" {
 
 			// process mappings for metadata and initialization.
 			variables.binder.processMappings();
+			// ColdBox 6.0+ split eager init processing out of processMappings()
+			variables.binder.processEagerInits();
 
 			// Announce To Listeners we are online
 			iData.injector = this;
