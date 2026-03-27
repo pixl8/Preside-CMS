@@ -25,4 +25,19 @@ component extends="coldbox.system.Interceptor" {
 		return getInstance( argumentCollection=arguments );
 	}
 
+	/**
+	 * CB 7.0: renderView() deprecated and no longer returns a value.
+	 */
+	function renderView(){
+		return getRenderer().renderView( argumentCollection=arguments );
+	}
+
+	function renderLayout(){
+		return getRenderer().renderLayout( argumentCollection=arguments );
+	}
+
+	function renderExternalView(){
+		return getRenderer().renderExternalView( argumentCollection=arguments );
+	}
+
 }

@@ -48,6 +48,10 @@ component {
 		}
 	}
 
+	public void function clearAll() {
+		variables.poolMetadata.clear();
+	}
+
 	public any function getSize() {
 		return variables.poolMetadata.size();
 	}

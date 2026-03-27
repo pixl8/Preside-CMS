@@ -18,6 +18,7 @@ component extends="coldbox.system.web.Controller" {
 			return variables._renderer;
 		} catch( any e ) {
 			variables._renderer = variables.wireBox.getInstance( "presideRenderer" );
+			variables._renderer.startup();
 		}
 		return variables._renderer;
 	}

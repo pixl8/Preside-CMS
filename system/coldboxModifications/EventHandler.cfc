@@ -35,4 +35,27 @@ component extends="coldbox.system.EventHandler" {
 		return getInstance( argumentCollection=arguments );
 	}
 
+	/**
+	 * CB 7.0: renderView() deprecated and no longer returns a value.
+	 * Restore the return so Preside handlers get their rendered content.
+	 */
+	function renderView(){
+		return getRenderer().renderView( argumentCollection=arguments );
+	}
+
+	/**
+	 * CB 7.0: renderLayout() deprecated and no longer returns a value.
+	 * Restore the return so Preside handlers get their rendered content.
+	 */
+	function renderLayout(){
+		return getRenderer().renderLayout( argumentCollection=arguments );
+	}
+
+	/**
+	 * CB 7.0: renderExternalView() deprecated and no longer returns a value.
+	 */
+	function renderExternalView(){
+		return getRenderer().renderExternalView( argumentCollection=arguments );
+	}
+
 }

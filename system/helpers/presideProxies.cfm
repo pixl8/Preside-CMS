@@ -269,6 +269,15 @@
 		<cfreturn getSingleton( "websiteLoginService" ).reloadLoggedInUserDetails( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+<!--- ColdBox 7.0 compatibility: renderView/renderLayout deprecated and no longer return values --->
+	<cffunction name="renderView" access="public" output="false"><cfsilent>
+		<cfreturn getRenderer().renderView( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
+	<cffunction name="renderLayout" access="public" output="false"><cfsilent>
+		<cfreturn getRenderer().renderLayout( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 <!--- ColdBox 6.0 compatibility: getModel() removed from FrameworkSupertype --->
 	<cffunction name="getModel" access="public" output="false">
 		<cfargument name="name"          type="string" required="false" />

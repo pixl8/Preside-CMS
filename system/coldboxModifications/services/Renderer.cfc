@@ -86,16 +86,22 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 		variables.viewsHelper             = variables.controller.getSetting( "viewsHelper" );
 		variables.viewCaching             = variables.controller.getSetting( "viewCaching" );
 		variables.isDiscoveryCaching      = variables.controller.getSetting( "handlerCaching" );
-		variables.templateCache           = variables.cacheBox.getCache( "template" );
+		variables.isViewsHelperIncluded   = false;
 
+		// Verify View Helper Template extension + location
 		if ( Len( variables.viewsHelper ) ) {
 			variables.viewsHelper = ( ListLast( variables.viewsHelper, "." ) eq "cfm" ? variables.viewsHelper : variables.viewsHelper & ".cfm" );
+			variables.viewsHelper = "/#variables.appMapping#/#variables.viewsHelper#";
 		}
 
-		variables.renderedHelpers = variables.renderedHelpers ?: {};
+		// Template Cache & Caching Maps
+		variables.renderedHelpers = {};
 		variables.lockName        = "rendering.#variables.controller.getAppHash()#";
 
-		loadApplicationHelpers( force: true );
+		// Load global UDF Libraries into target
+		loadApplicationHelpers();
+
+		return this;
 	}
 
 	function init( controller ){
@@ -103,7 +109,6 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 			variables.controller = arguments.controller;
 			startup();
 		}
-		variables.renderedHelpers = {};
 
 		return this;
 	}
