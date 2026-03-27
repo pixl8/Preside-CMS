@@ -55,6 +55,13 @@ component extends="coldbox.system.web.services.InterceptorService" {
 			return;
 		}
 
+		// CB 7/8: cbLoadInterceptorHelpers fires AFTER afterConfigurationLoad,
+		// but Preside interceptors need helpers (isFeatureEnabled etc.) during
+		// afterConfigurationLoad. Ensure helpers are loaded first.
+		if ( arguments.state == "afterConfigurationLoad" && StructKeyExists( variables.interceptionStates, "cbLoadInterceptorHelpers" ) ) {
+			super.announce( state="cbLoadInterceptorHelpers", data={} );
+		}
+
 		return super.announce( argumentCollection=arguments );
 	}
 
@@ -94,38 +101,39 @@ component extends="coldbox.system.web.services.InterceptorService" {
 
 	/**
 	 * Override createInterceptor to use Preside's Interceptor shim
-	 * which eagerly loads application helpers in the constructor (CB 5.4 behaviour).
+	 * which restores getModel(), renderView() etc.
+	 * Updated for CB 8 signature (injector parameter, no controller constructor arg).
 	 */
 	function createInterceptor(
 		required interceptorClass,
 		required interceptorName,
-		struct interceptorProperties = {}
+		struct interceptorProperties = {},
+		injector                     = variables.wirebox
 	){
-		if ( NOT variables.wirebox.getBinder().mappingExists( "interceptor-" & arguments.interceptorName ) ) {
-			wireboxSetup();
-			variables.wirebox
+		if ( NOT arguments.injector.getBinder().mappingExists( "interceptor-" & arguments.interceptorName ) ) {
+			injectorSeedBaseClasses( arguments.injector );
+			arguments.injector
 				.registerNewInstance(
 					  name         = "interceptor-" & arguments.interceptorName
 					, instancePath = arguments.interceptorClass
 				)
-				.setScope( variables.wirebox.getBinder().SCOPES.SINGLETON )
+				.setScope( arguments.injector.getBinder().SCOPES.SINGLETON )
 				.setThreadSafe( true )
 				.setVirtualInheritance( "preside.system.coldboxModifications.Interceptor" )
-				.addDIConstructorArgument( name="controller", value=controller )
 				.addDIConstructorArgument( name="properties", value=arguments.interceptorProperties );
 		}
 		return getInterceptor( arguments.interceptorName );
 	}
 
-	private function wireboxSetup(){
-		if ( NOT variables.wirebox.getBinder().mappingExists( "preside.system.coldboxModifications.Interceptor" ) ) {
-			variables.wirebox
+	private function injectorSeedBaseClasses( required injector ){
+		super.injectorSeedBaseClasses( arguments.injector );
+		if ( NOT arguments.injector.getBinder().mappingExists( "preside.system.coldboxModifications.Interceptor" ) ) {
+			arguments.injector
 				.registerNewInstance(
 					  name         = "preside.system.coldboxModifications.Interceptor"
 					, instancePath = "preside.system.coldboxModifications.Interceptor"
 				)
-				.addDIConstructorArgument( name="controller", value=controller )
-				.addDIConstructorArgument( name="properties", value={} );
+				.setScope( "singleton" );
 		}
 	}
 
