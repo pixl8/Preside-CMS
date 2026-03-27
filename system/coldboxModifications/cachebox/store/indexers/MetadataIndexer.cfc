@@ -1,4 +1,8 @@
-component extends="coldbox.system.cache.store.indexers.MetadataIndexer" {
+/**
+ * ColdBox 7.0 removed coldbox.system.cache.store.indexers.MetadataIndexer.
+ * This is a standalone replacement used by Preside's ConcurrentStore.
+ */
+component {
 
 	public any function init( required any fields ) {
 		variables.poolMetadata    = CreateObject( "java", "java.util.concurrent.ConcurrentHashMap" ).init()
@@ -46,5 +50,13 @@ component extends="coldbox.system.cache.store.indexers.MetadataIndexer" {
 
 	public any function getSize() {
 		return variables.poolMetadata.size();
+	}
+
+	public void function setFields( required any fields ) {
+		variables.fields = arguments.fields;
+	}
+
+	public any function getFields() {
+		return variables.fields;
 	}
 }

@@ -57,50 +57,53 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	* @controller The ColdBox main controller
 	* @controller.inject coldbox
 	*/
-	function init( required controller ){
-		// setup controller
-		variables.controller = arguments.controller;
+	/**
+	 * CB 7.0: LoaderService calls renderer.startup() after all modules loaded.
+	 * In CB 7, controller is injected via DI rather than passed to init().
+	 * We use startup() to perform the initialisation that was in init().
+	 */
+	function startup() {
+		if ( variables._startupDone ?: false ) { return; }
+		variables._startupDone = true;
+
+		// In CB 7, controller may be injected as a property rather than passed to init
+		if ( IsNull( variables.controller ) ) { return; }
+
 		// Register LogBox
-		variables.logBox = arguments.controller.getLogBox();
-		// Register Log object
+		variables.logBox = variables.controller.getLogBox();
 		variables.log = variables.logBox.getLogger( this );
-		// Register Flash RAM
-		variables.flash = arguments.controller.getRequestService().getFlashScope();
-		// Register CacheBox
-		variables.cacheBox = arguments.controller.getCacheBox();
-		// Register WireBox
-		variables.wireBox = arguments.controller.getWireBox();
-		// Register thread utils
-		variables.threadUtil = wirebox.getInstance( "threadUtil" );
+		variables.flash = variables.controller.getRequestService().getFlashScope();
+		variables.cacheBox = variables.controller.getCacheBox();
+		variables.wireBox = variables.controller.getWireBox();
+		variables.threadUtil = variables.wireBox.getInstance( "threadUtil" );
 
-		// Set Conventions, Settings and Properties
-		variables.layoutsConvention 		= variables.controller.getSetting( "layoutsConvention", true );
-		variables.viewsConvention 			= variables.controller.getSetting( "viewsConvention", true );
-		variables.appMapping 				= variables.controller.getSetting( "AppMapping" );
-		variables.viewsExternalLocation 	= variables.controller.getSetting( "ViewsExternalLocation" );
-		variables.layoutsExternalLocation 	= variables.controller.getSetting( "LayoutsExternalLocation" );
-		variables.modulesConfig				= variables.controller.getSetting( "modules" );
-		variables.viewsHelper				= variables.controller.getSetting( "viewsHelper" );
-		variables.viewCaching				= variables.controller.getSetting( "viewCaching" );
-		variables.isViewsHelperIncluded		= false;
+		variables.layoutsConvention       = variables.controller.getSetting( "layoutsConvention", true );
+		variables.viewsConvention         = variables.controller.getSetting( "viewsConvention", true );
+		variables.appMapping              = variables.controller.getSetting( "AppMapping" );
+		variables.viewsExternalLocation   = variables.controller.getSetting( "ViewsExternalLocation" );
+		variables.layoutsExternalLocation = variables.controller.getSetting( "LayoutsExternalLocation" );
+		variables.modulesConfig           = variables.controller.getSetting( "modules" );
+		variables.viewsHelper             = variables.controller.getSetting( "viewsHelper" );
+		variables.viewCaching             = variables.controller.getSetting( "viewCaching" );
+		variables.isDiscoveryCaching      = variables.controller.getSetting( "handlerCaching" );
+		variables.templateCache           = variables.cacheBox.getCache( "template" );
 
-		// Verify View Helper Template extension + location
-		if( len( variables.viewsHelper ) ){
-			// extension detection
-			variables.viewsHelper = ( listLast( variables.viewsHelper, "." ) eq "cfm" ? variables.viewsHelper : variables.viewsHelper & ".cfm" );
-			// Append mapping to it.
-			variables.viewsHelper = "/#variables.appMapping#/#variables.viewsHelper#";
+		if ( Len( variables.viewsHelper ) ) {
+			variables.viewsHelper = ( ListLast( variables.viewsHelper, "." ) eq "cfm" ? variables.viewsHelper : variables.viewsHelper & ".cfm" );
 		}
 
-		// Template Cache & Caching Maps
-		variables.renderedHelpers	= {};
-		variables.lockName			= "rendering.#variables.controller.getAppHash()#";
+		variables.renderedHelpers = variables.renderedHelpers ?: {};
+		variables.lockName        = "rendering.#variables.controller.getAppHash()#";
 
-		// Discovery caching is tied to handlers for discovery.
-		variables.isDiscoveryCaching = controller.getSetting( "handlerCaching" );
+		loadApplicationHelpers( force: true );
+	}
 
-		// Load global UDF Libraries into target
-		loadApplicationHelpers();
+	function init( controller ){
+		if ( !IsNull( arguments.controller ) ) {
+			variables.controller = arguments.controller;
+			startup();
+		}
+		variables.renderedHelpers = {};
 
 		return this;
 	}

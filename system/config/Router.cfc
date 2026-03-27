@@ -100,7 +100,7 @@ component extends="coldbox.system.web.routing.Router" {
 			arguments.dsl = "delayedInjector:" & arguments.dsl;
 		}
 
-		return super.getInstance(
+		return variables.controller.getWirebox().getInstance(
 			  dsl           = arguments.dsl ?: NullValue()
 			, initArguments = arguments.initArguments
 		);

@@ -4,33 +4,42 @@ component extends="coldbox.system.web.services.HandlerService" {
 
 	/**
 	 * Override newHandler to use Preside's EventHandler shim
-	 * which adds back setNextEvent() and getModel() compatibility
+	 * which adds back setNextEvent() and getModel() compatibility.
+	 * CB 7 changed signature from newHandler(invocationPath) to newHandler(ehBean).
 	 */
-	function newHandler( required invocationPath ){
-		if ( NOT variables.wirebox.getBinder().mappingExists( arguments.invocationPath ) ) {
-			wireboxSetup();
-			variables.wirebox
-				.registerNewInstance( name=arguments.invocationPath, instancePath=arguments.invocationPath )
-				.setVirtualInheritance( "preside.system.coldboxModifications.EventHandler" )
-				.addDIConstructorArgument( name="controller", value=controller )
-				.setThreadSafe( true )
-				.setScope(
-					variables.handlerCaching ? variables.wirebox.getBinder().SCOPES.SINGLETON : variables.wirebox.getBinder().SCOPES.NOSCOPE
-				)
-				.setCacheProperties( key="handlers-#arguments.invocationPath#" );
+	function newHandler( required ehBean ){
+		// Preside calls newHandler with a string path; CB 7 calls with an ehBean object
+		if ( IsSimpleValue( arguments.ehBean ) ) {
+			var injector    = variables.wirebox;
+			var handlerPath = arguments.ehBean;
+		} else {
+			var injector    = arguments.ehBean.isModule() ? variables.modules[ arguments.ehBean.getModule() ].injector : variables.wirebox;
+			var handlerPath = arguments.ehBean.getRunnable();
 		}
-		return variables.wirebox.getInstance( arguments.invocationPath );
+
+		if ( NOT injector.getBinder().mappingExists( handlerPath ) ) {
+			injectorSeedBaseClasses( injector );
+			injector
+				.registerNewInstance( name=handlerPath, instancePath=handlerPath )
+				.setVirtualInheritance( "preside.system.coldboxModifications.EventHandler" )
+				.setThreadSafe( true )
+				.setScope( variables.handlerCaching ? "singleton" : "NoScope" )
+				.setCacheProperties( key="handlers-#handlerPath#" )
+				.setExtraAttributes( { handlerPath: handlerPath, isHandler: true } );
+		}
+
+		return injector.getInstance( handlerPath );
 	}
 
-	private function wireboxSetup(){
-		super.wireboxSetup();
-		if ( NOT variables.wirebox.getBinder().mappingExists( "preside.system.coldboxModifications.EventHandler" ) ) {
-			variables.wirebox
+	private function injectorSeedBaseClasses( required injector ){
+		super.injectorSeedBaseClasses( arguments.injector );
+		if ( NOT arguments.injector.getBinder().mappingExists( "preside.system.coldboxModifications.EventHandler" ) ) {
+			arguments.injector
 				.registerNewInstance(
 					  name         = "preside.system.coldboxModifications.EventHandler"
 					, instancePath = "preside.system.coldboxModifications.EventHandler"
 				)
-				.addDIConstructorArgument( name="controller", value=controller );
+				.setScope( "singleton" );
 		}
 	}
 

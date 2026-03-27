@@ -20,24 +20,26 @@ component extends="coldbox.system.ioc.Builder" {
 			default: { providerName = replaceNoCase( thisType, "provider:", "" ); }
 		}
 
-		var args = {
+		return new preside.system.coldboxModifications.ioc.Provider(
 			  scopeRegistration : variables.injector.getScopeRegistration()
-			, scopeStorage      : variables.injector.getScopeStorage()
 			, targetObject      : arguments.targetObject
-		};
-
-		if ( variables.injector.containsInstance( providerName ) ) {
-			args.name = providerName;
-		} else {
-			args.dsl = providerName;
-		}
-
-		return new preside.system.coldboxModifications.ioc.Provider( argumentCollection=args );
+			, name              : providerName
+			, injectorName      : variables.injector.getName()
+		);
 	}
 
 	public any function buildCfc( required any mapping, struct initArguments={} ) {
 		var thisMap 	= arguments.mapping;
 		var oModel 		= createObject( "component", thisMap.getPath() );
+
+		// CB 7.0: FrameworkSupertype.init() sets variables.cbInjectedHelpers but
+		// some Preside components extend FrameworkSupertype without calling super.init().
+		// Use WireBox's utility to inject it into the target's variables scope.
+		if ( StructKeyExists( oModel, "loadApplicationHelpers" ) ) {
+			variables.utility.getMixerUtil().start( oModel );
+			oModel.injectPropertyMixin( "cbInjectedHelpers", {} );
+			variables.utility.getMixerUtil().stop( oModel );
+		}
 
 		// Do we have virtual inheritance?
 		if( arguments.mapping.isVirtualInheritance() ){
