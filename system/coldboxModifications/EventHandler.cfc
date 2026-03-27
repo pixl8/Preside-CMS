@@ -36,6 +36,15 @@ component extends="coldbox.system.EventHandler" {
 	}
 
 	/**
+	 * CB 8.0: FrameworkSupertype added getSystemSetting(key, defaultValue) which
+	 * shadows Preside's getSystemSetting(category, setting, default) helper.
+	 * Restore Preside's version.
+	 */
+	function getSystemSetting(){
+		return getInstance( "systemConfigurationService" ).getSetting( argumentCollection=arguments );
+	}
+
+	/**
 	 * CB 7.0: renderView() deprecated and no longer returns a value.
 	 * Restore the return so Preside handlers get their rendered content.
 	 */

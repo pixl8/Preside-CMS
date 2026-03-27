@@ -26,6 +26,14 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	/**
+	 * CB 8.0: FrameworkSupertype added getSystemSetting(key, defaultValue) which
+	 * shadows Preside's getSystemSetting(category, setting, default) helper.
+	 */
+	function getSystemSetting(){
+		return getInstance( "systemConfigurationService" ).getSetting( argumentCollection=arguments );
+	}
+
+	/**
 	 * CB 7.0: renderView() deprecated and no longer returns a value.
 	 */
 	function renderView(){
