@@ -61,7 +61,7 @@
 
 <cffunction name="getDateDayOrdinal" access="public" returntype="string" output="false">
 	<cfargument name="date" type="date" required="true" /><cfsilent>
-		
+
 	<cfreturn getSingleton( "dateFormatService" ).getDateDayOrdinal( argumentCollection=arguments ) />
 </cfsilent></cffunction>
 
@@ -81,4 +81,20 @@
 	<cfargument name="formattedTime" type="string" required="true" /><cfsilent>
 
 	<cfreturn getSingleton( "timeFormatService" ).roundHours( argumentCollection=arguments ) />
+</cfsilent></cffunction>
+
+<cffunction name="getAdminDateFormatMask" access="public" returntype="string" output="false"><cfsilent>
+	<cfreturn getSingleton( "dateFormatService" ).getAdminDateFormatMask( argumentCollection=arguments ) />
+</cfsilent></cffunction>
+
+<cffunction name="getFormattedAdminDate" access="public" returntype="string" output="false">
+	<cfargument name="date" type="date" required="true" /><cfsilent>
+
+	<cfreturn getSingleton( "dateFormatService" ).getFormattedAdminDate( argumentCollection=arguments ) />
+</cfsilent></cffunction>
+
+<cffunction name="getFormattedAdminDateTime" access="public" returntype="string" output="false">
+	<cfargument name="dateTime" type="date" required="true" /><cfsilent>
+
+	<cfreturn getSingleton( "dateFormatService" ).getFormattedAdminDateTime( argumentCollection=arguments ) />
 </cfsilent></cffunction>
