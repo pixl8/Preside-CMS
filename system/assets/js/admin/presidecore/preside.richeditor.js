@@ -127,16 +127,35 @@ PresideRichEditor = ( function( $ ){
 
 		CKEDITOR.on( "dialogDefinition", function( event ) {
 			var dialogDefinition = event.data.definition
-			  , $parent          = $( parent.CKEDITOR.document.$ )
-			  , $dialogIframe    = $parent.find( ".cke_dialog_ui_iframe:visible, .bootbox-body > iframe:visible" )
-			  , $parentModal     = $parent.find( ".bootbox.modal:visible" )
-			  , $parentEditor    = $parent.find( ".cke_dialog:visible" )
-			  , nestedInModal    = $parentModal.length
-			  , nestedInEditor   = $parentEditor.length
-			  , originalOnShow   = dialogDefinition.onShow || function(){}
-			  , originalOnHide   = dialogDefinition.onHide || function(){}
-			  , dialogWidth      = $dialogIframe.width()
-			  , dialogHeight     = $dialogIframe.height();
+			  , dialogRootDoc    = CKEDITOR.document.$
+			  , $parent
+			  , $dialogIframe
+			  , $parentModal
+			  , $parentEditor
+			  , nestedInModal
+			  , nestedInEditor
+			  , originalOnShow
+			  , originalOnHide
+			  , dialogWidth
+			  , dialogHeight
+			  ;
+
+			try {
+				if ( typeof parent !== "undefined" && parent !== window && parent.CKEDITOR && parent.CKEDITOR.document && parent.CKEDITOR.document.$ ) {
+					dialogRootDoc = parent.CKEDITOR.document.$;
+				}
+			} catch ( e ) {}
+
+			$parent          = $( dialogRootDoc );
+			$dialogIframe    = $parent.find( ".cke_dialog_ui_iframe:visible, .bootbox-body > iframe:visible" );
+			$parentModal     = $parent.find( ".bootbox.modal:visible" );
+			$parentEditor    = $parent.find( ".cke_dialog:visible" );
+			nestedInModal    = $parentModal.length;
+			nestedInEditor   = $parentEditor.length;
+			originalOnShow   = dialogDefinition.onShow || function(){};
+			originalOnHide   = dialogDefinition.onHide || function(){};
+			dialogWidth      = $dialogIframe.width();
+			dialogHeight     = $dialogIframe.height();
 
 			if ( nestedInEditor ) {
 				dialogDefinition.onShow = function() {

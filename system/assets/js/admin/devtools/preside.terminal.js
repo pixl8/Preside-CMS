@@ -1,5 +1,7 @@
 window.presideTerminal = ( function( $ ){
-	var rpcEndpoint = buildAdminLink( "devtools.terminal" )
+	var getRpcEndpoint = function(){
+			return buildAdminLink( "devtools.terminal" );
+		}
 	  , prompt               = "preside-terminal> "
 	  , promptStack          = []
 	  , collectedUserInput   = {}
@@ -10,7 +12,7 @@ window.presideTerminal = ( function( $ ){
 	  , $terminal, terminal, interpreter, config, isEnabled, disableTerminal, toggleTerminal, initTerminal, isInitialized, responseProcessor, resetPrompt, ajaxError, setupPromptStack, processPromptInput, setNextPrompt, sendCollectedUserInput, sendCommand, popPromptFromStack, echoHelp, escapePrompt;
 
 	initTerminal = function( callback ){
-		$.jrpc( rpcEndpoint, "listMethods", {systemcall:true}, function(json){
+		$.jrpc( getRpcEndpoint(), "listMethods", {systemcall:true}, function(json){
 			var autoCompleteCommands = [];
 
 			availableCommands = $.extend( availableCommands, json.result || {} );
@@ -70,7 +72,7 @@ window.presideTerminal = ( function( $ ){
 
 	sendCommand = function( method, params ) {
 		terminal.pause();
-		$.jrpc( rpcEndpoint, method, params, function( json ) {
+		$.jrpc( getRpcEndpoint(), method, params, function( json ) {
 			if (!json.error) {
 				responseProcessor( json.result );
 			} else {
