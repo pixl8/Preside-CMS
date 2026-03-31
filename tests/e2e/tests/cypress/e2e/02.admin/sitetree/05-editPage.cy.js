@@ -20,6 +20,15 @@ describe( 'Admin site tree edit page', () => {
 		cy.get( 'button[name=_saveAction][value=publish]' ).click();
 		cy.get( '.gritter-item-wrapper', { timeout: 15000 } ).should( 'contain.text', 'Page saved successfully' );
 		cy.visitSiteTree();
-		cy.contains( '.tree-table tbody tr .page-title', updatedTitle ).should( 'be.visible' );
+		cy.presideSiteTreeHomepageRow().invoke( 'attr', 'data-id' ).then( ( homepageId ) => {
+			const childRowSel = `.tree-table tbody tr[data-parent="${ homepageId }"]`;
+			cy.get( 'body' ).then( ( $body ) => {
+				if ( !$body.find( childRowSel ).length ) {
+					cy.presideSiteTreeHomepageRow().find( '.tree-toggler' ).should( 'be.visible' ).click();
+				}
+				cy.get( childRowSel, { timeout: 15000 } ).should( 'exist' );
+				cy.contains( '.tree-table tbody tr .page-title', updatedTitle ).should( 'be.visible' );
+			} );
+		} );
 	} );
 } );

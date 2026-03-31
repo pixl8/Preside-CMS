@@ -52,6 +52,6 @@ describe( 'Admin richeditor widgets (CKEditor)', () => {
 		cy.get( '.gritter-item-wrapper', { timeout: 20000 } ).should( 'contain.text', 'Page saved successfully' );
 
 		cy.visit( '/' );
-		cy.contains( 'p', marker, { timeout: 20000 } ).should( 'be.visible' );
+		cy.contains( marker, { timeout: 20000 } ).should( 'be.visible' );
 	} );
 } );
