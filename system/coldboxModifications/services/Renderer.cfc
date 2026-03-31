@@ -64,10 +64,11 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	 */
 	function startup() {
 		if ( variables._startupDone ?: false ) { return; }
-		variables._startupDone = true;
 
 		// In CB 7, controller may be injected as a property rather than passed to init
 		if ( IsNull( variables.controller ) ) { return; }
+
+		variables._startupDone = true;
 
 		// Register LogBox
 		variables.logBox = variables.controller.getLogBox();
