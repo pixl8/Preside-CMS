@@ -261,6 +261,26 @@ component extends="coldbox.system.web.Controller" {
 	}
 
 	/**
+	 * Compatibility shim: setNextEvent() was removed in ColdBox 7.0.
+	 * Delegates to relocate() which is the replacement.
+	 */
+	void function setNextEvent(
+		  event
+		, URL
+		, URI
+		, queryString
+		, persist
+		, struct  persistStruct
+		, boolean addToken
+		, boolean ssl
+		, baseURL
+		, boolean postProcessExempt
+		, numeric statusCode
+	){
+		relocate( argumentCollection=arguments );
+	}
+
+	/**
 	 * Compatibility shim: getSettingStructure() was removed in ColdBox 6.0
 	 * Delegates to the configSettings/coldboxSettings structs directly.
 	 */

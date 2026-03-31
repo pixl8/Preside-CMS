@@ -519,6 +519,49 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	* @prePostExempt If true, pre/post layout interceptors will not be fired. By default they do fire
 	*/
 	/**
+	 * CB 7.0: view() is the new name for renderView().
+	 * Delegate to our renderView() override so Preside's custom view
+	 * path resolution is used instead of vanilla ColdBox view().
+	 */
+	function view(
+		view="",
+		struct args=getRequestContext().getCurrentViewArgs(),
+		module="",
+		boolean cache=false,
+		cacheTimeout="",
+		cacheLastAccessTimeout="",
+		cacheSuffix="",
+		cacheProvider="template",
+		collection,
+		collectionAs="",
+		numeric collectionStartRow="1",
+		numeric collectionMaxRows=0,
+		collectionDelim="",
+		boolean prePostExempt=false,
+		name,
+		viewVariables={}
+	){
+		return renderView( argumentCollection=arguments );
+	}
+
+	/**
+	 * CB 7.0: externalView() is the new name for renderExternalView().
+	 * Delegate to our renderExternalView() override.
+	 */
+	function externalView(
+		required view,
+		struct args=getRequestContext().getCurrentViewArgs(),
+		boolean cache=false,
+		cacheTimeout="",
+		cacheLastAccessTimeout="",
+		cacheSuffix="",
+		cacheProvider="template",
+		viewVariables={}
+	){
+		return renderExternalView( argumentCollection=arguments );
+	}
+
+	/**
 	 * CB 7.0: layout() is the new name for renderLayout().
 	 * Delegate to our renderLayout() override to avoid infinite recursion
 	 * via FrameworkSupertype.layout() -> getRenderer().layout() -> FrameworkSupertype.layout()
