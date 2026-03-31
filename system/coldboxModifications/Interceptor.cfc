@@ -48,4 +48,18 @@ component extends="coldbox.system.Interceptor" {
 		return getRenderer().renderExternalView( argumentCollection=arguments );
 	}
 
+	/**
+	 * CB 7.0: layout(), view(), externalView() replaced the render* versions.
+	 * Private to avoid shadowing interceptor-defined methods of the same name.
+	 */
+	private function layout(){
+		return getRenderer().renderLayout( argumentCollection=arguments );
+	}
+	private function view(){
+		return getRenderer().renderView( argumentCollection=arguments );
+	}
+	private function externalView(){
+		return getRenderer().renderExternalView( argumentCollection=arguments );
+	}
+
 }

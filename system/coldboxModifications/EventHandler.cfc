@@ -67,4 +67,22 @@ component extends="coldbox.system.EventHandler" {
 		return getRenderer().renderExternalView( argumentCollection=arguments );
 	}
 
+	/**
+	 * CB 7.0: layout(), view(), externalView() replaced the render* versions.
+	 * These MUST be private to prevent virtual inheritance from overwriting
+	 * handler-defined private viewlets with the same name (e.g. webflow
+	 * handler's private layout() viewlet). FrameworkSupertype's public
+	 * layout()/view() would otherwise be mixed into the handler's variables
+	 * scope via injectMixin, shadowing the handler's own private method.
+	 */
+	private function layout(){
+		return getRenderer().renderLayout( argumentCollection=arguments );
+	}
+	private function view(){
+		return getRenderer().renderView( argumentCollection=arguments );
+	}
+	private function externalView(){
+		return getRenderer().renderExternalView( argumentCollection=arguments );
+	}
+
 }
