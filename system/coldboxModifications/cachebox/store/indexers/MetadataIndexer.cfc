@@ -48,6 +48,19 @@ component {
 		}
 	}
 
+	public array function getSortedKeys(
+		required any property,
+		any sortType  = "text",
+		any sortOrder = "asc"
+	) {
+		return structSort(
+			variables.poolMetadata,
+			arguments.sortType,
+			arguments.sortOrder,
+			arguments.property
+		);
+	}
+
 	public void function clearAll() {
 		variables.poolMetadata.clear();
 	}
