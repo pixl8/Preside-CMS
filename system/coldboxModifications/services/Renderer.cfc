@@ -518,6 +518,23 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	* @viewModule The module to explicitly render the view from
 	* @prePostExempt If true, pre/post layout interceptors will not be fired. By default they do fire
 	*/
+	/**
+	 * CB 7.0: layout() is the new name for renderLayout().
+	 * Delegate to our renderLayout() override to avoid infinite recursion
+	 * via FrameworkSupertype.layout() -> getRenderer().layout() -> FrameworkSupertype.layout()
+	 */
+	function layout(
+		layout,
+		module="",
+		view="",
+		struct args=getRequestContext().getCurrentViewArgs(),
+		viewModule="",
+		boolean prePostExempt=false,
+		viewVariables={}
+	){
+		return renderLayout( argumentCollection=arguments );
+	}
+
 	function renderLayout(
 		layout,
 		module="",

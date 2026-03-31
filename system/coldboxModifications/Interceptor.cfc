@@ -44,6 +44,14 @@ component extends="coldbox.system.Interceptor" {
 		return getRenderer().renderLayout( argumentCollection=arguments );
 	}
 
+	/**
+	 * CB 7.0: layout() replaced renderLayout() in FrameworkSupertype.
+	 * Override to prevent infinite recursion via FrameworkSupertype.layout() -> getRenderer().layout()
+	 */
+	function layout(){
+		return getRenderer().renderLayout( argumentCollection=arguments );
+	}
+
 	function renderExternalView(){
 		return getRenderer().renderExternalView( argumentCollection=arguments );
 	}
