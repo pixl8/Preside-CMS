@@ -53,11 +53,6 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	/************************************** CONSTRUCTOR *********************************************/
 
 	/**
-	* Constructor
-	* @controller The ColdBox main controller
-	* @controller.inject coldbox
-	*/
-	/**
 	 * CB 7.0: LoaderService calls renderer.startup() after all modules loaded.
 	 * In CB 7, controller is injected via DI rather than passed to init().
 	 * We use startup() to perform the initialisation that was in init().
