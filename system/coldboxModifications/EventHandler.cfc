@@ -61,31 +61,9 @@ component extends="coldbox.system.EventHandler" {
 	}
 
 	/**
-	 * CB 7.0: layout() replaced renderLayout() in FrameworkSupertype.
-	 * Override to prevent infinite recursion via FrameworkSupertype.layout() -> getRenderer().layout()
-	 */
-	function layout(){
-		return getRenderer().renderLayout( argumentCollection=arguments );
-	}
-
-	/**
-	 * CB 7.0: view() replaced renderView() in FrameworkSupertype.
-	 */
-	function view(){
-		return getRenderer().renderView( argumentCollection=arguments );
-	}
-
-	/**
 	 * CB 7.0: renderExternalView() deprecated and no longer returns a value.
 	 */
 	function renderExternalView(){
-		return getRenderer().renderExternalView( argumentCollection=arguments );
-	}
-
-	/**
-	 * CB 7.0: externalView() replaced renderExternalView() in FrameworkSupertype.
-	 */
-	function externalView(){
 		return getRenderer().renderExternalView( argumentCollection=arguments );
 	}
 
