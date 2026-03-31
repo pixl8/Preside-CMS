@@ -61,7 +61,7 @@
 
 <cffunction name="getDateDayOrdinal" access="public" returntype="string" output="false">
 	<cfargument name="date" type="date" required="true" /><cfsilent>
-		
+
 	<cfreturn getSingleton( "dateFormatService" ).getDateDayOrdinal( argumentCollection=arguments ) />
 </cfsilent></cffunction>
 
