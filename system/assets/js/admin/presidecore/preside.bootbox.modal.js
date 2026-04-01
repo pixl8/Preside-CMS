@@ -71,12 +71,15 @@
 					callback( config );
 				};
 
-				if ( $modalLink.get(0).hash.length ) {
-					setupConfig( $( $modalLink.get(0).hash ).html() );
+				var linkHref = $modalLink.data( 'href' ) || $modalLink.attr( 'href' )
+				  , hash     = ( linkHref && linkHref.indexOf( '#' ) !== -1 ) ? linkHref.slice( linkHref.indexOf( '#' ) ) : '';
+
+				if ( hash.length ) {
+					setupConfig( $( hash ).html() );
 				} else {
 					$.ajax( {
 						  method  : "GET"
-						, url     : $modalLink.attr( 'href' )
+						, url     : linkHref
 						, cache   : false
 						, success : function( content ){ setupConfig( content ); }
 					} );
@@ -97,7 +100,13 @@
 	$( 'body' ).on( "click", '[data-toggle="bootbox-modal"]', function( e ){
 		e.preventDefault();
 
-		var $link = $( this );
+		var $link    = $( this )
+		  , linkHref = $link.attr( 'href' );
+
+		if ( linkHref !== 'javascript:void(0)' ) {
+			$link.data( 'href', linkHref );
+			$link.attr( 'href', 'javascript:void(0)' );
+		}
 
 		if ( !$link.data( "presideBootboxModal" ) ) {
 			$link.presideBootboxModal( {} ).click();
