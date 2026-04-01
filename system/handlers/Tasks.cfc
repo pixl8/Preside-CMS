@@ -5,14 +5,14 @@
  */
 component {
 
-	property name="emailLoggingService"     inject="emailLoggingService";
-	property name="notificationService"     inject="notificationService";
-	property name="workflowService"         inject="WorkflowService";
+	property name="emailLoggingService"     inject="featureInjector:emailCenterResend:emailLoggingService";
+	property name="notificationService"     inject="featureInjector:admin:notificationService";
+	property name="workflowService"         inject="featureInjector:presideBasicWorkflow:workflowService";
 	property name="websiteLoginService"     inject="featureInjector:websiteUsers:websiteLoginService";
-	property name="adhocTaskManagerService" inject="adhocTaskManagerService";
-	property name="assetQueueService"       inject="assetQueueService";
-	property name="batchOperationService"   inject="dataManagerBatchOperationService";
-	property name="formBuilderService"      inject="formBuilderService";
+	property name="adhocTaskManagerService" inject="featureInjector:adhocTasks:adhocTaskManagerService";
+	property name="assetQueueService"       inject="featureInjector:assetQueue:assetQueueService";
+	property name="batchOperationService"   inject="featureInjector:admin:dataManagerBatchOperationService";
+	property name="formBuilderService"      inject="featureInjector:formbuilder:formBuilderService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -36,6 +36,7 @@ component {
 	 * @timeout      1200
 	 * @displayName  Delete old notifications
 	 * @displayGroup Cleanup
+	 * @feature      admin
 	 */
 	private boolean function deleteOldNotifications( logger ) {
 		return notificationService.deleteOldNotifications( arguments.logger ?: NullValue() );
@@ -49,6 +50,7 @@ component {
 	 * @timeout      1200
 	 * @displayName  Delete expired workflows
 	 * @displayGroup Cleanup
+	 * @feature      presideBasicWorkflow
 	 */
 	private boolean function deleteExpiredWorkflows( logger ) {
 		return workflowService.deleteExpiredWorkflows( arguments.logger ?: NullValue() );
@@ -75,6 +77,7 @@ component {
 	 * @timeout      1200
 	 * @displayName  Delete expired ad-hoc tasks
 	 * @displayGroup Cleanup
+	 * @feature      adhocTasks
 	 */
 	private boolean function deleteExpiredAdhocTasks( logger ) {
 		return adhocTaskManagerService.deleteExpiredAdhocTasks( arguments.logger ?: NullValue() );
@@ -86,6 +89,7 @@ component {
 	 * @schedule     0 41 3 * * *
 	 * @displayName  Delete expired batch operation queues
 	 * @displayGroup Cleanup
+	 * @feature      admin
 	 */
 	private boolean function deleteExpiredBatchOperationQueues( logger ) {
 		return batchOperationService.deleteExpiredOperationQueues( arguments.logger ?: NullValue() );
