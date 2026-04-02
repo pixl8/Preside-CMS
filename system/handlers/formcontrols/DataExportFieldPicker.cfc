@@ -19,7 +19,13 @@ component {
 		args.sortable     = true;
 
 		for( var prop in propertyNames ) {
-			if ( !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) && !IsTrue( props[ prop ].excludeDataExport ?: "" ) ) {
+			var propRelationship = props[ prop ].relationship ?: "";
+
+			if ( propRelationship == "select-data-view" ) {
+				continue;
+			}
+
+			if ( !propRelationship.reFindNoCase( "to\-many$" ) && !IsTrue( props[ prop ].excludeDataExport ?: "" ) ) {
 				args.values.append( prop );
 			}
 		}
