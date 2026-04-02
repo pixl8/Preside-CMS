@@ -424,6 +424,7 @@ component {
 				switch( prop.relationship ?: "" ) {
 					case "one-to-many":
 					case "many-to-many":
+					case "select-data-view":
 						continue;
 					break;
 					case "many-to-one":
@@ -518,6 +519,12 @@ component {
 				continue;
 			}
 
+			var propRelationship = props[ prop ].relationship ?: "";
+
+			if ( propRelationship == "select-data-view" ) {
+				continue;
+			}
+
 			var shouldInclude = !ArrayFindNoCase( defaultExcludeFields, prop ) && !$helpers.isTrue( props[ prop ].excludeDataExport ?: "" );
 			if ( ArrayLen( defaultIncludeFields ) ) {
 				shouldInclude = shouldInclude && ArrayFindNoCase( shouldInclude, prop );
@@ -527,7 +534,7 @@ component {
 				shouldInclude = !$helpers.isTrue( props[ prop ].excludeNestedDataExport ?: "" );
 			}
 
-			if ( shouldInclude && !( props[ prop ].relationship ?: "" ).reFindNoCase( "to\-many$" ) ) {
+			if ( shouldInclude && !propRelationship.reFindNoCase( "to\-many$" ) ) {
 				var hasPermission     = true;
 				var requiredRoleCheck = StructKeyExists( props[ prop ], "limitToAdminRoles" )
 				                     && ( args.context ?: "" ) == "admin"
@@ -541,7 +548,7 @@ component {
 				}
 
 				if ( hasPermission ) {
-					var shouldExpand = arguments.expandNestedRelationField && ( ( props[ prop ].relationship ?: "" ) == "many-to-one" );
+					var shouldExpand = arguments.expandNestedRelationField && ( propRelationship == "many-to-one" );
 					var expandFields = [];
 
 					if ( shouldExpand ) {
