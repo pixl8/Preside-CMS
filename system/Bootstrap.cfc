@@ -419,7 +419,7 @@ component {
 		var nonColdboxDefault = injectedExists && application.env.showErrors;
 
 		if ( !injectedExists ) {
-			var localEnvRegexes = this.LOCAL_ENVIRONMENT_REGEX ?: "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$";
+			var localEnvRegexes = this.LOCAL_ENVIRONMENT_REGEX ?: "^local\.,\.local(:[0-9]+)?$,^(.+\.)?localhost(:[0-9]+)?$,^127\.0\.0\.1(:[0-9]+)?$";
 			var host            = cgi.http_host;
 			for( var regex in ListToArray( localEnvRegexes ) ) {
 				if ( ReFindNoCase( regex, host ) ) {

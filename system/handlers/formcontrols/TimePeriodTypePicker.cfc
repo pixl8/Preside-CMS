@@ -24,6 +24,8 @@ component {
 			ArrayAppend( args.labels, translateResource( "cms:time.period.type.#value#.label" ) );
 		}
 
+		args.exactMatchOnly = true;
+
 		return renderView( view="/formControls/select/index", args=args );
 	}
 
