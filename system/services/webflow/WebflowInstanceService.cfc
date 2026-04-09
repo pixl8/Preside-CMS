@@ -603,7 +603,7 @@ component {
 
 			ArrayAppend( extraFilters, {
 				  filter       = "#targetObject#.datemodified #timeoutOperator# :datemodified"
-				, filterParams = { datemodified ={ type="cf_sql_timestamp", value= DateAdd( "n", -1 * Val( webflowConfig?.timeout_in_minutes ), Now() ) } }
+				, filterParams = { datemodified ={ type="cf_sql_timestamp", value=DateAdd( "n", -1 * Val( webflowConfig?.timeout_in_minutes ), Now() ) } }
 			} );
 		}
 
