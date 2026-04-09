@@ -299,6 +299,51 @@ component {
 		return ordinal;
 	}
 
+	public string function getAdminDateFormatMask() {
+		var event            = $getRequestContext();
+		var adminUserDetails = event.getAdminUserDetails();
+		var dateFormatMask   = $translateResource( uri="cms:dateFormat");
+
+		if ( IsStruct(adminUserDetails) ) {
+			if ( Len( adminUserDetails.user_admin_date_format ?: "" ) ) {
+				dateFormatMask = adminUserDetails.user_admin_date_format;
+			}
+		}
+
+		return dateFormatMask;
+	}
+
+	public string function getAdminTimeFormatMask() {
+		var event            = $getRequestContext();
+		var adminUserDetails = event.getAdminUserDetails();
+		var timeFormatMask   = $translateResource( uri="cms:timeFormat");
+
+		if ( IsStruct(adminUserDetails) ) {
+			if( Len( adminUserDetails.user_time_format ?: "" ) ) {
+				if ( adminUserDetails.user_time_format == "24h" ) {
+					timeFormatMask = "HH:mm:ss";
+				} else {
+					timeFormatMask = "hh:mm:ss tt";
+				}
+			}
+		}
+
+		return timeFormatMask;
+	}
+
+	public string function getFormattedAdminDate( required date date ) {
+		var dateFormatMask = getAdminDateFormatMask();
+
+		return LSdateFormat( arguments.date, dateFormatMask );
+	}
+
+	public string function getFormattedAdminDateTime( required date dateTime ) {
+		var dateFormatMask    = getAdminDateFormatMask();
+		var timeFormatMask    = getAdminTimeFormatMask();
+
+		return LSdateFormat( arguments.dateTime, dateFormatMask ) & " " & LStimeFormat( arguments.dateTime, timeFormatMask );
+	}
+
 // PRIVATE FUNCTIONS
 	private string function _getLongDateFormat() {
 		var defaults = getDefaultSettingsForLocale();
