@@ -340,6 +340,37 @@ component displayName="Rules Engine Filter Service" {
 		return Len( idField ) && (!IsBoolean( useSegmentation ) || useSegmentation );
 	}
 
+	public boolean function objectSupportsSegmentationTag( required string objectName ) {
+		if ( !objectSupportsSegmentationFilters( objectName=arguments.objectName ) ) {
+			return false;
+		}
+
+		var useSegmentationTag = $getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerUseSegmentationTag"
+		);
+
+		return IsBoolean( useSegmentationTag ) && useSegmentationTag;
+	}
+
+	public query function getObjectRecordSegmentationTags(
+		  required string objectName
+		, required string recordId
+	) {
+		return $getPresideObject( "rules_engine_filter_data" ).selectData(
+			  filter       = {
+				  "rules_engine_filter_data.object_name" = arguments.objectName
+				, "rules_engine_filter_data.record_id"   = arguments.recordId
+				, "filter.segmentation_tag_enabled"      = true
+			}
+			, selectFields = [
+				  "filter.id"
+				, "filter.segmentation_tag_icon AS tag_icon"
+				, "COALESCE( filter.segmentation_tag_label, filter.condition_name ) AS tag_label"
+			]
+		);
+	}
+
 	public query function getSegmentationFilter( required string filterId ) {
 		return $getPresideObject( "rules_engine_condition" ).selectData(
 			  filter       = "id = :id and is_segmentation_filter = :is_segmentation_filter and filter_object is not null"
@@ -605,6 +636,8 @@ component displayName="Rules Engine Filter Service" {
 		var objectName      = arguments.filter.filter_object;
 		var filterId        = arguments.filter.id;
 		var idField         = $getPresideObjectService().getIdField( objectName );
+		var idFieldType     = _getFieldDbType( objectName, idField );
+		var fullIdField     = "#objectName#.#idField#";
 		var bypassTenants   = [];
 		var preparedFilters = [ prepareFilter(
 			  objectName         = objectName
@@ -624,16 +657,46 @@ component displayName="Rules Engine Filter Service" {
 			bypassTenants = ListToArray( objectTenant );
 		}
 
-		return $getPresideObjectService().insertDataFromSelect(
-			  objectName     = "rules_engine_filter_holding_data"
-			, fieldList      = [ "filter", "object_name", "record_id", "holding_id" ]
-			, selectDataArgs = {
-				  objectName    = objectName
-				, selectFields  = [ "'#filterId#'", "'#objectName#'", "#objectName#.#idField#", "'#arguments.holdingId#'" ]
+		var object      = $getPresideObject( objectName );
+		var poService   = $getPresideObjectService();
+		var recordIds   = [];
+		var filter      = "";
+		var filterParams = {};
+		var pageSize     = 100;
+		var totalRecords = 0;
+
+		do {
+			recordIds = object.selectData(
+				  selectFields  = [ "#fullIdField# as id" ]
+				, filter        = filter
+				, filterParams  = filterParams
 				, extraFilters  = preparedFilters
 				, bypassTenants = bypassTenants
+				, orderBy       = fullIdField
+				, maxRows       = pageSize
+				, useCache      = false
+				, returnType    = "arrayOfValues"
+				, columnKey     = "id"
+			);
+
+			if ( ArrayLen( recordIds ) ) {
+				totalRecords += poService.insertDataFromSelect(
+					  objectName     = "rules_engine_filter_holding_data"
+					, fieldList      = [ "filter", "object_name", "record_id", "holding_id" ]
+					, selectDataArgs = {
+						  objectName    = objectName
+						, selectFields  = [ "'#filterId#'", "'#objectName#'", "#fullIdField#", "'#arguments.holdingId#'" ]
+						, extraFilters  = [ { filter = { "#fullIdField#" = recordIds } } ]
+						, bypassTenants = bypassTenants
+					}
+				);
+
+				filter       = "#fullIdField# > :lastRecordId";
+				filterParams = { lastRecordId = { type=idFieldType, value=ArrayLast( recordIds ) } };
 			}
-		);
+		} while( ArrayLen( recordIds ) == pageSize );
+
+		return totalRecords;
 	}
 
 	private void function _clearHoldingTable( required string holdingId ) {
@@ -700,6 +763,18 @@ component displayName="Rules Engine Filter Service" {
 		);
 
 		return DateAdd( unit, filter.segmentation_frequency_measure, Now() );
+	}
+
+	private function _getFieldDbType( required string objectName, required string fieldName ) {
+		var poService = $getPresideObjectService();
+		var dbAdapter = poService.getDbAdapterForObject( arguments.objectName );
+		var dbType    = poService.getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.fieldName
+			, attributeName = "dbType"
+			, defaultValue  = "varchar"
+		);
+		return dbAdapter.sqlDataTypeToCfSqlDatatype( dbType );
 	}
 
 // GETTERS AND SETTERS

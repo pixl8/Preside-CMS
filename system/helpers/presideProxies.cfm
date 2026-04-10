@@ -353,6 +353,20 @@
 		</cfscript>
 	</cfsilent></cffunction>
 
+	<cffunction name="objectSegmentationTags" access="public" returntype="any" output="false">
+		<cfargument name="objectName" type="string" required="true" />
+		<cfargument name="recordId"   type="string" required="true" /><cfsilent>
+
+		<cfscript>
+			return getSingleton( "dataManagerCustomizationService" ).runCustomization(
+				  objectName     = arguments.objectName
+				, args           = arguments
+				, action         = "renderSegmentationTags"
+				, defaultHandler = "admin.DataManager._objectSegmentationTags"
+			);
+		</cfscript>
+	</cfsilent></cffunction>
+
 <!--- healthchecks --->
 	<cffunction name="isUp" access="public" returntype="any" output="false">
 		<cfargument name="serviceId" type="string" required="true" /><cfsilent>

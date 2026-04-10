@@ -575,6 +575,12 @@ component extends="preside.system.base.AdminHandler" {
 
 			if ( isTrue( prc.record.is_segmentation_filter ?: "" ) ) {
 				formName = "preside-objects.rules_engine_condition.admin.edit.segmentation.filter";
+
+				if ( rulesEngineFilterService.objectSupportsSegmentationTag( objectName=rc.filter_object ) ) {
+					event.include( "/js/admin/specific/rulesEngine/toggleTagSection/" );
+				} else {
+					formName = formsService.getMergedFormName( formName, "preside-objects.rules_engine_condition.admin.tag.disabled" );
+				}
 			} else {
 				formName = "preside-objects.rules_engine_condition.admin.edit.filter";
 			}

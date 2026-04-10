@@ -1675,7 +1675,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q = new query();
 			var result = "";
-			var expected = [ { objectName="object_d", recordcount=2, fk="object_e" } ]
+			var expected = [ { objectName="object_d", recordcount=2, fk="object_e", i18nBase="preside-objects.object_d:", isPageType=false } ]
 
 			poService.dbSync();
 
