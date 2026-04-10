@@ -16,4 +16,12 @@
 	);
 </cfscript>
 
-<cfoutput><span class="read-only" #htmlAttributes#>#( HTMLEditFormat( value ) )#</span></cfoutput>
+<cfoutput>
+	<span class="read-only" #htmlAttributes#>
+		<cfif findNoCase( 'richeditor', renderer )>
+			#value#
+		<cfelse>
+			#( EncodeForHtmlAttribute( value ) )#
+		</cfif>
+	</span>
+</cfoutput>
