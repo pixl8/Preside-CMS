@@ -42,8 +42,13 @@ describe( 'Admin richeditor widgets (CKEditor)', () => {
 
 		cy.get( '.cke_dialog:visible a.cke_dialog_ui_button_ok' ).click();
 
-		cy.get( 'body', { timeout: 60000 } ).should( ( $body ) => {
-			expect( $body.find( '.cke_dialog:visible' ).length, 'no visible CKEditor dialog' ).to.eq( 0 );
+		cy.window( { timeout: 60000 } ).should( ( win ) => {
+			const current = win.CKEDITOR?.dialog?.getCurrent?.();
+			expect( current == null, 'CKEDITOR dialog closed' ).to.be.true;
+			expect(
+				Cypress.$( win.document ).find( '.cke_dialog:visible' ).length,
+				'no visible CKEditor dialog in DOM',
+			).to.eq( 0 );
 		} );
 
 		cy.presideCkeditorInstance( 'main_content' ).then( ( editor ) => {
