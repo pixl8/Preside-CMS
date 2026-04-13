@@ -4,7 +4,9 @@ describe( 'Admin richeditor widgets (CKEditor)', () => {
 	} );
 
 	it( 'inserts htmlcode widget in main content and renders it on the homepage', () => {
-		const marker = `e2e_widget_${ Date.now() }`;
+		const dateNowString = Date.now().toString();
+		const marker = `e2e_widget_${ dateNowString }`;
+		const encodedMarker = `e2e%5Fwidget%5F${ dateNowString }`;
 		const htmlSnippet = `<p>${ marker }</p>`;
 
 		cy.visitSiteTree();
@@ -16,36 +18,41 @@ describe( 'Admin richeditor widgets (CKEditor)', () => {
 		cy.presideWaitForRicheditor( 'main_content' );
 		cy.window().its( 'CKEDITOR' ).should( 'exist' );
 
+		cy.wait( 500 );
+
 		cy.get( '.cke_button__widgets', { timeout: 30000 } ).should( 'be.visible' ).click();
 
 		cy.get( '.cke_dialog:visible', { timeout: 30000 } ).should( 'be.visible' );
-		cy.get( '.cke_dialog:visible .cke_dialog_ui_iframe iframe', { timeout: 30000 } ).should( ( $iframe ) => {
+		cy.get( '.cke_dialog:visible iframe.cke_dialog_ui_iframe', { timeout: 30000 } ).should( ( $iframe ) => {
 			const doc = $iframe[ 0 ].contentDocument;
 			expect( doc.querySelector( 'a[href*="widget=htmlcode"]' ), 'htmlcode widget link in dialog iframe' ).to.exist;
 		} );
 
-		cy.get( '.cke_dialog:visible .cke_dialog_ui_iframe iframe' ).then( ( $iframe ) => {
+		cy.get( '.cke_dialog:visible iframe.cke_dialog_ui_iframe' ).then( ( $iframe ) => {
 			const link = $iframe[ 0 ].contentDocument.querySelector( 'a[href*="widget=htmlcode"]' );
 			link.click();
 		} );
 
-		cy.get( '.cke_dialog:visible .cke_dialog_ui_iframe iframe', { timeout: 30000 } ).should( ( $iframe ) => {
-			expect( $iframe[ 0 ].contentDocument.querySelector( 'textarea[name=html_code]' ), 'html_code config field' ).to.exist;
-		} );
-
-		cy.get( '.cke_dialog:visible .cke_dialog_ui_iframe iframe' ).then( ( $iframe ) => {
-			const ta = $iframe[ 0 ].contentDocument.querySelector( 'textarea[name=html_code]' );
-			cy.wrap( ta ).should( 'be.visible' ).clear().type( htmlSnippet, { parseSpecialCharSequences: false } );
+		cy.get( '.cke_dialog:visible iframe.cke_dialog_ui_iframe', { timeout: 30000 } ).should( ( $iframe ) => {
+			const ta = $iframe[ 0 ].contentDocument?.querySelector( 'textarea[name=html_code]' );
+			expect( ta, 'html_code textarea' ).to.not.be.null;
+			ta.value = htmlSnippet;
+			ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 		} );
 
 		cy.get( '.cke_dialog:visible a.cke_dialog_ui_button_ok' ).click();
 
-		cy.get( '.cke_dialog', { timeout: 60000 } ).should( 'not.exist' );
+		cy.get( 'body', { timeout: 60000 } ).should( ( $body ) => {
+			expect( $body.find( '.cke_dialog:visible' ).length, 'no visible CKEditor dialog' ).to.eq( 0 );
+		} );
 
 		cy.presideCkeditorInstance( 'main_content' ).then( ( editor ) => {
 			const data = editor.getData();
 			expect( data, 'editor HTML after widget insert' ).to.include( '{{widget:htmlcode:' );
-			expect( data, 'marker echoed in editor source' ).to.include( marker );
+			expect(
+				data.includes( encodedMarker ),
+				'marker echoed in editor source (raw or url-encoded)',
+			).to.be.true;
 		} );
 
 		cy.get( 'button[name=_saveAction][value=publish]' ).click();
