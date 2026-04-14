@@ -1,0 +1,275 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]: 
+    - text: You are currently viewing the application in a
+    - strong [ref=e4]: LOCAL
+    - text: environment.
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic:
+        - list [ref=e8]:
+          - listitem [ref=e9]:
+            - 'link "Preside: Content Management"':
+              - /url: http://127.0.0.1:9998/admin//?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416
+              - generic [ref=e10] [cursor=pointer]: "Preside: Content Management"
+        - navigation [ref=e11]:
+          - list [ref=e12]:
+            - listitem [ref=e13]:
+              - link " 1" [ref=e14] [cursor=pointer]:
+                - /url: "\n\n\n\t\n\n\t\n\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\n\n\t\n\n\n\t\n\n\n\t\n\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\n\t\n\t\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\n\t\t\n\n\n\t\n\n\t\n\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\n\n\t\n\n\n\t\n\n\n\t\n\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\t\n\n\n\t\n\n\t\n\n\n\t\n\t\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\n\t\thttp://127.0.0.1:9998/admin/datamanager/object/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416&id=system_alert"
+                - generic [ref=e15]: 
+                - generic [ref=e16]: "1"
+            - listitem [ref=e17]:
+              - link " 0" [ref=e18] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=e19]: 
+                - generic [ref=e20]: "0"
+            - listitem [ref=e21]:
+              - link "System administrator " [ref=e22] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=e23]: System administrator
+                - generic [ref=e24]: 
+              - text:   
+            - listitem [ref=e25]:
+              - link " System " [ref=e26] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=e27]: 
+                - text: System
+                - generic [ref=e28]: 
+              - text:                
+            - listitem [ref=e29]:
+              - link " Help and support" [ref=e30] [cursor=pointer]:
+                - /url: http://www.pixl8.co.uk
+                - generic [ref=e31]: 
+                - text: Help and support
+    - generic [ref=e32]:
+      - list [ref=e34]:
+        - listitem [ref=e35]:
+          - generic [ref=e36]: 
+          - link "Home" [ref=e37] [cursor=pointer]:
+            - /url: http://127.0.0.1:9998/admin/sitetree/
+        - listitem [ref=e38]:
+          - text: 
+          - link "Site tree" [ref=e39] [cursor=pointer]:
+            - /url: http://127.0.0.1:9998/admin/sitetree/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416
+        - listitem [ref=e40]:  Homepage
+      - generic [ref=e41]:
+        - list [ref=e42]:
+          - listitem [ref=e43]:
+            - link " Site tree" [ref=e44] [cursor=pointer]:
+              - /url: http://127.0.0.1:9998/admin/sitetree/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416
+              - generic [ref=e45]: 
+              - text: Site tree
+          - listitem [ref=e46]:
+            - link " Asset manager" [ref=e47] [cursor=pointer]:
+              - /url: http://127.0.0.1:9998/admin/assetmanager/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416
+              - generic [ref=e48]: 
+              - text: Asset manager
+          - listitem [ref=e49]:
+            - link " Data manager" [ref=e50] [cursor=pointer]:
+              - /url: http://127.0.0.1:9998/admin/datamanager/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416
+              - generic [ref=e51]: 
+              - text: Data manager
+          - listitem [ref=e52]:
+            - link " Website users" [ref=e53] [cursor=pointer]:
+              - /url: http://127.0.0.1:9998/admin/websiteUserManager/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416
+              - generic [ref=e54]: 
+              - text: Website users
+          - listitem [ref=e55]:
+            - link " Form builder " [ref=e56] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e57]: 
+              - text: Form builder
+              - generic [ref=e58]: 
+            - text:  
+          - listitem [ref=e59]:
+            - link " Email centre " [ref=e60] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e61]: 
+              - text: Email centre
+              - generic [ref=e62]: 
+            - text:       
+          - listitem [ref=e63]:
+            - link " Webflows" [ref=e64] [cursor=pointer]:
+              - /url: http://127.0.0.1:9998/admin/datamanager/object/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416&id=webflow_configuration
+              - generic [ref=e65]: 
+              - text: Webflows
+        - generic [ref=e67] [cursor=pointer]: 
+      - generic [ref=e70]:
+        - heading " Edit page, 'Homepage'" [level=1] [ref=e72]:
+          - generic [ref=e73]: 
+          - text: Edit page, 'Homepage'
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - paragraph [ref=e77]:
+              - generic [ref=e78]: 
+              - text: You are viewing the most up to date version of this Page
+            - generic [ref=e79]:
+              - link "" [ref=e80] [cursor=pointer]:
+                - /url: http://127.0.0.1:9998/admin/sitetree/editPage/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416&id=ACF62DA2-7D1E-4A2A-B53D537DB64E48AD&version=688
+                - generic [ref=e81]: 
+              - link "" [ref=e82] [cursor=pointer]:
+                - /url: http://127.0.0.1:9998/admin/sitetree/pageHistory/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416&id=ACF62DA2-7D1E-4A2A-B53D537DB64E48AD
+                - generic [ref=e83]: 
+              - generic [ref=e84]: 
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - button "  Options" [ref=e87] [cursor=pointer]:
+                - generic [ref=e88]: 
+                - generic [ref=e89]: 
+                - text: Options
+              - text:   
+            - link " Preview" [ref=e90] [cursor=pointer]:
+              - /url: http://127.0.0.1:9998/admin/sitetree/previewPage/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416&id=ACF62DA2-7D1E-4A2A-B53D537DB64E48AD
+              - generic [ref=e91]: 
+              - text: Preview
+            - link " Back to tree" [ref=e92] [cursor=pointer]:
+              - /url: http://127.0.0.1:9998/admin/sitetree/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416&selected=ACF62DA2-7D1E-4A2A-B53D537DB64E48AD
+              - generic [ref=e93]: 
+              - text: Back to tree
+          - generic [ref=e94]:
+            - generic [ref=e95]:
+              - list [ref=e96]:
+                - listitem [ref=e97]:
+                  - link "Standard fields" [ref=e98]:
+                    - /url: "#tab-main"
+                - listitem [ref=e99]:
+                  - link "Metadata and Search" [ref=e100] [cursor=pointer]:
+                    - /url: "#tab-meta"
+                - listitem [ref=e101]:
+                  - link "Navigation" [ref=e102] [cursor=pointer]:
+                    - /url: "#tab-navigation"
+                - listitem [ref=e103]:
+                  - link "Access control" [ref=e104] [cursor=pointer]:
+                    - /url: "#tab-access"
+              - generic [ref=e105]:
+                - group [ref=e107]:
+                  - generic [ref=e108]:
+                    - generic [ref=e109]:
+                      - text: Page title
+                      - superscript [ref=e110]:
+                        - generic [ref=e111]: 
+                    - textbox "Page title " [active] [ref=e114]:
+                      - /placeholder: ""
+                      - text: Homepage
+                  - generic [ref=e115]:
+                    - generic [ref=e116]: Main image
+                    - generic [ref=e118]:
+                      - generic [ref=e119]:
+                        - generic [ref=e120] [cursor=pointer]:
+                          - generic [ref=e121]: Type to search Assets
+                          - generic [ref=e123]: 
+                        - generic [ref=e124]:
+                          - generic [ref=e125]:
+                            - textbox [ref=e126]
+                            - text: 
+                          - list
+                      - link "" [ref=e127] [cursor=pointer]:
+                        - /url: "#"
+                        - generic [ref=e128]: 
+                      - link "" [ref=e129] [cursor=pointer]:
+                        - /url: "#"
+                        - generic [ref=e130]: 
+                  - generic [ref=e131]:
+                    - generic [ref=e132]: Teaser
+                    - textbox "Teaser" [ref=e135]:
+                      - /placeholder: ""
+                  - generic [ref=e136]:
+                    - generic [ref=e137]: Main content
+                    - application "Rich Text Editor, main_content" [ref=e140]:
+                      - group "Editor toolbars":
+                        - toolbar [ref=e141]:
+                          - button "Maximize" [ref=e142]
+                          - separator [ref=e144]
+                          - button "Source" [ref=e145]:
+                            - generic [ref=e147]: Source
+                        - toolbar "1" [ref=e148]:
+                          - button "Cut" [disabled] [ref=e149]
+                          - button "Copy" [disabled] [ref=e151]
+                          - separator [ref=e153]
+                          - button "Undo" [disabled] [ref=e154]
+                          - button "Redo" [disabled] [ref=e156]
+                        - toolbar "2" [ref=e158]:
+                          - button "Find" [ref=e159]
+                          - button "Replace" [ref=e161]
+                        - toolbar "3" [ref=e163]:
+                          - button "Widgets" [ref=e164]
+                          - button "Image picker" [ref=e166]
+                          - button "Attachment picker" [ref=e168]
+                          - button "Table" [ref=e170]
+                          - button "Insert Horizontal Line" [ref=e172]
+                          - button "Insert Special Character" [ref=e174]
+                          - button "Insert Code Snippet" [ref=e176]
+                        - toolbar "4" [ref=e178]:
+                          - button "Link" [ref=e179]
+                          - button "Unlink" [disabled] [ref=e181]
+                          - button "Anchor" [ref=e183]
+                        - toolbar "5" [ref=e185]:
+                          - button "Bold" [ref=e186]
+                          - button "Italic" [ref=e188]
+                          - button "Underline" [ref=e190]
+                          - button "Strikethrough" [ref=e192]
+                          - button "Subscript" [ref=e194]
+                          - button "Superscript" [ref=e196]
+                          - button "Remove Format" [ref=e198]
+                        - toolbar "6" [ref=e200]:
+                          - button "Insert/Remove Numbered List" [ref=e201]
+                          - button "Insert/Remove Bulleted List" [ref=e203]
+                          - separator [ref=e205]
+                          - button "Decrease Indent" [disabled] [ref=e206]
+                          - button "Increase Indent" [ref=e208]
+                          - separator [ref=e210]
+                          - button "Block Quote" [ref=e211]
+                          - separator [ref=e213]
+                          - button "Align Left" [ref=e214]
+                          - button "Center" [ref=e216]
+                          - button "Align Right" [ref=e218]
+                          - button "Justify" [ref=e220]
+                          - separator [ref=e222]
+                          - button "Text direction from left to right" [ref=e223]
+                          - button "Text direction from right to left" [ref=e225]
+                        - toolbar "7" [ref=e227]:
+                          - button "Styles" [ref=e228]:
+                            - generic [ref=e229]: Styles
+                          - button "Format" [ref=e232]:
+                            - generic [ref=e233]: Format
+                      - iframe [ref=e236]:
+                        - generic [active] [ref=f1e1]:
+                          - region "widgets widget" [ref=f1e2]:
+                            - generic [ref=f1e3]: HTML code
+                          - region "widgets widget" [ref=f1e4]:
+                            - generic [ref=f1e5]: HTML code
+                          - region "widgets widget" [ref=f1e6]:
+                            - generic [ref=f1e7]: HTML code
+                          - region "widgets widget" [ref=f1e8]:
+                            - generic [ref=f1e9]: HTML code
+                          - region "widgets widget" [ref=f1e10]:
+                            - generic [ref=f1e11]: HTML code
+                          - region "widgets widget" [ref=f1e12]:
+                            - generic [ref=f1e13]: HTML code
+                          - region "widgets widget" [ref=f1e14]:
+                            - generic [ref=f1e15]: HTML code
+                          - paragraph [ref=f1e16]
+                      - generic "Resize" [ref=e237]: ◢
+                      - group "Elements path" [ref=e238]
+                      - generic "Statistics" [ref=e240]:
+                        - generic [ref=e241]: "Paragraphs: 2, Words: 1"
+                - text:                                    
+            - generic [ref=e242]:
+              - generic [ref=e243]: Keep me on this page
+              - generic [ref=e245]:
+                - checkbox "Keep me on this page" [ref=e246] [cursor=pointer]
+                - generic [ref=e247] [cursor=pointer]: 
+            - generic [ref=e249]:
+              - link " Cancel" [ref=e250] [cursor=pointer]:
+                - /url: http://127.0.0.1:9998/admin/sitetree/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416&selected=ACF62DA2-7D1E-4A2A-B53D537DB64E48AD
+                - generic [ref=e251]: 
+                - text: Cancel
+              - button " Save changes as draft" [ref=e252] [cursor=pointer]:
+                - generic [ref=e253]: 
+                - text: Save changes as draft
+              - button " Publish changes" [ref=e254] [cursor=pointer]:
+                - generic [ref=e255]: 
+                - text: Publish changes
+    - contentinfo [ref=e256]: "Powered by Preside (local git branch: feature-PRESIDECMS-3254_e2e-test-improvements)"
+  - textbox

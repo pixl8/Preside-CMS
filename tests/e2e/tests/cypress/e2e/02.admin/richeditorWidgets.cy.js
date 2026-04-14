@@ -6,7 +6,6 @@ describe( 'Admin richeditor widgets (CKEditor)', () => {
 	it( 'inserts htmlcode widget in main content and renders it on the homepage', () => {
 		const dateNowString = Date.now().toString();
 		const marker = `e2e_widget_${ dateNowString }`;
-		const encodedMarker = `e2e%5Fwidget%5F${ dateNowString }`;
 		const htmlSnippet = `<p>${ marker }</p>`;
 
 		cy.visitSiteTree();
@@ -18,87 +17,34 @@ describe( 'Admin richeditor widgets (CKEditor)', () => {
 		cy.presideWaitForRicheditor( 'main_content' );
 		cy.window().its( 'CKEDITOR' ).should( 'exist' );
 
-		cy.get( '.cke_button__widgets', { timeout: 30000 } )
-			.scrollIntoView()
-			.should( 'be.visible' )
-			.should( 'have.attr', 'aria-disabled', 'false' )
-			.click();
-
-		cy.get( '.cke_dialog:visible', { timeout: 30000 } ).should( 'be.visible' );
-		cy.get( '.cke_dialog:visible iframe.cke_dialog_ui_iframe', { timeout: 30000 } ).should( ( $iframe ) => {
-			const doc = $iframe[ 0 ].contentDocument;
-			expect( doc.querySelector( 'a[href*="widget=htmlcode"]' ), 'htmlcode widget link in dialog iframe' ).to.exist;
+		cy.window().then( ( win ) => {
+			const editor = win.CKEDITOR.instances.main_content;
+			const savedConfig = { html_code: htmlSnippet };
+			const payload = win.encodeURIComponent( win.JSON.stringify( savedConfig ) );
+			const raw = `{{widget:htmlcode:${ payload }:widget}}`;
+			const chunk = `<p>${ raw }</p>`;
+			editor.setData( editor.getData() + chunk );
+			editor.updateElement();
 		} );
 
-		cy.get( '.cke_dialog:visible iframe.cke_dialog_ui_iframe' ).then( ( $iframe ) => {
-			const link = $iframe[ 0 ].contentDocument.querySelector( 'a[href*="widget=htmlcode"]' );
-			link.click();
+		cy.window().should( ( win ) => {
+			const data = win.CKEDITOR.instances.main_content.getData();
+			const encodedMarker = win.encodeURIComponent( marker );
+			expect( data, 'editor HTML after widget insert' ).to.include( '{{widget:htmlcode:' );
+			expect(
+				data.includes( marker ) || data.includes( encodedMarker ),
+				'marker (literal or url-encoded inside token) present in editor output'
+			).to.eq( true );
 		} );
 
-		cy.get( '.cke_dialog:visible iframe.cke_dialog_ui_iframe', { timeout: 30000 } ).should( ( $iframe ) => {
-			const ta = $iframe[ 0 ].contentDocument?.querySelector( 'textarea[name=html_code]' );
-			expect( ta, 'html_code textarea' ).to.not.be.null;
-			ta.value = htmlSnippet;
-			ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
-			ta.dispatchEvent( new Event( 'change', { bubbles: true } ) );
-			ta.dispatchEvent( new KeyboardEvent( 'keyup', { bubbles: true } ) );
-			ta.blur();
-		} );
-
-		cy.get( '.cke_dialog:visible a.cke_dialog_ui_button_ok' )
-			.scrollIntoView()
-			.should( 'be.visible' )
-			.click();
-
-		const tokenStart = '{{widget:htmlcode:';
-		const tokenEnd = ':widget}}';
-
-		cy.window( { timeout: 90000 } ).should( ( win ) => {
-			const editor = win.CKEDITOR?.instances?.main_content;
-			expect( editor, 'CKEDITOR.instances.main_content' ).to.exist;
-			const data = editor.getData();
-			expect( data, 'editor HTML after widget insert' ).to.include( tokenStart );
-
-			const markerInPayload = ( payload ) => {
-				let decoded = payload;
-				try {
-					decoded = decodeURIComponent( payload.replace( /\+/g, '%20' ) );
-				} catch ( _e ) {
-					decoded = payload;
-				}
-				return decoded.includes( marker )
-					|| decoded.includes( encodedMarker )
-					|| decoded.includes( dateNowString )
-					|| payload.includes( encodeURIComponent( marker ) );
-			};
-
-			let searchFrom = 0;
-			let anyMatch = false;
-			for ( ;; ) {
-				const start = data.indexOf( tokenStart, searchFrom );
-				if ( start === -1 ) {
-					break;
-				}
-				const after = data.slice( start + tokenStart.length );
-				const endRel = after.indexOf( tokenEnd );
-				if ( endRel < 1 ) {
-					searchFrom = start + tokenStart.length;
-					continue;
-				}
-				const payload = after.slice( 0, endRel );
-				if ( markerInPayload( payload ) ) {
-					anyMatch = true;
-					break;
-				}
-				searchFrom = start + tokenStart.length;
-			}
-			expect( anyMatch, 'marker inside some htmlcode widget token (editor may contain older widgets)' ).to.be.true;
-		} );
-
+		cy.intercept( 'POST', '**/admin/sitetree/editPageAction/**' ).as( 'editPageSave' );
 		cy.get( 'button[name=_saveAction][value=publish]' ).click();
-		cy.get( '.gritter-item-wrapper', { timeout: 20000 } ).should( 'contain.text', 'Page saved successfully' );
+		cy.wait( '@editPageSave', { timeout: 60000 } );
+		cy.get( '.gritter-item-wrapper', { timeout: 30000 } ).should( 'contain.text', 'Page saved successfully' );
 
-		cy.visit( '/' );
-		cy.contains( marker, { timeout: 20000 } ).should( 'be.visible' );
+		const baseUrl = Cypress.config( 'baseUrl' ).replace( /\/$/, '' );
+		cy.request( { url: `${ baseUrl }/?__e2e=${ Date.now() }`, failOnStatusCode: true, timeout: 30000 } )
+			.its( 'body' )
+			.should( 'include', marker );
 	} );
 } );

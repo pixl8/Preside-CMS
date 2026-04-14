@@ -1,0 +1,82 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - list [ref=e4]:
+      - listitem [ref=e5]:
+        - link "E2E lazy 1776109226050" [ref=e6] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-lazy-1776109226050.html
+      - listitem [ref=e7]:
+        - link "E2E add 1776109241278" [ref=e8] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-add-1776109241278.html
+      - listitem [ref=e9]:
+        - link "E2E edit 1776109258833 updated" [ref=e10] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-edit-1776109258833.html
+      - listitem [ref=e11]:
+        - link "E2E lazy 1776153403096" [ref=e12] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-lazy-1776153403096.html
+      - listitem [ref=e13]:
+        - link "E2E add 1776153411525" [ref=e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-add-1776153411525.html
+      - listitem [ref=e15]:
+        - link "E2E edit 1776153415676 updated" [ref=e16] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-edit-1776153415676.html
+      - listitem [ref=e17]:
+        - link "E2E lazy 1776153567009" [ref=e18] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-lazy-1776153567009.html
+      - listitem [ref=e19]:
+        - link "E2E add 1776153571187" [ref=e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-add-1776153571187.html
+      - listitem [ref=e21]:
+        - link "E2E edit 1776153575234 updated" [ref=e22] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-edit-1776153575234.html
+      - listitem [ref=e23]:
+        - link "E2E lazy 1776154206309" [ref=e24] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-lazy-1776154206309.html
+      - listitem [ref=e25]:
+        - link "E2E add 1776154230640" [ref=e26] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-add-1776154230640.html
+      - listitem [ref=e27]:
+        - link "E2E edit 1776154234675 updated" [ref=e28] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-edit-1776154234675.html
+      - listitem [ref=e29]:
+        - link "E2E lazy 1776154581088" [ref=e30] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-lazy-1776154581088.html
+      - listitem [ref=e31]:
+        - link "E2E add 1776154585100" [ref=e32] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-add-1776154585100.html
+      - listitem [ref=e33]:
+        - link "E2E edit 1776154589124 updated" [ref=e34] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-edit-1776154589124.html
+      - listitem [ref=e35]:
+        - link "E2E lazy 1776156513077" [ref=e36] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-lazy-1776156513077.html
+      - listitem [ref=e37]:
+        - link "E2E add 1776156537348" [ref=e38] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-add-1776156537348.html
+      - listitem [ref=e39]:
+        - link "E2E edit 1776156541420 updated" [ref=e40] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-edit-1776156541420.html
+      - listitem [ref=e41]:
+        - link "E2E lazy 1776158023847" [ref=e42] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-lazy-1776158023847.html
+      - listitem [ref=e43]:
+        - link "E2E add 1776158027985" [ref=e44] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-add-1776158027985.html
+      - listitem [ref=e45]:
+        - link "E2E edit 1776158032107 updated" [ref=e46] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/e2e-edit-1776158032107.html
+      - listitem [ref=e47]:
+        - link "Login" [ref=e48] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/login.html
+    - heading "Preside CMS" [level=3] [ref=e49]:
+      - link "Preside CMS" [ref=e50] [cursor=pointer]:
+        - /url: /
+  - heading "Homepage" [level=1] [ref=e52]
+  - paragraph [ref=e53]: e2e_widget_1776158008309
+  - paragraph [ref=e54]: e2e_widget_1776154565400
+  - paragraph [ref=e55]: e2e_widget_1776154529527
+  - paragraph [ref=e56]: e2e_widget_1776153551039
+  - paragraph [ref=e57]: e2e_widget_1776153386972
+  - paragraph [ref=e58]: e2e_widget_1776111348117
+  - paragraph [ref=e59]: e2e_widget_1776110893680
+  - paragraph [ref=e60]
+  - paragraph [ref=e62]: © Pixl8 2013-2026

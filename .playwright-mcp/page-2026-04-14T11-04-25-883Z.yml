@@ -1,0 +1,23 @@
+- generic [ref=e6]:
+  - link "English (UK) " [ref=e8] [cursor=pointer]:
+    - /url: "#"
+    - img [ref=e9]
+    - text: English (UK)
+    - generic [ref=e10]: 
+  - generic [ref=e14]:
+    - heading "Preside" [level=4] [ref=e15]
+    - group [ref=e18]:
+      - generic [ref=e20]:
+        - textbox "" [active] [ref=e21]:
+          - /placeholder: Login ID or email address
+        - generic [ref=e22]: 
+      - generic [ref=e24]:
+        - textbox "" [ref=e25]:
+          - /placeholder: Password
+        - generic [ref=e26]: 
+      - generic [ref=e28]:
+        - button " Enter" [ref=e29] [cursor=pointer]:
+          - generic [ref=e30]: 
+          - text: Enter
+        - link "I forgot my password" [ref=e31] [cursor=pointer]:
+          - /url: http://127.0.0.1:9998/admin/login/forgottenPassword/?_sid=C1AABB83-83C2-42B4-BE5A1EE35DBF6416
