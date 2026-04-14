@@ -18,9 +18,11 @@ describe( 'Admin richeditor widgets (CKEditor)', () => {
 		cy.presideWaitForRicheditor( 'main_content' );
 		cy.window().its( 'CKEDITOR' ).should( 'exist' );
 
-		cy.wait( 500 );
-
-		cy.get( '.cke_button__widgets', { timeout: 30000 } ).should( 'be.visible' ).click();
+		cy.get( '.cke_button__widgets', { timeout: 30000 } )
+			.scrollIntoView()
+			.should( 'be.visible' )
+			.should( 'have.attr', 'aria-disabled', 'false' )
+			.click();
 
 		cy.get( '.cke_dialog:visible', { timeout: 30000 } ).should( 'be.visible' );
 		cy.get( '.cke_dialog:visible iframe.cke_dialog_ui_iframe', { timeout: 30000 } ).should( ( $iframe ) => {
