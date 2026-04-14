@@ -10,8 +10,8 @@ describe( 'Admin site tree lazy child rows', () => {
 			cy.presideAddStandardPage( homepageId, title );
 			cy.visitPresideAdmin( 'sitetree' );
 			cy.presideSiteTreeHomepageRow().find( '.tree-toggler' ).should( 'be.visible' ).click();
-			cy.get( `.tree-table tbody tr[data-parent="${ homepageId }"]`, { timeout: 15000 } ).should( 'exist' );
-			cy.contains( '.tree-table tbody tr .page-title', title ).should( 'be.visible' );
+			cy.contains( `.tree-table tbody tr[data-parent="${ homepageId }"]`, title, { timeout: 20000 } )
+				.should( 'be.visible' );
 		} );
 	} );
 } );
