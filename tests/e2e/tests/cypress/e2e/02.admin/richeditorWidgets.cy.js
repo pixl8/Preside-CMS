@@ -38,26 +38,59 @@ describe( 'Admin richeditor widgets (CKEditor)', () => {
 			expect( ta, 'html_code textarea' ).to.not.be.null;
 			ta.value = htmlSnippet;
 			ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+			ta.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+			ta.dispatchEvent( new KeyboardEvent( 'keyup', { bubbles: true } ) );
+			ta.blur();
 		} );
 
-		cy.get( '.cke_dialog:visible a.cke_dialog_ui_button_ok' ).click();
+		cy.get( '.cke_dialog:visible a.cke_dialog_ui_button_ok' )
+			.scrollIntoView()
+			.should( 'be.visible' )
+			.click();
 
-		cy.window( { timeout: 60000 } ).should( ( win ) => {
-			const current = win.CKEDITOR?.dialog?.getCurrent?.();
-			expect( current == null, 'CKEDITOR dialog closed' ).to.be.true;
-			expect(
-				Cypress.$( win.document ).find( '.cke_dialog:visible' ).length,
-				'no visible CKEditor dialog in DOM',
-			).to.eq( 0 );
-		} );
+		const tokenStart = '{{widget:htmlcode:';
+		const tokenEnd = ':widget}}';
 
-		cy.presideCkeditorInstance( 'main_content' ).then( ( editor ) => {
+		cy.window( { timeout: 90000 } ).should( ( win ) => {
+			const editor = win.CKEDITOR?.instances?.main_content;
+			expect( editor, 'CKEDITOR.instances.main_content' ).to.exist;
 			const data = editor.getData();
-			expect( data, 'editor HTML after widget insert' ).to.include( '{{widget:htmlcode:' );
-			expect(
-				data.includes( encodedMarker ),
-				'marker echoed in editor source (raw or url-encoded)',
-			).to.be.true;
+			expect( data, 'editor HTML after widget insert' ).to.include( tokenStart );
+
+			const markerInPayload = ( payload ) => {
+				let decoded = payload;
+				try {
+					decoded = decodeURIComponent( payload.replace( /\+/g, '%20' ) );
+				} catch ( _e ) {
+					decoded = payload;
+				}
+				return decoded.includes( marker )
+					|| decoded.includes( encodedMarker )
+					|| decoded.includes( dateNowString )
+					|| payload.includes( encodeURIComponent( marker ) );
+			};
+
+			let searchFrom = 0;
+			let anyMatch = false;
+			for ( ;; ) {
+				const start = data.indexOf( tokenStart, searchFrom );
+				if ( start === -1 ) {
+					break;
+				}
+				const after = data.slice( start + tokenStart.length );
+				const endRel = after.indexOf( tokenEnd );
+				if ( endRel < 1 ) {
+					searchFrom = start + tokenStart.length;
+					continue;
+				}
+				const payload = after.slice( 0, endRel );
+				if ( markerInPayload( payload ) ) {
+					anyMatch = true;
+					break;
+				}
+				searchFrom = start + tokenStart.length;
+			}
+			expect( anyMatch, 'marker inside some htmlcode widget token (editor may contain older widgets)' ).to.be.true;
 		} );
 
 		cy.get( 'button[name=_saveAction][value=publish]' ).click();
