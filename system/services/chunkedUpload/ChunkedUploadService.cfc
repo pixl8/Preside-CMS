@@ -140,8 +140,12 @@ component {
 
 // PRIVATE HELPERS
 
+	public boolean function isValidUUID( required string uuid ) {
+		return ReFind( "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", arguments.uuid ) > 0;
+	}
+
 	private string function _getTempDir( required string uuid ) {
-		if ( !ReFind( "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", arguments.uuid ) ) {
+		if ( !isValidUUID( arguments.uuid ) ) {
 			throw( type="ChunkedUploadService.invalidUUID", message="Invalid upload UUID format" );
 		}
 		return GetTempDirectory() & "preside_chunked_" & arguments.uuid & "/";
