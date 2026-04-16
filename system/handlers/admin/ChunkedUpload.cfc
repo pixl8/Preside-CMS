@@ -26,7 +26,7 @@ component extends="preside.system.base.AdminHandler" {
 		var uuid        = rc.uuid        ?: "";
 		var chunkNumber = Val( rc.chunkNumber ?: 0 );
 
-		if ( !Len( Trim( uuid ) ) || !_isValidUUID( uuid ) || chunkNumber <= 0 ) {
+		if ( !Len( Trim( uuid ) ) || !chunkedUploadService.isValidUUID( uuid ) || chunkNumber <= 0 ) {
 			event.renderData( type="json", data={
 				  success = false
 				, message = translateResource( "cms:assetmanager.chunked.upload.error.invalid.chunk" )
@@ -82,7 +82,7 @@ component extends="preside.system.base.AdminHandler" {
 		var totalChunks      = Val( rc.totalChunks ?: 0 );
 		var originalFilename = rc.originalFilename ?: "";
 
-		if ( !Len( Trim( uuid ) ) || !_isValidUUID( uuid ) || totalChunks <= 0 || !Len( Trim( originalFilename ) ) ) {
+		if ( !Len( Trim( uuid ) ) || !chunkedUploadService.isValidUUID( uuid ) || totalChunks <= 0 || !Len( Trim( originalFilename ) ) ) {
 			event.renderData( type="json", data={
 				  success = false
 				, message = translateResource( "cms:assetmanager.chunked.upload.error.missing.parameters" )
@@ -157,7 +157,7 @@ component extends="preside.system.base.AdminHandler" {
 		var totalChunks      = Val( rc.totalChunks ?: 0 );
 		var originalFilename = rc.originalFilename ?: "";
 
-		if ( !Len( Trim( uuid ) ) || !_isValidUUID( uuid ) || !Len( Trim( assetId ) ) || totalChunks <= 0 || !Len( Trim( originalFilename ) ) ) {
+		if ( !Len( Trim( uuid ) ) || !chunkedUploadService.isValidUUID( uuid ) || !Len( Trim( assetId ) ) || totalChunks <= 0 || !Len( Trim( originalFilename ) ) ) {
 			event.renderData( type="json", data={
 				  success = false
 				, message = translateResource( "cms:assetmanager.chunked.upload.error.missing.parameters" )
@@ -214,10 +214,6 @@ component extends="preside.system.base.AdminHandler" {
 		} finally {
 			chunkedUploadService.cleanupTempDir( uuid );
 		}
-	}
-
-	private boolean function _isValidUUID( required string uuid ) {
-		return ReFind( "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", arguments.uuid ) > 0;
 	}
 
 	private void function _checkPermissions( event, rc, prc, required string key ) {
