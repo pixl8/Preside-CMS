@@ -124,7 +124,7 @@ component {
 				}
 			);
 
-			if ( $helpers.isEmptyString( draft.id ?: "" ) ) {
+			if ( !$helpers.isEmptyString( draft.id ?: "" ) ) {
 				$getPresideObject( "draftmanager_draft" ).updateData(
 					  id   = draft.id
 					, data = {
