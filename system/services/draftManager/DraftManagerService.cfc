@@ -112,41 +112,43 @@ component {
 		,          string recordId = ""
 		,          struct data     = {}
 	) {
-		var draft = $getPresideObject( "draftmanager_draft" ).selectData(
-			  selectFields = [ "id" ]
-			, filter       = "_object_name = :_object_name and _record_id = :_record_id and _status != 'publish'"
-			, filterParams = {
-				  _object_name = { type="cf_sql_varchar", value=arguments.objectName }
-				, _record_id   = { type="cf_sql_varchar", value=arguments.recordId   }
-			  }
-		);
-
 		var label = _getDraftLabel( objectName=arguments.objectName, data=arguments.data );
 
-		if ( $helpers.isEmptyString( draft.id ?: "" ) ) {
-			return $getPresideObject( "draftmanager_draft" ).insertData(
-				data = {
-					  label                   = label
-					, _object_name            = arguments.objectName
-					, _record_id              = arguments.recordId
-					, _workflow_id            = getWorkflowId( objectName=arguments.objectName )
-					, _data                   = SerializeJSON( arguments.data )
-					, _security_user_created  = $getAdminLoggedInUserId()
-					, _security_user_modified = $getAdminLoggedInUserId()
+		if ( Len( arguments.recordId ) ) {
+			var draft = $getPresideObject( "draftmanager_draft" ).selectData(
+				  selectFields = [ "id" ]
+				, filter       = "_object_name = :_object_name and _record_id = :_record_id and _status != 'publish'"
+				, filterParams = {
+					  _object_name = { type="cf_sql_varchar", value=arguments.objectName }
+					, _record_id   = { type="cf_sql_varchar", value=arguments.recordId   }
 				}
 			);
-		} else {
-			$getPresideObject( "draftmanager_draft" ).updateData(
-				  id   = draft.id
-				, data = {
-					  label                   = label
-					, _data                   = SerializeJSON( arguments.data )
-					, _security_user_modified = $getAdminLoggedInUserId()
-				  }
-			);
 
-			return draft.id;
+			if ( !$helpers.isEmptyString( draft.id ?: "" ) ) {
+				$getPresideObject( "draftmanager_draft" ).updateData(
+					  id   = draft.id
+					, data = {
+						  label                   = label
+						, _data                   = SerializeJSON( arguments.data )
+						, _security_user_modified = $getAdminLoggedInUserId()
+					}
+				);
+
+				return draft.id;
+			}
 		}
+
+		return $getPresideObject( "draftmanager_draft" ).insertData(
+			data = {
+				  label                   = label
+				, _object_name            = arguments.objectName
+				, _record_id              = arguments.recordId
+				, _workflow_id            = getWorkflowId( objectName=arguments.objectName )
+				, _data                   = SerializeJSON( arguments.data )
+				, _security_user_created  = $getAdminLoggedInUserId()
+				, _security_user_modified = $getAdminLoggedInUserId()
+			}
+		);
 	}
 
 	public boolean function updateDraftStatusForObject(
