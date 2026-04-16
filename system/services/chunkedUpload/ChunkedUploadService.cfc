@@ -27,12 +27,12 @@ component {
 	 *
 	 * @uuid        Unique upload identifier generated client-side
 	 * @chunkNumber 1-based chunk index
-	 * @chunkData   Binary chunk data
+	 * @filePath    Path to the uploaded chunk temp file (copied to chunk dir; caller cleans up source)
 	 */
 	public boolean function saveChunk(
 		  required string  uuid
 		, required numeric chunkNumber
-		, required any     chunkData
+		, required string  filePath
 	) {
 		var tempDir   = _getTempDir( arguments.uuid );
 		var chunkFile = tempDir & "chunk_" & arguments.chunkNumber & ".bin";
@@ -40,7 +40,7 @@ component {
 		if ( !DirectoryExists( tempDir ) ) {
 			DirectoryCreate( tempDir );
 		}
-		FileWrite( chunkFile, arguments.chunkData );
+		FileCopy( arguments.filePath, chunkFile );
 
 		return true;
 	}
@@ -140,35 +140,15 @@ component {
 
 // PRIVATE HELPERS
 
-	/**
-	 * Returns a canonical, symlink-resolved temp path for the given UUID.
-	 * Uses Java getCanonicalPath() to ensure consistency on macOS where
-	 * /tmp is a symlink to /private/tmp.
-	 */
 	private string function _getTempDir( required string uuid ) {
-		var canonicalTempBase = createObject( "java", "java.io.File" ).init( GetTempDirectory() ).getCanonicalPath();
-		if ( Right( canonicalTempBase, 1 ) != "/" ) { canonicalTempBase &= "/"; }
-		return canonicalTempBase & "preside_chunked_" & arguments.uuid & "/";
+		if ( !ReFind( "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", arguments.uuid ) ) {
+			throw( type="ChunkedUploadService.invalidUUID", message="Invalid upload UUID format" );
+		}
+		return GetTempDirectory() & "preside_chunked_" & arguments.uuid & "/";
 	}
 
-	/**
-	 * Clean up abandoned upload directories older than 2 hours.
-	 * Called before each assembly to avoid temp dir accumulation.
-	 */
-	public void function cleanupStaleSessions() {
-		try {
-			var baseDir = createObject( "java", "java.io.File" ).init( GetTempDirectory() ).getCanonicalPath();
-			if ( Right( baseDir, 1 ) != "/" ) { baseDir &= "/"; }
-			var cutoff = DateAdd( "h", -2, Now() );
-
-			for ( var dir in DirectoryList( baseDir, false, "query", "preside_chunked_*" ) ) {
-				if ( dir.type == "Dir" && dir.dateLastModified < cutoff ) {
-					_cleanupTempFiles( baseDir & dir.name & "/" );
-				}
-			}
-		} catch ( any e ) {
-			// Don't block uploads on cleanup errors
-		}
+	public void function cleanupTempDir( required string uuid ) {
+		_cleanupTempFiles( _getTempDir( arguments.uuid ) );
 	}
 
 	private void function _cleanupTempFiles( required string tempDir ) {
