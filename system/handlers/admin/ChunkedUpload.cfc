@@ -26,7 +26,7 @@ component extends="preside.system.base.AdminHandler" {
 		var uuid        = rc.uuid        ?: "";
 		var chunkNumber = Val( rc.chunkNumber ?: 0 );
 
-		if ( !Len( Trim( uuid ) ) || chunkNumber <= 0 ) {
+		if ( !Len( Trim( uuid ) ) || !_isValidUUID( uuid ) || chunkNumber <= 0 ) {
 			event.renderData( type="json", data={
 				  success = false
 				, message = translateResource( "cms:assetmanager.chunked.upload.error.invalid.chunk" )
@@ -53,15 +53,14 @@ component extends="preside.system.base.AdminHandler" {
 				return;
 			}
 
-			var saved = chunkedUploadService.saveChunk(
+			chunkedUploadService.saveChunk(
 				  uuid        = uuid
 				, chunkNumber = chunkNumber
-				, chunkData   = FileReadBinary( chunkPath )
+				, filePath    = chunkPath
 			);
-
 			event.renderData( type="json", data={
-				  success = saved
-				, message = saved ? "" : translateResource( "cms:assetmanager.chunked.upload.error.save.chunk" )
+				  success = true
+				, message = ""
 			} );
 
 		} catch ( any e ) {
@@ -83,7 +82,7 @@ component extends="preside.system.base.AdminHandler" {
 		var totalChunks      = Val( rc.totalChunks ?: 0 );
 		var originalFilename = rc.originalFilename ?: "";
 
-		if ( !Len( Trim( uuid ) ) || totalChunks <= 0 || !Len( Trim( originalFilename ) ) ) {
+		if ( !Len( Trim( uuid ) ) || !_isValidUUID( uuid ) || totalChunks <= 0 || !Len( Trim( originalFilename ) ) ) {
 			event.renderData( type="json", data={
 				  success = false
 				, message = translateResource( "cms:assetmanager.chunked.upload.error.missing.parameters" )
@@ -94,8 +93,6 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !Len( Trim( folder ) ) ) {
 			folder = assetManagerService.getRootFolderId();
 		}
-
-		chunkedUploadService.cleanupStaleSessions();
 
 		var result = chunkedUploadService.assembleAndSave(
 			  uuid             = uuid
@@ -160,7 +157,7 @@ component extends="preside.system.base.AdminHandler" {
 		var totalChunks      = Val( rc.totalChunks ?: 0 );
 		var originalFilename = rc.originalFilename ?: "";
 
-		if ( !Len( Trim( uuid ) ) || !Len( Trim( assetId ) ) || totalChunks <= 0 || !Len( Trim( originalFilename ) ) ) {
+		if ( !Len( Trim( uuid ) ) || !_isValidUUID( uuid ) || !Len( Trim( assetId ) ) || totalChunks <= 0 || !Len( Trim( originalFilename ) ) ) {
 			event.renderData( type="json", data={
 				  success = false
 				, message = translateResource( "cms:assetmanager.chunked.upload.error.missing.parameters" )
@@ -168,14 +165,13 @@ component extends="preside.system.base.AdminHandler" {
 			return;
 		}
 
-		chunkedUploadService.cleanupStaleSessions();
-
 		var assembled = chunkedUploadService.assembleTempFile(
 			  uuid        = uuid
 			, totalChunks = totalChunks
 		);
 
 		if ( !assembled.success ) {
+			chunkedUploadService.cleanupTempDir( uuid );
 			event.renderData( type="json", data={
 				  success = false
 				, message = translateResource( "cms:assetmanager.chunked.upload.error.assemble" )
@@ -216,12 +212,12 @@ component extends="preside.system.base.AdminHandler" {
 				, message = translateResource( "cms:assetmanager.chunked.upload.error.chunk", { data=[ e.message ] } )
 			} );
 		} finally {
-			// Clean up the temp directory after addAssetVersion is done
-			var tempDir = GetTempDirectory() & "preside_chunked_" & uuid & "/";
-			if ( DirectoryExists( tempDir ) ) {
-				try { DirectoryDelete( tempDir, true ); } catch ( any ignored ) {}
-			}
+			chunkedUploadService.cleanupTempDir( uuid );
 		}
+	}
+
+	private boolean function _isValidUUID( required string uuid ) {
+		return ReFind( "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", arguments.uuid ) > 0;
 	}
 
 	private void function _checkPermissions( event, rc, prc, required string key ) {

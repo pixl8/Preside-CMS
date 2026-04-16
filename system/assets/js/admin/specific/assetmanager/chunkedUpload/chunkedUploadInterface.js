@@ -114,6 +114,15 @@
 				});
 				
 				this.on("error", function( file, message, xhr ) {
+					// Before upload starts, save original detail content so folder-change can restore it
+					if ( !queueTriggered ) {
+						var $pc = $( file.previewElement );
+						var $d  = $pc.find( ".upload-detail" );
+						if ( !$pc.data( "folderErrorSaved" ) ) {
+							$pc.data( "folderErrorSaved", $d.html() );
+						}
+					}
+
 					if ( typeof message == "object" && typeof message.message != "undefined" ) {
 						markFailure( file, message.message );
 					} else if ( typeof xhr === "undefined" ) {
@@ -266,14 +275,16 @@
 					currentMaxFileSize       = restrictions.maxFileSize       || 100;
 					currentAllowedExtensions = ( restrictions.allowedExtensions || "" ).toLowerCase().split( "," ).filter( function( s ) { return s.length; } );
 
-					// Re-validate every queued file against the new folder's restrictions.
-					// Show an inline error on invalid files rather than silently removing
-					// them — the user can then decide to remove them manually.
-					// Also clear errors on files that become valid again.
-					var queued = dropzone.getFilesWithStatus( Dropzone.ADDED );
+					// Update Dropzone's own validation so newly added files use the new limits
+					dropzone.options.maxFilesize   = currentMaxFileSize;
+					dropzone.options.acceptedFiles = currentAllowedExtensions.join( "," );
 
-					for ( var i = 0; i < queued.length; i++ ) {
-						var file              = queued[ i ];
+					// Re-validate queued (ADDED) and previously rejected (ERROR) files
+					var filesToCheck = dropzone.getFilesWithStatus( Dropzone.ADDED )
+					                    .concat( dropzone.getFilesWithStatus( Dropzone.ERROR ) );
+
+					for ( var i = 0; i < filesToCheck.length; i++ ) {
+						var file              = filesToCheck[ i ];
 						var $previewContainer = $( file.previewElement );
 						var $detail           = $previewContainer.find( ".upload-detail" );
 						var ext               = "." + file.name.split( "." ).pop().toLowerCase();
@@ -293,13 +304,29 @@
 							}
 							$detail.html( errorMsg );
 							$previewContainer.addClass( "upload-error" ).removeClass( "upload-success" );
-						} else if ( $previewContainer.data( "folderErrorSaved" ) ) {
-							// Restore the original title input that was saved before the error
-							$detail.html( $previewContainer.data( "folderErrorSaved" ) );
-							$previewContainer.removeData( "folderErrorSaved" );
+							file.status   = Dropzone.ERROR;
+							file.accepted = false;
+						} else if ( $previewContainer.hasClass( "upload-error" ) ) {
+							// File is now valid under new folder restrictions — restore original state
+							if ( $previewContainer.data( "folderErrorSaved" ) ) {
+								$detail.html( $previewContainer.data( "folderErrorSaved" ) );
+								$previewContainer.removeData( "folderErrorSaved" );
+							}
 							$previewContainer.removeClass( "upload-error" );
+							$previewContainer.find( ".action-buttons" ).html(
+								'<a class="red cancel-file-trigger" href="#"><i class="fa fa-trash-o bigger-130"></i></a>'
+							);
+							file.status   = Dropzone.ADDED;
+							file.accepted = true;
 						}
 					}
+
+					// Re-enable choose-files button if no errored files remain
+					if ( $form.find( ".asset-preview.upload-error" ).length === 0 ) {
+						$form.find( ".choose-files-trigger" ).prop( "disabled", false ).removeClass( "disabled" );
+					}
+
+					toggleFeaturesOnFileListPopulation();
 				}
 			});
 		});
