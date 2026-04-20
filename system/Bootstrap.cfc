@@ -183,13 +183,43 @@ component {
 			, logsMapping    = arguments.logsMapping
 		};
 
-		_setupCustomTagPath( presideroot );
+		_setupCustomTagPaths( presideroot, arguments.appPath );
 	}
 
-	private void function _setupCustomTagPath( required string presideroot ) {
-		var tagsDir = arguments.presideroot & "/system/customtags";
+	private void function _setupCustomTagPaths( required string presideroot, required string appPath ) {
+		var customTagPaths    = ListToArray( this.customTagPaths ?: "" );
+		var appTagsDir        = arguments.appPath & "/customtags";
+		var extensionTagsDirs = _getExtensionCustomTagPaths( arguments.appPath );
+		var coreTagsDir       = arguments.presideroot & "/system/customtags";
 
-		this.customTagPaths = ListAppend( this.customTagPaths ?: "", tagsDir );
+		if ( DirectoryExists( appTagsDir ) ) {
+			ArrayAppend( customTagPaths, appTagsDir );
+		}
+		if ( ArrayLen( extensionTagsDirs ) ) {
+			ArrayAppend( customTagPaths, extensionTagsDirs, true );
+		}
+
+		ArrayAppend( customTagPaths, coreTagsDir );
+
+		this.customTagPaths = ArrayToList( customTagPaths );
+	}
+
+	private array function _getExtensionCustomTagPaths( required string appPath ) {
+		var extensionDirs = _findCustomTagDirs( arguments.appPath & "/extensions_app" )
+
+		ArrayAppend( extensionDirs, _findCustomTagDirs( arguments.appPath & "/extensions" ), true );
+
+		return extensionDirs;
+	}
+
+	private array function _findCustomTagDirs( required string path ) {
+		return DirectoryList(
+			  path     = arguments.path
+			, recurse  = true
+			, filter   = "customtags"
+			, listInfo = "path"
+			, type     = "dir"
+		);
 	}
 
 	private any function _initEveryEverything() {
