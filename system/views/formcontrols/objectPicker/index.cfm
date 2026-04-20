@@ -19,7 +19,7 @@
 	multiple                = args.multiple         ?: false;
 	extraClasses            = args.extraClasses     ?: "";
 	labelRenderer           = args.labelRenderer    ?: "";
-	defaultTemplate         = len( labelRenderer ) ? "{{{text}}}" : "{{text}}";
+	defaultTemplate         = ( Len( labelRenderer ) || IsTrue( args.skipHtmlEncodeForLabel ?: "" ) ) ? "{{{text}}}" : "{{text}}";
 	resultTemplate          = args.resultTemplate   ?: defaultTemplate;
 	selectedTemplate        = args.selectedTemplate ?: defaultTemplate;
 	disabled                = isBoolean( args.disabled ?: "" ) && args.disabled;
@@ -31,6 +31,7 @@
 	superQuickAdd           = IsTrue( args.superQuickAdd ?: false );
 	superQuickAddUrl        = args.superQuickAddUrl ?: event.buildAdminLink( linkTo="datamanager.superQuickAddAction", querystring="object=#object#" );
 	superQuickAddText       = args.superQuickAddText ?: translateResource( uri="cms:datamanager.super.quick.add.text", data=[ objectTitle ] );
+	skipHtmlEncodeForLabel  = args.skipHtmlEncodeForLabel                ?: false;
 	removeObjectPickerClass = args.removeObjectPickerClass               ?: false;
 	objectPickerClass       = removeObjectPickerClass                    ?  "" : "object-picker" ;
 
@@ -150,9 +151,14 @@
 				<option value="" title="#pleaseselect#">#pleaseselect#</option>
 			</cfif>
 			<cfloop query="records">
-				<cfset labelArgs=queryRowToStruct( records, records.currentRow ) />
-				<cfset labelArgs.labelRenderer=labelRenderer />
-				<cfset label=EncodeForHtml( renderViewlet( event="admin.Labels.render", args=labelArgs ) ) />
+				<cfscript>
+					labelArgs = QueryRowToStruct( records, records.currentRow );
+					labelArgs.labelRenderer = labelRenderer;
+
+					rendered = renderViewlet( event="admin.Labels.render", args=labelArgs );
+					label    = skipHtmlEncodeForLabel ? rendered : EncodeForHtml( rendered );
+				</cfscript>
+
 				<option
 					value="#records.id#"
 					title="#label#"
