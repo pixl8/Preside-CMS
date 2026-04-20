@@ -187,21 +187,25 @@ component {
 	}
 
 	private void function _setupCustomTagPaths( required string presideroot, required string appPath ) {
-		var customTagPaths    = ListToArray( this.customTagPaths ?: "" );
-		var appTagsDir        = arguments.appPath & "/customtags";
-		var extensionTagsDirs = _getExtensionCustomTagPaths( arguments.appPath );
-		var coreTagsDir       = arguments.presideroot & "/system/customtags";
+		if ( !Len( Trim( application.__presideCustomTags ?: "" ) ) ) {
+			var customTagPaths    = ListToArray( this.customTagPaths ?: "" );
+			var appTagsDir        = arguments.appPath & "/customtags";
+			var extensionTagsDirs = _getExtensionCustomTagPaths( arguments.appPath );
+			var coreTagsDir       = arguments.presideroot & "/system/customtags";
 
-		if ( DirectoryExists( appTagsDir ) ) {
-			ArrayAppend( customTagPaths, appTagsDir );
+			if ( DirectoryExists( appTagsDir ) ) {
+				ArrayAppend( customTagPaths, appTagsDir );
+			}
+			if ( ArrayLen( extensionTagsDirs ) ) {
+				ArrayAppend( customTagPaths, extensionTagsDirs, true );
+			}
+
+			ArrayAppend( customTagPaths, coreTagsDir );
+
+			application.__presideCustomTags = ArrayToList( customTagPaths );
 		}
-		if ( ArrayLen( extensionTagsDirs ) ) {
-			ArrayAppend( customTagPaths, extensionTagsDirs, true );
-		}
 
-		ArrayAppend( customTagPaths, coreTagsDir );
-
-		this.customTagPaths = ArrayToList( customTagPaths );
+		this.customTagPaths = ListAppend( this.customTagPaths ?: "", application.__presideCustomTags );
 	}
 
 	private array function _getExtensionCustomTagPaths( required string appPath ) {
