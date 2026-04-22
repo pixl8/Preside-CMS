@@ -401,13 +401,10 @@ component displayName="System configuration service" {
 			, description      = _getConventionsBaseCategoryDescription( arguments.id )
 			, icon             = _getConventionsBaseCategoryIcon( arguments.id )
 			, form             = formName
+			, siteForm         = _getConventionsBaseSiteCategoryForm( arguments.id, formAttributes.tenancy ?: "" )
 			, tenancy          = formAttributes.tenancy ?: "site"
 			, noTenancy        = $helpers.isTrue( formAttributes.notenancy ?: "" )
 		);
-
-		if ( !categories[ arguments.id ].getNoTenancy() && categories[ arguments.id ].getTenancy() == "site" && $isFeatureEnabled( "sites" ) ) {
-			categories[ arguments.id ].setSiteForm( _getConventionsBaseSiteCategoryForm( arguments.id ) );
-		}
 	}
 
 	private string function _getConventionsBaseCategoryName( required string id ) {
@@ -422,7 +419,11 @@ component displayName="System configuration service" {
 	private string function _getConventionsBaseCategoryForm( required string id ) {
 		return "system-config.#arguments.id#";
 	}
-	private string function _getConventionsBaseSiteCategoryForm( required string id ) {
+	private string function _getConventionsBaseSiteCategoryForm( required string id, required string tenant ) {
+		if ( !Len( arguments.tenant ) || ( arguments.tenant == "site" && !$isFeatureEnabled( "sites" ) ) ) {
+			return "";
+		}
+
 		var fullFormName = _getConventionsBaseCategoryForm( arguments.id );
 
 		return _getFormsService().createForm( basedOn=fullFormName, generator=function( definition ){
