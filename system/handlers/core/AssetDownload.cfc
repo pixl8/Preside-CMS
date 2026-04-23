@@ -23,6 +23,7 @@ component {
 		var assetId           = rc.assetId      ?: "";
 		var versionId         = rc.versionId    ?: "";
 		var derivativeName    = rc.derivativeId ?: "";
+		var noRedirect        = isTrue( rc.noRedirect ?: "" );
 
 		if ( !assetManagerService.assetExists( id=assetId ) ) {
 			event.renderData( data="404 not found", type="text", statusCode=404 );
@@ -123,23 +124,24 @@ component {
 					);
 				}
 
-
-				if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
-					setNextEvent(
-						  url        = assetPublicUrl
-						, statusCode = type.trackDownloads ? 302 : 301
-					);
-				} else if ( !Len( Trim( derivativeName ) ) && !isTrashed ) {
-					var tempPrivateUrl = assetManagerService.getTempPrivateUrl(
-						  id        = assetId
-						, versionId = versionId
-					);
-
-					if ( Len( Trim( tempPrivateUrl ) ) ) {
+				if ( !noRedirect ) {
+					if ( !ReFindNoCase( "^/asset/", assetPublicUrl ) && event.getCurrentUrl() != UrlDecode( assetPublicUrl ) ) {
 						setNextEvent(
-							  url        = tempPrivateUrl
-							, statusCode = 302
+							  url        = assetPublicUrl
+							, statusCode = type.trackDownloads ? 302 : 301
 						);
+					} else if ( !Len( Trim( derivativeName ) ) && !isTrashed ) {
+						var tempPrivateUrl = assetManagerService.getTempPrivateUrl(
+							  id        = assetId
+							, versionId = versionId
+						);
+
+						if ( Len( Trim( tempPrivateUrl ) ) ) {
+							setNextEvent(
+								  url        = tempPrivateUrl
+								, statusCode = 302
+							);
+						}
 					}
 				}
 
