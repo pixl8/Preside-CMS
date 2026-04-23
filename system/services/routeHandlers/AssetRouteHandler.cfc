@@ -54,6 +54,7 @@ component implements="iRouteHandler" singleton=true presideService=true {
 		var derivative    = buildArgs.derivative    ?: "";
 		var versionId     = buildArgs.versionId     ?: "";
 		var trackDownload = buildArgs.trackDownload ?: false;
+		var noRedirect    = buildArgs.noRedirect    ?: false;
 		var trashed       = IsBoolean( buildArgs.trashed ?: "" ) && buildArgs.trashed;
 		var link          = "";
 		var assetFields   = [ "asset_type" ];
@@ -109,6 +110,10 @@ component implements="iRouteHandler" singleton=true presideService=true {
 					, trashed    = trashed
 				);
 			}
+		}
+
+		if ( IsBoolean( noRedirect ) && noRedirect ) {
+			link &= "?noRedirect=#noRedirect#";
 		}
 
 		if ( !ReFind( "^(https?:)?\/\/", link ) ) {
