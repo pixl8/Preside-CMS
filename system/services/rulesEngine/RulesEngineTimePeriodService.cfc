@@ -72,7 +72,7 @@ component displayName="RulesEngine Time Period Service" {
 			break;
 			case "recent":
 				try {
-					var fromDate = DateAdd( ( timePeriod.unit ?: "" ), -( timePeriod.measure ?: "" ), currentDateTime );
+					var fromDate = DateAdd( ( timePeriod.unit ?: "" ), -Val( timePeriod.measure ?: "" ), currentDateTime );
 				} catch( any e ) {
 					return {};
 				}
@@ -85,7 +85,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "upcoming":
 				try {
-					var toDate = DateAdd( ( timePeriod.unit ?: "" ), ( timePeriod.measure ?: "" ), currentDateTime );
+					var toDate = DateAdd( ( timePeriod.unit ?: "" ), Val( timePeriod.measure ?: "" ), currentDateTime );
 				} catch( any e ) {
 					return {};
 				}
@@ -102,7 +102,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "futureplus":
 				try {
-					return { from = DateAdd( ( timePeriod.unit ?: "" ), ( timePeriod.measure ?: "" ), currentDateTime ) };
+					return { from = DateAdd( ( timePeriod.unit ?: "" ), Val( timePeriod.measure ?: "" ), currentDateTime ) };
 				} catch( any e ) {
 					return {};
 				}
@@ -110,7 +110,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "futureequal":
 				try {
-					var futureDate = DateAdd( "d", ( timePeriod.measure ?: "" ), currentDateTime );
+					var futureDate = DateAdd( "d", Val( timePeriod.measure ?: "" ), currentDateTime );
 					var fromDate   = CreateDate( Year( futureDate ), Month( futureDate ), Day( futureDate ) );
 
 					return {
@@ -128,7 +128,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "pastminus":
 				try {
-					return { to = DateAdd( ( timePeriod.unit ?: "" ), 0-( timePeriod.measure ?: "" ), currentDateTime ) };
+					return { to = DateAdd( ( timePeriod.unit ?: "" ), 0-Val( timePeriod.measure ?: "" ), currentDateTime ) };
 				} catch( any e ) {
 					return {};
 				}
@@ -136,7 +136,7 @@ component displayName="RulesEngine Time Period Service" {
 
 			case "pastequal":
 				try {
-					var pastDate = DateAdd( "d", 0-( timePeriod.measure ?: "" ), currentDateTime );
+					var pastDate = DateAdd( "d", 0-Val( timePeriod.measure ?: "" ), currentDateTime );
 					var fromDate = CreateDate( Year( pastDate ), Month( pastDate ), Day( pastDate ) );
 
 					return {
