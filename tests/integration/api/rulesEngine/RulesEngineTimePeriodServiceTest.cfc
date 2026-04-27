@@ -118,7 +118,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var timePeriod = { type="recent", unit="d" };
 				var json       = SerializeJson( timePeriod );
 
-				expect( service.convertTimePeriodToDateRange( json ) ).toBe( {} );
+				expect( service.convertTimePeriodToDateRange( json ) ).toBe( { from=nowish, to=nowish } );
 			} );
 
 			it( "should return currentDate as 'from' and 2 years after current date as 'to' when type is 'upcoming', unit is 'yyyy' and measure is 2", function(){
@@ -142,7 +142,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var timePeriod = { type="upcoming", unit="d" };
 				var json       = SerializeJson( timePeriod );
 
-				expect( service.convertTimePeriodToDateRange( json ) ).toBe( {} );
+				expect( service.convertTimePeriodToDateRange( json ) ).toBe( { from=nowish, to=nowish } );
 			} );
 
 			/*
