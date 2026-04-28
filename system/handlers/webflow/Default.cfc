@@ -356,7 +356,7 @@ component {
 			_persistError( event, rc, prc, "webflow:error.missing.submission.args" )
 		}
 
-		setNextEvent( url=_getRedirectUrl( argumentCollection=arguments ) );
+		setNextEvent( url=_getRedirectUrl( argumentCollection=arguments, flowArgs=flowArgs ) );
 	}
 
 	private void function _expiredCheck( event, rc, prc, args={}, redirect=true ) {
@@ -439,21 +439,23 @@ component {
 	}
 
 	private string function _getRedirectUrl( event, rc, prc, flowArgs ) {
-		var wfInstance  = webflowInstanceService.getInstance( argumentCollection=flowArgs );
 		var redirectUrl = _decodeEncodedRUrl( rc._rurl ?: "" );
 
 		if ( IsEmpty( redirectUrl ) ) {
 			redirectUrl = cgi.http_referer ?: "";
 		}
 
-		if ( !IsNull( local.wfInstance ) ) {
-			var stepId = ToBase64( wfInstance.getActiveStep() );
-			var stepIdPattern = "([\?&]_ws=)(.*?)(&|$)";
-			if ( ReFindNoCase( stepIdPattern, redirectUrl ) ) {
-				redirectUrl = ReReplaceNoCase( redirectUrl, stepIdPattern, "\1#stepId#\3" );
-			} else if ( len( stepId ) ) {
-				var delim = Find( "?", redirectUrl ) ? "&" : "?";
-				redirectUrl &= delim & "_ws=" & stepId;
+		if ( StructKeyExists( arguments, "flowArgs" ) && StructCount( arguments.flowArgs ) ) {
+			var wfInstance  = webflowInstanceService.getInstance( argumentCollection=flowArgs );
+			if ( !IsNull( local.wfInstance ) ) {
+				var stepId = ToBase64( wfInstance.getActiveStep() );
+				var stepIdPattern = "([\?&]_ws=)(.*?)(&|$)";
+				if ( ReFindNoCase( stepIdPattern, redirectUrl ) ) {
+					redirectUrl = ReReplaceNoCase( redirectUrl, stepIdPattern, "\1#stepId#\3" );
+				} else if ( len( stepId ) ) {
+					var delim = Find( "?", redirectUrl ) ? "&" : "?";
+					redirectUrl &= delim & "_ws=" & stepId;
+				}
 			}
 		}
 
