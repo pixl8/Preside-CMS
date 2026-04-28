@@ -77,7 +77,7 @@ component {
 			);
 
 			if ( Len( archivedId ) ) {
-				rc._rurl = !isEmpty( rc._rurl?: '' ) ? hexToString( rc._rurl ) : cgi.http_referer;
+				rc._rurl = _getRedirectUrl( argumentCollection=arguments );
 				rc._rurl &= ( rc._rurl contains '?' ? "&" : "?" ) & "complete=#archivedId#";
 			}
 		} );
@@ -328,9 +328,6 @@ component {
 		var flowArgs = decryptWebflowArgs();
 		flowArgs.args = {};
 
-		var returnUrl     = Trim( rc._rurl ?: "" );
-		    returnUrl     = Len( returnUrl ) ? hexToString( returnUrl ) : "";
-
 		for( var key in rc ) {
 			if ( ReFindNoCase( "^args\..+$", key ) ) {
 				flowArgs.args[ ReReplaceNoCase( key, "^args\.(.+)$", "\1" ) ] = rc[ key ];
@@ -346,10 +343,6 @@ component {
 				}
 				try {
 					processFn( flowArgs );
-
-					if ( Len( Trim( rc._rurl ?: "" ) ) && ReFindNoCase( "complete=", rc._rurl ) ) {
-						returnUrl = rc._rurl;
-					}
 				} catch( any e ) {
 					if ( !arrayFindNoCase( webflowExceptions.safe ?: [], e.type ?: "" ) ) {
 						logError( e );
@@ -361,10 +354,9 @@ component {
 			}
 		} else {
 			_persistError( event, rc, prc, "webflow:error.missing.submission.args" )
-			setNextEvent( url=Len( returnUrl ) ? returnUrl : ( Len( cgi.http_referer ?: "" ) ? cgi.http_referer : event.getSiteUrl() ) );
 		}
 
-		setNextEvent( url=Len( returnUrl ) ? returnUrl : _getRedirectUrl( event, rc, prc, flowArgs ) );
+		setNextEvent( url=_getRedirectUrl( argumentCollection=arguments ) );
 	}
 
 	private void function _expiredCheck( event, rc, prc, args={}, redirect=true ) {
@@ -379,7 +371,7 @@ component {
 			_persistError( event, rc, prc, message );
 
 			if ( arguments.redirect ) {
-				setNextEvent( url=( !isEmpty( rc._rurl?: '' ) ? hexToString( rc._rurl ) : cgi.http_referer ) );
+				setNextEvent( url=_getRedirectUrl( argumentCollection=arguments ) );
 			}
 		}
 	}
@@ -448,7 +440,11 @@ component {
 
 	private string function _getRedirectUrl( event, rc, prc, flowArgs ) {
 		var wfInstance  = webflowInstanceService.getInstance( argumentCollection=flowArgs );
-		var redirectUrl = ( !isEmpty( rc._rurl?: '' ) ? hexToString( rc._rurl ) : cgi.http_referer );
+		var redirectUrl = _decodeEncodedRUrl( rc._rurl ?: "" );
+
+		if ( IsEmpty( redirectUrl ) ) {
+			redirectUrl = cgi.http_referer ?: "";
+		}
 
 		if ( !IsNull( local.wfInstance ) ) {
 			var stepId = ToBase64( wfInstance.getActiveStep() );
@@ -476,6 +472,18 @@ component {
 		}
 
 		return redirectUrl;
+	}
+
+	private string function _decodeEncodedRUrl( string encodedRUrl="" ) output=false {
+		if ( !Len( arguments.encodedRUrl ) ) {
+			return "";
+		}
+
+		try {
+			return hexToString( arguments.encodedRUrl );
+		} catch( any e ) {
+			return arguments.encodedRUrl;
+		}
 	}
 
 	private string function _getUrlDomain( required string redirectUrl ) output=false {
