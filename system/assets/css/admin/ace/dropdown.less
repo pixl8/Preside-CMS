@@ -270,8 +270,25 @@
 	}
 }
 
+@supports( anchor-name: --test ) {
+	.btn-group:has( .dropdown-menu ) {
+		anchor-scope : --dropdown-menu;
 
+		> .btn {
+			anchor-name : --dropdown-menu;
+		}
 
+		> .dropdown-menu {
+			position               : fixed;
+			position-visibility    : always;
+			position-anchor        : --dropdown-menu;
+			position-area          : bottom span-right;
+			position-try-fallbacks : bottom span-left, top span-right, top span-left;
+			margin-bottom          : 2px;
+			inset                  : unset;
+		}
+	}
+}
 
 
 //colorpicker dropdown
