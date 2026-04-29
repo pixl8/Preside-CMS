@@ -17,8 +17,8 @@
 <cfoutput>
 	<cfif translations.len() gt 1>
 		<div class="top-right-button-group">
-			<div class="btn-group">
-				<button data-toggle="dropdown" class="btn btn-sm btn-info pull-right inline">
+			<div class="btn-group pull-right">
+				<button data-toggle="dropdown" class="btn btn-sm btn-info inline">
 					<span class="fa fa-caret-down"></span>
 					<i class="fa fa-fw fa-globe"></i>&nbsp; #translateResource( uri="cms:datamanager.translate.record.btn" )#
 				</button>

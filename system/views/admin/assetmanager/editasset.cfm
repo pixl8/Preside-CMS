@@ -34,7 +34,7 @@
 <cfoutput>
 	<div class="top-right-button-group">
 		<cfif canTranslate && assetTranslations.len()>
-			<div class="btn-group">
+			<div class="btn-group pull-right">
 				<button data-toggle="dropdown" class="btn btn-sm btn-info pull-right inline">
 					<span class="fa fa-caret-down"></span>
 					<i class="fa fa-fw fa-globe"></i>&nbsp; #translateResource( uri="cms:assetManager.translate.record.btn" )#
