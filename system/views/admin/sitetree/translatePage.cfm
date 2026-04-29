@@ -17,22 +17,24 @@
 <cfoutput>
 	<cfif translations.len() gt 1>
 		<div class="top-right-button-group">
-			<button data-toggle="dropdown" class="btn btn-sm btn-info pull-right inline">
-				<span class="fa fa-caret-down"></span>
-				<i class="fa fa-fw fa-globe"></i>&nbsp; #translateResource( uri="cms:datamanager.translate.record.btn" )#
-			</button>
+			<div class="btn-group">
+				<button data-toggle="dropdown" class="btn btn-sm btn-info pull-right inline">
+					<span class="fa fa-caret-down"></span>
+					<i class="fa fa-fw fa-globe"></i>&nbsp; #translateResource( uri="cms:datamanager.translate.record.btn" )#
+				</button>
 
-			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
-				<cfloop array="#translations#" index="i" item="language">
-					<cfif language.id != currentLanguageId>
-						<li>
-							<a href="#translateUrlBase##language.id#">
-								<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
-							</a>
-						</li>
-					</cfif>
-				</cfloop>
-			</ul>
+				<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+					<cfloop array="#translations#" index="i" item="language">
+						<cfif language.id != currentLanguageId>
+							<li>
+								<a href="#translateUrlBase##language.id#">
+									<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
+								</a>
+							</li>
+						</cfif>
+					</cfloop>
+				</ul>
+			</div>
 		</div>
 	</cfif>
 
