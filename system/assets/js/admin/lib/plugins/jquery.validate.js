@@ -1276,6 +1276,16 @@ $.extend( $.validator, {
 			}
 		} );
 
+		// If we've already set range from min and max, delete the associated min and max rules
+		if ( rules.range != null ) {
+			delete rules.min;
+			delete rules.max;
+		}
+		if ( rules.rangelength != null ) {
+			delete rules.minlength;
+			delete rules.maxlength;
+		}
+
 		if ( $.validator.autoCreateRanges ) {
 
 			// Auto-create ranges
