@@ -22,8 +22,8 @@
 <cfoutput>
 	<div class="top-right-button-group">
 		<cfif hasCmsPermission( "notifications.configure" )>
-			<div class="btn-group">
-				<button data-toggle="dropdown" class="btn btn-sm btn-default pull-right inline">
+			<div class="btn-group pull-right">
+				<button data-toggle="dropdown" class="btn btn-sm btn-default inline">
 					<span class="fa fa-caret-down"></span>
 					<i class="fa fa-fw fa-cogs"></i>&nbsp; #translateResource( uri="cms:notifications.preferences.btn" )#
 				</button>
