@@ -22,23 +22,25 @@
 <cfoutput>
 	<div class="top-right-button-group">
 		<cfif hasCmsPermission( "notifications.configure" )>
-			<button data-toggle="dropdown" class="btn btn-sm btn-default pull-right inline">
-				<span class="fa fa-caret-down"></span>
-				<i class="fa fa-fw fa-cogs"></i>&nbsp; #translateResource( uri="cms:notifications.preferences.btn" )#
-			</button>
+			<div class="btn-group">
+				<button data-toggle="dropdown" class="btn btn-sm btn-default pull-right inline">
+					<span class="fa fa-caret-down"></span>
+					<i class="fa fa-fw fa-cogs"></i>&nbsp; #translateResource( uri="cms:notifications.preferences.btn" )#
+				</button>
 
-			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
-				<li>
-					<a href="#event.buildAdminLink( linkTo="notifications.preferences" )#" data-global-key="p">
-						<i class="fa fa-fw fa-cog"></i>&nbsp; #translateResource( uri="cms:notifications.personal.preferences.btn" )#
-					</a>
-				</li>
-				<li>
-					<a href="#event.buildAdminLink( linkTo="notifications.configure" )#" data-global-key="p">
-						<i class="fa fa-fw fa-cogs"></i>&nbsp; #translateResource( uri="cms:notifications.configure.btn" )#
-					</a>
-				</li>
-			</ul>
+				<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+					<li>
+						<a href="#event.buildAdminLink( linkTo="notifications.preferences" )#" data-global-key="p">
+							<i class="fa fa-fw fa-cog"></i>&nbsp; #translateResource( uri="cms:notifications.personal.preferences.btn" )#
+						</a>
+					</li>
+					<li>
+						<a href="#event.buildAdminLink( linkTo="notifications.configure" )#" data-global-key="p">
+							<i class="fa fa-fw fa-cogs"></i>&nbsp; #translateResource( uri="cms:notifications.configure.btn" )#
+						</a>
+					</li>
+				</ul>
+			</div>
 		<cfelse>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="notifications.preferences" )#" data-global-key="p">
 				<button class="btn btn-sm btn-default">
