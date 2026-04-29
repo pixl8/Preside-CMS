@@ -445,7 +445,7 @@ component {
 			redirectUrl = cgi.http_referer ?: "";
 		}
 
-		if ( StructKeyExists( arguments, "flowArgs" ) && StructCount( arguments.flowArgs ) ) {
+		if ( StructKeyExists( arguments, "flowArgs" ) && Len( Trim( arguments.flowArgs.webflowId ?: "" ) ) ) {
 			var wfInstance  = webflowInstanceService.getInstance( argumentCollection=flowArgs );
 			if ( !IsNull( local.wfInstance ) ) {
 				var stepId = ToBase64( wfInstance.getActiveStep() );
