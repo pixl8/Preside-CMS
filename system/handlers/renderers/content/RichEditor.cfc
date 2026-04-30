@@ -18,6 +18,17 @@ component {
 		return renderView( view="renderers/content/richeditor/adminView", args=args );
 	}
 
+	public string function pdf( event, rc, prc, args={} ){
+		var content = ( args.data ?: "" );
+
+		content = contentRendererService.renderEmbeddedWidgets( richContent=content );
+		content = contentRendererService.renderEmbeddedImages( richContent=content, context="pdf" );
+		content = contentRendererService.renderEmbeddedAttachments( richContent=content, context="pdf" );
+		content = contentRendererService.renderEmbeddedLinks( richContent=content );
+
+		return content;
+	}
+
 	public string function email( event, rc, prc, args={} ){
 		var content = ( args.data ?: "" );
 
