@@ -281,7 +281,9 @@
 					fnInfoCallback: function( oSettings, iStart, iEnd, iMax, iTotal, sPre ) {
 						var info = "";
 
-						if ( iTotal == UNKNOWN_TOTAL ) {
+						if ( iTotal === 0 ) {
+							info = i18n.translateResource( "cms:datatables.infoEmpty", { data : [objectTitle], defaultValue : "" } );
+						} else if ( iTotal == UNKNOWN_TOTAL ) {
 							info = i18n.translateResource( "cms:datatables.infoCountUnknown", { data : [objectTitle], defaultValue : "" } );
 						} else {
 							info = i18n.translateResource( "cms:datatables.info", { data : [objectTitle], defaultValue : "" } );
