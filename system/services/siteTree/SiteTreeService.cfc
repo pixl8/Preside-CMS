@@ -880,6 +880,25 @@ component {
 					  oldData = existingPage
 					, newData = data
 				);
+
+				if ( slugChanged && _isAutoRedirectEnabled() ) {
+					var childPages = pobj.selectData(
+						  selectFields = [ "id", "_hierarchy_slug" ]
+						, filter       = "_hierarchy_lineage like :_hierarchy_lineage"
+						, filterParams = { _hierarchy_lineage=existingPage._hierarchy_child_selector }
+						, useCache     = false
+					);
+
+					for ( var child in childPages ) {
+						pobj.updateData(
+							  id                   = child.id
+							, data                 = { _hierarchy_slug=child._hierarchy_slug }
+							, useVersioning        = true
+							, versionNumber        = versionNumber
+							, forceVersionCreation = true
+						);
+					}
+				}
 			}
 
 			_getPresideObjectService().clearRelatedCaches( "page" );
