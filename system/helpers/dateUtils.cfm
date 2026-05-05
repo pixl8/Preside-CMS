@@ -88,13 +88,13 @@
 </cfsilent></cffunction>
 
 <cffunction name="getFormattedAdminDate" access="public" returntype="string" output="false">
-	<cfargument name="date" type="date" required="true" /><cfsilent>
+	<cfargument name="date" type="any" required="true" /><cfsilent>
 
 	<cfreturn getSingleton( "dateFormatService" ).getFormattedAdminDate( argumentCollection=arguments ) />
 </cfsilent></cffunction>
 
 <cffunction name="getFormattedAdminDateTime" access="public" returntype="string" output="false">
-	<cfargument name="dateTime" type="date" required="true" /><cfsilent>
+	<cfargument name="dateTime" type="any" required="true" /><cfsilent>
 
 	<cfreturn getSingleton( "dateFormatService" ).getFormattedAdminDateTime( argumentCollection=arguments ) />
 </cfsilent></cffunction>
