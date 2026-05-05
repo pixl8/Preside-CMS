@@ -1270,6 +1270,7 @@ component {
 		,          boolean recordAction    = true
 		,          array   formItems       = []
 		,          struct  data            = {}
+		,          boolean triggerActions  = true
 	) {
 		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
@@ -1334,10 +1335,12 @@ component {
 				submission.submitted_data = SerializeJSON( getV2Responses( formId=arguments.formId, submissionId=submissionId ) );
 			}
 
-			_getActionsService().triggerSubmissionActions(
-				  formId         = arguments.formId
-				, submissionData = submission
-			);
+			if ( arguments.triggerActions ) {
+				_getActionsService().triggerSubmissionActions(
+					  formId         = arguments.formId
+					, submissionData = submission
+				);
+			}
 
 			if ( arguments.recordAction ) {
 				$recordWebsiteUserAction(
