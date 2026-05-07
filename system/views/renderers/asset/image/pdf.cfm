@@ -3,7 +3,6 @@
 	alignment = args.alignment ?: "";
 	imgSrc    = event.buildLink( ( assetId=args.id ?: "" ), derivative=( args.derivative ?: "" ) );
 	altText   = HtmlEditFormat( Len( Trim( args.alt_text ?: "" ) ) ? args.alt_text : ( args.title ?: "" ) );
-	style     = ListFindNoCase( "left,right", alignment ) ? "float:#LCase( alignment )#;" : "";
 	hasFigure = Len( Trim( args.copyright ?: "" ) ) || Len( Trim( args.caption ?: "" ) );
 	hasLink   = Len( Trim( args.link ?: ""  ) ) ;
 
@@ -24,55 +23,58 @@
 		, left   = Val( args.spacing_left   ?: ( args.spacing ?: 0 ) )
 	};
 
-	centerInTable = ListFindNoCase( "auto,center", alignment );
+	isCenter = ListFindNoCase( "auto,center", alignment );
+	isRight  = ( LCase( alignment ) == "right" );
 
-	if ( centerInTable ) {
-		style = "margin:#Trim(spacing.top)#px auto #Trim(spacing.bottom)#px auto; display:block;text-align:center;";
+	if ( isCenter ) {
+		tableAlign = "center";
+		style      = "margin:#Trim(spacing.top)#px auto #Trim(spacing.bottom)#px auto;";
+	} else if ( isRight ) {
+		tableAlign = "right";
+		style      = "display:block; margin:#Trim(spacing.top)#px #Trim(spacing.right)#px #Trim(spacing.bottom)#px auto;";
 	} else {
-		style &= "margin:#Trim(spacing.top)#px #Trim(spacing.right)#px #Trim(spacing.bottom)#px #Trim(spacing.left)#px;";
+		tableAlign = "left";
+		style      = "display:block; margin:#Trim(spacing.top)#px #Trim(spacing.right)#px #Trim(spacing.bottom)#px #Trim(spacing.left)#px;";
 	}
 
 	renderedWidth  = ListLen( args.dimensions ?: "", "x" ) == 2 && Val( ListFirst( args.dimensions, "x" ) ) ? Val( ListFirst( args.dimensions, "x" ) ) : Val( args.width ?: "" );
 	figureMaxWidth = renderedWidth ? "max-width:#renderedWidth#px;" : "";
-	align          = ListFindNoCase( "left,right", alignment ) ? LCase( alignment ) : "";
 </cfscript>
 
 <cfoutput>
-	<cfif centerInTable>
-		<table width="100%" cellpadding="0" cellspacing="0" border="0">
-			<tr>
-				<td align="center" style="text-align:center;">
-	</cfif>
+	<table width="100%" cellpadding="0" cellspacing="0" border="0">
+		<tr>
+			<td align="#tableAlign#" style="text-align:#tableAlign#;">
+				<cfif isCenter><div style="width:100%; text-align:center;"></cfif>
 
-	<cfif hasFigure>
-		<figure style="#style##figureMaxWidth#">
-	</cfif>
-
-	<cfif hasLink>
-		<a href="#Trim( args.link )#" target="#( args.link_target ?: '_self' )#"<cfif !hasFigure> style="display:block;#style#"</cfif>>
-	</cfif>
-
-	<img <cfif Len( align )>align="#align#"</cfif> src="#imgSrc#" alt="#altText#"<cfif centerInTable && renderedWidth> width="#renderedWidth#"</cfif><cfif !hasFigure && !hasLink> style="#style#"</cfif> />
-
-	<cfif hasLink>
-		</a>
-	</cfif>
-
-	<cfif hasFigure>
-			<figcaption>
-				<cfif Len( Trim( args.copyright ?: "" ) )>
-					<small class="copyright">&copy; #args.copyright#</small>
+				<cfif hasFigure>
+					<figure style="#style##figureMaxWidth#">
 				</cfif>
-				<cfif Len( Trim( args.caption ?: "" ) )>
-					#renderContent( data=args.caption, renderer="richeditor" )#
-				</cfif>
-			</figcaption>
-		</figure>
-	</cfif>
 
-	<cfif centerInTable>
-				</td>
-			</tr>
-		</table>
-	</cfif>
+				<cfif hasLink>
+					<a href="#Trim( args.link )#" target="#( args.link_target ?: '_self' )#"<cfif !hasFigure> style="#style#"</cfif>>
+				</cfif>
+
+				<img src="#imgSrc#" alt="#altText#"<cfif renderedWidth> width="#renderedWidth#"</cfif><cfif !hasFigure && !hasLink> style="#style#"</cfif> />
+
+				<cfif hasLink>
+					</a>
+				</cfif>
+
+				<cfif hasFigure>
+						<figcaption>
+							<cfif Len( Trim( args.copyright ?: "" ) )>
+								<small class="copyright">&copy; #args.copyright#</small>
+							</cfif>
+							<cfif Len( Trim( args.caption ?: "" ) )>
+								#renderContent( data=args.caption, renderer="richeditor" )#
+							</cfif>
+						</figcaption>
+					</figure>
+				</cfif>
+
+				<cfif isCenter></div></cfif>
+			</td>
+		</tr>
+	</table>
 </cfoutput>
