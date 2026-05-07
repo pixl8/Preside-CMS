@@ -1,5 +1,6 @@
 /**
  * @feature webflow
+ * @feature sites
  */
 component {
 
