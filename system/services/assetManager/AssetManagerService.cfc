@@ -1664,21 +1664,25 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function clearAssetDerivatives( required any assetIds ) {
-		var assetDao      = _getAssetDao();
-		var derivativeDao = _getDerivativeDao();
-		var asset         = assetDao.selectData( filter={ id=arguments.assetIds }, selectFields=[ "id", "asset_folder" ] );
-
-		if ( !asset.recordCount ) {
+		var assetsFound = _getAssetDao().dataExists( filter={ id=arguments.assetIds } );
+		if ( !assetsFound ) {
 			return false;
 		}
 
-		return derivativeDao.deleteData( filter={ asset=arguments.assetIds } );
+		$announceInterception( "onClearAssetDerivatives", { assetIds=arguments.assetIds } );
+
+		return _getDerivativeDao().deleteData( filter={ asset=arguments.assetIds } );
 	}
 
 	public boolean function clearFolderDerivatives( required string folderId ) {
-		var derivativeDao = _getDerivativeDao();
+		var assetsFound = _getAssetDao().dataExists( filter={ asset_folder=arguments.folderId } );
+		if ( !assetsFound ) {
+			return false;
+		}
 
-		return derivativeDao.deleteData( filter={ "asset.asset_folder"=arguments.folderId } );
+		$announceInterception( "onClearFolderDerivatives", { folderId=arguments.folderId } );
+
+		return _getDerivativeDao().deleteData( filter={ "asset.asset_folder"=arguments.folderId } );
 	}
 
 	public query function getAssetDerivative(

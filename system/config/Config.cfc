@@ -310,6 +310,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "onEmailTemplatePreFetchRecordsForGridListing" );
 		interceptorSettings.customInterceptionPoints.append( "prePrepareEmailHtmlContent" );
 		interceptorSettings.customInterceptionPoints.append( "postGetEmailLayoutConfig" );
+		interceptorSettings.customInterceptionPoints.append( "onClearAssetDerivatives" );
+		interceptorSettings.customInterceptionPoints.append( "onClearFolderDerivatives" );
 	}
 
 	private void function __setupCachebox() {
