@@ -331,13 +331,21 @@ component {
 		return timeFormatMask;
 	}
 
-	public string function getFormattedAdminDate( required date date ) {
+	public string function getFormattedAdminDate( required any date ) {
+		if ( !IsDate( arguments.date ) ) {
+			return "";
+		}
+
 		var dateFormatMask = getAdminDateFormatMask();
 
 		return LSdateFormat( arguments.date, dateFormatMask );
 	}
 
-	public string function getFormattedAdminDateTime( required date dateTime ) {
+	public string function getFormattedAdminDateTime( required any dateTime ) {
+		if ( !IsDate( arguments.dateTime ) ) {
+			return "";
+		}
+
 		var dateFormatMask = getAdminDateFormatMask();
 		var timeFormatMask = getAdminTimeFormatMask();
 
