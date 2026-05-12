@@ -23,17 +23,18 @@
 		, left   = Val( args.spacing_left   ?: ( args.spacing ?: 0 ) )
 	};
 
-	isCenter    = ListFindNoCase( "auto,center", alignment );
-	isLeftRight = ListFindNoCase( "left,right", alignment );
-
-	style = "margin:#Trim(spacing.top)#px #Trim(spacing.right)#px #Trim(spacing.bottom)#px #Trim(spacing.left)#px;";
+	isCenter = ListFindNoCase( "auto,center", alignment );
+	isRight  = ( LCase( alignment ) == "right" );
 
 	if ( isCenter ) {
 		tableAlign = "center";
-	} else if ( isLeftRight ) {
-		tableAlign = LCase( alignment );
+		style      = "margin:#Trim(spacing.top)#px auto #Trim(spacing.bottom)#px auto;";
+	} else if ( isRight ) {
+		tableAlign = "right";
+		style      = "display:block; margin:#Trim(spacing.top)#px #Trim(spacing.right)#px #Trim(spacing.bottom)#px auto;";
 	} else {
 		tableAlign = "left";
+		style      = "display:block; margin:#Trim(spacing.top)#px #Trim(spacing.right)#px #Trim(spacing.bottom)#px #Trim(spacing.left)#px;";
 	}
 
 	renderedWidth  = ListLen( args.dimensions ?: "", "x" ) == 2 && Val( ListFirst( args.dimensions, "x" ) ) ? Val( ListFirst( args.dimensions, "x" ) ) : Val( args.width ?: "" );
@@ -44,6 +45,8 @@
 	<table width="100%" cellpadding="0" cellspacing="0" border="0">
 		<tr>
 			<td align="#tableAlign#" style="text-align:#tableAlign#;">
+				<cfif isCenter><div style="width:100%; text-align:center;"></cfif>
+
 				<cfif hasFigure>
 					<figure style="#style##figureMaxWidth#">
 				</cfif>
@@ -69,6 +72,8 @@
 						</figcaption>
 					</figure>
 				</cfif>
+
+				<cfif isCenter></div></cfif>
 			</td>
 		</tr>
 	</table>
