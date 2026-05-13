@@ -32,7 +32,7 @@ component {
 
 	public boolean function validatePolicy( required string policy ) {
 		var directives       = _convertPolicyToDirectiveStructure( arguments.policy );
-		var validSrcPatterns = [ "^//", "^(http|https|ftp|wss|file)://", "^'[a-z0-9-\$_]+'$", "^data:" ];
+		var validSrcPatterns = [ "^//", "^(http|https|ftp|wss|file)://", "^'[a-z0-9-\$_]+'$", "^data:", "^blob:" ];
 
 		for( var directive in directives ) {
 			// there are lots of directives with other rules. Avoid attempting a fully policy
