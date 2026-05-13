@@ -20,7 +20,13 @@ component {
 		}
 
 		if ( Len( Trim( policy ) ) ) {
-			header name="Content-Security-Policy" value=_injectNonce( _injectAdditionalSources( policy ) );
+			var csp = _injectNonce( _injectAdditionalSources( policy ) );
+			try {
+				header name="Content-Security-Policy" value=csp;
+			} catch( any e ) {
+				// ignore: sometimes the headers have already been flushed and this then errors
+				// nothing we can do about it at this point
+			}
 		}
 	}
 
