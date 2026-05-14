@@ -478,7 +478,7 @@ component displayName="Preside Object Service" {
 		for ( var obfuscation in obfuscations ) {
 			_applyNewObfuscatedSql( obfuscation );
 
-			sqlAndParams.sql = ReReplaceNoCase(
+			sqlAndParams.sql = ReplaceNoCase(
 				  sqlAndParams.sql
 				, obfuscation.encoded
 				, _getSqlRunner().obfuscateSqlForPreside( obfuscation.decoded )
@@ -528,7 +528,7 @@ component displayName="Preside Object Service" {
 		for ( var subObfuscation in arguments.obfuscation.obfuscations ) {
 			_applyNewObfuscatedSql( subObfuscation );
 
-			arguments.obfuscation.decoded = ReReplaceNoCase(
+			arguments.obfuscation.decoded = ReplaceNoCase(
 				  arguments.obfuscation.decoded
 				, subObfuscation.encoded
 				, _getSqlRunner().obfuscateSqlForPreside( subObfuscation.decoded )
