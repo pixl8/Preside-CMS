@@ -20,13 +20,19 @@ component {
 		}
 
 		if ( Len( Trim( policy ) ) ) {
-			header name="Content-Security-Policy" value=_injectNonce( _injectAdditionalSources( policy ) );
+			var csp = _injectNonce( _injectAdditionalSources( policy ) );
+			try {
+				header name="Content-Security-Policy" value=csp;
+			} catch( any e ) {
+				// ignore: sometimes the headers have already been flushed and this then errors
+				// nothing we can do about it at this point
+			}
 		}
 	}
 
 	public boolean function validatePolicy( required string policy ) {
 		var directives       = _convertPolicyToDirectiveStructure( arguments.policy );
-		var validSrcPatterns = [ "^//", "^(http|https|ftp|wss|file)://", "^'[a-z0-9-\$_]+'$", "^data:" ];
+		var validSrcPatterns = [ "^//", "^(http|https|ftp|wss|file)://", "^'[a-z0-9-\$_]+'$", "^data:", "^blob:" ];
 
 		for( var directive in directives ) {
 			// there are lots of directives with other rules. Avoid attempting a fully policy
