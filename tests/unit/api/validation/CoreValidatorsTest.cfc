@@ -201,6 +201,45 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( _getValidators().date( value="2013-11-23 00:34:34" ) );
 	}
 
+	function test48_queryString_shouldReturnTrue_whenSuppliedValueIsEmptyString(){
+		super.assert( _getValidators().queryString( fieldName="qs", value="" ) );
+	}
+
+	function test49_queryString_shouldReturnTrue_whenSuppliedValueIsAValidQueryString(){
+		super.assert( _getValidators().queryString( fieldName="qs", value="name=john" ) );
+	}
+
+	function test50_queryString_shouldReturnTrue_whenSuppliedValueIsAValidQueryStringWithMultipleKeyAndValuePairs(){
+		super.assert( _getValidators().queryString( fieldName="qs", value="name=john&age=30" ) );
+	}
+
+	function test51_queryString_shouldReturnTrue_whenSuppliedValueIsAValidQueryStringWithTrailingAmpersand(){
+		super.assert( _getValidators().queryString( fieldName="qs", value="name=john&age=30&" ) );
+	}
+
+	function test52_queryString_shouldReturnTrue_whenSuppliedValueIsAValidQueryStringContainingEncodedEntity(){
+		super.assert( _getValidators().queryString( fieldName="qs", value="q=hello%20world&page=1" ) );
+	}
+
+	function test53_queryString_shouldReturnTrue_whenSuppliedValueIsAKeyWithAnEmptyValue(){
+		super.assert( _getValidators().queryString( fieldName="qs", value="key=" ) );
+	}
+
+	function test54_queryString_shouldReturnFalse_whenSuppliedValueContainsASpace(){
+		super.assertFalse( _getValidators().queryString( fieldName="qs", value="q=hello world" ) );
+	}
+
+	function test55_queryString_shouldReturnFalse_whenSuppliedValueContainsAnInvalidCharacter(){
+		super.assertFalse( _getValidators().queryString( fieldName="qs", value="q=hello##world" ) );
+	}
+
+	function test56_queryString_shouldReturnFalse_whenSuppliedValueIsAKeyWithoutAnEqualSign(){
+		super.assertFalse( _getValidators().queryString( fieldName="qs", value="key" ) );
+	}
+
+	function test57_queryString_shouldReturnFalse_whenSuppliedValueDoesNotHaveAKey(){
+		super.assertFalse( _getValidators().queryString( fieldName="qs", value="=false" ) );
+	}
 
 
 // PRIVATE HELPERS

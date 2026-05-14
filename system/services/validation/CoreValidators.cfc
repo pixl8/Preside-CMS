@@ -363,10 +363,33 @@ component validationProvider=true {
 		return "function( value, el, params ){ return !value.length || value.match( /^https?:\/\/([-_A-Z0-9]+\.)+[-_A-Z0-9]+(\/.*)?$/i ) !== null }";
 	}
 
+	/**
+	 * Breaking down the Querystring regex:
+	 *   ^                        — start of string
+	 *   [\w\-.~%!$&'()*+,;=:@]+  — key (one or more allowed URL characters per RFC 3986)
+	 *   =                        — separator
+	 *   [\w\-.~%!$&'()*+,;=:@]*  — value (can be empty)
+	 *   (&...)*                  — additional &key=value pairs
+	 *   $                        — end of string
+	 *
+	 * Matches:
+	 *   name=john&age=30
+	 *   name=john
+	 *   q=hello%20world&page=1
+	 *   key=      (empty value)
+	 *
+	 * Doesn't match:
+	 *   name      (no =)
+	 *   =value    (no key)
+	 */
 	public boolean function queryString( required string fieldName, any value="" ) validatorMessage="cms:validation.queryString.default" {
-		return IsEmpty( arguments.value ) || ReFindNoCase( "^([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-,]*)?)*)?$", arguments.value );
+		var qsRegex = "^([\w\-.~%!$&'()*+,;=:@]+=[\w\-.~%!$&'()*+,;=:@]*)(&[\w\-.~%!$&'()*+,;=:@]+=[\w\-.~%!$&'()*+,;=:@]*)*$";
+		return IsEmpty( arguments.value ) || ReFindNoCase( qsRegex, arguments.value );
 	}
 	public string function queryString_js() validatorMessage="validationExtras:validation.simpleUrl.default" {
-		return "function( value, el, params ){ return !value.length || value.match( /^([\w-]+(=[\w-]*)?(&[\w-]+(=[\w-,]*)?)*)?$/i ) !== null }";
+		return "function( value, el, params ){
+			var qsRegex = /^([\w\-.~%!$&'()*+,;=:@]+=[\w\-.~%!$&'()*+,;=:@]*)(&[\w\-.~%!$&'()*+,;=:@]+=[\w\-.~%!$&'()*+,;=:@]*)*$/;
+			return !value.length || qsRegex.test( value);
+		}";
 	}
 }
