@@ -1430,6 +1430,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.records               = recordsForSorting.records;
 		prc.ordered               = recordsForSorting.ordered;
+
+		if ( !ArrayLen( prc.records ) ) {
+			messageBox.warn( translateResource( uri="cms:datamanager.noRecordsToSort.error" ) );
+			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+		}
+
 		prc.renderedActionButtons = customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "sortRecordsActionButtons"
