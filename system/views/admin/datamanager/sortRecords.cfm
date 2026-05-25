@@ -7,6 +7,7 @@
 
 	args.objectName = args.objectName ?: object;
 
+	cancelLink            = args.cancelLink           ?: event.buildAdminLink( objectName=args.objectName, operation="listing" );
 	renderedActionButtons = prc.renderedActionButtons ?: renderViewlet( event="admin.datamanager._sortRecordsActionButtons", args=args );
 </cfscript>
 
