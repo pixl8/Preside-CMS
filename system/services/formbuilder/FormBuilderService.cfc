@@ -1271,6 +1271,7 @@ component {
 		,          array   formItems       = []
 		,          struct  data            = {}
 		,          boolean triggerActions  = true
+		,          string  submittedBy     = $getWebsiteLoggedInUserId()
 	) {
 		var submissionId      = "";
 		var formConfiguration = getForm( arguments.formId );
@@ -1300,7 +1301,7 @@ component {
 			if ( isV2Form( arguments.formId ) ) {
 				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
 					  form           = arguments.formId
-					, submitted_by   = $getWebsiteLoggedInUserId()
+					, submitted_by   = arguments.submittedBy
 					, form_instance  = arguments.instanceId
 					, form_site      = arguments.instanceSite
 					, form_url       = arguments.instanceUrl
@@ -1316,7 +1317,7 @@ component {
 
 				submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
 					  form           = arguments.formId
-					, submitted_by   = $getWebsiteLoggedInUserId()
+					, submitted_by   = arguments.submittedBy
 					, submitted_data = SerializeJson( formData )
 					, form_instance  = arguments.instanceId
 					, form_site      = arguments.instanceSite
