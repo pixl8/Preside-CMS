@@ -603,6 +603,7 @@ component autodoc=true displayName="Notification Service" {
 		var topicsToInsert   = [];
 		var notificationDirs = _getNotificationDirectories();
 		var notificationIds  = [];
+		var topicFeatures    = {};
 
 		for( var notificationDir in notificationDirs ){
 			var notifications           = [];
@@ -616,7 +617,22 @@ component autodoc=true displayName="Notification Service" {
 			for( var notification in notifications ){
 				notificationId = Replace( notification, notificationDirExpanded, "" );
 				notificationId = ListDeleteAt( notificationId, ListLen( notificationId, "." ), "." );
-				arrayAppend( notificationIds, notificationId );
+
+				var feature = _getFeatureFromNotificationFile( notification );
+
+				topicFeatures[ notificationId ] = feature;
+
+				if ( !Len( feature ) || $isFeatureEnabled( feature ) ) {
+					ArrayAppend( notificationIds, notificationId );
+				}
+			}
+		}
+
+		for ( var idx=ArrayLen( configuredTopics ); idx>0; idx-- ) {
+			var feature = topicFeatures[ configuredTopics[ idx ] ] ?: "";
+
+			if ( Len( feature ) && !$isFeatureEnabled( feature ) ) {
+				ArrayDeleteAt( configuredTopics, idx );
 			}
 		}
 
@@ -646,6 +662,13 @@ component autodoc=true displayName="Notification Service" {
 			_getTopicDao().insertData( { topic=topic } );
 		}
 
+	}
+
+	private string function _getFeatureFromNotificationFile( required string filePath ) {
+		var fileContent = FileRead( arguments.filePath );
+		var result      = ReFindNoCase( "@feature\s+([^\s*\/]+)", fileContent, 1, true );
+
+		return result.len[ 1 ] > 0 ? Mid( fileContent, result.pos[ 2 ], result.len[ 2 ] ) : "";
 	}
 
 // GETTERS AND SETTERS
