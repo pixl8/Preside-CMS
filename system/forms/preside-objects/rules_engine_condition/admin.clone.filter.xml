@@ -15,4 +15,13 @@ This form is used for cloning a rules engine condition
 			</field>
 		</fieldset>
 	</tab>
+	<tab id="tag" sortorder="20">
+		<fieldset id="tag" sortorder="10">
+			<field binding="rules_engine_condition.segmentation_tag_enabled" sortorder="10" />
+		</fieldset>
+		<fieldset id="tag_config" sortorder="20">
+			<field binding="rules_engine_condition.segmentation_tag_label" sortorder="10" />
+			<field binding="rules_engine_condition.segmentation_tag_icon"  sortorder="20" />
+		</fieldset>
+	</tab>
 </form>

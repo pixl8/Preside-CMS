@@ -401,6 +401,8 @@ component displayName="System configuration service" {
 		var categories     = _getConfigCategories();
 		var formName       = _getConventionsBaseCategoryForm( arguments.id );
 		var formAttributes = _getFormsService().getForm( formName );
+		var tenant         = _normalizeTenant( formAttributes.tenancy ?: "" );
+		var noTenancy      = Len( tenant ) == 0 || $helpers.isTrue( formAttributes.notenancy ?: "" );
 
 		categories[ arguments.id ] = new ConfigCategory(
 			  id               = arguments.id
@@ -408,13 +410,10 @@ component displayName="System configuration service" {
 			, description      = _getConventionsBaseCategoryDescription( arguments.id )
 			, icon             = _getConventionsBaseCategoryIcon( arguments.id )
 			, form             = formName
-			, tenancy          = formAttributes.tenancy ?: "site"
-			, noTenancy        = $helpers.isTrue( formAttributes.notenancy ?: "" )
+			, siteForm         = noTenancy ? "" : _getConventionsBaseSiteCategoryForm( arguments.id )
+			, tenancy          = tenant
+			, noTenancy        = noTenancy
 		);
-
-		if ( !categories[ arguments.id ].getNoTenancy() && categories[ arguments.id ].getTenancy() == "site" && $isFeatureEnabled( "sites" ) ) {
-			categories[ arguments.id ].setSiteForm( _getConventionsBaseSiteCategoryForm( arguments.id ) );
-		}
 	}
 
 	private string function _getConventionsBaseCategoryName( required string id ) {
@@ -464,6 +463,14 @@ component displayName="System configuration service" {
 		}
 
 		return filter;
+	}
+
+	private string function _normalizeTenant( required string tenant ) {
+		if ( !Len( Trim( arguments.tenant ) ) && $isFeatureEnabled( "sites" ) ) {
+			return "site";
+		}
+
+		return Trim( arguments.tenant );
 	}
 
 // GETTERS AND SETTERS

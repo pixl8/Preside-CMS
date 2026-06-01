@@ -602,8 +602,8 @@ component {
 			);
 
 			ArrayAppend( extraFilters, {
-				  filter       = "datemodified #timeoutOperator# :datemodified"
-				, filterParams = { datemodified = DateAdd( "n", -1 * Val( webflowConfig?.timeout_in_minutes ), Now() ) }
+				  filter       = "#targetObject#.datemodified #timeoutOperator# :datemodified#paramSuffix#"
+				, filterParams = { "datemodified#paramSuffix#" ={ type="cf_sql_timestamp", value=DateAdd( "n", -1 * Val( webflowConfig?.timeout_in_minutes ), Now() ) } }
 			} );
 		}
 

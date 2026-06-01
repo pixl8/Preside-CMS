@@ -53,8 +53,9 @@
 			  , enabledContextHotkeys, refreshFavourites
 			  , lastAjaxResult
 			  , $tableFilter, filterSettings, allowUseFilter=false, allowManageFilter=false, manageFiltersLink=""
-			  , filtersPopulated=false
-			  , hasPreFilters=false;
+			  , filtersPopulated = false
+			  , hasPreFilters    = false
+			  , hasFilterVal     = $filterDiv.find( "[name=filter]" ).length > 0 && $filterDiv.find( "[name=filter]" ).val().length > 0;
 
 			if ( allowFilter ) {
 				$tableFilter = $( `#${tableId}-filter` );
@@ -242,6 +243,12 @@
 					fnFiltersPopulatedCallback: function() {
 						return allowFilter ? filtersPopulated : true;
 					},
+					fnStateLoadParams: function( oSettings, oData ) {
+						if ( hasFilterVal && allowFilter && typeof oData.oFilter !== "undefined" ) {
+							oData.oFilter = undefined;
+						}
+						return oData;
+					},
 					fnCookieCallback: function( sName, oData, sExpires, sPath ) {
 						if ( allowFilter ) {
 							oData.oFilter = {
@@ -281,7 +288,9 @@
 					fnInfoCallback: function( oSettings, iStart, iEnd, iMax, iTotal, sPre ) {
 						var info = "";
 
-						if ( iTotal == UNKNOWN_TOTAL ) {
+						if ( iTotal === 0 ) {
+							info = i18n.translateResource( "cms:datatables.infoEmpty", { data : [objectTitle], defaultValue : "" } );
+						} else if ( iTotal == UNKNOWN_TOTAL ) {
 							info = i18n.translateResource( "cms:datatables.infoCountUnknown", { data : [objectTitle], defaultValue : "" } );
 						} else {
 							info = i18n.translateResource( "cms:datatables.info", { data : [objectTitle], defaultValue : "" } );
@@ -491,6 +500,11 @@
 				// toggles between filter mode + basic search mode
 				if ( allowUseFilter ) {
 					$filterLink.on( "click", toggleAdvancedFilter );
+
+					if ( hasFilterVal ) {
+						$filterDiv.removeClass( "hide" );
+						$filterLink.find( "i.fa" ).removeClass( "fa-caret-right" ).addClass( "fa-caret-down" );
+					}
 				}
 
 				// filter change listener

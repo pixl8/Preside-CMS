@@ -162,6 +162,18 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( data=NumberFormat( count ), type="text" );
 	}
 
+	public void function getFilterPreviewUrl( event, rc, prc ) {
+		var expressions = rc.condition ?: "";
+		var objectName  = rc.objectName ?: "";
+		var previewUrl  = "";
+
+		if ( Len( objectName ) && Len( expressions ) ) {
+			previewUrl = event.buildAdminLink( objectName=objectName, queryString="filter=#UrlEncode( ToBase64( expressions ) )#" );
+		}
+
+		event.renderData( data=previewUrl, type="text" );
+	}
+
 	public void function quickAddConditionForm( event, rc, prc ) {
 		prc.modalClasses = "modal-dialog-less-padding";
 		prc.contextData  = {};

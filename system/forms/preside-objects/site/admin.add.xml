@@ -16,7 +16,7 @@ This form is used for the "add site" form in the site manager
 	</tab>
 	<tab id="localisation" sortorder="20" title="preside-objects.site:localisation.tab.title">
 		<fieldset id="localisation" sortorder="10">
-			<field binding="site.locale" sortorder="10" control="siteLocalePicker" />
+			<field binding="site.locale"            sortorder="10" control="siteLocalePicker" />
 			<field binding="site.short_date_format" sortorder="20" control="siteDateFormatPicker" dateFormatType="short" />
 			<field binding="site.long_date_format"  sortorder="30" control="siteDateFormatPicker" dateFormatType="long" />
 			<field binding="site.time_format"       sortorder="40" control="enumRadioList" />

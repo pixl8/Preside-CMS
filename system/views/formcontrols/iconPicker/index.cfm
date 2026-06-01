@@ -7,6 +7,7 @@
 	defaultValue = args.defaultValue ?: "";
 	savedValue   = args.savedValue   ?: "";
 
+	includeEmptyOption = IsTrue( args.includeEmptyOption ?: "" );
 	resultTemplate     = selectedTemplate = '<i class="fa {{classes}}"></i> {{text}}';
 	resultTemplateId   = "result_template_"   & CreateUUID();
 	selectedTemplateId = "selected_template_" & CreateUUID();
@@ -47,6 +48,9 @@
 			data-display-limit="#ArrayLen( icons )#"
 			#htmlAttributes#
 	>
+		<cfif includeEmptyOption>
+			<option value=""></option>
+		</cfif>
 		<cfloop item="icon" array="#icons#">
 			<cfset selected=ListFind( value, icon ) />
 			<option
