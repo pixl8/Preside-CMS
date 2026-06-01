@@ -62,7 +62,7 @@
 				ArrayDeleteAt( arguments.arr, i );
 			}
 
-			ArrayDelete( arguments.arr, i );
+			ArrayDeleteAt( arguments.arr, i );
 		}
 	</cfscript>
 </cfsilent></cffunction>
