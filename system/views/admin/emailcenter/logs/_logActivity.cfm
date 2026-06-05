@@ -9,7 +9,7 @@
 <cfparam name="args.userAgent"       default="" />
 <cfparam name="args.showAuditTrail"  default=true />
 
-<cfset emailLoggingService = getController().getWireBox().getInstance( "emailLoggingService" ) />
+<cfset emailLoggingService = getModel( "emailLoggingService" ) />
 
 <cfoutput>
 	<div class="timeline-item clearfix" data-date="#args.logDate#">
