@@ -849,6 +849,7 @@ component extends="testbox.system.BaseSpec"{
 				var formItems          = [ "just", "test", "data" ];
 				var formConfiguration  = QueryNew( 'use_captcha', "boolean", [ [ true ] ] );
 				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+				var userid             = CreateUUID();
 
 				service.$( "isV2Form", false );
 				service.$( "getRequestDataForForm" ).$args(
@@ -858,6 +859,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
 				service.$( "getForm" ).$args( id = formId ).$results( formConfiguration );
 				service.$( "getSubmission", QueryNew('') );
+				service.$( "$getWebsiteLoggedInUserId", userid );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
 					  formItems      = formItems
 					, submissionData = formSubmissionData
