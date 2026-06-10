@@ -227,9 +227,20 @@ component implements="preside.system.services.fileStorage.StorageProvider,presid
 
 	private string function _cleanPath( required string path, boolean trashed=false, boolean private=false, boolean detectLegacyLowerCase=false ){
 		var cleaned = ListChangeDelims( arguments.path, "/", "\" );
+		var rootPath = _getRootPath( argumentCollection=arguments );
+		var rootCanonical = GetCanonicalPath( rootPath );
 
 		cleaned = ReReplace( cleaned, "^/", "" );
 		cleaned = Trim( cleaned );
+
+		var cleanedCanonical = GetCanonicalPath( rootPath & cleaned );
+
+		if ( Left( cleanedCanonical, Len( rootCanonical ) ) != rootCanonical || ReFindNoCase( "(^|[\\/])\.\.([\\/]|$)", cleaned ) ) {
+			throw(
+				  type    = "storageProvider.invalidPath"
+				, message = "The object path, [#arguments.path#], is not valid"
+			);
+		}
 
 		if ( arguments.detectLegacyLowerCase && !FileExists( _getRootPath( argumentCollection=arguments ) & cleaned ) ) {
 			cleaned = LCase( cleaned );
