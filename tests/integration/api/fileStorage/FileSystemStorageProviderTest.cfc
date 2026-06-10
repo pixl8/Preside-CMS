@@ -424,6 +424,54 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "path traversal protection", function(){
+
+			it( "should not allow reading private storage via path traversal from public store", function(){
+				var provider    = _getStorageProvider();
+				var errorThrown = false;
+
+				try {
+					provider.getObject( path="../private/private.txt" );
+				} catch( "storageProvider.invalidPath" e ) {
+					errorThrown = true;
+				} catch ( any e ) {}
+
+				expect( errorThrown ).toBeTrue();
+			} );
+
+			it( "should not report private files as existing in public store via path traversal", function(){
+				var provider    = _getStorageProvider();
+				var errorThrown = false;
+
+				try {
+					provider.objectExists( path="../private/private.txt" );
+				} catch( "storageProvider.invalidPath" e ) {
+					errorThrown = true;
+				} catch ( any e ) {}
+
+				expect( errorThrown ).toBeTrue();
+			} );
+
+			it( "should not allow writing objects outside of public storage via path traversal", function(){
+				var provider        = _getStorageProvider();
+				var fileToStore     = FileReadBinary( "/tests/resources/fileStorage/storage/testDir/loading.gif" );
+				var outsideFilePath = "/tests/resources/fileStorage/traversal-outside-" & CreateUUId() & ".gif";
+				var errorThrown     = false;
+
+				tmpFile = outsideFilePath;
+
+				try {
+					provider.putObject( object=fileToStore, path="../traversal-outside-" & ListLast( outsideFilePath, "/" ) );
+				} catch( "storageProvider.invalidPath" e ) {
+					errorThrown = true;
+				} catch ( any e ) {}
+
+				expect( errorThrown ).toBeTrue();
+				expect( FileExists( outsideFilePath ) ).toBeFalse();
+			} );
+
+		} );
+
 		describe( "moveObject", function(){
 
 			it( "should move objects between private and public stores", function(){
