@@ -1369,6 +1369,8 @@ component extends="preside.system.base.AdminHandler" {
 				rc.orderBy            = savedExportDetail.order_by;
 				rc.searchQuery        = savedExportDetail.search_query;
 
+				_checkPermission( argumentCollection=arguments, key="read", object=rc.object, checkOperations=false );
+
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
 					, prePostExempt  = true
