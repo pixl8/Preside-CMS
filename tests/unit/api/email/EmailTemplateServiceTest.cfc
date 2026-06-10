@@ -726,6 +726,60 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.getTemplate( template ) ).toBe( expected );
 			} );
+
+			it( "should fall back to the live record when reading from the version table but the template has no version history (e.g. seeded system templates)", function(){
+				var service     = _getService();
+				var template    = CreateUUId();
+				var emptyResult = QueryNew( 'blah', 'varchar', [] );
+				var mockResult  = QueryNew( 'blah', 'varchar', [[CreateUUId()]] );
+				var expected    = {};
+
+				for ( var r in mockResult ) { expected = r; }
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  id                 = template
+					, allowDraftVersions = true
+					, fromversionTable   = true
+					, specificVersion    = 0
+					, useCache           = false
+					, extraSelectFields  = []
+				).$results( emptyResult );
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  id                 = template
+					, allowDraftVersions = true
+					, fromVersionTable   = false
+					, useCache           = false
+					, extraSelectFields  = []
+				).$results( mockResult );
+
+				expect( service.getTemplate( id=template, allowDrafts=true ) ).toBe( expected );
+			} );
+
+			it( "should NOT fall back to the live record when a specific version is requested but that version does not exist (returns empty)", function(){
+				var service     = _getService();
+				var template    = CreateUUId();
+				var version     = 3498;
+				var emptyResult = QueryNew( 'blah', 'varchar', [] );
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  id                 = template
+					, allowDraftVersions = true
+					, fromversionTable   = true
+					, specificVersion    = version
+					, useCache           = false
+					, extraSelectFields  = []
+				).$results( emptyResult );
+
+				expect( service.getTemplate( id=template, allowDrafts=true, version=version ) ).toBe( {} );
+
+				// the live (non-version) fallback query must never be made for a
+				// specific-version request
+				var callLog = mockTemplateDao.$callLog().selectData;
+				for ( var call in callLog ) {
+					expect( call.fromVersionTable ?: true ).toBeTrue( "fallback query to live table should not run for a specific-version request" );
+				}
+			} );
 		} );
 
 		describe( "replaceParameterTokens()", function(){

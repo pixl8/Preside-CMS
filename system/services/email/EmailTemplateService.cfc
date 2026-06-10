@@ -474,6 +474,16 @@ component {
 				, useCache           = false
 			);
 
+			if ( !template.recordCount && arguments.fromVersionTable && !arguments.version ) {
+				template = $getPresideObject( "email_template" ).selectData(
+					  id                 = arguments.id
+					, allowDraftVersions = arguments.allowDrafts
+					, fromVersionTable   = false
+					, extraSelectFields  = arguments.extraSelectFields
+					, useCache           = false
+				);
+			}
+
 			if ( !template.recordCount ) {
 				if ( arguments.useRequestCache ) {
 					request[ cacheKey ] = {};
