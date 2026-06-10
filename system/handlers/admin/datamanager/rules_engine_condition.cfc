@@ -157,9 +157,9 @@ component extends="preside.system.base.AdminHandler" {
 			&& QueryColumnExists( args.records, "is_segmentation_filter" )
 			&& QueryColumnExists( args.records, "filter_object" )
 		) {
-			for ( var record in args.records ) {
+			var records = args.records ?: QueryNew('');
+			for ( var record in records ) {
 				if ( isFalse( record.is_segmentation_filter ) ) {
-					var count = 0;
 					var filter = rulesEngineFilterService.prepareFilter(
 				  		  objectName = record.filter_object
 						, filterId   = record.id
