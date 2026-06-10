@@ -12,6 +12,17 @@ component extends="preside.system.base.adminHandler" {
 				  title = translateResource( uri=i18nBase & "title.singular" )
 				, link  = event.buildAdminLink( objectName=rc.object )
 			);
+
+			if ( !hasCmsPermission( "savedExport.add" ) ) {
+				event.adminAccessDenied();
+			}
+
+			runEvent(
+				  event          = "admin.datamanager._checkPermission"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = { object=rc.object, key="read", checkOperations=false }
+			);
 		} else {
 			event.notFound();
 		}
