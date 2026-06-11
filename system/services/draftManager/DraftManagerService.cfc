@@ -110,6 +110,7 @@ component {
 	public string function saveDraftDataForObject(
 		  required string objectName
 		,          string recordId = ""
+		,          string draftId  = ""
 		,          struct data     = {}
 	) {
 		var label = _getDraftLabel( objectName=arguments.objectName, data=arguments.data );
@@ -122,6 +123,25 @@ component {
 					  _object_name = { type="cf_sql_varchar", value=arguments.objectName }
 					, _record_id   = { type="cf_sql_varchar", value=arguments.recordId   }
 				}
+			);
+
+			if ( !$helpers.isEmptyString( draft.id ?: "" ) ) {
+				$getPresideObject( "draftmanager_draft" ).updateData(
+					  id   = draft.id
+					, data = {
+						  label                   = label
+						, _data                   = SerializeJSON( arguments.data )
+						, _security_user_modified = $getAdminLoggedInUserId()
+					}
+				);
+
+				return draft.id;
+			}
+		} else if ( Len( arguments.draftId ) ) {
+			var draft = $getPresideObject( "draftmanager_draft" ).selectData(
+				  selectFields = [ "id" ]
+				, filter       = "id = :id and _status != 'publish'"
+				, filterParams = { id = { type="cf_sql_varchar", value=arguments.draftId } }
 			);
 
 			if ( !$helpers.isEmptyString( draft.id ?: "" ) ) {

@@ -107,11 +107,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _saveDraftRecordAction( event, rc, prc, args={} ) {
-		var objectName = arguments.object   ?: "";
-		var recordId   = arguments.recordId ?: "";
-		var formData   = arguments.formData ?: {};
+		var objectName      = arguments.object   ?: "";
+		var recordId        = arguments.recordId ?: "";
+		var existingDraftId = rc._draft_id       ?: "";
+		var formData        = arguments.formData ?: {};
 
-		var draftId = draftManagerService.saveDraftDataForObject( objectName=objectName, recordId=recordId, data=formData );
+		var draftId = draftManagerService.saveDraftDataForObject( objectName=objectName, recordId=recordId, draftId=existingDraftId, data=formData );
 
 		messageBox.info( translateResource(
 			  uri  = "draftManager:message.edit.description"
