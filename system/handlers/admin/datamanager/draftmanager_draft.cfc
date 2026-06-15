@@ -315,6 +315,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		arguments.recordId = prc.record._record_id   ?: "";
 
 		event.setValue( name="id", value=arguments.recordId );
+		event.setValue( name="_draft_id", value=( prc.record.id ?: "" ) );
 
 		arguments.checkExistingRecord = false;
 		arguments.formName            = getEditRecordFormName( argumentCollection=arguments );
