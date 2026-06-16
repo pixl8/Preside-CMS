@@ -14,11 +14,10 @@ component {
 		switch ( resolvedLocale ) {
 			case "en_GB":
 			case "en_US":
-			default:
 				return ",";
 		}
 
-		return ",";
+		return "_";
 	}
 
 // PRIVATE HELPERSs
