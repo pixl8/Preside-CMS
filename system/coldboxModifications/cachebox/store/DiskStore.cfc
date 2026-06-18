@@ -47,7 +47,7 @@ component implements="coldbox.system.cache.store.IObjectStore" accessors="true"{
 		// Prepare instance
 		variables.cacheProvider   	= arguments.cacheProvider;
 		variables.storeID 			= createObject( 'java', 'java.lang.System' ).identityHashCode( this );
-		variables.indexer    		= new coldbox.system.cache.store.indexers.MetadataIndexer( fields );
+		variables.indexer    		= new preside.system.coldboxModifications.cachebox.store.indexers.MetadataIndexer( fields );
 		variables.converter 		= new coldbox.system.core.conversion.ObjectMarshaller();
 		variables.directoryPath 	= "";
 
@@ -304,6 +304,23 @@ component implements="coldbox.system.cache.store.IObjectStore" accessors="true"{
 	 */
 	function getSize(){
         return variables.indexer.getSize();
+	}
+
+	/**
+	 * CB 7.0: IObjectStore now requires getSortedKeys()
+	 */
+	array function getSortedKeys( required property, sortType="text", sortOrder="asc" ) {
+		return getKeys();
+	}
+
+	/**
+	 * CB 7.0: IObjectStore now requires getCachedObjectMetadata()
+	 */
+	struct function getCachedObjectMetadata( required objectKey ){
+		if ( variables.indexer.objectExists( arguments.objectKey ) ) {
+			return variables.indexer.getObjectMetadata( arguments.objectKey );
+		}
+		return {};
 	}
 
 	//********************************* PRIVATE ************************************//

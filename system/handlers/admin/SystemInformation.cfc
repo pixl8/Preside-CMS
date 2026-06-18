@@ -54,6 +54,7 @@ component extends="preside.system.base.AdminHandler" {
 
 
 		args.presideCmsVersion  = updateManagerService.getCurrentVersion();
+		args.coldboxVersion     = getSetting( name="version", fwSetting=true, defaultValue="Unknown" );
 		args.applicationServer  = productName & ' (' & productVersion & ')';
 		args.java               = javaVersion;
 		args.os                 = osName & ' (' & osVersion & ')';

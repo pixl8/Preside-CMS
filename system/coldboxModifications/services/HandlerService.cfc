@@ -2,6 +2,47 @@ component extends="coldbox.system.web.services.HandlerService" {
 
 	variables.handlerBeans = {};
 
+	/**
+	 * Override newHandler to use Preside's EventHandler shim
+	 * which adds back setNextEvent() and getModel() compatibility.
+	 * CB 7 changed signature from newHandler(invocationPath) to newHandler(ehBean).
+	 */
+	function newHandler( required ehBean ){
+		// Preside calls newHandler with a string path; CB 7 calls with an ehBean object
+		if ( IsSimpleValue( arguments.ehBean ) ) {
+			var injector    = variables.wirebox;
+			var handlerPath = arguments.ehBean;
+		} else {
+			var injector    = arguments.ehBean.isModule() ? variables.modules[ arguments.ehBean.getModule() ].injector : variables.wirebox;
+			var handlerPath = arguments.ehBean.getRunnable();
+		}
+
+		if ( NOT injector.getBinder().mappingExists( handlerPath ) ) {
+			injectorSeedBaseClasses( injector );
+			injector
+				.registerNewInstance( name=handlerPath, instancePath=handlerPath )
+				.setVirtualInheritance( "preside.system.coldboxModifications.EventHandler" )
+				.setThreadSafe( true )
+				.setScope( variables.handlerCaching ? "singleton" : "NoScope" )
+				.setCacheProperties( key="handlers-#handlerPath#" )
+				.setExtraAttributes( { handlerPath: handlerPath, isHandler: true } );
+		}
+
+		return injector.getInstance( handlerPath );
+	}
+
+	private function injectorSeedBaseClasses( required injector ){
+		super.injectorSeedBaseClasses( arguments.injector );
+		if ( NOT arguments.injector.getBinder().mappingExists( "preside.system.coldboxModifications.EventHandler" ) ) {
+			arguments.injector
+				.registerNewInstance(
+					  name         = "preside.system.coldboxModifications.EventHandler"
+					, instancePath = "preside.system.coldboxModifications.EventHandler"
+				)
+				.setScope( "singleton" );
+		}
+	}
+
 	public void function registerHandlers() {
 		var appMapping                   = "/" & controller.getSetting( "appMapping" ).reReplace( "^/", "" );
 		var appMappingPath               = controller.getSetting( "appMappingPath" );

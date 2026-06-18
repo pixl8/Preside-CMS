@@ -53,54 +53,58 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	/************************************** CONSTRUCTOR *********************************************/
 
 	/**
-	* Constructor
-	* @controller The ColdBox main controller
-	* @controller.inject coldbox
-	*/
-	function init( required controller ){
-		// setup controller
-		variables.controller = arguments.controller;
-		// Register LogBox
-		variables.logBox = arguments.controller.getLogBox();
-		// Register Log object
-		variables.log = variables.logBox.getLogger( this );
-		// Register Flash RAM
-		variables.flash = arguments.controller.getRequestService().getFlashScope();
-		// Register CacheBox
-		variables.cacheBox = arguments.controller.getCacheBox();
-		// Register WireBox
-		variables.wireBox = arguments.controller.getWireBox();
-		// Register thread utils
-		variables.threadUtil = wirebox.getInstance( "threadUtil" );
+	 * CB 7.0: LoaderService calls renderer.startup() after all modules loaded.
+	 * In CB 7, controller is injected via DI rather than passed to init().
+	 * We use startup() to perform the initialisation that was in init().
+	 */
+	function startup() {
+		if ( variables._startupDone ?: false ) { return; }
 
-		// Set Conventions, Settings and Properties
-		variables.layoutsConvention 		= variables.controller.getSetting( "layoutsConvention", true );
-		variables.viewsConvention 			= variables.controller.getSetting( "viewsConvention", true );
-		variables.appMapping 				= variables.controller.getSetting( "AppMapping" );
-		variables.viewsExternalLocation 	= variables.controller.getSetting( "ViewsExternalLocation" );
-		variables.layoutsExternalLocation 	= variables.controller.getSetting( "LayoutsExternalLocation" );
-		variables.modulesConfig				= variables.controller.getSetting( "modules" );
-		variables.viewsHelper				= variables.controller.getSetting( "viewsHelper" );
-		variables.viewCaching				= variables.controller.getSetting( "viewCaching" );
-		variables.isViewsHelperIncluded		= false;
+		// In CB 7, controller may be injected as a property rather than passed to init
+		if ( IsNull( variables.controller ) ) { return; }
+
+		variables._startupDone = true;
+
+		// Register LogBox
+		variables.logBox = variables.controller.getLogBox();
+		variables.log = variables.logBox.getLogger( this );
+		variables.flash = variables.controller.getRequestService().getFlashScope();
+		variables.cacheBox = variables.controller.getCacheBox();
+		variables.wireBox = variables.controller.getWireBox();
+		variables.threadUtil = variables.wireBox.getInstance( "threadUtil" );
+
+		variables.layoutsConvention       = variables.controller.getSetting( "layoutsConvention", true );
+		variables.viewsConvention         = variables.controller.getSetting( "viewsConvention", true );
+		variables.appMapping              = variables.controller.getSetting( "AppMapping" );
+		variables.viewsExternalLocation   = variables.controller.getSetting( "ViewsExternalLocation" );
+		variables.layoutsExternalLocation = variables.controller.getSetting( "LayoutsExternalLocation" );
+		variables.modulesConfig           = variables.controller.getSetting( "modules" );
+		variables.viewsHelper             = variables.controller.getSetting( "viewsHelper" );
+		variables.viewCaching             = variables.controller.getSetting( "viewCaching" );
+		variables.isDiscoveryCaching      = variables.controller.getSetting( "handlerCaching" );
+		variables.isViewsHelperIncluded   = false;
 
 		// Verify View Helper Template extension + location
-		if( len( variables.viewsHelper ) ){
-			// extension detection
-			variables.viewsHelper = ( listLast( variables.viewsHelper, "." ) eq "cfm" ? variables.viewsHelper : variables.viewsHelper & ".cfm" );
-			// Append mapping to it.
+		if ( Len( variables.viewsHelper ) ) {
+			variables.viewsHelper = ( ListLast( variables.viewsHelper, "." ) eq "cfm" ? variables.viewsHelper : variables.viewsHelper & ".cfm" );
 			variables.viewsHelper = "/#variables.appMapping#/#variables.viewsHelper#";
 		}
 
 		// Template Cache & Caching Maps
-		variables.renderedHelpers	= {};
-		variables.lockName			= "rendering.#variables.controller.getAppHash()#";
-
-		// Discovery caching is tied to handlers for discovery.
-		variables.isDiscoveryCaching = controller.getSetting( "handlerCaching" );
+		variables.renderedHelpers = {};
+		variables.lockName        = "rendering.#variables.controller.getAppHash()#";
 
 		// Load global UDF Libraries into target
 		loadApplicationHelpers();
+
+		return this;
+	}
+
+	function init( controller ){
+		if ( !IsNull( arguments.controller ) ) {
+			variables.controller = arguments.controller;
+			startup();
+		}
 
 		return this;
 	}
@@ -510,6 +514,66 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	* @viewModule The module to explicitly render the view from
 	* @prePostExempt If true, pre/post layout interceptors will not be fired. By default they do fire
 	*/
+	/**
+	 * CB 7.0: view() is the new name for renderView().
+	 * Delegate to our renderView() override so Preside's custom view
+	 * path resolution is used instead of vanilla ColdBox view().
+	 */
+	function view(
+		view="",
+		struct args=getRequestContext().getCurrentViewArgs(),
+		module="",
+		boolean cache=false,
+		cacheTimeout="",
+		cacheLastAccessTimeout="",
+		cacheSuffix="",
+		cacheProvider="template",
+		collection,
+		collectionAs="",
+		numeric collectionStartRow="1",
+		numeric collectionMaxRows=0,
+		collectionDelim="",
+		boolean prePostExempt=false,
+		name,
+		viewVariables={}
+	){
+		return renderView( argumentCollection=arguments );
+	}
+
+	/**
+	 * CB 7.0: externalView() is the new name for renderExternalView().
+	 * Delegate to our renderExternalView() override.
+	 */
+	function externalView(
+		required view,
+		struct args=getRequestContext().getCurrentViewArgs(),
+		boolean cache=false,
+		cacheTimeout="",
+		cacheLastAccessTimeout="",
+		cacheSuffix="",
+		cacheProvider="template",
+		viewVariables={}
+	){
+		return renderExternalView( argumentCollection=arguments );
+	}
+
+	/**
+	 * CB 7.0: layout() is the new name for renderLayout().
+	 * Delegate to our renderLayout() override to avoid infinite recursion
+	 * via FrameworkSupertype.layout() -> getRenderer().layout() -> FrameworkSupertype.layout()
+	 */
+	function layout(
+		layout,
+		module="",
+		view="",
+		struct args=getRequestContext().getCurrentViewArgs(),
+		viewModule="",
+		boolean prePostExempt=false,
+		viewVariables={}
+	){
+		return renderLayout( argumentCollection=arguments );
+	}
+
 	function renderLayout(
 		layout,
 		module="",
@@ -913,7 +977,7 @@ component accessors="true" serializable="false" singleton="true" extends="coldbo
 	private struct function _getViewMappings() {
 		var site          = getRequestContext().getSite();
 		var cacheKey      = "viewsFullMappings" & ( site.template ?: "" );
-		var ignoreFileSvc = getModel( "ignoreFileService" );
+		var ignoreFileSvc = getInstance( "ignoreFileService" );
 
 		lock name="#lockName#" type="readonly" timeout="15" throwontimeout="true" {
 			if ( controller.settingExists( cacheKey ) ) {

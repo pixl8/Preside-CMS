@@ -69,6 +69,14 @@ component extends="coldbox.system.cache.store.ConcurrentStore" implements="" {
 		} );
 	}
 
+	public struct function getCachedObjectMetadata( required any objectKey ) {
+		var meta = indexer.getObjectMetadata( arguments.objectKey );
+		if ( IsNull( local.meta ) || !IsStruct( local.meta ) ) {
+			return {};
+		}
+		return meta;
+	}
+
 	public any function clear( required any objectKey ) {
 		var removedObj = pool.remove( arguments.objectKey );
 		var removedMeta = indexer.clear( arguments.objectKey );

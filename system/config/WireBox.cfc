@@ -29,7 +29,11 @@
 	}
 
 	private void function _mapCommonSystemServices() {
-		mapDirectory( packagePath="preside.system.services", filter=this._filterServices, influence=function( mapping, objectPath ) {
+		var pkg = "preside.system.services";
+		var dir = ExpandPath( "/#Replace( pkg, '.', '/', 'all' )#" );
+		mapDirectory( packagePath=pkg, filter=function( thisPath ) {
+			return _filterServices( _toComponentPath( thisPath, dir, pkg ) );
+		}, influence=function( mapping, objectPath ) {
 			_injectPresideSuperClass( argumentCollection=arguments );
 		} );
 	}
@@ -39,7 +43,11 @@
 		var appMappingPath = getColdbox().getSetting( name="appMappingPath", defaultValue="app"  );
 
 		if ( DirectoryExists( "/#appMapping#/services" ) ) {
-			mapDirectory( packagePath="#appMappingPath#.services", filter=this._filterServices, influence=function( mapping, objectPath ) {
+			var pkg = "#appMappingPath#.services";
+			var dir = ExpandPath( "/#Replace( pkg, '.', '/', 'all' )#" );
+			mapDirectory( packagePath=pkg, filter=function( thisPath ) {
+				return _filterServices( _toComponentPath( thisPath, dir, pkg ) );
+			}, influence=function( mapping, objectPath ) {
 				_injectPresideSuperClass( argumentCollection=arguments );
 			} );
 		}
@@ -50,7 +58,11 @@
 		for( var i=1; i<=extensions.len(); i++ ){
 			var servicesDir = ListAppend( extensions[i].directory, "services", "/" )
 			if ( DirectoryExists( servicesDir ) ) {
-				mapDirectory( packagePath=servicesDir, filter=this._filterServices, influence=function( mapping, objectPath ) {
+				var pkg = servicesDir;
+				var dir = ExpandPath( servicesDir );
+				mapDirectory( packagePath=pkg, filter=function( thisPath ) {
+					return _filterServices( _toComponentPath( thisPath, dir, pkg ) );
+				}, influence=function( mapping, objectPath ) {
 					_injectPresideSuperClass( argumentCollection=arguments );
 				}  );
 			}
@@ -170,7 +182,7 @@
 		return false;
 	}
 
-	private boolean function _filterServices( objectPath ) {
+	private boolean function _filterServices( required string objectPath ) {
 		if ( ignoreFileService.isIgnored( "service", arguments.objectPath ) ) {
 			return false;
 		}
@@ -182,6 +194,23 @@
 		}
 
 		return true;
+	}
+
+	private string function _toComponentPath( required string filePath, required string targetDir, required string packagePath ) {
+		// If already a dot-path (CB 5.4 behaviour), return as-is
+		if ( !FindNoCase( ".cfc", arguments.filePath ) ) {
+			return arguments.filePath;
+		}
+
+		// Convert absolute file path to component dot-path
+		// Strip target directory prefix, remove .cfc, convert slashes to dots
+		var relativePath = ReplaceNoCase( arguments.filePath, arguments.targetDir, "" );
+		relativePath = ReplaceNoCase( relativePath, ".cfc", "" );
+		relativePath = ReReplace( relativePath, "(\\|/)", ".", "all" );
+
+		// Prepend package path (strip leading dots)
+		var result = ReReplace( arguments.packagePath, "^/", "" ) & relativePath;
+		return ReReplace( result, "^\.", "" );
 	}
 
 	private boolean function _featureDisabled( required struct meta ) {

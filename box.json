@@ -37,7 +37,7 @@
         "cbmessagebox":"2.2.0+10",
         "cbstorages":"1.3.0+14",
         "cbjavaloader":"1.5.0+35",
-        "coldbox":"5.4.0",
+        "coldbox":"8.1.0-snapshot",
         "cfconcurrent":"3.0.0",
         "JSONPrettyPrint":"1.4.1",
         "cfflow":"0.8.0"

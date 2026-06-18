@@ -8,7 +8,7 @@ component {
 		return this;
 	}
 
-	function process( required any definition, targetObject ) {
+	function process( required any definition, targetObject, targetID ) {
 		var dsl = arguments.definition.dsl;
 
 		if( reFindNoCase( '^coldbox:myplugin:.*', dsl ) ) {

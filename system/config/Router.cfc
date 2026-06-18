@@ -1,7 +1,6 @@
 component extends="coldbox.system.web.routing.Router" {
 
 	public void function configure() {
-		setUniqueUrls( false );
 		setExtensionDetection( false );
 		setBaseUrl( "/" );
 
@@ -101,7 +100,7 @@ component extends="coldbox.system.web.routing.Router" {
 			arguments.dsl = "delayedInjector:" & arguments.dsl;
 		}
 
-		return super.getModel(
+		return variables.controller.getWirebox().getInstance(
 			  dsl           = arguments.dsl ?: NullValue()
 			, initArguments = arguments.initArguments
 		);
