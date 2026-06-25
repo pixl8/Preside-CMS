@@ -20,6 +20,52 @@ component extends="BaseAdapter" {
 		return sql;
 	}
 
+	public boolean function supportsUpsertSql() {
+		return true;
+	}
+
+	public array function getUpsertSql(
+		  required string tableName
+		, required array  insertColumns
+		, required array  updateColumns
+		, required array  conflictColumns
+	) {
+		var insertSql = super.getInsertSql(
+			  tableName     = arguments.tableName
+			, insertColumns = arguments.insertColumns
+		);
+		var sql       = insertSql[ 1 ];
+		var delim     = "";
+		var conflict  = "";
+
+		if ( !ArrayLen( arguments.conflictColumns ) ) {
+			throw(
+				  type    = "PostgreSqlAdapter.Upsert.MissingConflictColumns"
+				, message = "PostgreSQL upsert requires one or more conflict columns that map to a unique index"
+			);
+		}
+
+		for( var col in arguments.conflictColumns ) {
+			conflict &= delim & escapeEntity( lcase( col ) );
+			delim = ", ";
+		}
+
+		sql &= " on conflict ( #conflict# ) do update set";
+		delim = "";
+
+		if ( !ArrayLen( arguments.updateColumns ) ) {
+			sql &= " " & escapeEntity( lcase( arguments.conflictColumns[ 1 ] ) ) & " = excluded." & escapeEntity( lcase( arguments.conflictColumns[ 1 ] ) );
+			return [ sql ];
+		}
+
+		for( var updateCol in arguments.updateColumns ) {
+			sql &= delim & " " & escapeEntity( lcase( updateCol ) ) & " = :set__" & updateCol;
+			delim = ",";
+		}
+
+		return [ sql ];
+	}
+
 	public string function getInsertReturnType(){
 		return 'recordset';
 	}

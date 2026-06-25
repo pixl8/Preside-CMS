@@ -191,66 +191,53 @@ component displayName="System configuration service" {
 	 * See [[editablesystemsettings]] for a full guide.
 	 *
 	 * @autodoc
-	 * @category.hint  Category name of the setting to save
-	 * @setting.hint   Name of the setting to save
-	 * @value.hint     Value to save
-	 * @siteId.hint    Deprecated (use tenantId): ID of site to which the setting applies (optional, if empty setting is treated as system wide default)
-	 * @tenantId.hint  ID of the tenant to which the setting applies (optional, if empty setting is treated as system wide default)
+	 * @category.hint       Category name of the setting to save
+	 * @setting.hint        Name of the setting to save
+	 * @value.hint          Value to save
+	 * @siteId.hint         Deprecated (use tenantId): ID of site to which the setting applies (optional, if empty setting is treated as system wide default)
+	 * @tenantId.hint       ID of the tenant to which the setting applies (optional, if empty setting is treated as system wide default)
+	 * @skipVersioning.hint Whether to skip versioning of the setting
 	 *
 	 */
 	public any function saveSetting(
-		  required string category
-		, required string setting
-		, required string value
-		,          string siteId = ""
-		,          string tenantId = arguments.siteId
+		  required string  category
+		, required string  setting
+		, required string  value
+		,          string  siteId         = ""
+		,          string  tenantId       = arguments.siteId
+		,          boolean skipVersioning = false
 	)  {
 		_reloadCheck();
 
-		var dao    = _getDao();
-		var result = "";
-		var tenancy = getConfigCategoryTenancy( arguments.category );
+		var dao          = _getDao();
+		var tenancy      = getConfigCategoryTenancy( arguments.category );
+		var matchColumns = [ "category", "setting", "site", "tenant_id" ];
+		var data         = {
+			  category  = arguments.category
+			, setting   = arguments.setting
+			, value     = arguments.value
+			, site      = ""
+			, tenant_id = ""
+		};
 
-		transaction {
-			var filter = "category = :category and setting = :setting";
-			var params = { category = arguments.category, setting = arguments.setting };
-			var data   = {
-				  category  = arguments.category
-				, setting   = arguments.setting
-				, value     = arguments.value
-				, site      = ""
-				, tenant_id = ""
-			};
-
-			if ( Len( tenancy ) && Len( Trim( arguments.tenantId ) ) ) {
-				if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
-					filter &= " and site = :site";
-					params.site = arguments.tenantId;
-
-					data.site = arguments.tenantId;
-				} else {
-					filter &= " and tenant_id = :tenant_id";
-					params.tenant_id = arguments.tenantId;
-					data.tenant_id = arguments.tenantId;
-				}
+		if ( Len( tenancy ) && Len( Trim( arguments.tenantId ) ) ) {
+			if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
+				data.site = arguments.tenantId;
 			} else {
-				filter &= " and #_getGlobalTenantFilter()#";
-			}
-
-			result = dao.updateData(
-				  data         = { value = arguments.value }
-				, filter       = filter
-				, filterParams = params
-			);
-
-			if ( !result ) {
-				result = dao.insertData( data );
+				data.tenant_id = arguments.tenantId;
 			}
 		}
 
+		var result = dao.upsertData(
+			  data          = data
+			, matchColumns  = matchColumns
+			, updateColumns = [ "value" ]
+			, useVersioning = !arguments.skipVersioning
+		);
+
 		clearSettingsCache( arguments.category );
 
-		return result;
+		return result.id;
 	}
 
 	public any function deleteSetting(
