@@ -3301,7 +3301,7 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		var aliasRegex  = _getAlaisedAliasRegex();
+		var aliasRegex  = _getAlaisedFieldRegex();
 		var matches = _reSearch( aliasRegex, plainString );
 		var results = [];
 
@@ -3731,33 +3731,6 @@ component displayName="Preside Object Service" {
 		}
 
 		return this._entityNames;
-	}
-
-	private string function _getAlaisedAliasRegex() {
-		if ( !StructKeyExists( this, "_aliasedAliasRegex" ) ) {
-			var objects  = _getObjects();
-			var entities = {};
-			var aliasEntitiesOnly = {};
-
-			for( var objName in objects ){
-				entities[ objName ] = 1;
-
-				for( var propertyName in objects[ objName ].meta.properties ) {
-					var prop = objects[ objName ].meta.properties[ propertyName ];
-
-					for( var alias in ( prop.aliases ?: "" ).listToArray() ) {
-						entities[ alias ] = 1;
-						aliasEntitiesOnly[ alias ] = 1;
-					}
-				}
-			}
-			entities = StructKeyList( entities, "|" );
-			aliasEntitiesOnly = StructKeyList( aliasEntitiesOnly, "|" );
-
-			this._aliasedAliasRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)([`\]])?\.([`\[])?(#aliasEntitiesOnly#)(\s|$|\)|,|`|\])";
-		}
-
-		return this._aliasedAliasRegex;
 	}
 
 	private struct function _reSearch( required string regex, required string text ) {
