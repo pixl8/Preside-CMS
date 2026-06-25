@@ -4639,38 +4639,188 @@
 			poService.dbSync();
 
 			result = poService.upsertData(
-				  objectName   = "an_object"
-				, data         = { field1=1, field2=2, field3=100, field4=10 }
-				, matchColumns = [ "field1", "field2" ]
+				  objectName    = "an_object"
+				, data          = { field1=1, field2=2, field3=100, field4=10, label="upsert test one" }
+				, matchColumns  = [ "field1", "field2" ]
 				, useVersioning = false
 			);
 
 			super.assertTrue( result.inserted, "Expected first upsert to insert a new record" );
+			super.assertTrue( Len( Trim( result.id ?: "" ) ), "Expected upsert to return the record id" );
 
 			record = poService.selectData(
-				  objectName   = "an_object"
-				, filter       = { field1=1, field2=2 }
-				, returntype   = "array"
+				  objectName = "an_object"
+				, filter     = { field1=1, field2=2 }
+				, returntype = "array"
 			);
 			super.assertEquals( 100, record[ 1 ].field3 );
 
 			result = poService.upsertData(
-				  objectName   = "an_object"
-				, data         = { field1=1, field2=2, field3=200, field4=20 }
-				, matchColumns = [ "field1", "field2" ]
+				  objectName    = "an_object"
+				, data          = { field1=1, field2=2, field3=200, field4=20 }
+				, matchColumns  = [ "field1", "field2" ]
 				, useVersioning = false
 			);
 
 			super.assertFalse( result.inserted, "Expected second upsert to update the existing record" );
+			super.assertEquals( result.id, record[ 1 ].id, "Expected upsert to return the existing record id" );
 
 			record = poService.selectData(
-				  objectName   = "an_object"
-				, filter       = { field1=1, field2=2 }
-				, returntype   = "array"
+				  objectName = "an_object"
+				, filter     = { field1=1, field2=2 }
+				, returntype = "array"
 			);
 			super.assertEquals( 200, record[ 1 ].field3 );
 			super.assertEquals( 20, record[ 1 ].field4 );
+			super.assertEquals( "upsert test one", record[ 1 ].label, "Expected label to be preserved when not included in update data" );
 			super.assertEquals( 1, poService.selectData( objectName="an_object", filter={ field1=1, field2=2 } ).recordCount, "Expected only one record for the unique key" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test024_upsertData_shouldOnlyUpdateSpecifiedColumns_whenUpdateColumnsArgumentIsPassed" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
+			var result    = "";
+			var record    = "";
+
+			poService.dbSync();
+
+			poService.upsertData(
+				  objectName    = "an_object"
+				, data          = { field1=10, field2=20, field3=300, field4=40, label="explicit update columns" }
+				, matchColumns  = [ "field1", "field2" ]
+				, useVersioning = false
+			);
+
+			result = poService.upsertData(
+				  objectName     = "an_object"
+				, data           = { field1=10, field2=20, field3=301, field4=99 }
+				, matchColumns   = [ "field1", "field2" ]
+				, updateColumns  = [ "field3" ]
+				, useVersioning  = false
+			);
+
+			super.assertFalse( result.inserted );
+
+			record = poService.selectData(
+				  objectName = "an_object"
+				, filter     = { field1=10, field2=20 }
+				, returntype = "array"
+			);
+			super.assertEquals( 301, record[ 1 ].field3 );
+			super.assertEquals( 40, record[ 1 ].field4, "Expected field4 to remain unchanged when omitted from updateColumns" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test025_upsertData_shouldMatchOnSingleColumnUniqueIndex" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
+			var result    = "";
+			var record    = "";
+
+			poService.dbSync();
+
+			result = poService.upsertData(
+				  objectName    = "an_object"
+				, data          = { field1=5, field2=6, field3=700, label="single column unique" }
+				, matchColumns  = [ "field3" ]
+				, useVersioning = false
+			);
+
+			super.assertTrue( result.inserted );
+
+			result = poService.upsertData(
+				  objectName    = "an_object"
+				, data          = { field1=99, field2=99, field3=700, field4=77, label="should not replace label" }
+				, matchColumns  = [ "field3" ]
+				, updateColumns = [ "field4" ]
+				, useVersioning = false
+			);
+
+			super.assertFalse( result.inserted );
+
+			record = poService.selectData(
+				  objectName = "an_object"
+				, filter     = { field3=700 }
+				, returntype = "array"
+			);
+			super.assertEquals( 1, record.len() );
+			super.assertEquals( 5, record[ 1 ].field1, "Expected field1 to remain unchanged when omitted from updateColumns" );
+			super.assertEquals( 6, record[ 1 ].field2, "Expected field2 to remain unchanged when omitted from updateColumns" );
+			super.assertEquals( 77, record[ 1 ].field4 );
+			super.assertEquals( "single column unique", record[ 1 ].label );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test026_upsertData_shouldThrowInformativeError_whenMatchColumnsAreMissing" returntype="void">
+		<cfscript>
+			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
+			var errorThrown = false;
+
+			poService.dbSync();
+
+			try {
+				poService.upsertData(
+					  objectName   = "an_object"
+					, data         = { field1=1, field2=2, label="missing match columns" }
+					, matchColumns = []
+				);
+			} catch ( "PresideObjects.upsertData.MissingMatchColumns" e ) {
+				super.assertEquals( "upsertData() requires one or more match columns that map to a unique index on [an_object]", e.message );
+				errorThrown = true;
+			}
+
+			super.assert( errorThrown, "An appropriate error was not thrown when matchColumns was empty" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test027_upsertData_shouldThrowInformativeError_whenMatchColumnValueIsMissingFromData" returntype="void">
+		<cfscript>
+			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
+			var errorThrown = false;
+
+			poService.dbSync();
+
+			try {
+				poService.upsertData(
+					  objectName   = "an_object"
+					, data         = { field1=1, label="missing match value" }
+					, matchColumns = [ "field1", "field2" ]
+				);
+			} catch ( "PresideObjects.upsertData.MissingMatchColumnValue" e ) {
+				super.assertEquals( "upsertData() requires a value for match column [field2] in the data argument", e.message );
+				errorThrown = true;
+			}
+
+			super.assert( errorThrown, "An appropriate error was not thrown when a match column value was missing" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test028_upsertData_shouldInsertSeparateRecords_forDifferentUniqueKeys" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
+			var resultOne = "";
+			var resultTwo = "";
+
+			poService.dbSync();
+
+			resultOne = poService.upsertData(
+				  objectName    = "an_object"
+				, data          = { field1=1, field2=1, field3=801, label="unique key one" }
+				, matchColumns  = [ "field1", "field2" ]
+				, useVersioning = false
+			);
+			resultTwo = poService.upsertData(
+				  objectName    = "an_object"
+				, data          = { field1=2, field2=2, field3=802, label="unique key two" }
+				, matchColumns  = [ "field1", "field2" ]
+				, useVersioning = false
+			);
+
+			super.assertTrue( resultOne.inserted );
+			super.assertTrue( resultTwo.inserted );
+			super.assert( resultOne.id != resultTwo.id, "Expected different records to receive different ids" );
+			super.assertEquals( 2, poService.selectData( objectName="an_object" ).recordCount );
 		</cfscript>
 	</cffunction>
 

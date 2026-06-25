@@ -923,6 +923,19 @@ component displayName="Preside Object Service" {
 			}
 		}
 
+		if ( existedBefore && oldData.recordCount ) {
+			for( var existingRecord in oldData ) {
+				for( var fieldName in ListToArray( obj.dbFieldList ) ) {
+					if ( StructKeyExists( existingRecord, fieldName ) ) {
+						if ( fieldName == idField || !StructKeyExists( cleanedData, fieldName ) ) {
+							cleanedData[ fieldName ] = existingRecord[ fieldName ];
+						}
+					}
+				}
+				break;
+			}
+		}
+
 		if ( !ArrayLen( args.updateColumns ) ) {
 			args.updateColumns = [ args.matchColumns[ 1 ] ];
 		}
@@ -931,34 +944,35 @@ component displayName="Preside Object Service" {
 			return _upsertDataWithUpdateInsert( argumentCollection=args );
 		}
 
-		var preparedFilter = _prepareFilter(
-			  adapter            = adapter
-			, columnDefinitions  = obj.properties
-			, objectName         = args.objectName
-			, filter             = matchFilter
-		);
-		var changedData = {};
-
-		if ( requiresVersioning && existedBefore ) {
-			for( var record in oldData ) {
-				var changedFields = _getVersioningService().getChangedFields(
-					  objectName   = args.objectName
-					, recordId     = record[ idField ]
-					, newData      = cleanedData
-					, existingData = record
-				);
-
-				if ( ArrayLen( changedFields ) ) {
-					changedData[ record[ idField ] ] = {};
-					for( var field in changedFields ) {
-						changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
-					}
-				}
-			}
-		}
-
 		if ( requiresVersioning ) {
 			if ( existedBefore ) {
+				var preparedFilter = _prepareFilter(
+					  adapter            = adapter
+					, columnDefinitions  = obj.properties
+					, objectName         = args.objectName
+					, filter             = matchFilter
+					, filterParams       = {}
+					, extraFilters       = []
+					, savedFilters       = []
+				);
+				var changedData = {};
+
+				for( var record in oldData ) {
+					var changedFields = _getVersioningService().getChangedFields(
+						  objectName   = args.objectName
+						, recordId     = record[ idField ]
+						, newData      = cleanedData
+						, existingData = record
+					);
+
+					if ( ArrayLen( changedFields ) ) {
+						changedData[ record[ idField ] ] = {};
+						for( var field in changedFields ) {
+							changedData[ record[ idField ] ][ field ] = cleanedData[ field ] ?: "";
+						}
+					}
+				}
+
 				versionNumber = _getVersioningService().saveVersionForUpdate(
 					  objectName       = args.objectName
 					, data             = cleanedData
@@ -1013,10 +1027,12 @@ component displayName="Preside Object Service" {
 			_runSql( sql='commit', dsn=obj.dsn );
 		}
 
-		recordId  = Len( Trim( cleanedData[ idField ] ?: "" ) ) ? cleanedData[ idField ] : ( adapter.getGeneratedKey( result ) ?: "" );
-		inserted  = !existedBefore;
+		recordId = Len( Trim( cleanedData[ idField ] ?: "" ) ) ? cleanedData[ idField ] : ( adapter.getGeneratedKey( result ) ?: "" );
+		inserted = !existedBefore;
 
-		if ( !Len( Trim( recordId ) ) ) {
+		if ( existedBefore && oldData.recordCount ) {
+			recordId = oldData[ idField ][ 1 ];
+		} else if ( !Len( Trim( recordId ) ) ) {
 			var matchedRecord = selectData(
 				  objectName     = args.objectName
 				, filter           = matchFilter
