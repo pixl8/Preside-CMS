@@ -65,15 +65,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		describe( "saveSetting", function(){
 			it( "should insert a new db record when no existing record exists for the given config key", function(){
 				var configService = _getConfigSvc( testDirs );
-				var category = "mycategory";
+				var category      = "mycategory";
+				var newId         = CreateUUId();
 
 				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
 
-				mockDao.$( "updateData" )
-					.$args( filter="category = :category and setting = :setting and tenant_id is null and site is null", filterParams={ category=category, setting="mysetting" }, data={ value="this is the value of my setting" } )
-					.$results( 0 );
-
-				mockDao.$( "insertData", CreateUUId() );
+				mockDao.$( "upsertData" )
+					.$args(
+						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
+						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, updateColumns = [ "value" ]
+					)
+					.$results( { id=newId, inserted=true } );
 
 				configService.saveSetting(
 					  category = category
@@ -81,24 +84,28 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					, value    = "this is the value of my setting"
 				);
 
-				var log = mockDao.$callLog().insertData;
-
-				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( [ { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" } ] );
+				expect( mockDao.$callLog().upsertData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().upsertData[1] ).toBe( {
+					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
+					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+					, updateColumns = [ "value" ]
+				} );
 			} );
 
 			it( "should update existing db record when record already exists in db", function(){
 				var configService = _getConfigSvc( testDirs );
-				var category = "mycategory";
+				var category      = "mycategory";
+				var existingId    = CreateUUId();
 
 				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
 
-
-				mockDao.$( "updateData" )
-					.$args( filter="category = :category and setting = :setting and tenant_id is null and site is null", filterParams={ category=category, setting="mysetting" }, data={ value="this is the value of my setting" } )
-					.$results( 1 );
-
-				mockDao.$( "insertData", CreateUUId() );
+				mockDao.$( "upsertData" )
+					.$args(
+						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
+						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, updateColumns = [ "value" ]
+					)
+					.$results( { id=existingId, inserted=false } );
 
 				configService.saveSetting(
 					  category = category
@@ -106,25 +113,24 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					, value    = "this is the value of my setting"
 				);
 
-				var log = mockDao.$callLog().insertData;
-				expect( log.len() ).toBe( 0 );
-
-				log = mockDao.$callLog().updateData;
-				expect( log.len() ).toBe( 1 );
+				expect( mockDao.$callLog().upsertData.len() ).toBe( 1 );
 			} );
 
 			it( "should insert a new db record with site ID when site id passed", function(){
 				var configService = _getConfigSvc( testDirs );
 				var siteId        = CreateUUId();
 				var category      = "mycategory";
+				var newId         = CreateUUId();
 
 				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
 
-				mockDao.$( "updateData" )
-					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category=category, setting="mysetting", site=siteId }, data={ value="this is the value of my setting" } )
-					.$results( 0 );
-
-				mockDao.$( "insertData", CreateUUId() );
+				mockDao.$( "upsertData" )
+					.$args(
+						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
+						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, updateColumns = [ "value" ]
+					)
+					.$results( { id=newId, inserted=true } );
 
 				configService.saveSetting(
 					  category = category
@@ -133,25 +139,29 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					, tenantId = siteId
 				);
 
-				var log = mockDao.$callLog().insertData;
-
-				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( [ { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" } ] );
+				expect( mockDao.$callLog().upsertData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().upsertData[1] ).toBe( {
+					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
+					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+					, updateColumns = [ "value" ]
+				} );
 			} );
 
 			it( "should clear related caches", function(){
 				var configService = _getConfigSvc( testDirs );
 				var siteId        = CreateUUId();
 				var category      = "mycategory";
+				var existingId    = CreateUUId();
 
 				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "site" );
 
-				mockDao.$( "updateData" )
-					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category=category, setting="mysetting", site=siteId }, data={ value="this is the value of my setting" } )
-					.$results( 1 );
-
-				mockDao.$( "insertData", CreateUUId() );
-
+				mockDao.$( "upsertData" )
+					.$args(
+						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
+						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, updateColumns = [ "value" ]
+					)
+					.$results( { id=existingId, inserted=false } );
 
 				configService.saveSetting(
 					  category = category
@@ -170,19 +180,22 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				} );
 			} );
 
-			it( "should insert a new db record with temamt ID when category uses custom tenancy", function(){
+			it( "should insert a new db record with tenant ID when category uses custom tenancy", function(){
 				var configService  = _getConfigSvc( testDirs );
 				var customTenantId = CreateUUId();
 				var category       = "mycategory";
+				var newId          = CreateUUId();
 
 				configService.$( "getConfigCategoryTenancy" ).$args( category ).$results( "custom" );
 				mockTenancyService.$( "getTenantId" ).$args( "custom" ).$results( customTenantId );
 
-				mockDao.$( "updateData" )
-					.$args( filter="category = :category and setting = :setting and tenant_id = :tenant_id", filterParams={ category=category, setting="mysetting", tenant_id=customTenantId }, data={ value="this is the value of my setting" } )
-					.$results( 0 );
-
-				mockDao.$( "insertData", CreateUUId() );
+				mockDao.$( "upsertData" )
+					.$args(
+						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id=customTenantId }
+						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, updateColumns = [ "value" ]
+					)
+					.$results( { id=newId, inserted=true } );
 
 				configService.saveSetting(
 					  category = category
@@ -191,10 +204,12 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					, tenantId = customTenantId
 				);
 
-				var log = mockDao.$callLog().insertData;
-
-				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( [ { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id=customTenantId } ] );
+				expect( mockDao.$callLog().upsertData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().upsertData[1] ).toBe( {
+					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id=customTenantId }
+					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+					, updateColumns = [ "value" ]
+				} );
 			} );
 
 		} );
