@@ -443,26 +443,23 @@ component autodoc=true displayName="Notification Service" {
 			_getUserDao().updateData( id=arguments.userId, data={ subscribed_to_all_notifications=false } );
 		}
 
-		transaction {
+		var currentSubscriptions = getUserSubscriptions( arguments.userId );
 
-			var currentSubscriptions = getUserSubscriptions( arguments.userId );
-
-			for( var topic in currentSubscriptions ) {
-				if ( !arguments.topics.find( topic ) ) {
-					forDeletion.append( topic );
-				}
+		for( var topic in currentSubscriptions ) {
+			if ( !arguments.topics.find( topic ) ) {
+				forDeletion.append( topic );
 			}
-			if ( forDeletion.len() ) {
-				subscriptionDao.deleteData( filter={ security_user = arguments.userId, topic=forDeletion } );
-			}
+		}
+		if ( forDeletion.len() ) {
+			subscriptionDao.deleteData( filter={ security_user = arguments.userId, topic=forDeletion } );
+		}
 
-			for( var topic in arguments.topics ) {
-				if ( !currentSubscriptions.find( topic ) ) {
-					subscriptionDao.insertData({
-						  security_user = arguments.userId
-						, topic         = topic
-					});
-				}
+		for( var topic in arguments.topics ) {
+			if ( !currentSubscriptions.find( topic ) ) {
+				subscriptionDao.insertData({
+					  security_user = arguments.userId
+					, topic         = topic
+				});
 			}
 		}
 	}
@@ -479,22 +476,21 @@ component autodoc=true displayName="Notification Service" {
 		for( var userId in subscribers ){
 			if ( userHasAccessToTopic( userId, arguments.topic ) ) {
 				var filter = { admin_notification=arguments.notificationId, security_user=userId };
-				transaction {
-					if ( !_getConsumerDao().updateData( filter=filter, data={ read=false } ) ) {
-						interceptorArgs.subscription = subscribers[ userId ];
-						_announceInterception( "preCreateNotificationConsumer", interceptorArgs );
 
-						_getConsumerDao().insertData( data={
-							  admin_notification = arguments.notificationId
-							, security_user      = userId
-						} );
+				if ( !_getConsumerDao().updateData( filter=filter, data={ read=false } ) ) {
+					interceptorArgs.subscription = subscribers[ userId ];
+					_announceInterception( "preCreateNotificationConsumer", interceptorArgs );
 
-						if ( IsBoolean( subscribers[ userId ].get_email_notifications ?: "" ) && subscribers[ userId ].get_email_notifications ) {
-							sendSubsciberNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
-						}
+					_getConsumerDao().insertData( data={
+						  admin_notification = arguments.notificationId
+						, security_user      = userId
+					} );
 
-						_announceInterception( "postCreateNotificationConsumer", interceptorArgs );
+					if ( IsBoolean( subscribers[ userId ].get_email_notifications ?: "" ) && subscribers[ userId ].get_email_notifications ) {
+						sendSubsciberNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
 					}
+
+					_announceInterception( "postCreateNotificationConsumer", interceptorArgs );
 				}
 			}
 		}
