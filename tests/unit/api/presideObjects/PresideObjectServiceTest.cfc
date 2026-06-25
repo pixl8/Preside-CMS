@@ -4630,6 +4630,50 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test023_upsertData_shouldInsertWhenNoMatchExists_andUpdateWhenUniqueKeyMatches" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
+			var result    = "";
+			var record    = "";
+
+			poService.dbSync();
+
+			result = poService.upsertData(
+				  objectName   = "an_object"
+				, data         = { field1=1, field2=2, field3=100, field4=10 }
+				, matchColumns = [ "field1", "field2" ]
+				, useVersioning = false
+			);
+
+			super.assertTrue( result.inserted, "Expected first upsert to insert a new record" );
+
+			record = poService.selectData(
+				  objectName   = "an_object"
+				, filter       = { field1=1, field2=2 }
+				, returntype   = "array"
+			);
+			super.assertEquals( 100, record[ 1 ].field3 );
+
+			result = poService.upsertData(
+				  objectName   = "an_object"
+				, data         = { field1=1, field2=2, field3=200, field4=20 }
+				, matchColumns = [ "field1", "field2" ]
+				, useVersioning = false
+			);
+
+			super.assertFalse( result.inserted, "Expected second upsert to update the existing record" );
+
+			record = poService.selectData(
+				  objectName   = "an_object"
+				, filter       = { field1=1, field2=2 }
+				, returntype   = "array"
+			);
+			super.assertEquals( 200, record[ 1 ].field3 );
+			super.assertEquals( 20, record[ 1 ].field4 );
+			super.assertEquals( 1, poService.selectData( objectName="an_object", filter={ field1=1, field2=2 } ).recordCount, "Expected only one record for the unique key" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="_getNowSql" access="private" returntype="string" output="false">
 		<cfreturn _getDbAdapter().getNowFunctionSql() />
 	</cffunction>

@@ -207,50 +207,34 @@ component displayName="System configuration service" {
 	)  {
 		_reloadCheck();
 
-		var dao    = _getDao();
-		var result = "";
-		var tenancy = getConfigCategoryTenancy( arguments.category );
+		var dao          = _getDao();
+		var tenancy      = getConfigCategoryTenancy( arguments.category );
+		var matchColumns = [ "category", "setting", "site", "tenant_id" ];
+		var data         = {
+			  category  = arguments.category
+			, setting   = arguments.setting
+			, value     = arguments.value
+			, site      = ""
+			, tenant_id = ""
+		};
 
-		transaction {
-			var filter = "category = :category and setting = :setting";
-			var params = { category = arguments.category, setting = arguments.setting };
-			var data   = {
-				  category  = arguments.category
-				, setting   = arguments.setting
-				, value     = arguments.value
-				, site      = ""
-				, tenant_id = ""
-			};
-
-			if ( Len( tenancy ) && Len( Trim( arguments.tenantId ) ) ) {
-				if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
-					filter &= " and site = :site";
-					params.site = arguments.tenantId;
-
-					data.site = arguments.tenantId;
-				} else {
-					filter &= " and tenant_id = :tenant_id";
-					params.tenant_id = arguments.tenantId;
-					data.tenant_id = arguments.tenantId;
-				}
+		if ( Len( tenancy ) && Len( Trim( arguments.tenantId ) ) ) {
+			if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
+				data.site = arguments.tenantId;
 			} else {
-				filter &= " and #_getGlobalTenantFilter()#";
-			}
-
-			result = dao.updateData(
-				  data         = { value = arguments.value }
-				, filter       = filter
-				, filterParams = params
-			);
-
-			if ( !result ) {
-				result = dao.insertData( data );
+				data.tenant_id = arguments.tenantId;
 			}
 		}
 
+		var result = dao.upsertData(
+			  data          = data
+			, matchColumns  = matchColumns
+			, updateColumns = [ "value" ]
+		);
+
 		clearSettingsCache( arguments.category );
 
-		return result;
+		return result.id;
 	}
 
 	public any function deleteSetting(
