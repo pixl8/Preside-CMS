@@ -2,6 +2,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 	function run(){
 
+		variables.testDirs = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
+
 		describe( "listConfigCategories", function(){
 
 			it( "should return empty array when no configuration categories defined", function(){
@@ -75,6 +77,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
 						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
 						, updateColumns = [ "value" ]
+						, useVersioning = true
 					)
 					.$results( { id=newId, inserted=true } );
 
@@ -89,6 +92,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
 					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
 					, updateColumns = [ "value" ]
+					, useVersioning = true
 				} );
 			} );
 
@@ -104,6 +108,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
 						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
 						, updateColumns = [ "value" ]
+						, useVersioning = true
 					)
 					.$results( { id=existingId, inserted=false } );
 
@@ -129,6 +134,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
 						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
 						, updateColumns = [ "value" ]
+						, useVersioning = true
 					)
 					.$results( { id=newId, inserted=true } );
 
@@ -144,6 +150,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
 					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
 					, updateColumns = [ "value" ]
+					, useVersioning = true
 				} );
 			} );
 
@@ -160,6 +167,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
 						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
 						, updateColumns = [ "value" ]
+						, useVersioning = true
 					)
 					.$results( { id=existingId, inserted=false } );
 
@@ -194,6 +202,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id=customTenantId }
 						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
 						, updateColumns = [ "value" ]
+						, useVersioning = true
 					)
 					.$results( { id=newId, inserted=true } );
 
@@ -209,6 +218,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id=customTenantId }
 					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
 					, updateColumns = [ "value" ]
+					, useVersioning = true
 				} );
 			} );
 
@@ -437,7 +447,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[], struct injectedConfig={} ) ouput=false {
 		mockDao                 = createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
-		testDirs                = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
 		mockFormsService        = createEmptyMock( "preside.system.services.forms.FormsService" );
 		mockTenancyService      = createEmptyMock( "preside.system.services.tenancy.TenancyService" );
 		mockSystemAlertsService = createEmptyMock( "preside.system.services.systemAlerts.SystemAlertsService" );

@@ -191,19 +191,21 @@ component displayName="System configuration service" {
 	 * See [[editablesystemsettings]] for a full guide.
 	 *
 	 * @autodoc
-	 * @category.hint  Category name of the setting to save
-	 * @setting.hint   Name of the setting to save
-	 * @value.hint     Value to save
-	 * @siteId.hint    Deprecated (use tenantId): ID of site to which the setting applies (optional, if empty setting is treated as system wide default)
-	 * @tenantId.hint  ID of the tenant to which the setting applies (optional, if empty setting is treated as system wide default)
+	 * @category.hint       Category name of the setting to save
+	 * @setting.hint        Name of the setting to save
+	 * @value.hint          Value to save
+	 * @siteId.hint         Deprecated (use tenantId): ID of site to which the setting applies (optional, if empty setting is treated as system wide default)
+	 * @tenantId.hint       ID of the tenant to which the setting applies (optional, if empty setting is treated as system wide default)
+	 * @skipVersioning.hint Whether to skip versioning of the setting
 	 *
 	 */
 	public any function saveSetting(
-		  required string category
-		, required string setting
-		, required string value
-		,          string siteId = ""
-		,          string tenantId = arguments.siteId
+		  required string  category
+		, required string  setting
+		, required string  value
+		,          string  siteId         = ""
+		,          string  tenantId       = arguments.siteId
+		,          boolean skipVersioning = false
 	)  {
 		_reloadCheck();
 
@@ -230,6 +232,7 @@ component displayName="System configuration service" {
 			  data          = data
 			, matchColumns  = matchColumns
 			, updateColumns = [ "value" ]
+			, useVersioning = !arguments.skipVersioning
 		);
 
 		clearSettingsCache( arguments.category );
