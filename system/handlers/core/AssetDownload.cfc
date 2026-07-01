@@ -109,13 +109,17 @@ component {
 				var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, configHash=configHash, throwOnMissing=true, isTrashed=isTrashed  );
 				_doBrowserEtagLookup( etag );
 
-				announceInterception( "onDownloadAsset", {
+				var downloadInterceptData = {
 					  assetId        = assetId
 					, derivativeName = derivativeName
 					, asset          = asset
-				} );
+					, type           = type
+					, trackDownload  = type.trackDownloads
+				};
 
-				if ( type.trackDownloads && isFeatureEnabled( "websiteUsers" ) ) {
+				announceInterception( "onDownloadAsset", downloadInterceptData );
+
+				if ( downloadInterceptData.trackDownload && isFeatureEnabled( "websiteUsers" ) ) {
 					websiteUserActionService.recordAction(
 						  action     = "download"
 						, type       = "asset"
