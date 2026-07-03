@@ -19,9 +19,10 @@ component {
 	}
 
 	private array function getValidationRules( event, rc, prc, args={} ) {
-		var rules = [];
+		var rules     = [];
+		var maxlength = args.maxlength ?: "";
 
-		if ( !IsNumeric( args.maxlength ?: "" ) ) {
+		if ( !IsNumeric( maxlength ) || ( Val( maxlength ) <= 0 ) ) {
 			ArrayAppend( rules, { fieldname=args.name, validator="maxlength", params={ length=50000 } } );
 		}
 
