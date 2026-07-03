@@ -13,6 +13,11 @@ component hint="Display system version information" extends="preside.system.base
 		var databaseVersion    = dbresult.database_version        ?: "";
 		var productName        = server.coldfusion.productname    ?: "";
 		var productVersion     = _getProductVersion();
+		var timezoneInfo       = getTimezoneInfo();
+		var timezoneId         = timezoneInfo.timezone;
+		var timezoneShortName  = timezoneInfo.isDSTon ? timezoneInfo.shortNameDST : timezoneInfo.shortName;
+		var timezoneName       = timezoneInfo.isDSTon ? timezoneInfo.nameDST : timezoneInfo.name;
+		var utcHourOffset      = timezoneInfo.utcTotalOffset == 0 ? "" : ( timezoneInfo.utcTotalOffset < 0 ? "+" : "-" ) & Abs( timezoneInfo.utcTotalOffset / 3600 );
 
 		var headers  = [ "Service", "Version" ];
 		var versions = [
@@ -21,6 +26,10 @@ component hint="Display system version information" extends="preside.system.base
 			, [ translateResource( uri="cms:systemInformation.dataBase.th" )         , databaseName & ' (' & databaseVersion & ')' ]
 			, [ translateResource( uri="cms:systemInformation.java.th" )             , javaVersion ]
 			, [ translateResource( uri="cms:systemInformation.os.th" )               , osName & ' (' & osVersion & ')' ]
+			, [ translateResource( uri="cms:systemInformation.timezoneId.th" )       , timezoneId ]
+			, [ translateResource( uri="cms:systemInformation.timezoneName.th" )     , timezoneName & ' (' & timezoneShortName & ')' ]
+			, [ translateResource( uri="cms:systemInformation.timezoneOffset.th" )   , 'UTC ' & utcHourOffset ]
+			, [ translateResource( uri="cms:systemInformation.timezoneTime.th" )     , DateTimeFormat( Now(), "yyyy-mm-dd HH:nn:ss" ) ]
 		];
 
 		announceInterception( "postPrepareDevToolsVersions", { versions=versions } );

@@ -51,13 +51,17 @@ component extends="preside.system.base.AdminHandler" {
 		var databaseVersion    = dbresult.database_version        ?: "";
 		var productName        = server.coldfusion.productname    ?: "";
 		var productVersion     = _getProductVersion();
-
+		var timezoneInfo       = getTimezoneInfo();
 
 		args.presideCmsVersion  = updateManagerService.getCurrentVersion();
 		args.applicationServer  = productName & ' (' & productVersion & ')';
 		args.java               = javaVersion;
 		args.os                 = osName & ' (' & osVersion & ')';
 		args.dataBase           = databaseName & ' (' & databaseVersion & ')';
+		args.timezoneId         = timezoneInfo.timezone;
+		args.timezoneShortName  = timezoneInfo.isDSTon ? timezoneInfo.shortNameDST : timezoneInfo.shortName;
+		args.timezoneName       = timezoneInfo.isDSTon ? timezoneInfo.nameDST : timezoneInfo.name;
+		args.utcHourOffset      = timezoneInfo.utcTotalOffset == 0 ? "" : ( timezoneInfo.utcTotalOffset < 0 ? "+" : "-" ) & Abs( timezoneInfo.utcTotalOffset / 3600 );
 
 		return renderView( view="/admin/systemInformation/_generalTab", args=args );
 	}
