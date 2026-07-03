@@ -3418,6 +3418,16 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/datamanager/_batchEditForm", args=args );
 	}
 
+	private string function _stripFilterQueryStringParam( required string url ) {
+		var baseUrl     = ListFirst( arguments.url, "?" );
+		var queryString = ListRest(  arguments.url, "?" );
+		var queryParams = ArrayFilter( ListToArray( queryString, "&" ), function( param ) {
+			return !ReFindNoCase( "^filter=", arguments.param );
+		} );
+
+		return baseUrl & ( ArrayLen( queryParams ) ? "?" & ArrayToList( queryParams, "&" ) : "" );
+	}
+
 	private void function _exportDataAction(
 		  required any    event
 		, required struct rc
@@ -3432,7 +3442,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          string savedFilters       = ( rc.savedFilters       ?: '' )
 		,          string orderBy            = ( rc.orderBy            ?: '' )
 		,          array  extraFilters       = []
-		,          string returnUrl          = cgi.http_referer
+		,          string returnUrl          = _stripFilterQueryStringParam( cgi.http_referer ?: "" )
 		,          struct additionalArgs     = {}
 
 	) {
