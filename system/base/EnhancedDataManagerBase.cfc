@@ -19,7 +19,12 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = event.getCurrentEvent().reReplaceNoCase( "admin\.datamanager\.(.*?)\.viewRecord", "\1" );
 		var recordId = rc.id ?: "";
 
-		event.initializeDatamanagerPage( objectName=objectName, recordId=recordId, includeAllFormulaFields=true );
+		event.initializeDatamanagerPage(
+			  objectName              = objectName
+			, recordId                = recordId
+			, includeAllFormulaFields = isTrue( variables.includeAllFormulaFieldsForViewRecord ?: true )
+			, extraSelectFields       = IsArray( variables.extraSelectFieldsForViewRecord ?: "" ) && ArrayLen( variables.extraSelectFieldsForViewRecord ) ? variables.extraSelectFieldsForViewRecord : []
+		);
 
 		if ( !isQuery( prc.record ) || !prc.record.recordcount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ prc.objectTitle ?: objectName  ] ) );
