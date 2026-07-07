@@ -78,7 +78,12 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName = event.getCurrentEvent().reReplaceNoCase( "admin\.datamanager\.(.*?)\.viewRecord", "\1" );
 		var recordId = rc.id ?: "";
 
-		event.initializeDatamanagerPage( objectName=objectName, recordId=recordId, includeAllFormulaFields=true );
+		event.initializeDatamanagerPage(
+			  objectName              = objectName
+			, recordId                = recordId
+			, includeAllFormulaFields = isTrue( variables.includeAllFormulaFieldsForViewRecord ?: true )
+			, extraSelectFields       = IsArray( variables.extraSelectFieldsForViewRecord ?: "" ) && ArrayLen( variables.extraSelectFieldsForViewRecord ) ? variables.extraSelectFieldsForViewRecord : []
+		);
 
 		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId } );
 
