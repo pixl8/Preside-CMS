@@ -73,7 +73,7 @@
 		</cfif>
 		<cfloop array="#values#" index="i" item="selectValue">
 			<cfset selectValue=EncodeForHTML( selectValue ) />
-			<cfset selected=exactMatchOnly ? ( value == selectValue ) : Find( ",#selectValue#,", ",#value#," ) />
+			<cfset selected=exactMatchOnly ? ( value == selectValue ) : FindNoCase( ",#selectValue#,", ",#value#," ) />
 			<cfset valueFound=valueFound || selected />
 			<cfset label=translateResource( labels[ i ] ?: "", labels[ i ] ?: "" ) />
 			<cfset title=EncodeForHTML( translateResource( titles[ i ] ?: "", titles[ i ] ?: "" ) ) />
