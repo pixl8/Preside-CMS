@@ -845,10 +845,11 @@ component {
 		settings.uploads_directory = ExpandPath( "/uploads" );
 		settings.storageProviders = { filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" } };
 		settings.assetManager = {
-			  maxFileSize = "5"
-			, derivativeLimits = { maxHeight=0, maxWidth=0, maxResolution=0, tooBigPlaceholder="/preside/system/assets/images/placeholders/largeimage.jpg" }
-			, types       = _getConfiguredFileTypes()
-			, derivatives = _getConfiguredAssetDerivatives()
+			  maxFileSize       = "5"
+			, chunkingThreshold = "10"
+			, derivativeLimits  = { maxHeight=0, maxWidth=0, maxResolution=0, tooBigPlaceholder="/preside/system/assets/images/placeholders/largeimage.jpg" }
+			, types             = _getConfiguredFileTypes()
+			, derivatives       = _getConfiguredAssetDerivatives()
 			, datatable   = { paginationOptions=[ 5, 10, 25, 50, 100 ], defaultPageLength=10 }
 			, queue       = { concurrency=1, batchSize=100, downloadWaitSeconds=5 }
 			, folders     = {}

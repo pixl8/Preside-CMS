@@ -641,21 +641,41 @@ component extends="preside.system.base.AdminHandler" {
 	function uploadAssets( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		var folderId = rc.folder  ?: "";
-		var folder   = prc.folder ?: queryNew("");
-		if( folder.recordCount ){
-			var maxFileSize   = folder.max_filesize_in_mb ?: 100;
-			var allowedTypes  = folder.allowed_filetypes  ?: "";
-			var extensionList = "";
+		var folderId          = rc.folder  ?: "";
+		var folder            = prc.folder ?: queryNew("");
+		var assetManagerSettings = getSetting( name="assetManager" );
+		var maxFileSize       = Val( assetManagerSettings.maxFileSize    ?: 100 );
+		var chunkingThreshold = Val( assetManagerSettings.chunkingThreshold ?: 10 );
+		var allowedTypes      = "";
+		var extensionList     = "";
 
-			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
-				extensionList = ListAppend( extensionList, ".#type#" );
-			} );
-
-			event.includeData( { allowedExtensions = extensionList, maxFileSize = maxFileSize } );
+		if ( folder.recordCount ) {
+			if ( Val( folder.max_filesize_in_mb ?: 0 ) ) {
+				maxFileSize = Val( folder.max_filesize_in_mb );
+			}
+			if ( Len( Trim( folder.allowed_filetypes ?: "" ) ) ) {
+				allowedTypes  = folder.allowed_filetypes;
+				extensionList = "";
+				assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
+					extensionList = ListAppend( extensionList, ".#type#" );
+				} );
+			}
 		}
 
-		prc.pageIcon     = "picture";
+		if ( extensionList == "" ) {
+			extensionList = _buildSystemExtensionList();
+		}
+
+		event.includeData( {
+			  allowedExtensions         = extensionList
+			, maxFileSize               = maxFileSize
+			, chunkingThreshold         = chunkingThreshold
+			, chunkedUploadChunkUrl     = event.buildAdminLink( linkto="chunkedUpload.uploadChunk" )
+			, chunkedUploadFinalizeUrl  = event.buildAdminLink( linkto="chunkedUpload.finalize" )
+			, getUploadRestrictionsUrl  = event.buildAdminLink( linkto="assetmanager.getUploadRestrictions" )
+		} );
+
+		prc.pageIcon     = "picture-o";
 		prc.pageTitle    = translateResource( "cms:assetManager" );
 		prc.pageSubTitle = translateResource( "cms:assetmanager.upload.assets.title" );
 
@@ -663,6 +683,51 @@ component extends="preside.system.base.AdminHandler" {
 			  title = prc.pageSubTitle
 			, link  = event.buildAdminLink( linkTo="assetmanager.uploadAssets", queryString="folder=#folderId#" )
 		);
+	}
+
+	/**
+	 * Returns upload restrictions (maxFileSize, allowedExtensions) for a given folder.
+	 * Called via AJAX when the folder selection changes on the upload form so that
+	 * queued files can be re-validated against the new folder's restrictions.
+	 */
+	function getUploadRestrictions( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
+
+		var folderId             = rc.folder ?: "";
+		var assetManagerSettings = getSetting( name="assetManager" );
+		var systemMaxFileSize    = Val( assetManagerSettings.maxFileSize    ?: 100 );
+		var chunkingThreshold    = Val( assetManagerSettings.chunkingThreshold ?: 10 );
+		var maxFileSize          = systemMaxFileSize;
+		var extensionList        = "";
+
+		if ( Len( Trim( folderId ) ) ) {
+			var folder = assetManagerService.getFolder( id=folderId );
+			if ( folder.recordCount ) {
+				// maxFileSize: use folder-specific limit only if explicitly set
+				if ( Val( folder.max_filesize_in_mb ?: 0 ) ) {
+					maxFileSize = Val( folder.max_filesize_in_mb );
+				}
+
+				// allowedExtensions: use the same logic as uploadAssets to guarantee
+				// the extension list format is identical between page load and AJAX recheck
+				if ( Len( Trim( folder.allowed_filetypes ?: "" ) ) ) {
+					extensionList = "";
+					assetManagerService.expandTypeList( ListToArray( folder.allowed_filetypes ) ).each( function( type ){
+						extensionList = ListAppend( extensionList, ".#type#" );
+					} );
+				}
+			}
+		}
+
+		if ( extensionList == "" ) {
+			extensionList = _buildSystemExtensionList();
+		}
+
+		event.renderData( type="json", data={
+			  maxFileSize       = maxFileSize
+			, allowedExtensions = extensionList
+			, chunkingThreshold = chunkingThreshold
+		} );
 	}
 
 	function uploadAssetAction( event, rc, prc ) {
@@ -1074,17 +1139,32 @@ component extends="preside.system.base.AdminHandler" {
 	function assetPickerUploader( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		var multiple       = rc.multiple     ?: "";
-		var allowedTypes   = rc.allowedTypes ?: "";
-		var maxFileSize    = rc.maxFileSize  ?: "";
+		var multiple             = rc.multiple     ?: "";
+		var allowedTypes         = rc.allowedTypes ?: "";
+		var assetManagerSettings = getSetting( name="assetManager" );
+		var maxFileSize          = Val( rc.maxFileSize ?: "" ) > 0 ? Val( rc.maxFileSize ) : Val( assetManagerSettings.maxFileSize ?: 100 );
+		var chunkingThreshold    = Val( assetManagerSettings.chunkingThreshold ?: 10 );
+		var extensionList        = "";
 
 		if ( Len( Trim( allowedTypes ) ) ) {
-			var extensionList = "";
+			extensionList = "";
 			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
 				extensionList = ListAppend( extensionList, ".#type#" );
 			} );
-			event.includeData( { allowedExtensions = extensionList, maxFileSize = maxFileSize } );
 		}
+
+		if ( extensionList == "" ) {
+			extensionList = _buildSystemExtensionList();
+		}
+
+		event.includeData( {
+			  allowedExtensions        = extensionList
+			, maxFileSize              = maxFileSize
+			, chunkingThreshold        = chunkingThreshold
+			, chunkedUploadChunkUrl    = event.buildAdminLink( linkto="chunkedUpload.uploadChunk" )
+			, chunkedUploadFinalizeUrl = event.buildAdminLink( linkto="chunkedUpload.finalize" )
+			, getUploadRestrictionsUrl = event.buildAdminLink( linkto="assetmanager.getUploadRestrictions" )
+		} );
 
 		if ( !IsBoolean( multiple ) || !multiple ) {
 			event.includeData( { maxFiles = 1 } );
@@ -1535,6 +1615,19 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 // PRIVATE HELPERS
+	private string function _buildSystemExtensionList() {
+		var extensionList = "";
+		var allTypeGroups = StructKeyList( getSetting( name="assetManager" ).types ?: {} );
+
+		if ( Len( Trim( allTypeGroups ) ) ) {
+			assetManagerService.expandTypeList( ListToArray( allTypeGroups ) ).each( function( ext ){
+				extensionList = ListAppend( extensionList, ".#ext#" );
+			} );
+		}
+
+		return extensionList;
+	}
+
 	private void function _checkPermissions( event, rc, prc, required string key ) {
 		var permitted = "";
 		var permKey   = "assetmanager." & arguments.key;
