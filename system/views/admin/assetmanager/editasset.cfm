@@ -64,23 +64,12 @@
 			</button>
 		</a>
 
-		<a class="pull-right inline" data-global-key="a" id="upload-button">
+		<a class="pull-right inline" href="#event.buildAdminLink( linkTo='chunkedUpload.uploadNewVersionPage', queryString='asset=#assetId#' )#">
 			<button class="btn btn-success btn-sm">
 				<i class="fa fa-cloud-upload"></i>
 				#translateResource( uri="cms:assetmanager.add.version.btn" )#
 			</button>
 		</a>
-		<form id="upload-version-form" action="#event.buildAdminLink( linkTo='assetManager.uploadNewVersionAction' )#" method="post" enctype="multipart/form-data" class="hide">
-			<input type="hidden" name="asset" value="#assetId#">
-			#renderFormControl(
-				  name    = "file"
-				, type    = "fileupload"
-				, accept  = accept
-				, context = "admin"
-				, id      = "upload-version-file"
-				, label   = "cms:assetmanager.newversion.form.file.label"
-			)#
-		</form>
 	</div>
 
 	<cfif failedQueue.recordCount>
