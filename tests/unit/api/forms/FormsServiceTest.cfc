@@ -908,6 +908,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		mockFeatureService.$( "isFeatureEnabled", true );
 
 		mockConfigService.$( "saveSetting" );
+		mockConfigService.$( "getSetting", "" );
 
 		var service = createMock( object=new preside.system.services.forms.FormsService(
 			  presideObjectService = poService

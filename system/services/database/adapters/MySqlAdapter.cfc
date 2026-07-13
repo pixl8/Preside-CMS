@@ -94,6 +94,37 @@ component extends="BaseAdapter" {
 		return "alter table #escapeEntity( arguments.tableName )# drop index #escapeEntity( arguments.indexName )#";
 	}
 
+	public boolean function supportsUpsertSql() {
+		return true;
+	}
+
+	public array function getUpsertSql(
+		  required string tableName
+		, required array  insertColumns
+		, required array  updateColumns
+		, required array  conflictColumns
+	) {
+		var insertSql = super.getInsertSql(
+			  tableName     = arguments.tableName
+			, insertColumns = arguments.insertColumns
+		);
+		var sql  = insertSql[ 1 ];
+		var delim = "";
+
+		if ( !ArrayLen( arguments.updateColumns ) ) {
+			return [ sql ];
+		}
+
+		sql &= " on duplicate key update";
+
+		for( var col in arguments.updateColumns ) {
+			sql &= delim & " " & escapeEntity( lcase( col ) ) & " = :set__" & col;
+			delim = ",";
+		}
+
+		return [ sql ];
+	}
+
 	public string function getUpdateSql(
 		  required string tableName
 		, required array  updateColumns
