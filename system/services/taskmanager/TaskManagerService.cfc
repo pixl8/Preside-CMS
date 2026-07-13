@@ -219,13 +219,11 @@ component displayName="Task Manager Service" {
 			var newLogId    = createTaskHistoryLog( arguments.taskKey, newThreadId );
 			var logger      =  _getLogger( newLogId );
 
-			transaction {
-				if ( taskIsRunning( arguments.taskKey ) ) {
-					return;
-				}
-
-				markTaskAsRunning( arguments.taskKey, newThreadId );
+			if ( taskIsRunning( arguments.taskKey ) ) {
+				return;
 			}
+
+			markTaskAsRunning( arguments.taskKey, newThreadId );
 
 			if ( !_getExecutor().isStarted() ) {
 				_getExecutor().start();

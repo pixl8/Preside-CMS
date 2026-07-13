@@ -222,6 +222,19 @@ component {
 		return [ sql ];
 	}
 
+	public boolean function supportsUpsertSql() {
+		return false;
+	}
+
+	public array function getUpsertSql(
+		  required string tableName
+		, required array  insertColumns
+		, required array  updateColumns
+		, required array  conflictColumns
+	) {
+		return [ "getUpsertSql() not implemented. Must be implemented by extended adapters." ];
+	}
+
 	public string function getSelectSql(
 		  required string  tableName
 		, required array   selectColumns
