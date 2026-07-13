@@ -119,33 +119,31 @@ component implements="preside.system.services.assetManager.IAssetQueue" {
 	 * @autodoc true
 	 */
 	public struct function getNextQueuedAsset() {
-		transaction {
-			var takenByOtherProcess = false;
-			var queueDao            = $getPresideObject( "asset_generation_queue" );
-			var queuedAsset         = queueDao.selectData(
-				  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count", "context" ]
-				, filter       = "queue_status = :queue_status"
-				, filterParams = { queue_status="pending" }
-				, orderby      = "retry_count,datecreated"
-				, maxRows      = 1
+		var takenByOtherProcess = false;
+		var queueDao            = $getPresideObject( "asset_generation_queue" );
+		var queuedAsset         = queueDao.selectData(
+			  selectFields = [ "id", "asset", "asset_version", "derivative_name", "retry_count", "context" ]
+			, filter       = "queue_status = :queue_status"
+			, filterParams = { queue_status="pending" }
+			, orderby      = "retry_count,datecreated"
+			, maxRows      = 1
+		);
+
+		for( var q in queuedAsset ) {
+			var updated = queueDao.updateData(
+				  filter       = "id = :id and queue_status = :queue_status"
+				, filterParams = { id=q.id, queue_status="pending" }
+				, data         = { queue_status = "running" }
 			);
 
-			for( var q in queuedAsset ) {
-				var updated = queueDao.updateData(
-					  filter       = "id = :id and queue_status = :queue_status"
-					, filterParams = { id=q.id, queue_status="pending" }
-					, data         = { queue_status = "running" }
-				);
+			if ( updated ) {
+				q.context = IsJSON( q.context ?: "" ) ? DeserializeJSON( q.context ) : {};
 
-				if ( updated ) {
-					q.context = IsJSON( q.context ?: "" ) ? DeserializeJSON( q.context ) : {};
-
-					return q;
-				}
-
-				takenByOtherProcess = true;
-				break;
+				return q;
 			}
+
+			takenByOtherProcess = true;
+			break;
 		}
 
 		if ( takenByOtherProcess ) {
