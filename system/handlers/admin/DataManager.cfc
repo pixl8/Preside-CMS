@@ -1581,6 +1581,8 @@ component extends="preside.system.base.AdminHandler" {
 					StructAppend( rc, DeSerializeJson( savedExportDetail.template_config ) );
 				}
 
+				_checkPermission( argumentCollection=arguments, key="read", object=rc.object, checkOperations=false );
+
 				runEvent(
 					  event          = "admin.DataManager._exportDataAction"
 					, prePostExempt  = true
