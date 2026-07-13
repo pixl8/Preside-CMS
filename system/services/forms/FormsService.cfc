@@ -1011,11 +1011,7 @@ component displayName="Forms service" {
 			forms[ formName ] = formDefinition;
 
 			if ( arguments.isDynamic ) {
-				$getSystemConfigurationService().saveSetting(
-					  category = "dynamicform"
-					, setting  = Hash( formName )
-					, value    = SerializeJson( formDefinition )
-				);
+				_saveDynamicFormIfUpdated( formName, formDefinition );
 			}
 
 			return true;
@@ -1639,6 +1635,24 @@ component displayName="Forms service" {
 		}
 
 		return false;
+	}
+
+	private void function _saveDynamicFormIfUpdated( required string formName, required struct formDefinition ) {
+		var settingName   = Hash( arguments.formName );
+		var serialized    = SerializeJson( arguments.formDefinition );
+		var configService = $getSystemConfigurationService();
+		var setting       = configService.getSetting( category="dynamicform", setting=settingName );
+
+		if ( IsSimpleValue( setting ) && setting == serialized ) {
+			return;
+		}
+
+		configService.saveSetting(
+			  category       = "dynamicform"
+			, setting        = settingName
+			, value          = serialized
+			, skipVersioning = true
+		);
 	}
 
 // GETTERS AND SETTERS
