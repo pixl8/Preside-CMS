@@ -109,14 +109,24 @@ component {
 						break;
 
 					default:
-						var formConfigValues = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
-						for ( var formConfigValue in formConfigValues ) {
-							if ( Find( formConfigValue, ruleValue ) ) {
-								ArrayAppend( ruleValues, formConfigValue );
-							}
+						if ( !isEmptyString( formItem.configuration.datamanagerObject ?: "" ) ) {
+							ruleValues      = ListToArray( ruleValue );
+							formFieldValues = ListToArray( formFieldValue );
+						} else {
+							var formConfigValues = ListToArray( formItem.configuration.values ?: "", Chr( 10 ) & Chr( 13 ) );
 
-							if ( Find( formConfigValue, formFieldValue ) ) {
-								ArrayAppend( formFieldValues, formConfigValue );
+							for ( var formConfigValue in formConfigValues ) {
+								if ( isEmptyString( formConfigValue ) ) {
+									continue;
+								}
+
+								if ( ListFindNoCase( ruleValue, formConfigValue ) ) {
+									ArrayAppend( ruleValues, formConfigValue );
+								}
+
+								if ( ListFindNoCase( formFieldValue, formConfigValue ) ) {
+									ArrayAppend( formFieldValues, formConfigValue );
+								}
 							}
 						}
 						break;
