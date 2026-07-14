@@ -594,6 +594,15 @@
 			}
 		};
 
+		UberSelect.prototype.get_field_value = function( $field ) {
+			if ( $field.filter( ":radio" ).length ) {
+				var $checked = $field.filter( ":checked" );
+				return $checked.length ? $checked.val() : undefined;
+			}
+
+			return $field.val();
+		};
+
 		UberSelect.prototype.setup_filter = function() {
 			var filterBy      = this.form_field.getAttribute( "data-filter-by" )
 			  , filterByField = this.form_field.getAttribute( "data-filter-by-field" )
@@ -609,7 +618,7 @@
 
 					if ( filterInput.length ) {
 						this.filter_field = filterInput;
-						filterByValue = this.filter_field.val();
+						filterByValue = this.get_field_value( this.filter_field );
 					} else {
 						filterByValue = cfrequest[ filterBy[ i ] ] || null;
 					}
@@ -628,7 +637,7 @@
 
 		UberSelect.prototype.disable_if_unfiltered = function() {
 			if ( this.disabled_if_unfiltered ) {
-				if ( this.filter_field.val().length ) {
+				if ( ( this.get_field_value( this.filter_field ) || "" ).length ) {
 					this.form_field_jq.removeAttr( 'disabled' );
 					this.container.siblings( '.quick-add-btn' ).removeClass( 'disabled' );
 				} else {
