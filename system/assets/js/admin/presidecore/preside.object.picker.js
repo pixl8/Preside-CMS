@@ -251,13 +251,21 @@
 		};
 
 		PresideObjectPicker.prototype.getFilterValue = function( filterBy ) {
-			var field = $( 'input[name="' + filterBy + '"]' );
+			var field = $( 'input[name="' + filterBy + '"], select[name="' + filterBy + '"]' );
 
-			if ( field.length ) {
-				return field.val();
+			if ( !field.length ) {
+				return cfrequest[ filterBy ] || null;
 			}
 
-			return cfrequest[ filterBy ] || null;
+			if ( field.is( ":radio" ) ) {
+				return field.filter( ":checked" ).val();
+			}
+
+			if ( field.is( ":checkbox" ) ) {
+				return field.filter( ":checked" ).map( function(){ return this.value; } ).get().join( "," );
+			}
+
+			return field.val();
 		}
 
 		return PresideObjectPicker;
