@@ -618,26 +618,42 @@
 
 					if ( filterInput.length ) {
 						this.filter_field = filterInput;
-						filterByValue = this.filter_field.val();
+						filterByValue = this.get_filter_field_value( filterInput );
 					} else {
 						filterByValue = cfrequest[ filterBy[ i ] ] || null;
 					}
 
-					if ( filterByValue !== null && typeof filterByValue !== "undefined" ) {
+					if ( filterByValue !== null && typeof filterByValue !== "undefined" && filterByValue.length ) {
 						filters.push ( '&', filterByField[ i ], '=', filterByValue, '&filterByFields=', filterByField[ i ] );
 					}
 				}
 
-				if ( filters.length ) {
-					this.filter = filters.join( '' );
-				}
+				this.filter = filters.length ? filters.join( '' ) : "";
 			}
 
 		};
 
+		UberSelect.prototype.get_filter_field_value = function( $field ) {
+			if ( !$field || !$field.length ) {
+				return null;
+			}
+
+			// Radio groups: .val() on the collection returns the first input's value,
+			// not the checked one. Object-picker filterBy must use :checked.
+			if ( $field.is( ":radio" ) ) {
+				return $field.filter( ":checked" ).val();
+			}
+
+			if ( $field.is( ":checkbox" ) ) {
+				return $field.filter( ":checked" ).map( function(){ return this.value; } ).get().join( "," );
+			}
+
+			return $field.val();
+		};
+
 		UberSelect.prototype.disable_if_unfiltered = function() {
 			if ( this.disabled_if_unfiltered ) {
-				if ( this.filter_field.val().length ) {
+				if ( this.get_filter_field_value( this.filter_field ) ) {
 					this.form_field_jq.removeAttr( 'disabled' );
 					this.container.siblings( '.quick-add-btn' ).removeClass( 'disabled' );
 				} else {
