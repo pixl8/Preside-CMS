@@ -219,23 +219,67 @@ component {
 	}
 
 	private string function actions( event, rc, prc, args={} ){
-		var extraQs       = "";
-		var useAjaxLayout = isTrue( args.useAjaxLayout ?: false );
+		var extraQs                  = "";
+		var useAjaxLayout            = IsTrue( args.useAjaxLayout ?: "" );
+		var additionalAction         = IsStruct( args.additionalAction ?: "" ) ? Duplicate( args.additionalAction ) : {};
+		var additionalHandler        = Trim( args.additionalActionHandler ?: "" );
+		var additionalHandlerResult  = "";
+		var additionalActionHref     = "";
+		var additionalActionUrlValue = "";
+		var webflowActionQs          = "";
 
 		if ( useAjaxLayout ) {
 			extraQs = "&args.useAjaxLayout=true&_rurl=#args.returnUrl ?: ""#";
 		}
 
+		webflowActionQs = "csrfToken=#event.getCsrfToken()#&_wid=#UrlEncode( args.obfuscatedFields )##extraQs#";
+
 		if ( IsTrue( args.hasNext ?: "" ) && IsFalse( args.disableNext ?: "" ) ) {
 			args.nextButton = renderViewlet( event="webflow.default.nextButton", args=args );
 		}
-		if ( IsTrue( args.hasPrev ?: "" ) && IsFalse( args.disablePrev ?: "" )  ) {
-			args.prevLink   = args.prevLink ?: event.buildLink( linkto="webflow.default.backAction", queryString="csrfToken=#event.getCsrfToken()#&_wid=#UrlEncode( args.obfuscatedFields )##extraQs#" );
+		if ( IsTrue( args.hasPrev ?: "" ) && IsFalse( args.disablePrev ?: "" ) ) {
+			args.prevLink   = args.prevLink ?: event.buildLink( linkto="webflow.default.backAction", queryString=webflowActionQs );
 			args.prevButton = renderViewlet( event="webflow.default.prevButton", args=args );
 		}
 		if ( IsTrue( args.canCancel ?: "" ) ) {
-			args.cancelLink   = args.cancelLink ?: event.buildLink( linkto="webflow.default.cancelAction", queryString="csrfToken=#event.getCsrfToken()#&_wid=#UrlEncode( args.obfuscatedFields )##extraQs#" )
+			args.cancelLink   = args.cancelLink ?: event.buildLink( linkto="webflow.default.cancelAction", queryString=webflowActionQs );
 			args.cancelButton = renderViewlet( event="webflow.default.cancelButton", args=args );
+		}
+
+		if ( Len( additionalHandler ) && getController().handlerExists( additionalHandler ) ) {
+			additionalHandlerResult = runEvent(
+				  event          = additionalHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { args=args }
+			);
+
+			if ( IsStruct( additionalHandlerResult ) ) {
+				StructAppend( additionalAction, additionalHandlerResult, true );
+			}
+		}
+
+		args.additionalActionLabel = Trim( additionalAction.label ?: "" );
+		args.additionalActionClass = Trim( additionalAction.class ?: "" );
+		args.extraButtonGroupWith  = LCase( Trim( additionalAction.groupWith ?: "next" ) );
+		additionalActionUrlValue   = Trim( additionalAction.url ?: "" );
+
+		if ( Len( additionalActionUrlValue ) ) {
+			if ( ReFindNoCase( "^(https?:|/|##|\?|//)", additionalActionUrlValue ) ) {
+				additionalActionHref = additionalActionUrlValue;
+			} else if ( getController().handlerExists( additionalActionUrlValue ) ) {
+				if ( event.isAdminRequest() ) {
+					additionalActionHref = event.buildAdminLink( linkto=additionalActionUrlValue, queryString=webflowActionQs );
+				} else {
+					additionalActionHref = event.buildLink( linkto=additionalActionUrlValue, queryString=webflowActionQs );
+				}
+			}
+		}
+
+		args.additionalActionUrl = Trim( additionalActionHref );
+
+		if ( Len( args.additionalActionLabel ) && Len( args.additionalActionUrl ) ) {
+			args.extraButton = renderViewlet( event="webflow.default.extraButton", args=args );
 		}
 
 		return renderView( view="/webflow/default/actions", args=args );
