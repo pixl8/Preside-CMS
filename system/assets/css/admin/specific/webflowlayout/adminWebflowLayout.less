@@ -2,35 +2,48 @@
 	.preside-theme {
 		.webflow-layout {
 			.webflow-step-title {
-				margin-top: 40px;
-				margin-bottom: 30px;
-				padding-bottom: 6px;
-				border-bottom: 1px solid #e2e2e2;
-				font-size: 22px;
-				font-weight: normal;
+				margin-top     : 40px;
+				margin-bottom  : 30px;
+				padding-bottom : 6px;
+				border-bottom  : 1px solid #e2e2e2;
+				font-size      : 22px;
+				font-weight    : normal;
 			}
 
 			.webflow-action-buttons {
-				border-top: 1px solid #e2e2e2;
-				padding-top: 20px;
-				margin-top: 20px;
+				display         : flex;
+				flex-direction  : row;
+				flex-wrap       : wrap;
+				align-items     : center;
+				gap             : 10px;
+				border-top      : 1px solid #e2e2e2;
+				padding-top     : 20px;
+				margin-top      : 20px;
 
-				.webflow-cancel-btn-container,
-				.webflow-prev-btn-container {
-					float: left;
+				.webflow-cancel-btn-container {
 
 					.webflow-cancel-btn {
-						padding: 12px 6px;
-						display : inline-block;
+						padding : var( --button-padding-vertical, 7px ) var( --button-padding-horizontal, 10px );
+					}
+				}
+
+				.webflow-extra-btn-container {
+
+					&-standalone {
+						margin-left : auto;
 					}
 
-					.webflow-prev-btn {
-						margin-right: 10px;
+					&-next {
+						margin-left : auto;
+
+						+ .webflow-next-btn-container {
+							margin-left : 0;
+						}
 					}
 				}
 
 				.webflow-next-btn-container {
-					float: right;
+					margin-left : auto;
 				}
 			}
 
