@@ -11,6 +11,6 @@
 </cfscript>
 <cfoutput>
 	<div class="webflow-next-btn-container">
-		<button class="#btnClass#" type="submit" tabindex="#getNextTabIndex()#" default>#btnTitle#</button>
+		<button class="#btnClass#" type="submit" <cfif event.isAdminRequest()>tabindex="#getNextTabIndex()#"</cfif> default>#btnTitle#</button>
 	</div>
 </cfoutput>
