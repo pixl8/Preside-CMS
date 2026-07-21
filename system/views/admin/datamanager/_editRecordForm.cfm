@@ -43,7 +43,7 @@
 	<cfif args.readOnly>
 		<div id="#formId#" class="form-horizontal edit-object-form">
 	<cfelse>
-		<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#args.editRecordAction#" enctype="multipart/form-data">
+		<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" data-prevent-multiple-submit="true" class="form-horizontal edit-object-form" method="post" action="#args.editRecordAction#" enctype="multipart/form-data">
 			<input type="hidden" name="object" value="#args.object#" />
 			<input type="hidden" name="id"     value="#args.id#" />
 			<cfif args.useVersioning>

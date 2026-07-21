@@ -30,7 +30,7 @@
 			</ol>
 		</div>
 
-		<form id="reorder-form" data-dirty-form="toggleDisable,protect" action="#event.buildAdminLink( linkTo='datamanager.sortRecordsAction' )#" method="post">
+		<form id="reorder-form" data-dirty-form="toggleDisable,protect" data-prevent-multiple-submit="true" action="#event.buildAdminLink( linkTo='datamanager.sortRecordsAction' )#" method="post">
 			<input type="hidden" value="#object#" name="object" />
 			<input type="hidden" value="#ValueList( records.id )#" name="ordered" />
 

@@ -16,7 +16,7 @@
 		#batchEditWarning#
 	</p>
 
-	<form class="form-horizontal" method="post" data-dirty-form="protect" action="#saveChangesAction#">
+	<form class="form-horizontal" method="post" data-dirty-form="protect" data-prevent-multiple-submit="true" action="#saveChangesAction#">
 		<cfif batchAll>
 			<input type="hidden" name="batchAll"     value="true">
 			<input type="hidden" name="batchSrcArgs" value="#batchSrcArgs#">
