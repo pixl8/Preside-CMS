@@ -15,7 +15,7 @@
 </cfscript>
 
 <cfoutput>
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal configurator-form">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" data-prevent-multiple-submit="true" class="form-horizontal configurator-form">
 		<cfif len( rc.id ?: "" )>
 			<input type="hidden" name="id" value="#rc.id#">
 		</cfif>
