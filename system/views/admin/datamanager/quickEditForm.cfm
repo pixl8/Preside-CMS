@@ -19,7 +19,7 @@
 </cfscript>
 
 <cfoutput>
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-edit-form" method="post" action="#args.editRecordAction#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" data-prevent-multiple-submit="true" class="form-horizontal quick-edit-form" method="post" action="#args.editRecordAction#">
 		<input name="id"        type="hidden" value="#( rc.id ?: '' )#" />
 		<input name="item_type" type="hidden" value="#( args.record.item_type ?: '' )#" />
 

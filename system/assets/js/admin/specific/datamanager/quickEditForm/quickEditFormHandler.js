@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	var $quickEditForm = $( ".quick-edit-form" ).first()
-	  , setupBehaviours, handleSubmission, editRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, editAnother, showSuccessMessage;
+	  , setupBehaviours, handleSubmission, editRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, editAnother, showSuccessMessage, enableSubmitButtons;
 
 	setupBehaviours = function(){
 		$quickEditForm.submit( handleSubmission );
@@ -30,13 +30,19 @@
 				getParentControl().editSuccess( data.message || i18n.translateResource( "cms:datamanager.quick.edit.saved.confirmation" ) );
 			} else if ( typeof data.validationResult === "object" ) {
 				$quickEditForm.validate().showErrors( data.validationResult );
+				enableSubmitButtons();
 			}
 		}
 		// TODO error handling
 	};
 
 	ajaxErrorHandler = function(){
+		enableSubmitButtons();
 		// TODO error handling
+	};
+
+	enableSubmitButtons = function(){
+		$quickEditForm.find( "button[type=submit], input[type=submit]" ).prop( "disabled", false );
 	};
 
 
