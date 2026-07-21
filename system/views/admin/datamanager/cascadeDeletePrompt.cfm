@@ -47,7 +47,7 @@
 					</button>
 				</a>
 
-				<form class="inline" action="#event.buildAdminLink( objectName=objectName, recordId=id, operation='deleteRecordAction' )#" method="post">
+				<form class="inline" data-prevent-multiple-submit="true" action="#event.buildAdminLink( objectName=objectName, recordId=id, operation='deleteRecordAction' )#" method="post">
 					<input type="hidden" name="forceDelete" value="1" />
 					<cfif postActionUrl.len()>
 						<input type="hidden" name="postActionUrl" value="#HtmlEditFormat( postActionUrl )#" />
