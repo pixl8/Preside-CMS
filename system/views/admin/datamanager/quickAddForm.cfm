@@ -19,7 +19,7 @@
 </cfscript>
 
 <cfoutput>
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-add-form" method="post" action="#args.addRecordAction#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" data-prevent-multiple-submit="true" class="form-horizontal quick-add-form" method="post" action="#args.addRecordAction#">
 
 		#args.preForm#
 		
