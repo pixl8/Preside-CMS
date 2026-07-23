@@ -59,7 +59,6 @@
 					cleanArray( item );
 					continue;
 				}
-				ArrayDeleteAt( arguments.arr, i );
 			}
 
 			ArrayDeleteAt( arguments.arr, i );
