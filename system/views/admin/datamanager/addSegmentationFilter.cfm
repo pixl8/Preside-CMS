@@ -10,7 +10,7 @@
 		<i class="fa fa-fw fa-info-circle"></i>
 		#translateResource( "cms:datamanager.managefilters.segmentation.filters.expo" )#
 	</p>
-	<form class="form form-horizontal" action="#submitAction#" id="add-segmentation-filter" method="post">
+	<form class="form form-horizontal" data-prevent-multiple-submit="true" action="#submitAction#" id="add-segmentation-filter" method="post">
 		<input type="hidden" name="object" value="#HtmlEditFormat( objectName )#" />
 
 		#renderForm(

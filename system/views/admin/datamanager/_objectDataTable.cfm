@@ -106,7 +106,7 @@
 			</form>
 		</cfif>
 		<cfif args.useMultiActions>
-			<form id="multi-action-form-#instanceId#" class="form-horizontal multi-action-form" method="post" action="#args.multiActionUrl#">
+			<form id="multi-action-form-#instanceId#" data-prevent-multiple-submit="true" class="form-horizontal multi-action-form" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
 

@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	var $quickAddForm = $( ".quick-add-form" ).first()
-	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, addAnother, showSuccessMessage, clearRicheditor;
+	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, addAnother, showSuccessMessage, clearRicheditor, enableSubmitButtons;
 
 	setupBehaviours = function(){
 		$quickAddForm.submit( handleSubmission );
@@ -38,6 +38,7 @@
 				return;
 			} else if ( typeof data.validationResult === "object" ) {
 				$quickAddForm.validate().showErrors( data.validationResult );
+				enableSubmitButtons();
 			}
 		}
 
@@ -45,7 +46,12 @@
 	};
 
 	ajaxErrorHandler = function(){
+		enableSubmitButtons();
 		// TODO error handling
+	};
+
+	enableSubmitButtons = function(){
+		$quickAddForm.find( "button[type=submit], input[type=submit]" ).prop( "disabled", false );
 	};
 
 
