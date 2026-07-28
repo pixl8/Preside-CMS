@@ -153,7 +153,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function postFetchRecordsForGridListing( event, rc, prc, args={} ) {
-		if ( QueryColumnExists( args.records,   "segmentation_last_count" )
+		if ( QueryColumnExists( args.records, "id" )
+			&& QueryColumnExists( args.records, "segmentation_last_count" )
 			&& QueryColumnExists( args.records, "is_segmentation_filter" )
 			&& QueryColumnExists( args.records, "filter_object" )
 		) {
