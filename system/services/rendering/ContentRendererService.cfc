@@ -103,10 +103,11 @@ component {
 		  required string  object
 		, required string  property
 		, required string  data
-		,          any     context  = "default"
-		,          boolean editable = false
-		,          string  recordId = ""
-		,          struct  record   = {}
+		,          any     context    = "default"
+		,          boolean editable   = false
+		,          string  recordId   = ""
+		,          struct  record     = {}
+		,          boolean autoEncode = false
 
 	) {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
@@ -124,7 +125,7 @@ component {
 				  }
 			);
 		} else {
-			rendered = arguments.data;
+			rendered = arguments.autoEncode ? EncodeForHTML( arguments.data ) : arguments.data;
 		}
 
 		if ( arguments.editable ) {
