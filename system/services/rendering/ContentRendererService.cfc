@@ -124,7 +124,7 @@ component {
 				  }
 			);
 		} else {
-			rendered = arguments.data;
+			rendered = EncodeForHTML( arguments.data );
 		}
 
 		if ( arguments.editable ) {

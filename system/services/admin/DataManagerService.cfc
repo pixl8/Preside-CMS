@@ -628,7 +628,7 @@ component {
 			, useCache      = arguments.useCache
 		};
 		var transformResult = function( required struct result, required string labelRenderer ) {
-			result.text = replaceList(_getLabelRendererService().renderLabel( labelRenderer, result ), "&lt;,&gt;,&amp;,&quot;", '<,>,&,"');
+			result.text = _getLabelRendererService().renderLabel( labelRenderer, result );
 			result.value = result.id;
 			result.delete( "label" );
 			result.delete( "id" );
