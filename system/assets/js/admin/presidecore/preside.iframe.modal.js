@@ -103,12 +103,20 @@
 				} );
 			}
 
-			if ( typeof callbacks.onShow === "function" ) {
-				modal.on( "shown.bs.modal", function(){
-					modal.off( "shown.bs.modal" );
-					callbacks.onShow( modal, getIframe() );
-				} );
-			}
+			modal.on( "shown.bs.modal", function(){
+				modal.off( "shown.bs.modal" );
+				var iframeWin = getIframe();
+
+				if ( iframeWin && iframeWin.presideJQuery ) {
+					iframeWin.presideJQuery( "table.object-listing-table" ).each( function(){
+						try { iframeWin.presideJQuery( this ).dataTable().fnDraw(); } catch(e) {}
+					} );
+				}
+
+				if ( typeof callbacks.onShow === "function" ) {
+					callbacks.onShow( modal, iframeWin );
+				}
+			} );
 
 			modal.modal( "show" );
 		};
