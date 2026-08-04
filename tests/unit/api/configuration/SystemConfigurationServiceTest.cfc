@@ -75,7 +75,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				mockDao.$( "upsertData" )
 					.$args(
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
-						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, matchColumns  = [ "category", "setting", "tenant_id", "site" ]
 						, updateColumns = [ "value" ]
 						, useVersioning = true
 					)
@@ -90,7 +90,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				expect( mockDao.$callLog().upsertData.len() ).toBe( 1 );
 				expect( mockDao.$callLog().upsertData[1] ).toBe( {
 					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
-					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+					, matchColumns  = [ "category", "setting", "tenant_id", "site" ]
 					, updateColumns = [ "value" ]
 					, useVersioning = true
 				} );
@@ -106,7 +106,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				mockDao.$( "upsertData" )
 					.$args(
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id="" }
-						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, matchColumns  = [ "category", "setting", "tenant_id", "site" ]
 						, updateColumns = [ "value" ]
 						, useVersioning = true
 					)
@@ -132,7 +132,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				mockDao.$( "upsertData" )
 					.$args(
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
-						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, matchColumns  = [ "category", "setting", "tenant_id", "site" ]
 						, updateColumns = [ "value" ]
 						, useVersioning = true
 					)
@@ -148,7 +148,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				expect( mockDao.$callLog().upsertData.len() ).toBe( 1 );
 				expect( mockDao.$callLog().upsertData[1] ).toBe( {
 					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
-					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+					, matchColumns  = [ "category", "setting", "tenant_id", "site" ]
 					, updateColumns = [ "value" ]
 					, useVersioning = true
 				} );
@@ -165,7 +165,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				mockDao.$( "upsertData" )
 					.$args(
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site=siteId, tenant_id="" }
-						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, matchColumns  = [ "category", "setting", "tenant_id", "site" ]
 						, updateColumns = [ "value" ]
 						, useVersioning = true
 					)
@@ -200,7 +200,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				mockDao.$( "upsertData" )
 					.$args(
 						  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id=customTenantId }
-						, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+						, matchColumns  = [ "category", "setting", "tenant_id", "site" ]
 						, updateColumns = [ "value" ]
 						, useVersioning = true
 					)
@@ -216,7 +216,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				expect( mockDao.$callLog().upsertData.len() ).toBe( 1 );
 				expect( mockDao.$callLog().upsertData[1] ).toBe( {
 					  data          = { category=category, setting="mysetting", value="this is the value of my setting", site="", tenant_id=customTenantId }
-					, matchColumns  = [ "category", "setting", "site", "tenant_id" ]
+					, matchColumns  = [ "category", "setting", "tenant_id", "site" ]
 					, updateColumns = [ "value" ]
 					, useVersioning = true
 				} );
