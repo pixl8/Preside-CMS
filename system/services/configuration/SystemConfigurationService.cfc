@@ -211,17 +211,22 @@ component displayName="System configuration service" {
 
 		var dao          = _getDao();
 		var tenancy      = getConfigCategoryTenancy( arguments.category );
-		var matchColumns = [ "category", "setting", "site", "tenant_id" ];
+		var matchColumns = [ "category", "setting", "tenant_id" ];
+		var sitesEnabled = $isFeatureEnabled( "sites" );
 		var data         = {
 			  category  = arguments.category
 			, setting   = arguments.setting
 			, value     = arguments.value
-			, site      = ""
 			, tenant_id = ""
 		};
 
+		if ( sitesEnabled ) {
+			ArrayAppend( matchColumns, "site" );
+			data.site = "";
+		}
+
 		if ( Len( tenancy ) && Len( Trim( arguments.tenantId ) ) ) {
-			if ( $isFeatureEnabled( "sites" ) && tenancy == "site" ) {
+			if ( sitesEnabled && tenancy == "site" ) {
 				data.site = arguments.tenantId;
 			} else {
 				data.tenant_id = arguments.tenantId;
