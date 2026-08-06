@@ -284,7 +284,7 @@ component extends="preside.system.base.AdminHandler" {
 		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId, version=version } );
 
 		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
-		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ recordLabel ] );
+		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ EncodeForHTML( recordLabel ) ] );
 
 		if ( language.len() ) {
 			prc.language = multilingualPresideObjectService.getLanguage( language );
@@ -2467,11 +2467,12 @@ component extends="preside.system.base.AdminHandler" {
 		for( var record in records ){
 			for( var field in gridFields ){
 				records[ ListLast( field, "." ) ][ records.currentRow ] = renderField(
-					  object  = objectName
-					, property= field
-					, data    = record[ ListLast( field, "." ) ]
-					, record  = record
-					, context = [ "adminDataTable", "admin" ]
+					  object     = objectName
+					, property   = field
+					, data       = record[ ListLast( field, "." ) ]
+					, record     = record
+					, context    = [ "adminDataTable", "admin" ]
+					, autoEncode = true
 				);
 			}
 
