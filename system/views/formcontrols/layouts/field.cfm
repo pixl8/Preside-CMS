@@ -12,7 +12,7 @@
 
 	toggleWhen        = Trim( args.toggleWhen   ?: "" );
 	toggleFields      = Trim( args.toggleFields ?: "" );
-	conditionalToggle = Len( toggleWhen ) && Len( toggleFields ) && isFeatureEnabled( "conditionalFieldVisibility" );
+	conditionalToggle = Len( toggleFields ) && StructKeyExists( args, "toggleWhen" ) && isFeatureEnabled( "conditionalFieldVisibility" );
 
 	if ( conditionalToggle ) {
 		event.include( "/js/frontend/conditionalFieldVisibility/" );
