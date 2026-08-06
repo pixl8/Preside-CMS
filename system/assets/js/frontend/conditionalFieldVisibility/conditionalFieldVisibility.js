@@ -29,7 +29,12 @@
 			return $checkable.filter( ":checked" ).map( function() { return String( $( this ).val() ); } ).get();
 		}
 
-		$field = $wrapper.find( "select, input, textarea" ).first();
+		// Enhanced selects move the name onto a hidden field and never update the original
+		// select, so the named element is the only reliable source of the current value
+		$field = $wrapper.find( "select[name], input[name], textarea[name]" ).first();
+		if ( !$field.length ) {
+			$field = $wrapper.find( "select, input, textarea" ).first();
+		}
 		if ( !$field.length ) {
 			return [];
 		}
@@ -39,7 +44,13 @@
 			return [];
 		}
 
-		return $.isArray( val ) ? $.map( val, String ) : [ String( val ) ];
+		if ( $.isArray( val ) ) {
+			return $.map( val, String );
+		}
+
+		val = String( val );
+
+		return val.indexOf( "," ) === -1 ? [ val ] : $.map( val.split( "," ), $.trim );
 	}
 
 	function predicateMatched( predicate, values ) {
@@ -128,7 +139,8 @@
 		return this.each( function() {
 			var $wrapper = $( this );
 
-			$wrapper.find( "select, input, textarea" ).on( "change", function() {
+			// Delegated so controls added after init (e.g. an enhanced select's hidden field) are covered
+			$wrapper.on( "change", "select, input, textarea", function() {
 				apply( $wrapper );
 			} );
 
