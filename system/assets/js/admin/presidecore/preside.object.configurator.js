@@ -36,6 +36,8 @@
 				if ( this.value.length ) {
 					_len = this.value.length;
 					for( ; _i<_len; _i++ ){
+						delete this.value[ _i ].configurator__index;
+
 						this.select_item( this.value[ _i ] );
 					}
 				}
