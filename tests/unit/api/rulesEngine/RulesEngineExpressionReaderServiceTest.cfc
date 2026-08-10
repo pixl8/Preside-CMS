@@ -50,7 +50,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var meta     = GetComponentMetadata( cfc );
 				var dummyDefs = { test=CreateUUId() };
 
-				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( meta.functions[1] ).$results( dummyDefs );
+				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( Duplicate( meta.functions[1] ) ).$results( dummyDefs );
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
@@ -93,7 +93,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var meta     = GetComponentMetadata( cfc );
 				var dummyDefs = { test=CreateUUId() };
 
-				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( meta.functions[1] ).$results( dummyDefs );
+				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( Duplicate( meta.functions[1] ) ).$results( dummyDefs );
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
@@ -107,7 +107,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var meta     = GetComponentMetadata( cfc );
 				var dummyDefs = { test=CreateUUId() };
 
-				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( meta.functions[1] ).$results( dummyDefs );
+				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( Duplicate( meta.functions[1] ) ).$results( dummyDefs );
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
