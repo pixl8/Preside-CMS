@@ -9,10 +9,18 @@
 	param name="args.nolabel"  type="boolean" required="false" default="false";
 
 	hasError = Len( Trim( args.error ) );
+
+	toggleWhen        = Trim( args.toggleWhen   ?: "" );
+	toggleFields      = Trim( args.toggleFields ?: "" );
+	conditionalToggle = Len( toggleFields ) && StructKeyExists( args, "toggleWhen" ) && isFeatureEnabled( "conditionalFieldVisibility" );
+
+	if ( conditionalToggle ) {
+		event.include( "/js/frontend/conditionalFieldVisibility/" );
+	}
 </cfscript>
 
 <cfoutput>
-	<div class="form-group form-group-grid<cfif hasError> has-error</cfif>">
+	<div class="form-group form-group-grid<cfif hasError> has-error</cfif>"<cfif conditionalToggle> data-toggle-fields="#EncodeForHtmlAttribute( toggleFields )#" data-toggle-when="#EncodeForHtmlAttribute( toggleWhen )#"</cfif>>
 		<cfif not args.nolabel>
 			<label class="control-label no-padding-right" for="#args.for#">
 				#args.label#
