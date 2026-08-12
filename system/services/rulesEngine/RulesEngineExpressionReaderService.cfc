@@ -92,10 +92,10 @@ component displayName="RulesEngine Expression Reader Service" {
 	 */
 	public struct function getExpressionsFromCfc( required string componentPath, required string rootPath ) {
 		var meta            = getComponentMetadata( arguments.componentPath );
-		var feature         = meta.feature ?: "";
-		var category        = meta.expressionCategory ?: "default";
-		var contexts        = ListToArray( meta.expressionContexts ?: "global" );
-		var tags            = ListToArray( meta.expressionTags ?: "" );
+		var feature         = _getExtendedMeta( meta, "feature"            , ""        );
+		var category        = _getExtendedMeta( meta, "expressionCategory" , "default" );
+		var contexts        = ListToArray( _getExtendedMeta( meta, "expressionContexts", "global" ) );
+		var tags            = ListToArray( _getExtendedMeta( meta, "expressionTags"    , ""       ) );
 		var contextsEnabled = false;
 		var contextService  = _getContextService();
 
@@ -114,37 +114,27 @@ component displayName="RulesEngine Expression Reader Service" {
 			return {};
 		}
 
-		var functions     = meta.functions ?: [];
+		var functions     = _getExtendedFunctionsMeta( meta );
 		var baseId        = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
-		var filterObjects = [];
+		var filterObjects = ListToArray( functions.prepareFilters.objects ?: "" );
 		var expressions   = {};
 
-		for( var func in functions ) {
-			if ( func.name == "evaluateExpression" ) {
-				expressions[ baseId ] = {
-					  contexts              = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
-					, fields                = getExpressionFieldsFromFunctionDefinition( func )
-					, filterObjects         = filterObjects
-					, category              = category
-					, tags                  = tags
-					, expressionHandler     = "rules.expressions.#baseId#.evaluateExpression"
-					, filterHandler         = filterObjects.len() ? "rules.expressions.#baseId#.prepareFilters" : ""
-					, labelHandler          = "rules.expressions.#baseId#.getLabel"
-					, textHandler           = "rules.expressions.#baseId#.getText"
-					, expressionHandlerArgs = {}
-					, filterHandlerArgs     = {}
-					, labelHandlerArgs      = {}
-					, textHandlerArgs       = {}
-				};
-
-			} else if ( func.name == "prepareFilters" ) {
-				filterObjects = ListToArray( func.objects ?: "" );
-				if ( StructKeyExists( expressions, baseId ) ) {
-					expressions[ baseId ].filterObjects = filterObjects;
-					expressions[ baseId ].filterHandler = "rules.expressions.#baseId#.prepareFilters";
-					break;
-				}
-			}
+		if ( StructKeyExists( functions, "evaluateExpression" ) ) {
+			expressions[ baseId ] = {
+				  contexts              = _getContextService().expandContexts( contexts )
+				, fields                = getExpressionFieldsFromFunctionDefinition( functions.evaluateExpression )
+				, filterObjects         = filterObjects
+				, category              = category
+				, tags                  = tags
+				, expressionHandler     = "rules.expressions.#baseId#.evaluateExpression"
+				, filterHandler         = filterObjects.len() ? "rules.expressions.#baseId#.prepareFilters" : ""
+				, labelHandler          = "rules.expressions.#baseId#.getLabel"
+				, textHandler           = "rules.expressions.#baseId#.getText"
+				, expressionHandlerArgs = {}
+				, filterHandlerArgs     = {}
+				, labelHandlerArgs      = {}
+				, textHandlerArgs       = {}
+			};
 		}
 
 		return expressions;
@@ -254,6 +244,56 @@ component displayName="RulesEngine Expression Reader Service" {
 		}
 
 		return "text";
+	}
+
+	private any function _getExtendedMeta( required struct metaData, required string key, any defaultValue ){
+		if ( StructKeyExists( arguments.metaData, arguments.key ) ) {
+			return arguments.metadata[ arguments.key ];
+		}
+
+		if ( StructKeyExists( arguments.metaData, "extends" ) ) {
+			return _getExtendedMeta( arguments.metaData.extends, arguments.key, arguments.defaultValue );
+		}
+
+		return arguments.defaultValue;
+	}
+
+	private struct function _getExtendedFunctionsMeta( required struct metaData ){
+		var extendedFunctions = {};
+		var metaDataFunctions = arguments.metaData.functions ?: [];
+
+		for ( var func in metaDataFunctions ) {
+			extendedFunctions[ func.name ] = Duplicate( func );
+		}
+
+		if ( StructKeyExists( arguments.metaData, "extends" ) ) {
+			var parentFunctions = _getExtendedFunctionsMeta( arguments.metaData.extends );
+
+			for ( var parentFunctionName in parentFunctions ) {
+				if ( StructKeyExists( extendedFunctions, parentFunctionName ) ) {
+					var extendedFunc = extendedFunctions[ parentFunctionName ];
+					var parentFunc   = parentFunctions[ parentFunctionName ];
+
+					StructAppend( extendedFunc, parentFunc, false );
+
+					for ( var parentParam in parentFunc.parameters ) {
+						var extendedParamIndex = ArrayFind( extendedFunc.parameters, function( param ){
+							return param.name == parentParam.name;
+						} );
+
+						if ( extendedParamIndex ) {
+							StructAppend( extendedFunc.parameters[ extendedParamIndex ], parentParam, false )
+						} else {
+							ArrayAppend( extendedFunc.parameters, parentParam );
+						}
+					}
+				} else {
+					extendedFunctions[ parentFunctionName ] = parentFunctions[ parentFunctionName ];
+				}
+			}
+		}
+
+		return extendedFunctions;
 	}
 
 // GETTERS AND SETTERS
