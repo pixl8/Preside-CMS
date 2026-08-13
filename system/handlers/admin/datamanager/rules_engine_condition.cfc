@@ -160,7 +160,9 @@ component extends="preside.system.base.AdminHandler" {
 		) {
 			var records = args.records ?: QueryNew('');
 			for ( var record in records ) {
-				if ( isFalse( record.is_segmentation_filter ) ) {
+				if ( isFalse( record.is_segmentation_filter )
+					&& Len( Trim( record.filter_object ?: "" ) )
+				 ) {
 					var filter = rulesEngineFilterService.prepareFilter(
 				  		  objectName = record.filter_object
 						, filterId   = record.id
