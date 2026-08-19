@@ -534,7 +534,7 @@ component serializable=false accessors=true extends="coldbox.system.web.context.
 
 		// status code? We do not add to response headers as this is a separate marker identifier to the response
 		if( structKeyExists( arguments, "statusCode" ) ){
-			getPageContext().getResponse().setStatus( javaCast( "int", arguments.statusCode ), javaCast( "string", arguments.statusText ) );
+			getPageContext().getResponse().setStatus( javaCast( "int", arguments.statusCode ) );
 		}
 		// Name Exists
 		else if( structKeyExists( arguments, "name" ) ){
