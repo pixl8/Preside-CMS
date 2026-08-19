@@ -303,4 +303,17 @@ component extends="coldbox.system.Bootstrap" {
 
 		return sessionManagement || ( presideSessionManagement && !statelessRequest );
 	}
+
+	private function getPageContextResponse(){
+		if ( !StructKeyExists( request, "__pcResp" ) ) {
+			var response = getPageContext().getResponse();
+			try{
+				response.getStatus();
+			}catch( any e ){
+				response = response.getResponse();
+			}
+			request.__pcResp = new PageContextResponseWrapper( response );
+		}
+		return request.__pcResp;
+	}
 }
