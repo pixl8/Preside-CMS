@@ -326,8 +326,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.canActivate  = !IsTrue( prc.page._version_is_draft ) && !pageType.isSystemPageType() && _checkPermissions( argumentCollection=arguments, key="activate", pageId=pageId, throwOnError=false );
 
 		prc.mainFormName  = "preside-objects.page.edit";
-		prc.mergeFormName = _getPageTypeFormName( pageType, "edit" );
 		prc.page          = QueryRowToStruct( prc.page );
+		prc.mergeFormName = _getPageTypeFormName( pageType, "edit", prc.page );
 
 		var pageHasDraft = ( version > 0 ) || isTrue( prc.page._version_has_drafts ?: "" );
 		var savedData    = getPresideObject( pageType.getPresideObject() ).selectData(
@@ -404,7 +404,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( page.page_type );
-		var mergeFormName = _getPageTypeFormName( pageType, "edit" )
+		var mergeFormName = _getPageTypeFormName( pageType, "edit", QueryRowToStruct( page ) )
 		if ( Len( Trim( mergeFormName ) ) ) {
 			formName = formsService.getMergedFormName( formName, mergeFormName );
 		}
@@ -478,7 +478,7 @@ component extends="preside.system.base.AdminHandler" {
 		pageType = pageTypesService.getPageType( prc.page.page_type );
 
 		prc.mainFormName  = "preside-objects.page.clone";
-		prc.mergeFormName = _getPageTypeFormName( pageType, "clone" );
+		prc.mergeFormName = _getPageTypeFormName( pageType, "clone", QueryRowToStruct( prc.page ) );
 
 		prc.page = QueryRowToStruct( prc.page );
 		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=false, allowDraftVersions=true  );
@@ -512,7 +512,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( page.page_type );
-		var mergeFormName = _getPageTypeFormName( pageType, "clone" )
+		var mergeFormName = _getPageTypeFormName( pageType, "clone", QueryRowToStruct( page ) )
 		if ( Len( Trim( mergeFormName ) ) ) {
 			formName = formsService.getMergedFormName( formName, mergeFormName );
 		}
@@ -1530,7 +1530,7 @@ component extends="preside.system.base.AdminHandler" {
 		return permitted;
 	}
 
-	private string function _getPageTypeFormName( required any pageType, required string action ) {
+	private string function _getPageTypeFormName( required any pageType, required string action, struct page={} ) {
 		var specificForm = "";
 		var defaultForm  = pageType.getDefaultForm();
 
@@ -1542,10 +1542,16 @@ component extends="preside.system.base.AdminHandler" {
 			default: return "";
 		}
 
-		if ( formsService.formExists( specificForm ) ) {
-			return specificForm;
-		}
-		return formsService.formExists( defaultForm ) ? defaultForm : "";
+		var interceptArgs = {
+			  formName = ( formsService.formExists( specificForm ) ? specificForm : defaultForm )
+			, pageType = arguments.pageType.getId()
+			, page     = arguments.page
+			, action   = arguments.action
+		};
+
+		announceInterception( "onGetPageTypeFormName", interceptArgs );
+
+		return interceptArgs.formName;
 	}
 
 	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false, setVersion=true ) {
