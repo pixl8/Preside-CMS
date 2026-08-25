@@ -2745,24 +2745,12 @@ component extends="preside.system.base.AdminHandler" {
 		newId = obj.insertData( data=formData, insertManyToManyRecords=true, isDraft=isDraft );
 
 		if ( Len( newId ) ) {
-			if ( arguments.audit ) {
-				var auditDetail = _getAuditDataFromFormData( formData );
-				auditDetail.id = newId;
-				auditDetail.objectName = arguments.object;
-				if ( arguments.auditAction == "" ) {
-					if ( arguments.draftsEnabled && isDraft ) {
-						arguments.auditAction = "datamanager_add_draft_record";
-					} else {
-						arguments.auditAction = "datamanager_add_record";
-					}
-				}
-				event.audit(
-					  action   = arguments.auditAction
-					, type     = arguments.auditType
-					, recordId = newId
-					, detail   = auditDetail
-				);
-			}
+			_addRecordActionAudit(
+				  argumentCollection = arguments
+				, recordId           = newId
+				, formData           = formData
+				, isDraft            = isDraft
+			);
 
 			args.newId = newId;
 			customizationService.runCustomization(
@@ -3175,27 +3163,12 @@ component extends="preside.system.base.AdminHandler" {
 			, isDraft                 = isDraft
 			, forceVersionCreation    = forceVersion
 		) ) {
-			if ( arguments.audit ) {
-				var auditDetail = _getAuditDataFromFormData( formData );
-				auditDetail.objectName = arguments.object;
-				if ( !Len( Trim( arguments.auditAction ) ) ) {
-					if ( arguments.draftsEnabled ) {
-						if ( isDraft ) {
-							arguments.auditAction = "datamanager_save_draft_record";
-						} else {
-							arguments.auditAction = "datamanager_publish_record";
-						}
-					} else {
-						arguments.auditAction = "datamanager_edit_record";
-					}
-				}
-				event.audit(
-					  action   = arguments.auditAction
-					, type     = arguments.auditType
-					, recordId = id
-					, detail   = auditDetail
-				);
-			}
+			_editRecordActionAudit(
+				  argumentCollection = arguments
+				, recordId           = id
+				, formData           = formData
+				, isDraft            = isDraft
+			);
 
 			customizationService.runCustomization(
 				  objectName = object
@@ -3215,6 +3188,106 @@ component extends="preside.system.base.AdminHandler" {
 			persist = formData;
 			setNextEvent( url=errorUrl, persistStruct=persist );
 		}
+	}
+
+	private void function _addRecordActionAudit(
+		  required any     event
+		, required string  object
+		, required string  recordId
+		,          boolean audit                   = true
+		,          string  auditAction             = ""
+		,          string  auditType               = "datamanager"
+		,          boolean draftsEnabled           = false
+		,          boolean isDraft                 = false
+		,          any     formData
+		,          string  formName                = ""
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = arguments.object
+		,          array   permissionContextKeys   = []
+	) {
+		if ( !Len( Trim( arguments.auditAction ) ) ) {
+			if ( arguments.draftsEnabled && arguments.isDraft ) {
+				arguments.auditAction = "datamanager_add_draft_record";
+			} else {
+				arguments.auditAction = "datamanager_add_record";
+			}
+		}
+
+		_addEditRecordActionAudit( argumentCollection=arguments );
+	}
+
+	private void function _editRecordActionAudit(
+		  required any     event
+		, required string  object
+		, required string  recordId
+		,          boolean audit                   = true
+		,          string  auditAction             = ""
+		,          string  auditType               = "datamanager"
+		,          boolean draftsEnabled           = false
+		,          boolean isDraft                 = false
+		,          any     formData
+		,          string  formName                = ""
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = arguments.object
+		,          array   permissionContextKeys   = []
+	) {
+		if ( !Len( Trim( arguments.auditAction ) ) ) {
+			if ( !arguments.draftsEnabled ) {
+				arguments.auditAction = "datamanager_edit_record";
+			} else if ( arguments.isDraft ) {
+				arguments.auditAction = "datamanager_save_draft_record";
+			} else {
+				arguments.auditAction = "datamanager_publish_record";
+			}
+		}
+
+		_addEditRecordActionAudit( argumentCollection=arguments );
+	}
+
+	private void function _addEditRecordActionAudit(
+		  required any     event
+		, required string  object
+		, required string  recordId
+		, required string  auditAction
+		,          boolean audit                   = true
+		,          string  auditType               = "datamanager"
+		,          any     formData
+		,          string  formName                = ""
+		,          boolean stripPermissionedFields = true
+		,          string  permissionContext       = arguments.object
+		,          array   permissionContextKeys   = []
+	) {
+		if ( !arguments.audit ) {
+			return;
+		}
+
+		if ( !IsStruct( arguments.formData ?: "" ) ) {
+			if ( !Len( Trim( arguments.formName ) ) ) {
+				throw(
+					  type    = "datamanager.audit.missing.formdata"
+					, message = "A datamanager audit entry for object [#arguments.object#] was requested without either a [formData] struct or a [formName] to collect it from."
+				);
+			}
+
+			arguments.formData = event.getCollectionForForm(
+				  formName                = arguments.formName
+				, stripPermissionedFields = arguments.stripPermissionedFields
+				, permissionContext       = arguments.permissionContext
+				, permissionContextKeys   = arguments.permissionContextKeys
+			);
+		}
+
+		var auditDetail = _getAuditDataFromFormData( arguments.formData );
+
+		auditDetail.objectName = arguments.object;
+		auditDetail.id         = arguments.recordId;
+
+		event.audit(
+			  action   = arguments.auditAction
+			, type     = arguments.auditType
+			, recordId = arguments.recordId
+			, detail   = auditDetail
+		);
 	}
 
 	private void function _cloneRecordAction(required any     event
