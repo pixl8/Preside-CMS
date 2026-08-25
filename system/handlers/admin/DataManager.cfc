@@ -2745,10 +2745,11 @@ component extends="preside.system.base.AdminHandler" {
 		newId = obj.insertData( data=formData, insertManyToManyRecords=true, isDraft=isDraft );
 
 		if ( Len( newId ) ) {
-			addRecordActionAudit(
+			_addRecordActionAudit(
 				  argumentCollection = arguments
 				, recordId           = newId
 				, formData           = formData
+				, isDraft            = isDraft
 			);
 
 			args.newId = newId;
@@ -3162,10 +3163,11 @@ component extends="preside.system.base.AdminHandler" {
 			, isDraft                 = isDraft
 			, forceVersionCreation    = forceVersion
 		) ) {
-			editRecordActionAudit(
+			_editRecordActionAudit(
 				  argumentCollection = arguments
 				, recordId           = id
 				, formData           = formData
+				, isDraft            = isDraft
 			);
 
 			customizationService.runCustomization(
@@ -3195,13 +3197,16 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean audit                   = true
 		,          string  auditAction             = ""
 		,          string  auditType               = "datamanager"
-		,          any     formData                = NullValue()
+		,          boolean draftsEnabled           = false
+		,          boolean isDraft                 = false
+		,          any     formData
+		,          string  formName                = ""
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = arguments.object
 		,          array   permissionContextKeys   = []
 	) {
-		if ( !Len( Trim( arguments.auditAction ?: "" ) ) ) {
-			if ( arguments.draftsEnabled && isDraft ) {
+		if ( !Len( Trim( arguments.auditAction ) ) ) {
+			if ( arguments.draftsEnabled && arguments.isDraft ) {
 				arguments.auditAction = "datamanager_add_draft_record";
 			} else {
 				arguments.auditAction = "datamanager_add_record";
@@ -3218,20 +3223,21 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean audit                   = true
 		,          string  auditAction             = ""
 		,          string  auditType               = "datamanager"
-		,          any     formData                = NullValue()
+		,          boolean draftsEnabled           = false
+		,          boolean isDraft                 = false
+		,          any     formData
+		,          string  formName                = ""
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = arguments.object
 		,          array   permissionContextKeys   = []
 	) {
 		if ( !Len( Trim( arguments.auditAction ) ) ) {
-			if ( arguments.draftsEnabled ) {
-				if ( isDraft ) {
-					arguments.auditAction = "datamanager_save_draft_record";
-				} else {
-					arguments.auditAction = "datamanager_publish_record";
-				}
-			} else {
+			if ( !arguments.draftsEnabled ) {
 				arguments.auditAction = "datamanager_edit_record";
+			} else if ( arguments.isDraft ) {
+				arguments.auditAction = "datamanager_save_draft_record";
+			} else {
+				arguments.auditAction = "datamanager_publish_record";
 			}
 		}
 
@@ -3242,10 +3248,11 @@ component extends="preside.system.base.AdminHandler" {
 		  required any     event
 		, required string  object
 		, required string  recordId
+		, required string  auditAction
 		,          boolean audit                   = true
-		,          string  auditAction             = ""
 		,          string  auditType               = "datamanager"
-		,          any     formData                = NullValue()
+		,          any     formData
+		,          string  formName                = ""
 		,          boolean stripPermissionedFields = true
 		,          string  permissionContext       = arguments.object
 		,          array   permissionContextKeys   = []
@@ -3253,17 +3260,32 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !arguments.audit ) {
 			return;
 		}
-		if ( !IsStruct( arguments.formData ) ) {
-			arguments.formData = event.getCollectionForForm( formName=arguments.formName, stripPermissionedFields=arguments.stripPermissionedFields, permissionContext=arguments.permissionContext, permissionContextKeys=arguments.permissionContextKeys );
+
+		if ( !IsStruct( arguments.formData ?: "" ) ) {
+			if ( !Len( Trim( arguments.formName ) ) ) {
+				throw(
+					  type    = "datamanager.audit.missing.formdata"
+					, message = "A datamanager audit entry for object [#arguments.object#] was requested without either a [formData] struct or a [formName] to collect it from."
+				);
+			}
+
+			arguments.formData = event.getCollectionForForm(
+				  formName                = arguments.formName
+				, stripPermissionedFields = arguments.stripPermissionedFields
+				, permissionContext       = arguments.permissionContext
+				, permissionContextKeys   = arguments.permissionContextKeys
+			);
 		}
-		var auditDetail = _getAuditDataFromFormData( formData );
+
+		var auditDetail = _getAuditDataFromFormData( arguments.formData );
+
 		auditDetail.objectName = arguments.object;
 		auditDetail.id         = arguments.recordId;
 
 		event.audit(
 			  action   = arguments.auditAction
 			, type     = arguments.auditType
-			, recordId = id
+			, recordId = arguments.recordId
 			, detail   = auditDetail
 		);
 	}
