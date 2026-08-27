@@ -145,6 +145,53 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.convertTimePeriodToDateRange( json ) ).toBe( { from=nowish, to=nowish } );
 			} );
 
+			it( "should return from 48 hours ago to 24 hours ago when type is 'betweenago'", function(){
+				var timePeriod = { type="betweenago", unit="h", measure=48, unit2="h", measure2=24 };
+				var json       = SerializeJson( timePeriod );
+				var range      = { from=DateAdd( "h", -48, nowish ), to=DateAdd( "h", -24, nowish ) };
+
+				expect( service.convertTimePeriodToDateRange( json ) ).toBe( range );
+			} );
+
+			it( "should treat a missing measure2 as now when type is 'betweenago'", function(){
+				var timePeriod = { type="betweenago", unit="h", measure=24 };
+				var json       = SerializeJson( timePeriod );
+				var range      = { from=DateAdd( "h", -24, nowish ), to=nowish };
+
+				expect( service.convertTimePeriodToDateRange( json ) ).toBe( range );
+			} );
+
+			it( "should swap inverted offsets so from is earlier than to when type is 'betweenago'", function(){
+				var timePeriod = { type="betweenago", unit="h", measure=24, unit2="h", measure2=48 };
+				var json       = SerializeJson( timePeriod );
+				var range      = { from=DateAdd( "h", -48, nowish ), to=DateAdd( "h", -24, nowish ) };
+
+				expect( service.convertTimePeriodToDateRange( json ) ).toBe( range );
+			} );
+
+			it( "should return empty struct when type is 'betweenago' but unit is not a valid unit", function(){
+				var timePeriod = { type="betweenago", unit="not-a-unit", measure=48, measure2=24 };
+				var json       = SerializeJson( timePeriod );
+
+				expect( service.convertTimePeriodToDateRange( json ) ).toBe( {} );
+			} );
+
+			it( "should return from 24 hours ahead to 48 hours ahead when type is 'betweenupcoming'", function(){
+				var timePeriod = { type="betweenupcoming", unit="h", measure=24, unit2="h", measure2=48 };
+				var json       = SerializeJson( timePeriod );
+				var range      = { from=DateAdd( "h", 24, nowish ), to=DateAdd( "h", 48, nowish ) };
+
+				expect( service.convertTimePeriodToDateRange( json ) ).toBe( range );
+			} );
+
+			it( "should use unit for both ends when unit2 is omitted for 'betweenupcoming'", function(){
+				var timePeriod = { type="betweenupcoming", unit="d", measure=1, measure2=2 };
+				var json       = SerializeJson( timePeriod );
+				var range      = { from=DateAdd( "d", 1, nowish ), to=DateAdd( "d", 2, nowish ) };
+
+				expect( service.convertTimePeriodToDateRange( json ) ).toBe( range );
+			} );
+
 			/*
 
 			*/
