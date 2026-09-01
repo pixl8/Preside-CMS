@@ -244,8 +244,6 @@ component extends="preside.system.base.adminHandler" {
 			} ]
 		} );
 
-		prc.viewRecordLink = event.buildAdminLink( objectName=relatedObject, recordId="{id}" );
-
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
@@ -264,11 +262,12 @@ component extends="preside.system.base.adminHandler" {
 	}
 
 	private string function relatedRecordTableActions( event, rc, prc, args={} ) {
-		if ( Len( Trim( prc.viewRecordLink ?: "" ) ) ) {
-			args.viewRecordLink = prc.viewRecordLink.replace( "{id}", ( args.id ?: "" ) );
+		if ( !isEmptyString( args.objectName ?: "" ) &&  !isEmptyString( args.id ?: "" ) ) {
+			args.viewRecordLink = event.buildAdminLink( objectName=args.objectName, recordId=args.id );
 
 			return renderView( view="/admin/dataHelpers/relatedRecordTableActions", args=args );
 		}
+
 		return "";
 	}
 
