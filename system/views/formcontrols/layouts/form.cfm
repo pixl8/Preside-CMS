@@ -53,13 +53,18 @@
 	</cfif>
 
 	<cfif Len( Trim( formId ) ) and Len( Trim( validationJs ))>
+		<cfset event.include( assetId="/js/frontend/formbuilder/" )>
 		<cfsavecontent variable="validationJs">
-			( function( $ ){
-				var validator = $('###formId#').validate()
-				  , options   = #validationJs#;
+			( function( $ ) {
+				if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
+					executeWithFormBuilderDependencies( function( $ ) {
+						var validator = $( '###formId#' ).validate()
+						  , options   = #validationJs#;
 
-				validator.settings.rules    = $.extend( validator.settings.rules   , options.rules    );
-				validator.settings.messages = $.extend( validator.settings.messages, options.messages );
+						validator.settings.rules    = $.extend( validator.settings.rules   , options.rules    );
+						validator.settings.messages = $.extend( validator.settings.messages, options.messages );
+					} );
+				};
 			} )( #validationJsJqueryRef# );
 		</cfsavecontent>
 		<cfset event.includeInlineJs( validationJs ) />
