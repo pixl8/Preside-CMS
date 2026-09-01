@@ -285,10 +285,11 @@ component {
 	public numeric function updateLatestVersionWithNonVersionedChangesWithFilters(
 		  required string objectName
 		, required struct data
-		,          any    filter       = {}
-		,          struct filterParams = {}
-		,          array  extraFilters = []
-		,          array  savedFilters = []
+		,          any    filter             = {}
+		,          struct filterParams       = {}
+		,          array  extraFilters       = []
+		,          array  savedFilters       = []
+		,          string forceVersionNumber = ""
 	) {
 		var poService           = $getPresideObjectService();
 		var versionObjectName   = poService.getVersionObjectName( arguments.objectName );
@@ -296,12 +297,17 @@ component {
 		var versionExtraFilters = duplicate( arguments.extraFilters );
 		var versionFilter       = "";
 		var versionParams       = { _version_is_latest=true };
+		var versionData         = duplicate( arguments.data );
 
 		if ( useDrafts ) {
 			versionFilter = "_version_is_latest = :_version_is_latest or _version_is_latest_draft = :_version_is_latest_draft";
 			versionParams._version_is_latest_draft = true;
 		} else {
 			versionFilter = "_version_is_latest = :_version_is_latest";
+		}
+
+		if ( Len( arguments.forceVersionNumber ?: "" ) ) {
+			versionData._version_number = arguments.forceVersionNumber;
 		}
 
 		arrayAppend( versionExtraFilters, {
@@ -311,7 +317,7 @@ component {
 
 		poService.updateData(
 			  objectName              = versionObjectName
-			, data                    = arguments.data
+			, data                    = versionData
 			, filter                  = arguments.filter
 			, filterParams            = arguments.filterParams
 			, extraFilters            = versionExtraFilters
