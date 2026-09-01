@@ -1391,6 +1391,10 @@ component displayName="Forms service" {
 				continue;
 			}
 
+			if ( !StructKeyExists( matchingTab, "fieldsets" ) ) {
+				matchingTab.fieldsets = [];
+			}
+
 			for( var fieldSet in tab.fieldSets ){
 				var matchingFieldset = {};
 				if ( Len( Trim( fieldSet.id ?: "" ) ) ) {
@@ -1407,6 +1411,10 @@ component displayName="Forms service" {
 				} else if ( IsBoolean( fieldSet.deleted ?: "" ) and fieldSet.deleted ) {
 					ArrayDelete( matchingTab.fieldSets, matchingFieldset );
 					continue;
+				}
+
+				if ( !StructKeyExists( matchingFieldset, "fields" ) ) {
+					matchingFieldset.fields = [];
 				}
 
 				for( var field in fieldset.fields ) {
