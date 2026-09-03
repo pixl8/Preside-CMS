@@ -2879,9 +2879,8 @@ component displayName="Preside Object Service" {
 		,          boolean autoGroupBy = false
 	) {
 		if ( arguments.autoGroupBy && !Len( arguments.groupBy ) ) {
-			var aggregateRegex = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
 			for( var i=ArrayLen( arguments.selectFields ); i>0; i-- ) {
-				if ( ReFindNoCase( aggregateRegex, arguments.selectFields[ i ] ) ) {
+				if ( containsAggregateFunction( arguments.selectFields[ i ] ) ) {
 					ArrayDeleteAt( arguments.selectFields, i );
 				}
 			}
@@ -3874,6 +3873,10 @@ component displayName="Preside Object Service" {
 		return optimised;
 	}
 
+	public boolean function containsAggregateFunction( required string expression ) {
+		return ReFindNoCase( "(group_concat|avg|corr|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(", arguments.expression ) > 0;
+	}
+
 	private struct function _prepareSelectFromVersionTables(
 		  required string  objectName
 		, required string  originalTableName
@@ -4634,10 +4637,9 @@ component displayName="Preside Object Service" {
 	private string function _autoCalculateGroupBy( required array selectFields, required string objectName, required any adapter ) {
 		var groupBy            = [];
 		var hasAggregateFields = false;
-		var aggregateRegex     = "(group_concat|avg|corr|count|count|covar_pop|covar_samp|cume_dist|dense_rank|min|max|percent_rank|percentile_cont|percentile_disc|rank|regr_avgx|regr_avgy|regr_count|regr_intercept|regr_r2|regr_slope|regr_sxx|regr_sxy|regr_syy|stddev_pop|stddev_samp|sum|var_pop|var_sam)\s?\(";
 
 		for( var field in selectFields ) {
-			var isAggregate = ReFindNoCase( aggregateRegex, field ) || ReFindNoCase( "__agg_.+__.+\.aggValue", field );
+			var isAggregate = containsAggregateFunction( field ) || ReFindNoCase( "__agg_.+__.+\.aggValue", field );
 
 			if ( isAggregate ) {
 				hasAggregateFields = true;
