@@ -18,7 +18,7 @@
 			  , $relativeEndpointLabels  = $builderContainer.find( ".time-period-relative-endpoint-label" )
 			  , $relativeSuffixPast      = $builderContainer.find( ".time-period-relative-suffix-past" )
 			  , $relativeSuffixFuture    = $builderContainer.find( ".time-period-relative-suffix-future" )
-			  , $hiddenControl, initializePicker, showAndHideFieldsBasedOnPeriodType, getSelectedType, saveToHiddenField, hideRelativeBetweenFields;
+			  , $hiddenControl, initializePicker, showAndHideFieldsBasedOnPeriodType, getSelectedType, getSelectedUnit, saveToHiddenField, hideRelativeBetweenFields;
 
 			initializePicker = function() {
 				var id       = $formControl.attr( "id" )
