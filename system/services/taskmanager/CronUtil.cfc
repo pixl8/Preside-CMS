@@ -1,8 +1,13 @@
 /**
  * Service providing cron parsing and other cron related utility functions
+ * This service is deprecated and may be removed in a future version, it
+ * exists only to provide backwards compatibility with existing code.
+ * Use the chrono module instead.
  *
+ * @deprecated     true
  * @singleton      true
  * @presideService true
+ * @feature        taskmanager
  */
 component displayName="Cron util" {
 
