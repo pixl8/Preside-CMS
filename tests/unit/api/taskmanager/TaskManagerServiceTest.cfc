@@ -647,7 +647,7 @@ component extends="testbox.system.BaseSpec" {
 		mockThreadUtil           = mockbox.createStub();
 		mockExecutor             = mockbox.createStub();
 		mockTaskRunOffsetSeconds = RandRange( 1, 59 );
-		cronUtil                 = new preside.system.services.taskmanager.CronUtil();
+		cronUtil                 = new preside.system.modules.chrono.models.Chrono();
 		mockLogger               = _getMockLogger();
 
 		configWrapper.$( "getConfiguredTasks", arguments.dummyConfig );

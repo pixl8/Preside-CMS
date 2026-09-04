@@ -4,7 +4,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="taskManagerService"         inject="taskManagerService";
-	property name="cronUtil"                   inject="cronUtil";
+	property name="cronUtil"                   inject="chrono@chrono";
 	property name="i18n"                       inject="i18n";
 	property name="logRendererUtil"            inject="logRendererUtil";
 	property name="taskHistoryDao"             inject="presidecms:object:taskmanager_task_history";

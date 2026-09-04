@@ -6,7 +6,7 @@
 component {
 	/**
 	 * @threadUtil.inject threadUtil
-	 * @cronUtil.inject   cronUtil
+	 * @cronUtil.inject   chrono@chrono
 	 */
 	public any function init(
 		  required any threadUtil

@@ -20,7 +20,7 @@ component displayName="Task Manager Service" {
 	 * @siteService.inject                 featureInjector:sites:siteService
 	 * @threadUtil.inject                  threadUtil
 	 * @executor.inject                    presideTaskManagerExecutor
-	 * @cronUtil.inject                    cronUtil
+	 * @cronUtil.inject                    chrono@chrono
 	 *
 	 */
 	public any function init(
