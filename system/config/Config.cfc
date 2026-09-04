@@ -187,6 +187,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postAddSiteTreePage"                   );
 		interceptorSettings.customInterceptionPoints.append( "postEditSiteTreePage"                  );
 		interceptorSettings.customInterceptionPoints.append( "onGetPageTypeFormName"                 );
+		interceptorSettings.customInterceptionPoints.append( "onGetTopRightButtonsForSiteTreeEditPage" );
 		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"                  );
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"                  );
 		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"                 );

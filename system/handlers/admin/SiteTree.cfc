@@ -1507,7 +1507,14 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
-		return actions;
+		var interceptArgs = {
+			  actions = actions
+			, page = prc.page
+		};
+
+		announceInterception( "onGetTopRightButtonsForSiteTreeEditPage", interceptArgs );
+
+		return interceptArgs.actions;
 	}
 
 <!--- private viewlets --->
