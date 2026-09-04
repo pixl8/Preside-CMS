@@ -591,7 +591,7 @@ component {
 	}
 
 	private void function _setUseDrafts( required struct meta ) {
-		if ( !meta.versioned ) {j
+		if ( !meta.versioned ) {
 			meta.useDrafts = false;
 		} else if ( IsBoolean( meta.datamanagerAllowDrafts ?: "" ) && meta.datamanagerAllowDrafts ) {
 			meta.useDrafts = true;
