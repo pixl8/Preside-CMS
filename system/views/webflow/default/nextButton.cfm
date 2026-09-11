@@ -1,9 +1,16 @@
 <!---@feature webflow--->
 <cfscript>
 	btnTitle = args.stepConfig.next_button ?: "";
+	btnClass = "btn webflow-btn webflow-next-btn";
+
+	if ( !event.isAdminRequest() ) {
+		btnClass &= " #Trim( translateResource( uri="webflow:button.next.class", defaultValue="" ) )#";
+	} else {
+		btnClass &= " btn-primary";
+	}
 </cfscript>
 <cfoutput>
 	<div class="webflow-next-btn-container">
-		<button class="btn btn-primary webflow-btn webflow-next-btn" type="submit" tabindex="#getNextTabIndex()#" default>#btnTitle#</button>
+		<button class="#btnClass#" type="submit" <cfif event.isAdminRequest()>tabindex="#getNextTabIndex()#"</cfif> default>#btnTitle#</button>
 	</div>
 </cfoutput>

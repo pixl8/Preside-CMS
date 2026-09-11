@@ -6,8 +6,9 @@
 	formId  = "sortForm-" & CreateUUID();
 
 	args.objectName = args.objectName ?: object;
+	preRecords      = prc.preRecords ?: "";
 
-	cancelLink            = args.cancelLink           ?: event.buildAdminLink( objectName=args.objectName, operation="listing" );
+	cancelLink            = prc.cancelLink ?: args.cancelLink ?: event.buildAdminLink( objectName=args.objectName, operation="listing" );
 	renderedActionButtons = prc.renderedActionButtons ?: renderViewlet( event="admin.datamanager._sortRecordsActionButtons", args=args );
 </cfscript>
 
@@ -26,6 +27,7 @@
 			</div>
 		</div>
 	<cfelse>
+		#preRecords#
 		<div class="dd" id="sortable-records">
 			<ol class="dd-list">
 				<cfloop array="#records#" index="record">

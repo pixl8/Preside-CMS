@@ -1392,6 +1392,12 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = getRecordsArgs
 		);
 
+		if ( Len( getRecordsArgs.cancelLink ?: "" ) ) {
+			prc.cancelLink = getRecordsArgs.cancelLink;
+		}
+
+		prc.preRecords = customizationService.runCustomization( objectName=objectName, action="preRenderSortRecords", args=getRecordsArgs, defaultResult="" );
+
 		if ( datamanagerService.usesTreeView( objectName ) ) {
 			var treeParentProperty       = datamanagerService.getTreeParentProperty( objectName );
 			var firstLevelParentProperty = datamanagerService.getTreeFirstLevelParentProperty( objectName );
