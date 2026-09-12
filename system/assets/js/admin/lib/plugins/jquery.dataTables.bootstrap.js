@@ -1,104 +1,101 @@
-( function( $ ){
+/*! DataTables Bootstrap 3 integration
+ * © SpryMedia Ltd - datatables.net/license
+ */
 
-//http://datatables.net/plug-ins/pagination#bootstrap
-$.extend( true, $.fn.dataTable.defaults, {
-    "sDom": "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
-    "sPaginationType": "bootstrap",
-    "oLanguage": {
-        "sLengthMenu": "Display _MENU_ records"
+(function(factory){
+	if (typeof define === 'function' && define.amd) {
+		// AMD
+		define(['datatables.net'], function (dt) {
+			return factory(window, document, dt);
+		});
+	}
+	else if (typeof exports === 'object') {
+		// CommonJS
+		var cjsRequires = function (root) {
+			if (! root.DataTable) {
+				require('datatables.net')(root);
+			}
+		};
+
+		if (typeof window === 'undefined') {
+			module.exports = function (root) {
+				if (! root) {
+					// CommonJS environments without a window global must pass a
+					// root. This will give an error otherwise
+					root = window;
+				}
+
+				cjsRequires(root);
+				return factory(root, root.document, root.DataTable);
+			};
+		}
+		else {
+			cjsRequires(window);
+			module.exports = factory(window, window.document, window.DataTable);
+		}
+	}
+	else {
+		// Browser
+		factory(window, document, window.DataTable);
+	}
+}(function(window, document, DataTable) {
+'use strict';
+
+
+/* Set the defaults for DataTables initialisation */
+DataTable.util.object.assignDeep(DataTable.defaults, {
+    renderer: 'bootstrap'
+});
+/* Default class modification */
+DataTable.util.object.assignDeep(DataTable.ext.classes, {
+    container: 'dt-container form-inline dt-bootstrap',
+    search: {
+        input: 'form-control input-sm'
+    },
+    length: {
+        select: 'form-control input-sm'
+    },
+    processing: {
+        container: 'dt-processing panel panel-default'
+    },
+    layout: {
+        row: 'row dt-layout-row',
+        cell: 'dt-layout-cell',
+        tableCell: 'col-12',
+        start: 'dt-layout-start col-sm-6',
+        end: 'dt-layout-end col-sm-6',
+        full: 'dt-layout-full col-sm-12'
     }
-} );
-
-
-/* API method to get paging information */
-$.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
-{
+});
+/* Bootstrap paging button renderer */
+DataTable.ext.renderer.pagingButton.bootstrap = function (settings, buttonType, content, active, disabled) {
+    var btnClasses = ['dt-paging-button', 'page-item'];
+    if (active) {
+        btnClasses.push('active');
+    }
+    if (disabled) {
+        btnClasses.push('disabled');
+    }
+    var li = DataTable.Dom.c('li').classAdd(btnClasses.join(' '));
+    var a = DataTable.Dom
+        .c('a')
+        .attr('href', disabled ? null : '#')
+        .classAdd('page-link')
+        .html(content)
+        .appendTo(li);
     return {
-        "iStart":         oSettings._iDisplayStart,
-        "iEnd":           oSettings.fnDisplayEnd(),
-        "iLength":        oSettings._iDisplayLength,
-        "iTotal":         oSettings.fnRecordsTotal(),
-        "iFilteredTotal": oSettings.fnRecordsDisplay(),
-        "iPage":          Math.ceil( oSettings._iDisplayStart / oSettings._iDisplayLength ),
-        "iTotalPages":    Math.ceil( oSettings.fnRecordsDisplay() / oSettings._iDisplayLength )
+        display: li.get(0),
+        clicker: a.get(0)
     };
-}
+};
+DataTable.ext.renderer.pagingContainer.bootstrap = function (settings, buttonEls) {
+    return DataTable.Dom
+        .c('ul')
+        .classAdd('pagination')
+        .append(buttonEls)
+        .get(0);
+};
 
-/* Bootstrap style pagination control */
-$.extend( $.fn.dataTableExt.oPagination, {
-    "bootstrap": {
-        "fnInit": function( oSettings, nPaging, fnDraw ) {
-            var oLang = oSettings.oLanguage.oPaginate;
-            var fnClickHandler = function ( e ) {
-                e.preventDefault();
-                if ( oSettings.oApi._fnPageChange(oSettings, e.data.action) ) {
-                    fnDraw( oSettings );
-                }
-            };
 
-            $(nPaging).append(
-                '<ul class="pagination">'+
-                    '<li class="prev disabled"><a href="#"><i class="fa fa-angle-double-left"></i></a></li>'+
-                    '<li class="next disabled"><a href="#"><i class="fa fa-angle-double-right"></i></a></li>'+
-                '</ul>'
-            );
-            var els = $('a', nPaging);
-            $(els[0]).bind( 'click.DT', { action: "previous" }, fnClickHandler );
-            $(els[1]).bind( 'click.DT', { action: "next" }, fnClickHandler );
-        },
-
-        "fnUpdate": function ( oSettings, fnDraw ) {
-            var iListLength = 5;
-            var oPaging = oSettings.oInstance.fnPagingInfo();
-            var an = oSettings.aanFeatures.p;
-            var i, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
-
-            if ( oPaging.iTotalPages < iListLength) {
-                iStart = 1;
-                iEnd = oPaging.iTotalPages;
-            }
-            else if ( oPaging.iPage <= iHalf ) {
-                iStart = 1;
-                iEnd = iListLength;
-            } else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
-                iStart = oPaging.iTotalPages - iListLength + 1;
-                iEnd = oPaging.iTotalPages;
-            } else {
-                iStart = oPaging.iPage - iHalf + 1;
-                iEnd = iStart + iListLength - 1;
-            }
-
-            for ( i=0, iLen=an.length ; i<iLen ; i++ ) {
-                // Remove the middle elements
-                $('li:gt(0)', an[i]).filter(':not(:last)').remove();
-
-                // Add the new list items and their event handlers
-                for ( j=iStart ; j<=iEnd ; j++ ) {
-                    sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
-                    $('<li '+sClass+'><a href="#">'+j+'</a></li>')
-                        .insertBefore( $('li:last', an[i])[0] )
-                        .bind('click', function (e) {
-                            e.preventDefault();
-                            oSettings._iDisplayStart = (parseInt($('a', this).text(),10)-1) * oPaging.iLength;
-                            fnDraw( oSettings );
-                        } );
-                }
-
-                // Add / remove disabled classes from the static elements
-                if ( oPaging.iPage === 0 ) {
-                    $('li:first', an[i]).addClass('disabled');
-                } else {
-                    $('li:first', an[i]).removeClass('disabled');
-                }
-
-                if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
-                    $('li:last', an[i]).addClass('disabled');
-                } else {
-                    $('li:last', an[i]).removeClass('disabled');
-                }
-            }
-        }
-    }
-} );
-
-} )( presideJQuery );
+return DataTable;
+}));

@@ -79,9 +79,14 @@ module.exports = function( grunt ) {
 					  src  : [
 					  	"js/admin/lib/plugins/jquery.dataTables.js", // must come first
 					  	"js/admin/lib/plugins/jquery.moment.js", // must come first
+					  	"js/admin/lib/plugins/jquery.dataTables.dateTime.js",
+					  	"js/admin/lib/plugins/jquery.dataTables.colReorder.js",
+					  	"js/admin/lib/plugins/jquery.dataTables.columnControl.js",
+					  	"js/admin/lib/plugins/jquery.dataTables.bootstrap.js",
+					  	"js/admin/lib/plugins/jquery.dataTables.columnControlBootstrap.js",
 					  	"js/admin/lib/plugins/*.js"
 					  ]
-					, dest : "js/admin/lib/plugins-1.8.003.min.js"
+					, dest : "js/admin/lib/plugins-3.0.001.min.js"
 				},{
 					  src  : ["js/admin/lib/ace/ace.js", "js/admin/lib/ace/ace-elements.js"]
 					, dest : "js/admin/lib/ace-1.0.0.min.js"

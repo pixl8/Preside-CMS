@@ -20,6 +20,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="loginService"                     inject="loginService";
 	property name="datamanagerWorkflowService"       inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
 	property name="draftManagerService"              inject="featureInjector:draftManager:DraftManagerService";
+	property name="dataListingPreferencesService"    inject="dataListingPreferencesService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -170,6 +171,17 @@ component extends="preside.system.base.AdminHandler" {
 			if ( Len( _getObjectListingCategoryField( objectName=objectName ) ) && Len( Trim( rc.activeCategoryId ?: "" ) ) ) {
 				args.exportFilterString  = Trim( args.exportFilterString ?: "" );
 				args.exportFilterString &= ( Len( args.exportFilterString ) ? "&" : "" ) & "activeCategoryId=#rc.activeCategoryId#";
+			}
+
+			args.allowColumnPicker    = IsTrue( args.allowColumnPicker ?: true );
+			args.listingPreferenceKey = args.listingPreferenceKey ?: objectName;
+
+			if ( args.allowColumnPicker ) {
+				args.gridFields = dataListingPreferencesService.applyUserColumns(
+					  objectName    = objectName
+					, listingKey    = args.listingPreferenceKey
+					, defaultFields = args.gridFields
+				);
 			}
 
 			args.gridHeaderLabels = {};
@@ -1215,6 +1227,29 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 			, private        = true
 		);
+	}
+
+	public void function saveListingColumns( event, rc, prc ) {
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName, throwOnError=true );
+
+		var listingKey = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var columns    = ListToArray( rc.columns ?: "" );
+
+		dataListingPreferencesService.saveUserColumns(
+			  objectName = objectName
+			, listingKey = listingKey
+			, columns    = columns
+		);
+
+		event.renderData( type="json", data={
+			  success = true
+			, columns = dataListingPreferencesService.applyUserColumns(
+				  objectName = objectName
+				, listingKey = listingKey
+			  )
+		} );
 	}
 
 	public void function quickEditForm( event, rc, prc ) {
@@ -2274,8 +2309,14 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		);
 
-		if ( IsSimpleValue( local.footer ?: "" ) && Len( Trim( local.footer ?: "" ) ) ) {
-			result.sFooter = footer;
+		if ( !IsNull( local.footer ) ) {
+			if ( IsSimpleValue( footer ) && Len( Trim( footer ) ) ) {
+				result.sFooter = footer;
+			} else if ( IsStruct( footer ) && StructCount( footer ) ) {
+				result.sFooter = footer;
+			} else if ( IsArray( footer ) && ArrayLen( footer ) ) {
+				result.sFooter = footer;
+			}
 		}
 
 		if ( datamanagerService.canBatchSelectAll( arguments.object ) ) {
@@ -4376,6 +4417,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "deleteOneToManyRecordAction"
 			, "dataExportConfigModal"
 			, "exportDataAction"
+			, "saveListingColumns"
 		];
 
 		if( onlyCheckForLoginActions.findNoCase( arguments.action ) ){
