@@ -51,10 +51,18 @@
 				, zeroRecords    : i18n.translateResource( "cms:datatables.zeroRecords", { data : [objectTitle], defaultValue : "" } )
 				, search         : ""
 				, paginate : {
-					  first    : i18n.translateResource( "cms:datatables.first", { data : [objectTitle], defaultValue : "" } )
-					, last     : i18n.translateResource( "cms:datatables.last", { data : [objectTitle], defaultValue : "" } )
-					, next     : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "" } )
-					, previous : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "" } )
+					  first    : '<i class="fa fa-angle-double-left"></i>'
+					, previous : '<i class="fa fa-chevron-left"></i>'
+					, next     : '<i class="fa fa-chevron-right"></i>'
+					, last     : '<i class="fa fa-angle-double-right"></i>'
+				  }
+				, aria : {
+					paginate : {
+						  first    : i18n.translateResource( "cms:datatables.first", { data : [objectTitle], defaultValue : "First" } )
+						, previous : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "Previous" } )
+						, next     : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "Next" } )
+						, last     : i18n.translateResource( "cms:datatables.last", { data : [objectTitle], defaultValue : "Last" } )
+					}
 				  }
 			}
 		});

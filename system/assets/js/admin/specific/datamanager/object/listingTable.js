@@ -5,6 +5,11 @@
  */
 ( function( $ ){
 
+	if ( window.DataTable && window.DataTable.ColumnControl && window.DataTable.ColumnControl.icons ) {
+		window.DataTable.ColumnControl.icons.filter = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
+		window.DataTable.ColumnControl.icons.filterActive = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
+	}
+
 	$.fn.dataListingTable = function(){
 		return this.each( function(){
 			var $listingTable  = $( this )
@@ -26,6 +31,7 @@
 			  , allowDataExport          = tableSettings.allowDataExport          || cfrequest.allowDataExport
 			  , allowSaveExport          = tableSettings.allowSaveExport          || cfrequest.allowSaveExport
 			  , allowColumnPicker        = !( tableSettings.allowColumnPicker === false || tableSettings.allowColumnPicker === "false" )
+			  , allowColumnFilter        = !( tableSettings.allowColumnFilter === false || tableSettings.allowColumnFilter === "false" )
 			  , listingKey               = tableSettings.listingKey               || object
 			  , saveListingColumnsUrl    = tableSettings.saveListingColumnsUrl    || ""
 			  , hiddenGridFields         = tableSettings.hiddenGridFields         ? String( tableSettings.hiddenGridFields ).split( "," ).filter( Boolean ) : []
@@ -53,7 +59,9 @@
 			  , setupDatatable, setupCheckboxBehaviour, setupMultiActionButtons, setupTableRowFocusBehaviour
 			  , setupFilters, setupDataExport, setupQuickSaveFilterIframeModal, setupEverythingBar, setupHeaderColumnUi
 			  , registerListingColumnControlPlugins, searchContentForField, headingContent, expressionsFromColumnControl
-			  , columnSearchToExpressions, getVisibleGridFields, saveVisibleColumns, applyDefaultColumnVisibility
+			  , columnSearchToExpressions, columnFilterChipsFromRequest, columnFilterChipLabel, columnFilterListValueLabel
+			  , columnFilterOperatorLabel, columnFilterChipText, syncColumnFilterChips, clearColumnFilter
+			  , getVisibleGridFields, saveVisibleColumns, applyDefaultColumnVisibility
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -349,20 +357,72 @@
 				if ( !$toolbar.length || typeof PresideEverythingBar === "undefined" ) {
 					return;
 				}
+				if ( !$toolbar.find( ".everything-bar-input" ).length ) {
+					return;
+				}
 
 				everythingBar = new PresideEverythingBar( {
-					  $toolbar : $toolbar
-					, config   : toolbarConfig
-					, onChange : function(){ redrawTable(); }
+					  $toolbar               : $toolbar
+					, config                 : toolbarConfig
+					, onChange               : function(){ redrawTable(); }
+					, onRemoveColumnFilter   : function( field ){
+						clearColumnFilter( field );
+						redrawTable();
+					  }
 				} );
 			};
 
 			registerListingColumnControlPlugins = function() {
 				var DT = window.DataTable
-				  , resetLabel, columnsTitle;
+				  , resetLabel, columnsTitle, SearchInput, origOptions, origStateLoad;
 
 				if ( !DT || !DT.ColumnControl ) {
 					return;
+				}
+
+				if ( DT.ColumnControl.SearchInput && !DT.ColumnControl.SearchInput._presideEqualsDefault ) {
+					SearchInput   = DT.ColumnControl.SearchInput;
+					origOptions   = SearchInput.prototype.options;
+					origStateLoad = SearchInput.prototype._stateLoad;
+
+					SearchInput.prototype.options = function( opts ) {
+						var list        = opts.slice()
+						  , containsIdx = -1
+						  , equalIdx    = -1
+						  , i;
+
+						for( i=0; i<list.length; i++ ) {
+							if ( list[ i ].value === "contains" ) {
+								containsIdx = i;
+							}
+							if ( list[ i ].value === "equal" ) {
+								equalIdx = i;
+							}
+						}
+						if ( containsIdx !== -1 && equalIdx > 0 ) {
+							list.unshift( list.splice( equalIdx, 1 )[ 0 ] );
+						}
+
+						return origOptions.call( this, list );
+					};
+
+					SearchInput.prototype._stateLoad = function( state ) {
+						var columnName, bucket, loaded;
+
+						if ( state && state.columnControl && this._type === "text" ) {
+							columnName = this._dt.column( this._colUnique ).name();
+							bucket     = state.columnControl[ columnName ] || state.columnControl[ this._colUnique ];
+							loaded     = bucket && bucket.searchInput;
+
+							if ( loaded && loaded.logic === "contains" && !$.trim( loaded.value || "" ) ) {
+								loaded.logic = "equal";
+							}
+						}
+
+						return origStateLoad.call( this, state );
+					};
+
+					SearchInput._presideEqualsDefault = true;
 				}
 
 				resetLabel   = i18n.translateResource( "cms:datatables.columns.reset", { defaultValue : "Reset to default" } );
@@ -505,7 +565,7 @@
 				var filter = null
 				  , options, i;
 
-				if ( !allowFilter ) {
+				if ( !allowColumnFilter ) {
 					return [];
 				}
 
@@ -557,8 +617,8 @@
 				if ( extras && extras.length ) {
 					content.push( {
 						  extend     : "dropdown"
-						, icon       : "search"
-						, iconActive : "searchActive"
+						, icon       : "filter"
+						, iconActive : "filterActive"
 						, text       : i18n.translateResource( "cms:datatables.filter.btn", { defaultValue : "Filter" } )
 						, content    : extras
 					} );
@@ -647,6 +707,154 @@
 				}
 				expressions.push( { expression : filter.expressionId, fields : { _stringOperator : stringOp, value : value } } );
 				return expressions;
+			};
+
+			columnFilterListValueLabel = function( filter, value ) {
+				var i;
+
+				if ( filter.type === "boolean" ) {
+					return String( value ) === "true"
+						? i18n.translateResource( "cms:yes", { defaultValue : "Yes" } )
+						: i18n.translateResource( "cms:no" , { defaultValue : "No"  } );
+				}
+
+				if ( filter.options ) {
+					for( i=0; i<filter.options.length; i++ ) {
+						if ( String( filter.options[ i ].id ) === String( value ) ) {
+							return filter.options[ i ].label;
+						}
+					}
+				}
+
+				return String( value );
+			};
+
+			columnFilterOperatorLabel = function( type, logic ) {
+				var fallbacks = {
+					  contains       : "contains"
+					, notContains    : "does not contain"
+					, equal          : "is"
+					, notEqual       : "is not"
+					, starts         : "starts with"
+					, ends           : "ends with"
+					, greater        : "greater than"
+					, greaterOrEqual : "at least"
+					, less           : "less than"
+					, lessOrEqual    : "at most"
+				};
+
+				if ( type === "date" && logic === "greater" ) {
+					return i18n.translateResource( "cms:datatables.filter.op.greater.date", { defaultValue : "after" } );
+				}
+				if ( type === "date" && logic === "less" ) {
+					return i18n.translateResource( "cms:datatables.filter.op.less.date", { defaultValue : "before" } );
+				}
+
+				return i18n.translateResource( "cms:datatables.filter.op." + logic, { defaultValue : fallbacks[ logic ] || logic } );
+			};
+
+			columnFilterChipText = function( fieldLabel, detail ) {
+				return i18n.translateResource( "cms:datatables.chip.column", {
+					  data         : [ fieldLabel, detail ]
+					, defaultValue : fieldLabel + ": " + detail
+				} );
+			};
+
+			columnFilterChipLabel = function( filter, search ) {
+				var title    = filter.label || filter.field
+				  , values   = []
+				  , isString = filter.type === "text" || filter.type === "string"
+				  , key, logic, value, operator, detail;
+
+				if ( search.list ) {
+					for( key in search.list ) {
+						if ( search.list.hasOwnProperty( key ) && String( search.list[ key ] ).length ) {
+							values.push( columnFilterListValueLabel( filter, search.list[ key ] ) );
+						}
+					}
+					if ( !values.length ) {
+						return "";
+					}
+					return columnFilterChipText( title, values.join( ", " ) );
+				}
+
+				if ( !search.search ) {
+					return "";
+				}
+
+				logic = search.search.logic || "";
+				value = search.search.value;
+
+				if ( logic === "empty" || logic === "notEmpty" ) {
+					return "";
+				}
+				if ( value === "" || typeof value === "undefined" ) {
+					return "";
+				}
+
+				if ( filter.type === "date" ) {
+					value = String( value ).substring( 0, 10 );
+				} else if ( isString ) {
+					value = i18n.translateResource( "cms:datatables.chip.column.quoted", {
+						  data         : [ value ]
+						, defaultValue : '"' + value + '"'
+					} );
+				}
+
+				operator = columnFilterOperatorLabel( filter.type, logic );
+				detail   = i18n.translateResource( "cms:datatables.chip.column.withOperator", {
+					  data         : [ operator, value ]
+					, defaultValue : operator + " " + value
+				} );
+
+				return columnFilterChipText( title, detail );
+			};
+
+			columnFilterChipsFromRequest = function( dtRequest ) {
+				var chips   = []
+				  , byField = {}
+				  , columns = ( dtRequest && dtRequest.columns ) || []
+				  , i, col, field, filter, label;
+
+				( toolbarConfig.quickFilters || [] ).forEach( function( item ) {
+					byField[ item.field ] = item;
+				} );
+
+				for( i=0; i<columns.length; i++ ) {
+					col    = columns[ i ];
+					field  = col.name || col.data;
+					filter = byField[ field ];
+					if ( !field || !filter || !col.columnControl ) {
+						continue;
+					}
+					if ( !columnSearchToExpressions( filter, col.columnControl ).length ) {
+						continue;
+					}
+					label = columnFilterChipLabel( filter, col.columnControl );
+					if ( label.length ) {
+						chips.push( { field : field, label : label } );
+					}
+				}
+
+				return chips;
+			};
+
+			syncColumnFilterChips = function( dtRequest ) {
+				if ( everythingBar ) {
+					everythingBar.setColumnFilters( columnFilterChipsFromRequest( dtRequest ) );
+				}
+			};
+
+			clearColumnFilter = function( field ) {
+				if ( !dtApi || !field ) {
+					return;
+				}
+
+				dtApi.columns().every( function() {
+					if ( this.dataSrc() === field ) {
+						this.columnControl.searchClear();
+					}
+				} );
 			};
 
 			expressionsFromColumnControl = function( dtRequest ) {
@@ -933,6 +1141,7 @@
 							if ( allowFilter ) {
 								data.sFilterExpression = getMergedFilterExpression();
 							}
+							syncColumnFilterChips( data );
 							delete data.columns;
 							delete data.order;
 							delete data.search;
@@ -961,10 +1170,18 @@
 						, zeroRecords    : i18n.translateResource( "cms:datatables.zeroRecords", { data : [objectTitle], defaultValue : "" } )
 						, search         : ""
 						, paginate : {
-							  first    : i18n.translateResource( "cms:datatables.first", { data : [objectTitle], defaultValue : "" } )
-							, last     : i18n.translateResource( "cms:datatables.last", { data : [objectTitle], defaultValue : "" } )
-							, next     : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "" } )
-							, previous : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "" } )
+							  first    : '<i class="fa fa-angle-double-left"></i>'
+							, previous : '<i class="fa fa-chevron-left"></i>'
+							, next     : '<i class="fa fa-chevron-right"></i>'
+							, last     : '<i class="fa fa-angle-double-right"></i>'
+						  }
+						, aria : {
+							paginate : {
+								  first    : i18n.translateResource( "cms:datatables.first", { data : [objectTitle], defaultValue : "First" } )
+								, previous : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "Previous" } )
+								, next     : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "Next" } )
+								, last     : i18n.translateResource( "cms:datatables.last", { data : [objectTitle], defaultValue : "Last" } )
+							}
 						  }
 					  }
 					, stateLoadParams : function( settings, data ) {

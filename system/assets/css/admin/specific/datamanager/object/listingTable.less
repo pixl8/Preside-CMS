@@ -30,6 +30,17 @@
 		background-color : @white;
 		border           : 1px solid #e3e3e3;
 		border-radius    : 4px;
+
+		&.no-listing-toolbar {
+			.object-listing-table > thead > tr:first-child > th:first-child,
+			.object-listing-table > thead > tr:first-child > td:first-child {
+				border-top-left-radius : 4px;
+			}
+			.object-listing-table > thead > tr:first-child > th:last-child,
+			.object-listing-table > thead > tr:first-child > td:last-child {
+				border-top-right-radius : 4px;
+			}
+		}
 	}
 
 	.object-listing-toolbar {
@@ -216,6 +227,7 @@
 
 		&.everything-chip-saved,
 		&.everything-chip-quick,
+		&.everything-chip-column,
 		&.everything-chip-segmentation {
 			border     : 2px solid @blue;
 			color      : @blue;
@@ -388,6 +400,35 @@
 			border-right  : none;
 			border-bottom : none;
 			border-left   : 1px solid #f3f3f3;
+		}
+
+		> thead > tr > th.dt-align-right,
+		> thead > tr > th.dt-type-numeric,
+		> tbody > tr > td.dt-align-right,
+		> tbody > tr > td.dt-type-numeric,
+		> tfoot > tr > th.dt-align-right,
+		> tfoot > tr > td.dt-align-right,
+		> tfoot > tr > th.text-right,
+		> tfoot > tr > td.text-right,
+		> tfoot > tr > th.dt-type-numeric,
+		> tfoot > tr > td.dt-type-numeric {
+			text-align : right;
+		}
+
+		> thead > tr > th.dt-align-center,
+		> tbody > tr > td.dt-align-center,
+		> tfoot > tr > th.dt-align-center,
+		> tfoot > tr > td.dt-align-center {
+			text-align : center;
+		}
+
+		> thead > tr > th.dt-align-right .dt-column-title,
+		> thead > tr > th.dt-type-numeric .dt-column-title {
+			text-align : right;
+		}
+
+		> thead > tr > th.dt-align-center .dt-column-title {
+			text-align : center;
 		}
 
 		> tfoot > tr > th,

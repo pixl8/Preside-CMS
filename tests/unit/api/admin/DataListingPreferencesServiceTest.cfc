@@ -48,6 +48,36 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "listAvailableColumns()", function(){
+			it( "should merge explicitly passed columns with annotated grid fields", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				variables.mockDataManager.$( "listGridFields" ).$args( "email_template" ).$results( [ "name", "datecreated", "datemodified" ] );
+				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "email_template" ).$results( [] );
+				variables.mockDataManager.$( "listSearchFields" ).$args( "email_template" ).$results( [] );
+				mockPoService.$( "getObjectAttribute", "" );
+				mockPoService.$( "getObjectProperties", {
+					  name           = { name="name" }
+					, datecreated    = { name="datecreated" }
+					, datemodified   = { name="datemodified" }
+					, sending_method = { name="sending_method" }
+					, open_rate      = { name="open_rate" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				var result = svc.listAvailableColumns(
+					  objectName  = "email_template"
+					, extraFields = [ "name", "sending_method", "open_rate" ]
+				);
+
+				expect( ArrayFindNoCase( result, "name" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "datecreated" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "sending_method" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "open_rate" ) ).toBeGT( 0 );
+			} );
+		} );
+
 		describe( "mergeExpressionArrays()", function(){
 			it( "should AND two expression arrays together", function(){
 				var svc    = _getService();
@@ -71,16 +101,16 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 	}
 
 	private any function _getService() {
-		var mockDataManager    = createStub();
-		var mockCustomization  = createStub();
-		var mockEnum           = createStub();
+		variables.mockDataManager   = createStub();
+		variables.mockCustomization = createStub();
+		variables.mockEnum          = createStub();
 
-		mockCustomization.$( "runCustomization", "" );
+		variables.mockCustomization.$( "runCustomization", "" );
 
 		return CreateMock( object=new preside.system.services.admin.DataListingPreferencesService(
-			  dataManagerService       = mockDataManager
-			, customizationService     = mockCustomization
-			, enumService              = mockEnum
+			  dataManagerService       = variables.mockDataManager
+			, customizationService     = variables.mockCustomization
+			, enumService              = variables.mockEnum
 			, rulesEngineFilterService = NullValue()
 		) );
 	}

@@ -21,9 +21,10 @@
 	param name="args.allowFilter"                 type="boolean" default=true;
 	param name="args.allowDataExport"             type="boolean" default=false;
 	param name="args.allowSaveExport"             type="boolean" default=true;
-	param name="args.allowColumnPicker"           type="boolean" default=true;
-	param name="args.clickableRows"               type="boolean" default=true;
 	param name="args.compact"                     type="boolean" default=false;
+	param name="args.allowColumnPicker"           type="boolean" default=!IsTrue( args.compact );
+	param name="args.allowColumnFilter"           type="boolean" default=!IsTrue( args.compact );
+	param name="args.clickableRows"               type="boolean" default=true;
 	param name="args.batchEditableFields"         type="array"   default=[];
 	param name="args.listingPreferenceKey"        type="string"  default="#args.objectName#";
 	param name="args.datasourceUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
@@ -75,11 +76,20 @@
 		}
 	}
 
-	allowDataExport  = args.allowDataExport && isFeatureEnabled( "dataexport" );
-	allowSaveExport  = args.allowSaveExport && allowDataExport;
-	savedExportCount = Val( args.savedExportCount ?: "" );
-	savedExportsLink = args.savedExportsLink ?: "";
-	allowColumnPicker = IsTrue( args.allowColumnPicker ?: true );
+	allowDataExport   = args.allowDataExport && isFeatureEnabled( "dataexport" );
+	allowSaveExport   = args.allowSaveExport && allowDataExport;
+	savedExportCount  = Val( args.savedExportCount ?: "" );
+	savedExportsLink  = args.savedExportsLink ?: "";
+	allowColumnPicker  = IsTrue( args.allowColumnPicker ?: !IsTrue( args.compact ) );
+	allowColumnFilter  = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ) ) && args.allowFilter;
+	showListingToolbar = IsTrue( args.allowSearch ) || ( args.allowFilter && allowUseFilter );
+
+	if ( !ArrayLen( args.centerAlignFields ) ) {
+		args.centerAlignFields = getSingleton( "dataManagerService" ).listCenterAlignFields( args.objectName );
+	}
+	if ( !ArrayLen( args.rightAlignFields ) ) {
+		args.rightAlignFields = getSingleton( "dataManagerService" ).listRightAlignFields( args.objectName );
+	}
 
 	toolbarConfig = getSingleton( "dataListingPreferencesService" ).getToolbarConfig(
 		  objectName         = args.objectName
@@ -87,6 +97,7 @@
 		, gridFields         = args.gridFields
 		, hiddenGridFields   = args.hiddenGridFields
 		, allowFilter        = args.allowFilter && allowUseFilter
+		, allowColumnFilter  = allowColumnFilter
 		, allowSearch        = args.allowSearch
 		, allowManageFilter  = allowManageFilter
 		, manageFilterLink   = manageFilterLink
@@ -120,7 +131,7 @@
 	}
 </cfscript>
 <cfoutput>
-	<div class="table-responsive object-listing-wrap<cfif args.compact> table-compact</cfif>" id="#tableId#-container">
+	<div class="table-responsive object-listing-wrap<cfif args.compact> table-compact</cfif><cfif !showListingToolbar> no-listing-toolbar</cfif>" id="#tableId#-container">
 		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
@@ -140,32 +151,33 @@
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
 
-		<div class="object-listing-toolbar" id="#tableId#-toolbar">
+		<div class="<cfif showListingToolbar>object-listing-toolbar<cfelse>hide</cfif>" id="#tableId#-toolbar">
 			<script type="application/json" class="listing-toolbar-data">#SerializeJSON( toolbarConfig )#</script>
-			<div class="object-listing-toolbar-row">
-				<div class="object-listing-everything-bar">
-					<div class="everything-bar-input-wrap input-icon">
-						<i class="fa fa-search everything-bar-icon data-table-search-icon"></i>
-						<input type="text"
-							class="everything-bar-input data-table-search form-control"
-							autocomplete="off"
-							data-global-key="s"
-							placeholder="#translateResource( uri='cms:datatables.everything.placeholder', data=[ args.objectTitlePlural ], defaultValue=translateResource( uri='cms:datamanager.search.placeholder', data=[ args.objectTitlePlural ] ) )#"
-							<cfif !args.allowSearch && !args.allowFilter> disabled</cfif>
-						/>
+			<cfif showListingToolbar>
+				<div class="object-listing-toolbar-row">
+					<div class="object-listing-everything-bar">
+						<div class="everything-bar-input-wrap input-icon">
+							<i class="fa fa-search everything-bar-icon data-table-search-icon"></i>
+							<input type="text"
+								class="everything-bar-input data-table-search form-control"
+								autocomplete="off"
+								data-global-key="s"
+								placeholder="#translateResource( uri='cms:datatables.everything.placeholder', data=[ args.objectTitlePlural ], defaultValue=translateResource( uri='cms:datamanager.search.placeholder', data=[ args.objectTitlePlural ] ) )#"
+							/>
+						</div>
+						<div class="everything-bar-dropdown hide" role="listbox"></div>
 					</div>
-					<div class="everything-bar-dropdown hide" role="listbox"></div>
+					<cfif args.allowFilter && allowUseFilter>
+						<div class="filter-links-container">
+							<cfif allowManageFilter && Len( Trim( manageFilterLink ) )>
+								<a href="#manageFilterLink#"><i class="fa fa-fw fa-cogs"></i> #translateResource( "cms:datatables.manage.filters.link" )#</a>
+							</cfif>
+							<a href="##" class="advanced-filter-toggle"><i class="fa fa-fw fa-caret-right"></i> #translateResource( "cms:datatables.show.advanced.filters" )#</a>
+						</div>
+					</cfif>
 				</div>
-				<cfif args.allowFilter && allowUseFilter>
-					<div class="filter-links-container">
-						<cfif allowManageFilter && Len( Trim( manageFilterLink ) )>
-							<a href="#manageFilterLink#"><i class="fa fa-fw fa-cogs"></i> #translateResource( "cms:datatables.manage.filters.link" )#</a>
-						</cfif>
-						<a href="##" class="advanced-filter-toggle"><i class="fa fa-fw fa-caret-right"></i> #translateResource( "cms:datatables.show.advanced.filters" )#</a>
-					</div>
-				</cfif>
-			</div>
-			<div class="everything-bar-chips"></div>
+				<div class="everything-bar-chips"></div>
+			</cfif>
 		</div>
 
 		<cfif args.allowFilter>
@@ -249,6 +261,7 @@
 		    data-allow-data-export="#allowDataExport#"
 		    data-allow-save-export="#allowSaveExport#"
 		    data-allow-column-picker="#allowColumnPicker#"
+		    data-allow-column-filter="#allowColumnFilter#"
 		    data-listing-key="#args.listingPreferenceKey#"
 		    data-save-listing-columns-url="#args.saveListingColumnsUrl#"
 		    data-hidden-grid-fields="#ArrayToList( args.hiddenGridFields )#"

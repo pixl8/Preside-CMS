@@ -173,14 +173,22 @@ component extends="preside.system.base.AdminHandler" {
 				args.exportFilterString &= ( Len( args.exportFilterString ) ? "&" : "" ) & "activeCategoryId=#rc.activeCategoryId#";
 			}
 
-			args.allowColumnPicker    = IsTrue( args.allowColumnPicker ?: true );
+			args.allowColumnPicker    = IsTrue( args.allowColumnPicker ?: !IsTrue( args.compact ?: false ) );
+			args.allowColumnFilter    = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ?: false ) );
 			args.listingPreferenceKey = args.listingPreferenceKey ?: objectName;
 
 			if ( args.allowColumnPicker ) {
+				var extraFields = Duplicate( args.gridFields );
+				ArrayAppend( extraFields, args.hiddenGridFields ?: [], true );
+
 				args.gridFields = dataListingPreferencesService.applyUserColumns(
 					  objectName    = objectName
 					, listingKey    = args.listingPreferenceKey
 					, defaultFields = args.gridFields
+					, available     = dataListingPreferencesService.listAvailableColumns(
+						  objectName  = objectName
+						, extraFields = extraFields
+					  )
 				);
 			}
 
@@ -4224,19 +4232,11 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function _getObjectCenterAlignFields( required string objectName ) {
-		return listToArray( presideObjectService.getObjectAttribute(
-			  objectName    = arguments.objectName
-			, attributeName = "datamanagerCenterAlignFields"
-			, defaultValue  = ""
-		) );
+		return dataManagerService.listCenterAlignFields( arguments.objectName );
 	}
 
 	private array function _getObjectRightAlignFields( required string objectName ) {
-		return listToArray( presideObjectService.getObjectAttribute(
-			  objectName    = arguments.objectName
-			, attributeName = "datamanagerRightAlignFields"
-			, defaultValue  = ""
-		) );
+		return dataManagerService.listRightAlignFields( arguments.objectName );
 	}
 
 	public string function _getObjectListingCategoryField( required string objectName ) {

@@ -57,16 +57,24 @@ component {
 	 * with `datamanagerUserColumn=true|false`. Locked columns come from
 	 * `@datamanagerLockedGridFields` (label field if unset). Handlers can replace
 	 * the pool with `getAvailableListingColumns` / `getDefaultListingColumns`.
+	 * Explicit listing `gridFields` / `hiddenGridFields` are merged into the pool
+	 * so caller-supplied columns remain available alongside annotations.
 	 */
-	public array function listAvailableColumns( required string objectName ) {
+	public array function listAvailableColumns(
+		  required string objectName
+		,          array  extraFields = []
+	) {
 		var customized = _getCustomizationService().runCustomization(
 			  objectName    = arguments.objectName
 			, action        = "getAvailableListingColumns"
+			, args          = { extraFields=arguments.extraFields }
 			, defaultResult = ""
 		);
 
 		if ( IsArray( customized ) && ArrayLen( customized ) ) {
-			return _uniqueFields( customized );
+			var merged = Duplicate( customized );
+			ArrayAppend( merged, arguments.extraFields, true );
+			return _uniqueFields( merged );
 		}
 
 		var fields          = Duplicate( _getDataManagerService().listGridFields( arguments.objectName ) );
@@ -97,6 +105,16 @@ component {
 		var allowed = [];
 		for( var fieldName in _uniqueFields( fields ) ) {
 			if ( StructKeyExists( excluded, fieldName ) || !_isListableColumn( arguments.objectName, fieldName, properties ) ) {
+				continue;
+			}
+			ArrayAppend( allowed, fieldName );
+		}
+
+		for( var fieldName in arguments.extraFields ) {
+			if ( !Len( Trim( fieldName ) ) || ArrayFindNoCase( allowed, fieldName ) ) {
+				continue;
+			}
+			if ( !_isListableColumn( arguments.objectName, fieldName, properties ) ) {
 				continue;
 			}
 			ArrayAppend( allowed, fieldName );
@@ -170,7 +188,7 @@ component {
 			return true;
 		}
 
-		var available = listAvailableColumns( arguments.objectName );
+		var available = listAvailableColumns( objectName=arguments.objectName, extraFields=arguments.columns );
 		var defaults  = listDefaultColumns( arguments.objectName );
 		var cleaned   = applyUserColumns(
 			  objectName    = arguments.objectName
@@ -238,11 +256,15 @@ component {
 		,          array   gridFields        = listDefaultColumns( arguments.objectName )
 		,          array   hiddenGridFields  = _getDataManagerService().listHiddenGridFields( arguments.objectName )
 		,          boolean allowFilter       = true
+		,          boolean allowColumnFilter = true
 		,          boolean allowSearch       = true
 		,          boolean allowManageFilter = false
 		,          string  manageFilterLink  = ""
 	) {
-		var available = listAvailableColumns( arguments.objectName );
+		var extraFields = Duplicate( arguments.gridFields );
+		ArrayAppend( extraFields, arguments.hiddenGridFields, true );
+
+		var available = listAvailableColumns( objectName=arguments.objectName, extraFields=extraFields );
 		var current   = applyUserColumns(
 			  objectName    = arguments.objectName
 			, listingKey    = arguments.listingKey
@@ -287,7 +309,7 @@ component {
 		return {
 			  savedFilters        = _serializeSavedFilters( arguments.objectName )
 			, segmentationFilters = _serializeSegmentationFilters( arguments.objectName )
-			, quickFilters        = arguments.allowFilter ? listQuickFilters( arguments.objectName ) : []
+			, quickFilters        = ( arguments.allowFilter && arguments.allowColumnFilter ) ? listQuickFilters( arguments.objectName ) : []
 			, columns             = columns
 			, currentColumns      = current
 			, defaultColumns      = defaultColumns

@@ -5,18 +5,20 @@
 	};
 
 	window.PresideEverythingBar = function( options ) {
-		this.options            = options || {};
-		this.$toolbar           = options.$toolbar;
-		this.$input             = this.$toolbar.find( ".everything-bar-input" );
-		this.$dropdown          = this.$toolbar.find( ".everything-bar-dropdown" );
-		this.$chips             = this.$toolbar.find( ".everything-bar-chips" );
-		this.config             = options.config || {};
-		this.activeSaved        = [];
-		this.searchQuery        = "";
-		this.highlightedIndex   = -1;
-		this.itemData           = [];
-		this.defaultPlaceholder = this.$input.attr( "placeholder" ) || "";
-		this.onChange           = options.onChange || function(){};
+		this.options               = options || {};
+		this.$toolbar              = options.$toolbar;
+		this.$input                = this.$toolbar.find( ".everything-bar-input" );
+		this.$dropdown             = this.$toolbar.find( ".everything-bar-dropdown" );
+		this.$chips                = this.$toolbar.find( ".everything-bar-chips" );
+		this.config                = options.config || {};
+		this.activeSaved           = [];
+		this.columnFilters         = [];
+		this.searchQuery           = "";
+		this.highlightedIndex      = -1;
+		this.itemData              = [];
+		this.defaultPlaceholder    = this.$input.attr( "placeholder" ) || "";
+		this.onChange              = options.onChange || function(){};
+		this.onRemoveColumnFilter  = options.onRemoveColumnFilter || function(){};
 
 		this._bind();
 		this.renderChips();
@@ -86,9 +88,14 @@
 		this.renderChips();
 	};
 
+	PresideEverythingBar.prototype.setColumnFilters = function( chips ) {
+		this.columnFilters = chips || [];
+		this.renderChips();
+	};
+
 	PresideEverythingBar.prototype.renderChips = function() {
 		var html = []
-		  , i, saved;
+		  , i, saved, column;
 
 		if ( this.searchQuery ) {
 			html.push( this._chipHtml( "search", this.searchQuery, t( "cms:datatables.chip.search", "Search: {1}", [ this.searchQuery ] ) ) );
@@ -104,6 +111,11 @@
 					, saved.type === "segmentation" ? "sitemap" : ( saved.favourite ? "heart" : "filter" )
 				) );
 			}
+		}
+
+		for( i=0; i<this.columnFilters.length; i++ ) {
+			column = this.columnFilters[ i ];
+			html.push( this._chipHtml( "column", column.field, column.label, "filter" ) );
 		}
 
 		this.$chips.html( html.join( "" ) );
@@ -127,6 +139,11 @@
 			this.$input.val( "" );
 		} else if ( kind === "saved" || kind === "segmentation" ) {
 			this.activeSaved = this.activeSaved.filter( function( item ){ return String( item ) !== id; } );
+		} else if ( kind === "column" ) {
+			this.columnFilters = this.columnFilters.filter( function( item ){ return String( item.field ) !== id; } );
+			this.renderChips();
+			this.onRemoveColumnFilter( id );
+			return;
 		}
 
 		this.renderChips();
