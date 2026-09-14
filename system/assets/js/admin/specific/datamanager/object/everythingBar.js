@@ -151,31 +151,10 @@
 	};
 
 	PresideEverythingBar.prototype.renderDropdown = function() {
-		var q            = this.getQuery().toLowerCase()
-		  , items        = []
-		  , html         = []
-		  , saved        = this.config.savedFilters || []
-		  , segmentation = this.config.segmentationFilters || []
-		  , i, item;
+		var items = this._filterItems( this.getQuery().toLowerCase() )
+		  , html  = [];
 
 		this.itemData = [];
-
-		if ( this.config.allowSearch && q.length ) {
-			items.push( { action : "search", label : t( "cms:datatables.everything.search.records", "Search records for “{1}”", [ this.getQuery() ] ), icon : "search", query : this.getQuery() } );
-		}
-
-		for( i=0; i<segmentation.length; i++ ) {
-			item = segmentation[ i ];
-			if ( this._matches( q, item.name ) ) {
-				items.push( { action : "saved", id : item.id, label : item.name + " (" + ( item.count || 0 ) + ")", icon : "sitemap", group : t( "cms:datatables.everything.segmentation", "Segmentation" ) } );
-			}
-		}
-		for( i=0; i<saved.length; i++ ) {
-			item = saved[ i ];
-			if ( this._matches( q, item.name ) || this._matches( q, item.folder ) ) {
-				items.push( { action : "saved", id : item.id, label : item.name, icon : item.favourite ? "heart" : "filter", group : item.folder || t( "cms:datatables.everything.saved", "Saved filters" ) } );
-			}
-		}
 
 		if ( !items.length ) {
 			html.push( '<div class="everything-bar-empty">' + t( "cms:datatables.everything.empty", "No matching filters" ) + '</div>' );
@@ -187,15 +166,110 @@
 		this._markHighlight();
 	};
 
+	PresideEverythingBar.prototype._filterItems = function( q ) {
+		var items             = []
+		  , saved             = this.config.savedFilters || []
+		  , segmentation      = this.config.segmentationFilters || []
+		  , favourites        = []
+		  , uncategorised     = []
+		  , segmentationItems = []
+		  , folders           = {}
+		  , folderNames       = []
+		  , labels         = {
+			  favourites    : t( "cms:datatables.everything.favourites", "Favourites" )
+			, segmentation  : t( "cms:datatables.everything.segmentation", "Segmentation filters" )
+			, uncategorised : t( "cms:datatables.everything.uncategorised", "Uncategorised filters" )
+		    }
+		  , i, item, folder;
+
+		if ( this.config.allowSearch && q.length ) {
+			items.push( {
+				  action : "search"
+				, label  : t( "cms:datatables.everything.search.records", "Search records for “{1}”", [ this.getQuery() ] )
+				, icon   : "search"
+			} );
+		}
+
+		for( i=0; i<saved.length; i++ ) {
+			item   = saved[ i ];
+			folder = String( item.folder || "" );
+
+			if ( item.favourite ) {
+				if ( this._matches( q, item.name ) || this._matches( q, labels.favourites ) ) {
+					favourites.push( this._savedItem( item, labels.favourites, "heart" ) );
+				}
+			} else if ( folder.length ) {
+				if ( this._matches( q, item.name ) || this._matches( q, folder ) ) {
+					if ( !folders[ folder ] ) {
+						folders[ folder ] = [];
+						folderNames.push( folder );
+					}
+					folders[ folder ].push( this._savedItem( item, folder, "folder" ) );
+				}
+			} else if ( this._matches( q, item.name ) || this._matches( q, labels.uncategorised ) ) {
+				uncategorised.push( this._savedItem( item, labels.uncategorised, "filter" ) );
+			}
+		}
+
+		for( i=0; i<segmentation.length; i++ ) {
+			item = segmentation[ i ];
+			if ( this._matches( q, item.name ) || this._matches( q, labels.segmentation ) ) {
+				segmentationItems.push( {
+					  action    : "saved"
+					, id        : item.id
+					, label     : item.name + " (" + ( item.count || 0 ) + ")"
+					, icon      : "sitemap"
+					, group     : labels.segmentation
+					, groupIcon : "sitemap"
+				} );
+			}
+		}
+
+		folderNames.sort( function( a, b ){
+			return String( a ).toLowerCase().localeCompare( String( b ).toLowerCase() );
+		} );
+
+		this._appendItems( items, favourites );
+		this._appendItems( items, segmentationItems );
+		for( i=0; i<folderNames.length; i++ ) {
+			this._appendItems( items, folders[ folderNames[ i ] ] );
+		}
+		this._appendItems( items, uncategorised );
+
+		return items;
+	};
+
+	PresideEverythingBar.prototype._savedItem = function( item, group, groupIcon ) {
+		return {
+			  action    : "saved"
+			, id        : item.id
+			, label     : item.name
+			, icon      : item.favourite ? "heart" : "filter"
+			, group     : group
+			, groupIcon : groupIcon
+		};
+	};
+
+	PresideEverythingBar.prototype._appendItems = function( items, extra ) {
+		if ( extra && extra.length ) {
+			Array.prototype.push.apply( items, extra );
+		}
+	};
+
 	PresideEverythingBar.prototype._groupedHtml = function( items ) {
-		var html = []
+		var html      = []
 		  , lastGroup = null
-		  , i, item;
+		  , i, item, groupHtml;
 
 		for( i=0; i<items.length; i++ ) {
 			item = items[ i ];
 			if ( item.group && item.group !== lastGroup ) {
-				html.push( '<div class="everything-bar-group">' + $("<div>").text( item.group ).html() + '</div>' );
+				groupHtml = "";
+				if ( item.groupIcon ) {
+					groupHtml += '<i class="fa fa-fw fa-' + item.groupIcon + '"></i> ';
+				}
+				groupHtml += $( "<div>" ).text( item.group ).html();
+				html.push( '<div class="everything-bar-group">' + groupHtml + '</div>' );
 				lastGroup = item.group;
 			}
 			html.push( this._itemHtml( item ) );
