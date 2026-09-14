@@ -627,8 +627,8 @@ component {
 			sharing = _normalizeSharing(
 				  sharingScope   = arguments.sharingScope
 				, userGroups     = arguments.userGroups ?: ""
-				, allowGroupEdit = IsTrue( arguments.allowGroupEdit ?: false )
-				, isShared       = IsTrue( arguments.isShared ?: false )
+				, allowGroupEdit = $helpers.isTrue( arguments.allowGroupEdit ?: false )
+				, isShared       = $helpers.isTrue( arguments.isShared ?: false )
 				, canShare       = arguments.canShare
 			);
 			data.is_shared        = sharing.isShared;
@@ -697,7 +697,7 @@ component {
 			  label            = record.label ?: ""
 			, description      = record.description ?: ""
 			, sharing_scope    = _legacySharingScope( record )
-			, allow_group_edit = IsTrue( record.allow_group_edit ?: false )
+			, allow_group_edit = $helpers.IsTrue( record.allow_group_edit ?: false )
 			, user_groups      = groups
 		};
 	}
