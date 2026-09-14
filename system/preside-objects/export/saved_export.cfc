@@ -6,6 +6,7 @@
  * @feature                            dataExport
  */
 component extends="preside.system.base.SystemPresideObject" {
+	property name="label"       renderer="savedExportLabel";
 	property name="template"    required=false type="string" dbtype="varchar" maxlength=100 indexes="template" default="default" enum="dataExportTemplate" generator="method:getDefaultTemplate" generate="insert";
 	property name="file_name"   required="true";
 	property name="description"                                              maxlength=2000                                    autofilter=false;
