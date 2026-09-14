@@ -53,8 +53,9 @@ component {
 
 	/**
 	 * Default pool is `@datamanagerGridFields` plus `@datamanagerHiddenGridFields`
-	 * and optional `@datamanagerColumnPickerFields`. Properties may opt in or out
-	 * with `datamanagerUserColumn=true|false`. Locked columns come from
+	 * and optional `@datamanagerColumnPickerFields`. Picker field lists accept `*`
+	 * wildcards and `!` exclusions, e.g. `*,!sensitive_col`. Properties may opt in
+	 * or out with `datamanagerUserColumn=true|false`. Locked columns come from
 	 * `@datamanagerLockedGridFields` (label field if unset). Handlers can replace
 	 * the pool with `getAvailableListingColumns` / `getDefaultListingColumns`.
 	 * Explicit listing `gridFields` / `hiddenGridFields` are merged into the pool
@@ -77,18 +78,19 @@ component {
 			return _uniqueFields( merged );
 		}
 
-		var fields          = Duplicate( _getDataManagerService().listGridFields( arguments.objectName ) );
-		var hiddenFields    = _getDataManagerService().listHiddenGridFields( arguments.objectName );
-		var pickerFields    = ListToArray( $getPresideObjectService().getObjectAttribute(
+		var fields         = Duplicate( _getDataManagerService().listGridFields( arguments.objectName ) );
+		var hiddenFields   = _getDataManagerService().listHiddenGridFields( arguments.objectName );
+		var properties     = $getPresideObjectService().getObjectProperties( arguments.objectName );
+		var pickerPatterns = ListToArray( $getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerColumnPickerFields"
 			, defaultValue  = ""
 		), ", " );
-		var properties      = $getPresideObjectService().getObjectProperties( arguments.objectName );
-		var excluded        = {};
+		var pickerSpec     = _resolveColumnPickerFields( patterns=pickerPatterns, properties=properties );
+		var excluded       = Duplicate( pickerSpec.excluded );
 
 		ArrayAppend( fields, hiddenFields, true );
-		ArrayAppend( fields, pickerFields, true );
+		ArrayAppend( fields, pickerSpec.expanded, true );
 		ArrayAppend( fields, _getDataManagerService().listSearchFields( arguments.objectName ), true );
 
 		for( var propName in properties ) {
@@ -97,21 +99,21 @@ component {
 				if ( prop.datamanagerUserColumn ) {
 					ArrayAppend( fields, propName );
 				} else {
-					excluded[ propName ] = true;
+					excluded[ LCase( propName ) ] = true;
 				}
 			}
 		}
 
 		var allowed = [];
 		for( var fieldName in _uniqueFields( fields ) ) {
-			if ( StructKeyExists( excluded, fieldName ) || !_isListableColumn( arguments.objectName, fieldName, properties ) ) {
+			if ( _isExcludedField( excluded, fieldName ) || !_isListableColumn( arguments.objectName, fieldName, properties ) ) {
 				continue;
 			}
 			ArrayAppend( allowed, fieldName );
 		}
 
 		for( var fieldName in arguments.extraFields ) {
-			if ( !Len( Trim( fieldName ) ) || ArrayFindNoCase( allowed, fieldName ) ) {
+			if ( !Len( Trim( fieldName ) ) || ArrayFindNoCase( allowed, fieldName ) || _isExcludedField( excluded, fieldName ) ) {
 				continue;
 			}
 			if ( !_isListableColumn( arguments.objectName, fieldName, properties ) ) {
@@ -520,6 +522,79 @@ component {
 		name = ReReplaceNoCase( name, "<[^>]+>", "", "all" );
 
 		return Trim( ReReplace( name, "\s+", " ", "all" ) );
+	}
+
+	private struct function _resolveColumnPickerFields(
+		  required array  patterns
+		, required struct properties
+	) {
+		var included = [];
+		var excluded = {};
+		var names    = StructKeyArray( arguments.properties );
+
+		for( var rawPattern in arguments.patterns ) {
+			var pattern   = Trim( rawPattern );
+			var isExclude = false;
+
+			if ( !Len( pattern ) ) {
+				continue;
+			}
+			if ( Left( pattern, 1 ) == "!" ) {
+				isExclude = true;
+				pattern   = Trim( Mid( pattern, 2, Len( pattern ) ) );
+			}
+			if ( !Len( pattern ) ) {
+				continue;
+			}
+
+			for( var propName in names ) {
+				if ( !_matchesColumnPickerPattern( fieldName=propName, pattern=pattern ) ) {
+					continue;
+				}
+				if ( isExclude ) {
+					excluded[ LCase( propName ) ] = true;
+				} else {
+					ArrayAppend( included, propName );
+				}
+			}
+		}
+
+		var expanded = [];
+		for( var fieldName in included ) {
+			if ( StructKeyExists( excluded, LCase( fieldName ) ) ) {
+				continue;
+			}
+			ArrayAppend( expanded, fieldName );
+		}
+
+		return { expanded=expanded, excluded=excluded };
+	}
+
+	private boolean function _matchesColumnPickerPattern(
+		  required string fieldName
+		, required string pattern
+	) {
+		var regex = "";
+
+		if ( arguments.pattern == "*" ) {
+			return true;
+		}
+		if ( !Find( "*", arguments.pattern ) ) {
+			return !CompareNoCase( arguments.fieldName, arguments.pattern );
+		}
+
+		regex = ReReplace( arguments.pattern, "([\\.\+\?\^\$\{\}\(\)\|\[\]])", "\\\1", "all" );
+		regex = Replace( regex, "*", ".*", "all" );
+
+		return ReFindNoCase( "^" & regex & "$", arguments.fieldName ) > 0;
+	}
+
+	private boolean function _isExcludedField(
+		  required struct excluded
+		, required string fieldName
+	) {
+		return StructKeyExists( arguments.excluded, arguments.fieldName )
+			|| StructKeyExists( arguments.excluded, LCase( arguments.fieldName ) );
 	}
 
 	private array function _uniqueFields( required array fields ) {

@@ -76,6 +76,63 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( ArrayFindNoCase( result, "sending_method" ) ).toBeGT( 0 );
 				expect( ArrayFindNoCase( result, "open_rate" ) ).toBeGT( 0 );
 			} );
+
+			it( "should expand wildcard picker fields and drop named exclusions", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				variables.mockDataManager.$( "listGridFields" ).$args( "my_extension_object" ).$results( [ "label", "status" ] );
+				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "my_extension_object" ).$results( [] );
+				variables.mockDataManager.$( "listSearchFields" ).$args( "my_extension_object" ).$results( [] );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "my_extension_object"
+					, attributeName = "datamanagerColumnPickerFields"
+					, defaultValue  = ""
+				).$results( "*,!sensitive_col,!other_sensitive_col" );
+				mockPoService.$( "getObjectProperties", {
+					  label               = { name="label" }
+					, status              = { name="status" }
+					, notes               = { name="notes" }
+					, datemodified        = { name="datemodified" }
+					, sensitive_col       = { name="sensitive_col" }
+					, other_sensitive_col = { name="other_sensitive_col" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				var result = svc.listAvailableColumns( objectName="my_extension_object" );
+
+				expect( ArrayFindNoCase( result, "notes" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "datemodified" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "sensitive_col" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "other_sensitive_col" ) ).toBe( 0 );
+			} );
+
+			it( "should match glob exclusions in picker fields", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				variables.mockDataManager.$( "listGridFields" ).$args( "my_extension_object" ).$results( [ "label" ] );
+				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "my_extension_object" ).$results( [] );
+				variables.mockDataManager.$( "listSearchFields" ).$args( "my_extension_object" ).$results( [] );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "my_extension_object"
+					, attributeName = "datamanagerColumnPickerFields"
+					, defaultValue  = ""
+				).$results( "*,!*_col" );
+				mockPoService.$( "getObjectProperties", {
+					  label               = { name="label" }
+					, notes               = { name="notes" }
+					, sensitive_col       = { name="sensitive_col" }
+					, other_sensitive_col = { name="other_sensitive_col" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				var result = svc.listAvailableColumns( objectName="my_extension_object" );
+
+				expect( ArrayFindNoCase( result, "notes" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "sensitive_col" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "other_sensitive_col" ) ).toBe( 0 );
+			} );
 		} );
 
 		describe( "mergeExpressionArrays()", function(){

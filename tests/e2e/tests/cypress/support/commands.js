@@ -40,7 +40,8 @@ Cypress.Commands.add( 'everythingBarGroups', () => {
 
 Cypress.Commands.add( 'resetListingColumns', () => {
 	cy.get( 'button[aria-label="Columns"]' ).click();
-	cy.get( '.listing-colvis-reset' ).click();
+	cy.get( '.listing-colvis-reset' ).should( 'be.visible' ).click();
+	cy.get( '.listing-colvis-reset', { timeout : 20000 } ).should( 'not.exist' );
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 } );
 
