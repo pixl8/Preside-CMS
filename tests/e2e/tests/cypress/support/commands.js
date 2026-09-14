@@ -59,22 +59,20 @@ Cypress.Commands.add( 'resetListingColumns', () => {
 } );
 
 Cypress.Commands.add( 'openListingColumnPicker', () => {
-	cy.get( 'button[aria-label="Columns"]' ).click( { force : true } );
-	cy.get( '.listing-colvis-list' ).should( 'exist' );
+	cy.get( 'body' ).then( ( $body ) => {
+		if ( !$body.find( '.listing-colvis-list .listing-column-row' ).length ) {
+			cy.get( 'button[aria-label="Columns"]' ).first().click( { force : true } );
+		}
+	} );
+	cy.get( '.listing-colvis-list .listing-column-row', { timeout : 10000 } ).should( 'have.length.greaterThan', 0 );
 } );
 
 Cypress.Commands.add( 'toggleListingColumn', ( label ) => {
 	cy.intercept( { method : 'POST', url : /saveListingColumns/ } ).as( 'saveListingColumns' );
 	cy.openListingColumnPicker();
-
-	cy.get( '.listing-colvis-list' ).within( () => {
-		cy.get( '.dtcc-list-search' ).clear( { force : true } ).type( label, { force : true } );
-		cy.contains( '.listing-column-row:not(.hide) label', label )
-			.find( 'input[type=checkbox].listing-column-toggle' )
-			.click( { force : true } );
-	} );
-
-	cy.get( 'body' ).click( 0, 0 );
+	cy.contains( '.listing-colvis-list .listing-column-row label', label )
+		.find( 'input[type=checkbox].listing-column-toggle' )
+		.click( { force : true } );
 	cy.wait( '@saveListingColumns', { timeout : 20000 } );
 } );
 
