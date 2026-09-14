@@ -35,6 +35,10 @@
 			self.open();
 		} );
 
+		this.$input.on( "keydown keypress keyup", function( e ){
+			e.stopPropagation();
+		} );
+
 		this.$input.on( "keydown", function( e ){
 			self._onKey( e );
 		} );

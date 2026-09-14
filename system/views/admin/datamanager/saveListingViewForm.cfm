@@ -14,7 +14,7 @@
 </cfscript>
 
 <cfoutput>
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal listing-view-save-form" method="post" action="#args.addRecordAction#">
+	<form id="#formId#" class="form-horizontal listing-view-save-form" method="post" action="#args.addRecordAction#">
 		<input type="hidden" name="object"     value="#EncodeForHtmlAttribute( args.objectName )#" />
 		<input type="hidden" name="listingKey" value="#EncodeForHtmlAttribute( args.listingKey )#" />
 		<cfif Len( Trim( args.viewId ) )>

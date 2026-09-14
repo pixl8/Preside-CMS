@@ -21,7 +21,18 @@ Cypress.Commands.add( 'superuserAdminLogin', () => {
 
 });
 
+Cypress.Commands.add( 'clearListingTableState', () => {
+	cy.window().then( ( win ) => {
+		Object.keys( win.localStorage ).forEach( ( key ) => {
+			if ( key.indexOf( 'DataTables_listing_' ) === 0 || key.indexOf( 'PresideListingView_' ) === 0 ) {
+				win.localStorage.removeItem( key );
+			}
+		} );
+	} );
+} );
+
 Cypress.Commands.add( 'visitObjectListing', ( objectName ) => {
+	cy.clearListingTableState();
 	cy.visit( `/admin/datamanager/object/?id=${ objectName }` );
 	cy.get( '.object-listing-table', { timeout : 20000 } ).should( 'be.visible' );
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
@@ -100,13 +111,7 @@ Cypress.Commands.add( 'editListingView', () => {
 } );
 
 Cypress.Commands.add( 'clearListingViews', () => {
-	cy.window().then( ( win ) => {
-		Object.keys( win.localStorage ).forEach( ( key ) => {
-			if ( key.indexOf( 'PresideListingView_' ) === 0 ) {
-				win.localStorage.removeItem( key );
-			}
-		} );
-	} );
+	cy.clearListingTableState();
 } );
 
 Cypress.Commands.add( 'openListingViews', () => {
@@ -123,10 +128,10 @@ Cypress.Commands.add( 'saveListingViewAs', ( name ) => {
 		.its( '0.contentDocument.body' )
 		.should( 'not.be.empty' )
 		.then( ( body ) => {
-			cy.wrap( body ).find( 'input[name=label]', { timeout : 15000 } ).should( 'be.visible' ).clear().type( name );
 			cy.wrap( body ).find( 'input[name=sharing_scope][value=global]' ).should( 'exist' );
 			cy.wrap( body ).find( 'input[name=sharing_scope][value=individual]' ).should( 'exist' );
 			cy.wrap( body ).find( 'input[name=sharing_scope][value=group]' ).should( 'exist' );
+			cy.wrap( body ).find( 'input[name=label]' ).should( 'be.visible' ).clear( { force : true } ).type( name, { force : true } );
 		} );
 	cy.get( '.listing-views-save-dialog .btn-info' ).contains( 'Save view' ).click();
 	cy.wait( '@saveListingView' ).its( 'response.statusCode' ).should( 'eq', 200 );

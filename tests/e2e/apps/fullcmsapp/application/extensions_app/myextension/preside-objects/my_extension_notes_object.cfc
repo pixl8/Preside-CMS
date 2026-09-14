@@ -2,6 +2,7 @@
  * @datamanagerEnabled             true
  * @datamanagerGridFields          label,status,category,notes,datecreated
  * @datamanagerColumnPickerFields  *,!sensitive_col,!other_sensitive_col
+ * @datamanagerDefaultSortOrder    label
  * @versioned                      false
  *
  */

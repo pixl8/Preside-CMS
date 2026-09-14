@@ -77,7 +77,7 @@ describe( 'Application extra listing columns', () => {
 					, body   : {
 						  sEcho                : 1
 						, iDisplayStart        : 0
-						, iDisplayLength       : 10
+						, iDisplayLength       : 100
 						, listingKey           : toolbar.listingKey || 'my_extension_object'
 						, grantedGridFields    : ( toolbar.grantedColumns || [] ).join( ',' )
 						, grantedGridFieldsSig : toolbar.grantedColumnsSig || ''
