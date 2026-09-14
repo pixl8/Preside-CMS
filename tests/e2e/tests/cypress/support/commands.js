@@ -20,3 +20,35 @@ Cypress.Commands.add( 'superuserAdminLogin', () => {
 	});
 
 });
+
+Cypress.Commands.add( 'visitObjectListing', ( objectName ) => {
+	cy.visit( `/admin/datamanager/object/?id=${ objectName }` );
+	cy.get( '.object-listing-table', { timeout : 20000 } ).should( 'be.visible' );
+	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
+} );
+
+Cypress.Commands.add( 'openEverythingBar', () => {
+	cy.get( '.everything-bar-input' ).should( 'be.visible' ).click();
+	cy.get( '.everything-bar-dropdown' ).should( 'not.have.class', 'hide' );
+} );
+
+Cypress.Commands.add( 'everythingBarGroups', () => {
+	return cy.get( '.everything-bar-dropdown .everything-bar-group' ).then( ( $groups ) => {
+		return [ ...$groups ].map( ( el ) => el.textContent.replace( /\s+/g, ' ' ).trim() );
+	} );
+} );
+
+Cypress.Commands.add( 'resetListingColumns', () => {
+	cy.get( 'button[aria-label="Columns"]' ).click();
+	cy.get( '.listing-colvis-reset' ).click();
+	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
+} );
+
+Cypress.Commands.add( 'toggleListingColumn', ( label ) => {
+	cy.get( 'button[aria-label="Columns"]' ).click();
+	cy.get( '.listing-colvis-list, .dtcc-list' ).should( 'be.visible' );
+	cy.contains( '.listing-colvis-list label, .dtcc-list label', label )
+		.find( 'input[type=checkbox].listing-column-toggle' )
+		.click( { force : true } );
+	cy.get( 'body' ).click( 0, 0 );
+} );
