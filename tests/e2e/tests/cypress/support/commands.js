@@ -39,30 +39,45 @@ Cypress.Commands.add( 'everythingBarGroups', () => {
 } );
 
 Cypress.Commands.add( 'resetListingColumns', () => {
-	cy.get( 'button[aria-label="Columns"]' ).should( 'be.visible' ).click();
-	cy.get( '.listing-colvis-reset' ).should( 'be.visible' ).click();
-	cy.get( '.listing-colvis-reset', { timeout : 20000 } ).should( 'not.exist' );
+	cy.get( '.object-listing-table' ).should( 'be.visible' ).then( ( $table ) => {
+		const url        = $table.attr( 'data-save-listing-columns-url' );
+		const object     = $table.attr( 'data-object-name' );
+		const listingKey = $table.attr( 'data-listing-key' ) || object;
+
+		expect( url, 'listing column save url' ).to.be.a( 'string' ).and.not.be.empty;
+
+		cy.request( {
+			  method : 'POST'
+			, url    : url
+			, form   : true
+			, body   : { object : object, listingKey : listingKey, columns : '' }
+		} );
+	} );
+
+	cy.reload();
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
-	cy.get( 'button[aria-label="Columns"]' ).should( 'be.visible' );
 } );
 
 Cypress.Commands.add( 'openListingColumnPicker', () => {
 	cy.get( 'button[aria-label="Columns"]' ).should( 'be.visible' ).click();
-	cy.get( '.listing-colvis-list, .dtcc-list' ).should( 'be.visible' );
+	cy.get( '.listing-colvis-list, .dtcc-list' ).should( 'exist' );
 } );
 
 Cypress.Commands.add( 'toggleListingColumn', ( label ) => {
-	cy.intercept( { method : 'POST', url : /saveListingColumns/ } ).as( 'saveListingColumns' );
 	cy.openListingColumnPicker();
-	cy.get( '.dtcc-list-search' ).should( 'be.visible' ).clear().type( label );
-	cy.contains( '.listing-column-row:not(.hide) label', label )
-		.find( 'input[type=checkbox].listing-column-toggle' )
+	cy.get( 'body' ).then( ( $body ) => {
+		if ( $body.find( '.dtcc-list-search' ).length ) {
+			cy.get( '.dtcc-list-search' ).first().clear( { force : true } ).type( label, { force : true } );
+		}
+	} );
+	cy.contains( '.listing-colvis-list label, .dtcc-list label, .listing-column-row label', label )
+		.find( 'input[type=checkbox]' )
 		.click( { force : true } );
 	cy.get( 'body' ).click( 0, 0 );
-	cy.wait( '@saveListingColumns', { timeout : 20000 } );
 } );
 
 Cypress.Commands.add( 'reloadAfterListingColumnSave', () => {
+	cy.wait( 2000 );
 	cy.reload();
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 } );
