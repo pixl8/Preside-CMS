@@ -6,7 +6,8 @@
 		  , disableSort       = $listingTable.data( "disableSort" )
 		  , defaultPageLength = $listingTable.data( "defaultPageLength" )
 		  , paginationOptions = $listingTable.data( "paginationOptions" )
-		  , layout;
+		  , layout
+		  , tableOptions;
 
 		if ( typeof defaultPageLength == "undefined" ) {
 		 	defaultPageLength = "10";
@@ -15,29 +16,48 @@
 			paginationOptions = "5,10,25,50,100";
 		}
 
-		layout = disableSearch ?
-			{ topStart : null, topEnd : null, bottomStart : "info", bottomEnd : [ "pageLength", "paging" ] } :
-			{ topStart : "search", topEnd : null, bottomStart : "info", bottomEnd : [ "pageLength", "paging" ] };
+		layout = {
+			  topStart    : null
+			, topEnd      : null
+			, bottomStart : "info"
+			, bottomEnd   : [ "pageLength", "paging" ]
+		};
 
-		$listingTable.DataTable({
+		if ( !disableSearch ) {
+			layout.top = "search";
+		}
+
+		tableOptions = {
 			  layout     : layout
-			, ordering   : !disableSort
+			, ordering   : disableSort ? false : { indicators : false, handler : false }
 			, searching  : !disableSearch
 			, pageLength : parseInt( defaultPageLength, 10 )
-			, lengthMenu : paginationOptions.split( "," )
+			, lengthMenu : paginationOptions.toString().split( "," ).map( function( n ){ return parseInt( n, 10 ); } )
+			, autoWidth  : false
 			, initComplete : function(){
+				var api, $input, $icon, placeholder;
+
 				if ( disableSearch ) { return; }
 
-				var api    = this.api ? this.api() : undefined
-				  , $input = api
-				  	? $( api.table().container() ).find( "input[type=search]" ).first()
-				  	: $listingTable.closest( ".dt-container, .dataTables_wrapper" ).find( "input[type=search]" ).first();
+				api    = this.api ? this.api() : undefined;
+				$input = api
+					? $( api.table().container() ).find( ".dt-search input, input[type=search]" ).first()
+					: $listingTable.closest( ".dt-container, .dataTables_wrapper" ).find( ".dt-search input, input[type=search]" ).first();
 
+				if ( !$input.length ) { return; }
+
+				placeholder = i18n.translateResource( "cms:datamanager.search.placeholder", { data : [ objectTitle ], defaultValue : "" } );
+
+				$input.removeClass( "input-sm" );
 				$input.addClass( "data-table-search" );
 				$input.attr( "data-global-key", "s" );
 				$input.attr( "autocomplete", "off" );
+				if ( placeholder ) {
+					$input.attr( "placeholder", placeholder );
+				}
+				$icon = $( '<i class="fa fa-search data-table-search-icon"></i>' );
 				$input.wrap( '<span class="input-icon"></span>' );
-				$input.after( '<i class="fa fa-search data-table-search-icon"></i>' );
+				$input.before( $icon );
 			}
 			, language : {
 				  emptyTable     : i18n.translateResource( "cms:datatables.emptyTable", { data : [objectTitle], defaultValue : "" } )
@@ -65,6 +85,12 @@
 					}
 				  }
 			}
-		});
+		};
+
+		if ( !disableSort && window.DataTable && DataTable.ColumnControl ) {
+			tableOptions.columnControl = [ { target : 0, content : [ "order" ] } ];
+		}
+
+		$listingTable.DataTable( tableOptions );
 	} );
 } )( presideJQuery );

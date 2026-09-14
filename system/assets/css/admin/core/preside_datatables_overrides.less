@@ -282,6 +282,7 @@
 
 .table-responsive {
 	&.table-compact {
+		.dt-container .dt-search,
 		.dataTables_wrapper .dataTables_filter {
 			padding : 0px;
 		}
@@ -456,6 +457,44 @@
 		border-bottom    : 1px solid #e0e0e0;
 	}
 
+	> .dt-layout-row:has( .dt-search ) {
+		background-color : #f5f5f5;
+		padding          : 12px 15px 10px;
+		border-bottom    : 1px solid #e3e3e3;
+	}
+
+	&:has( .static-data-table ),
+	&:has( .asset-listing-table ) {
+		background-color : @white;
+		border           : 1px solid #e3e3e3;
+		border-radius    : 4px;
+		overflow         : hidden;
+
+		.table {
+			margin-bottom : 0;
+		}
+
+		> .dt-layout-row:not(.dt-layout-table) {
+			background-color : #f5f5f5;
+		}
+
+		> .dt-layout-row:has( .dt-search ) {
+			border-bottom : 1px solid #e3e3e3;
+			border-radius : 4px 4px 0 0;
+		}
+
+		> .dt-layout-row:not(.dt-layout-table):not( :has( .dt-search ) ) {
+			border-top    : 1px solid #e3e3e3;
+			border-bottom : none;
+			border-radius : 0 0 4px 4px;
+		}
+	}
+
+	.dt-layout-full {
+		flex  : 1 1 100%;
+		width : 100%;
+	}
+
 	.dt-layout-start {
 		flex : 1 1 auto;
 	}
@@ -590,25 +629,172 @@
 		}
 	}
 
-	.dt-length select,
-	.dt-search input {
+	.dt-length select {
 		height        : 28px;
 		border-radius : 3px;
 	}
+
+	.dt-search {
+		flex     : 1 1 auto;
+		width    : 100%;
+		padding  : 0;
+
+		> label {
+			display : none;
+		}
+
+		.input-icon {
+			display  : block;
+			position : relative;
+			width    : 100%;
+
+			> .fa,
+			.data-table-search-icon {
+				position    : absolute;
+				left        : 8px;
+				top         : 50%;
+				bottom      : auto;
+				margin-top  : -7px;
+				padding     : 0;
+				color       : @default-light-font-colour;
+				z-index     : 2;
+				font-size   : 14px;
+				line-height : 14px;
+			}
+
+			.data-table-search {
+				width         : 100%;
+				height        : 40px;
+				padding       : 4px 8px 4px 28px;
+				border        : 1px solid @default-input-border-colour;
+				border-radius : 4px !important;
+				font-size     : 14px;
+				color         : @default-input-font-colour;
+				background    : @white;
+				box-shadow    : none;
+				margin        : 0;
+
+				&:focus {
+					border-color : @default-selected-input-border-colour;
+				}
+			}
+		}
+	}
 }
 
-table.dataTable:not( .object-listing-table ) thead > tr > th.dt-ordering-asc:after,
-table.dataTable:not( .object-listing-table ) thead > tr > th.sorting_asc:after {
+table.dataTable:not( .object-listing-table ):not( .static-data-table ):not( .asset-listing-table ) thead > tr > th.dt-ordering-asc:after,
+table.dataTable:not( .object-listing-table ):not( .static-data-table ):not( .asset-listing-table ) thead > tr > th.sorting_asc:after {
 	content     : "\f0de";
 	font-family : FontAwesome;
 	float       : right;
 	opacity     : 0.6;
 }
 
-table.dataTable:not( .object-listing-table ) thead > tr > th.dt-ordering-desc:after,
-table.dataTable:not( .object-listing-table ) thead > tr > th.sorting_desc:after {
+table.dataTable:not( .object-listing-table ):not( .static-data-table ):not( .asset-listing-table ) thead > tr > th.dt-ordering-desc:after,
+table.dataTable:not( .object-listing-table ):not( .static-data-table ):not( .asset-listing-table ) thead > tr > th.sorting_desc:after {
 	content     : "\f0dd";
 	font-family : FontAwesome;
 	float       : right;
 	opacity     : 0.6;
+}
+
+.static-data-table,
+.asset-listing-table {
+	--dtcc-button_background       : transparent;
+	--dtcc-button_border           : none;
+	--dtcc-button_border-radius    : 3px;
+	--dtcc-button_opacity          : 0.7;
+	--dtcc-button_padding          : 2px;
+	--dtcc-button_hover-background : fade( @blue, 12% );
+	--dtcc-button_hover-border     : none;
+	--dtcc-button_hover-opacity    : 1;
+	--dtcc-button-icon_color       : @blue;
+	--dtcc-button-icon_size        : 14px;
+
+	> thead > tr > th.dt-ordering-asc:after,
+	> thead > tr > th.dt-ordering-desc:after,
+	> thead > tr > th.sorting_asc:after,
+	> thead > tr > th.sorting_desc:after,
+	> thead > tr > th[class*=sort]:after {
+		content : none !important;
+		display : none !important;
+	}
+
+	span.dt-column-order {
+		display : none;
+	}
+
+	.dt-column-header {
+		display         : flex;
+		flex-wrap       : nowrap;
+		align-items     : center;
+		justify-content : space-between;
+		gap             : 6px;
+		min-height      : 18px;
+	}
+
+	.dt-column-title {
+		flex          : 1 1 auto;
+		min-width     : 0;
+		overflow      : hidden;
+		text-overflow : ellipsis;
+		white-space   : nowrap;
+	}
+
+	span.dtcc {
+		flex        : 0 0 auto;
+		display     : inline-flex;
+		align-items : center;
+		position    : relative;
+		gap         : 2px;
+		margin-left : 4px;
+		font-weight : normal;
+		white-space : nowrap;
+
+		button.dtcc-button {
+			display       : inline-flex;
+			padding       : var( --dtcc-button_padding );
+			border        : var( --dtcc-button_border );
+			border-radius : var( --dtcc-button_border-radius );
+			background    : var( --dtcc-button_background );
+			cursor        : pointer;
+			opacity       : var( --dtcc-button_opacity );
+			line-height   : 1;
+
+			&:hover {
+				border     : var( --dtcc-button_hover-border );
+				background : var( --dtcc-button_hover-background );
+				opacity    : var( --dtcc-button_hover-opacity );
+			}
+
+			> span.dtcc-button-state,
+			> span.dtcc-button-extra,
+			> span.dtcc-button-text {
+				display : none;
+			}
+
+			&.dtcc-button_active {
+				opacity : 1;
+
+				.dtcc-button-icon {
+					color : @blue;
+				}
+			}
+		}
+
+		span.dtcc-button-icon {
+			display        : inline-block;
+			box-sizing     : content-box;
+			color          : var( --dtcc-button-icon_color );
+			vertical-align : middle;
+			line-height    : var( --dtcc-button-icon_size );
+			height         : var( --dtcc-button-icon_size );
+
+			svg {
+				width          : var( --dtcc-button-icon_size );
+				height         : var( --dtcc-button-icon_size );
+				vertical-align : initial;
+			}
+		}
+	}
 }

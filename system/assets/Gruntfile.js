@@ -86,7 +86,7 @@ module.exports = function( grunt ) {
 					  	"js/admin/lib/plugins/jquery.dataTables.columnControlBootstrap.js",
 					  	"js/admin/lib/plugins/*.js"
 					  ]
-					, dest : "js/admin/lib/plugins-3.0.001.min.js"
+					, dest : "js/admin/lib/plugins-3.0.002.min.js"
 				},{
 					  src  : ["js/admin/lib/ace/ace.js", "js/admin/lib/ace/ace-elements.js"]
 					, dest : "js/admin/lib/ace-1.0.0.min.js"

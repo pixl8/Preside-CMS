@@ -81,9 +81,9 @@
 
 	PresideDatatables.hungarianAjax = function( url, extraParams ) {
 		return {
-			  url    : url
-			, type   : "POST"
-			, data   : function( d ) {
+			  url     : url
+			, type    : "POST"
+			, data    : function( d ) {
 				var hungarian = PresideDatatables.toHungarianAjaxData( d, extraParams );
 				$.extend( d, hungarian );
 				return d;
@@ -119,11 +119,11 @@
 
 	PresideDatatables.hungarianStateToModern = function( legacy ) {
 		var state = {
-			  time   : new Date().getTime()
-			, start  : legacy.iStart || 0
-			, length : legacy.iLength || 10
-			, order  : []
-			, search : { search : ( legacy.oSearch && legacy.oSearch.sSearch ) || "", smart : true, regex : false, caseInsensitive : true }
+			  time    : new Date().getTime()
+			, start   : legacy.iStart || 0
+			, length  : legacy.iLength || 10
+			, order   : []
+			, search  : { search : ( legacy.oSearch && legacy.oSearch.sSearch ) || "", smart : true, regex : false, caseInsensitive : true }
 			, columns : []
 		};
 		var aaSorting = legacy.aaSorting || []
@@ -141,7 +141,9 @@
 	};
 
 	PresideDatatables.mapHungarianOptions = function( options ) {
-		var mapped = $.extend( true, {}, options || {} )
+		var mapped         = $.extend( true, {}, options || {} )
+		  , fnServerParams = mapped.fnServerParams
+		  , origInitComplete = mapped.fnInitComplete
 		  , key;
 
 		if ( mapped.bServerSide !== undefined ) { mapped.serverSide = !!mapped.bServerSide; delete mapped.bServerSide; }
@@ -156,7 +158,7 @@
 		if ( mapped.aLengthMenu !== undefined ) { mapped.lengthMenu = mapped.aLengthMenu; delete mapped.aLengthMenu; }
 		if ( mapped.aaSorting !== undefined ) { mapped.order = mapped.aaSorting; delete mapped.aaSorting; }
 		if ( mapped.aoColumns !== undefined ) { mapped.columns = PresideDatatables.mapHungarianColumns( mapped.aoColumns ); delete mapped.aoColumns; }
-		if ( mapped.aoColumnDefs !== undefined ) { mapped.columnDefs = mapped.aoColumnDefs; delete mapped.aoColumnDefs; }
+		if ( mapped.aoColumnDefs !== undefined ) { mapped.columnDefs = PresideDatatables.mapHungarianColumnDefs( mapped.aoColumnDefs ); delete mapped.aoColumnDefs; }
 		if ( mapped.iDeferLoading !== undefined ) { mapped.deferLoading = mapped.iDeferLoading; delete mapped.iDeferLoading; }
 		if ( mapped.sPaginationType !== undefined ) { delete mapped.sPaginationType; }
 		if ( mapped.sDom !== undefined ) {
@@ -166,9 +168,9 @@
 			delete mapped.sDom;
 		}
 		if ( mapped.sAjaxSource ) {
-			mapped.ajax = PresideDatatables.hungarianAjax( mapped.sAjaxSource, mapped.fnServerParams ? function( params ){
+			mapped.ajax = PresideDatatables.hungarianAjax( mapped.sAjaxSource, fnServerParams ? function( params ){
 				var aoData = [];
-				mapped.fnServerParams( aoData );
+				fnServerParams( aoData );
 				aoData.forEach( function( item ){
 					if ( item && item.name ) {
 						params[ item.name ] = item.value;
@@ -180,11 +182,29 @@
 			delete mapped.fnServerParams;
 		}
 		if ( mapped.fnRowCallback ) {
-			mapped.createdRow = mapped.fnRowCallback;
+			mapped.rowCallback = mapped.fnRowCallback;
 			delete mapped.fnRowCallback;
 		}
-		if ( mapped.fnInitComplete ) {
-			mapped.initComplete = mapped.fnInitComplete;
+		if ( mapped.fnCreatedRow ) {
+			mapped.createdRow = mapped.fnCreatedRow;
+			delete mapped.fnCreatedRow;
+		}
+		if ( origInitComplete ) {
+			mapped.initComplete = function( settings, json ) {
+				var api = this.api ? this.api() : ( DataTable.Api ? new DataTable.Api( settings ) : null )
+				  , $container;
+
+				if ( api ) {
+					$container = $( api.table().container() );
+					settings.aanFeatures = settings.aanFeatures || {};
+					settings.aanFeatures.f = $container.find( ".dt-search, .dataTables_filter" ).toArray();
+					settings.aanFeatures.l = $container.find( ".dt-length, .dataTables_length" ).toArray();
+					settings.aanFeatures.i = $container.find( ".dt-info, .dataTables_info" ).toArray();
+					settings.aanFeatures.p = $container.find( ".dt-paging, .dataTables_paginate" ).toArray();
+				}
+
+				return origInitComplete.call( this, settings, json );
+			};
 			delete mapped.fnInitComplete;
 		}
 		if ( mapped.fnDrawCallback ) {
@@ -219,16 +239,35 @@
 
 	PresideDatatables.mapHungarianColumns = function( columns ) {
 		return ( columns || [] ).map( function( col ) {
-			var mapped = $.extend( {}, col );
+			return PresideDatatables.mapHungarianColumn( col );
+		} );
+	};
 
-			if ( mapped.mData !== undefined ) { mapped.data = mapped.mData; delete mapped.mData; }
-			if ( mapped.sClass !== undefined ) { mapped.className = mapped.sClass; delete mapped.sClass; }
-			if ( mapped.bSortable !== undefined ) { mapped.orderable = mapped.bSortable; delete mapped.bSortable; }
-			if ( mapped.sWidth !== undefined ) { mapped.width = mapped.sWidth; delete mapped.sWidth; }
-			if ( mapped.sTitle !== undefined ) { mapped.title = mapped.sTitle; delete mapped.sTitle; }
+	PresideDatatables.mapHungarianColumnDefs = function( defs ) {
+		return ( defs || [] ).map( function( def ) {
+			var mapped = PresideDatatables.mapHungarianColumn( def );
+
+			if ( mapped.aTargets !== undefined ) { mapped.targets = mapped.aTargets; delete mapped.aTargets; }
 
 			return mapped;
 		} );
+	};
+
+	PresideDatatables.mapHungarianColumn = function( col ) {
+		var mapped = $.extend( {}, col );
+
+		if ( mapped.mData !== undefined ) { mapped.data = mapped.mData; delete mapped.mData; }
+		if ( mapped.sClass !== undefined ) { mapped.className = mapped.sClass; delete mapped.sClass; }
+		if ( mapped.bSortable !== undefined ) { mapped.orderable = mapped.bSortable; delete mapped.bSortable; }
+		if ( mapped.bSearchable !== undefined ) { mapped.searchable = mapped.bSearchable; delete mapped.bSearchable; }
+		if ( mapped.bVisible !== undefined ) { mapped.visible = mapped.bVisible; delete mapped.bVisible; }
+		if ( mapped.sWidth !== undefined ) { mapped.width = mapped.sWidth; delete mapped.sWidth; }
+		if ( mapped.sTitle !== undefined ) { mapped.title = mapped.sTitle; delete mapped.sTitle; }
+		if ( mapped.sName !== undefined ) { mapped.name = mapped.sName; delete mapped.sName; }
+		if ( mapped.sDefaultContent !== undefined ) { mapped.defaultContent = mapped.sDefaultContent; delete mapped.sDefaultContent; }
+		if ( mapped.mRender !== undefined ) { mapped.render = mapped.mRender; delete mapped.mRender; }
+
+		return mapped;
 	};
 
 	PresideDatatables.mapHungarianLanguage = function( oLanguage ) {
@@ -238,7 +277,7 @@
 		language.info           = oLanguage.sInfo;
 		language.infoEmpty      = oLanguage.sInfoEmpty;
 		language.infoFiltered   = oLanguage.sInfoFiltered;
-		language.infoThousands  = oLanguage.sInfoThousands;
+		language.thousands      = oLanguage.sInfoThousands;
 		language.lengthMenu     = oLanguage.sLengthMenu;
 		language.loadingRecords = oLanguage.sLoadingRecords;
 		language.processing     = oLanguage.sProcessing;
@@ -256,7 +295,7 @@
 		}
 		if ( oLanguage.oAria ) {
 			language.aria = {
-				  orderable     : oLanguage.oAria.sSortAscending
+				  orderable        : oLanguage.oAria.sSortAscending
 				, orderableReverse : oLanguage.oAria.sSortDescending
 			};
 		}
@@ -265,22 +304,53 @@
 	};
 
 	PresideDatatables.domToLayout = function( sDom ) {
+		var src, has, tIndex, beforeT, afterT, layout, bottomEnd;
+
 		if ( !sDom ) {
 			return undefined;
 		}
 
-		return {
+		src      = String( sDom );
+		has      = function( haystack, ch ){ return haystack.indexOf( ch ) !== -1; };
+		tIndex   = src.indexOf( "t" );
+		beforeT  = tIndex === -1 ? src : src.substring( 0, tIndex );
+		afterT   = tIndex === -1 ? ""  : src.substring( tIndex + 1 );
+		layout   = {
 			  topStart    : null
 			, topEnd      : null
-			, bottomStart : "info"
-			, bottomEnd   : [ "pageLength", "paging" ]
-			, bottom      : null
+			, bottomStart : null
+			, bottomEnd   : null
 		};
+		bottomEnd = [];
+
+		if ( has( beforeT, "f" ) ) {
+			layout.topStart = "search";
+		} else if ( has( afterT, "f" ) ) {
+			bottomEnd.push( "search" );
+		}
+
+		if ( has( beforeT, "l" ) ) {
+			layout.topEnd = "pageLength";
+		} else if ( has( afterT, "l" ) ) {
+			bottomEnd.push( "pageLength" );
+		}
+
+		if ( has( src, "i" ) ) {
+			layout.bottomStart = "info";
+		}
+		if ( has( src, "p" ) ) {
+			bottomEnd.push( "paging" );
+		}
+		if ( bottomEnd.length ) {
+			layout.bottomEnd = bottomEnd;
+		}
+
+		return layout;
 	};
 
 	if ( DataTable.Api ) {
-		DataTable.Api.register( "fnDraw()", function() {
-			return this.draw();
+		DataTable.Api.register( "fnDraw()", function( resetPaging ) {
+			return this.draw( resetPaging === false ? false : true );
 		} );
 		DataTable.Api.register( "fnPageChange()", function( action ) {
 			return this.page( action ).draw( "page" );
@@ -291,8 +361,33 @@
 		DataTable.Api.register( "fnIsOpen()", function() {
 			return false;
 		} );
-		DataTable.Api.register( "fnFilter()", function( value ) {
-			return this.search( value || "" ).draw();
+		DataTable.Api.register( "fnFilter()", function( value, column, regex ) {
+			if ( typeof column === "number" ) {
+				this.column( column ).search( value || "", !!regex, regex ? false : true );
+			} else {
+				this.search( value || "", !!regex, regex ? false : true );
+			}
+			return this.draw();
+		} );
+		DataTable.Api.register( "fnGetData()", function( row, col ) {
+			if ( row === undefined ) {
+				return this.rows().data().toArray();
+			}
+			if ( col === undefined ) {
+				return this.row( row ).data();
+			}
+			return this.cell( row, col ).data();
+		} );
+		DataTable.Api.register( "fnUpdate()", function( data, row, col, redraw ) {
+			if ( col === undefined || col === null ) {
+				this.row( row ).data( data );
+			} else {
+				this.cell( row, col ).data( data );
+			}
+			if ( redraw !== false ) {
+				this.draw( false );
+			}
+			return this;
 		} );
 		DataTable.Api.register( "fnPagingInfo()", function() {
 			var info = this.page.info();
@@ -310,12 +405,21 @@
 
 	var originalDt = $.fn.dataTable;
 	$.fn.dataTable = function( options ) {
-		var isHungarian = options && typeof options === "object" && (
+		var isHungarian;
+
+		if ( !arguments.length || options === undefined ) {
+			return $( this ).DataTable();
+		}
+
+		isHungarian = options && typeof options === "object" && (
 			   options.bServerSide !== undefined
 			|| options.sAjaxSource !== undefined
 			|| options.aoColumns   !== undefined
+			|| options.aoColumnDefs !== undefined
 			|| options.sDom        !== undefined
 			|| options.oLanguage   !== undefined
+			|| options.fnServerParams !== undefined
+			|| options.aaSorting   !== undefined
 		);
 
 		if ( isHungarian ) {
