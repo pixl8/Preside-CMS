@@ -39,17 +39,30 @@ Cypress.Commands.add( 'everythingBarGroups', () => {
 } );
 
 Cypress.Commands.add( 'resetListingColumns', () => {
-	cy.get( 'button[aria-label="Columns"]' ).click();
+	cy.get( 'button[aria-label="Columns"]' ).should( 'be.visible' ).click();
 	cy.get( '.listing-colvis-reset' ).should( 'be.visible' ).click();
 	cy.get( '.listing-colvis-reset', { timeout : 20000 } ).should( 'not.exist' );
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
+	cy.get( 'button[aria-label="Columns"]' ).should( 'be.visible' );
+} );
+
+Cypress.Commands.add( 'openListingColumnPicker', () => {
+	cy.get( 'button[aria-label="Columns"]' ).should( 'be.visible' ).click();
+	cy.get( '.listing-colvis-list, .dtcc-list' ).should( 'be.visible' );
 } );
 
 Cypress.Commands.add( 'toggleListingColumn', ( label ) => {
-	cy.get( 'button[aria-label="Columns"]' ).click();
-	cy.get( '.listing-colvis-list, .dtcc-list' ).should( 'be.visible' );
-	cy.contains( '.listing-colvis-list label, .dtcc-list label', label )
+	cy.intercept( { method : 'POST', url : /saveListingColumns/ } ).as( 'saveListingColumns' );
+	cy.openListingColumnPicker();
+	cy.get( '.dtcc-list-search' ).should( 'be.visible' ).clear().type( label );
+	cy.contains( '.listing-column-row:not(.hide) label', label )
 		.find( 'input[type=checkbox].listing-column-toggle' )
 		.click( { force : true } );
 	cy.get( 'body' ).click( 0, 0 );
+	cy.wait( '@saveListingColumns', { timeout : 20000 } );
+} );
+
+Cypress.Commands.add( 'reloadAfterListingColumnSave', () => {
+	cy.reload();
+	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 } );

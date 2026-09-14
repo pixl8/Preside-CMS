@@ -81,11 +81,12 @@ component {
 		var fields         = Duplicate( _getDataManagerService().listGridFields( arguments.objectName ) );
 		var hiddenFields   = _getDataManagerService().listHiddenGridFields( arguments.objectName );
 		var properties     = $getPresideObjectService().getObjectProperties( arguments.objectName );
-		var pickerPatterns = ListToArray( $getPresideObjectService().getObjectAttribute(
+		var pickerAttr     = $getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerColumnPickerFields"
 			, defaultValue  = ""
-		), ", " );
+		);
+		var pickerPatterns = ListToArray( ReReplace( pickerAttr, "\s+", "", "all" ), "," );
 		var pickerSpec     = _resolveColumnPickerFields( patterns=pickerPatterns, properties=properties );
 		var excluded       = Duplicate( pickerSpec.excluded );
 
@@ -580,7 +581,7 @@ component {
 			return true;
 		}
 		if ( !Find( "*", arguments.pattern ) ) {
-			return !CompareNoCase( arguments.fieldName, arguments.pattern );
+			return CompareNoCase( arguments.fieldName, arguments.pattern ) == 0;
 		}
 
 		regex = ReReplace( arguments.pattern, "([\\.\+\?\^\$\{\}\(\)\|\[\]])", "\\\1", "all" );
