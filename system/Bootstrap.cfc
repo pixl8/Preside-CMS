@@ -828,7 +828,7 @@ component {
 		var requestUrl = headers[ 'X-Original-URL' ] ?: "";
 
 		if ( !Len( Trim( requestUrl ) ) ) {
-			requestUrl = request[ "javax.servlet.forward.request_uri" ] ?: "";
+			requestUrl = _servletForwardValue( "request_uri" );
 
 			if ( !Len( Trim( requestUrl ) ) ) {
 				requestUrl = cgi.request_url;
@@ -846,6 +846,10 @@ component {
 		}
 
 		return requestUrl;
+	}
+
+	private string function _servletForwardValue( required string attributeName ) {
+		return request[ "jakarta.servlet.forward.#arguments.attributeName#" ] ?: ( request[ "javax.servlet.forward.#arguments.attributeName#" ] ?: "" );
 	}
 
 	private string function _getSqlUpgradeScriptFilePath() {
