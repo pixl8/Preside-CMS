@@ -81,7 +81,7 @@
 			  , modal          = this.modal = bootbox.dialog( this.modalOptions )
 			  , callbacks      = this.callbacks
 			  , getIframe      = this.getIframe
-			  , $parent        = $( parent.CKEDITOR.document.$ )
+			  , $parent        = ( parent.CKEDITOR && parent.CKEDITOR.document ) ? $( parent.CKEDITOR.document.$ ) : $( document )
 			  , $dialogIframe  = $parent.find( ".cke_dialog_ui_iframe:visible, .bootbox-body > iframe:visible" )
 			  , $parentModal   = $parent.find( ".bootbox.modal:visible" )
 			  , $parentEditor  = $parent.find( ".cke_dialog:visible" )

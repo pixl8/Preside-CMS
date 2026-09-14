@@ -29,7 +29,7 @@ describe( 'Everything bar saved filters', () => {
 		cy.contains( '.everything-bar-item', 'Professors' ).should( 'contain.text', '(22)' );
 		cy.contains( '.everything-bar-item', 'Foldered alphas' ).should( 'be.visible' );
 		cy.contains( '.everything-bar-item', 'Active pro rata subscriptions' ).should( 'be.visible' );
-		cy.contains( '.everything-bar-item', 'Loose other filter' ).should( 'be.visible' );
+		cy.contains( '.everything-bar-item', 'Loose other filter' ).scrollIntoView().should( 'be.visible' );
 	} );
 
 	it( 'filters the dropdown by folder name', () => {

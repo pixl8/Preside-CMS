@@ -298,13 +298,16 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		describe( "listSavedViews()", function(){
 			it( "should request owned or shared views for the current listing", function(){
-				var svc     = _getService();
-				var mockDao = createStub();
-				var records = QueryNew( "id,label,description,owner,is_shared,columns,filter_state", "varchar,varchar,varchar,varchar,bit,varchar,varchar", [
+				var svc       = _getService();
+				var mockDao   = createStub();
+				var mockPerms = createStub();
+				var records   = QueryNew( "id,label,description,owner,is_shared,columns,filter_state", "varchar,varchar,varchar,varchar,bit,varchar,varchar", [
 					  [ "mine", "My view", "", "user-1", false, "label,status", "{}" ]
 					, [ "ours", "Shared view", "", "user-2", true, "label", "{}" ]
 				] );
 
+				mockPerms.$( "listUserGroups", [] );
+				svc.$( "$getAdminPermissionService", mockPerms );
 				svc.$( "$getAdminLoggedInUserId", "user-1" );
 				svc.$( "$getPresideObject" ).$args( "admin_datatable_saved_view" ).$results( mockDao );
 				svc.$( "getGrantedListingColumns", [ "label", "status" ] );
