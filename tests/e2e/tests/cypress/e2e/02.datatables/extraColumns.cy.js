@@ -1,23 +1,32 @@
 describe( 'Application extra listing columns', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
-		cy.visitObjectListing( 'my_extension_object' );
-		cy.resetListingColumns();
 	} );
 
-	it( 'makes non-default columns available in the picker and showable', () => {
+	it( 'keeps non-default columns out of the listing but available in the picker', () => {
+		cy.visitObjectListing( 'my_extension_object' );
+		cy.resetListingColumns();
+
 		cy.get( '.object-listing-table thead' ).should( 'not.contain.text', 'Notes' );
 		cy.get( '.object-listing-table tbody' ).should( 'not.contain.text', 'E2E-NOTES-ALPHA-01' );
 
-		cy.toggleListingColumn( 'Notes' );
-		cy.get( '.object-listing-table thead', { timeout : 10000 } ).should( 'contain.text', 'Notes' );
+		cy.openListingColumnPicker();
+		cy.get( '.listing-colvis-list' ).should( 'contain.text', 'Notes' );
+		cy.contains( '.listing-colvis-list .listing-column-row label', 'Notes' )
+			.find( 'input[type=checkbox].listing-column-toggle' )
+			.should( 'not.be.checked' );
+	} );
 
-		cy.reloadAfterListingColumnSave();
+	it( 'shows extra columns when they are configured as grid fields', () => {
+		cy.visitObjectListing( 'my_extension_notes_object' );
+
 		cy.get( '.object-listing-table thead' ).should( 'contain.text', 'Notes' );
 		cy.get( '.object-listing-table tbody' ).should( 'contain.text', 'E2E-NOTES-ALPHA-01' );
 	} );
 
 	it( 'expands wildcard picker fields and honours exclusions', () => {
+		cy.visitObjectListing( 'my_extension_object' );
+		cy.resetListingColumns();
 		cy.openListingColumnPicker();
 
 		cy.get( '.listing-colvis-list' ).should( 'contain.text', 'Notes' );

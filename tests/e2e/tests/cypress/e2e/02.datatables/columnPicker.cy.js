@@ -4,15 +4,17 @@ describe( 'Listing column picker', () => {
 		cy.visitObjectListing( 'my_extension_object' );
 	} );
 
-	it( 'hides a column and keeps that preference after reload', () => {
+	it( 'marks default columns as checked and extra columns as unchecked', () => {
 		cy.resetListingColumns();
-		cy.get( '.object-listing-table thead', { timeout : 10000 } ).should( 'contain.text', 'Category' );
+		cy.get( '.object-listing-table thead' ).should( 'contain.text', 'Category' );
+		cy.get( '.object-listing-table thead' ).should( 'not.contain.text', 'Notes' );
 
-		cy.toggleListingColumn( 'Category' );
-		cy.get( '.object-listing-table thead', { timeout : 10000 } ).should( 'not.contain.text', 'Category' );
-
-		cy.reloadAfterListingColumnSave();
-		cy.get( '.object-listing-table thead' ).should( 'not.contain.text', 'Category' );
-		cy.get( '.object-listing-table thead' ).should( 'contain.text', 'Label' );
+		cy.openListingColumnPicker();
+		cy.contains( '.listing-colvis-list .listing-column-row label', 'Category' )
+			.find( 'input[type=checkbox].listing-column-toggle' )
+			.should( 'be.checked' );
+		cy.contains( '.listing-colvis-list .listing-column-row label', 'Notes' )
+			.find( 'input[type=checkbox].listing-column-toggle' )
+			.should( 'not.be.checked' );
 	} );
 } );

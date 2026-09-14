@@ -27,17 +27,6 @@ Cypress.Commands.add( 'visitObjectListing', ( objectName ) => {
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 } );
 
-Cypress.Commands.add( 'openEverythingBar', () => {
-	cy.get( '.everything-bar-input' ).should( 'be.visible' ).click();
-	cy.get( '.everything-bar-dropdown' ).should( 'not.have.class', 'hide' );
-} );
-
-Cypress.Commands.add( 'everythingBarGroups', () => {
-	return cy.get( '.everything-bar-dropdown .everything-bar-group' ).then( ( $groups ) => {
-		return [ ...$groups ].map( ( el ) => el.textContent.replace( /\s+/g, ' ' ).trim() );
-	} );
-} );
-
 Cypress.Commands.add( 'resetListingColumns', () => {
 	cy.get( '.object-listing-table' ).should( 'be.visible' ).then( ( $table ) => {
 		const url        = $table.attr( 'data-save-listing-columns-url' );
@@ -58,6 +47,17 @@ Cypress.Commands.add( 'resetListingColumns', () => {
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 } );
 
+Cypress.Commands.add( 'openEverythingBar', () => {
+	cy.get( '.everything-bar-input' ).should( 'be.visible' ).click();
+	cy.get( '.everything-bar-dropdown' ).should( 'not.have.class', 'hide' );
+} );
+
+Cypress.Commands.add( 'everythingBarGroups', () => {
+	return cy.get( '.everything-bar-dropdown .everything-bar-group' ).then( ( $groups ) => {
+		return [ ...$groups ].map( ( el ) => el.textContent.replace( /\s+/g, ' ' ).trim() );
+	} );
+} );
+
 Cypress.Commands.add( 'openListingColumnPicker', () => {
 	cy.get( 'body' ).then( ( $body ) => {
 		if ( !$body.find( '.listing-colvis-list .listing-column-row' ).length ) {
@@ -65,18 +65,4 @@ Cypress.Commands.add( 'openListingColumnPicker', () => {
 		}
 	} );
 	cy.get( '.listing-colvis-list .listing-column-row', { timeout : 10000 } ).should( 'have.length.greaterThan', 0 );
-} );
-
-Cypress.Commands.add( 'toggleListingColumn', ( label ) => {
-	cy.intercept( { method : 'POST', url : /saveListingColumns/ } ).as( 'saveListingColumns' );
-	cy.openListingColumnPicker();
-	cy.contains( '.listing-colvis-list .listing-column-row label', label )
-		.find( 'input[type=checkbox].listing-column-toggle' )
-		.click( { force : true } );
-	cy.wait( '@saveListingColumns', { timeout : 20000 } );
-} );
-
-Cypress.Commands.add( 'reloadAfterListingColumnSave', () => {
-	cy.reload();
-	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 } );
