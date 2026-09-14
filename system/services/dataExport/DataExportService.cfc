@@ -120,7 +120,7 @@ component {
 		selectDataArgs.autoGroupBy  = true;
 		selectDataArgs.useCache     = false;
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields, arguments.expandNestedFields );
-		selectDataArgs.distinct     = true;
+		selectDataArgs.groupBy      = presideObjectService.getIdField( arguments.objectName );
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
 		selectDataArgs.extraFilters = selectDataArgs.extraFilters ?: [];
 		selectDataArgs.gridFields   = selectDataArgs.gridFields   ?: [];
