@@ -12,17 +12,20 @@ component {
 	 * @dataManagerService.inject          dataManagerService
 	 * @customizationService.inject        dataManagerCustomizationService
 	 * @enumService.inject                 enumService
+	 * @sessionStorage.inject              sessionStorage
 	 * @rulesEngineFilterService.inject    featureInjector:rulesEngine:rulesEngineFilterService
 	 */
 	public any function init(
 		  required any dataManagerService
 		, required any customizationService
 		, required any enumService
+		, required any sessionStorage
 		,          any rulesEngineFilterService
 	) {
 		_setDataManagerService( arguments.dataManagerService );
 		_setCustomizationService( arguments.customizationService );
 		_setEnumService( arguments.enumService );
+		_setSessionStorage( arguments.sessionStorage );
 		_setRulesEngineFilterService( arguments.rulesEngineFilterService ?: NullValue() );
 
 		return this;
@@ -171,7 +174,9 @@ component {
 	public boolean function saveUserColumns(
 		  required string objectName
 		, required array  columns
-		,          string listingKey = arguments.objectName
+		,          string listingKey       = arguments.objectName
+		,          array  grantedFields    = []
+		,          string grantedFieldsSig = ""
 	) {
 		var userId = $getAdminLoggedInUserId();
 		if ( !Len( Trim( userId ) ) ) {
@@ -191,7 +196,12 @@ component {
 			return true;
 		}
 
-		var available = listAvailableColumns( objectName=arguments.objectName, extraFields=arguments.columns );
+		var available = getGrantedListingColumns(
+			  objectName        = arguments.objectName
+			, listingKey        = arguments.listingKey
+			, grantedFields     = arguments.grantedFields
+			, grantedFieldsSig  = arguments.grantedFieldsSig
+		);
 		var defaults  = listDefaultColumns( arguments.objectName );
 		var cleaned   = applyUserColumns(
 			  objectName    = arguments.objectName
@@ -310,19 +320,97 @@ component {
 		var defaultColumns = ( IsArray( customizedDefaults ) && ArrayLen( customizedDefaults ) ) ? customizedDefaults : arguments.gridFields;
 
 		return {
-			  savedFilters        = _serializeSavedFilters( arguments.objectName )
-			, segmentationFilters = _serializeSegmentationFilters( arguments.objectName )
-			, quickFilters        = ( arguments.allowFilter && arguments.allowColumnFilter ) ? listQuickFilters( arguments.objectName ) : []
-			, columns             = columns
-			, currentColumns      = current
-			, defaultColumns      = defaultColumns
-			, lockedColumns       = locked
-			, listingKey          = arguments.listingKey
-			, allowFilter         = arguments.allowFilter
-			, allowSearch         = arguments.allowSearch
-			, allowManageFilter   = arguments.allowManageFilter
-			, manageFilterLink    = arguments.manageFilterLink
+			  savedFilters         = _serializeSavedFilters( arguments.objectName )
+			, segmentationFilters  = _serializeSegmentationFilters( arguments.objectName )
+			, quickFilters         = ( arguments.allowFilter && arguments.allowColumnFilter ) ? listQuickFilters( arguments.objectName ) : []
+			, columns              = columns
+			, currentColumns       = current
+			, defaultColumns       = defaultColumns
+			, lockedColumns        = locked
+			, listingKey           = arguments.listingKey
+			, grantedColumns       = available
+			, grantedColumnsSig    = signGrantedColumns( arguments.objectName, arguments.listingKey, available )
+			, allowFilter          = arguments.allowFilter
+			, allowSearch          = arguments.allowSearch
+			, allowManageFilter    = arguments.allowManageFilter
+			, manageFilterLink     = arguments.manageFilterLink
 		};
+	}
+
+	public array function getGrantedListingColumns(
+		  required string objectName
+		,          string listingKey       = arguments.objectName
+		,          array  grantedFields    = []
+		,          string grantedFieldsSig = ""
+	) {
+		if ( ArrayLen( arguments.grantedFields ) && verifyGrantedColumns(
+			  objectName = arguments.objectName
+			, listingKey = arguments.listingKey
+			, columns    = arguments.grantedFields
+			, signature  = arguments.grantedFieldsSig
+		) ) {
+			return listAvailableColumns( objectName=arguments.objectName, extraFields=arguments.grantedFields );
+		}
+
+		return listAvailableColumns( objectName=arguments.objectName );
+	}
+
+	public array function filterRequestedGridFields(
+		  required array requestedFields
+		, required array grantedColumns
+		,          array defaultFields = []
+	) {
+		var selected = [];
+		var seen     = {};
+		var fieldName;
+
+		for( fieldName in arguments.requestedFields ) {
+			fieldName = Trim( fieldName );
+			if ( !Len( fieldName ) || StructKeyExists( seen, LCase( fieldName ) ) ) {
+				continue;
+			}
+			if ( ArrayFindNoCase( arguments.grantedColumns, fieldName ) ) {
+				ArrayAppend( selected, fieldName );
+				seen[ LCase( fieldName ) ] = true;
+			}
+		}
+
+		if ( ArrayLen( selected ) ) {
+			return selected;
+		}
+
+		for( fieldName in arguments.defaultFields ) {
+			if ( ArrayFindNoCase( arguments.grantedColumns, fieldName ) && !StructKeyExists( seen, LCase( fieldName ) ) ) {
+				ArrayAppend( selected, fieldName );
+				seen[ LCase( fieldName ) ] = true;
+			}
+		}
+
+		return selected;
+	}
+
+	public string function signGrantedColumns(
+		  required string objectName
+		, required string listingKey
+		, required array  columns
+	) {
+		return LCase( Hmac( _grantedColumnsMessage( arguments.objectName, arguments.listingKey, arguments.columns ), _getHmacKey(), "HMACSHA256" ) );
+	}
+
+	public boolean function verifyGrantedColumns(
+		  required string objectName
+		, required string listingKey
+		, required array  columns
+		, required string signature
+	) {
+		if ( !Len( Trim( arguments.signature ) ) || !ArrayLen( arguments.columns ) ) {
+			return false;
+		}
+
+		return CompareNoCase(
+			  arguments.signature
+			, signGrantedColumns( arguments.objectName, arguments.listingKey, arguments.columns )
+		) == 0;
 	}
 
 	public array function mergeExpressionArrays( array left=[], array right=[] ) {
@@ -639,6 +727,35 @@ component {
 	}
 	private void function _setRulesEngineFilterService( any rulesEngineFilterService ) {
 		_rulesEngineFilterService = arguments.rulesEngineFilterService ?: NullValue();
+	}
+
+	private string function _grantedColumnsMessage(
+		  required string objectName
+		, required string listingKey
+		, required array  columns
+	) {
+		var fields = _uniqueFields( arguments.columns );
+		ArraySort( fields, "textnocase" );
+
+		return LCase( arguments.objectName & "|" & arguments.listingKey & "|" & ArrayToList( fields ) );
+	}
+
+	private string function _getHmacKey() {
+		var key = _getSessionStorage().getVar( name="_listingGridFieldsHmacKey", default="" );
+
+		if ( !Len( Trim( key ) ) ) {
+			key = CreateUUId();
+			_getSessionStorage().setVar( "_listingGridFieldsHmacKey", key );
+		}
+
+		return key;
+	}
+
+	private any function _getSessionStorage() {
+		return _sessionStorage;
+	}
+	private void function _setSessionStorage( required any sessionStorage ) {
+		_sessionStorage = arguments.sessionStorage;
 	}
 
 }

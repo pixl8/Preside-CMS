@@ -155,19 +155,88 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.mergeExpressionArrays( [ { expression="a" } ], [] ) ).toBe( [ { expression="a" } ] );
 			} );
 		} );
+
+		describe( "filterRequestedGridFields()", function(){
+			it( "should drop fields that are not in the granted listing pool", function(){
+				var svc = _getService();
+
+				expect( svc.filterRequestedGridFields(
+					  requestedFields = [ "label", "notes", "sensitive_col" ]
+					, grantedColumns  = [ "label", "status", "notes" ]
+					, defaultFields   = [ "label", "status" ]
+				) ).toBe( [ "label", "notes" ] );
+			} );
+
+			it( "should fall back to granted default fields when the request is empty or fully rejected", function(){
+				var svc = _getService();
+
+				expect( svc.filterRequestedGridFields(
+					  requestedFields = [ "sensitive_col" ]
+					, grantedColumns  = [ "label", "status", "notes" ]
+					, defaultFields   = [ "label", "status" ]
+				) ).toBe( [ "label", "status" ] );
+			} );
+		} );
+
+		describe( "getGrantedListingColumns()", function(){
+			it( "should ignore an unsigned extra column list and keep picker exclusions", function(){
+				var svc = _getService();
+
+				svc.$( "listAvailableColumns" ).$args( objectName="my_extension_object" ).$results( [ "label", "notes" ] );
+				svc.$( "verifyGrantedColumns", false );
+
+				expect( svc.getGrantedListingColumns(
+					  objectName       = "my_extension_object"
+					, grantedFields    = [ "label", "notes", "sensitive_col" ]
+					, grantedFieldsSig = "forged"
+				) ).toBe( [ "label", "notes" ] );
+			} );
+
+			it( "should merge a signed extra column list into the available pool", function(){
+				var svc = _getService();
+
+				svc.$( "verifyGrantedColumns", true );
+				svc.$( "listAvailableColumns" ).$args(
+					  objectName  = "email_template"
+					, extraFields = [ "name", "sending_method" ]
+				).$results( [ "name", "datecreated", "sending_method" ] );
+
+				expect( svc.getGrantedListingColumns(
+					  objectName       = "email_template"
+					, listingKey       = "email_template"
+					, grantedFields    = [ "name", "sending_method" ]
+					, grantedFieldsSig = "valid"
+				) ).toBe( [ "name", "datecreated", "sending_method" ] );
+			} );
+		} );
+
+		describe( "signGrantedColumns()", function(){
+			it( "should verify a signature for the same object, listing and columns", function(){
+				var svc     = _getService();
+				var columns = [ "notes", "label" ];
+				var sig     = svc.signGrantedColumns( "my_extension_object", "my_extension_object", columns );
+
+				expect( svc.verifyGrantedColumns( "my_extension_object", "my_extension_object", columns, sig ) ).toBeTrue();
+				expect( svc.verifyGrantedColumns( "my_extension_object", "my_extension_object", [ "label", "sensitive_col" ], sig ) ).toBeFalse();
+			} );
+		} );
 	}
 
 	private any function _getService() {
-		variables.mockDataManager   = createStub();
-		variables.mockCustomization = createStub();
-		variables.mockEnum          = createStub();
+		variables.mockDataManager    = createStub();
+		variables.mockCustomization  = createStub();
+		variables.mockEnum           = createStub();
+		variables.mockSessionStorage = createStub();
 
 		variables.mockCustomization.$( "runCustomization", "" );
+		variables.mockSessionStorage.$( "getVar", "unit-test-listing-hmac-key" );
+		variables.mockSessionStorage.$( "setVar" );
 
 		return CreateMock( object=new preside.system.services.admin.DataListingPreferencesService(
 			  dataManagerService       = variables.mockDataManager
 			, customizationService     = variables.mockCustomization
 			, enumService              = variables.mockEnum
+			, sessionStorage           = variables.mockSessionStorage
 			, rulesEngineFilterService = NullValue()
 		) );
 	}

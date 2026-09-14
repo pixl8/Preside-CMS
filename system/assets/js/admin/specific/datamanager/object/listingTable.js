@@ -50,8 +50,10 @@
 			  , lastAjaxResult
 			  , everythingBar
 			  , lastDtRequest
+			  , lastFetchedGridFields = []
 			  , columnUiReady = false
 			  , saveColumnsTimer
+			  , reloadListingDataTimer
 			  , toolbarConfig = {}
 			  , filtersPopulated = false
 			  , hasPreFilters    = false
@@ -62,6 +64,7 @@
 			  , columnSearchToExpressions, columnFilterChipsFromRequest, columnFilterChipLabel, columnFilterListValueLabel
 			  , columnFilterOperatorLabel, columnFilterChipText, syncColumnFilterChips, clearColumnFilter
 			  , getVisibleGridFields, saveVisibleColumns, applyDefaultColumnVisibility
+			  , listingFieldWasFetched, scheduleListingDataReload, appendListingGrantParams
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -345,6 +348,30 @@
 				} ).map( function( col ) {
 					return col.field;
 				} );
+			};
+
+			listingFieldWasFetched = function( field ) {
+				if ( !field ) {
+					return true;
+				}
+				return lastFetchedGridFields.indexOf( field ) !== -1;
+			};
+
+			scheduleListingDataReload = function() {
+				clearTimeout( reloadListingDataTimer );
+				reloadListingDataTimer = setTimeout( function() {
+					if ( dtApi ) {
+						dtApi.ajax.reload( null, false );
+					}
+				}, 300 );
+			};
+
+			appendListingGrantParams = function( params ) {
+				params.listingKey = listingKey;
+				if ( toolbarConfig.grantedColumns && toolbarConfig.grantedColumns.length && toolbarConfig.grantedColumnsSig ) {
+					params.grantedGridFields    = toolbarConfig.grantedColumns.join( "," );
+					params.grantedGridFieldsSig = toolbarConfig.grantedColumnsSig;
+				}
 			};
 
 			redrawTable = function() {
@@ -902,7 +929,13 @@
 					$.ajax( {
 						  url  : saveListingColumnsUrl
 						, type : "POST"
-						, data : { object : object, listingKey : listingKey, columns : fields.join( "," ) }
+						, data : {
+							  object               : object
+							, listingKey           : listingKey
+							, columns              : fields.join( "," )
+							, grantedGridFields    : ( toolbarConfig.grantedColumns || [] ).join( "," )
+							, grantedGridFieldsSig : toolbarConfig.grantedColumnsSig || ""
+						  }
 						, error : function() {
 							$.gritter.add({
 								  title      : i18n.translateResource( "cms:error.notification.title", { defaultValue : "Error" } )
@@ -937,11 +970,23 @@
 					return;
 				}
 
-				$listingTable.on( "column-visibility.dt", function() {
-					if ( columnUiReady ) {
-						saveVisibleColumns();
-						dtApi.columns.adjust();
-						applyListingFooter();
+				$listingTable.on( "column-visibility.dt", function( e, settings, column, visible ) {
+					if ( !columnUiReady ) {
+						return;
+					}
+
+					saveVisibleColumns();
+					dtApi.columns.adjust();
+					applyListingFooter();
+
+					if ( visible === false ) {
+						return;
+					}
+
+					if ( getVisibleGridFields().some( function( field ) {
+						return !listingFieldWasFetched( field );
+					} ) ) {
+						scheduleListingDataReload();
 					}
 				} );
 
@@ -1121,6 +1166,10 @@
 							params.sSavedFilterExpressions = getFavourites();
 						}
 						params.gridFields = getVisibleGridFields().concat( hiddenGridFields ).join( "," );
+						appendListingGrantParams( params );
+						lastFetchedGridFields = params.gridFields.split( "," ).map( function( field ) {
+							return $.trim( field );
+						} ).filter( Boolean );
 					  } )
 					, createdRow : function( row ){
 						var $row = $( row );

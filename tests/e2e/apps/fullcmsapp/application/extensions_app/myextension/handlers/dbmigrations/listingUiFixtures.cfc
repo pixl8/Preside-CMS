@@ -18,10 +18,12 @@ component {
 
 		for( i=1; i<=5; i++ ) {
 			dao.insertData( {
-				  label    = "E2E Alpha " & NumberFormat( i, "00" )
-				, status   = "active"
-				, category = "widgets"
-				, notes    = ( i == 1 ) ? "E2E-NOTES-ALPHA-01" : ""
+				  label               = "E2E Alpha " & NumberFormat( i, "00" )
+				, status              = "active"
+				, category            = "widgets"
+				, notes               = ( i == 1 ) ? "E2E-NOTES-ALPHA-01" : ""
+				, sensitive_col       = ( i == 1 ) ? "E2E-SENSITIVE-ALPHA-01" : ""
+				, other_sensitive_col = ( i == 1 ) ? "E2E-OTHER-SENSITIVE-ALPHA-01" : ""
 			} );
 		}
 		for( i=1; i<=5; i++ ) {

@@ -957,6 +957,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getObjectRecordsForAjaxDataTables( event, rc, prc ) {
+		var fieldAccess = _getAjaxListingGridFieldAccess( prc.objectName );
+
 		_checkPermission( argumentCollection=arguments, key="read", object=prc.objectName, checkOperations=false );
 
 		runEvent(
@@ -966,7 +968,8 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object              = prc.objectName
 				, useMultiActions     = IsTrue( rc.useMultiActions ?: "" )
-				, gridFields          = ( rc.gridFields          ?: _getObjectFieldsForGrid( objectName ).toList() )
+				, gridFields          = ArrayToList( fieldAccess.gridFields )
+				, allowedGridFields   = fieldAccess.allowed
 				, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
 				, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
 				, includeActions      = !IsTrue( rc.noActions ?: "" )
@@ -978,17 +981,19 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName      = prc.objectName     ?: "";
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
+		var fieldAccess     = _getAjaxListingGridFieldAccess( objectName );
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object          = objectName
-				, useMultiActions = IsTrue( prc.canDelete ?: "" ) || ArrayLen( prc.batchEditableFields ?: [] )
-				, gridFields      = ( rc.gridFields ?: _getObjectFieldsForGrid( objectName ).toList() )
-				, actionsView     = "/admin/datamanager/_oneToManyListingActions"
-				, filter          = { "#relationshipKey#" : parentId }
+				  object            = objectName
+				, useMultiActions   = IsTrue( prc.canDelete ?: "" ) || ArrayLen( prc.batchEditableFields ?: [] )
+				, gridFields        = ArrayToList( fieldAccess.gridFields )
+				, allowedGridFields = fieldAccess.allowed
+				, actionsView       = "/admin/datamanager/_oneToManyListingActions"
+				, filter            = { "#relationshipKey#" : parentId }
 			}
 		);
 	}
@@ -1246,9 +1251,11 @@ component extends="preside.system.base.AdminHandler" {
 		var columns    = ListToArray( rc.columns ?: "" );
 
 		dataListingPreferencesService.saveUserColumns(
-			  objectName = objectName
-			, listingKey = listingKey
-			, columns    = columns
+			  objectName       = objectName
+			, listingKey       = listingKey
+			, columns          = columns
+			, grantedFields    = ListToArray( rc.grantedGridFields ?: "" )
+			, grantedFieldsSig = rc.grantedGridFieldsSig ?: ""
 		);
 
 		event.renderData( type="json", data={
@@ -2182,23 +2189,24 @@ component extends="preside.system.base.AdminHandler" {
 		  required any     event
 		, required struct  rc
 		, required struct  prc
-		,          string  object          = ( rc.id ?: '' )
-		,          string  gridFields      = ( rc.gridFields ?: 'label,datecreated,_version_author' )
-		,          string  actionsView     = ""
-		,          string  orderBy         = ""
-		,          struct  filter          = {}
-		,          boolean useMultiActions = true
-		,          boolean isMultilingual  = false
-		,          boolean draftsEnabled   = false
-		,          boolean distinct        = true
-		,          boolean forceDistinct   = false
-		,          boolean includeActions  = true
-		,          array   extraFilters    = []
+		,          string  object            = ( rc.id ?: '' )
+		,          string  gridFields        = ( rc.gridFields ?: 'label,datecreated,_version_author' )
+		,          array   allowedGridFields = []
+		,          string  actionsView       = ""
+		,          string  orderBy           = ""
+		,          struct  filter            = {}
+		,          boolean useMultiActions   = true
+		,          boolean isMultilingual    = false
+		,          boolean draftsEnabled     = false
+		,          boolean distinct          = true
+		,          boolean forceDistinct     = false
+		,          boolean includeActions    = true
+		,          array   extraFilters      = []
 		,          array   searchFields
 
 	) {
 		var getRecordsArgs    = {};
-		var excludedArguments = [ "event", "rc", "prc", "actionsView", "useMultiActions", "isMultilingual", "object" ];
+		var excludedArguments = [ "event", "rc", "prc", "actionsView", "useMultiActions", "isMultilingual", "object", "allowedGridFields" ];
 
 		for( var argument in arguments ) {
 			if ( !excludedArguments.find( argument ) ) {
@@ -2212,6 +2220,10 @@ component extends="preside.system.base.AdminHandler" {
 		getRecordsArgs.orderBy       = dtHelper.getSortOrder();
 		getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
 		getRecordsArgs.gridFields    = getRecordsArgs.gridFields.listToArray();
+
+		if ( ArrayLen( arguments.allowedGridFields ) ) {
+			getRecordsArgs.orderBy = _restrictOrderByToFields( getRecordsArgs.orderBy, arguments.allowedGridFields );
+		}
 
 		if ( !isFeatureEnabled( "useDistinctForDatatables" ) ) {
 			getRecordsArgs.distinct = false;
@@ -4208,13 +4220,55 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 // private utility methods
-	private array function _getObjectFieldsForGrid( required string objectName ) {
-		var rc = getRequestContext().getCollection();
-		if ( Len( rc.gridFields ?: "" ) ) {
-			return ListToArray( rc.gridFields );
+	private struct function _getAjaxListingGridFieldAccess( required string objectName ) {
+		var collection = getRequestContext().getCollection();
+		var listingKey = Len( Trim( collection.listingKey ?: "" ) ) ? collection.listingKey : arguments.objectName;
+		var requested  = ListToArray( Len( Trim( form.gridFields ?: "" ) ) ? form.gridFields : ( collection.gridFields ?: "" ) );
+		var granted    = ListToArray( form.grantedGridFields ?: ( collection.grantedGridFields ?: "" ) );
+		var sig        = form.grantedGridFieldsSig ?: ( collection.grantedGridFieldsSig ?: "" );
+		var allowed    = dataListingPreferencesService.getGrantedListingColumns(
+			  objectName       = arguments.objectName
+			, listingKey       = listingKey
+			, grantedFields    = granted
+			, grantedFieldsSig = sig
+		);
+
+		return {
+			  allowed    = allowed
+			, gridFields = dataListingPreferencesService.filterRequestedGridFields(
+				  requestedFields = requested
+				, grantedColumns  = allowed
+				, defaultFields   = dataListingPreferencesService.listDefaultColumns( arguments.objectName )
+			  )
+		};
+	}
+
+	private string function _restrictOrderByToFields( required string orderBy, required array allowedFields ) {
+		var filtered = [];
+		var item     = "";
+		var field    = "";
+
+		for( item in ListToArray( arguments.orderBy ) ) {
+			field = ListFirst( Trim( item ), " " );
+			if ( field == "id" || ArrayFindNoCase( arguments.allowedFields, field ) ) {
+				ArrayAppend( filtered, Trim( item ) );
+			}
 		}
 
+		return ArrayToList( filtered );
+	}
+
+	private array function _getObjectFieldsForGrid( required string objectName ) {
+		var rc         = getRequestContext().getCollection();
 		var gridFields = dataManagerService.listGridFields( arguments.objectName );
+
+		if ( Len( rc.gridFields ?: "" ) ) {
+			gridFields = dataListingPreferencesService.filterRequestedGridFields(
+				  requestedFields = ListToArray( rc.gridFields )
+				, grantedColumns  = dataListingPreferencesService.listAvailableColumns( arguments.objectName )
+				, defaultFields   = gridFields
+			);
+		}
 
 		if ( !draftManagerService.checkManagerEnabled( objectName=arguments.objectName ) ) {
 			ArrayDelete( gridFields, "draftmanager_status" );

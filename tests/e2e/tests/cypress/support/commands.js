@@ -66,3 +66,10 @@ Cypress.Commands.add( 'openListingColumnPicker', () => {
 	} );
 	cy.get( '.listing-colvis-list .listing-column-row', { timeout : 10000 } ).should( 'have.length.greaterThan', 0 );
 } );
+
+Cypress.Commands.add( 'showListingColumn', ( label ) => {
+	cy.openListingColumnPicker();
+	cy.contains( '.listing-colvis-list .listing-column-row label', label )
+		.find( 'input[type=checkbox].listing-column-toggle' )
+		.check();
+} );
