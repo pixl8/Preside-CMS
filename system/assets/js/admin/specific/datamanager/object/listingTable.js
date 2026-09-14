@@ -38,6 +38,7 @@
 			  , saveListingViewUrl       = tableSettings.saveListingViewUrl       || ""
 			  , updateListingViewUrl     = tableSettings.updateListingViewUrl     || ""
 			  , deleteListingViewUrl     = tableSettings.deleteListingViewUrl     || ""
+			  , saveListingViewFormUrl   = tableSettings.saveListingViewFormUrl   || ""
 			  , hiddenGridFields         = tableSettings.hiddenGridFields         ? String( tableSettings.hiddenGridFields ).split( "," ).filter( Boolean ) : []
 			  , noRecordMessage          = tableSettings.noRecordMessage          || i18n.translateResource( "cms:datatables.emptyTable" )
 			  , noRecordTableHide        = tableSettings.noRecordTableHide        || false
@@ -441,6 +442,7 @@
 						  save   : saveListingViewUrl
 						, update : updateListingViewUrl
 						, delete : deleteListingViewUrl
+						, form   : saveListingViewFormUrl
 					  }
 					, getSnapshot   : getListingViewSnapshot
 					, applySnapshot : applyListingViewSnapshot

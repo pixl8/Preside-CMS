@@ -479,10 +479,8 @@ component {
 
 		records = $getPresideObject( "admin_datatable_saved_view" ).selectData(
 			  filter       = { object_name=arguments.objectName, listing_key=arguments.listingKey }
-			, extraFilters = [ {
-				  filter       = "owner = :owner or is_shared = :is_shared"
-				, filterParams = { owner=userId, is_shared=true }
-			  } ]
+			, extraFilters = [ _savedViewPermissionFilter( userId ) ]
+			, distinct     = true
 			, orderBy      = "label"
 		);
 		granted      = getGrantedListingColumns( arguments.objectName, arguments.listingKey );
@@ -510,6 +508,9 @@ component {
 		,          string  description      = ""
 		,          boolean isShared         = false
 		,          boolean canShare         = false
+		,          string  sharingScope     = ""
+		,          string  userGroups       = ""
+		,          boolean allowGroupEdit   = false
 		,          array   grantedFields    = []
 		,          string  grantedFieldsSig = ""
 	) {
@@ -519,6 +520,7 @@ component {
 		var viewColumns     = [];
 		var viewFilterState = {};
 		var viewId          = "";
+		var sharing         = {};
 
 		if ( !Len( userId ) || !Len( viewLabel ) ) {
 			return { success=false };
@@ -532,16 +534,29 @@ component {
 		);
 		viewColumns     = sanitizeViewColumns( arguments.columns, granted, arguments.objectName );
 		viewFilterState = sanitizeFilterState( arguments.filterState, _permittedFilterIds( arguments.objectName ), granted );
-		viewId          = $getPresideObject( "admin_datatable_saved_view" ).insertData( data={
-			  label        = Left( viewLabel, 100 )
-			, description  = Left( Trim( arguments.description ), 500 )
-			, owner        = userId
-			, object_name  = arguments.objectName
-			, listing_key  = arguments.listingKey
-			, is_shared    = arguments.canShare && arguments.isShared
-			, columns      = ArrayToList( viewColumns )
-			, filter_state = SerializeJSON( viewFilterState )
-		} );
+		sharing         = _normalizeSharing(
+			  sharingScope   = arguments.sharingScope
+			, userGroups     = arguments.userGroups
+			, allowGroupEdit = arguments.allowGroupEdit
+			, isShared       = arguments.isShared
+			, canShare       = arguments.canShare
+		);
+		viewId          = $getPresideObject( "admin_datatable_saved_view" ).insertData(
+			  data = {
+				  label            = Left( viewLabel, 100 )
+				, description      = Left( Trim( arguments.description ), 500 )
+				, owner            = userId
+				, object_name      = arguments.objectName
+				, listing_key      = arguments.listingKey
+				, is_shared        = sharing.isShared
+				, sharing_scope    = sharing.sharingScope
+				, allow_group_edit = sharing.allowGroupEdit
+				, user_groups      = sharing.userGroups
+				, columns          = ArrayToList( viewColumns )
+				, filter_state     = SerializeJSON( viewFilterState )
+			  }
+			, insertManyToManyRecords = true
+		);
 
 		if ( !Len( viewId ) ) {
 			return { success=false };
@@ -554,7 +569,7 @@ component {
 				, label       = Left( viewLabel, 100 )
 				, description = Left( Trim( arguments.description ), 500 )
 				, owner       = true
-				, shared      = arguments.canShare && arguments.isShared
+				, shared      = sharing.isShared
 				, columns     = viewColumns
 				, filterState = viewFilterState
 			  }
@@ -571,6 +586,9 @@ component {
 		,          any     filterState
 		,          boolean isShared
 		,          boolean canShare         = false
+		,          string  sharingScope
+		,          string  userGroups
+		,          boolean allowGroupEdit
 		,          array   grantedFields    = []
 		,          string  grantedFieldsSig = ""
 	) {
@@ -580,6 +598,7 @@ component {
 		var views   = [];
 		var view    = {};
 		var item    = {};
+		var sharing = {};
 
 		if ( StructIsEmpty( record ) ) {
 			return { success=false };
@@ -604,11 +623,28 @@ component {
 		if ( StructKeyExists( arguments, "filterState" ) ) {
 			data.filter_state = SerializeJSON( sanitizeFilterState( arguments.filterState, _permittedFilterIds( arguments.objectName ), granted ) );
 		}
-		if ( StructKeyExists( arguments, "isShared" ) && arguments.canShare ) {
-			data.is_shared = arguments.isShared;
+		if ( StructKeyExists( arguments, "sharingScope" ) ) {
+			sharing = _normalizeSharing(
+				  sharingScope   = arguments.sharingScope
+				, userGroups     = arguments.userGroups ?: ""
+				, allowGroupEdit = IsTrue( arguments.allowGroupEdit ?: false )
+				, isShared       = IsTrue( arguments.isShared ?: false )
+				, canShare       = arguments.canShare
+			);
+			data.is_shared        = sharing.isShared;
+			data.sharing_scope    = sharing.sharingScope;
+			data.allow_group_edit = sharing.allowGroupEdit;
+			data.user_groups      = sharing.userGroups;
+		} else if ( StructKeyExists( arguments, "isShared" ) && arguments.canShare ) {
+			data.is_shared     = arguments.isShared;
+			data.sharing_scope = arguments.isShared ? "global" : "individual";
 		}
 
-		if ( StructCount( data ) && !$getPresideObject( "admin_datatable_saved_view" ).updateData( id=arguments.viewId, data=data ) ) {
+		if ( StructCount( data ) && !$getPresideObject( "admin_datatable_saved_view" ).updateData(
+			  id                      = arguments.viewId
+			, data                    = data
+			, updateManyToManyRecords = StructKeyExists( data, "user_groups" )
+		) ) {
 			return { success=false };
 		}
 
@@ -634,6 +670,36 @@ component {
 		}
 
 		return $getPresideObject( "admin_datatable_saved_view" ).deleteData( id=arguments.viewId ) > 0;
+	}
+
+	public struct function getSavedViewFormData(
+		  required string viewId
+		, required string objectName
+		,          string listingKey = arguments.objectName
+	) {
+		var record = _getOwnedSavedView( arguments.viewId, arguments.objectName, arguments.listingKey );
+		var groups = "";
+		var groupQry;
+
+		if ( StructIsEmpty( record ) ) {
+			return {};
+		}
+
+		groupQry = $getPresideObject( "admin_datatable_saved_view_user_group" ).selectData(
+			  filter       = { admin_datatable_saved_view=arguments.viewId }
+			, selectFields = [ "security_group" ]
+		);
+		if ( groupQry.recordCount ) {
+			groups = ValueList( groupQry.security_group );
+		}
+
+		return {
+			  label            = record.label ?: ""
+			, description      = record.description ?: ""
+			, sharing_scope    = _legacySharingScope( record )
+			, allow_group_edit = IsTrue( record.allow_group_edit ?: false )
+			, user_groups      = groups
+		};
 	}
 
 	public array function getGrantedListingColumns(
@@ -785,6 +851,65 @@ component {
 		return ids;
 	}
 
+	private struct function _savedViewPermissionFilter( required string userId ) {
+		var userGroups = $getAdminPermissionService().listUserGroups( arguments.userId );
+		var filter     = "owner = :owner or sharing_scope = 'global' or ( sharing_scope is null and is_shared = :is_shared )";
+		var params     = {
+			  owner     = arguments.userId
+			, is_shared = true
+		};
+
+		if ( ArrayLen( userGroups ) ) {
+			filter &= " or ( sharing_scope = 'group' and user_groups.id in ( :user_groups.id ) )";
+			params[ "user_groups.id" ] = userGroups;
+		}
+
+		return { filter=filter, filterParams=params };
+	}
+
+	private struct function _normalizeSharing(
+		  string  sharingScope   = ""
+		, string  userGroups     = ""
+		, boolean allowGroupEdit = false
+		, boolean isShared       = false
+		, boolean canShare       = true
+	) {
+		var scope  = LCase( Trim( arguments.sharingScope ) );
+		var groups = Trim( arguments.userGroups );
+
+		if ( !Len( scope ) ) {
+			scope = ( arguments.canShare && arguments.isShared ) ? "global" : "individual";
+		}
+		if ( !ArrayFindNoCase( [ "global", "group", "individual" ], scope ) ) {
+			scope = "individual";
+		}
+		if ( !arguments.canShare && scope != "individual" ) {
+			scope  = "individual";
+			groups = "";
+		}
+		if ( scope != "group" ) {
+			groups = "";
+		}
+
+		return {
+			  sharingScope   = scope
+			, isShared       = scope != "individual"
+			, userGroups     = groups
+			, allowGroupEdit = scope == "group" && arguments.allowGroupEdit
+		};
+	}
+
+	private string function _legacySharingScope( required struct record ) {
+		var scope  = LCase( Trim( arguments.record.sharing_scope ?: "" ) );
+		var shared = arguments.record.is_shared ?: false;
+
+		if ( ArrayFindNoCase( [ "global", "group", "individual" ], scope ) ) {
+			return scope;
+		}
+
+		return ( IsBoolean( shared ) && shared ) ? "global" : "individual";
+	}
+
 	private struct function _savedViewToStruct(
 		  required struct record
 		, required string userId
@@ -793,8 +918,7 @@ component {
 		, required string objectName
 	) {
 		var ownerId  = arguments.record.owner ?: "";
-		var shared   = arguments.record.is_shared ?: false;
-		var isShared = IsBoolean( shared ) && shared;
+		var isShared = _legacySharingScope( arguments.record ) != "individual";
 
 		return {
 			  id          = arguments.record.id
@@ -827,7 +951,7 @@ component {
 				, listing_key = arguments.listingKey
 				, owner       = userId
 			  }
-			, selectFields = [ "id", "label", "description", "owner", "is_shared", "columns", "filter_state" ]
+			, selectFields = [ "id", "label", "description", "owner", "is_shared", "sharing_scope", "allow_group_edit", "columns", "filter_state" ]
 		);
 
 		if ( !record.recordCount ) {

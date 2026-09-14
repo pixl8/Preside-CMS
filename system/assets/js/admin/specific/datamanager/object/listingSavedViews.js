@@ -330,36 +330,26 @@
 	};
 
 	PresideListingViews.prototype._promptSave = function( existing ) {
-		var self     = this
-		  , renaming = !!( existing && existing.id )
-		  , canShare = !!this.config.canShareViews
-		  , share    = renaming ? !!existing.shared : false
-		  , message;
+		var self       = this
+		  , renaming   = !!( existing && existing.id )
+		  , formUrl    = this.urls.form || ""
+		  , qs         = []
+		  , iframemodal, rawIframe, snapshot, iframeSrc, modalOptions, callbacks;
 
-		message = '<form class="listing-views-save-form form-horizontal">' +
-			'<div class="form-group">' +
-				'<label for="listing-view-name">' + t( "cms:datatables.views.save.name", "Name" ) + '</label>' +
-				'<input type="text" id="listing-view-name" class="form-control" maxlength="100" required value="' + $("<div>").text( renaming ? existing.label : "" ).html() + '" />' +
-			'</div>' +
-			'<div class="form-group">' +
-				'<label for="listing-view-description">' + t( "cms:datatables.views.save.description", "Description" ) + '</label>' +
-				'<textarea id="listing-view-description" class="form-control" maxlength="500">' + $("<div>").text( renaming ? ( existing.description || "" ) : "" ).html() + '</textarea>' +
-			'</div>';
-
-		if ( canShare ) {
-			message += '<div class="form-group">' +
-				'<label class="checkbox">' +
-					'<input type="checkbox" id="listing-view-share" class="ace"' + ( share ? " checked" : "" ) + ' />' +
-					'<span class="lbl"> ' + t( "cms:datatables.views.save.share", "Share with other administrators" ) + '</span>' +
-				'</label>' +
-			'</div>';
+		if ( !formUrl.length ) {
+			return;
 		}
 
-		message += '</form>';
+		qs.push( "object=" + encodeURIComponent( this.objectName ) );
+		qs.push( "listingKey=" + encodeURIComponent( this.listingKey ) );
+		if ( renaming ) {
+			qs.push( "viewId=" + encodeURIComponent( existing.id ) );
+		}
+		iframeSrc = formUrl + ( formUrl.indexOf( "?" ) >= 0 ? "&" : "?" ) + qs.join( "&" );
+		snapshot  = renaming ? null : this.getSnapshot();
 
-		presideBootbox.dialog( {
+		modalOptions = {
 			  title     : t( "cms:datatables.views.save.title", "Save listing view" )
-			, message   : message
 			, className : "listing-views-save-dialog"
 			, buttons   : {
 				  cancel : {
@@ -370,61 +360,86 @@
 					  label     : t( "cms:datatables.views.save.btn", "Save view" )
 					, className : "btn-info"
 					, callback  : function() {
-						var $dialog = $( ".listing-views-save-dialog" )
-						  , name    = $.trim( $dialog.find( "#listing-view-name" ).val() )
-						  , desc    = $.trim( $dialog.find( "#listing-view-description" ).val() )
-						  , shared  = $dialog.find( "#listing-view-share" ).is( ":checked" );
-
-						if ( !name.length ) {
-							$dialog.find( "#listing-view-name" ).focus();
+						if ( rawIframe && rawIframe.listingViewSaveForm ) {
+							rawIframe.listingViewSaveForm.submitForm();
 							return false;
 						}
-
-						if ( renaming ) {
-							self._post( self.urls.update, {
-								  viewId      : existing.id
-								, label       : name
-								, description : desc
-								, isShared    : shared
-							}, function( view ){
-								self._replaceView( view );
-								if ( self.activeId === view.id ) {
-									self.render();
-								}
-							} );
-						} else {
-							self._saveAs( name, desc, shared );
-						}
+						return true;
 					  }
 				  }
 			  }
-		} );
+		};
+		callbacks = {
+			  onLoad : function( iframe ) {
+				var $iframeJq, $form;
 
-		setTimeout( function(){
-			$( ".listing-views-save-dialog #listing-view-name" ).focus();
-		}, 50 );
+				rawIframe = iframe;
+				iframe.listingViewSaveHost = {
+					  close   : function(){ iframemodal.close(); }
+					, onSaved : function( view ){ self._onViewSaved( view, renaming ); }
+				};
+
+				$iframeJq = iframe.presideJQuery || $;
+				$form     = $iframeJq( iframe.document ).find( ".listing-view-save-form" );
+				if ( $form.length && snapshot ) {
+					self._appendHidden( $form, "columns"             , ( snapshot.columns || [] ).join( "," ) );
+					self._appendHidden( $form, "filterState"         , JSON.stringify( snapshot.filterState || {} ) );
+					self._appendHidden( $form, "grantedGridFields"   , ( self.config.grantedColumns || [] ).join( "," ) );
+					self._appendHidden( $form, "grantedGridFieldsSig", self.config.grantedColumnsSig || "" );
+				}
+			  }
+			, onShow : function( modal, iframe ) {
+				if ( iframe && iframe.listingViewSaveForm ) {
+					iframe.listingViewSaveForm.focusForm();
+				}
+				modal.on( "hidden.bs.modal", function(){
+					modal.remove();
+				} );
+			  }
+		};
+
+		iframemodal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
+		iframemodal.open();
 	};
 
-	PresideListingViews.prototype._saveAs = function( name, description, isShared ) {
-		var self     = this
-		  , snapshot = this.getSnapshot();
+	PresideListingViews.prototype._appendHidden = function( $form, name, value ) {
+		var formEl = $form.get( 0 )
+		  , doc    = formEl ? formEl.ownerDocument : document
+		  , input  = formEl ? formEl.querySelector( "[name='" + name + "']" ) : null;
 
-		this._post( this.urls.save, {
-			  label       : name
-			, description : description
-			, isShared    : isShared
-			, columns     : ( snapshot.columns || [] ).join( "," )
-			, filterState : JSON.stringify( snapshot.filterState || {} )
-		}, function( view ){
-			self.config.savedViews = self.config.savedViews || [];
-			self.config.savedViews.push( view );
-			self.activeId = view.id;
-			self.editing  = false;
-			self._persist();
-			self.render();
-			self._syncLock();
-			self.refreshDirty();
-		} );
+		if ( !formEl ) {
+			return;
+		}
+		if ( !input ) {
+			input      = doc.createElement( "input" );
+			input.type = "hidden";
+			input.name = name;
+			formEl.appendChild( input );
+		}
+		input.value = value;
+	};
+
+	PresideListingViews.prototype._onViewSaved = function( view, renaming ) {
+		if ( !view || !view.id ) {
+			return;
+		}
+
+		if ( renaming ) {
+			this._replaceView( view );
+			if ( this.activeId === view.id ) {
+				this.render();
+			}
+			return;
+		}
+
+		this.config.savedViews = this.config.savedViews || [];
+		this.config.savedViews.push( view );
+		this.activeId = view.id;
+		this.editing  = false;
+		this._persist();
+		this.render();
+		this._syncLock();
+		this.refreshDirty();
 	};
 
 	PresideListingViews.prototype._saveChanges = function() {
@@ -440,7 +455,6 @@
 			  viewId      : view.id
 			, label       : view.label
 			, description : view.description || ""
-			, isShared    : !!view.shared
 			, columns     : ( snapshot.columns || [] ).join( "," )
 			, filterState : JSON.stringify( snapshot.filterState || {} )
 		}, function( updated ){

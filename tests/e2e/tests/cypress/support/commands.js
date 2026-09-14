@@ -118,7 +118,16 @@ Cypress.Commands.add( 'saveListingViewAs', ( name ) => {
 	cy.intercept( 'POST', /saveListingView/ ).as( 'saveListingView' );
 	cy.openListingViews();
 	cy.get( '[data-view-action="save-as"]' ).click();
-	cy.get( '.listing-views-save-dialog #listing-view-name' ).should( 'be.visible' ).clear().type( name );
+	cy.get( '.listing-views-save-dialog iframe', { timeout : 20000 } )
+		.should( 'be.visible' )
+		.its( '0.contentDocument.body' )
+		.should( 'not.be.empty' )
+		.then( ( body ) => {
+			cy.wrap( body ).find( 'input[name=label]', { timeout : 15000 } ).should( 'be.visible' ).clear().type( name );
+			cy.wrap( body ).find( 'input[name=sharing_scope][value=global]' ).should( 'exist' );
+			cy.wrap( body ).find( 'input[name=sharing_scope][value=individual]' ).should( 'exist' );
+			cy.wrap( body ).find( 'input[name=sharing_scope][value=group]' ).should( 'exist' );
+		} );
 	cy.get( '.listing-views-save-dialog .btn-info' ).contains( 'Save view' ).click();
 	cy.wait( '@saveListingView' ).its( 'response.statusCode' ).should( 'eq', 200 );
 	cy.get( '.listing-views-name' ).should( 'contain.text', name );

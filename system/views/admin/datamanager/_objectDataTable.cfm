@@ -38,6 +38,7 @@
 	param name="args.saveListingViewUrl"          type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingView" );
 	param name="args.updateListingViewUrl"        type="string"  default=event.buildAdminLink( linkTo="datamanager.updateListingView" );
 	param name="args.deleteListingViewUrl"        type="string"  default=event.buildAdminLink( linkTo="datamanager.deleteListingView" );
+	param name="args.saveListingViewFormUrl"      type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingViewForm" );
 	param name="args.objectTitlePlural"           type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 	param name="args.excludeFilterExpressionTags" type="string"  default="";
 	param name="args.noRecordMessage"             type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
@@ -297,6 +298,7 @@
 		    data-save-listing-view-url="#args.saveListingViewUrl#"
 		    data-update-listing-view-url="#args.updateListingViewUrl#"
 		    data-delete-listing-view-url="#args.deleteListingViewUrl#"
+		    data-save-listing-view-form-url="#args.saveListingViewFormUrl#"
 		    data-hidden-grid-fields="#ArrayToList( args.hiddenGridFields )#"
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"

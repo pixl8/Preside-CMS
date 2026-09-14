@@ -266,14 +266,26 @@
 
 }
 
-.filter-quick-save-modal {
+.filter-quick-save-modal,
+.listing-views-save-dialog {
 	.modal-dialog {
 		width  : 850px;
 	}
 }
 
+.listing-views-save-dialog {
+	.modal-body {
+		padding : 0;
+
+		iframe {
+			min-height : 520px;
+		}
+	}
+}
+
 @media ( max-width: 900px ){
-	.filter-quick-save-modal {
+	.filter-quick-save-modal,
+	.listing-views-save-dialog {
 		.modal-dialog {
 			width  : 95%;
 		}

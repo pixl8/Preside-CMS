@@ -1282,24 +1282,78 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function saveListingView( event, rc, prc ) {
+		_checkListingViewAccess( argumentCollection=arguments );
+
 		event.renderData( type="json", data=_saveOrUpdateListingView( argumentCollection=arguments, update=false ) );
 	}
 
 	public void function updateListingView( event, rc, prc ) {
+		_checkListingViewAccess( argumentCollection=arguments );
+
 		event.renderData( type="json", data=_saveOrUpdateListingView( argumentCollection=arguments, update=true ) );
 	}
 
-	public void function deleteListingView( event, rc, prc ) {
+	public void function saveListingViewForm( event, rc, prc ) {
+		_checkListingViewAccess( argumentCollection=arguments );
+
 		var objectName = rc.object ?: ( prc.objectName ?: "" );
-
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName, throwOnError=true );
-
 		var listingKey = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
-		var deleted    = dataListingPreferencesService.deleteSavedView(
-			  viewId     = rc.viewId ?: ""
+		var viewId     = Trim( rc.viewId ?: "" );
+
+		event.include( "/js/admin/specific/saveFilterForm/" )
+		     .include( "/js/admin/specific/listingViewSaveForm/" );
+
+		prc.modalClasses = "modal-dialog-less-padding";
+		prc.savedData    = {};
+
+		if ( Len( viewId ) ) {
+			prc.savedData = dataListingPreferencesService.getSavedViewFormData(
+				  viewId     = viewId
+				, objectName = objectName
+				, listingKey = listingKey
+			);
+		}
+
+		event.setView( view="/admin/datamanager/saveListingViewForm", layout="adminModalDialog", args={
+			  addRecordAction = event.buildAdminLink( linkTo=Len( viewId ) ? "datamanager.updateListingView" : "datamanager.saveListingView" )
+			, savedData       = prc.savedData
+			, viewId          = viewId
+			, objectName      = objectName
+			, listingKey      = listingKey
+			, validationResult = rc.validationResult ?: ""
+		} );
+	}
+
+	public void function deleteListingView( event, rc, prc ) {
+		_checkListingViewAccess( argumentCollection=arguments );
+
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+		var listingKey = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var viewId     = Trim( rc.viewId ?: "" );
+		var viewData   = dataListingPreferencesService.getSavedViewFormData(
+			  viewId     = viewId
 			, objectName = objectName
 			, listingKey = listingKey
 		);
+		var deleted    = dataListingPreferencesService.deleteSavedView(
+			  viewId     = viewId
+			, objectName = objectName
+			, listingKey = listingKey
+		);
+
+		if ( deleted ) {
+			_auditListingView(
+				  event    = event
+				, action   = "datamanager_delete_listing_view"
+				, recordId = viewId
+				, detail   = {
+					  objectName    = objectName
+					, listingKey    = listingKey
+					, label         = viewData.label ?: ""
+					, sharing_scope = viewData.sharing_scope ?: ""
+				  }
+			);
+		}
 
 		event.renderData( type="json", data={ success=deleted } );
 	}
@@ -3508,12 +3562,17 @@ component extends="preside.system.base.AdminHandler" {
 	) {
 		var objectName = rc.object ?: ( prc.objectName ?: "" );
 
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName, throwOnError=true );
+		_checkListingViewAccess( argumentCollection=arguments, objectName=objectName );
 
-		var listingKey  = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
-		var canShare    = _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
-		var filterState = rc.filterState ?: {};
-		var updateArgs  = {};
+		var listingKey        = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var canShare          = _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
+		var filterState       = rc.filterState ?: {};
+		var fromForm          = StructKeyExists( rc, "sharing_scope" );
+		var formName          = "preside-objects.admin_datatable_saved_view.admin.save";
+		var formData          = fromForm ? event.getCollectionForForm( formName=formName ) : {};
+		var validationResult  = "";
+		var updateArgs        = {};
+		var result            = {};
 
 		if ( IsSimpleValue( filterState ) && IsJSON( filterState ) ) {
 			filterState = DeserializeJSON( filterState );
@@ -3521,13 +3580,23 @@ component extends="preside.system.base.AdminHandler" {
 			filterState = {};
 		}
 
+		if ( fromForm ) {
+			validationResult = validateForm( formName=formName, formData=formData );
+			if ( !validationResult.validated() ) {
+				return {
+					  success          = false
+					, validationResult = translateValidationMessages( validationResult )
+				};
+			}
+		}
+
 		if ( arguments.update ) {
 			updateArgs = {
 				  viewId            = rc.viewId ?: ""
 				, objectName        = objectName
 				, listingKey        = listingKey
-				, label             = rc.label ?: ""
-				, description       = rc.description ?: ""
+				, label             = fromForm ? ( formData.label ?: "" ) : ( rc.label ?: "" )
+				, description       = fromForm ? ( formData.description ?: "" ) : ( rc.description ?: "" )
 				, canShare          = canShare
 				, grantedFields     = ListToArray( rc.grantedGridFields ?: "" )
 				, grantedFieldsSig  = rc.grantedGridFieldsSig ?: ""
@@ -3542,21 +3611,90 @@ component extends="preside.system.base.AdminHandler" {
 			if ( StructKeyExists( rc, "isShared" ) ) {
 				updateArgs.isShared = IsTrue( rc.isShared );
 			}
+			if ( fromForm ) {
+				updateArgs.sharingScope   = formData.sharing_scope ?: "";
+				updateArgs.userGroups     = formData.user_groups   ?: "";
+				updateArgs.allowGroupEdit = IsTrue( formData.allow_group_edit ?: false );
+			}
 
-			return dataListingPreferencesService.updateSavedView( argumentCollection=updateArgs );
+			result = dataListingPreferencesService.updateSavedView( argumentCollection=updateArgs );
+			if ( IsTrue( result.success ?: false ) ) {
+				_auditListingView(
+					  event    = event
+					, action   = "datamanager_update_listing_view"
+					, recordId = updateArgs.viewId
+					, detail   = {
+						  objectName    = objectName
+						, listingKey    = listingKey
+						, label         = result.view.label ?: updateArgs.label
+						, sharing_scope = result.view.shared ?: false
+					  }
+				);
+			}
+
+			return result;
 		}
 
-		return dataListingPreferencesService.saveSavedView(
+		result = dataListingPreferencesService.saveSavedView(
 			  objectName        = objectName
 			, listingKey        = listingKey
-			, label             = rc.label ?: ""
-			, description       = rc.description ?: ""
+			, label             = fromForm ? ( formData.label ?: "" ) : ( rc.label ?: "" )
+			, description       = fromForm ? ( formData.description ?: "" ) : ( rc.description ?: "" )
 			, columns           = ListToArray( rc.columns ?: "" )
 			, filterState       = filterState
 			, isShared          = IsTrue( rc.isShared ?: false )
 			, canShare          = canShare
+			, sharingScope      = fromForm ? ( formData.sharing_scope ?: "" ) : ""
+			, userGroups        = fromForm ? ( formData.user_groups ?: "" ) : ""
+			, allowGroupEdit    = fromForm && IsTrue( formData.allow_group_edit ?: false )
 			, grantedFields     = ListToArray( rc.grantedGridFields ?: "" )
 			, grantedFieldsSig  = rc.grantedGridFieldsSig ?: ""
+		);
+		if ( IsTrue( result.success ?: false ) ) {
+			_auditListingView(
+				  event    = event
+				, action   = "datamanager_save_listing_view"
+				, recordId = result.view.id ?: ""
+				, detail   = {
+					  objectName    = objectName
+					, listingKey    = listingKey
+					, label         = result.view.label ?: ""
+					, sharing_scope = result.view.shared ?: false
+				  }
+			);
+		}
+
+		return result;
+	}
+
+	private void function _checkListingViewAccess(
+		  required any     event
+		, required struct  rc
+		, required struct  prc
+		,          string  objectName = ( arguments.rc.object ?: ( arguments.prc.objectName ?: "" ) )
+	) {
+		_checkPermission( argumentCollection=arguments, key="read", object=arguments.objectName, throwOnError=true );
+
+		if ( !Len( Trim( arguments.objectName ) ) || !IsTrue( presideObjectService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerAllowSavedViews"
+			, defaultValue  = ""
+		) ) ) {
+			event.adminAccessDenied();
+		}
+	}
+
+	private void function _auditListingView(
+		  required any     event
+		, required string  action
+		, required string  recordId
+		,          struct  detail = {}
+	) {
+		event.audit(
+			  action   = arguments.action
+			, type     = "datamanager"
+			, recordId = arguments.recordId
+			, detail   = arguments.detail
 		);
 	}
 
@@ -4569,6 +4707,10 @@ component extends="preside.system.base.AdminHandler" {
 			, "dataExportConfigModal"
 			, "exportDataAction"
 			, "saveListingColumns"
+			, "saveListingView"
+			, "updateListingView"
+			, "deleteListingView"
+			, "saveListingViewForm"
 		];
 
 		if( onlyCheckForLoginActions.findNoCase( arguments.action ) ){
