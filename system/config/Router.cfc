@@ -59,9 +59,10 @@ component extends="coldbox.system.web.routing.Router" {
 	}
 
 	function pathInfoProvider( event ) {
-		var headers = GetHttpRequestData( false ).headers;
-		var uri     = ListFirst( ( headers['X-Original-URL'] ?: (request[ "javax.servlet.forward.request_uri" ] ?: "") ), '?' );
-		var qs      = "";
+		var headers      = GetHttpRequestData( false ).headers;
+		var forwardedUri = _servletForwardValue( "request_uri" );
+		var uri          = ListFirst( ( headers['X-Original-URL'] ?: forwardedUri ), '?' );
+		var qs           = "";
 
 		if ( !Len( Trim( uri ) ) ) {
 			uri = cgi.path_info ?: "";
@@ -75,13 +76,20 @@ component extends="coldbox.system.web.routing.Router" {
 			qs = ListRest( headers['X-Original-URL'], "?" );
 		}
 		if ( !Len( Trim( qs ) ) ) {
-			qs = request[ "javax.servlet.forward.query_string" ] ?: ( cgi.query_string ?: "" );
+			qs = _servletForwardValue( "query_string" );
+			if ( !Len( Trim( qs ) ) ) {
+				qs = cgi.query_string ?: "";
+			}
 		}
 
 		request[ "preside.path_info" ]    = uri;
 		request[ "preside.query_string" ] = qs;
 
 		return uri;
+	}
+
+	private string function _servletForwardValue( required string attributeName ) {
+		return request[ "jakarta.servlet.forward.#arguments.attributeName#" ] ?: ( request[ "javax.servlet.forward.#arguments.attributeName#" ] ?: "" );
 	}
 
 	public void function addRouteHandler( routeHandler ) {
