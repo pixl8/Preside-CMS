@@ -35,6 +35,9 @@
 	param name="args.dataExportConfigUrl"         type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal", queryString="exportTemplate=#args.exportTemplate#" );
 	param name="args.saveExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction" );
 	param name="args.saveListingColumnsUrl"       type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingColumns" );
+	param name="args.saveListingViewUrl"          type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingView" );
+	param name="args.updateListingViewUrl"        type="string"  default=event.buildAdminLink( linkTo="datamanager.updateListingView" );
+	param name="args.deleteListingViewUrl"        type="string"  default=event.buildAdminLink( linkTo="datamanager.deleteListingView" );
 	param name="args.objectTitlePlural"           type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 	param name="args.excludeFilterExpressionTags" type="string"  default="";
 	param name="args.noRecordMessage"             type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
@@ -82,7 +85,21 @@
 	savedExportsLink  = args.savedExportsLink ?: "";
 	allowColumnPicker  = IsTrue( args.allowColumnPicker ?: !IsTrue( args.compact ) );
 	allowColumnFilter  = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ) ) && args.allowFilter;
-	showListingToolbar = IsTrue( args.allowSearch ) || ( args.allowFilter && allowUseFilter );
+	if ( !StructKeyExists( args, "allowSavedViews" ) ) {
+		args.allowSavedViews = IsTrue( getSingleton( "presideObjectService" ).getObjectAttribute(
+			  objectName    = args.objectName
+			, attributeName = "datamanagerAllowSavedViews"
+			, defaultValue  = ""
+		) );
+	}
+	allowSavedViews    = IsTrue( args.allowSavedViews ) && !IsTrue( args.compact );
+	canShareViews      = allowSavedViews && IsTrue( args.canShareViews ?: false );
+	showListingToolbar = IsTrue( args.allowSearch ) || ( args.allowFilter && allowUseFilter ) || allowSavedViews;
+	everythingBarPlaceholder = translateResource(
+		  uri          = allowSavedViews ? "cms:datatables.everything.placeholder.withViews" : "cms:datatables.everything.placeholder"
+		, data         = [ args.objectTitlePlural ]
+		, defaultValue = translateResource( uri="cms:datamanager.search.placeholder", data=[ args.objectTitlePlural ] )
+	);
 
 	if ( !ArrayLen( args.centerAlignFields ) ) {
 		args.centerAlignFields = getSingleton( "dataManagerService" ).listCenterAlignFields( args.objectName );
@@ -101,6 +118,8 @@
 		, allowSearch        = args.allowSearch
 		, allowManageFilter  = allowManageFilter
 		, manageFilterLink   = manageFilterLink
+		, allowSavedViews    = allowSavedViews
+		, canShareViews      = canShareViews
 	);
 
 	if ( args.footerEnabled ) {
@@ -155,6 +174,16 @@
 			<script type="application/json" class="listing-toolbar-data">#SerializeJSON( toolbarConfig )#</script>
 			<cfif showListingToolbar>
 				<div class="object-listing-toolbar-row">
+					<cfif allowSavedViews>
+						<div class="listing-views">
+							<button type="button" class="listing-views-toggle" aria-haspopup="listbox" aria-expanded="false">
+								<span class="listing-views-name">#translateResource( uri="cms:datatables.views.default", defaultValue="Default" )#</span>
+								<span class="listing-views-dirty hide" title="#translateResource( uri='cms:datatables.views.dirty', defaultValue='Unsaved changes' )#"></span>
+								<i class="fa fa-caret-down"></i>
+							</button>
+							<div class="listing-views-dropdown hide" role="listbox"></div>
+						</div>
+					</cfif>
 					<div class="object-listing-everything-bar">
 						<div class="everything-bar-input-wrap input-icon">
 							<i class="fa fa-search everything-bar-icon data-table-search-icon"></i>
@@ -162,7 +191,7 @@
 								class="everything-bar-input data-table-search form-control"
 								autocomplete="off"
 								data-global-key="s"
-								placeholder="#translateResource( uri='cms:datatables.everything.placeholder', data=[ args.objectTitlePlural ], defaultValue=translateResource( uri='cms:datamanager.search.placeholder', data=[ args.objectTitlePlural ] ) )#"
+								placeholder="#everythingBarPlaceholder#"
 							/>
 						</div>
 						<div class="everything-bar-dropdown hide" role="listbox"></div>
@@ -262,8 +291,12 @@
 		    data-allow-save-export="#allowSaveExport#"
 		    data-allow-column-picker="#allowColumnPicker#"
 		    data-allow-column-filter="#allowColumnFilter#"
+		    data-allow-saved-views="#allowSavedViews#"
 		    data-listing-key="#args.listingPreferenceKey#"
 		    data-save-listing-columns-url="#args.saveListingColumnsUrl#"
+		    data-save-listing-view-url="#args.saveListingViewUrl#"
+		    data-update-listing-view-url="#args.updateListingViewUrl#"
+		    data-delete-listing-view-url="#args.deleteListingViewUrl#"
 		    data-hidden-grid-fields="#ArrayToList( args.hiddenGridFields )#"
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"

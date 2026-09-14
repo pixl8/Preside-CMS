@@ -64,6 +64,140 @@
 		gap         : 8px;
 	}
 
+	.listing-views {
+		position   : relative;
+		flex-shrink : 0;
+	}
+
+	.listing-views-toggle {
+		height         : 40px;
+		padding        : 4px 10px;
+		border         : 1px solid @default-input-border-colour;
+		border-radius  : 4px;
+		background     : @white;
+		font-size      : 13px;
+		color          : @default-font-colour;
+		line-height    : 30px;
+		white-space    : nowrap;
+
+		&:hover,
+		&:focus {
+			border-color : @default-selected-input-border-colour;
+		}
+
+		&.is-editing {
+			border-color : @blue;
+		}
+
+		.fa {
+			margin-left : 6px;
+			color       : @default-light-font-colour;
+		}
+	}
+
+	.listing-views-dirty {
+		display       : inline-block;
+		width         : 7px;
+		height        : 7px;
+		margin-left   : 6px;
+		border-radius : 50%;
+		background    : @blue;
+		vertical-align: middle;
+	}
+
+	.listing-views-dropdown {
+		position         : absolute;
+		left             : 0;
+		top              : 100%;
+		min-width        : 240px;
+		margin-top       : 0;
+		background-color : #f5f5f5;
+		border           : 1px solid @default-input-border-colour;
+		border-radius    : 0 0 5px 5px;
+		box-shadow       : 0 4px 12px rgba( 0, 0, 0, 0.08 );
+		z-index          : 31;
+		padding          : 6px 0 8px;
+	}
+
+	.listing-views-group,
+	.listing-views-empty {
+		padding        : 8px 12px 4px;
+		font-size      : 11px;
+		font-weight    : bold;
+		text-transform : uppercase;
+		color          : @default-light-font-colour;
+		letter-spacing : 0.04em;
+	}
+
+	.listing-views-empty {
+		font-weight    : normal;
+		text-transform : none;
+		letter-spacing : 0;
+	}
+
+	.listing-views-item {
+		display     : flex;
+		align-items : center;
+		padding     : 0 6px;
+
+		&.is-selected .listing-views-item-label {
+			font-weight : bold;
+			color       : @blue;
+		}
+	}
+
+	.listing-views-item-label {
+		flex        : 1 1 auto;
+		display     : block;
+		padding     : 6px 8px;
+		color       : @default-font-colour;
+		font-size   : 13px;
+		border-radius : 4px;
+
+		&:hover,
+		&:focus {
+			background      : @white;
+			color           : @blue;
+			text-decoration : none;
+		}
+	}
+
+	.listing-views-item-tools {
+		flex-shrink : 0;
+		padding     : 0 4px 0 0;
+
+		a {
+			display : inline-block;
+			padding : 4px;
+			color   : @default-light-font-colour;
+
+			&:hover,
+			&:focus {
+				color           : @blue;
+				text-decoration : none;
+			}
+		}
+	}
+
+	.listing-views-actions {
+		margin-top : 6px;
+		padding    : 8px 12px 0;
+		border-top : 1px solid @default-panel-border-colour;
+	}
+
+	.listing-views-action {
+		display     : block;
+		padding     : 4px 0;
+		font-size   : 13px;
+		color       : @blue;
+
+		&:hover,
+		&:focus {
+			color           : @blue-darker;
+			text-decoration : none;
+		}
+	}
+
 	.filter-links-container {
 		flex-shrink : 0;
 		text-align  : right;
@@ -250,6 +384,32 @@
 		&.everything-chip-search {
 			border-color : @default-light-font-colour;
 			color        : @default-font-colour;
+		}
+
+		&.is-locked {
+			padding-right : 10px;
+		}
+	}
+
+	.everything-bar-locked-note {
+		padding     : 8px 12px 6px;
+		font-size   : 12px;
+		color       : @default-light-font-colour;
+	}
+
+	.listing-view-locked {
+		thead .listing-data-column.listing-view-filter-locked .dtcc-dropdown {
+			pointer-events : none;
+			opacity        : 0.45;
+		}
+
+		&.listing-view-advanced-locked .object-listing-advanced-filter {
+			pointer-events : none;
+		}
+
+		button[aria-label="Columns"] {
+			pointer-events : none;
+			opacity        : 0.45;
 		}
 	}
 

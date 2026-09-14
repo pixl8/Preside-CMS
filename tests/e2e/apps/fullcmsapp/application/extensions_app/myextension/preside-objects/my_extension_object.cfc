@@ -2,6 +2,7 @@
  * @datamanagerEnabled             true
  * @datamanagerGridFields          label,status,category,datecreated
  * @datamanagerColumnPickerFields  *,!sensitive_col,!other_sensitive_col
+ * @datamanagerAllowSavedViews     true
  * @versioned                      false
  *
  */

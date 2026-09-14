@@ -14,11 +14,15 @@
 		this.activeSaved           = [];
 		this.columnFilters         = [];
 		this.searchQuery           = "";
+		this.viewFiltersLocked     = false;
+		this.lockedSavedIds        = {};
+		this.lockedColumnFields    = {};
 		this.highlightedIndex      = -1;
 		this.itemData              = [];
 		this.defaultPlaceholder    = this.$input.attr( "placeholder" ) || "";
 		this.onChange              = options.onChange || function(){};
 		this.onRemoveColumnFilter  = options.onRemoveColumnFilter || function(){};
+		this.onApplyView           = options.onApplyView || function(){};
 
 		this._bind();
 		this.renderChips();
@@ -93,6 +97,44 @@
 		this.renderChips();
 	};
 
+	PresideEverythingBar.prototype.setFilterLock = function( spec ) {
+		var self = this;
+
+		spec = spec || {};
+		this.viewFiltersLocked  = !!spec.locked;
+		this.lockedSavedIds     = {};
+		this.lockedColumnFields = {};
+
+		$.each( spec.savedIds || [], function( i, id ) {
+			self.lockedSavedIds[ String( id ) ] = true;
+		} );
+		$.each( spec.columnFields || [], function( i, field ) {
+			self.lockedColumnFields[ String( field ) ] = true;
+		} );
+
+		this.renderChips();
+		if ( this.isOpen() ) {
+			this.renderDropdown();
+		}
+	};
+
+	PresideEverythingBar.prototype.setFiltersLocked = function( locked ) {
+		this.setFilterLock( { locked : locked } );
+	};
+
+	PresideEverythingBar.prototype._chipCanRemove = function( kind, id ) {
+		if ( kind === "search" || !this.viewFiltersLocked ) {
+			return true;
+		}
+		if ( kind === "saved" || kind === "segmentation" ) {
+			return !this.lockedSavedIds[ String( id ) ];
+		}
+		if ( kind === "column" ) {
+			return !this.lockedColumnFields[ String( id ) ];
+		}
+		return true;
+	};
+
 	PresideEverythingBar.prototype.renderChips = function() {
 		var html = []
 		  , i, saved, column;
@@ -123,16 +165,22 @@
 	};
 
 	PresideEverythingBar.prototype._chipHtml = function( kind, id, label, icon ) {
+		var canRemove = this._chipCanRemove( kind, id );
 		icon = icon || "filter";
-		return '<span class="everything-chip everything-chip-' + kind + '" data-chip-kind="' + kind + '" data-chip-id="' + $("<div>").text( id ).html() + '">' +
+		return '<span class="everything-chip everything-chip-' + kind + ( canRemove ? "" : " is-locked" ) + '" data-chip-kind="' + kind + '" data-chip-id="' + $("<div>").text( id ).html() + '">' +
 			'<i class="fa fa-fw fa-' + icon + '"></i> ' +
 			$("<div>").text( label ).html() +
-			' <a href="#" class="everything-chip-remove" aria-label="Remove">&times;</a></span>';
+			( canRemove ? ' <a href="#" class="everything-chip-remove" aria-label="Remove">&times;</a>' : "" ) +
+			'</span>';
 	};
 
 	PresideEverythingBar.prototype.removeChip = function( $chip ) {
 		var kind = $chip.data( "chipKind" )
 		  , id   = String( $chip.data( "chipId" ) );
+
+		if ( !this._chipCanRemove( kind, id ) ) {
+			return;
+		}
 
 		if ( kind === "search" ) {
 			this.searchQuery = "";
@@ -156,10 +204,14 @@
 
 		this.itemData = [];
 
+		if ( this.viewFiltersLocked ) {
+			html.push( '<div class="everything-bar-locked-note">' + t( "cms:datatables.views.filters.locked", "This view's filters stay applied. You can add more, or edit the view to change them." ) + '</div>' );
+		}
+
 		if ( !items.length ) {
 			html.push( '<div class="everything-bar-empty">' + t( "cms:datatables.everything.empty", "No matching filters" ) + '</div>' );
 		} else {
-			html = this._groupedHtml( items );
+			html = html.concat( this._groupedHtml( items ) );
 		}
 
 		this.$dropdown.html( html.join( "" ) );
@@ -179,6 +231,7 @@
 			  favourites    : t( "cms:datatables.everything.favourites", "Favourites" )
 			, segmentation  : t( "cms:datatables.everything.segmentation", "Segmentation filters" )
 			, uncategorised : t( "cms:datatables.everything.uncategorised", "Uncategorised filters" )
+			, views         : t( "cms:datatables.everything.views", "Views" )
 		    }
 		  , i, item, folder;
 
@@ -230,6 +283,7 @@
 		} );
 
 		this._appendItems( items, favourites );
+		this._appendItems( items, this._viewItems( q, labels.views ) );
 		this._appendItems( items, segmentationItems );
 		for( i=0; i<folderNames.length; i++ ) {
 			this._appendItems( items, folders[ folderNames[ i ] ] );
@@ -237,6 +291,50 @@
 		this._appendItems( items, uncategorised );
 
 		return items;
+	};
+
+	PresideEverythingBar.prototype._viewItems = function( q, group ) {
+		var items        = []
+		  , views        = this.config.savedViews || []
+		  , defaultLabel = t( "cms:datatables.views.default", "Default" )
+		  , mine         = []
+		  , shared       = []
+		  , i, view;
+
+		if ( !this.config.allowSavedViews ) {
+			return items;
+		}
+
+		if ( this._matches( q, defaultLabel ) || this._matches( q, group ) ) {
+			items.push( this._viewItem( "default", defaultLabel, group ) );
+		}
+
+		for( i=0; i<views.length; i++ ) {
+			view = views[ i ];
+			if ( this._matches( q, view.label ) || this._matches( q, view.description ) || this._matches( q, group ) ) {
+				if ( view.owner ) {
+					mine.push( this._viewItem( view.id, view.label, group ) );
+				} else {
+					shared.push( this._viewItem( view.id, view.label, group ) );
+				}
+			}
+		}
+
+		this._appendItems( items, mine );
+		this._appendItems( items, shared );
+
+		return items;
+	};
+
+	PresideEverythingBar.prototype._viewItem = function( id, label, group ) {
+		return {
+			  action    : "view"
+			, id        : id
+			, label     : label
+			, icon      : "th-list"
+			, group     : group
+			, groupIcon : "th-list"
+		};
 	};
 
 	PresideEverythingBar.prototype._savedItem = function( item, group, groupIcon ) {
@@ -372,15 +470,24 @@
 			break;
 			case "saved":
 				id = String( id );
-				if ( this.activeSaved.indexOf( id ) === -1 ) {
+				if ( this.viewFiltersLocked && this.lockedSavedIds[ id ] && this.activeSaved.map( String ).indexOf( id ) !== -1 ) {
+					this.close();
+					return;
+				}
+				if ( this.activeSaved.map( String ).indexOf( id ) === -1 ) {
 					this.activeSaved.push( id );
 				} else {
-					this.activeSaved = this.activeSaved.filter( function( savedId ){ return savedId !== id; } );
+					this.activeSaved = this.activeSaved.filter( function( savedId ){ return String( savedId ) !== id; } );
 				}
 				this.$input.val( "" );
 				this.close();
 				this.renderChips();
 				this.onChange();
+			break;
+			case "view":
+				this.$input.val( "" );
+				this.close();
+				this.onApplyView( String( id ) );
 			break;
 		}
 	};

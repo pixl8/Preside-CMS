@@ -273,6 +273,8 @@ component {
 		,          boolean allowSearch       = true
 		,          boolean allowManageFilter = false
 		,          string  manageFilterLink  = ""
+		,          boolean allowSavedViews   = false
+		,          boolean canShareViews     = false
 	) {
 		var extraFields = Duplicate( arguments.gridFields );
 		ArrayAppend( extraFields, arguments.hiddenGridFields, true );
@@ -334,7 +336,304 @@ component {
 			, allowSearch          = arguments.allowSearch
 			, allowManageFilter    = arguments.allowManageFilter
 			, manageFilterLink     = arguments.manageFilterLink
+			, allowSavedViews      = arguments.allowSavedViews
+			, canShareViews        = arguments.allowSavedViews && arguments.canShareViews
+			, savedViews           = arguments.allowSavedViews ? listSavedViews( arguments.objectName, arguments.listingKey ) : []
 		};
+	}
+
+	public struct function emptyFilterState() {
+		return {
+			  savedFilterIds  = []
+			, advancedFilter  = []
+			, columnSearch    = {}
+		};
+	}
+
+	public struct function defaultViewState( required array columns ) {
+		return {
+			  columns     = Duplicate( arguments.columns )
+			, filterState = emptyFilterState()
+		};
+	}
+
+	public array function sanitizeViewColumns(
+		  required array  columns
+		, required array  grantedColumns
+		,          string objectName     = ""
+	) {
+		var selected = [];
+		var seen     = {};
+		var fieldName;
+		var locked   = [];
+		var result   = [];
+
+		for( fieldName in arguments.columns ) {
+			fieldName = Trim( fieldName );
+			if ( !Len( fieldName ) || StructKeyExists( seen, LCase( fieldName ) ) ) {
+				continue;
+			}
+			if ( ArrayFindNoCase( arguments.grantedColumns, fieldName ) ) {
+				ArrayAppend( selected, fieldName );
+				seen[ LCase( fieldName ) ] = true;
+			}
+		}
+
+		if ( !Len( Trim( arguments.objectName ) ) ) {
+			return selected;
+		}
+
+		locked = listLockedColumns( arguments.objectName );
+		seen   = {};
+
+		for( fieldName in locked ) {
+			if ( ArrayFindNoCase( arguments.grantedColumns, fieldName ) && !StructKeyExists( seen, LCase( fieldName ) ) ) {
+				ArrayAppend( result, fieldName );
+				seen[ LCase( fieldName ) ] = true;
+			}
+		}
+		for( fieldName in selected ) {
+			if ( !StructKeyExists( seen, LCase( fieldName ) ) ) {
+				ArrayAppend( result, fieldName );
+				seen[ LCase( fieldName ) ] = true;
+			}
+		}
+
+		return result;
+	}
+
+	public struct function sanitizeFilterState(
+		  required any   filterState
+		,          array permittedFilterIds = []
+		,          array grantedColumns     = []
+	) {
+		var source          = _deserializeFilterState( arguments.filterState );
+		var savedFilterIds  = [];
+		var seen            = {};
+		var advancedFilter  = [];
+		var columnSearch    = {};
+		var rawIds          = [];
+		var rawAdvanced     = [];
+		var rawColumnSearch = {};
+		var filterId        = "";
+		var fieldName       = "";
+
+		rawIds          = source.savedFilterIds ?: ( source.savedfilterids ?: [] );
+		rawAdvanced     = source.advancedFilter ?: ( source.advancedfilter ?: [] );
+		rawColumnSearch = source.columnSearch   ?: ( source.columnsearch   ?: {} );
+
+		if ( !IsArray( rawIds ) ) {
+			rawIds = ListToArray( rawIds );
+		}
+		for( filterId in rawIds ) {
+			filterId = Trim( filterId );
+			if ( !Len( filterId ) || StructKeyExists( seen, filterId ) ) {
+				continue;
+			}
+			if ( ArrayFindNoCase( arguments.permittedFilterIds, filterId ) ) {
+				ArrayAppend( savedFilterIds, filterId );
+				seen[ filterId ] = true;
+			}
+		}
+
+		if ( IsArray( rawAdvanced ) ) {
+			advancedFilter = Duplicate( rawAdvanced );
+		}
+
+		if ( IsStruct( rawColumnSearch ) ) {
+			for( fieldName in rawColumnSearch ) {
+				if ( ArrayLen( arguments.grantedColumns ) && !ArrayFindNoCase( arguments.grantedColumns, fieldName ) ) {
+					continue;
+				}
+				if ( IsStruct( rawColumnSearch[ fieldName ] ) ) {
+					columnSearch[ fieldName ] = Duplicate( rawColumnSearch[ fieldName ] );
+				}
+			}
+		}
+
+		return {
+			  savedFilterIds = savedFilterIds
+			, advancedFilter = advancedFilter
+			, columnSearch   = columnSearch
+		};
+	}
+
+	public boolean function viewStatesEqual( required struct left, required struct right ) {
+		return _viewStateFingerprint( arguments.left ) == _viewStateFingerprint( arguments.right );
+	}
+
+	public array function listSavedViews(
+		  required string objectName
+		,          string listingKey = arguments.objectName
+	) {
+		var userId       = $getAdminLoggedInUserId();
+		var records      = "";
+		var granted      = [];
+		var permittedIds = [];
+		var views        = [];
+		var row          = {};
+
+		if ( !Len( Trim( userId ) ) ) {
+			return [];
+		}
+
+		records = $getPresideObject( "admin_datatable_saved_view" ).selectData(
+			  filter       = { object_name=arguments.objectName, listing_key=arguments.listingKey }
+			, extraFilters = [ {
+				  filter       = "owner = :owner or is_shared = :is_shared"
+				, filterParams = { owner=userId, is_shared=true }
+			  } ]
+			, orderBy      = "label"
+		);
+		granted      = getGrantedListingColumns( arguments.objectName, arguments.listingKey );
+		permittedIds = _permittedFilterIds( arguments.objectName );
+
+		for( row in records ) {
+			ArrayAppend( views, _savedViewToStruct(
+				  record       = row
+				, userId       = userId
+				, granted      = granted
+				, permittedIds = permittedIds
+				, objectName   = arguments.objectName
+			) );
+		}
+
+		return views;
+	}
+
+	public struct function saveSavedView(
+		  required string  objectName
+		, required string  label
+		, required array   columns
+		, required any     filterState
+		,          string  listingKey       = arguments.objectName
+		,          string  description      = ""
+		,          boolean isShared         = false
+		,          boolean canShare         = false
+		,          array   grantedFields    = []
+		,          string  grantedFieldsSig = ""
+	) {
+		var userId          = $getAdminLoggedInUserId();
+		var viewLabel       = Trim( arguments.label );
+		var granted         = [];
+		var viewColumns     = [];
+		var viewFilterState = {};
+		var viewId          = "";
+
+		if ( !Len( userId ) || !Len( viewLabel ) ) {
+			return { success=false };
+		}
+
+		granted         = getGrantedListingColumns(
+			  objectName       = arguments.objectName
+			, listingKey       = arguments.listingKey
+			, grantedFields    = arguments.grantedFields
+			, grantedFieldsSig = arguments.grantedFieldsSig
+		);
+		viewColumns     = sanitizeViewColumns( arguments.columns, granted, arguments.objectName );
+		viewFilterState = sanitizeFilterState( arguments.filterState, _permittedFilterIds( arguments.objectName ), granted );
+		viewId          = $getPresideObject( "admin_datatable_saved_view" ).insertData( data={
+			  label        = Left( viewLabel, 100 )
+			, description  = Left( Trim( arguments.description ), 500 )
+			, owner        = userId
+			, object_name  = arguments.objectName
+			, listing_key  = arguments.listingKey
+			, is_shared    = arguments.canShare && arguments.isShared
+			, columns      = ArrayToList( viewColumns )
+			, filter_state = SerializeJSON( viewFilterState )
+		} );
+
+		if ( !Len( viewId ) ) {
+			return { success=false };
+		}
+
+		return {
+			  success = true
+			, view    = {
+				  id          = viewId
+				, label       = Left( viewLabel, 100 )
+				, description = Left( Trim( arguments.description ), 500 )
+				, owner       = true
+				, shared      = arguments.canShare && arguments.isShared
+				, columns     = viewColumns
+				, filterState = viewFilterState
+			  }
+		};
+	}
+
+	public struct function updateSavedView(
+		  required string  viewId
+		, required string  objectName
+		,          string  listingKey       = arguments.objectName
+		,          string  label            = ""
+		,          string  description
+		,          array   columns
+		,          any     filterState
+		,          boolean isShared
+		,          boolean canShare         = false
+		,          array   grantedFields    = []
+		,          string  grantedFieldsSig = ""
+	) {
+		var record  = _getOwnedSavedView( arguments.viewId, arguments.objectName, arguments.listingKey );
+		var granted = [];
+		var data    = {};
+		var views   = [];
+		var view    = {};
+		var item    = {};
+
+		if ( StructIsEmpty( record ) ) {
+			return { success=false };
+		}
+
+		granted = getGrantedListingColumns(
+			  objectName       = arguments.objectName
+			, listingKey       = arguments.listingKey
+			, grantedFields    = arguments.grantedFields
+			, grantedFieldsSig = arguments.grantedFieldsSig
+		);
+
+		if ( Len( Trim( arguments.label ) ) ) {
+			data.label = Left( Trim( arguments.label ), 100 );
+		}
+		if ( StructKeyExists( arguments, "description" ) ) {
+			data.description = Left( Trim( arguments.description ), 500 );
+		}
+		if ( StructKeyExists( arguments, "columns" ) ) {
+			data.columns = ArrayToList( sanitizeViewColumns( arguments.columns, granted, arguments.objectName ) );
+		}
+		if ( StructKeyExists( arguments, "filterState" ) ) {
+			data.filter_state = SerializeJSON( sanitizeFilterState( arguments.filterState, _permittedFilterIds( arguments.objectName ), granted ) );
+		}
+		if ( StructKeyExists( arguments, "isShared" ) && arguments.canShare ) {
+			data.is_shared = arguments.isShared;
+		}
+
+		if ( StructCount( data ) && !$getPresideObject( "admin_datatable_saved_view" ).updateData( id=arguments.viewId, data=data ) ) {
+			return { success=false };
+		}
+
+		views = listSavedViews( arguments.objectName, arguments.listingKey );
+		for( item in views ) {
+			if ( item.id == arguments.viewId ) {
+				view = item;
+				break;
+			}
+		}
+
+		return { success=!StructIsEmpty( view ), view=view };
+	}
+
+	public boolean function deleteSavedView(
+		  required string viewId
+		, required string objectName
+		,          string listingKey = arguments.objectName
+	) {
+		var record = _getOwnedSavedView( arguments.viewId, arguments.objectName, arguments.listingKey );
+		if ( StructIsEmpty( record ) ) {
+			return false;
+		}
+
+		return $getPresideObject( "admin_datatable_saved_view" ).deleteData( id=arguments.viewId ) > 0;
 	}
 
 	public array function getGrantedListingColumns(
@@ -429,6 +728,119 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private struct function _deserializeFilterState( required any filterState ) {
+		var parsed = {};
+
+		if ( IsStruct( arguments.filterState ) ) {
+			return Duplicate( arguments.filterState );
+		}
+		if ( IsSimpleValue( arguments.filterState ) && IsJSON( arguments.filterState ) ) {
+			parsed = DeserializeJSON( arguments.filterState );
+			if ( IsStruct( parsed ) ) {
+				return parsed;
+			}
+		}
+
+		return emptyFilterState();
+	}
+
+	private string function _viewStateFingerprint( required struct state ) {
+		var columns     = arguments.state.columns ?: [];
+		var rawState    = arguments.state.filterState ?: ( arguments.state.filter_state ?: {} );
+		var rawIds      = [];
+		var filterState = {};
+		var ids         = [];
+
+		if ( !IsStruct( rawState ) ) {
+			rawState = _deserializeFilterState( rawState );
+		}
+		rawIds = rawState.savedFilterIds ?: ( rawState.savedfilterids ?: [] );
+		if ( !IsArray( rawIds ) ) {
+			rawIds = ListToArray( rawIds );
+		}
+
+		filterState = sanitizeFilterState(
+			  filterState        = rawState
+			, permittedFilterIds = rawIds
+		);
+		ids = Duplicate( filterState.savedFilterIds );
+		ArraySort( ids, "textnocase" );
+
+		return LCase( ArrayToList( columns ) & "|" & ArrayToList( ids ) & "|" & SerializeJSON( filterState.advancedFilter ) & "|" & SerializeJSON( filterState.columnSearch ) );
+	}
+
+	private array function _permittedFilterIds( required string objectName ) {
+		var ids   = [];
+		var items = _serializeSavedFilters( arguments.objectName );
+		var item  = {};
+
+		ArrayAppend( items, _serializeSegmentationFilters( arguments.objectName ), true );
+
+		for( item in items ) {
+			if ( Len( Trim( item.id ?: "" ) ) ) {
+				ArrayAppend( ids, item.id );
+			}
+		}
+
+		return ids;
+	}
+
+	private struct function _savedViewToStruct(
+		  required struct record
+		, required string userId
+		, required array  granted
+		, required array  permittedIds
+		, required string objectName
+	) {
+		var ownerId  = arguments.record.owner ?: "";
+		var shared   = arguments.record.is_shared ?: false;
+		var isShared = IsBoolean( shared ) && shared;
+
+		return {
+			  id          = arguments.record.id
+			, label       = arguments.record.label ?: ""
+			, description = arguments.record.description ?: ""
+			, owner       = ownerId == arguments.userId
+			, shared      = isShared
+			, columns     = sanitizeViewColumns( ListToArray( arguments.record.columns ?: "" ), arguments.granted, arguments.objectName )
+			, filterState = sanitizeFilterState( arguments.record.filter_state ?: "", arguments.permittedIds, arguments.granted )
+		};
+	}
+
+	private struct function _getOwnedSavedView(
+		  required string viewId
+		, required string objectName
+		, required string listingKey
+	) {
+		var userId = $getAdminLoggedInUserId();
+		var record = "";
+		var row    = {};
+
+		if ( !Len( Trim( userId ) ) || !Len( Trim( arguments.viewId ) ) ) {
+			return {};
+		}
+
+		record = $getPresideObject( "admin_datatable_saved_view" ).selectData(
+			  filter       = {
+				  id          = arguments.viewId
+				, object_name = arguments.objectName
+				, listing_key = arguments.listingKey
+				, owner       = userId
+			  }
+			, selectFields = [ "id", "label", "description", "owner", "is_shared", "columns", "filter_state" ]
+		);
+
+		if ( !record.recordCount ) {
+			return {};
+		}
+
+		for( row in record ) {
+			return row;
+		}
+
+		return {};
+	}
+
 	private array function _getStoredColumns( required string objectName, required string listingKey ) {
 		var userId = $getAdminLoggedInUserId();
 		if ( !Len( Trim( userId ) ) ) {
@@ -723,10 +1135,14 @@ component {
 	}
 
 	private any function _getRulesEngineFilterService() {
-		return _rulesEngineFilterService;
+		if ( !StructKeyExists( variables, "_rulesEngineFilterService" ) ) {
+			return NullValue();
+		}
+
+		return variables._rulesEngineFilterService;
 	}
 	private void function _setRulesEngineFilterService( any rulesEngineFilterService ) {
-		_rulesEngineFilterService = arguments.rulesEngineFilterService ?: NullValue();
+		variables._rulesEngineFilterService = arguments.rulesEngineFilterService ?: NullValue();
 	}
 
 	private string function _grantedColumnsMessage(

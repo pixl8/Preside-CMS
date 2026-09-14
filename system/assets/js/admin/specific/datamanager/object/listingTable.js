@@ -32,8 +32,12 @@
 			  , allowSaveExport          = tableSettings.allowSaveExport          || cfrequest.allowSaveExport
 			  , allowColumnPicker        = !( tableSettings.allowColumnPicker === false || tableSettings.allowColumnPicker === "false" )
 			  , allowColumnFilter        = !( tableSettings.allowColumnFilter === false || tableSettings.allowColumnFilter === "false" )
+			  , allowSavedViews          = tableSettings.allowSavedViews === true || tableSettings.allowSavedViews === "true"
 			  , listingKey               = tableSettings.listingKey               || object
 			  , saveListingColumnsUrl    = tableSettings.saveListingColumnsUrl    || ""
+			  , saveListingViewUrl       = tableSettings.saveListingViewUrl       || ""
+			  , updateListingViewUrl     = tableSettings.updateListingViewUrl     || ""
+			  , deleteListingViewUrl     = tableSettings.deleteListingViewUrl     || ""
 			  , hiddenGridFields         = tableSettings.hiddenGridFields         ? String( tableSettings.hiddenGridFields ).split( "," ).filter( Boolean ) : []
 			  , noRecordMessage          = tableSettings.noRecordMessage          || i18n.translateResource( "cms:datatables.emptyTable" )
 			  , noRecordTableHide        = tableSettings.noRecordTableHide        || false
@@ -50,21 +54,27 @@
 			  , lastAjaxResult
 			  , everythingBar
 			  , lastDtRequest
+			  , lastColumnSearch = {}
 			  , lastFetchedGridFields = []
 			  , columnUiReady = false
 			  , saveColumnsTimer
 			  , reloadListingDataTimer
 			  , toolbarConfig = {}
+			  , listingViews
 			  , filtersPopulated = false
 			  , hasPreFilters    = false
 			  , hasFilterVal     = $filterDiv.find( "[name=filter]" ).length > 0 && $filterDiv.find( "[name=filter]" ).val().length > 0
 			  , setupDatatable, setupCheckboxBehaviour, setupMultiActionButtons, setupTableRowFocusBehaviour
 			  , setupFilters, setupDataExport, setupQuickSaveFilterIframeModal, setupEverythingBar, setupHeaderColumnUi
 			  , registerListingColumnControlPlugins, searchContentForField, headingContent, expressionsFromColumnControl
-			  , columnSearchToExpressions, columnFilterChipsFromRequest, columnFilterChipLabel, columnFilterListValueLabel
+			  , columnSearchToExpressions, columnFilterChipsFromRequest, columnFilterChipsFromStored, columnFilterChipLabel, columnFilterListValueLabel
 			  , columnFilterOperatorLabel, columnFilterChipText, syncColumnFilterChips, clearColumnFilter
-			  , getVisibleGridFields, saveVisibleColumns, applyDefaultColumnVisibility
+			  , getVisibleGridFields, saveVisibleColumns, applyDefaultColumnVisibility, applyColumnLayout
 			  , listingFieldWasFetched, scheduleListingDataReload, appendListingGrantParams
+			  , captureColumnSearch, getListingViewSnapshot, applyListingViewSnapshot, applyListingDefaultView
+			  , applyColumnSearch, setAdvancedFilter, normalizeFilterState, normalizeColumnSearchMap
+			  , expressionsFromStoredColumnSearch, columnControlStateFromSearch, syncViewFilterLock
+			  , setupListingViews
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -313,7 +323,7 @@
 
 			getMergedFilterExpression = function() {
 				var advanced = []
-				  , column   = expressionsFromColumnControl( lastDtRequest )
+				  , column   = expressionsFromStoredColumnSearch( lastColumnSearch )
 				  , raw      = $filterDiv.find( "[name=filter]" ).val();
 
 				if ( raw && raw.length ) {
@@ -391,12 +401,54 @@
 				everythingBar = new PresideEverythingBar( {
 					  $toolbar               : $toolbar
 					, config                 : toolbarConfig
-					, onChange               : function(){ redrawTable(); }
-					, onRemoveColumnFilter   : function( field ){
-						clearColumnFilter( field );
+					, onChange               : function(){
+						if ( listingViews ) {
+							listingViews.refreshDirty();
+						}
 						redrawTable();
 					  }
+					, onRemoveColumnFilter   : function( field ){
+						clearColumnFilter( field );
+						if ( listingViews ) {
+							listingViews.refreshDirty();
+						}
+						redrawTable();
+					  }
+					, onApplyView            : function( viewId ){
+						if ( !listingViews ) {
+							return;
+						}
+						if ( viewId === "default" ) {
+							listingViews.applyDefaultView();
+						} else {
+							listingViews.applyNamedView( viewId );
+						}
+					  }
 				} );
+			};
+
+			setupListingViews = function() {
+				if ( !allowSavedViews || !$toolbar.find( ".listing-views" ).length || typeof PresideListingViews === "undefined" ) {
+					return;
+				}
+
+				listingViews = new PresideListingViews( {
+					  $toolbar      : $toolbar
+					, config        : toolbarConfig
+					, objectName    : object
+					, listingKey    : listingKey
+					, urls          : {
+						  save   : saveListingViewUrl
+						, update : updateListingViewUrl
+						, delete : deleteListingViewUrl
+					  }
+					, getSnapshot   : getListingViewSnapshot
+					, applySnapshot : applyListingViewSnapshot
+					, applyDefault  : applyListingDefaultView
+					, onLockChange  : syncViewFilterLock
+				} );
+				listingViews.restore();
+				syncViewFilterLock();
 			};
 
 			registerListingColumnControlPlugins = function() {
@@ -434,11 +486,14 @@
 					};
 
 					SearchInput.prototype._stateLoad = function( state ) {
-						var columnName, bucket, loaded;
+						var columnName, bucket, loaded, savedUnique, result;
+
+						savedUnique     = this._colUnique;
+						this._colUnique = this._idx;
 
 						if ( state && state.columnControl && this._type === "text" ) {
-							columnName = this._dt.column( this._colUnique ).name();
-							bucket     = state.columnControl[ columnName ] || state.columnControl[ this._colUnique ];
+							columnName = this._dt.column( this._idx ).name();
+							bucket     = state.columnControl[ columnName ] || state.columnControl[ this._idx ];
 							loaded     = bucket && bucket.searchInput;
 
 							if ( loaded && loaded.logic === "contains" && !$.trim( loaded.value || "" ) ) {
@@ -446,10 +501,22 @@
 							}
 						}
 
-						return origStateLoad.call( this, state );
+						result = origStateLoad.call( this, state );
+						this._colUnique = savedUnique;
+						return result;
 					};
 
 					SearchInput._presideEqualsDefault = true;
+				}
+
+				if ( DT.ColumnControl.content.searchList && !DT.ColumnControl.content.searchList._presideCurrentIndexState ) {
+					var origSearchListInit = DT.ColumnControl.content.searchList.init;
+
+					DT.ColumnControl.content.searchList.init = function( config ) {
+						this.idxOriginal = this.idx;
+						return origSearchListInit.call( this, config );
+					};
+					DT.ColumnControl.content.searchList._presideCurrentIndexState = true;
 				}
 
 				resetLabel   = i18n.translateResource( "cms:datatables.columns.reset", { defaultValue : "Reset to default" } );
@@ -559,6 +626,9 @@
 							e.preventDefault();
 							e.stopPropagation();
 
+							if ( listingViews && listingViews.filtersAreLocked() ) {
+								return;
+							}
 							if ( pos < 0 || swap < 0 || swap >= idxs.length || !dt.colReorder ) {
 								return;
 							}
@@ -571,8 +641,15 @@
 						} );
 
 						$wrap.on( "change", ".listing-column-toggle", function() {
-							var idx = parseInt( $( this ).closest( ".listing-column-row" ).attr( "data-index" ), 10 );
-							dt.column( idx ).visible( $( this ).is( ":checked" ) );
+							var $input = $( this )
+							  , idx    = parseInt( $input.closest( ".listing-column-row" ).attr( "data-index" ), 10 );
+
+							if ( listingViews && listingViews.filtersAreLocked() ) {
+								$input.prop( "checked", dt.column( idx ).visible() );
+								return;
+							}
+
+							dt.column( idx ).visible( $input.is( ":checked" ) );
 						} );
 
 						$search.on( "input", function( e ) {
@@ -866,13 +943,50 @@
 				return chips;
 			};
 
-			syncColumnFilterChips = function( dtRequest ) {
+			columnFilterChipsFromStored = function( columnSearch ) {
+				var chips   = []
+				  , byField = {}
+				  , label;
+
+				( toolbarConfig.quickFilters || [] ).forEach( function( item ) {
+					byField[ item.field ] = item;
+				} );
+
+				$.each( columnSearch || {}, function( field, spec ) {
+					var filter = byField[ field ];
+					if ( !filter ) {
+						return;
+					}
+					if ( !columnSearchToExpressions( filter, spec ).length ) {
+						return;
+					}
+					label = columnFilterChipLabel( filter, spec );
+					if ( label.length ) {
+						chips.push( { field : field, label : label } );
+					}
+				} );
+
+				return chips;
+			};
+
+			syncColumnFilterChips = function() {
 				if ( everythingBar ) {
-					everythingBar.setColumnFilters( columnFilterChipsFromRequest( dtRequest ) );
+					everythingBar.setColumnFilters( columnFilterChipsFromStored( lastColumnSearch ) );
 				}
 			};
 
 			clearColumnFilter = function( field ) {
+				var lockedSearch;
+
+				if ( listingViews && listingViews.filtersAreLocked() ) {
+					lockedSearch = listingViews.lockedFilterState().columnSearch || {};
+					if ( field && lockedSearch[ field ] ) {
+						return;
+					}
+				}
+				if ( field && lastColumnSearch[ field ] ) {
+					delete lastColumnSearch[ field ];
+				}
 				if ( !dtApi || !field ) {
 					return;
 				}
@@ -882,6 +996,124 @@
 						this.columnControl.searchClear();
 					}
 				} );
+			};
+
+			normalizeColumnSearchMap = function( map ) {
+				var out = {};
+
+				$.each( map || {}, function( field, spec ) {
+					var bucket, search, list;
+					if ( !field || !spec || typeof spec !== "object" ) {
+						return;
+					}
+					search = spec.search || spec.searchInput || spec.SEARCH || spec.SEARCHINPUT;
+					list   = spec.list   || spec.searchList  || spec.LIST   || spec.SEARCHLIST;
+					bucket = {};
+					if ( search ) {
+						bucket.search = search;
+					}
+					if ( list ) {
+						bucket.list = list;
+					}
+					if ( bucket.search || bucket.list ) {
+						out[ field ] = bucket;
+					}
+				} );
+
+				return out;
+			};
+
+			normalizeFilterState = function( raw ) {
+				raw = raw || {};
+				return {
+					  savedFilterIds : raw.savedFilterIds || raw.savedfilterids || raw.SAVEDFILTERIDS || []
+					, advancedFilter : raw.advancedFilter || raw.advancedfilter || raw.ADVANCEDFILTER || []
+					, columnSearch   : normalizeColumnSearchMap( raw.columnSearch || raw.columnsearch || raw.COLUMNSEARCH || {} )
+				};
+			};
+
+			expressionsFromStoredColumnSearch = function( columnSearch ) {
+				var expressions = []
+				  , byField     = {}
+				  , parts;
+
+				( toolbarConfig.quickFilters || [] ).forEach( function( item ) {
+					byField[ item.field ] = item;
+				} );
+
+				$.each( columnSearch || {}, function( field, spec ) {
+					if ( !byField[ field ] ) {
+						return;
+					}
+					parts = columnSearchToExpressions( byField[ field ], spec );
+					if ( parts.length ) {
+						if ( expressions.length ) {
+							expressions.push( "and" );
+						}
+						if ( parts.length === 1 ) {
+							expressions.push( parts[ 0 ] );
+						} else {
+							expressions.push( parts );
+						}
+					}
+				} );
+
+				return expressions;
+			};
+
+			columnControlStateFromSearch = function( columnSearch ) {
+				var state = { columnControl : {} };
+
+				$.each( columnSearch || {}, function( field, spec ) {
+					var bucket = {};
+					if ( spec.search ) {
+						bucket.searchInput = spec.search;
+					}
+					if ( spec.list ) {
+						if ( $.isArray( spec.list ) ) {
+							bucket.searchList = spec.list;
+						} else {
+							bucket.searchList = [];
+							$.each( spec.list, function( key, value ) {
+								if ( String( value ).length ) {
+									bucket.searchList.push( value );
+								}
+							} );
+						}
+					}
+					if ( bucket.searchInput || ( bucket.searchList && bucket.searchList.length ) ) {
+						state.columnControl[ field ] = bucket;
+					}
+				} );
+
+				return state;
+			};
+
+			syncViewFilterLock = function() {
+				var locked      = !!( listingViews && listingViews.filtersAreLocked() )
+				  , editing     = !!( listingViews && listingViews.isEditing() )
+				  , lockState   = ( listingViews && listingViews.lockedFilterState ) ? listingViews.lockedFilterState() : {}
+				  , lockedFields = lockState.columnSearch || {}
+				  , hasAdvanced = $.isArray( lockState.advancedFilter ) && lockState.advancedFilter.length > 0;
+
+				$container.toggleClass( "listing-view-locked", locked );
+				$container.toggleClass( "listing-view-editing", editing );
+				$container.toggleClass( "listing-view-advanced-locked", !!( locked && hasAdvanced ) );
+
+				if ( dtApi ) {
+					dtApi.columns( ".listing-data-column" ).every( function() {
+						var field = this.dataSrc();
+						$( this.header() ).toggleClass( "listing-view-filter-locked", locked && !!lockedFields[ field ] );
+					} );
+				}
+
+				if ( everythingBar && everythingBar.setFilterLock ) {
+					everythingBar.setFilterLock( {
+						  locked        : locked
+						, savedIds      : lockState.savedFilterIds || []
+						, columnFields  : Object.keys( lockedFields )
+					} );
+				}
 			};
 
 			expressionsFromColumnControl = function( dtRequest ) {
@@ -922,8 +1154,15 @@
 				if ( !allowColumnPicker || !saveListingColumnsUrl || !columnUiReady ) {
 					return;
 				}
+				if ( listingViews && listingViews.shouldSkipColumnPrefSave() ) {
+					listingViews.refreshDirty();
+					return;
+				}
 
 				fields = getVisibleGridFields();
+				if ( listingViews ) {
+					listingViews.syncDefaultColumns( fields );
+				}
 				clearTimeout( saveColumnsTimer );
 				saveColumnsTimer = setTimeout( function() {
 					$.ajax( {
@@ -965,6 +1204,213 @@
 				dtApi.columns.adjust().draw();
 			};
 
+			applyColumnLayout = function( fields ) {
+				var locked = toolbarConfig.lockedColumns || []
+				  , desired = fields || []
+				  , i, current, fromIdx, toIdx, field;
+
+				if ( !dtApi ) {
+					return;
+				}
+
+				dtApi.columns( ".listing-data-column" ).every( function() {
+					var colField = this.dataSrc()
+					  , show     = locked.indexOf( colField ) !== -1 || desired.indexOf( colField ) !== -1;
+
+					this.visible( show, false );
+				} );
+
+				if ( dtApi.colReorder ) {
+					var userDesired = desired.filter( function( item ) {
+						return locked.indexOf( item ) === -1;
+					} );
+					for( i=0; i<userDesired.length; i++ ) {
+						field = userDesired[ i ];
+						current = [];
+						dtApi.columns( ".listing-user-column" ).every( function() {
+							current.push( { index : this.index(), field : this.dataSrc() } );
+						} );
+						fromIdx = -1;
+						current.forEach( function( col ) {
+							if ( col.field === field ) {
+								fromIdx = col.index;
+							}
+						} );
+						toIdx = current[ i ] ? current[ i ].index : -1;
+						if ( fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx ) {
+							dtApi.colReorder.move( fromIdx, toIdx );
+						}
+					}
+				}
+
+				dtApi.columns.adjust();
+			};
+
+			captureColumnSearch = function( dtRequest ) {
+				var search  = {}
+				  , seen    = {}
+				  , columns = ( dtRequest && dtRequest.columns ) || [];
+
+				columns.forEach( function( col ) {
+					var field     = col.name || col.data
+					  , hasSearch = false
+					  , hasList   = false
+					  , hidden    = col.visible === false
+					  , bucket;
+
+					if ( !field ) {
+						return;
+					}
+					if ( !col.columnControl ) {
+						if ( !hidden ) {
+							seen[ field ] = true;
+						}
+						return;
+					}
+					if ( col.columnControl.search && String( col.columnControl.search.value || "" ).length ) {
+						hasSearch = true;
+					}
+					if ( col.columnControl.list ) {
+						$.each( col.columnControl.list, function( key, value ) {
+							if ( String( value ).length ) {
+								hasList = true;
+							}
+						} );
+					}
+					if ( hasSearch || hasList ) {
+						bucket = {};
+						if ( hasSearch ) {
+							bucket.search = col.columnControl.search;
+						}
+						if ( hasList ) {
+							bucket.list = col.columnControl.list;
+						}
+						search[ field ] = bucket;
+						seen[ field ] = true;
+					} else if ( !hidden ) {
+						seen[ field ] = true;
+					}
+				} );
+
+				$.each( lastColumnSearch, function( field, bucket ) {
+					if ( !seen[ field ] ) {
+						search[ field ] = bucket;
+					}
+				} );
+
+				if ( listingViews && listingViews.filtersAreLocked() ) {
+					$.each( listingViews.lockedFilterState().columnSearch || {}, function( field, bucket ) {
+						search[ field ] = bucket;
+					} );
+				}
+
+				lastColumnSearch = search;
+				return search;
+			};
+
+			getListingViewSnapshot = function() {
+				var advanced = []
+				  , raw      = $filterDiv.find( "[name=filter]" ).val()
+				  , ids      = getFavourites() ? getFavourites().split( "," ).filter( Boolean ) : [];
+
+				if ( raw && raw.length ) {
+					try { advanced = JSON.parse( raw ); } catch( e ) { advanced = []; }
+				}
+				if ( !$.isArray( advanced ) ) {
+					advanced = [];
+				}
+
+				return {
+					  columns     : getVisibleGridFields()
+					, filterState : {
+						  savedFilterIds : ids
+						, advancedFilter : advanced
+						, columnSearch   : $.extend( {}, lastColumnSearch )
+					  }
+				};
+			};
+
+			setAdvancedFilter = function( expr ) {
+				var $input  = $filterDiv.find( "[name=filter]" )
+				  , json    = $.isArray( expr ) && expr.length ? JSON.stringify( expr ) : ""
+				  , builder = $input.data( "conditionBuilder" );
+
+				if ( builder ) {
+					if ( json.length && typeof builder.load === "function" ) {
+						builder.load( json );
+					} else if ( typeof builder.clear === "function" ) {
+						builder.clear();
+					} else {
+						$input.val( json );
+					}
+				} else {
+					$input.val( json );
+				}
+
+				if ( json.length ) {
+					$filterDiv.removeClass( "hide" );
+				} else {
+					$filterDiv.addClass( "hide" );
+				}
+				syncAdvancedFilterToggle();
+			};
+
+			applyColumnSearch = function( columnSearch ) {
+				var state;
+
+				columnSearch     = normalizeColumnSearchMap( columnSearch || {} );
+				lastColumnSearch = columnSearch;
+
+				if ( !dtApi ) {
+					return;
+				}
+
+				if ( dtApi.columns().columnControl ) {
+					dtApi.columns().columnControl.searchClear();
+				}
+				lastColumnSearch = columnSearch;
+				state = columnControlStateFromSearch( columnSearch );
+				if ( Object.keys( state.columnControl ).length ) {
+					dtApi.trigger( "stateLoaded", [ dtApi.settings()[ 0 ], state ] );
+				}
+				lastColumnSearch = columnSearch;
+			};
+
+			applyListingViewSnapshot = function( view, opts ) {
+				var filter   = normalizeFilterState( ( view && view.filterState ) || {} )
+				  , skipDraw = !!( opts && opts.skipDraw );
+
+				applyColumnLayout( view.columns || [] );
+				if ( everythingBar ) {
+					everythingBar.setFavourites( filter.savedFilterIds || [] );
+					everythingBar.setSearchQuery( "" );
+				}
+				setAdvancedFilter( filter.advancedFilter || [] );
+				applyColumnSearch( filter.columnSearch || {} );
+				syncColumnFilterChips();
+				syncViewFilterLock();
+
+				if ( !skipDraw && dtApi ) {
+					scheduleListingDataReload();
+				}
+			};
+
+			applyListingDefaultView = function( opts ) {
+				applyColumnLayout( ( opts && opts.columns ) || toolbarConfig.currentColumns || [] );
+				if ( everythingBar ) {
+					everythingBar.setFavourites( [] );
+					everythingBar.setSearchQuery( "" );
+				}
+				setAdvancedFilter( [] );
+				applyColumnSearch( {} );
+				syncColumnFilterChips();
+				syncViewFilterLock();
+
+				if ( !( opts && opts.skipDraw ) && dtApi ) {
+					scheduleListingDataReload();
+				}
+			};
+
 			setupHeaderColumnUi = function() {
 				if ( !dtApi ) {
 					return;
@@ -982,6 +1428,21 @@
 					if ( visible === false ) {
 						return;
 					}
+
+					( function() {
+						var field = dtApi.column( column ).dataSrc()
+						  , spec  = field && lastColumnSearch[ field ]
+						  , one   = {}
+						  , state;
+
+						if ( spec ) {
+							one[ field ] = spec;
+							state = columnControlStateFromSearch( one );
+							if ( Object.keys( state.columnControl ).length ) {
+								dtApi.trigger( "stateLoaded", [ dtApi.settings()[ 0 ], state ] );
+							}
+						}
+					} )();
 
 					if ( getVisibleGridFields().some( function( field ) {
 						return !listingFieldWasFetched( field );
@@ -1185,12 +1646,17 @@
 						if ( allowFilter ) {
 							setupFilters();
 						}
+						setupListingViews();
 						dtApi.on( "preXhr", function( e, settings, data ) {
 							lastDtRequest = data;
+							captureColumnSearch( data );
 							if ( allowFilter ) {
 								data.sFilterExpression = getMergedFilterExpression();
 							}
-							syncColumnFilterChips( data );
+							syncColumnFilterChips();
+							if ( listingViews ) {
+								listingViews.refreshDirty();
+							}
 							delete data.columns;
 							delete data.order;
 							delete data.search;
@@ -1436,6 +1902,9 @@
 			setupFilters = function(){
 				$filterDiv.find( ".well" ).removeClass( "well" );
 				$filterDiv.on( "change", function(){
+					if ( listingViews ) {
+						listingViews.refreshDirty();
+					}
 					redrawTable();
 					if ( allowManageFilter ) {
 						$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
@@ -1462,12 +1931,17 @@
 				} catch( e ) {}
 
 				if ( typeof filterState !== "undefined" ) {
-					if ( allowUseFilter && filterState.filter && filterState.filter.length ) {
+					if ( allowSavedViews ) {
+						filtersPopulated = true;
+						if ( everythingBar && filterState.search ) {
+							everythingBar.setSearchQuery( filterState.search );
+						}
+					} else if ( allowUseFilter && filterState.filter && filterState.filter.length ) {
 						prePopulateFilter( filterState.filter );
 					} else {
 						filtersPopulated = true;
 					}
-					if ( everythingBar ) {
+					if ( !allowSavedViews && everythingBar ) {
 						if ( filterState.favourites ) {
 							everythingBar.setFavourites( filterState.favourites );
 						}

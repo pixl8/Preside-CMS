@@ -177,6 +177,20 @@ component extends="preside.system.base.AdminHandler" {
 			args.allowColumnFilter    = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ?: false ) );
 			args.listingPreferenceKey = args.listingPreferenceKey ?: objectName;
 
+			if ( !StructKeyExists( args, "allowSavedViews" ) ) {
+				args.allowSavedViews = IsTrue( presideObjectService.getObjectAttribute(
+					  objectName    = objectName
+					, attributeName = "datamanagerAllowSavedViews"
+					, defaultValue  = ""
+				) );
+			}
+			if ( IsTrue( args.compact ?: false ) ) {
+				args.allowSavedViews = false;
+			} else {
+				args.allowSavedViews = IsTrue( args.allowSavedViews );
+			}
+			args.canShareViews = args.allowSavedViews && _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
+
 			if ( args.allowColumnPicker ) {
 				var extraFields = Duplicate( args.gridFields );
 				ArrayAppend( extraFields, args.hiddenGridFields ?: [], true );
@@ -1265,6 +1279,29 @@ component extends="preside.system.base.AdminHandler" {
 				, listingKey = listingKey
 			  )
 		} );
+	}
+
+	public void function saveListingView( event, rc, prc ) {
+		event.renderData( type="json", data=_saveOrUpdateListingView( argumentCollection=arguments, update=false ) );
+	}
+
+	public void function updateListingView( event, rc, prc ) {
+		event.renderData( type="json", data=_saveOrUpdateListingView( argumentCollection=arguments, update=true ) );
+	}
+
+	public void function deleteListingView( event, rc, prc ) {
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName, throwOnError=true );
+
+		var listingKey = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var deleted    = dataListingPreferencesService.deleteSavedView(
+			  viewId     = rc.viewId ?: ""
+			, objectName = objectName
+			, listingKey = listingKey
+		);
+
+		event.renderData( type="json", data={ success=deleted } );
 	}
 
 	public void function quickEditForm( event, rc, prc ) {
@@ -3461,6 +3498,66 @@ component extends="preside.system.base.AdminHandler" {
 			messageBox.error( translateResource( uri="cms:datamanager.objectNotFound.error", data=[object] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.index" ) );
 		}
+	}
+
+	private struct function _saveOrUpdateListingView(
+		  required any     event
+		, required struct  rc
+		, required struct  prc
+		, required boolean update
+	) {
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName, throwOnError=true );
+
+		var listingKey  = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var canShare    = _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
+		var filterState = rc.filterState ?: {};
+		var updateArgs  = {};
+
+		if ( IsSimpleValue( filterState ) && IsJSON( filterState ) ) {
+			filterState = DeserializeJSON( filterState );
+		} else if ( !IsStruct( filterState ) && !IsArray( filterState ) ) {
+			filterState = {};
+		}
+
+		if ( arguments.update ) {
+			updateArgs = {
+				  viewId            = rc.viewId ?: ""
+				, objectName        = objectName
+				, listingKey        = listingKey
+				, label             = rc.label ?: ""
+				, description       = rc.description ?: ""
+				, canShare          = canShare
+				, grantedFields     = ListToArray( rc.grantedGridFields ?: "" )
+				, grantedFieldsSig  = rc.grantedGridFieldsSig ?: ""
+			};
+
+			if ( StructKeyExists( rc, "columns" ) ) {
+				updateArgs.columns = ListToArray( rc.columns );
+			}
+			if ( StructKeyExists( rc, "filterState" ) ) {
+				updateArgs.filterState = filterState;
+			}
+			if ( StructKeyExists( rc, "isShared" ) ) {
+				updateArgs.isShared = IsTrue( rc.isShared );
+			}
+
+			return dataListingPreferencesService.updateSavedView( argumentCollection=updateArgs );
+		}
+
+		return dataListingPreferencesService.saveSavedView(
+			  objectName        = objectName
+			, listingKey        = listingKey
+			, label             = rc.label ?: ""
+			, description       = rc.description ?: ""
+			, columns           = ListToArray( rc.columns ?: "" )
+			, filterState       = filterState
+			, isShared          = IsTrue( rc.isShared ?: false )
+			, canShare          = canShare
+			, grantedFields     = ListToArray( rc.grantedGridFields ?: "" )
+			, grantedFieldsSig  = rc.grantedGridFieldsSig ?: ""
+		);
 	}
 
 	private any function _checkPermission(

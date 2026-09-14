@@ -220,6 +220,109 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.verifyGrantedColumns( "my_extension_object", "my_extension_object", [ "label", "sensitive_col" ], sig ) ).toBeFalse();
 			} );
 		} );
+
+		describe( "sanitizeViewColumns()", function(){
+			it( "should drop columns that are not in the granted listing pool", function(){
+				var svc = _getService();
+
+				expect( svc.sanitizeViewColumns(
+					  columns        = [ "label", "notes", "sensitive_col" ]
+					, grantedColumns = [ "label", "status", "notes" ]
+				) ).toBe( [ "label", "notes" ] );
+			} );
+
+			it( "should keep locked columns first when an object name is supplied", function(){
+				var svc = _getService();
+
+				svc.$( "listLockedColumns" ).$args( "my_extension_object" ).$results( [ "label" ] );
+
+				expect( svc.sanitizeViewColumns(
+					  columns        = [ "notes", "status" ]
+					, grantedColumns = [ "label", "status", "notes" ]
+					, objectName     = "my_extension_object"
+				) ).toBe( [ "label", "notes", "status" ] );
+			} );
+		} );
+
+		describe( "sanitizeFilterState()", function(){
+			it( "should drop saved filter IDs the current user cannot use", function(){
+				var svc = _getService();
+
+				expect( svc.sanitizeFilterState(
+					  filterState        = { savedFilterIds=[ "keep-me", "drop-me" ], advancedFilter=[], columnSearch={} }
+					, permittedFilterIds = [ "keep-me" ]
+				).savedFilterIds ).toBe( [ "keep-me" ] );
+			} );
+
+			it( "should drop column searches for fields that are not granted", function(){
+				var svc   = _getService();
+				var state = svc.sanitizeFilterState(
+					  filterState     = {
+						  savedFilterIds = []
+						, advancedFilter = []
+						, columnSearch   = {
+							  status        = { search={ logic="equal", value="active" } }
+							, sensitive_col = { search={ logic="contains", value="secret" } }
+						  }
+					  }
+					, grantedColumns  = [ "label", "status" ]
+				);
+
+				expect( StructKeyExists( state.columnSearch, "status" ) ).toBeTrue();
+				expect( StructKeyExists( state.columnSearch, "sensitive_col" ) ).toBeFalse();
+			} );
+		} );
+
+		describe( "viewStatesEqual()", function(){
+			it( "should treat the implicit default as empty filters plus the supplied columns", function(){
+				var svc     = _getService();
+				var columns = [ "label", "status" ];
+				var named   = {
+					  columns     = columns
+					, filterState = { savedFilterIds=[ "starred" ], advancedFilter=[], columnSearch={} }
+				};
+
+				expect( svc.viewStatesEqual( svc.defaultViewState( columns ), svc.defaultViewState( columns ) ) ).toBeTrue();
+				expect( svc.viewStatesEqual( svc.defaultViewState( columns ), named ) ).toBeFalse();
+			} );
+
+			it( "should ignore saved filter ID order when comparing", function(){
+				var svc = _getService();
+
+				expect( svc.viewStatesEqual(
+					  { columns=[ "label" ], filterState={ savedFilterIds=[ "b", "a" ], advancedFilter=[], columnSearch={} } }
+					, { columns=[ "label" ], filterState={ savedFilterIds=[ "a", "b" ], advancedFilter=[], columnSearch={} } }
+				) ).toBeTrue();
+			} );
+		} );
+
+		describe( "listSavedViews()", function(){
+			it( "should request owned or shared views for the current listing", function(){
+				var svc     = _getService();
+				var mockDao = createStub();
+				var records = QueryNew( "id,label,description,owner,is_shared,columns,filter_state", "varchar,varchar,varchar,varchar,bit,varchar,varchar", [
+					  [ "mine", "My view", "", "user-1", false, "label,status", "{}" ]
+					, [ "ours", "Shared view", "", "user-2", true, "label", "{}" ]
+				] );
+
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+				svc.$( "$getPresideObject" ).$args( "admin_datatable_saved_view" ).$results( mockDao );
+				svc.$( "getGrantedListingColumns", [ "label", "status" ] );
+				svc.$( "listLockedColumns", [ "label" ] );
+				mockDao.$( "selectData", records );
+
+				var views = svc.listSavedViews( "my_extension_object" );
+
+				expect( views.len() ).toBe( 2 );
+				expect( views[ 1 ].id ).toBe( "mine" );
+				expect( views[ 1 ].owner ).toBeTrue();
+				expect( views[ 2 ].id ).toBe( "ours" );
+				expect( views[ 2 ].owner ).toBeFalse();
+				expect( views[ 2 ].shared ).toBeTrue();
+				expect( mockDao.$callLog().selectData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().selectData[ 1 ].extraFilters[ 1 ].filter ).toInclude( "is_shared" );
+			} );
+		} );
 	}
 
 	private any function _getService() {

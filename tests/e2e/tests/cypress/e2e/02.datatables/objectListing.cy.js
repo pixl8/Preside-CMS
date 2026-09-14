@@ -8,7 +8,7 @@ describe( 'Object listing DataTable', () => {
 		cy.get( '.everything-bar-input' )
 			.should( 'be.visible' )
 			.and( 'have.attr', 'placeholder' )
-			.and( 'match', /Search/i );
+			.and( 'match', /Search.*views/i );
 
 		cy.get( '.everything-bar-icon.fa-search, .data-table-search-icon.fa-search' ).should( 'exist' );
 		cy.get( '.object-listing-table tbody tr' ).should( 'have.length', 10 );

@@ -73,3 +73,53 @@ Cypress.Commands.add( 'showListingColumn', ( label ) => {
 		.find( 'input[type=checkbox].listing-column-toggle' )
 		.check();
 } );
+
+Cypress.Commands.add( 'hideListingColumn', ( label ) => {
+	cy.openListingColumnPicker();
+	cy.contains( '.listing-colvis-list .listing-column-row label', label )
+		.find( 'input[type=checkbox].listing-column-toggle' )
+		.uncheck();
+} );
+
+Cypress.Commands.add( 'filterListingColumnEquals', ( columnLabel, value ) => {
+	cy.contains( '.object-listing-table thead th.listing-data-column', columnLabel )
+		.find( 'button[aria-label="Filter"]' )
+		.click( { force : true } );
+	cy.get( '.dtcc-dropdown:visible .dtcc-search input' )
+		.first()
+		.should( 'be.visible' )
+		.clear()
+		.type( value, { delay : 30 } );
+	cy.get( 'body' ).click( 0, 0 );
+} );
+
+Cypress.Commands.add( 'editListingView', () => {
+	cy.openListingViews();
+	cy.get( '[data-view-action="edit"]' ).click();
+	cy.get( '.object-listing-wrap' ).should( 'have.class', 'listing-view-editing' );
+} );
+
+Cypress.Commands.add( 'clearListingViews', () => {
+	cy.window().then( ( win ) => {
+		Object.keys( win.localStorage ).forEach( ( key ) => {
+			if ( key.indexOf( 'PresideListingView_' ) === 0 ) {
+				win.localStorage.removeItem( key );
+			}
+		} );
+	} );
+} );
+
+Cypress.Commands.add( 'openListingViews', () => {
+	cy.get( '.listing-views-toggle' ).should( 'be.visible' ).click();
+	cy.get( '.listing-views-dropdown' ).should( 'not.have.class', 'hide' );
+} );
+
+Cypress.Commands.add( 'saveListingViewAs', ( name ) => {
+	cy.intercept( 'POST', /saveListingView/ ).as( 'saveListingView' );
+	cy.openListingViews();
+	cy.get( '[data-view-action="save-as"]' ).click();
+	cy.get( '.listing-views-save-dialog #listing-view-name' ).should( 'be.visible' ).clear().type( name );
+	cy.get( '.listing-views-save-dialog .btn-info' ).contains( 'Save view' ).click();
+	cy.wait( '@saveListingView' ).its( 'response.statusCode' ).should( 'eq', 200 );
+	cy.get( '.listing-views-name' ).should( 'contain.text', name );
+} );

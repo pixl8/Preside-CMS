@@ -9,6 +9,7 @@ describe( 'Everything bar saved filters', () => {
 		cy.everythingBarGroups().should( ( groups ) => {
 			expect( groups ).to.deep.equal( [
 				'Favourites',
+				'Views',
 				'Segmentation filters',
 				'Alpha folder',
 				'Subscriptions',
@@ -17,11 +18,13 @@ describe( 'Everything bar saved filters', () => {
 		} );
 
 		cy.get( '.everything-bar-group' ).eq( 0 ).find( 'i.fa-heart' ).should( 'exist' );
-		cy.get( '.everything-bar-group' ).eq( 1 ).find( 'i.fa-sitemap' ).should( 'exist' );
-		cy.get( '.everything-bar-group' ).eq( 2 ).find( 'i.fa-folder' ).should( 'exist' );
+		cy.get( '.everything-bar-group' ).eq( 1 ).find( 'i.fa-th-list' ).should( 'exist' );
+		cy.get( '.everything-bar-group' ).eq( 2 ).find( 'i.fa-sitemap' ).should( 'exist' );
 		cy.get( '.everything-bar-group' ).eq( 3 ).find( 'i.fa-folder' ).should( 'exist' );
-		cy.get( '.everything-bar-group' ).eq( 4 ).find( 'i.fa-filter' ).should( 'exist' );
+		cy.get( '.everything-bar-group' ).eq( 4 ).find( 'i.fa-folder' ).should( 'exist' );
+		cy.get( '.everything-bar-group' ).eq( 5 ).find( 'i.fa-filter' ).should( 'exist' );
 
+		cy.contains( '.everything-bar-item', 'Default' ).should( 'be.visible' );
 		cy.contains( '.everything-bar-item', 'Starred alphas' ).should( 'be.visible' );
 		cy.contains( '.everything-bar-item', 'Professors' ).should( 'contain.text', '(22)' );
 		cy.contains( '.everything-bar-item', 'Foldered alphas' ).should( 'be.visible' );
