@@ -628,9 +628,6 @@
 							e.preventDefault();
 							e.stopPropagation();
 
-							if ( listingViews && listingViews.filtersAreLocked() ) {
-								return;
-							}
 							if ( pos < 0 || swap < 0 || swap >= idxs.length || !dt.colReorder ) {
 								return;
 							}
@@ -645,11 +642,6 @@
 						$wrap.on( "change", ".listing-column-toggle", function() {
 							var $input = $( this )
 							  , idx    = parseInt( $input.closest( ".listing-column-row" ).attr( "data-index" ), 10 );
-
-							if ( listingViews && listingViews.filtersAreLocked() ) {
-								$input.prop( "checked", dt.column( idx ).visible() );
-								return;
-							}
 
 							dt.column( idx ).visible( $input.is( ":checked" ) );
 						} );
@@ -1462,6 +1454,12 @@
 				} );
 
 				$listingTable.on( "preside-listing-columns-reset", function() {
+					if ( listingViews && listingViews.isNamedViewActive() ) {
+						applyColumnLayout( listingViews.selectedColumns() );
+						listingViews.refreshDirty();
+						applyListingFooter();
+						return;
+					}
 					if ( !saveListingColumnsUrl ) {
 						if ( dtApi.colReorder ) {
 							dtApi.colReorder.reset();

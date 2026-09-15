@@ -35,10 +35,25 @@ describe( 'Saved listing views', () => {
 		cy.get( '.everything-chip-saved .everything-chip-remove' ).should( 'not.exist' );
 		cy.get( '.object-listing-wrap' ).should( 'have.class', 'listing-view-locked' );
 
+		cy.intercept( 'POST', /saveListingColumns/ ).as( 'saveListingColumns' );
+		cy.showListingColumn( 'Notes' );
+		cy.get( '.object-listing-table thead' ).should( 'contain.text', 'Notes' );
+		cy.wait( 500 );
+		cy.get( '@saveListingColumns.all' ).should( 'have.length', 0 );
+
+		cy.get( 'body' ).click( 0, 0 );
+		cy.openListingViews();
+		cy.get( '[data-view-action="save-changes"]' ).should( 'not.exist' );
+		cy.get( 'body' ).click( 0, 0 );
+
+		cy.reload();
+		cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
+		cy.get( '.listing-views-name' ).should( 'contain.text', viewName );
+		cy.get( '.object-listing-table thead' ).should( 'not.contain.text', 'Notes' );
+
 		cy.editListingView();
 		cy.get( '.everything-chip-saved .everything-chip-remove' ).should( 'exist' );
 
-		cy.intercept( 'POST', /saveListingColumns/ ).as( 'saveListingColumns' );
 		cy.showListingColumn( 'Notes' );
 		cy.get( '.object-listing-table thead' ).should( 'contain.text', 'Notes' );
 		cy.wait( 500 );

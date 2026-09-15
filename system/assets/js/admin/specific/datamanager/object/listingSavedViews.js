@@ -150,6 +150,10 @@
 		return this.suppressPrefSave || this.isNamedViewActive();
 	};
 
+	PresideListingViews.prototype.selectedColumns = function() {
+		return ( this._selectedState().columns || [] ).slice();
+	};
+
 	PresideListingViews.prototype.syncDefaultColumns = function( fields ) {
 		if ( !this.isNamedViewActive() && $.isArray( fields ) ) {
 			this.defaultColumnSet = fields.slice();
