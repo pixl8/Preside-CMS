@@ -80,6 +80,7 @@
 			  , applyColumnSearch, setAdvancedFilter, normalizeFilterState, normalizeColumnSearchMap
 			  , expressionsFromStoredColumnSearch, columnControlStateFromSearch, syncViewFilterLock
 			  , setupListingViews, andExpressionArrays, listingPreferencePayload, persistActiveView, persistListingTableState
+			  , stripListingTableColumnControlState
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -1555,8 +1556,25 @@
 				}, extra || {} );
 			};
 
+			stripListingTableColumnControlState = function( data ) {
+				if ( !data || typeof data !== "object" ) {
+					return data;
+				}
+
+				delete data.columnControl;
+				if ( $.isArray( data.columns ) ) {
+					data.columns.forEach( function( col ) {
+						if ( col && typeof col === "object" ) {
+							delete col.columnControl;
+						}
+					} );
+				}
+
+				return data;
+			};
+
 			persistListingTableState = function( key, data ) {
-				var payload = JSON.stringify( data )
+				var payload = JSON.stringify( stripListingTableColumnControlState( data ) )
 				  , i, storageKey;
 
 				try {
@@ -2161,6 +2179,7 @@
 					  }
 					, stateLoadParams : function( settings, data ) {
 						delete data.colReorder;
+						stripListingTableColumnControlState( data );
 						if ( data.columns ) {
 							data.columns.forEach( function( col ) {
 								delete col.visible;
@@ -2172,6 +2191,7 @@
 						return true;
 					}
 					, stateSaveParams : function( settings, data ) {
+						stripListingTableColumnControlState( data );
 						if ( allowFilter ) {
 							data.oFilter = {
 								  filter     : $filterDiv.find( "[name=filter]" ).val()
@@ -2201,6 +2221,7 @@
 						}
 						if ( parsed ) {
 							delete parsed.colReorder;
+							stripListingTableColumnControlState( parsed );
 						}
 						callback( parsed || false );
 					}

@@ -36,6 +36,7 @@ Cypress.Commands.add( 'deleteSavedListingViews', () => {
 		const url        = $table.attr( 'data-delete-listing-view-url' );
 		const object     = $table.attr( 'data-object-name' );
 		const listingKey = $table.attr( 'data-listing-key' ) || object;
+		const contextKey = $table.attr( 'data-listing-context-key' ) || '';
 
 		if ( !url ) {
 			return;
@@ -51,14 +52,39 @@ Cypress.Commands.add( 'deleteSavedListingViews', () => {
 					, url              : url
 					, form             : true
 					, failOnStatusCode : false
-					, body             : { object : object, listingKey : listingKey, viewId : view.id }
+					, body             : {
+						  object            : object
+						, listingKey        : listingKey
+						, listingContextKey : contextKey
+						, viewId            : view.id
+					  }
 				} );
 			} );
 
 			if ( views.length ) {
+				cy.clearListingTableState();
 				cy.reload();
 				cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 			}
+		} );
+	} );
+} );
+
+Cypress.Commands.add( 'resetListingToDefaultView', () => {
+	cy.get( 'body' ).then( ( $body ) => {
+		if ( !$body.find( '.listing-views-toggle' ).length ) {
+			return;
+		}
+
+		cy.get( '.listing-views-name' ).then( ( $name ) => {
+			if ( ( $name.text() || '' ).indexOf( 'Default' ) !== -1 ) {
+				return;
+			}
+
+			cy.openListingViews();
+			cy.get( '[data-view-action="apply"][data-view-id="default"]' ).click();
+			cy.get( '.listing-views-name' ).should( 'contain.text', 'Default' );
+			cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 		} );
 	} );
 } );
@@ -69,6 +95,7 @@ Cypress.Commands.add( 'visitObjectListing', ( objectName ) => {
 	cy.get( '.object-listing-table', { timeout : 20000 } ).should( 'be.visible' );
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
 	cy.deleteSavedListingViews();
+	cy.resetListingToDefaultView();
 } );
 
 Cypress.Commands.add( 'resetListingColumns', () => {

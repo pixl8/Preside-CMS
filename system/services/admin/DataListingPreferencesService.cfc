@@ -840,7 +840,16 @@ component {
 			return false;
 		}
 
-		return $getPresideObject( "admin_datatable_saved_view" ).deleteData( id=arguments.viewId ) > 0;
+		if ( $getPresideObject( "admin_datatable_saved_view" ).deleteData( id=arguments.viewId ) <= 0 ) {
+			return false;
+		}
+
+		$getPresideObject( "admin_datatable_user_preference" ).updateData(
+			  filter = { active_view=arguments.viewId }
+			, data   = { active_view="default" }
+		);
+
+		return true;
 	}
 
 	public struct function getSavedViewFormData(

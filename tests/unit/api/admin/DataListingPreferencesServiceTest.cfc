@@ -759,6 +759,25 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( mockDao.$callLog().selectData[ 1 ].extraFilters[ 1 ].filter ).toInclude( "is_shared" );
 			} );
 		} );
+
+		describe( "deleteSavedView()", function(){
+			it( "should reset user preferences that still point at the deleted view", function(){
+				var svc     = _getService();
+				var viewDao = createStub();
+				var prefDao = createStub();
+
+				svc.$( "_getOwnedSavedView", { id="view-1", label="Mine" } );
+				svc.$( "$getPresideObject" ).$args( "admin_datatable_saved_view" ).$results( viewDao );
+				svc.$( "$getPresideObject" ).$args( "admin_datatable_user_preference" ).$results( prefDao );
+				viewDao.$( "deleteData", 1 );
+				prefDao.$( "updateData", 1 );
+
+				expect( svc.deleteSavedView( viewId="view-1", objectName="my_extension_object" ) ).toBeTrue();
+				expect( viewDao.$callLog().deleteData[ 1 ].id ).toBe( "view-1" );
+				expect( prefDao.$callLog().updateData[ 1 ].filter.active_view ).toBe( "view-1" );
+				expect( prefDao.$callLog().updateData[ 1 ].data.active_view ).toBe( "default" );
+			} );
+		} );
 	}
 
 	private any function _getService( struct dataManagerDefaults ) {

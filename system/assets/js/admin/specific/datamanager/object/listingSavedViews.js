@@ -92,6 +92,8 @@
 				this.applyNamedView( stored, { skipDraw : true, skipPersist : true } );
 				return;
 			}
+			this.applyDefaultView( { skipDraw : true } );
+			return;
 		}
 
 		this.activeId = "default";
