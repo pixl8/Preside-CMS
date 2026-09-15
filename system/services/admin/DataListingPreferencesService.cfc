@@ -39,22 +39,11 @@ component {
 	}
 
 	public array function listLockedColumns( required string objectName ) {
-		var locked = ListToArray( $getPresideObjectService().getObjectAttribute(
+		return ListToArray( $getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerLockedGridFields"
 			, defaultValue  = ""
 		), ", " );
-
-		if ( ArrayLen( locked ) ) {
-			return locked;
-		}
-
-		var labelField = $getPresideObjectService().getLabelField( arguments.objectName );
-		if ( Len( Trim( labelField ) ) ) {
-			return [ labelField ];
-		}
-
-		return [];
 	}
 
 	public boolean function listingAllowsSavedViews(
@@ -87,11 +76,12 @@ component {
 	/**
 	 * Default pool is `@datamanagerGridFields` plus `@datamanagerHiddenGridFields`
 	 * and optional `@datamanagerColumnPickerFields`. When the object omits that
-	 * annotation, `dataManager.defaults.columnPickerFields` is used (empty string
-	 * unless the application sets e.g. `*`). Picker field lists accept `*`
-	 * wildcards and `!` exclusions, e.g. `*,!sensitive_col`. Properties may opt in
-	 * or out with `datamanagerUserColumn=true|false`. Locked columns come from
-	 * `@datamanagerLockedGridFields` (label field if unset). Handlers can replace
+	 * annotation, `dataManager.defaults.columnPickerFields` is used (`auto`
+	 * unless the application sets e.g. `*` or `""`). Picker field lists accept
+	 * `auto` (sensible columns), `*` wildcards and `!` exclusions, e.g.
+	 * `auto,!sensitive_col`. Properties may opt in or out with
+	 * `datamanagerUserColumn=true|false`. Locked columns come from
+	 * `@datamanagerLockedGridFields` (none if unset). Handlers can replace
 	 * the pool with `getAvailableListingColumns` / `getDefaultListingColumns`.
 	 * Explicit listing `gridFields` / `hiddenGridFields` are merged into the pool
 	 * so caller-supplied columns remain available alongside annotations.
@@ -125,7 +115,11 @@ component {
 			pickerAttr = _defaultColumnPickerFields();
 		}
 		var pickerPatterns = ListToArray( ReReplace( pickerAttr, "\s+", "", "all" ), "," );
-		var pickerSpec     = _resolveColumnPickerFields( patterns=pickerPatterns, properties=properties );
+		var pickerSpec     = _resolveColumnPickerFields(
+			  objectName = arguments.objectName
+			, patterns   = pickerPatterns
+			, properties = properties
+		);
 		var excluded       = Duplicate( pickerSpec.excluded );
 
 		ArrayAppend( fields, hiddenFields, true );
@@ -1312,6 +1306,46 @@ component {
 		return true;
 	}
 
+	private boolean function _isAutoPickerColumn(
+		  required string fieldName
+		, required struct propertyDefinition
+		,          string idField = "id"
+	) {
+		var prop          = arguments.propertyDefinition;
+		var relationship  = LCase( Trim( prop.relationship  ?: "" ) );
+		var renderer      = LCase( Trim( prop.renderer      ?: "" ) );
+		var adminRenderer = LCase( Trim( prop.adminRenderer ?: "" ) );
+		var dbtype        = LCase( Trim( prop.dbtype        ?: "" ) );
+		var propType      = LCase( Trim( prop.type          ?: "" ) );
+
+		if ( CompareNoCase( arguments.fieldName, "id" ) == 0 || ( Len( arguments.idField ) && CompareNoCase( arguments.fieldName, arguments.idField ) == 0 ) ) {
+			return false;
+		}
+		if ( Left( arguments.fieldName, 1 ) == "_" ) {
+			return false;
+		}
+		if ( ListFindNoCase( "one-to-many,many-to-many,select-data-view", relationship ) ) {
+			return false;
+		}
+		if ( ListFindNoCase( "none,encrypted,password", renderer ) || adminRenderer == "none" ) {
+			return false;
+		}
+		if ( $helpers.isTrue( prop.secret ?: "" ) || $helpers.isTrue( prop.excludeDataExport ?: "" ) ) {
+			return false;
+		}
+		if ( IsBoolean( prop.autofilter ?: "" ) && !$helpers.isTrue( prop.autofilter ) ) {
+			return false;
+		}
+		if ( ListFindNoCase( "text,longtext,mediumtext,tinytext", dbtype ) || propType == "text" ) {
+			return false;
+		}
+		if ( ListFindNoCase( "blob,mediumblob,longblob,tinyblob,binary", dbtype ) || propType == "binary" ) {
+			return false;
+		}
+
+		return true;
+	}
+
 	private struct function _quickFilterForProperty( required string objectName, required struct propertyDefinition ) {
 		var prop         = arguments.propertyDefinition;
 		var propName     = prop.name ?: "";
@@ -1530,12 +1564,14 @@ component {
 	}
 
 	private struct function _resolveColumnPickerFields(
-		  required array  patterns
+		  required string objectName
+		, required array  patterns
 		, required struct properties
 	) {
 		var included = [];
 		var excluded = {};
 		var names    = StructKeyArray( arguments.properties );
+		var idField  = "";
 
 		for( var rawPattern in arguments.patterns ) {
 			var pattern   = Trim( rawPattern );
@@ -1549,6 +1585,17 @@ component {
 				pattern   = Trim( Mid( pattern, 2, Len( pattern ) ) );
 			}
 			if ( !Len( pattern ) ) {
+				continue;
+			}
+			if ( !isExclude && CompareNoCase( pattern, "auto" ) == 0 ) {
+				if ( !Len( idField ) ) {
+					idField = $getPresideObjectService().getIdField( arguments.objectName );
+				}
+				for( var propName in names ) {
+					if ( _isAutoPickerColumn( fieldName=propName, propertyDefinition=arguments.properties[ propName ], idField=idField ) ) {
+						ArrayAppend( included, propName );
+					}
+				}
 				continue;
 			}
 
@@ -1629,10 +1676,10 @@ component {
 		var defaults = _getDataManagerDefaults();
 
 		if ( !IsStruct( defaults ) ) {
-			return "";
+			return "auto";
 		}
 
-		return Trim( defaults.columnPickerFields ?: "" );
+		return Trim( defaults.columnPickerFields ?: "auto" );
 	}
 
 	private any function _getDataManagerService() {

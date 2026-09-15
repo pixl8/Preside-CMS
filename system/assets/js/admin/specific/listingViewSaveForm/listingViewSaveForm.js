@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	var $form = $( ".listing-view-save-form" ).first()
-	  , handleSubmission, ajaxSuccessHandler, ajaxErrorHandler, enableSubmitButtons, submitForm, focusForm, getHost;
+	  , handleSubmission, ajaxSuccessHandler, ajaxErrorHandler, enableSubmitButtons, submitForm, focusForm, getHost, showValidationErrors;
 
 	if ( !$form.length ) {
 		return;
@@ -24,6 +24,24 @@
 		}
 	};
 
+	showValidationErrors = function( errors ) {
+		var mapped = {};
+
+		if ( typeof errors !== "object" || errors === null ) {
+			return;
+		}
+
+		$.each( errors, function( name, message ) {
+			if ( name && $form.find( "[name='" + name + "']" ).length ) {
+				mapped[ name ] = message;
+			}
+		} );
+
+		if ( !$.isEmptyObject( mapped ) ) {
+			$form.validate().showErrors( mapped );
+		}
+	};
+
 	ajaxSuccessHandler = function( data ){
 		var host = getHost();
 
@@ -38,7 +56,7 @@
 		}
 
 		if ( typeof data === "object" && typeof data.validationResult === "object" ) {
-			$form.validate().showErrors( data.validationResult );
+			showValidationErrors( data.validationResult );
 		}
 		enableSubmitButtons();
 	};

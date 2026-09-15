@@ -891,7 +891,7 @@ component {
 		settings.dataManager.defaults = {};
 		settings.dataManager.defaults.typeToConfirmDelete      = false;
 		settings.dataManager.defaults.typeToConfirmBatchDelete = true;
-		settings.dataManager.defaults.columnPickerFields       = "";
+		settings.dataManager.defaults.columnPickerFields       = "auto";
 		settings.dataManager.defaults.datatable = {}
 		settings.dataManager.defaults.datatable.paginationOptions = [ 5, 10, 25, 50, 100 ];
 		settings.dataManager.defaults.datatable.defaultPageLength = 10;

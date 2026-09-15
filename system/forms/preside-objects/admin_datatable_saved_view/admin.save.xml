@@ -10,7 +10,7 @@ This form is used for creating and renaming listing views, including filter-styl
 			<field binding="admin_datatable_saved_view.label"       control="textinput" required="true" maxlength="100" sortorder="10" />
 		</fieldset>
 		<fieldset id="sharing" sortorder="20">
-			<field name="context_scope" control="listingViewContextScope" sortorder="10" defaultValue="this" required="true" />
+			<field name="context_scope" control="listingViewContextScope" sortorder="10" defaultValue="this" />
 			<field binding="admin_datatable_saved_view.sharing_scope" control="listingViewSharingScope" sortorder="10" defaultValue="global" required="true" />
 		</fieldset>
 		<fieldset id="group-filter" sortorder="30">

@@ -46,6 +46,21 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( result ).toBe( [ "label", "phone" ] );
 			} );
+
+			it( "should not force the label column when no fields are locked", function(){
+				var svc = _getService();
+
+				svc.$( "listLockedColumns" ).$args( "crm_contact" ).$results( [] );
+
+				var result = svc.applyUserColumns(
+					  objectName    = "crm_contact"
+					, defaultFields = [ "label", "email" ]
+					, available     = [ "label", "email", "phone" ]
+					, storedFields  = [ "email", "phone" ]
+				);
+
+				expect( result ).toBe( [ "email", "phone" ] );
+			} );
 		} );
 
 		describe( "resolveListingContext()", function(){
@@ -146,6 +161,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "email_template" ).$results( [] );
 				variables.mockDataManager.$( "listSearchFields" ).$args( "email_template" ).$results( [] );
 				mockPoService.$( "getObjectAttribute", "" );
+				mockPoService.$( "getIdField", "id" );
 				mockPoService.$( "getObjectProperties", {
 					  name           = { name="name" }
 					, datecreated    = { name="datecreated" }
@@ -242,6 +258,161 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( ArrayFindNoCase( result, "notes" ) ).toBeGT( 0 );
 				expect( ArrayFindNoCase( result, "datemodified" ) ).toBeGT( 0 );
+			} );
+
+			it( "should default to auto picker fields when the object has no picker annotation", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				variables.mockDataManager.$( "listGridFields" ).$args( "my_extension_object" ).$results( [ "label" ] );
+				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "my_extension_object" ).$results( [] );
+				variables.mockDataManager.$( "listSearchFields" ).$args( "my_extension_object" ).$results( [] );
+				mockPoService.$( "getObjectAttribute", "" );
+				mockPoService.$( "getIdField", "id" );
+				mockPoService.$( "getObjectProperties", {
+					  id     = { name="id", type="string", dbtype="varchar" }
+					, label  = { name="label", type="string", dbtype="varchar" }
+					, email  = { name="email", type="string", dbtype="varchar" }
+					, notes  = { name="notes", type="string", dbtype="longtext" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				var result = svc.listAvailableColumns( objectName="my_extension_object" );
+
+				expect( ArrayFindNoCase( result, "email" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "id" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "notes" ) ).toBe( 0 );
+			} );
+
+			it( "should expand auto picker fields using sensible exclusions", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				variables.mockDataManager.$( "listGridFields" ).$args( "my_extension_object" ).$results( [ "label" ] );
+				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "my_extension_object" ).$results( [] );
+				variables.mockDataManager.$( "listSearchFields" ).$args( "my_extension_object" ).$results( [] );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "my_extension_object"
+					, attributeName = "datamanagerColumnPickerFields"
+					, defaultValue  = ""
+				).$results( "auto" );
+				mockPoService.$( "getIdField", "id" );
+				mockPoService.$( "getObjectProperties", {
+					  id           = { name="id", type="string", dbtype="varchar" }
+					, label        = { name="label", type="string", dbtype="varchar" }
+					, email        = { name="email", type="string", dbtype="varchar" }
+					, organisation = { name="organisation", type="string", relationship="many-to-one", relatedTo="crm_organisation" }
+					, post_count   = { name="post_count", type="numeric", formula="Count( ${prefix}posts.id )" }
+					, bio          = { name="bio", type="string", dbtype="text" }
+					, notes        = { name="notes", type="string", dbtype="longtext" }
+					, internal     = { name="internal", type="string", dbtype="varchar", excludeDataExport=true }
+					, hidden_flag  = { name="hidden_flag", type="boolean", autofilter=false }
+					, contacts     = { name="contacts", relationship="one-to-many" }
+					, tags         = { name="tags", relationship="many-to-many" }
+					, data_view    = { name="data_view", relationship="select-data-view" }
+					, _internal    = { name="_internal", type="string", dbtype="varchar" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				var result = svc.listAvailableColumns( objectName="my_extension_object" );
+
+				expect( ArrayFindNoCase( result, "id" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "label" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "email" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "organisation" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "post_count" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "bio" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "notes" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "internal" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "hidden_flag" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "contacts" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "tags" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "data_view" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "_internal" ) ).toBe( 0 );
+			} );
+
+			it( "should keep annotated grid fields in the auto picker pool even when they fail auto rules", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				variables.mockDataManager.$( "listGridFields" ).$args( "my_extension_object" ).$results( [ "label", "notes" ] );
+				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "my_extension_object" ).$results( [ "bio" ] );
+				variables.mockDataManager.$( "listSearchFields" ).$args( "my_extension_object" ).$results( [] );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "my_extension_object"
+					, attributeName = "datamanagerColumnPickerFields"
+					, defaultValue  = ""
+				).$results( "auto" );
+				mockPoService.$( "getIdField", "id" );
+				mockPoService.$( "getObjectProperties", {
+					  label = { name="label", type="string", dbtype="varchar" }
+					, notes = { name="notes", type="string", dbtype="longtext" }
+					, bio   = { name="bio", type="string", dbtype="text" }
+					, email = { name="email", type="string", dbtype="varchar" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				var result = svc.listAvailableColumns( objectName="my_extension_object" );
+
+				expect( ArrayFindNoCase( result, "notes" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "bio" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "email" ) ).toBeGT( 0 );
+			} );
+
+			it( "should honour datamanagerUserColumn opt-in and exclusions with auto picker fields", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				variables.mockDataManager.$( "listGridFields" ).$args( "my_extension_object" ).$results( [ "label" ] );
+				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "my_extension_object" ).$results( [] );
+				variables.mockDataManager.$( "listSearchFields" ).$args( "my_extension_object" ).$results( [] );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "my_extension_object"
+					, attributeName = "datamanagerColumnPickerFields"
+					, defaultValue  = ""
+				).$results( "auto,!email" );
+				mockPoService.$( "getIdField", "id" );
+				mockPoService.$( "getObjectProperties", {
+					  label        = { name="label", type="string", dbtype="varchar" }
+					, email        = { name="email", type="string", dbtype="varchar" }
+					, notes        = { name="notes", type="string", dbtype="longtext", datamanagerUserColumn=true }
+					, hidden_flag  = { name="hidden_flag", type="boolean", autofilter=false, datamanagerUserColumn=true }
+					, status       = { name="status", type="string", dbtype="varchar", datamanagerUserColumn=false }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				var result = svc.listAvailableColumns( objectName="my_extension_object" );
+
+				expect( ArrayFindNoCase( result, "notes" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "hidden_flag" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "email" ) ).toBe( 0 );
+				expect( ArrayFindNoCase( result, "status" ) ).toBe( 0 );
+			} );
+		} );
+
+		describe( "listLockedColumns()", function(){
+			it( "should return no locked columns when the object has no locked-fields annotation", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				mockPoService.$( "getObjectAttribute", "" );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				expect( svc.listLockedColumns( "crm_contact" ) ).toBe( [] );
+			} );
+
+			it( "should return annotated locked fields", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "crm_contact"
+					, attributeName = "datamanagerLockedGridFields"
+					, defaultValue  = ""
+				).$results( "label, status" );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				expect( svc.listLockedColumns( "crm_contact" ) ).toBe( [ "label", "status" ] );
 			} );
 		} );
 
@@ -609,7 +780,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, enumService              = variables.mockEnum
 			, sessionStorage           = variables.mockSessionStorage
 			, rulesEngineFilterService = NullValue()
-			, dataManagerDefaults      = arguments.dataManagerDefaults ?: { columnPickerFields="" }
+			, dataManagerDefaults      = arguments.dataManagerDefaults ?: { columnPickerFields="auto" }
 		) );
 
 		svc.$property( propertyName="$helpers", mock=mockHelpers );

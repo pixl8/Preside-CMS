@@ -3601,7 +3601,8 @@ component extends="preside.system.base.AdminHandler" {
 		var filterState       = rc.filterState ?: {};
 		var fromForm          = StructKeyExists( rc, "sharing_scope" );
 		var formName          = "preside-objects.admin_datatable_saved_view.admin.save";
-		var formData          = fromForm ? event.getCollectionForForm( formName=formName ) : {};
+		var suppressFields    = [];
+		var formData          = {};
 		var validationResult  = "";
 		var updateArgs        = {};
 		var result            = {};
@@ -3612,8 +3613,13 @@ component extends="preside.system.base.AdminHandler" {
 			filterState = {};
 		}
 
+		if ( !namedContext ) {
+			ArrayAppend( suppressFields, "context_scope" );
+		}
+
 		if ( fromForm ) {
-			validationResult = validateForm( formName=formName, formData=formData );
+			formData         = event.getCollectionForForm( formName=formName, suppressFields=suppressFields );
+			validationResult = validateForm( formName=formName, formData=formData, suppressFields=suppressFields );
 			if ( !validationResult.validated() ) {
 				return {
 					  success          = false

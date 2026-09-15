@@ -22,6 +22,9 @@
 		<input type="hidden" name="listingKey"          value="#EncodeForHtmlAttribute( args.listingKey )#" />
 		<input type="hidden" name="listingContextKey"   value="#EncodeForHtmlAttribute( args.listingContextKey )#" />
 		<input type="hidden" name="namedListingContext" value="#args.namedListingContext#" />
+		<cfif !Len( Trim( args.listingContextLabel ) )>
+			<input type="hidden" name="context_scope" value="this" />
+		</cfif>
 		<cfif Len( Trim( args.viewId ) )>
 			<input type="hidden" name="viewId" value="#EncodeForHtmlAttribute( args.viewId )#" />
 		</cfif>
