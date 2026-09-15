@@ -73,6 +73,7 @@
 			  , registerListingColumnControlPlugins, searchContentForField, headingContent, expressionsFromColumnControl
 			  , columnSearchToExpressions, columnFilterChipsFromRequest, columnFilterChipsFromStored, columnFilterChipLabel, columnFilterListValueLabel
 			  , columnFilterOperatorLabel, columnFilterChipText, syncColumnFilterChips, clearColumnFilter
+			  , pickerSelection, pickerHasValue
 			  , getVisibleGridFields, saveVisibleColumns, applyDefaultColumnVisibility, applyColumnLayout
 			  , listingFieldWasFetched, scheduleListingDataReload, appendListingGrantParams
 			  , captureColumnSearch, getListingViewSnapshot, applyListingViewSnapshot, applyListingDefaultView
@@ -548,6 +549,295 @@
 					DT.ColumnControl.content.searchList._presideCurrentIndexState = true;
 				}
 
+				if ( !DT.ColumnControl.content.searchObject ) {
+					DT.ColumnControl.content.searchObject = {
+						defaults : {
+							  className          : "searchObject"
+							, relatedTo          : ""
+							, relatedToLabel     : ""
+							, filterExpressionId : ""
+						},
+						init : function( config ) {
+							var host              = this
+							  , dt                = this.dt()
+							  , originalIdx       = this.idx()
+							  , relatedTo         = config.relatedTo || ""
+							  , relatedLabel      = config.relatedToLabel || relatedTo
+							  , allowSavedFilter  = !!( config.filterExpressionId && relatedTo )
+							, $wrap             = $( '<div class="listing-object-search"></div>' )
+							  , pickerId          = "listing-object-filter-" + String( Math.random() ).replace( ".", "" )
+							  , current           = { object : { ids : [], labels : [] }, filter : { ids : [], labels : [] } }
+							  , loadingState      = false
+							  , $objectSelect, $filterSelect;
+
+							function pickerUrls( handler, qs ) {
+								return {
+									  remote   : buildAjaxLink( handler, $.extend( { q : "%QUERY" }, qs ) )
+									, prefetch : buildAjaxLink( handler, $.extend( {
+										  maxRows              : 100
+										, prefetchCacheBuster : pickerId
+									  }, qs ) )
+								};
+							}
+
+							function selectionFromUber( $el ) {
+								var uber = $el.data( "uberSelect" )
+								  , ids  = []
+								  , labels = []
+								  , selected, i, id, text;
+
+								if ( !uber ) {
+									return { ids : [], labels : [] };
+								}
+
+								selected = uber.getSelected() || [];
+								for( i=0; i<selected.length; i++ ) {
+									id = String( selected[ i ].value || selected[ i ].__value || "" );
+									if ( !id.length ) {
+										continue;
+									}
+									ids.push( id );
+									text = selected[ i ].text;
+									if ( typeof text !== "string" ) {
+										text = "";
+									}
+									labels.push( $( "<div>" ).html( text ).text() || id );
+								}
+
+								if ( !ids.length && uber.hidden_field ) {
+									ids = String( uber.hidden_field.val() || "" ).split( "," ).filter( Boolean );
+									labels = ids.slice();
+								}
+
+								return { ids : ids, labels : labels };
+							}
+
+							function setPickerSelection( $el, selection ) {
+								var uber   = $el.data( "uberSelect" )
+								  , ids    = ( selection && selection.ids ) || []
+								  , labels = ( selection && selection.labels ) || []
+								  , i;
+
+								$el.attr( "data-value", ids.join( "," ) );
+								if ( !uber ) {
+									return;
+								}
+
+								if ( uber.is_multiple ) {
+									uber.clear();
+								} else if ( typeof uber.results_reset === "function" ) {
+									uber.results_reset();
+								}
+
+								for( i=0; i<ids.length; i++ ) {
+									uber.select( ids[ i ], labels[ i ] || ids[ i ] );
+								}
+							}
+
+							function hasValue() {
+								return current.object.ids.length || current.filter.ids.length;
+							}
+
+							function syncParents() {
+								var col, init;
+
+								if ( config._parents ) {
+									config._parents.forEach( function( btn ) {
+										btn.activeList( host.unique() + "object", hasValue() );
+									} );
+								}
+
+								try {
+									col  = dt.column( host.idx() );
+									init = col && col.init && col.init();
+									if ( init ) {
+										init.__ccList = hasValue();
+									}
+								} catch ( ignore ) {}
+							}
+
+							function applySearch( redraw ) {
+								current.object = selectionFromUber( $objectSelect );
+								current.filter = $filterSelect && $filterSelect.length
+									? selectionFromUber( $filterSelect )
+									: { ids : [], labels : [] };
+								syncParents();
+								if ( !loadingState && redraw !== false ) {
+									dt.draw();
+								}
+							}
+
+							function loadFromState( state ) {
+								var idx        = host.idxOriginal ? host.idxOriginal() : originalIdx
+								  , columnName = dt.column( idx ).name()
+								  , loaded;
+
+								if ( !state || !state.columnControl ) {
+									return;
+								}
+
+								loaded = ( state.columnControl[ columnName ] || state.columnControl[ idx ] || {} ).searchObject;
+								if ( !loaded ) {
+									return;
+								}
+
+								loadingState = true;
+								setPickerSelection( $objectSelect, loaded.object || {} );
+								if ( $filterSelect && $filterSelect.length ) {
+									setPickerSelection( $filterSelect, loaded.filter || {} );
+								}
+								current.object = loaded.object || { ids : [], labels : [] };
+								current.filter = loaded.filter || { ids : [], labels : [] };
+								syncParents();
+								loadingState = false;
+							}
+
+							function buildSelect( opts ) {
+								var urls    = pickerUrls( opts.handler, opts.query )
+								  , $select = $( "<select></select>" )
+										.addClass( "object-picker" )
+										.attr( {
+											  id                   : pickerId + "-" + opts.suffix
+											, name                 : pickerId + "-" + opts.suffix
+											, "data-placeholder"   : opts.placeholder
+											, "data-remote-url"    : urls.remote
+											, "data-prefetch-url"  : urls.prefetch
+											, "data-display-limit" : 100
+											, "data-value"         : ""
+										} );
+
+								if ( opts.multiple ) {
+									$select.attr( "multiple", "multiple" );
+								}
+								if ( opts.htmlLabels ) {
+									$select.attr( "data-result-template-format", "{{{text}}}" );
+									$select.attr( "data-selected-template-format", "{{{text}}}" );
+								}
+
+								return $select;
+							}
+
+							function buildField( title, $select ) {
+								var $field = $( '<div class="listing-object-search-field"></div>' );
+								if ( title ) {
+									$field.append( $( '<div class="dtcc-list-title"></div>' ).text( title ) );
+								}
+								$field.append( $select );
+								return $field;
+							}
+
+							$objectSelect = buildSelect( {
+								  suffix      : "records"
+								, handler     : "dataManager.getObjectRecordsForAjaxSelectControl"
+								, query       : { object : relatedTo }
+								, multiple    : true
+								, placeholder : i18n.translateResource( "cms:datamanager.search.data.placeholder", {
+									  data         : [ relatedLabel ]
+									, defaultValue : "Type to search " + relatedLabel
+								  } )
+							} );
+							$wrap.append( buildField(
+								  i18n.translateResource( "cms:datatables.filter.object.records", { defaultValue : "Records" } )
+								, $objectSelect
+							) );
+
+							if ( allowSavedFilter ) {
+								$filterSelect = buildSelect( {
+									  suffix      : "filter"
+									, handler     : "rulesEngine.getFiltersForAjaxSelectControl"
+									, query       : { filterObject : relatedTo }
+									, multiple    : false
+									, htmlLabels  : true
+									, placeholder : i18n.translateResource( "cms:rulesengine.filterPicker.placeholder", {
+										  defaultValue : "Type to search globally saved filters"
+									  } )
+								} );
+								$wrap.append( buildField(
+									  i18n.translateResource( "cms:datatables.filter.object.savedFilter", { defaultValue : "Saved filter" } )
+									, $filterSelect
+								) );
+							}
+
+							$wrap.on( "click mousedown keydown keypress keyup", function( e ) {
+								e.stopPropagation();
+							} );
+
+							loadingState = true;
+							$objectSelect.presideObjectPicker();
+							$objectSelect.on( "change", function() {
+								applySearch( true );
+							} );
+
+							if ( $filterSelect && $filterSelect.length ) {
+								$filterSelect.presideObjectPicker();
+								$filterSelect.on( "change", function() {
+									applySearch( true );
+								} );
+							}
+
+							dt.on( "preXhr.DT", function( e, s, d ) {
+								var idx = host.idx();
+								if ( !d.columns || !d.columns[ idx ] ) {
+									return;
+								}
+								if ( !d.columns[ idx ].columnControl ) {
+									d.columns[ idx ].columnControl = {};
+								}
+								if ( current.object.ids.length ) {
+									d.columns[ idx ].columnControl.object = current.object;
+								}
+								if ( current.filter.ids.length ) {
+									d.columns[ idx ].columnControl.filter = current.filter;
+								}
+							} );
+
+							dt.on( "stateSaveParams.DT", function( e, s, data ) {
+								var idx  = host.idxOriginal ? host.idxOriginal() : originalIdx
+								  , prop = dt.column( idx ).name() || idx;
+
+								if ( !data.columnControl ) {
+									data.columnControl = {};
+								}
+								if ( !data.columnControl[ prop ] ) {
+									data.columnControl[ prop ] = {};
+								}
+								if ( hasValue() ) {
+									data.columnControl[ prop ].searchObject = {
+										  object : current.object
+										, filter : current.filter
+									};
+								} else {
+									delete data.columnControl[ prop ].searchObject;
+								}
+							} );
+
+							dt.on( "stateLoaded.DT", function( e, s, state ) {
+								loadFromState( state );
+							} );
+
+							dt.on( "cc-search-clear.DT", function( e, colIdx ) {
+								if ( colIdx !== host.idx() ) {
+									return;
+								}
+								loadingState = true;
+								setPickerSelection( $objectSelect, { ids : [], labels : [] } );
+								if ( $filterSelect && $filterSelect.length ) {
+									setPickerSelection( $filterSelect, { ids : [], labels : [] } );
+								}
+								current = { object : { ids : [], labels : [] }, filter : { ids : [], labels : [] } };
+								syncParents();
+								loadingState = false;
+							} );
+
+							loadFromState( dt.state.loaded() );
+							syncParents();
+							loadingState = false;
+
+							return $wrap.get( 0 );
+						}
+					};
+				}
+
 				resetLabel   = i18n.translateResource( "cms:datatables.columns.reset", { defaultValue : "Reset to default" } );
 				columnsTitle = i18n.translateResource( "cms:datatables.columns.title", { defaultValue : "Columns" } );
 
@@ -700,8 +990,20 @@
 					}
 				} );
 
-				if ( !filter || filter.type === "object" ) {
+				if ( !filter ) {
 					return [];
+				}
+
+				if ( filter.type === "object" ) {
+					if ( !filter.relatedTo ) {
+						return [];
+					}
+					return [ {
+						  extend             : "searchObject"
+						, relatedTo          : filter.relatedTo
+						, relatedToLabel     : filter.relatedToLabel || filter.relatedTo
+						, filterExpressionId : filter.filterExpressionId || ""
+					} ];
 				}
 
 				if ( filter.type === "enum" && filter.options ) {
@@ -752,12 +1054,55 @@
 				return [ { target : 0, content : content } ];
 			};
 
+			pickerSelection = function( raw ) {
+				var ids = [], labels = [];
+
+				if ( !raw || typeof raw !== "object" ) {
+					return { ids : [], labels : [] };
+				}
+				if ( $.isArray( raw.ids ) ) {
+					ids = raw.ids.filter( Boolean ).map( String );
+				} else if ( typeof raw.ids === "string" && raw.ids.length ) {
+					ids = raw.ids.split( "," ).filter( Boolean );
+				}
+				if ( $.isArray( raw.labels ) ) {
+					labels = raw.labels.map( String );
+				}
+
+				return { ids : ids, labels : labels };
+			};
+
+			pickerHasValue = function( raw ) {
+				return pickerSelection( raw ).ids.length > 0;
+			};
+
 			columnSearchToExpressions = function( filter, search ) {
 				var expressions = []
 				  , list        = []
-				  , logic, value, i, fields, key, timePeriod, numericOp, stringOp;
+				  , logic, value, i, fields, key, timePeriod, numericOp, stringOp, objectSel, filterSel;
 
-				if ( !filter || !filter.expressionId || !search ) {
+				if ( !filter || !search ) {
+					return expressions;
+				}
+
+				if ( filter.type === "object" ) {
+					objectSel = pickerSelection( search.object );
+					filterSel = pickerSelection( search.filter );
+					if ( objectSel.ids.length && filter.expressionId ) {
+						expressions.push( { expression : filter.expressionId, fields : { _is : true, value : objectSel.ids.join( "," ) } } );
+					}
+					if ( filter.filterExpressionId ) {
+						for( i=0; i<filterSel.ids.length; i++ ) {
+							if ( expressions.length ) {
+								expressions.push( "and" );
+							}
+							expressions.push( { expression : filter.filterExpressionId, fields : { value : filterSel.ids[ i ] } } );
+						}
+					}
+					return expressions.length > 2 ? [ expressions ] : expressions;
+				}
+
+				if ( !filter.expressionId ) {
 					return expressions;
 				}
 
@@ -889,7 +1234,22 @@
 				var title    = filter.label || filter.field
 				  , values   = []
 				  , isString = filter.type === "text" || filter.type === "string"
-				  , key, logic, value, operator, detail;
+				  , key, logic, value, operator, detail, objectSel, filterSel, i;
+
+				if ( filter.type === "object" ) {
+					objectSel = pickerSelection( search.object );
+					filterSel = pickerSelection( search.filter );
+					for( i=0; i<objectSel.ids.length; i++ ) {
+						values.push( objectSel.labels[ i ] || objectSel.ids[ i ] );
+					}
+					for( i=0; i<filterSel.ids.length; i++ ) {
+						values.push( filterSel.labels[ i ] || filterSel.ids[ i ] );
+					}
+					if ( !values.length ) {
+						return "";
+					}
+					return columnFilterChipText( title, values.join( ", " ) );
+				}
 
 				if ( search.list ) {
 					for( key in search.list ) {
@@ -1023,20 +1383,29 @@
 				var out = {};
 
 				$.each( map || {}, function( field, spec ) {
-					var bucket, search, list;
+					var bucket, search, list, objectSel, filterSel, loaded;
 					if ( !field || !spec || typeof spec !== "object" ) {
 						return;
 					}
-					search = spec.search || spec.searchInput || spec.SEARCH || spec.SEARCHINPUT;
-					list   = spec.list   || spec.searchList  || spec.LIST   || spec.SEARCHLIST;
-					bucket = {};
+					loaded    = spec.searchObject || spec.SEARCHOBJECT || {};
+					search    = spec.search || spec.searchInput || spec.SEARCH || spec.SEARCHINPUT;
+					list      = spec.list   || spec.searchList  || spec.LIST   || spec.SEARCHLIST;
+					objectSel = pickerSelection( spec.object || loaded.object );
+					filterSel = pickerSelection( spec.filter || loaded.filter );
+					bucket    = {};
 					if ( search ) {
 						bucket.search = search;
 					}
 					if ( list ) {
 						bucket.list = list;
 					}
-					if ( bucket.search || bucket.list ) {
+					if ( objectSel.ids.length ) {
+						bucket.object = objectSel;
+					}
+					if ( filterSel.ids.length ) {
+						bucket.filter = filterSel;
+					}
+					if ( bucket.search || bucket.list || bucket.object || bucket.filter ) {
 						out[ field ] = bucket;
 					}
 				} );
@@ -1102,7 +1471,13 @@
 							} );
 						}
 					}
-					if ( bucket.searchInput || ( bucket.searchList && bucket.searchList.length ) ) {
+					if ( pickerHasValue( spec.object ) || pickerHasValue( spec.filter ) ) {
+						bucket.searchObject = {
+							  object : pickerSelection( spec.object )
+							, filter : pickerSelection( spec.filter )
+						};
+					}
+					if ( bucket.searchInput || ( bucket.searchList && bucket.searchList.length ) || bucket.searchObject ) {
 						state.columnControl[ field ] = bucket;
 					}
 				} );
@@ -1314,6 +1689,7 @@
 					var field     = col.name || col.data
 					  , hasSearch = false
 					  , hasList   = false
+					  , objectSel, filterSel
 					  , hidden    = col.visible === false
 					  , bucket;
 
@@ -1336,13 +1712,21 @@
 							}
 						} );
 					}
-					if ( hasSearch || hasList ) {
+					objectSel = pickerSelection( col.columnControl.object );
+					filterSel = pickerSelection( col.columnControl.filter );
+					if ( hasSearch || hasList || objectSel.ids.length || filterSel.ids.length ) {
 						bucket = {};
 						if ( hasSearch ) {
 							bucket.search = col.columnControl.search;
 						}
 						if ( hasList ) {
 							bucket.list = col.columnControl.list;
+						}
+						if ( objectSel.ids.length ) {
+							bucket.object = objectSel;
+						}
+						if ( filterSel.ids.length ) {
+							bucket.filter = filterSel;
 						}
 						search[ field ] = bucket;
 						seen[ field ] = true;
@@ -1482,7 +1866,7 @@
 					return;
 				}
 
-				$container.off( ".listingHotkeys" ).on( "keydown.listingHotkeys keypress.listingHotkeys keyup.listingHotkeys", ".dtcc-dropdown input, .dtcc-search input, .listing-colvis-list input", function( e ) {
+				$container.off( ".listingHotkeys" ).on( "keydown.listingHotkeys keypress.listingHotkeys keyup.listingHotkeys", ".dtcc-dropdown input, .dtcc-search input, .listing-colvis-list input, .listing-object-search, .chosen-container", function( e ) {
 					e.stopPropagation();
 				} );
 

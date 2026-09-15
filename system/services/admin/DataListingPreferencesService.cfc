@@ -344,7 +344,7 @@ component {
 		};
 	}
 
-	public array function listQuickFilters( required string objectName ) {
+	public array function listQuickFilters( required string objectName, array extraFields=[] ) {
 		var customized = _getCustomizationService().runCustomization(
 			  objectName    = arguments.objectName
 			, action        = "getListingQuickFilterFields"
@@ -362,10 +362,7 @@ component {
 		if ( IsArray( customized ) ) {
 			fieldNames = customized;
 		} else {
-			fieldNames = Duplicate( _getDataManagerService().listGridFields( arguments.objectName ) );
-			ArrayAppend( fieldNames, _getDataManagerService().listHiddenGridFields( arguments.objectName ), true );
-			ArrayAppend( fieldNames, _getDataManagerService().listSearchFields( arguments.objectName ), true );
-			fieldNames = _uniqueFields( fieldNames );
+			fieldNames = listAvailableColumns( objectName=arguments.objectName, extraFields=arguments.extraFields );
 		}
 
 		for( var propName in fieldNames ) {
@@ -475,7 +472,7 @@ component {
 		return {
 			  savedFilters         = _serializeSavedFilters( arguments.objectName )
 			, segmentationFilters  = _serializeSegmentationFilters( arguments.objectName )
-			, quickFilters         = ( arguments.allowFilter && arguments.allowColumnFilter ) ? listQuickFilters( arguments.objectName ) : []
+			, quickFilters         = ( arguments.allowFilter && arguments.allowColumnFilter ) ? listQuickFilters( objectName=arguments.objectName, extraFields=extraFields ) : []
 			, columns              = columns
 			, currentColumns       = current
 			, defaultColumns       = defaultColumns
@@ -1333,6 +1330,9 @@ component {
 		if ( ListFindNoCase( "many-to-many,one-to-many", relationship ) ) {
 			return {};
 		}
+		if ( formula ) {
+			return {};
+		}
 
 		var label = $translatePropertyName( arguments.objectName, propName, "listing" );
 		var base  = {
@@ -1350,14 +1350,17 @@ component {
 		}
 
 		if ( relationship == "many-to-one" ) {
-			base.type         = "object";
-			base.expressionId = "presideobject_manytoonematch_#arguments.objectName#.#propName#";
-			base.relatedTo    = prop.relatedTo ?: "";
-			return base;
-		}
+			var relatedTo = Trim( prop.relatedTo ?: "" );
+			if ( !Len( relatedTo ) ) {
+				return {};
+			}
 
-		if ( formula ) {
-			return {};
+			base.type                = "object";
+			base.expressionId        = "presideobject_manytoonematch_#arguments.objectName#.#propName#";
+			base.filterExpressionId  = "presideobject_manytoonefilter_#arguments.objectName#.#propName#";
+			base.relatedTo           = relatedTo;
+			base.relatedToLabel      = _relatedObjectTitle( relatedTo );
+			return base;
 		}
 
 		switch( propType ) {
@@ -1379,6 +1382,17 @@ component {
 				base.expressionId = "presideobject_stringmatches_#arguments.objectName#.#propName#";
 				return base;
 		}
+	}
+
+	private string function _relatedObjectTitle( required string objectName ) {
+		if ( !Len( Trim( arguments.objectName ) ) ) {
+			return "";
+		}
+
+		return $translateResource(
+			  uri          = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName ) & "title"
+			, defaultValue = arguments.objectName
+		);
 	}
 
 	private array function _normalizeEverythingBarActions( required any actions ) {

@@ -245,6 +245,68 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "listQuickFilters()", function(){
+			it( "should offer filters for available listing columns and skip formula fields", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+				var filters       = [];
+				var byField       = {};
+				var filter        = {};
+
+				svc.$( "listAvailableColumns", [ "label", "notes", "organisation", "post_count" ] );
+				svc.$( "$translatePropertyName", "Label" );
+				svc.$( "$translateResource", "Organisations" );
+
+				mockPoService.$( "getObjectAttribute", "" );
+				mockPoService.$( "getResourceBundleUriRoot", "preside-objects.crm_organisation:" );
+				mockPoService.$( "getObjectProperties", {
+					  label        = { name="label", type="string" }
+					, notes        = { name="notes", type="string" }
+					, organisation = { name="organisation", type="string", relationship="many-to-one", relatedTo="crm_organisation" }
+					, post_count   = { name="post_count", type="numeric", formula="Count( ${prefix}posts.id )" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				filters = svc.listQuickFilters( "my_extension_object" );
+				for( filter in filters ) {
+					byField[ filter.field ] = filter;
+				}
+
+				expect( StructKeyExists( byField, "label" ) ).toBeTrue();
+				expect( StructKeyExists( byField, "notes" ) ).toBeTrue();
+				expect( StructKeyExists( byField, "post_count" ) ).toBeFalse();
+				expect( byField.organisation.type ).toBe( "object" );
+				expect( byField.organisation.relatedTo ).toBe( "crm_organisation" );
+				expect( byField.organisation.expressionId ).toBe( "presideobject_manytoonematch_my_extension_object.organisation" );
+				expect( byField.organisation.filterExpressionId ).toBe( "presideobject_manytoonefilter_my_extension_object.organisation" );
+			} );
+
+			it( "should honour getListingQuickFilterFields customization", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+				var filters       = [];
+
+				variables.mockCustomization.$( method="runCustomization", callback=function(){
+					if ( ( arguments.action ?: "" ) == "getListingQuickFilterFields" ) {
+						return [ "notes" ];
+					}
+					return "";
+				} );
+				svc.$( "$translatePropertyName", "Notes" );
+				mockPoService.$( "getObjectAttribute", "" );
+				mockPoService.$( "getObjectProperties", {
+					  label = { name="label", type="string" }
+					, notes = { name="notes", type="string" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				filters = svc.listQuickFilters( "my_extension_object" );
+
+				expect( filters.len() ).toBe( 1 );
+				expect( filters[ 1 ].field ).toBe( "notes" );
+			} );
+		} );
+
 		describe( "listingAllowsSavedViews()", function(){
 			it( "should default to the column picker flag when the object has no saved-views annotation", function(){
 				var svc           = _getService();

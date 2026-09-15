@@ -46,6 +46,24 @@ describe( 'Application extra listing columns', () => {
 		cy.get( '.object-listing-table tbody' ).should( 'contain.text', 'E2E-NOTES-ALPHA-01' );
 	} );
 
+	it( 'offers a heading filter on extra columns added from the picker', () => {
+		cy.visitObjectListing( 'my_extension_object' );
+		cy.resetListingColumns();
+
+		cy.get( '.listing-toolbar-data' ).invoke( 'text' ).then( ( raw ) => {
+			const toolbar = JSON.parse( raw || '{}' );
+			const notes   = ( toolbar.quickFilters || [] ).find( ( item ) => item.field === 'notes' );
+
+			expect( notes, 'notes quick filter' ).to.exist;
+			expect( notes.type ).to.equal( 'text' );
+		} );
+
+		cy.showListingColumn( 'Notes' );
+		cy.contains( '.object-listing-table thead th.listing-data-column', 'Notes' )
+			.find( 'button[aria-label="Filter"]' )
+			.should( 'exist' );
+	} );
+
 	it( 'expands wildcard picker fields and honours exclusions', () => {
 		cy.visitObjectListing( 'my_extension_object' );
 		cy.resetListingColumns();

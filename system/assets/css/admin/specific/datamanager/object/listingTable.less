@@ -849,5 +849,119 @@
 			border-bottom: 0;
 			border-radius: 0;
 		}
+
+		&:has( .listing-object-search ) {
+			overflow  : visible;
+			min-width : 360px;
+
+			.dtcc-dropdown-liner {
+				overflow : visible;
+			}
+		}
+
+		.listing-object-search {
+			padding  : 4px 12px 10px;
+			overflow : visible;
+
+			.listing-object-search-field {
+				position : relative;
+				z-index  : 1;
+
+				&:has( .chosen-container-active ),
+				&:has( .chosen-with-drop ) {
+					z-index : 5;
+				}
+			}
+
+			.dtcc-list-title {
+				padding : 8px 0 6px;
+			}
+
+			select.object-picker {
+				display : none !important;
+			}
+
+			.chosen-container {
+				display       : block;
+				width         : 100% !important;
+				margin-bottom : 4px;
+			}
+
+			.chosen-container-active,
+			.chosen-with-drop {
+				z-index : 5;
+			}
+
+			.chosen-drop {
+				z-index          : 6;
+				border           : 1px solid @default-input-border-colour;
+				border-top       : 0;
+				background-color : @white;
+				box-shadow       : 0 4px 10px rgba( 0, 0, 0, 0.12 );
+			}
+
+			.chosen-container .chosen-results {
+				max-height       : 180px;
+				margin           : 0;
+				padding          : 0;
+				background-color : @white;
+
+				li {
+					line-height : 1.4;
+
+					i.fa {
+						margin-right : 2px;
+					}
+				}
+			}
+
+			.chosen-container-multi .chosen-choices {
+				min-height       : 28px;
+				padding          : 2px 6px;
+				border           : 1px solid @default-input-border-colour;
+				border-radius    : 3px;
+				background-color : @white;
+				background-image : none;
+
+				li.search-field {
+					padding-bottom : 0;
+					margin-top     : 0;
+
+					input[type="text"] {
+						height     : 22px !important;
+						padding    : 0 !important;
+						margin     : 0 !important;
+						font-size  : 13px;
+						box-shadow : none;
+					}
+				}
+			}
+
+			.chosen-container-single .chosen-single {
+				height        : 28px;
+				line-height   : 26px;
+				padding       : 0 8px;
+				border        : 1px solid @default-input-border-colour;
+				border-radius : 3px;
+				background    : @white;
+				box-shadow    : none;
+
+				div {
+					width : 18px;
+
+					b {
+						background-position : 0 4px;
+					}
+				}
+			}
+
+			.chosen-container-active.chosen-with-drop .chosen-single,
+			.chosen-container-active .chosen-choices {
+				border-color     : @blue;
+				border-radius    : 3px 3px 0 0;
+				background-color : @white;
+				box-shadow       : none;
+			}
+		}
 	}
 }
