@@ -185,12 +185,17 @@
 	};
 
 	PresideEverythingBar.prototype._chipHtml = function( kind, id, label, icon ) {
-		var canRemove = this._chipCanRemove( kind, id );
+		var canRemove = this._chipCanRemove( kind, id )
+		  , lockLabel = $("<div>").text( t( "cms:datatables.chip.locked", "Locked" ) ).html();
+
 		icon = icon || "filter";
 		return '<span class="everything-chip everything-chip-' + kind + ( canRemove ? "" : " is-locked" ) + '" data-chip-kind="' + kind + '" data-chip-id="' + $("<div>").text( id ).html() + '">' +
 			'<i class="fa fa-fw fa-' + icon + '"></i> ' +
 			$("<div>").text( label ).html() +
-			( canRemove ? ' <a href="#" class="everything-chip-remove" aria-label="Remove">&times;</a>' : "" ) +
+			( canRemove
+				? ' <a href="#" class="everything-chip-remove" aria-label="Remove">&times;</a>'
+				: ' <i class="fa fa-fw fa-lock everything-chip-lock" title="' + lockLabel + '" aria-label="' + lockLabel + '"></i>'
+			) +
 			'</span>';
 	};
 

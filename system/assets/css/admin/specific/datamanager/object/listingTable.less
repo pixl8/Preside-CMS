@@ -393,7 +393,16 @@
 		}
 
 		&.is-locked {
-			padding-right : 10px;
+			border          : 1px solid #d0d0d0;
+			color           : @default-light-font-colour;
+			background      : #f3f3f3;
+			margin          : 0;
+
+			.everything-chip-lock {
+				margin-left : 4px;
+				font-size   : 11px;
+				opacity     : 0.8;
+			}
 		}
 	}
 
