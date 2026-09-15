@@ -16,7 +16,7 @@
 
 			<cfif isSummary>
 				<div class="formbuilder-page-header-buttons">
-					<button class="formbuilder-page-toggler" role="button" data-toggle="collapse" href="##collapsible-#id#" aria-expanded="true" aria-controls="collapsible-#id#">
+					<button type="button" class="formbuilder-page-toggler" role="button" data-toggle="collapse" href="##collapsible-#id#" aria-expanded="true" aria-controls="collapsible-#id#">
 						<span class="font-icon font-icon-down"></span>
 					</button>
 				</div>
