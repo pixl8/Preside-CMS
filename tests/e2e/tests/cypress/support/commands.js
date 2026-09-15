@@ -31,11 +31,44 @@ Cypress.Commands.add( 'clearListingTableState', () => {
 	} );
 } );
 
+Cypress.Commands.add( 'deleteSavedListingViews', () => {
+	cy.get( '.object-listing-table' ).should( 'be.visible' ).then( ( $table ) => {
+		const url        = $table.attr( 'data-delete-listing-view-url' );
+		const object     = $table.attr( 'data-object-name' );
+		const listingKey = $table.attr( 'data-listing-key' ) || object;
+
+		if ( !url ) {
+			return;
+		}
+
+		cy.get( '.listing-toolbar-data' ).invoke( 'text' ).then( ( raw ) => {
+			const toolbar = JSON.parse( raw || '{}' );
+			const views   = ( toolbar.savedViews || [] ).filter( ( view ) => view.id && view.id !== 'default' );
+
+			views.forEach( ( view ) => {
+				cy.request( {
+					  method           : 'POST'
+					, url              : url
+					, form             : true
+					, failOnStatusCode : false
+					, body             : { object : object, listingKey : listingKey, viewId : view.id }
+				} );
+			} );
+
+			if ( views.length ) {
+				cy.reload();
+				cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
+			}
+		} );
+	} );
+} );
+
 Cypress.Commands.add( 'visitObjectListing', ( objectName ) => {
 	cy.clearListingTableState();
 	cy.visit( `/admin/datamanager/object/?id=${ objectName }` );
 	cy.get( '.object-listing-table', { timeout : 20000 } ).should( 'be.visible' );
 	cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
+	cy.deleteSavedListingViews();
 } );
 
 Cypress.Commands.add( 'resetListingColumns', () => {
