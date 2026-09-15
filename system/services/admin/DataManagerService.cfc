@@ -1146,6 +1146,10 @@ component {
 
 		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
+		if ( _getPresideObjectService().containsAggregateFunction( prop.formula ?: "" ) ) {
+			return false;
+		}
+
 		return ( prop.type ?: "" ) == "string";
 	}
 
