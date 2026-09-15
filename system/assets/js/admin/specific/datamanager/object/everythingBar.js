@@ -11,14 +11,18 @@
 		this.$dropdown             = this.$toolbar.find( ".everything-bar-dropdown" );
 		this.$chips                = this.$toolbar.find( ".everything-bar-chips" );
 		this.config                = options.config || {};
+		this.objectName            = options.objectName || this.config.objectName || "";
+		this.listingKey            = options.listingKey || this.config.listingKey || this.objectName;
 		this.activeSaved           = [];
 		this.columnFilters         = [];
+		this.extraFilters          = [];
 		this.searchQuery           = "";
 		this.viewFiltersLocked     = false;
 		this.lockedSavedIds        = {};
 		this.lockedColumnFields    = {};
 		this.highlightedIndex      = -1;
 		this.itemData              = [];
+		this.ajaxBusy              = false;
 		this.defaultPlaceholder    = this.$input.attr( "placeholder" ) || "";
 		this.onChange              = options.onChange || function(){};
 		this.onRemoveColumnFilter  = options.onRemoveColumnFilter || function(){};
@@ -27,6 +31,8 @@
 		this._bind();
 		this.renderChips();
 	};
+
+	PresideEverythingBar.actions = PresideEverythingBar.actions || {};
 
 	PresideEverythingBar.prototype._bind = function() {
 		var self = this;
@@ -46,6 +52,9 @@
 		this.$dropdown.on( "click", "[data-bar-action]", function( e ){
 			e.preventDefault();
 			e.stopPropagation();
+			if ( $( this ).hasClass( "is-busy" ) ) {
+				return;
+			}
 			self._runAction( $( this ).data( "barAction" ), $( this ) );
 		} );
 
@@ -66,7 +75,9 @@
 	};
 
 	PresideEverythingBar.prototype.open = function() {
-		this.renderDropdown();
+		if ( !this.ajaxBusy ) {
+			this.renderDropdown();
+		}
 		this.$dropdown.removeClass( "hide" );
 		this.$toolbar.addClass( "is-open" );
 	};
@@ -127,7 +138,7 @@
 	};
 
 	PresideEverythingBar.prototype._chipCanRemove = function( kind, id ) {
-		if ( kind === "search" || !this.viewFiltersLocked ) {
+		if ( kind === "search" || kind === "extra" || !this.viewFiltersLocked ) {
 			return true;
 		}
 		if ( kind === "saved" || kind === "segmentation" ) {
@@ -141,10 +152,15 @@
 
 	PresideEverythingBar.prototype.renderChips = function() {
 		var html = []
-		  , i, saved, column;
+		  , i, saved, column, extra;
 
 		if ( this.searchQuery ) {
 			html.push( this._chipHtml( "search", this.searchQuery, t( "cms:datatables.chip.search", "Search: {1}", [ this.searchQuery ] ) ) );
+		}
+
+		for( i=0; i<this.extraFilters.length; i++ ) {
+			extra = this.extraFilters[ i ];
+			html.push( this._chipHtml( "extra", extra.id, extra.label, extra.icon || "magic" ) );
 		}
 
 		for( i=0; i<this.activeSaved.length; i++ ) {
@@ -189,6 +205,8 @@
 		if ( kind === "search" ) {
 			this.searchQuery = "";
 			this.$input.val( "" );
+		} else if ( kind === "extra" ) {
+			this.extraFilters = this.extraFilters.filter( function( item ){ return String( item.id ) !== id; } );
 		} else if ( kind === "saved" || kind === "segmentation" ) {
 			this.activeSaved = this.activeSaved.filter( function( item ){ return String( item ) !== id; } );
 		} else if ( kind === "column" ) {
@@ -247,6 +265,8 @@
 			} );
 		}
 
+		this._appendItems( items, this._queryActionItems( q ) );
+
 		for( i=0; i<saved.length; i++ ) {
 			item   = saved[ i ];
 			folder = String( item.folder || "" );
@@ -295,6 +315,43 @@
 		this._appendItems( items, uncategorised );
 
 		return items;
+	};
+
+	PresideEverythingBar.prototype._queryActionItems = function( q ) {
+		var items   = []
+		  , actions = this.config.everythingBarActions || []
+		  , i, action;
+
+		for( i=0; i<actions.length; i++ ) {
+			action = actions[ i ];
+			if ( !action || !action.id ) {
+				continue;
+			}
+			if ( action.requireQuery !== false && !q.length ) {
+				continue;
+			}
+			items.push( {
+				  action   : action.id
+				, id       : action.id
+				, label    : this._actionLabel( action )
+				, icon     : action.icon || "magic"
+				, endpoint : action.endpoint || ""
+				, chipIcon : action.chipIcon || action.icon || "magic"
+			} );
+		}
+
+		return items;
+	};
+
+	PresideEverythingBar.prototype._actionLabel = function( action ) {
+		var query    = this.getQuery()
+		  , fallback = String( action.label || action.id || "" ).split( "{1}" ).join( query );
+
+		if ( action.labelUri ) {
+			return t( action.labelUri, fallback, [ query ] );
+		}
+
+		return fallback;
 	};
 
 	PresideEverythingBar.prototype._viewItems = function( q, group ) {
@@ -493,7 +550,171 @@
 				this.close();
 				this.onApplyView( String( id ) );
 			break;
+			default:
+				this._runPluginAction( item, $el, action );
 		}
+	};
+
+	PresideEverythingBar.prototype._runPluginAction = function( item, $el, action ) {
+		var actionId = item.action || action;
+		var runner   = PresideEverythingBar.actions[ actionId ];
+
+		if ( typeof runner === "function" ) {
+			runner.call( this, item, this );
+			return;
+		}
+
+		if ( item.endpoint ) {
+			this._runAjaxAction( item, $el );
+		}
+	};
+
+	PresideEverythingBar.prototype._runAjaxAction = function( item, $el ) {
+		var self = this;
+
+		if ( this.ajaxBusy ) {
+			return;
+		}
+
+		this.ajaxBusy = true;
+		$el.addClass( "is-busy" );
+		$el.find( "i.fa" ).attr( "class", "fa fa-fw fa-spinner fa-spin" );
+
+		$.ajax( {
+			  url      : item.endpoint
+			, type     : "POST"
+			, dataType : "json"
+			, data     : {
+				  object     : this.objectName
+				, listingKey : this.listingKey
+				, query      : this.getQuery()
+			  }
+			, success : function( result ) {
+				self.ajaxBusy = false;
+				if ( self._applyAjaxFilterResult( item, result ) ) {
+					self.$input.val( "" );
+					self.close();
+					self.onChange();
+					return;
+				}
+				self._pluginError( result && ( result.message || result.error ) );
+				self.renderDropdown();
+			  }
+			, error : function() {
+				self.ajaxBusy = false;
+				self._pluginError();
+				self.renderDropdown();
+			  }
+		} );
+	};
+
+	PresideEverythingBar.prototype._applyAjaxFilterResult = function( item, result ) {
+		var expression;
+
+		if ( !result || ( result.ok !== true && result.success !== true ) ) {
+			return false;
+		}
+
+		expression = this._normalizeExpression( result.expression );
+		if ( !expression.length ) {
+			return false;
+		}
+
+		this.addExtraFilter( {
+			  id         : result.id || item.id
+			, label      : result.label || item.label
+			, icon       : result.icon || item.chipIcon || item.icon
+			, expression : expression
+		} );
+
+		return true;
+	};
+
+	PresideEverythingBar.prototype._pluginError = function( message ) {
+		$.gritter.add( {
+			  title      : i18n.translateResource( "cms:error.notification.title", { defaultValue : "Error" } )
+			, text       : message || t( "cms:datatables.everything.action.error", "That action could not be completed." )
+			, class_name : "gritter-error"
+			, sticky     : false
+		} );
+	};
+
+	PresideEverythingBar.prototype.addExtraFilter = function( filter ) {
+		var id, expression, extra;
+
+		filter     = filter || {};
+		id         = String( filter.id || ( "extra-" + new Date().getTime() ) );
+		expression = this._normalizeExpression( filter.expression );
+		if ( !expression.length ) {
+			return;
+		}
+
+		extra = {
+			  id         : id
+			, label      : filter.label || id
+			, icon       : filter.chipIcon || filter.icon || "magic"
+			, expression : expression
+		};
+
+		this.extraFilters = this.extraFilters.filter( function( item ){ return String( item.id ) !== id; } );
+		this.extraFilters.push( extra );
+		this.renderChips();
+	};
+
+	PresideEverythingBar.prototype.removeExtraFilter = function( id ) {
+		var current = String( id );
+
+		this.extraFilters = this.extraFilters.filter( function( item ){ return String( item.id ) !== current; } );
+		this.renderChips();
+		this.onChange();
+	};
+
+	PresideEverythingBar.prototype.clearExtraFilters = function() {
+		this.extraFilters = [];
+		this.renderChips();
+	};
+
+	PresideEverythingBar.prototype.getExtraFilters = function() {
+		return this.extraFilters.slice();
+	};
+
+	PresideEverythingBar.prototype.getExtraFilterExpressions = function() {
+		var merged = []
+		  , i, expression;
+
+		for( i=0; i<this.extraFilters.length; i++ ) {
+			expression = this.extraFilters[ i ].expression || [];
+			if ( !expression.length ) {
+				continue;
+			}
+			if ( merged.length ) {
+				merged.push( "and" );
+			}
+			if ( expression.length === 1 ) {
+				merged.push( expression[ 0 ] );
+			} else {
+				merged.push( expression );
+			}
+		}
+
+		return merged;
+	};
+
+	PresideEverythingBar.prototype._normalizeExpression = function( expression ) {
+		if ( $.isArray( expression ) ) {
+			return expression;
+		}
+		if ( expression && typeof expression === "object" ) {
+			return [ expression ];
+		}
+		if ( typeof expression === "string" && $.trim( expression ).length ) {
+			try {
+				return this._normalizeExpression( JSON.parse( expression ) );
+			} catch( e ) {
+				return [];
+			}
+		}
+		return [];
 	};
 
 	PresideEverythingBar.prototype._savedById = function( id ) {

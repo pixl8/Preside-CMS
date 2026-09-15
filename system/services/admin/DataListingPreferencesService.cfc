@@ -263,6 +263,26 @@ component {
 		return filters;
 	}
 
+	public array function listEverythingBarActions(
+		  required string  objectName
+		,          string  listingKey  = arguments.objectName
+		,          boolean allowFilter = true
+		,          boolean allowSearch = true
+	) {
+		var actions = _getCustomizationService().runCustomization(
+			  objectName    = arguments.objectName
+			, action        = "getEverythingBarActions"
+			, args          = {
+				  listingKey  = arguments.listingKey
+				, allowFilter = arguments.allowFilter
+				, allowSearch = arguments.allowSearch
+			  }
+			, defaultResult = []
+		);
+
+		return _normalizeEverythingBarActions( actions );
+	}
+
 	public struct function getToolbarConfig(
 		  required string  objectName
 		,          string  listingKey        = arguments.objectName
@@ -334,6 +354,12 @@ component {
 			, grantedColumnsSig    = signGrantedColumns( arguments.objectName, arguments.listingKey, available )
 			, allowFilter          = arguments.allowFilter
 			, allowSearch          = arguments.allowSearch
+			, everythingBarActions = listEverythingBarActions(
+				  objectName   = arguments.objectName
+				, listingKey   = arguments.listingKey
+				, allowFilter  = arguments.allowFilter
+				, allowSearch  = arguments.allowSearch
+			  )
 			, allowManageFilter    = arguments.allowManageFilter
 			, manageFilterLink     = arguments.manageFilterLink
 			, allowSavedViews      = arguments.allowSavedViews
@@ -1070,6 +1096,63 @@ component {
 				base.expressionId = "presideobject_stringmatches_#arguments.objectName#.#propName#";
 				return base;
 		}
+	}
+
+	private array function _normalizeEverythingBarActions( required any actions ) {
+		var normalized = [];
+		var action     = {};
+		var item       = {};
+		var icon       = "";
+		var chipIcon   = "";
+
+		if ( !IsArray( arguments.actions ) ) {
+			return [];
+		}
+
+		for( action in arguments.actions ) {
+			if ( !IsStruct( action ) || !Len( Trim( action.id ?: "" ) ) ) {
+				continue;
+			}
+
+			icon = _fontAwesomeIconName( action.icon ?: "magic" );
+			item = {
+				  id           = Trim( action.id )
+				, icon         = Len( icon ) ? icon : "magic"
+				, requireQuery = true
+			};
+
+			if ( StructKeyExists( action, "requireQuery" ) && IsBoolean( action.requireQuery ) ) {
+				item.requireQuery = action.requireQuery;
+			}
+			if ( Len( Trim( action.labelUri ?: "" ) ) ) {
+				item.labelUri = Trim( action.labelUri );
+			}
+			if ( Len( Trim( action.label ?: "" ) ) ) {
+				item.label = action.label;
+			}
+			if ( Len( Trim( action.endpoint ?: "" ) ) ) {
+				item.endpoint = Trim( action.endpoint );
+			}
+
+			chipIcon = _fontAwesomeIconName( action.chipIcon ?: "" );
+			if ( Len( chipIcon ) ) {
+				item.chipIcon = chipIcon;
+			}
+
+			ArrayAppend( normalized, item );
+		}
+
+		return normalized;
+	}
+
+	private string function _fontAwesomeIconName( required string icon ) {
+		var name = Trim( arguments.icon );
+
+		if ( Left( name, 3 ) == "fa-" ) {
+			return Mid( name, 4, Len( name ) );
+		}
+
+		return name;
 	}
 
 	private array function _enumOptions( required string enum ) {

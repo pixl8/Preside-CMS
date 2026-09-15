@@ -1,5 +1,16 @@
 component {
 
+	private array function getEverythingBarActions( event, rc, prc, args={} ) {
+		return [{
+			  id           = "e2eAskFilter"
+			, icon         = "magic"
+			, label        = "Ask filter for ""{1}"""
+			, requireQuery = true
+			, endpoint     = event.buildAdminLink( linkTo="e2eListingAskFilter" )
+			, chipIcon     = "magic"
+		}];
+	}
+
 	private any function renderFooterForGridListing( event, rc, prc, args={} ) {
 		return {
 			  labelField = "label"

@@ -312,6 +312,11 @@
 			text-decoration: none;
 		}
 
+		&.is-busy {
+			pointer-events : none;
+			opacity        : 0.6;
+		}
+
 		.fa {
 			margin-right : 6px;
 			color        : @blue;
@@ -370,7 +375,8 @@
 		&.everything-chip-saved,
 		&.everything-chip-quick,
 		&.everything-chip-column,
-		&.everything-chip-segmentation {
+		&.everything-chip-segmentation,
+		&.everything-chip-extra {
 			border     : 2px solid @blue;
 			color      : @blue;
 			margin     : -1px;

@@ -75,7 +75,7 @@
 			  , captureColumnSearch, getListingViewSnapshot, applyListingViewSnapshot, applyListingDefaultView
 			  , applyColumnSearch, setAdvancedFilter, normalizeFilterState, normalizeColumnSearchMap
 			  , expressionsFromStoredColumnSearch, columnControlStateFromSearch, syncViewFilterLock
-			  , setupListingViews
+			  , setupListingViews, andExpressionArrays
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -324,19 +324,36 @@
 
 			getMergedFilterExpression = function() {
 				var advanced = []
+				  , extra    = ( everythingBar && everythingBar.getExtraFilterExpressions ) ? everythingBar.getExtraFilterExpressions() : []
 				  , column   = expressionsFromStoredColumnSearch( lastColumnSearch )
-				  , raw      = $filterDiv.find( "[name=filter]" ).val();
+				  , raw      = $filterDiv.find( "[name=filter]" ).val()
+				  , merged;
 
 				if ( raw && raw.length ) {
 					try { advanced = JSON.parse( raw ); } catch( e ) { advanced = []; }
 				}
-				if ( !advanced.length ) {
-					return column.length ? JSON.stringify( column ) : "";
+				if ( !$.isArray( advanced ) ) {
+					advanced = [];
 				}
-				if ( !column.length ) {
-					return JSON.stringify( advanced );
+
+				merged = andExpressionArrays( advanced, extra );
+				merged = andExpressionArrays( merged, column );
+
+				return merged.length ? JSON.stringify( merged ) : "";
+			};
+
+			andExpressionArrays = function( left, right ) {
+				left  = $.isArray( left ) ? left : [];
+				right = $.isArray( right ) ? right : [];
+
+				if ( !left.length ) {
+					return right.slice();
 				}
-				return JSON.stringify( advanced.concat( [ "and" ], column ) );
+				if ( !right.length ) {
+					return left.slice();
+				}
+
+				return left.concat( [ "and" ], right );
 			};
 
 			getVisibleGridFields = function() {
@@ -402,6 +419,8 @@
 				everythingBar = new PresideEverythingBar( {
 					  $toolbar               : $toolbar
 					, config                 : toolbarConfig
+					, objectName             : object
+					, listingKey             : listingKey
 					, onChange               : function(){
 						if ( listingViews ) {
 							listingViews.refreshDirty();
@@ -426,6 +445,7 @@
 						}
 					  }
 				} );
+				$( document ).trigger( "preside.listing.everythingBar", [ everythingBar ] );
 			};
 
 			setupListingViews = function() {
@@ -1304,6 +1324,7 @@
 
 			getListingViewSnapshot = function() {
 				var advanced = []
+				  , extra    = ( everythingBar && everythingBar.getExtraFilterExpressions ) ? everythingBar.getExtraFilterExpressions() : []
 				  , raw      = $filterDiv.find( "[name=filter]" ).val()
 				  , ids      = getFavourites() ? getFavourites().split( "," ).filter( Boolean ) : [];
 
@@ -1318,7 +1339,7 @@
 					  columns     : getVisibleGridFields()
 					, filterState : {
 						  savedFilterIds : ids
-						, advancedFilter : advanced
+						, advancedFilter : andExpressionArrays( advanced, extra )
 						, columnSearch   : $.extend( {}, lastColumnSearch )
 					  }
 				};
@@ -1378,6 +1399,9 @@
 				if ( everythingBar ) {
 					everythingBar.setFavourites( filter.savedFilterIds || [] );
 					everythingBar.setSearchQuery( "" );
+					if ( everythingBar.clearExtraFilters ) {
+						everythingBar.clearExtraFilters();
+					}
 				}
 				setAdvancedFilter( filter.advancedFilter || [] );
 				applyColumnSearch( filter.columnSearch || {} );
@@ -1394,6 +1418,9 @@
 				if ( everythingBar ) {
 					everythingBar.setFavourites( [] );
 					everythingBar.setSearchQuery( "" );
+					if ( everythingBar.clearExtraFilters ) {
+						everythingBar.clearExtraFilters();
+					}
 				}
 				setAdvancedFilter( [] );
 				applyColumnSearch( {} );

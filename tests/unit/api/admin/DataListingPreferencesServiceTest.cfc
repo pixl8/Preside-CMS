@@ -296,6 +296,48 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "listEverythingBarActions()", function(){
+			it( "should return an empty array when no customization is registered", function(){
+				var svc = _getService();
+
+				expect( svc.listEverythingBarActions( "crm_contact" ) ).toBe( [] );
+			} );
+
+			it( "should keep valid actions and default icon and requireQuery", function(){
+				var svc = _getService();
+
+				variables.mockCustomization.$( "runCustomization", [ {
+					  id       = "askAi"
+					, labelUri = "readyintelligence:listing.askAi"
+					, endpoint = "/admin/readyintelligence/listingAskAi/"
+					, icon     = "fa-magic"
+				}, {
+					  label = "missing id"
+				} ] );
+
+				var actions = svc.listEverythingBarActions( "crm_contact" );
+
+				expect( actions.len() ).toBe( 1 );
+				expect( actions[ 1 ].id ).toBe( "askAi" );
+				expect( actions[ 1 ].icon ).toBe( "magic" );
+				expect( actions[ 1 ].requireQuery ).toBeTrue();
+				expect( actions[ 1 ].labelUri ).toBe( "readyintelligence:listing.askAi" );
+				expect( actions[ 1 ].endpoint ).toBe( "/admin/readyintelligence/listingAskAi/" );
+			} );
+
+			it( "should honour requireQuery=false", function(){
+				var svc = _getService();
+
+				variables.mockCustomization.$( "runCustomization", [ {
+					  id           = "openHelp"
+					, requireQuery = false
+					, label        = "Help"
+				} ] );
+
+				expect( svc.listEverythingBarActions( "crm_contact" )[ 1 ].requireQuery ).toBeFalse();
+			} );
+		} );
+
 		describe( "listSavedViews()", function(){
 			it( "should request owned or shared views for the current listing", function(){
 				var svc       = _getService();
