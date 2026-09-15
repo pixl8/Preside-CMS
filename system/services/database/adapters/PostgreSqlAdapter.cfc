@@ -512,18 +512,18 @@ component extends="BaseAdapter" {
 					case "datetime":
 						columnType &= " timestamp";
 						break;
-					case "longtext":
-						columnType &= " text";
-						break;
 					case "double":
 						columnType &= " float";
 					case "bigint":
 					case "int":
+					case "tinyint":
 					case "float":
 					case "bit":
 						arguments.maxLength = 0;
 						columnType &= " #arguments.dbType# USING (#arguments.columnName#::::#arguments.dbType#)";
 						break;
+					case "longtext":
+					case "mediumtext":
 					case "text":
 						arguments.maxLength = 0;
 						columnType &= " #arguments.dbType#";
