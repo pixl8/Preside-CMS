@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Admin datatable saved view: save form
+
+This form is used for creating and renaming listing views, including filter-style sharing options.
+-->
+<form i18nBaseUri="preside-objects.admin_datatable_saved_view:">
+	<tab id="default" sortorder="10">
+		<fieldset id="labelling" sortorder="10">
+			<field binding="admin_datatable_saved_view.label"       control="textinput" required="true" maxlength="100" sortorder="10" />
+		</fieldset>
+		<fieldset id="sharing" sortorder="20">
+			<field name="context_scope" control="listingViewContextScope" sortorder="10" defaultValue="this" />
+			<field binding="admin_datatable_saved_view.sharing_scope" control="listingViewSharingScope" sortorder="10" defaultValue="global" required="true" />
+		</fieldset>
+		<fieldset id="group-filter" sortorder="30">
+			<field binding="admin_datatable_saved_view.user_groups"      sortorder="30" objectFilters="myAdminGroups" />
+			<field binding="admin_datatable_saved_view.allow_group_edit" sortorder="40" />
+		</fieldset>
+	</tab>
+</form>
