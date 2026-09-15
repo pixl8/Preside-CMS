@@ -75,7 +75,8 @@ Cypress.Commands.add( 'resetListingColumns', () => {
 	cy.get( '.object-listing-table' ).should( 'be.visible' ).then( ( $table ) => {
 		const url        = $table.attr( 'data-save-listing-columns-url' );
 		const object     = $table.attr( 'data-object-name' );
-		const listingKey = $table.attr( 'data-listing-key' ) || object;
+		const listingKey  = $table.attr( 'data-listing-key' ) || object;
+		const contextKey  = $table.attr( 'data-listing-context-key' ) || '';
 
 		expect( url, 'listing column save url' ).to.be.a( 'string' ).and.not.be.empty;
 
@@ -83,7 +84,7 @@ Cypress.Commands.add( 'resetListingColumns', () => {
 			  method : 'POST'
 			, url    : url
 			, form   : true
-			, body   : { object : object, listingKey : listingKey, columns : '' }
+			, body   : { object : object, listingKey : listingKey, listingContextKey : contextKey, columns : '' }
 		} );
 	} );
 
@@ -170,6 +171,8 @@ Cypress.Commands.add( 'saveListingViewAs', ( name ) => {
 			cy.wrap( body ).find( 'input[name=sharing_scope][value=global]' ).should( 'exist' );
 			cy.wrap( body ).find( 'input[name=sharing_scope][value=individual]' ).should( 'exist' );
 			cy.wrap( body ).find( 'input[name=sharing_scope][value=group]' ).should( 'exist' );
+			cy.wrap( body ).find( 'input[name=context_scope][value=this]' ).should( 'be.checked' );
+			cy.wrap( body ).find( 'input[name=context_scope][value=global]' ).should( 'exist' );
 			cy.wrap( body ).find( 'input[name=label]' ).should( 'be.visible' ).clear( { force : true } ).type( name, { force : true } );
 		} );
 	cy.get( '.listing-views-save-dialog .btn-info' ).contains( 'Save view' ).click();

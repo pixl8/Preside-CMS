@@ -1,6 +1,6 @@
 /**
- * Listing toolbar helpers: per-user column preferences, available
- * column pools, and auto quick-filter definitions for column heading search.
+ * Listing toolbar helpers: per-user column and active-view preferences,
+ * available column pools, and auto quick-filter definitions for column heading search.
  *
  * @presideService true
  * @singleton      true
@@ -167,6 +167,7 @@ component {
 	public array function applyUserColumns(
 		  required string objectName
 		,          string listingKey    = arguments.objectName
+		,          string contextKey    = ""
 		,          array  defaultFields = listDefaultColumns( arguments.objectName )
 		,          array  available     = listAvailableColumns( arguments.objectName )
 		,          array  storedFields
@@ -179,7 +180,11 @@ component {
 		);
 		var defaults = ( IsArray( customized ) && ArrayLen( customized ) ) ? customized : arguments.defaultFields;
 		var locked   = listLockedColumns( arguments.objectName );
-		var stored   = StructKeyExists( arguments, "storedFields" ) ? arguments.storedFields : _getStoredColumns( arguments.objectName, arguments.listingKey );
+		var stored   = StructKeyExists( arguments, "storedFields" ) ? arguments.storedFields : _getStoredColumns(
+			  objectName  = arguments.objectName
+			, listingKey  = arguments.listingKey
+			, contextKey  = arguments.contextKey
+		);
 		var chosen   = ArrayLen( stored ) ? stored : defaults;
 		var result   = [];
 		var seen     = {};
@@ -210,52 +215,133 @@ component {
 		  required string objectName
 		, required array  columns
 		,          string listingKey       = arguments.objectName
+		,          string contextKey       = ""
 		,          array  grantedFields    = []
 		,          string grantedFieldsSig = ""
 	) {
-		var userId = $getAdminLoggedInUserId();
-		if ( !Len( Trim( userId ) ) ) {
+		return saveUserPreference( argumentCollection=arguments );
+	}
+
+	public boolean function saveUserPreference(
+		  required string objectName
+		,          string listingKey       = arguments.objectName
+		,          string contextKey       = ""
+		,          array  grantedFields    = []
+		,          string grantedFieldsSig = ""
+	) {
+		var userId     = $getAdminLoggedInUserId();
+		var hasColumns = StructKeyExists( arguments, "columns" ) && IsArray( arguments.columns );
+		var hasView    = StructKeyExists( arguments, "activeView" );
+		var context    = _normalizeContextKey( arguments.contextKey );
+		var dao        = "";
+		var existing   = "";
+		var data       = {};
+		var available  = [];
+		var cleaned    = [];
+
+		if ( !Len( Trim( userId ) ) || ( !hasColumns && !hasView ) ) {
 			return false;
 		}
 
-		var dao      = $getPresideObject( "admin_datatable_user_preference" );
-		var existing = dao.selectData(
-			  filter       = { security_user=userId, object_name=arguments.objectName, listing_key=arguments.listingKey }
+		dao      = $getPresideObject( "admin_datatable_user_preference" );
+		existing = dao.selectData(
+			  filter       = _userPreferenceFilter(
+				  userId     = userId
+				, objectName = arguments.objectName
+				, listingKey = arguments.listingKey
+				, contextKey = context
+			  )
 			, selectFields = [ "id" ]
 		);
 
-		if ( !ArrayLen( arguments.columns ) ) {
-			if ( existing.recordCount ) {
-				return dao.deleteData( id=existing.id ) > 0;
+		if ( hasColumns ) {
+			if ( ArrayLen( arguments.columns ) ) {
+				available = getGrantedListingColumns(
+					  objectName       = arguments.objectName
+					, listingKey       = arguments.listingKey
+					, grantedFields    = arguments.grantedFields
+					, grantedFieldsSig = arguments.grantedFieldsSig
+				);
+				cleaned = applyUserColumns(
+					  objectName    = arguments.objectName
+					, listingKey    = arguments.listingKey
+					, contextKey    = context
+					, defaultFields = listDefaultColumns( arguments.objectName )
+					, available     = available
+					, storedFields  = arguments.columns
+				);
+				data.columns = ArrayToList( cleaned );
+			} else {
+				data.columns = "";
 			}
-			return true;
 		}
 
-		var available = getGrantedListingColumns(
-			  objectName        = arguments.objectName
-			, listingKey        = arguments.listingKey
-			, grantedFields     = arguments.grantedFields
-			, grantedFieldsSig  = arguments.grantedFieldsSig
-		);
-		var defaults  = listDefaultColumns( arguments.objectName );
-		var cleaned   = applyUserColumns(
-			  objectName    = arguments.objectName
-			, listingKey    = arguments.listingKey
-			, defaultFields = defaults
-			, available     = available
-			, storedFields  = arguments.columns
-		);
+		if ( hasView ) {
+			data.active_view = _normalizeActiveViewId( arguments.activeView );
+		}
 
 		if ( existing.recordCount ) {
-			return dao.updateData( id=existing.id, data={ columns=ArrayToList( cleaned ) } );
+			return dao.updateData( id=existing.id, data=data );
 		}
 
-		return Len( dao.insertData( data={
-			  security_user = userId
-			, object_name   = arguments.objectName
-			, listing_key   = arguments.listingKey
-			, columns       = ArrayToList( cleaned )
-		} ) ) > 0;
+		data.security_user = userId;
+		data.object_name   = arguments.objectName;
+		data.listing_key   = arguments.listingKey;
+		data.context_key   = context;
+
+		return Len( dao.insertData( data=data ) ) > 0;
+	}
+
+	public struct function getUserPreference(
+		  required string objectName
+		,          string listingKey = arguments.objectName
+		,          string contextKey = ""
+	) {
+		var record = _getUserPreferenceRecord(
+			  objectName  = arguments.objectName
+			, listingKey  = arguments.listingKey
+			, contextKey  = arguments.contextKey
+		);
+		var pref   = { columns=[], activeView="default" };
+
+		if ( StructIsEmpty( record ) ) {
+			return pref;
+		}
+
+		if ( Len( Trim( record.columns ?: "" ) ) ) {
+			pref.columns = ListToArray( record.columns );
+		}
+		pref.activeView = _normalizeActiveViewId( record.active_view ?: "" );
+
+		return pref;
+	}
+
+	public struct function resolveListingContext(
+		  string listingContextKey   = ""
+		, string listingContextLabel = ""
+		, string datasourceUrl       = ""
+	) {
+		var named = Len( Trim( arguments.listingContextKey ) ) > 0;
+		var key   = "";
+		var label = Trim( arguments.listingContextLabel );
+
+		if ( named ) {
+			key = _normalizeContextKey( arguments.listingContextKey );
+		} else {
+			key = _contextKeyFromDatasourceUrl( arguments.datasourceUrl );
+		}
+
+		if ( named && Len( label ) && Find( ":", label ) ) {
+			label = $translateResource( uri=label, defaultValue=label );
+		} else if ( !named ) {
+			label = "";
+		}
+
+		return {
+			  key   = key
+			, label = label
+			, named = named
+		};
 	}
 
 	public array function listQuickFilters( required string objectName ) {
@@ -321,6 +407,9 @@ component {
 	public struct function getToolbarConfig(
 		  required string  objectName
 		,          string  listingKey        = arguments.objectName
+		,          string  contextKey        = ""
+		,          string  contextLabel      = ""
+		,          boolean namedContext      = false
 		,          array   gridFields        = listDefaultColumns( arguments.objectName )
 		,          array   hiddenGridFields  = _getDataManagerService().listHiddenGridFields( arguments.objectName )
 		,          boolean allowFilter       = true
@@ -335,11 +424,18 @@ component {
 		ArrayAppend( extraFields, arguments.hiddenGridFields, true );
 
 		var available = listAvailableColumns( objectName=arguments.objectName, extraFields=extraFields );
+		var pref      = getUserPreference(
+			  objectName  = arguments.objectName
+			, listingKey  = arguments.listingKey
+			, contextKey  = arguments.contextKey
+		);
 		var current   = applyUserColumns(
 			  objectName    = arguments.objectName
 			, listingKey    = arguments.listingKey
+			, contextKey    = arguments.contextKey
 			, defaultFields = arguments.gridFields
 			, available     = available
+			, storedFields  = pref.columns
 		);
 		var locked    = listLockedColumns( arguments.objectName );
 		var columns   = [];
@@ -385,6 +481,10 @@ component {
 			, defaultColumns       = defaultColumns
 			, lockedColumns        = locked
 			, listingKey           = arguments.listingKey
+			, listingContextKey    = _normalizeContextKey( arguments.contextKey )
+			, listingContextLabel  = arguments.contextLabel
+			, namedListingContext  = arguments.namedContext
+			, activeView           = arguments.allowSavedViews ? pref.activeView : "default"
 			, grantedColumns       = available
 			, grantedColumnsSig    = signGrantedColumns( arguments.objectName, arguments.listingKey, available )
 			, allowFilter          = arguments.allowFilter
@@ -399,7 +499,7 @@ component {
 			, manageFilterLink     = arguments.manageFilterLink
 			, allowSavedViews      = arguments.allowSavedViews
 			, canShareViews        = arguments.allowSavedViews && arguments.canShareViews
-			, savedViews           = arguments.allowSavedViews ? listSavedViews( arguments.objectName, arguments.listingKey ) : []
+			, savedViews           = arguments.allowSavedViews ? listSavedViews( arguments.objectName, arguments.listingKey, arguments.contextKey ) : []
 		};
 	}
 
@@ -526,8 +626,10 @@ component {
 	public array function listSavedViews(
 		  required string objectName
 		,          string listingKey = arguments.objectName
+		,          string contextKey = ""
 	) {
 		var userId       = $getAdminLoggedInUserId();
+		var context      = _normalizeContextKey( arguments.contextKey );
 		var records      = "";
 		var granted      = [];
 		var permittedIds = [];
@@ -540,7 +642,10 @@ component {
 
 		records = $getPresideObject( "admin_datatable_saved_view" ).selectData(
 			  filter       = { object_name=arguments.objectName, listing_key=arguments.listingKey }
-			, extraFilters = [ _savedViewPermissionFilter( userId ) ]
+			, extraFilters = [
+				  _savedViewPermissionFilter( userId )
+				, _savedViewContextFilter( context )
+			  ]
 			, distinct     = true
 			, orderBy      = "label"
 		);
@@ -566,7 +671,6 @@ component {
 		, required array   columns
 		, required any     filterState
 		,          string  listingKey       = arguments.objectName
-		,          string  description      = ""
 		,          boolean isShared         = false
 		,          boolean canShare         = false
 		,          string  sharingScope     = ""
@@ -574,6 +678,9 @@ component {
 		,          boolean allowGroupEdit   = false
 		,          array   grantedFields    = []
 		,          string  grantedFieldsSig = ""
+		,          string  contextKey       = ""
+		,          boolean namedContext     = false
+		,          string  contextScope     = "this"
 	) {
 		var userId          = $getAdminLoggedInUserId();
 		var viewLabel       = Trim( arguments.label );
@@ -582,6 +689,7 @@ component {
 		var viewFilterState = {};
 		var viewId          = "";
 		var sharing         = {};
+		var storedContext   = "";
 
 		if ( !Len( userId ) || !Len( viewLabel ) ) {
 			return { success=false };
@@ -602,13 +710,18 @@ component {
 			, isShared       = arguments.isShared
 			, canShare       = arguments.canShare
 		);
+		storedContext   = _storedViewContextKey(
+			  contextKey   = arguments.contextKey
+			, namedContext = arguments.namedContext
+			, contextScope = arguments.contextScope
+		);
 		viewId          = $getPresideObject( "admin_datatable_saved_view" ).insertData(
 			  data = {
 				  label            = Left( viewLabel, 100 )
-				, description      = Left( Trim( arguments.description ), 500 )
 				, owner            = userId
 				, object_name      = arguments.objectName
 				, listing_key      = arguments.listingKey
+				, context_key      = storedContext
 				, is_shared        = sharing.isShared
 				, sharing_scope    = sharing.sharingScope
 				, allow_group_edit = sharing.allowGroupEdit
@@ -628,7 +741,6 @@ component {
 			, view    = {
 				  id          = viewId
 				, label       = Left( viewLabel, 100 )
-				, description = Left( Trim( arguments.description ), 500 )
 				, owner       = true
 				, shared      = sharing.isShared
 				, columns     = viewColumns
@@ -642,7 +754,6 @@ component {
 		, required string  objectName
 		,          string  listingKey       = arguments.objectName
 		,          string  label            = ""
-		,          string  description
 		,          array   columns
 		,          any     filterState
 		,          boolean isShared
@@ -652,6 +763,9 @@ component {
 		,          boolean allowGroupEdit
 		,          array   grantedFields    = []
 		,          string  grantedFieldsSig = ""
+		,          string  contextKey       = ""
+		,          boolean namedContext     = false
+		,          string  contextScope
 	) {
 		var record  = _getOwnedSavedView( arguments.viewId, arguments.objectName, arguments.listingKey );
 		var granted = [];
@@ -674,9 +788,6 @@ component {
 
 		if ( Len( Trim( arguments.label ) ) ) {
 			data.label = Left( Trim( arguments.label ), 100 );
-		}
-		if ( StructKeyExists( arguments, "description" ) ) {
-			data.description = Left( Trim( arguments.description ), 500 );
 		}
 		if ( StructKeyExists( arguments, "columns" ) ) {
 			data.columns = ArrayToList( sanitizeViewColumns( arguments.columns, granted, arguments.objectName ) );
@@ -701,6 +812,14 @@ component {
 			data.sharing_scope = arguments.isShared ? "global" : "individual";
 		}
 
+		if ( StructKeyExists( arguments, "contextScope" ) ) {
+			data.context_key = _storedViewContextKey(
+				  contextKey   = arguments.contextKey
+				, namedContext = arguments.namedContext
+				, contextScope = arguments.contextScope
+			);
+		}
+
 		if ( StructCount( data ) && !$getPresideObject( "admin_datatable_saved_view" ).updateData(
 			  id                      = arguments.viewId
 			, data                    = data
@@ -709,7 +828,7 @@ component {
 			return { success=false };
 		}
 
-		views = listSavedViews( arguments.objectName, arguments.listingKey );
+		views = listSavedViews( arguments.objectName, arguments.listingKey, arguments.contextKey );
 		for( item in views ) {
 			if ( item.id == arguments.viewId ) {
 				view = item;
@@ -756,10 +875,10 @@ component {
 
 		return {
 			  label            = record.label ?: ""
-			, description      = record.description ?: ""
 			, sharing_scope    = _legacySharingScope( record )
 			, allow_group_edit = $helpers.IsTrue( record.allow_group_edit ?: false )
 			, user_groups      = groups
+			, context_scope    = Len( Trim( record.context_key ?: "" ) ) ? "this" : "global"
 		};
 	}
 
@@ -984,7 +1103,6 @@ component {
 		return {
 			  id          = arguments.record.id
 			, label       = arguments.record.label ?: ""
-			, description = arguments.record.description ?: ""
 			, owner       = ownerId == arguments.userId
 			, shared      = isShared
 			, columns     = sanitizeViewColumns( ListToArray( arguments.record.columns ?: "" ), arguments.granted, arguments.objectName )
@@ -1012,7 +1130,7 @@ component {
 				, listing_key = arguments.listingKey
 				, owner       = userId
 			  }
-			, selectFields = [ "id", "label", "description", "owner", "is_shared", "sharing_scope", "allow_group_edit", "columns", "filter_state" ]
+			, selectFields = [ "id", "label", "owner", "is_shared", "sharing_scope", "allow_group_edit", "columns", "filter_state", "context_key" ]
 		);
 
 		if ( !record.recordCount ) {
@@ -1026,22 +1144,152 @@ component {
 		return {};
 	}
 
-	private array function _getStoredColumns( required string objectName, required string listingKey ) {
-		var userId = $getAdminLoggedInUserId();
+	private array function _getStoredColumns(
+		  required string objectName
+		, required string listingKey
+		,          string contextKey = ""
+	) {
+		return getUserPreference(
+			  objectName  = arguments.objectName
+			, listingKey  = arguments.listingKey
+			, contextKey  = arguments.contextKey
+		).columns;
+	}
+
+	private struct function _getUserPreferenceRecord(
+		  required string objectName
+		, required string listingKey
+		,          string contextKey = ""
+	) {
+		var userId   = $getAdminLoggedInUserId();
+		var dao      = "";
+		var context  = _normalizeContextKey( arguments.contextKey );
+		var record   = "";
+		var fallback = "";
+		var row      = {};
+
 		if ( !Len( Trim( userId ) ) ) {
-			return [];
+			return {};
 		}
 
-		var record = $getPresideObject( "admin_datatable_user_preference" ).selectData(
-			  filter       = { security_user=userId, object_name=arguments.objectName, listing_key=arguments.listingKey }
-			, selectFields = [ "columns" ]
+		dao    = $getPresideObject( "admin_datatable_user_preference" );
+		record = dao.selectData(
+			  filter       = _userPreferenceFilter(
+				  userId     = userId
+				, objectName = arguments.objectName
+				, listingKey = arguments.listingKey
+				, contextKey = context
+			  )
+			, selectFields = [ "id", "columns", "active_view" ]
 		);
 
-		if ( !record.recordCount || !Len( Trim( record.columns ) ) ) {
-			return [];
+		if ( !record.recordCount && context != "" ) {
+			fallback = dao.selectData(
+				  filter       = _userPreferenceFilter(
+					  userId     = userId
+					, objectName = arguments.objectName
+					, listingKey = arguments.listingKey
+					, contextKey = ""
+				  )
+				, selectFields = [ "id", "columns", "active_view" ]
+			);
+			if ( fallback.recordCount ) {
+				record = fallback;
+			}
 		}
 
-		return ListToArray( record.columns );
+		if ( !record.recordCount ) {
+			return {};
+		}
+
+		for( row in record ) {
+			return row;
+		}
+
+		return {};
+	}
+
+	private struct function _userPreferenceFilter(
+		  required string userId
+		, required string objectName
+		, required string listingKey
+		,          string contextKey = ""
+	) {
+		return {
+			  security_user = arguments.userId
+			, object_name   = arguments.objectName
+			, listing_key   = arguments.listingKey
+			, context_key   = arguments.contextKey
+		};
+	}
+
+	private struct function _savedViewContextFilter( string contextKey = "" ) {
+		return {
+			  filter       = "context_key = :savedViewContextEmpty or context_key = :savedViewContextCurrent"
+			, filterParams = {
+				  savedViewContextEmpty   = { type="cf_sql_varchar", value="" }
+				, savedViewContextCurrent = { type="cf_sql_varchar", value=arguments.contextKey }
+			  }
+		};
+	}
+
+	private string function _storedViewContextKey(
+		  string  contextKey   = ""
+		, boolean namedContext = false
+		, string  contextScope = "this"
+	) {
+		if ( arguments.namedContext && LCase( Trim( arguments.contextScope ) ) == "global" ) {
+			return "";
+		}
+
+		return _normalizeContextKey( arguments.contextKey );
+	}
+
+	private string function _normalizeContextKey( string contextKey = "" ) {
+		var key = Trim( arguments.contextKey );
+
+		if ( Len( key ) > 100 ) {
+			return LCase( Hash( key ) );
+		}
+
+		return key;
+	}
+
+	private string function _contextKeyFromDatasourceUrl( string datasourceUrl = "" ) {
+		var raw      = Trim( ListFirst( arguments.datasourceUrl, "##" ) );
+		var queryPos = Find( "?", raw );
+		var qs       = queryPos ? Mid( raw, queryPos + 1, Len( raw ) ) : "";
+		var pairs    = [];
+		var pair     = "";
+		var key      = "";
+
+		for( pair in ListToArray( qs, "&" ) ) {
+			key = Trim( UrlDecode( ListFirst( pair, "=" ) ) );
+			if ( !Len( key ) || _isCacheBusterParam( key ) ) {
+				continue;
+			}
+			ArrayAppend( pairs, pair );
+		}
+
+		if ( ArrayLen( pairs ) ) {
+			ArraySort( pairs, "textnocase" );
+		}
+
+		return _normalizeContextKey( ArrayToList( pairs, "&" ) );
+	}
+
+	private boolean function _isCacheBusterParam( required string paramName ) {
+		return ArrayFindNoCase( [ "cachebuster", "prefetchCacheBuster", "_" ], arguments.paramName ) > 0;
+	}
+
+	private string function _normalizeActiveViewId( string activeView = "" ) {
+		var viewId = Trim( arguments.activeView );
+
+		if ( !Len( viewId ) || viewId == "default" ) {
+			return "default";
+		}
+
+		return viewId;
 	}
 
 	private boolean function _isListableColumn( required string objectName, required string fieldName, required struct properties ) {

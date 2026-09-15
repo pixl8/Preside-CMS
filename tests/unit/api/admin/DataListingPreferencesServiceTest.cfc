@@ -48,6 +48,95 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "resolveListingContext()", function(){
+			it( "should use the datasource query string, drop cache-busters and sort remaining pairs", function(){
+				var svc = _getService();
+
+				expect( svc.resolveListingContext(
+					datasourceUrl = "/admin/datamanager/getObjectRecordsForAjaxDataTables/?product=abc&id=crm_subscription&cachebuster=1&prefetchCacheBuster=2&_=3"
+				) ).toBe( {
+					  key   = "id=crm_subscription&product=abc"
+					, label = ""
+					, named = false
+				} );
+			} );
+
+			it( "should treat a datasource URL with no remaining query string as an empty context", function(){
+				var svc = _getService();
+
+				expect( svc.resolveListingContext(
+					datasourceUrl = "/admin/datamanager/getObjectRecordsForAjaxDataTables/"
+				) ).toBe( {
+					  key   = ""
+					, label = ""
+					, named = false
+				} );
+			} );
+
+			it( "should prefer a developer-supplied context key and translate a labelled i18n URI", function(){
+				var svc = _getService();
+
+				svc.$( "$translateResource" ).$args(
+					  uri          = "crm.subscription:listing.context.corporate"
+					, defaultValue = "crm.subscription:listing.context.corporate"
+				).$results( "Corporate subscriptions" );
+
+				expect( svc.resolveListingContext(
+					  listingContextKey   = "corporate"
+					, listingContextLabel = "crm.subscription:listing.context.corporate"
+					, datasourceUrl       = "/admin/datamanager/getObjectRecordsForAjaxDataTables/?id=crm_subscription&product=abc"
+				) ).toBe( {
+					  key   = "corporate"
+					, label = "Corporate subscriptions"
+					, named = true
+				} );
+			} );
+
+			it( "should keep an already-translated context label", function(){
+				var svc = _getService();
+
+				expect( svc.resolveListingContext(
+					  listingContextKey   = "corporate"
+					, listingContextLabel = "Corporate subscriptions"
+				) ).toBe( {
+					  key   = "corporate"
+					, label = "Corporate subscriptions"
+					, named = true
+				} );
+			} );
+
+			it( "should hash context keys longer than 100 characters", function(){
+				var svc     = _getService();
+				var longKey = RepeatString( "a", 101 );
+
+				expect( svc.resolveListingContext( listingContextKey=longKey ).key ).toBe( LCase( Hash( longKey ) ) );
+			} );
+		} );
+
+		describe( "getUserPreference()", function(){
+			it( "should read columns and active view for the current listing context", function(){
+				var svc     = _getService();
+				var mockDao = createStub();
+				var record  = QueryNew( "id,columns,active_view", "varchar,varchar,varchar", [
+					[ "pref-1", "label,notes", "view-9" ]
+				] );
+
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+				svc.$( "$getPresideObject" ).$args( "admin_datatable_user_preference" ).$results( mockDao );
+				mockDao.$( "selectData", record );
+
+				var pref = svc.getUserPreference(
+					  objectName = "crm_subscription"
+					, listingKey = "crm_subscription"
+					, contextKey = "product=abc"
+				);
+
+				expect( pref.columns ).toBe( [ "label", "notes" ] );
+				expect( pref.activeView ).toBe( "view-9" );
+				expect( mockDao.$callLog().selectData[ 1 ].filter.context_key ).toBe( "product=abc" );
+			} );
+		} );
+
 		describe( "listAvailableColumns()", function(){
 			it( "should merge explicitly passed columns with annotated grid fields", function(){
 				var svc           = _getService();
@@ -412,9 +501,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var svc       = _getService();
 				var mockDao   = createStub();
 				var mockPerms = createStub();
-				var records   = QueryNew( "id,label,description,owner,is_shared,columns,filter_state", "varchar,varchar,varchar,varchar,bit,varchar,varchar", [
-					  [ "mine", "My view", "", "user-1", false, "label,status", "{}" ]
-					, [ "ours", "Shared view", "", "user-2", true, "label", "{}" ]
+				var records   = QueryNew( "id,label,owner,is_shared,columns,filter_state", "varchar,varchar,varchar,bit,varchar,varchar", [
+					  [ "mine", "My view", "user-1", false, "label,status", "{}" ]
+					, [ "ours", "Shared view", "user-2", true, "label", "{}" ]
 				] );
 
 				mockPerms.$( "listUserGroups", [] );

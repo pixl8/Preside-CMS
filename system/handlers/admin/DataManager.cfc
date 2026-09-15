@@ -177,6 +177,26 @@ component extends="preside.system.base.AdminHandler" {
 			args.allowColumnFilter    = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ?: false ) );
 			args.listingPreferenceKey = args.listingPreferenceKey ?: objectName;
 
+			if ( !Len( Trim( args.datasourceUrl ?: "" ) ) ) {
+				args.datasourceUrl = event.buildAdminLink(
+					  objectName = objectName
+					, operation  = "ajaxListing"
+					, args       = {
+						  useMultiActions = IsTrue( args.useMultiActions ?: false )
+						, isMultilingual  = IsTrue( args.isMultilingual  ?: false )
+						, draftsEnabled   = IsTrue( args.draftsEnabled   ?: false )
+						, noActions       = IsTrue( args.noActions       ?: false )
+					  }
+				);
+			}
+
+			var listingContext = dataListingPreferencesService.resolveListingContext(
+				  listingContextKey   = args.listingContextKey   ?: ""
+				, listingContextLabel = args.listingContextLabel ?: ""
+				, datasourceUrl       = args.datasourceUrl
+			);
+			args.listingContextLabel = listingContext.label;
+
 			var savedViewArgs = {
 				  objectName        = objectName
 				, allowColumnPicker = args.allowColumnPicker
@@ -195,6 +215,7 @@ component extends="preside.system.base.AdminHandler" {
 				args.gridFields = dataListingPreferencesService.applyUserColumns(
 					  objectName    = objectName
 					, listingKey    = args.listingPreferenceKey
+					, contextKey    = listingContext.key
 					, defaultFields = args.gridFields
 					, available     = dataListingPreferencesService.listAvailableColumns(
 						  objectName  = objectName
@@ -1258,22 +1279,31 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName, throwOnError=true );
 
-		var listingKey = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
-		var columns    = ListToArray( rc.columns ?: "" );
-
-		dataListingPreferencesService.saveUserColumns(
+		var listingKey  = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var contextKey  = rc.listingContextKey ?: "";
+		var prefArgs    = {
 			  objectName       = objectName
 			, listingKey       = listingKey
-			, columns          = columns
+			, contextKey       = contextKey
 			, grantedFields    = ListToArray( rc.grantedGridFields ?: "" )
 			, grantedFieldsSig = rc.grantedGridFieldsSig ?: ""
-		);
+		};
+
+		if ( StructKeyExists( rc, "columns" ) ) {
+			prefArgs.columns = ListToArray( rc.columns );
+		}
+		if ( StructKeyExists( rc, "activeView" ) ) {
+			prefArgs.activeView = rc.activeView;
+		}
+
+		dataListingPreferencesService.saveUserPreference( argumentCollection=prefArgs );
 
 		event.renderData( type="json", data={
 			  success = true
 			, columns = dataListingPreferencesService.applyUserColumns(
 				  objectName = objectName
 				, listingKey = listingKey
+				, contextKey = contextKey
 			  )
 		} );
 	}
@@ -1312,12 +1342,15 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		event.setView( view="/admin/datamanager/saveListingViewForm", layout="adminModalDialog", args={
-			  addRecordAction = event.buildAdminLink( linkTo=Len( viewId ) ? "datamanager.updateListingView" : "datamanager.saveListingView" )
-			, savedData       = prc.savedData
-			, viewId          = viewId
-			, objectName      = objectName
-			, listingKey      = listingKey
-			, validationResult = rc.validationResult ?: ""
+			  addRecordAction     = event.buildAdminLink( linkTo=Len( viewId ) ? "datamanager.updateListingView" : "datamanager.saveListingView" )
+			, savedData           = prc.savedData
+			, viewId              = viewId
+			, objectName          = objectName
+			, listingKey          = listingKey
+			, listingContextKey   = rc.listingContextKey ?: ""
+			, listingContextLabel = rc.listingContextLabel ?: ""
+			, namedListingContext = IsTrue( rc.namedListingContext ?: false )
+			, validationResult    = rc.validationResult ?: ""
 		} );
 	}
 
@@ -3562,6 +3595,8 @@ component extends="preside.system.base.AdminHandler" {
 		_checkListingViewAccess( argumentCollection=arguments, objectName=objectName );
 
 		var listingKey        = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var contextKey        = rc.listingContextKey ?: "";
+		var namedContext      = IsTrue( rc.namedListingContext ?: false );
 		var canShare          = _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
 		var filterState       = rc.filterState ?: {};
 		var fromForm          = StructKeyExists( rc, "sharing_scope" );
@@ -3593,10 +3628,11 @@ component extends="preside.system.base.AdminHandler" {
 				, objectName        = objectName
 				, listingKey        = listingKey
 				, label             = fromForm ? ( formData.label ?: "" ) : ( rc.label ?: "" )
-				, description       = fromForm ? ( formData.description ?: "" ) : ( rc.description ?: "" )
 				, canShare          = canShare
 				, grantedFields     = ListToArray( rc.grantedGridFields ?: "" )
 				, grantedFieldsSig  = rc.grantedGridFieldsSig ?: ""
+				, contextKey        = contextKey
+				, namedContext      = namedContext
 			};
 
 			if ( StructKeyExists( rc, "columns" ) ) {
@@ -3612,6 +3648,9 @@ component extends="preside.system.base.AdminHandler" {
 				updateArgs.sharingScope   = formData.sharing_scope ?: "";
 				updateArgs.userGroups     = formData.user_groups   ?: "";
 				updateArgs.allowGroupEdit = IsTrue( formData.allow_group_edit ?: false );
+				updateArgs.contextKey     = contextKey;
+				updateArgs.namedContext   = namedContext;
+				updateArgs.contextScope   = formData.context_scope ?: ( rc.context_scope ?: "this" );
 			}
 
 			result = dataListingPreferencesService.updateSavedView( argumentCollection=updateArgs );
@@ -3636,7 +3675,6 @@ component extends="preside.system.base.AdminHandler" {
 			  objectName        = objectName
 			, listingKey        = listingKey
 			, label             = fromForm ? ( formData.label ?: "" ) : ( rc.label ?: "" )
-			, description       = fromForm ? ( formData.description ?: "" ) : ( rc.description ?: "" )
 			, columns           = ListToArray( rc.columns ?: "" )
 			, filterState       = filterState
 			, isShared          = IsTrue( rc.isShared ?: false )
@@ -3646,8 +3684,17 @@ component extends="preside.system.base.AdminHandler" {
 			, allowGroupEdit    = fromForm && IsTrue( formData.allow_group_edit ?: false )
 			, grantedFields     = ListToArray( rc.grantedGridFields ?: "" )
 			, grantedFieldsSig  = rc.grantedGridFieldsSig ?: ""
+			, contextKey        = contextKey
+			, namedContext      = namedContext
+			, contextScope      = fromForm ? ( formData.context_scope ?: ( rc.context_scope ?: "this" ) ) : "this"
 		);
 		if ( IsTrue( result.success ?: false ) ) {
+			dataListingPreferencesService.saveUserPreference(
+				  objectName  = objectName
+				, listingKey  = listingKey
+				, contextKey  = contextKey
+				, activeView  = result.view.id ?: ""
+			);
 			_auditListingView(
 				  event    = event
 				, action   = "datamanager_save_listing_view"

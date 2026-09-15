@@ -27,6 +27,8 @@
 	param name="args.clickableRows"               type="boolean" default=true;
 	param name="args.batchEditableFields"         type="array"   default=[];
 	param name="args.listingPreferenceKey"        type="string"  default="#args.objectName#";
+	param name="args.listingContextKey"           type="string"  default="";
+	param name="args.listingContextLabel"         type="string"  default="";
 	param name="args.datasourceUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
 	param name="args.exportFilterString"          type="string"  default="";
 	param name="args.dataExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
@@ -55,9 +57,6 @@
 		  defaultPageLength = args.defaultPageLength ?: getSetting( name="datamanager.defaults.datatable.defaultPageLength", defaultValue=10 )
 		, paginationOptions = args.paginationOptions ?: getSetting( name="datamanager.defaults.datatable.paginationOptions", defaultValue=[ 5, 10, 25, 50, 100 ] )
 	} );
-
-	instanceId = LCase( Hash( serializeJSON( args.filterContextData ) & CallStackGet( "string" ) & args.datasourceUrl ) );
-	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	args.allowFilter  = IsTrue( args.allowFilter ?: "" ) && isFeatureEnabled( "rulesEngine" );
 
@@ -110,9 +109,21 @@
 		args.rightAlignFields = getSingleton( "dataManagerService" ).listRightAlignFields( args.objectName );
 	}
 
+	listingContext     = getSingleton( "dataListingPreferencesService" ).resolveListingContext(
+		  listingContextKey   = args.listingContextKey
+		, listingContextLabel = args.listingContextLabel
+		, datasourceUrl       = args.datasourceUrl
+	);
+	args.listingContextLabel = listingContext.label;
+	instanceId = LCase( Hash( args.objectName & "|" & args.listingPreferenceKey & "|" & listingContext.key & "|" & SerializeJSON( args.filterContextData ) ) );
+	tableId    = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
+
 	toolbarConfig = getSingleton( "dataListingPreferencesService" ).getToolbarConfig(
 		  objectName         = args.objectName
 		, listingKey         = args.listingPreferenceKey
+		, contextKey         = listingContext.key
+		, contextLabel       = listingContext.label
+		, namedContext       = listingContext.named
 		, gridFields         = args.gridFields
 		, hiddenGridFields   = args.hiddenGridFields
 		, allowFilter        = args.allowFilter && allowUseFilter
@@ -295,6 +306,9 @@
 		    data-allow-column-filter="#allowColumnFilter#"
 		    data-allow-saved-views="#allowSavedViews#"
 		    data-listing-key="#args.listingPreferenceKey#"
+		    data-listing-context-key="#EncodeForHTML( listingContext.key )#"
+		    data-listing-context-label="#EncodeForHTML( listingContext.label )#"
+		    data-named-listing-context="#listingContext.named#"
 		    data-save-listing-columns-url="#args.saveListingColumnsUrl#"
 		    data-save-listing-view-url="#args.saveListingViewUrl#"
 		    data-update-listing-view-url="#args.updateListingViewUrl#"

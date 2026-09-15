@@ -15,15 +15,18 @@
 		this.config           = options.config || {};
 		this.urls             = options.urls || {};
 		this.objectName       = options.objectName || "";
-		this.listingKey       = options.listingKey || this.objectName;
+		this.listingKey            = options.listingKey || this.objectName;
+		this.listingContextKey     = options.listingContextKey || this.config.listingContextKey || "";
+		this.listingContextLabel   = options.listingContextLabel || this.config.listingContextLabel || "";
+		this.namedListingContext   = !!( options.namedListingContext || this.config.namedListingContext );
 		this.getSnapshot      = options.getSnapshot || function(){ return {}; };
 		this.applySnapshot    = options.applySnapshot || function(){};
-		this.applyDefault     = options.applyDefault || function(){};
+		this.applyDefault      = options.applyDefault || function(){};
+		this.persistActiveView = options.persistActiveView || function(){};
 		this.defaultColumnSet = ( this.config.currentColumns || [] ).slice();
 		this.activeId         = "default";
 		this.editing          = false;
 		this.suppressPrefSave = false;
-		this.storageKey       = "PresideListingView_" + this.listingKey;
 		this.onLockChange     = options.onLockChange || function(){};
 
 		this._bind();
@@ -80,19 +83,18 @@
 	};
 
 	PresideListingViews.prototype.restore = function() {
-		var stored = window.localStorage.getItem( this.storageKey )
+		var stored = this.config.activeView || "default"
 		  , view;
 
 		if ( stored && stored !== "default" ) {
 			view = this._viewById( stored );
 			if ( view ) {
-				this.applyNamedView( stored, { skipDraw : true } );
+				this.applyNamedView( stored, { skipDraw : true, skipPersist : true } );
 				return;
 			}
 		}
 
 		this.activeId = "default";
-		this._persist();
 		this.render();
 	};
 
@@ -179,7 +181,7 @@
 		this.suppressPrefSave = true;
 		this.activeId = view.id;
 		this.editing  = false;
-		this._persist();
+		this._persist( opts );
 		this.applySnapshot( view, opts || {} );
 		this.suppressPrefSave = false;
 		this.render();
@@ -191,7 +193,7 @@
 		this.suppressPrefSave = true;
 		this.activeId = "default";
 		this.editing  = false;
-		this._persist();
+		this._persist( opts );
 		this.applyDefault( {
 			  columns  : this.defaultColumnSet
 			, skipDraw : !!( opts && opts.skipDraw )
@@ -346,6 +348,15 @@
 
 		qs.push( "object=" + encodeURIComponent( this.objectName ) );
 		qs.push( "listingKey=" + encodeURIComponent( this.listingKey ) );
+		if ( this.listingContextKey ) {
+			qs.push( "listingContextKey=" + encodeURIComponent( this.listingContextKey ) );
+		}
+		if ( this.listingContextLabel ) {
+			qs.push( "listingContextLabel=" + encodeURIComponent( this.listingContextLabel ) );
+		}
+		if ( this.namedListingContext ) {
+			qs.push( "namedListingContext=true" );
+		}
 		if ( renaming ) {
 			qs.push( "viewId=" + encodeURIComponent( existing.id ) );
 		}
@@ -458,7 +469,6 @@
 		this._post( this.urls.update, {
 			  viewId      : view.id
 			, label       : view.label
-			, description : view.description || ""
 			, columns     : ( snapshot.columns || [] ).join( "," )
 			, filterState : JSON.stringify( snapshot.filterState || {} )
 		}, function( updated ){
@@ -509,6 +519,8 @@
 		payload = $.extend( {
 			  object               : this.objectName
 			, listingKey           : this.listingKey
+			, listingContextKey    : this.listingContextKey
+			, namedListingContext  : this.namedListingContext
 			, grantedGridFields    : ( this.config.grantedColumns || [] ).join( "," )
 			, grantedGridFieldsSig : this.config.grantedColumnsSig || ""
 		}, data || {} );
@@ -616,8 +628,11 @@
 		} );
 	};
 
-	PresideListingViews.prototype._persist = function() {
-		window.localStorage.setItem( this.storageKey, this.activeId );
+	PresideListingViews.prototype._persist = function( opts ) {
+		if ( opts && opts.skipPersist ) {
+			return;
+		}
+		this.persistActiveView( this.activeId );
 	};
 
 } )( presideJQuery );

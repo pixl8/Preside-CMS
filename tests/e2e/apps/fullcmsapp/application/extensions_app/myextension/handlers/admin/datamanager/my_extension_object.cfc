@@ -1,5 +1,12 @@
 component {
 
+	private string function listingViewlet( event, rc, prc, args={} ) {
+		args.listingContextKey   = "e2eStarred";
+		args.listingContextLabel = "Starred alphas";
+
+		return renderViewlet( event="admin.datamanager._objectListingViewlet", args=args );
+	}
+
 	private array function getEverythingBarActions( event, rc, prc, args={} ) {
 		return [{
 			  id           = "e2eAskFilter"

@@ -8,14 +8,14 @@ This form is used for creating and renaming listing views, including filter-styl
 	<tab id="default" sortorder="10">
 		<fieldset id="labelling" sortorder="10">
 			<field binding="admin_datatable_saved_view.label"       control="textinput" required="true" maxlength="100" sortorder="10" />
-			<field binding="admin_datatable_saved_view.description" control="textarea"  maxlength="500" sortorder="20" />
 		</fieldset>
 		<fieldset id="sharing" sortorder="20">
+			<field name="context_scope" control="listingViewContextScope" sortorder="10" defaultValue="this" required="true" />
 			<field binding="admin_datatable_saved_view.sharing_scope" control="listingViewSharingScope" sortorder="10" defaultValue="global" required="true" />
 		</fieldset>
 		<fieldset id="group-filter" sortorder="30">
-			<field binding="admin_datatable_saved_view.user_groups"      sortorder="10" objectFilters="myAdminGroups" />
-			<field binding="admin_datatable_saved_view.allow_group_edit" sortorder="20" />
+			<field binding="admin_datatable_saved_view.user_groups"      sortorder="30" objectFilters="myAdminGroups" />
+			<field binding="admin_datatable_saved_view.allow_group_edit" sortorder="40" />
 		</fieldset>
 	</tab>
 </form>

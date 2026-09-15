@@ -34,6 +34,9 @@
 			  , allowColumnFilter        = !( tableSettings.allowColumnFilter === false || tableSettings.allowColumnFilter === "false" )
 			  , allowSavedViews          = tableSettings.allowSavedViews === true || tableSettings.allowSavedViews === "true"
 			  , listingKey               = tableSettings.listingKey               || object
+			  , listingContextKey        = tableSettings.listingContextKey        || ""
+			  , listingContextLabel      = tableSettings.listingContextLabel      || ""
+			  , namedListingContext      = tableSettings.namedListingContext === true || tableSettings.namedListingContext === "true"
 			  , saveListingColumnsUrl    = tableSettings.saveListingColumnsUrl    || ""
 			  , saveListingViewUrl       = tableSettings.saveListingViewUrl       || ""
 			  , updateListingViewUrl     = tableSettings.updateListingViewUrl     || ""
@@ -75,7 +78,7 @@
 			  , captureColumnSearch, getListingViewSnapshot, applyListingViewSnapshot, applyListingDefaultView
 			  , applyColumnSearch, setAdvancedFilter, normalizeFilterState, normalizeColumnSearchMap
 			  , expressionsFromStoredColumnSearch, columnControlStateFromSearch, syncViewFilterLock
-			  , setupListingViews, andExpressionArrays
+			  , setupListingViews, andExpressionArrays, listingPreferencePayload, persistActiveView, persistListingTableState
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -454,20 +457,24 @@
 				}
 
 				listingViews = new PresideListingViews( {
-					  $toolbar      : $toolbar
-					, config        : toolbarConfig
-					, objectName    : object
-					, listingKey    : listingKey
-					, urls          : {
+					  $toolbar          : $toolbar
+					, config            : toolbarConfig
+					, objectName        : object
+					, listingKey        : listingKey
+					, listingContextKey : listingContextKey || toolbarConfig.listingContextKey || ""
+					, listingContextLabel : listingContextLabel || toolbarConfig.listingContextLabel || ""
+					, namedListingContext : namedListingContext || toolbarConfig.namedListingContext || false
+					, urls              : {
 						  save   : saveListingViewUrl
 						, update : updateListingViewUrl
 						, delete : deleteListingViewUrl
 						, form   : saveListingViewFormUrl
 					  }
-					, getSnapshot   : getListingViewSnapshot
-					, applySnapshot : applyListingViewSnapshot
-					, applyDefault  : applyListingDefaultView
-					, onLockChange  : syncViewFilterLock
+					, getSnapshot       : getListingViewSnapshot
+					, applySnapshot     : applyListingViewSnapshot
+					, applyDefault      : applyListingDefaultView
+					, persistActiveView : persistActiveView
+					, onLockChange      : syncViewFilterLock
 				} );
 				listingViews.restore();
 				syncViewFilterLock();
@@ -1162,6 +1169,50 @@
 				return expressions;
 			};
 
+			listingPreferencePayload = function( extra ) {
+				return $.extend( {
+					  object               : object
+					, listingKey           : listingKey
+					, listingContextKey    : listingContextKey || toolbarConfig.listingContextKey || ""
+					, namedListingContext  : namedListingContext || toolbarConfig.namedListingContext || false
+					, grantedGridFields    : ( toolbarConfig.grantedColumns || [] ).join( "," )
+					, grantedGridFieldsSig : toolbarConfig.grantedColumnsSig || ""
+				}, extra || {} );
+			};
+
+			persistListingTableState = function( key, data ) {
+				var payload = JSON.stringify( data )
+				  , i, storageKey;
+
+				try {
+					window.localStorage.setItem( key, payload );
+					return;
+				} catch ( e ) {}
+
+				for( i=window.localStorage.length - 1; i>=0; i-- ) {
+					storageKey = window.localStorage.key( i );
+					if ( storageKey && storageKey.indexOf( "DataTables_listing_" ) === 0 ) {
+						window.localStorage.removeItem( storageKey );
+					}
+				}
+
+				try {
+					window.localStorage.setItem( key, payload );
+				} catch ( retry ) {}
+			};
+
+			persistActiveView = function( viewId ) {
+				if ( !saveListingColumnsUrl ) {
+					return;
+				}
+
+				$.ajax( {
+					  url  : saveListingColumnsUrl
+					, type : "POST"
+					, data : listingPreferencePayload( { activeView : viewId || "default" } )
+				} );
+			};
+
 			saveVisibleColumns = function() {
 				var fields;
 
@@ -1182,13 +1233,7 @@
 					$.ajax( {
 						  url  : saveListingColumnsUrl
 						, type : "POST"
-						, data : {
-							  object               : object
-							, listingKey           : listingKey
-							, columns              : fields.join( "," )
-							, grantedGridFields    : ( toolbarConfig.grantedColumns || [] ).join( "," )
-							, grantedGridFieldsSig : toolbarConfig.grantedColumnsSig || ""
-						  }
+						, data : listingPreferencePayload( { columns : fields.join( "," ) } )
 						, error : function() {
 							$.gritter.add({
 								  title      : i18n.translateResource( "cms:error.notification.title", { defaultValue : "Error" } )
@@ -1501,7 +1546,7 @@
 					$.ajax( {
 						  url  : saveListingColumnsUrl
 						, type : "POST"
-						, data : { object : object, listingKey : listingKey, columns : "" }
+						, data : listingPreferencePayload( { columns : "" } )
 						, success : function() {
 							window.location.reload();
 						  }
@@ -1753,8 +1798,13 @@
 					}
 					, stateLoadCallback : function( settings, callback ) {
 						var key = "DataTables_listing_" + tableId
-						  , raw = window.localStorage.getItem( key )
-						  , parsed, migrated;
+						  , raw, parsed, migrated;
+
+						try {
+							raw = window.localStorage.getItem( key );
+						} catch ( e ) {
+							raw = null;
+						}
 
 						if ( raw ) {
 							try { parsed = JSON.parse( raw ); } catch( e ) { parsed = null; }
@@ -1772,7 +1822,7 @@
 					}
 					, stateSaveCallback : function( settings, data ) {
 						delete data.colReorder;
-						window.localStorage.setItem( "DataTables_listing_" + tableId, JSON.stringify( data ) );
+						persistListingTableState( "DataTables_listing_" + tableId, data );
 					}
 					, preDrawCallback : function() {
 						var $sheenTarget = $listingTable.closest( ".dt-container" );
