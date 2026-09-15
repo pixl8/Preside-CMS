@@ -14,6 +14,7 @@ component {
 	 * @enumService.inject                 enumService
 	 * @sessionStorage.inject              sessionStorage
 	 * @rulesEngineFilterService.inject    featureInjector:rulesEngine:rulesEngineFilterService
+	 * @dataManagerDefaults.inject         coldbox:setting:dataManager.defaults
 	 */
 	public any function init(
 		  required any dataManagerService
@@ -21,12 +22,14 @@ component {
 		, required any enumService
 		, required any sessionStorage
 		,          any rulesEngineFilterService
+		,          any dataManagerDefaults
 	) {
 		_setDataManagerService( arguments.dataManagerService );
 		_setCustomizationService( arguments.customizationService );
 		_setEnumService( arguments.enumService );
 		_setSessionStorage( arguments.sessionStorage );
 		_setRulesEngineFilterService( arguments.rulesEngineFilterService ?: NullValue() );
+		_setDataManagerDefaults( IsStruct( arguments.dataManagerDefaults ?: "" ) ? arguments.dataManagerDefaults : {} );
 
 		return this;
 	}
@@ -54,9 +57,38 @@ component {
 		return [];
 	}
 
+	public boolean function listingAllowsSavedViews(
+		  required string  objectName
+		,          boolean allowColumnPicker = true
+		,          boolean compact           = false
+		,          any     allowSavedViews
+	) {
+		var annotated = "";
+
+		if ( arguments.compact ) {
+			return false;
+		}
+		if ( _hasExplicitSavedViewsFlag( argumentCollection=arguments ) ) {
+			return $helpers.isTrue( arguments.allowSavedViews );
+		}
+
+		annotated = $getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerAllowSavedViews"
+			, defaultValue  = ""
+		);
+		if ( IsBoolean( annotated ) ) {
+			return $helpers.isTrue( annotated );
+		}
+
+		return arguments.allowColumnPicker;
+	}
+
 	/**
 	 * Default pool is `@datamanagerGridFields` plus `@datamanagerHiddenGridFields`
-	 * and optional `@datamanagerColumnPickerFields`. Picker field lists accept `*`
+	 * and optional `@datamanagerColumnPickerFields`. When the object omits that
+	 * annotation, `dataManager.defaults.columnPickerFields` is used (empty string
+	 * unless the application sets e.g. `*`). Picker field lists accept `*`
 	 * wildcards and `!` exclusions, e.g. `*,!sensitive_col`. Properties may opt in
 	 * or out with `datamanagerUserColumn=true|false`. Locked columns come from
 	 * `@datamanagerLockedGridFields` (label field if unset). Handlers can replace
@@ -89,6 +121,9 @@ component {
 			, attributeName = "datamanagerColumnPickerFields"
 			, defaultValue  = ""
 		);
+		if ( !Len( Trim( pickerAttr ) ) ) {
+			pickerAttr = _defaultColumnPickerFields();
+		}
 		var pickerPatterns = ListToArray( ReReplace( pickerAttr, "\s+", "", "all" ), "," );
 		var pickerSpec     = _resolveColumnPickerFields( patterns=pickerPatterns, properties=properties );
 		var excluded       = Duplicate( pickerSpec.excluded );
@@ -1320,11 +1355,36 @@ component {
 		return unique;
 	}
 
+	private boolean function _hasExplicitSavedViewsFlag() {
+		if ( !StructKeyExists( arguments, "allowSavedViews" ) || IsNull( arguments.allowSavedViews ) ) {
+			return false;
+		}
+
+		return IsBoolean( arguments.allowSavedViews ) || Len( Trim( arguments.allowSavedViews ) );
+	}
+
+	private string function _defaultColumnPickerFields() {
+		var defaults = _getDataManagerDefaults();
+
+		if ( !IsStruct( defaults ) ) {
+			return "";
+		}
+
+		return Trim( defaults.columnPickerFields ?: "" );
+	}
+
 	private any function _getDataManagerService() {
 		return _dataManagerService;
 	}
 	private void function _setDataManagerService( required any dataManagerService ) {
 		_dataManagerService = arguments.dataManagerService;
+	}
+
+	private any function _getDataManagerDefaults() {
+		return _dataManagerDefaults ?: {};
+	}
+	private void function _setDataManagerDefaults( required any dataManagerDefaults ) {
+		_dataManagerDefaults = arguments.dataManagerDefaults;
 	}
 
 	private any function _getCustomizationService() {

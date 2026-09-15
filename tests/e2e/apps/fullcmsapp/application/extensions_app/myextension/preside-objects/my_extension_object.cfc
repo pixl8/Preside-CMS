@@ -3,7 +3,6 @@
  * @datamanagerGridFields          label,status,category,datecreated
  * @datamanagerColumnPickerFields  *,!sensitive_col,!other_sensitive_col
  * @datamanagerDefaultSortOrder    label
- * @datamanagerAllowSavedViews     true
  * @versioned                      false
  *
  */

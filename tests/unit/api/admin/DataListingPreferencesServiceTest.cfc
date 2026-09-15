@@ -133,6 +133,75 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( ArrayFindNoCase( result, "sensitive_col" ) ).toBe( 0 );
 				expect( ArrayFindNoCase( result, "other_sensitive_col" ) ).toBe( 0 );
 			} );
+
+			it( "should use the global column picker default when the object has no picker annotation", function(){
+				var svc           = _getService( { columnPickerFields="*" } );
+				var mockPoService = createStub();
+
+				variables.mockDataManager.$( "listGridFields" ).$args( "my_extension_object" ).$results( [ "label" ] );
+				variables.mockDataManager.$( "listHiddenGridFields" ).$args( "my_extension_object" ).$results( [] );
+				variables.mockDataManager.$( "listSearchFields" ).$args( "my_extension_object" ).$results( [] );
+				mockPoService.$( "getObjectAttribute", "" );
+				mockPoService.$( "getObjectProperties", {
+					  label         = { name="label" }
+					, notes         = { name="notes" }
+					, datemodified  = { name="datemodified" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				var result = svc.listAvailableColumns( objectName="my_extension_object" );
+
+				expect( ArrayFindNoCase( result, "notes" ) ).toBeGT( 0 );
+				expect( ArrayFindNoCase( result, "datemodified" ) ).toBeGT( 0 );
+			} );
+		} );
+
+		describe( "listingAllowsSavedViews()", function(){
+			it( "should default to the column picker flag when the object has no saved-views annotation", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				mockPoService.$( "getObjectAttribute", "" );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				expect( svc.listingAllowsSavedViews( objectName="crm_contact", allowColumnPicker=true ) ).toBeTrue();
+				expect( svc.listingAllowsSavedViews( objectName="crm_contact", allowColumnPicker=false ) ).toBeFalse();
+			} );
+
+			it( "should honour an explicit object annotation over the column picker flag", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = "crm_contact"
+					, attributeName = "datamanagerAllowSavedViews"
+					, defaultValue  = ""
+				).$results( false );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				expect( svc.listingAllowsSavedViews( objectName="crm_contact", allowColumnPicker=true ) ).toBeFalse();
+			} );
+
+			it( "should stay off for compact listings even when columns can be edited", function(){
+				var svc = _getService();
+
+				expect( svc.listingAllowsSavedViews(
+					  objectName        = "crm_contact"
+					, allowColumnPicker = true
+					, compact           = true
+					, allowSavedViews   = true
+				) ).toBeFalse();
+			} );
+
+			it( "should honour an explicit listing flag", function(){
+				var svc = _getService();
+
+				expect( svc.listingAllowsSavedViews(
+					  objectName        = "crm_contact"
+					, allowColumnPicker = true
+					, allowSavedViews   = false
+				) ).toBeFalse();
+			} );
 		} );
 
 		describe( "mergeExpressionArrays()", function(){
@@ -370,7 +439,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 	}
 
-	private any function _getService() {
+	private any function _getService( struct dataManagerDefaults ) {
+		var mockHelpers = createStub();
+		var svc         = "";
+
 		variables.mockDataManager    = createStub();
 		variables.mockCustomization  = createStub();
 		variables.mockEnum           = createStub();
@@ -380,13 +452,21 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		variables.mockSessionStorage.$( "getVar", "unit-test-listing-hmac-key" );
 		variables.mockSessionStorage.$( "setVar" );
 
-		return CreateMock( object=new preside.system.services.admin.DataListingPreferencesService(
+		svc = CreateMock( object=new preside.system.services.admin.DataListingPreferencesService(
 			  dataManagerService       = variables.mockDataManager
 			, customizationService     = variables.mockCustomization
 			, enumService              = variables.mockEnum
 			, sessionStorage           = variables.mockSessionStorage
 			, rulesEngineFilterService = NullValue()
+			, dataManagerDefaults      = arguments.dataManagerDefaults ?: { columnPickerFields="" }
 		) );
+
+		svc.$property( propertyName="$helpers", mock=mockHelpers );
+		mockHelpers.$( method="isTrue", callback=function( val ){
+			return IsBoolean( arguments.val ?: "" ) && arguments.val;
+		} );
+
+		return svc;
 	}
 
 }

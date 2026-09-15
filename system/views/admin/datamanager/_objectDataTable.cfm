@@ -86,14 +86,15 @@
 	savedExportsLink  = args.savedExportsLink ?: "";
 	allowColumnPicker  = IsTrue( args.allowColumnPicker ?: !IsTrue( args.compact ) );
 	allowColumnFilter  = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ) ) && args.allowFilter;
-	if ( !StructKeyExists( args, "allowSavedViews" ) ) {
-		args.allowSavedViews = IsTrue( getSingleton( "presideObjectService" ).getObjectAttribute(
-			  objectName    = args.objectName
-			, attributeName = "datamanagerAllowSavedViews"
-			, defaultValue  = ""
-		) );
+	savedViewArgs      = {
+		  objectName        = args.objectName
+		, allowColumnPicker = allowColumnPicker
+		, compact           = IsTrue( args.compact )
+	};
+	if ( StructKeyExists( args, "allowSavedViews" ) ) {
+		savedViewArgs.allowSavedViews = args.allowSavedViews;
 	}
-	allowSavedViews    = IsTrue( args.allowSavedViews ) && !IsTrue( args.compact );
+	allowSavedViews    = getSingleton( "dataListingPreferencesService" ).listingAllowsSavedViews( argumentCollection=savedViewArgs );
 	canShareViews      = allowSavedViews && IsTrue( args.canShareViews ?: false );
 	showListingToolbar = IsTrue( args.allowSearch ) || ( args.allowFilter && allowUseFilter ) || allowSavedViews;
 	everythingBarPlaceholder = translateResource(

@@ -177,18 +177,15 @@ component extends="preside.system.base.AdminHandler" {
 			args.allowColumnFilter    = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ?: false ) );
 			args.listingPreferenceKey = args.listingPreferenceKey ?: objectName;
 
-			if ( !StructKeyExists( args, "allowSavedViews" ) ) {
-				args.allowSavedViews = IsTrue( presideObjectService.getObjectAttribute(
-					  objectName    = objectName
-					, attributeName = "datamanagerAllowSavedViews"
-					, defaultValue  = ""
-				) );
+			var savedViewArgs = {
+				  objectName        = objectName
+				, allowColumnPicker = args.allowColumnPicker
+				, compact           = IsTrue( args.compact ?: false )
+			};
+			if ( StructKeyExists( args, "allowSavedViews" ) ) {
+				savedViewArgs.allowSavedViews = args.allowSavedViews;
 			}
-			if ( IsTrue( args.compact ?: false ) ) {
-				args.allowSavedViews = false;
-			} else {
-				args.allowSavedViews = IsTrue( args.allowSavedViews );
-			}
+			args.allowSavedViews = dataListingPreferencesService.listingAllowsSavedViews( argumentCollection=savedViewArgs );
 			args.canShareViews = args.allowSavedViews && _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
 
 			if ( args.allowColumnPicker ) {
@@ -3675,11 +3672,10 @@ component extends="preside.system.base.AdminHandler" {
 	) {
 		_checkPermission( argumentCollection=arguments, key="read", object=arguments.objectName, throwOnError=true );
 
-		if ( !Len( Trim( arguments.objectName ) ) || !IsTrue( presideObjectService.getObjectAttribute(
-			  objectName    = arguments.objectName
-			, attributeName = "datamanagerAllowSavedViews"
-			, defaultValue  = ""
-		) ) ) {
+		if ( !Len( Trim( arguments.objectName ) ) || !dataListingPreferencesService.listingAllowsSavedViews(
+			  objectName        = arguments.objectName
+			, allowColumnPicker = true
+		) ) {
 			event.adminAccessDenied();
 		}
 	}
