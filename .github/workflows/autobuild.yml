@@ -155,6 +155,7 @@ jobs:
         with:
           browser: chrome
           working-directory: tests/e2e/tests
+          config: viewportWidth=1400,viewportHeight=900,defaultCommandTimeout=10000
 
       - name: Upload Cypress screenshots
         if: failure()

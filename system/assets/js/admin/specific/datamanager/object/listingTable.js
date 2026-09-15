@@ -1410,6 +1410,10 @@
 					return;
 				}
 
+				$container.off( ".listingHotkeys" ).on( "keydown.listingHotkeys keypress.listingHotkeys keyup.listingHotkeys", ".dtcc-dropdown input, .dtcc-search input, .listing-colvis-list input", function( e ) {
+					e.stopPropagation();
+				} );
+
 				$listingTable.on( "column-visibility.dt", function( e, settings, column, visible ) {
 					if ( !columnUiReady ) {
 						return;

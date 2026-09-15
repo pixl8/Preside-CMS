@@ -41,10 +41,10 @@ describe( 'Saved listing views', () => {
 		cy.wait( 500 );
 		cy.get( '@saveListingColumns.all' ).should( 'have.length', 0 );
 
-		cy.get( 'body' ).click( 0, 0 );
+		cy.closeListingOverlays();
 		cy.openListingViews();
 		cy.get( '[data-view-action="save-changes"]' ).should( 'not.exist' );
-		cy.get( 'body' ).click( 0, 0 );
+		cy.closeListingOverlays();
 
 		cy.reload();
 		cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
@@ -60,7 +60,7 @@ describe( 'Saved listing views', () => {
 		cy.get( '@saveListingColumns.all' ).should( 'have.length', 0 );
 
 		cy.intercept( 'POST', /updateListingView/ ).as( 'updateListingView' );
-		cy.get( 'body' ).click( 0, 0 );
+		cy.closeListingOverlays();
 		cy.openListingViews();
 		cy.get( '[data-view-action="save-changes"]' ).click();
 		cy.wait( '@updateListingView' ).its( 'response.statusCode' ).should( 'eq', 200 );
@@ -100,7 +100,7 @@ describe( 'Saved listing views', () => {
 
 		cy.editListingView();
 		cy.hideListingColumn( 'Status' );
-		cy.get( 'body' ).click( 0, 0 );
+		cy.closeListingOverlays();
 		cy.get( '.object-listing-table thead th.listing-data-column' ).should( 'not.contain.text', 'Status' );
 		cy.get( '.everything-chip-column' ).should( 'contain.text', 'draft' );
 		cy.get( '.object-listing-table tbody tr', { timeout : 15000 } ).should( 'have.length', 5 );

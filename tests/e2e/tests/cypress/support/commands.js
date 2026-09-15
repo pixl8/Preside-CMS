@@ -125,8 +125,13 @@ Cypress.Commands.add( 'hideListingColumn', ( label ) => {
 		.uncheck();
 } );
 
+Cypress.Commands.add( 'closeListingOverlays', () => {
+	cy.get( 'body' ).type( '{esc}', { force : true } );
+} );
+
 Cypress.Commands.add( 'filterListingColumnEquals', ( columnLabel, value ) => {
 	cy.contains( '.object-listing-table thead th.listing-data-column', columnLabel )
+		.scrollIntoView()
 		.find( 'button[aria-label="Filter"]' )
 		.click( { force : true } );
 	cy.get( '.dtcc-dropdown:visible .dtcc-search input' )
@@ -134,7 +139,8 @@ Cypress.Commands.add( 'filterListingColumnEquals', ( columnLabel, value ) => {
 		.should( 'be.visible' )
 		.clear()
 		.type( value, { delay : 30 } );
-	cy.get( 'body' ).click( 0, 0 );
+	cy.get( '.everything-chip-column', { timeout : 15000 } ).should( 'contain.text', value );
+	cy.closeListingOverlays();
 } );
 
 Cypress.Commands.add( 'editListingView', () => {
