@@ -6,9 +6,8 @@
 		  , disableSort       = $listingTable.data( "disableSort" )
 		  , defaultPageLength = $listingTable.data( "defaultPageLength" )
 		  , paginationOptions = $listingTable.data( "paginationOptions" )
-		  , tableMarkup    = disableSearch ?
-		  		  "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>"
-		  		: "<'well'fr>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
+		  , layout
+		  , tableOptions;
 
 		if ( typeof defaultPageLength == "undefined" ) {
 		 	defaultPageLength = "10";
@@ -17,56 +16,81 @@
 			paginationOptions = "5,10,25,50,100";
 		}
 
+		layout = {
+			  topStart    : null
+			, topEnd      : null
+			, bottomStart : "info"
+			, bottomEnd   : [ "pageLength", "paging" ]
+		};
 
-		$listingTable.dataTable({
-			sDom : tableMarkup,
-			bSort : !disableSort,
-			iDisplayLength: parseInt( defaultPageLength ),
-			aLengthMenu   : paginationOptions.split( "," ),
-			fnInitComplete : function( settings ){
+		if ( !disableSearch ) {
+			layout.top = "search";
+		}
+
+		tableOptions = {
+			  layout     : layout
+			, ordering   : disableSort ? false : { indicators : false, handler : false }
+			, searching  : !disableSearch
+			, pageLength : parseInt( defaultPageLength, 10 )
+			, lengthMenu : paginationOptions.toString().split( "," ).map( function( n ){ return parseInt( n, 10 ); } )
+			, autoWidth  : false
+			, initComplete : function(){
+				var api, $input, $icon, placeholder;
+
 				if ( disableSearch ) { return; }
 
-				var $searchContainer = $( settings.aanFeatures.f[0] )
-				  , $input           = $searchContainer.find( "input" ).first();
+				api    = this.api ? this.api() : undefined;
+				$input = api
+					? $( api.table().container() ).find( ".dt-search input, input[type=search]" ).first()
+					: $listingTable.closest( ".dt-container, .dataTables_wrapper" ).find( ".dt-search input, input[type=search]" ).first();
 
+				if ( !$input.length ) { return; }
+
+				placeholder = i18n.translateResource( "cms:datamanager.search.placeholder", { data : [ objectTitle ], defaultValue : "" } );
+
+				$input.removeClass( "input-sm" );
 				$input.addClass( "data-table-search" );
 				$input.attr( "data-global-key", "s" );
 				$input.attr( "autocomplete", "off" );
+				if ( placeholder ) {
+					$input.attr( "placeholder", placeholder );
+				}
+				$icon = $( '<i class="fa fa-search data-table-search-icon"></i>' );
 				$input.wrap( '<span class="input-icon"></span>' );
-				$input.after( '<i class="fa fa-search data-table-search-icon"></i>' );
-
-				$input.keydown( "down", function( e ){
-					var $firstResult = $listingTable.find( 'tbody tr:first a:first' );
-
-					if ( $firstResult.length ) {
-						$firstResult.focus();
-					}
-				} );
-			},
-			oLanguage : {
-				oAria : {
-					sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
-					sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
-				},
-				oPaginate : {
-					sFirst : i18n.translateResource( "cms:datatables.first", { data : [objectTitle], defaultValue : "" } ),
-					sLast : i18n.translateResource( "cms:datatables.last", { data : [objectTitle], defaultValue : "" } ),
-					sNext : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "" } ),
-					sPrevious : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "" } )
-				},
-				sEmptyTable : i18n.translateResource( "cms:datatables.emptyTable", { data : [objectTitle], defaultValue : "" } ),
-				sInfo : i18n.translateResource( "cms:datatables.info", { data : [objectTitle], defaultValue : "" } ),
-				sInfoEmpty : i18n.translateResource( "cms:datatables.infoEmpty", { data : [objectTitle], defaultValue : "" } ),
-				sInfoFiltered : i18n.translateResource( "cms:datatables.infoFiltered", { data : [objectTitle], defaultValue : "" } ),
-				sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [objectTitle], defaultValue : "" } ),
-				sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [objectTitle], defaultValue : "" } ),
-				sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [objectTitle], defaultValue : "" } ),
-				sProcessing : i18n.translateResource( "cms:datatables.processing", { data : [objectTitle], defaultValue : "" } ),
-				sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [objectTitle], defaultValue : "" } ),
-				sSearch : '',
-				sUrl : '',
-				sInfoPostFix : ''
+				$input.before( $icon );
 			}
-		});
+			, language : {
+				  emptyTable     : i18n.translateResource( "cms:datatables.emptyTable", { data : [objectTitle], defaultValue : "" } )
+				, info           : i18n.translateResource( "cms:datatables.info", { data : [objectTitle], defaultValue : "" } )
+				, infoEmpty      : i18n.translateResource( "cms:datatables.infoEmpty", { data : [objectTitle], defaultValue : "" } )
+				, infoFiltered   : i18n.translateResource( "cms:datatables.infoFiltered", { data : [objectTitle], defaultValue : "" } )
+				, thousands      : i18n.translateResource( "cms:datatables.infoThousands", { data : [objectTitle], defaultValue : "" } )
+				, lengthMenu     : i18n.translateResource( "cms:datatables.lengthMenu", { data : [objectTitle], defaultValue : "" } )
+				, loadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [objectTitle], defaultValue : "" } )
+				, processing     : i18n.translateResource( "cms:datatables.processing", { data : [objectTitle], defaultValue : "" } )
+				, zeroRecords    : i18n.translateResource( "cms:datatables.zeroRecords", { data : [objectTitle], defaultValue : "" } )
+				, search         : ""
+				, paginate : {
+					  first    : '<i class="fa fa-angle-double-left"></i>'
+					, previous : '<i class="fa fa-chevron-left"></i>'
+					, next     : '<i class="fa fa-chevron-right"></i>'
+					, last     : '<i class="fa fa-angle-double-right"></i>'
+				  }
+				, aria : {
+					paginate : {
+						  first    : i18n.translateResource( "cms:datatables.first", { data : [objectTitle], defaultValue : "First" } )
+						, previous : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "Previous" } )
+						, next     : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "Next" } )
+						, last     : i18n.translateResource( "cms:datatables.last", { data : [objectTitle], defaultValue : "Last" } )
+					}
+				  }
+			}
+		};
+
+		if ( !disableSort && window.DataTable && DataTable.ColumnControl ) {
+			tableOptions.columnControl = [ { target : 0, content : [ "order" ] } ];
+		}
+
+		$listingTable.DataTable( tableOptions );
 	} );
 } )( presideJQuery );
