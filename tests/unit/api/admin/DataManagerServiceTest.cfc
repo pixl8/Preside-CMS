@@ -228,6 +228,45 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dataManagerService.areDraftsEnabledForObject( objectName ) ).toBeTrue();
 			} );
 		} );
+
+		describe( "_prepareOrderByForObject()", function(){
+			it( "should order many-to-one fields by the relationship alias label field", function(){
+				var dataManagerService = _getService();
+
+				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
+					main_contact = { name="main_contact", relationship="many-to-one", relatedTo="crm_contact" }
+				} );
+				makePublic( dataManagerService, "_prepareOrderByForObject" );
+
+				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "main_contact desc" ) ).toBe( "main_contact.${labelfield} desc" );
+			} );
+
+			it( "should still use the relationship alias when the related object label is a formula", function(){
+				var dataManagerService = _getService();
+
+				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
+					main_contact = { name="main_contact", relationship="many-to-one", relatedTo="crm_contact" }
+				} );
+				mockPoService.$( "getObjectProperties" ).$args( "crm_contact" ).$results( {
+					label = { name="label", formula="concat_ws( ' ', ${prefix}first_name, ${prefix}last_name )" }
+				} );
+				mockPoService.$( "getLabelField" ).$args( "crm_contact" ).$results( "label" );
+				makePublic( dataManagerService, "_prepareOrderByForObject" );
+
+				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "main_contact" ) ).toBe( "main_contact.${labelfield}" );
+			} );
+
+			it( "should leave non-relationship order by clauses unchanged", function(){
+				var dataManagerService = _getService();
+
+				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
+					label = { name="label", relationship="none" }
+				} );
+				makePublic( dataManagerService, "_prepareOrderByForObject" );
+
+				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "label asc" ) ).toBe( "label asc" );
+			} );
+		} );
 	}
 
 	private any function _getService() {
