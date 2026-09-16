@@ -236,9 +236,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
 					main_contact = { name="main_contact", relationship="many-to-one", relatedTo="crm_contact" }
 				} );
+				mockPoService.$( "getObjectAttribute" ).$args( "crm_contact", "labelfield", "label" ).$results( "label" );
 				makePublic( dataManagerService, "_prepareOrderByForObject" );
 
-				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "main_contact desc" ) ).toBe( "main_contact.${labelfield} desc" );
+				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "main_contact desc" ) ).toBe( "main_contact.label desc" );
 			} );
 
 			it( "should still use the relationship alias when the related object label is a formula", function(){
@@ -247,13 +248,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
 					main_contact = { name="main_contact", relationship="many-to-one", relatedTo="crm_contact" }
 				} );
-				mockPoService.$( "getObjectProperties" ).$args( "crm_contact" ).$results( {
-					label = { name="label", formula="concat_ws( ' ', ${prefix}first_name, ${prefix}last_name )" }
-				} );
-				mockPoService.$( "getLabelField" ).$args( "crm_contact" ).$results( "label" );
+				mockPoService.$( "getObjectAttribute" ).$args( "crm_contact", "labelfield", "label" ).$results( "label" );
 				makePublic( dataManagerService, "_prepareOrderByForObject" );
 
-				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "main_contact" ) ).toBe( "main_contact.${labelfield}" );
+				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "main_contact" ) ).toBe( "main_contact.label" );
 			} );
 
 			it( "should leave non-relationship order by clauses unchanged", function(){
