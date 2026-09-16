@@ -639,7 +639,7 @@
 				$( document ).trigger( "preside.listing.everythingBar", [ everythingBar ] );
 			};
 
-			setupListingViews = function( opts ) {
+			setupListingViews = function() {
 				if ( !allowSavedViews || !$toolbar.find( ".listing-views" ).length || typeof PresideListingViews === "undefined" ) {
 					return;
 				}
@@ -664,9 +664,7 @@
 					, persistActiveView : persistActiveView
 					, onLockChange      : syncViewFilterLock
 				} );
-				if ( !( opts && opts.skipRestore ) ) {
-					listingViews.restore();
-				}
+				listingViews.restore();
 				syncViewFilterLock();
 			};
 
@@ -2273,6 +2271,7 @@
 				if ( !skipDraw && dtApi ) {
 					scheduleListingDataReload();
 				}
+				pushListingUrl();
 			};
 
 			applyListingDefaultView = function( opts ) {
@@ -2292,6 +2291,7 @@
 				if ( !( opts && opts.skipDraw ) && dtApi ) {
 					scheduleListingDataReload();
 				}
+				pushListingUrl();
 			};
 
 			setupHeaderColumnUi = function() {
@@ -2549,7 +2549,7 @@
 						if ( allowFilter ) {
 							setupFilters();
 						}
-						setupListingViews( { skipRestore : !!listingUrlPending } );
+						setupListingViews();
 						if ( listingUrlPending ) {
 							applyListingUrlState( listingUrlPending, { skipDraw : true } );
 							listingUrlPending = null;
