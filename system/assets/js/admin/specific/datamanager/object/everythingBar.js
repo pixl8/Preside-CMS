@@ -769,6 +769,27 @@
 		this.renderChips();
 	};
 
+	PresideEverythingBar.prototype.setExtraFilters = function( filters ) {
+		var self = this
+		  , next = [];
+
+		$.each( filters || [], function( i, filter ) {
+			var expression = self._normalizeExpression( filter && filter.expression );
+			if ( !expression.length ) {
+				return;
+			}
+			next.push( {
+				  id         : String( filter.id || ( "extra-" + i ) )
+				, label      : filter.label || filter.id || "Filter"
+				, icon       : filter.chipIcon || filter.icon || "magic"
+				, expression : expression
+			} );
+		} );
+
+		this.extraFilters = next;
+		this.renderChips();
+	};
+
 	PresideEverythingBar.prototype.getExtraFilters = function() {
 		return this.extraFilters.slice();
 	};
