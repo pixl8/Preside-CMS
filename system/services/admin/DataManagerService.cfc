@@ -1179,7 +1179,19 @@ component {
 			var fieldRelationship = objectProps[ orderByField ].relationship ?: "";
 
 			if ( fieldRelationship == "many-to-one" ) {
-				newOrderBy.append( orderByField & ".${labelfield}" & ( Len( Trim( orderDirection ) ) ? " " & orderDirection : "" ) );
+				var relatedTo  = objectProps[ orderByField ].relatedTo ?: "";
+				var labelField = "label";
+				var delim      = ".";
+
+				if ( Len( relatedTo ) ) {
+					labelField = _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
+					if ( !Len( Trim( labelField ) ) ) {
+						labelField = "label";
+					}
+				}
+
+				delim = Find( ".", labelField ) ? "$" : ".";
+				newOrderBy.append( orderByField & delim & labelField & ( Len( Trim( orderDirection ) ) ? " " & orderDirection : "" ) );
 			} else {
 				newOrderBy.append( item );
 			}
