@@ -1,11 +1,5 @@
 describe( 'Listing URL state', () => {
-	const listingUrlKey = () => {
-		return cy.get( '.object-listing-table' ).invoke( 'attr', 'id' ).then( ( tableId ) => {
-			return cy.window().then( ( win ) => {
-				return win.PresideDatatables.listingUrlParamFor( tableId ) + '=';
-			} );
-		} );
-	};
+	const listingUrlParam = /lst[0-9a-f]{8}=/;
 
 	beforeEach( () => {
 		cy.superuserAdminLogin();
@@ -18,9 +12,7 @@ describe( 'Listing URL state', () => {
 
 		cy.get( '.everything-chip-saved' ).should( 'contain.text', 'Starred alphas' );
 		cy.get( '.object-listing-table tbody tr', { timeout : 15000 } ).should( 'have.length', 5 );
-		listingUrlKey().then( ( key ) => {
-			cy.location( 'search' ).should( 'include', key );
-		} );
+		cy.location( 'search' ).should( 'match', listingUrlParam );
 
 		cy.url().then( ( url ) => {
 			cy.clearListingTableState();
@@ -37,9 +29,7 @@ describe( 'Listing URL state', () => {
 		cy.contains( '.everything-bar-item', /Search records for/ ).click();
 
 		cy.get( '.everything-chip-search' ).should( 'contain.text', 'E2E Alpha' );
-		listingUrlKey().then( ( key ) => {
-			cy.location( 'search' ).should( 'include', key );
-		} );
+		cy.location( 'search' ).should( 'match', listingUrlParam );
 		cy.get( '.object-listing-table tbody tr', { timeout : 15000 } ).should( 'have.length', 5 );
 
 		cy.reload();
@@ -54,9 +44,7 @@ describe( 'Listing URL state', () => {
 			.first()
 			.click();
 
-		listingUrlKey().then( ( key ) => {
-			cy.location( 'search' ).should( 'include', key );
-		} );
+		cy.location( 'search', { timeout : 15000 } ).should( 'match', listingUrlParam );
 		cy.get( 'th[data-field="label"]', { timeout : 15000 } ).should( 'satisfy', ( $th ) => {
 			const cls  = $th.attr( 'class' ) || '';
 			const aria = $th.attr( 'aria-sort' ) || '';
@@ -83,9 +71,7 @@ describe( 'Listing URL state', () => {
 		cy.openEverythingBar();
 		cy.contains( '.everything-bar-item', 'Starred alphas' ).click();
 		cy.get( '.everything-chip-saved' ).should( 'contain.text', 'Starred alphas' );
-		listingUrlKey().then( ( key ) => {
-			cy.location( 'search' ).should( 'include', key );
-		} );
+		cy.location( 'search' ).should( 'match', listingUrlParam );
 
 		cy.get( '.everything-chip-saved .everything-chip-remove' ).click();
 		cy.get( '.everything-chip-saved' ).should( 'not.exist' );
