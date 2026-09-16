@@ -27,6 +27,8 @@
 		this.onChange              = options.onChange || function(){};
 		this.onRemoveColumnFilter  = options.onRemoveColumnFilter || function(){};
 		this.onApplyView           = options.onApplyView || function(){};
+		this.onApplyAjaxResult     = options.onApplyAjaxResult || function(){ return false; };
+		this.getListingFilterState = options.getListingFilterState || function(){ return {}; };
 
 		this._bind();
 		this.renderChips();
@@ -590,9 +592,10 @@
 			, type     : "POST"
 			, dataType : "json"
 			, data     : {
-				  object     : this.objectName
-				, listingKey : this.listingKey
-				, query      : this.getQuery()
+				  object         : this.objectName
+				, listingKey     : this.listingKey
+				, query          : this.getQuery()
+				, currentFilters : JSON.stringify( this.getCurrentFilters() )
 			  }
 			, success : function( result ) {
 				self.ajaxBusy = false;
@@ -613,26 +616,111 @@
 		} );
 	};
 
+	PresideEverythingBar.prototype.getCurrentFilters = function() {
+		var extra = []
+		  , i, item;
+
+		for( i=0; i<this.extraFilters.length; i++ ) {
+			item = this.extraFilters[ i ];
+			extra.push( {
+				  id         : item.id
+				, label      : item.label
+				, icon       : item.icon
+				, expression : item.expression
+			} );
+		}
+
+		return $.extend( {
+			  search         : this.searchQuery || ""
+			, savedFilterIds : this.activeSaved.slice()
+			, extraFilters   : extra
+		}, this.getListingFilterState() || {} );
+	};
+
 	PresideEverythingBar.prototype._applyAjaxFilterResult = function( item, result ) {
-		var expression;
+		var applied    = false
+		  , extras     = []
+		  , listing    = {}
+		  , expression, savedIds, i;
 
 		if ( !result || ( result.ok !== true && result.success !== true ) ) {
 			return false;
 		}
 
-		expression = this._normalizeExpression( result.expression );
-		if ( !expression.length ) {
-			return false;
+		if ( Object.prototype.hasOwnProperty.call( result, "search" ) ) {
+			this.setSearchQuery( result.search );
+			applied = true;
+		} else if ( Object.prototype.hasOwnProperty.call( result, "searchQuery" ) ) {
+			this.setSearchQuery( result.searchQuery );
+			applied = true;
 		}
 
-		this.addExtraFilter( {
-			  id         : result.id || item.id
-			, label      : result.label || item.label
-			, icon       : result.icon || item.chipIcon || item.icon
-			, expression : expression
+		savedIds = result.savedFilterIds || result.savedfilterids;
+		if ( $.isArray( savedIds ) && savedIds.length && this._addSavedFilterIds( savedIds ) ) {
+			applied = true;
+		}
+
+		extras = result.extraFilters || result.extrafilters;
+		if ( $.isArray( extras ) && extras.length ) {
+			for( i=0; i<extras.length; i++ ) {
+				if ( this.addExtraFilter( extras[ i ] ) ) {
+					applied = true;
+				}
+			}
+		} else {
+			expression = this._normalizeExpression( result.expression );
+			if ( expression.length ) {
+				this.addExtraFilter( {
+					  id         : result.id || item.id
+					, label      : result.label || item.label
+					, icon       : result.icon || item.chipIcon || item.icon
+					, expression : expression
+				} );
+				applied = true;
+			}
+		}
+
+		if ( result.columnSearch && typeof result.columnSearch === "object" ) {
+			listing.columnSearch = result.columnSearch;
+		}
+		if ( $.isArray( result.advancedFilter ) ) {
+			listing.advancedFilter = result.advancedFilter;
+		}
+		if ( result.openAdvancedFilter === true || result.openAdvancedFilter === "true" ) {
+			listing.openAdvancedFilter = true;
+		}
+
+		if ( this.onApplyAjaxResult( listing, result ) ) {
+			applied = true;
+		}
+
+		if ( applied ) {
+			this.renderChips();
+		}
+
+		return applied;
+	};
+
+	PresideEverythingBar.prototype._addSavedFilterIds = function( ids ) {
+		var added = false
+		  , self  = this
+		  , id, existing;
+
+		$.each( ids || [], function( i, rawId ) {
+			id       = String( rawId || "" );
+			existing = self.activeSaved.map( String );
+
+			if ( !id.length || existing.indexOf( id ) !== -1 ) {
+				return;
+			}
+			if ( !self._savedById( id ) ) {
+				return;
+			}
+			self.activeSaved.push( id );
+			added = true;
 		} );
 
-		return true;
+		return added;
 	};
 
 	PresideEverythingBar.prototype._pluginError = function( message ) {
@@ -651,7 +739,7 @@
 		id         = String( filter.id || ( "extra-" + new Date().getTime() ) );
 		expression = this._normalizeExpression( filter.expression );
 		if ( !expression.length ) {
-			return;
+			return false;
 		}
 
 		extra = {
@@ -664,6 +752,8 @@
 		this.extraFilters = this.extraFilters.filter( function( item ){ return String( item.id ) !== id; } );
 		this.extraFilters.push( extra );
 		this.renderChips();
+
+		return true;
 	};
 
 	PresideEverythingBar.prototype.removeExtraFilter = function( id ) {

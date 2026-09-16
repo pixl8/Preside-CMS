@@ -375,6 +375,15 @@ component {
 		return filters;
 	}
 
+	/**
+	 * Extra everything-bar actions from `getEverythingBarActions` (object or global
+	 * customization). Each action may include `endpoint`; the bar POSTs `object`,
+	 * `listingKey`, `query`, and `currentFilters` (JSON of search, savedFilterIds,
+	 * extraFilters, columnSearch, advancedFilter). A successful JSON body (`ok` or
+	 * `success`) may apply any combination of: `search`, `savedFilterIds`,
+	 * `columnSearch`, `extraFilters` (or legacy `expression` + `label`),
+	 * `advancedFilter`, and `openAdvancedFilter`.
+	 */
 	public array function listEverythingBarActions(
 		  required string  objectName
 		,          string  listingKey  = arguments.objectName

@@ -449,6 +449,46 @@
 							listingViews.applyNamedView( viewId );
 						}
 					  }
+					, getListingFilterState  : function(){
+						var advanced = []
+						  , raw      = $filterDiv.find( "[name=filter]" ).val();
+
+						if ( raw && raw.length ) {
+							try { advanced = JSON.parse( raw ); } catch( e ) { advanced = []; }
+						}
+						if ( !$.isArray( advanced ) ) {
+							advanced = [];
+						}
+
+						return {
+							  columnSearch   : $.extend( {}, lastColumnSearch )
+							, advancedFilter : advanced
+						};
+					  }
+					, onApplyAjaxResult      : function( listingResult ){
+						var applied = false
+						  , merged;
+
+						listingResult = listingResult || {};
+
+						if ( listingResult.columnSearch && typeof listingResult.columnSearch === "object" && Object.keys( listingResult.columnSearch ).length ) {
+							merged = $.extend( true, {}, lastColumnSearch, normalizeColumnSearchMap( listingResult.columnSearch ) );
+							applyColumnSearch( merged );
+							syncColumnFilterChips();
+							applied = true;
+						}
+						if ( $.isArray( listingResult.advancedFilter ) ) {
+							setAdvancedFilter( listingResult.advancedFilter );
+							applied = true;
+						}
+						if ( listingResult.openAdvancedFilter && allowUseFilter ) {
+							$filterDiv.removeClass( "hide" );
+							syncAdvancedFilterToggle();
+							applied = true;
+						}
+
+						return applied;
+					  }
 				} );
 				$( document ).trigger( "preside.listing.everythingBar", [ everythingBar ] );
 			};
