@@ -24,7 +24,7 @@ Cypress.Commands.add( 'superuserAdminLogin', () => {
 Cypress.Commands.add( 'clearListingTableState', () => {
 	cy.window().then( ( win ) => {
 		Object.keys( win.localStorage ).forEach( ( key ) => {
-			if ( key.indexOf( 'DataTables_listing_' ) === 0 || key.indexOf( 'PresideListingView_' ) === 0 ) {
+			if ( key.indexOf( 'DataTables_listing_' ) === 0 || key.indexOf( 'PresideListingView_' ) === 0 || key.indexOf( 'PresideListingFilters_' ) === 0 ) {
 				win.localStorage.removeItem( key );
 			}
 		} );

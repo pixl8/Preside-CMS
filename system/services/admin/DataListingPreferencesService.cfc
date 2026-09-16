@@ -383,6 +383,13 @@ component {
 	 * `success`) may apply any combination of: `search`, `savedFilterIds`,
 	 * `columnSearch`, `extraFilters` (or legacy `expression` + `label`),
 	 * `advancedFilter`, and `openAdvancedFilter`.
+	 *
+	 * Listing filter and sort changes are also stored in the page URL as a
+	 * per-table `lst{hash8}` query param, where `hash8` is the first eight hex
+	 * chars of a hash of the table id (base64url JSON of search, saved filter IDs,
+	 * extra filters, advanced filter, column search, and sort). Multiple listings
+	 * on one page do not collide. This gives browser history and shareable listing
+	 * links. Pagination, column layout, and saved views stay out of the param.
 	 */
 	public array function listEverythingBarActions(
 		  required string  objectName

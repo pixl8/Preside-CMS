@@ -5,6 +5,142 @@
  */
 ( function( $ ){
 
+	window.PresideDatatables = window.PresideDatatables || {};
+
+	if ( typeof PresideDatatables.encodeListingUrlState !== "function" ) {
+		PresideDatatables.listingUrlParam = PresideDatatables.listingUrlParam || "lst";
+
+		PresideDatatables._listingUrlIdHash = PresideDatatables._listingUrlIdHash || function( tableId ) {
+			var str = String( tableId || "" )
+			  , h   = 2166136261
+			  , i, hex;
+
+			for( i=0; i<str.length; i++ ) {
+				h ^= str.charCodeAt( i );
+				h = Math.imul( h, 16777619 );
+			}
+
+			hex = ( h >>> 0 ).toString( 16 );
+			while ( hex.length < 8 ) {
+				hex = "0" + hex;
+			}
+
+			return hex;
+		};
+
+		PresideDatatables.listingUrlParamFor = PresideDatatables.listingUrlParamFor || function( tableId ) {
+			return PresideDatatables.listingUrlParam + PresideDatatables._listingUrlIdHash( tableId );
+		};
+
+		PresideDatatables._utf8ToBase64Url = function( str ) {
+			var b64 = btoa( encodeURIComponent( str ).replace( /%([0-9A-F]{2})/g, function( match, hex ) {
+				return String.fromCharCode( parseInt( hex, 16 ) );
+			} ) );
+
+			return b64.replace( /\+/g, "-" ).replace( /\//g, "_" ).replace( /=+$/g, "" );
+		};
+
+		PresideDatatables._base64UrlToUtf8 = function( encoded ) {
+			var b64 = String( encoded || "" ).replace( /-/g, "+" ).replace( /_/g, "/" );
+
+			while ( b64.length % 4 ) {
+				b64 += "=";
+			}
+
+			return decodeURIComponent( Array.prototype.map.call( atob( b64 ), function( ch ) {
+				return "%" + ( "00" + ch.charCodeAt( 0 ).toString( 16 ) ).slice( -2 );
+			} ).join( "" ) );
+		};
+
+		PresideDatatables.compactListingUrlState = function( state ) {
+			var compact = {};
+
+			state = state || {};
+			if ( state.q ) { compact.q = state.q; }
+			if ( state.f && state.f.length ) { compact.f = state.f; }
+			if ( state.a && state.a.length ) { compact.a = state.a; }
+			if ( state.x && state.x.length ) { compact.x = state.x; }
+			if ( state.c && typeof state.c === "object" && Object.keys( state.c ).length ) { compact.c = state.c; }
+			if ( state.o && state.o.length ) { compact.o = state.o; }
+
+			return compact;
+		};
+
+		PresideDatatables.encodeListingUrlState = function( state ) {
+			var compact = PresideDatatables.compactListingUrlState( state );
+
+			if ( !Object.keys( compact ).length ) {
+				return "";
+			}
+
+			try {
+				return PresideDatatables._utf8ToBase64Url( JSON.stringify( compact ) );
+			} catch ( e ) {
+				return "";
+			}
+		};
+
+		PresideDatatables.decodeListingUrlState = function( encoded ) {
+			var raw;
+
+			if ( !encoded ) {
+				return null;
+			}
+
+			try {
+				raw = JSON.parse( PresideDatatables._base64UrlToUtf8( encoded ) );
+			} catch ( e ) {
+				return null;
+			}
+
+			if ( !raw || typeof raw !== "object" ) {
+				return null;
+			}
+
+			return {
+				  q : raw.q || ""
+				, f : $.isArray( raw.f ) ? raw.f : []
+				, a : $.isArray( raw.a ) ? raw.a : []
+				, x : $.isArray( raw.x ) ? raw.x : []
+				, c : raw.c && typeof raw.c === "object" && !$.isArray( raw.c ) ? raw.c : {}
+				, o : $.isArray( raw.o ) ? raw.o : []
+			};
+		};
+
+		PresideDatatables.readListingUrlState = function( tableId ) {
+			try {
+				return PresideDatatables.decodeListingUrlState(
+					new URLSearchParams( window.location.search ).get( PresideDatatables.listingUrlParamFor( tableId ) )
+				);
+			} catch ( e ) {
+				return null;
+			}
+		};
+
+		PresideDatatables.writeListingUrlState = function( encoded, mode, tableId ) {
+			var url, key;
+
+			try {
+				url = new URL( window.location.href );
+			} catch ( e ) {
+				return;
+			}
+
+			key = PresideDatatables.listingUrlParamFor( tableId );
+			if ( encoded ) {
+				url.searchParams.set( key, encoded );
+			} else {
+				url.searchParams.delete( key );
+			}
+
+			if ( mode === "replace" ) {
+				history.replaceState( history.state, document.title, url );
+			} else {
+				history.pushState( history.state, document.title, url );
+			}
+		};
+	}
+
 	if ( window.DataTable && window.DataTable.ColumnControl && window.DataTable.ColumnControl.icons ) {
 		window.DataTable.ColumnControl.icons.filter = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
 		window.DataTable.ColumnControl.icons.filterActive = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
@@ -68,6 +204,12 @@
 			  , filtersPopulated = false
 			  , hasPreFilters    = false
 			  , hasFilterVal     = $filterDiv.find( "[name=filter]" ).length > 0 && $filterDiv.find( "[name=filter]" ).val().length > 0
+			  , listingUrlPending = ( typeof PresideDatatables.readListingUrlState === "function" ) ? PresideDatatables.readListingUrlState( tableId ) : null
+			  , listingUrlReady = false
+			  , listingUrlApplying = false
+			  , listingUrlLast = ""
+			  , listingUrlBaseline = null
+			  , listingDefaultSortFields = []
 			  , setupDatatable, setupCheckboxBehaviour, setupMultiActionButtons, setupTableRowFocusBehaviour
 			  , setupFilters, setupDataExport, setupQuickSaveFilterIframeModal, setupEverythingBar, setupHeaderColumnUi
 			  , registerListingColumnControlPlugins, searchContentForField, headingContent, expressionsFromColumnControl
@@ -80,7 +222,9 @@
 			  , applyColumnSearch, setAdvancedFilter, normalizeFilterState, normalizeColumnSearchMap
 			  , expressionsFromStoredColumnSearch, columnControlStateFromSearch, syncViewFilterLock
 			  , setupListingViews, andExpressionArrays, listingPreferencePayload, persistActiveView, persistListingTableState
-			  , stripListingTableColumnControlState
+			  , stripListingTableColumnControlState, getListingUrlState, encodeCurrentListingUrl, pushListingUrl
+			  , applyListingUrlState, setupListingUrlSync, getListingSortState, setListingSortState
+			  , listingColumnIndexForField, listingSortMatchesDefault, persistListingFilterState, loadListingFilterState
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -430,6 +574,7 @@
 						if ( listingViews ) {
 							listingViews.refreshDirty();
 						}
+						pushListingUrl();
 						redrawTable();
 					  }
 					, onRemoveColumnFilter   : function( field ){
@@ -437,6 +582,7 @@
 						if ( listingViews ) {
 							listingViews.refreshDirty();
 						}
+						pushListingUrl();
 						redrawTable();
 					  }
 					, onApplyView            : function( viewId ){
@@ -493,7 +639,7 @@
 				$( document ).trigger( "preside.listing.everythingBar", [ everythingBar ] );
 			};
 
-			setupListingViews = function() {
+			setupListingViews = function( opts ) {
 				if ( !allowSavedViews || !$toolbar.find( ".listing-views" ).length || typeof PresideListingViews === "undefined" ) {
 					return;
 				}
@@ -518,7 +664,9 @@
 					, persistActiveView : persistActiveView
 					, onLockChange      : syncViewFilterLock
 				} );
-				listingViews.restore();
+				if ( !( opts && opts.skipRestore ) ) {
+					listingViews.restore();
+				}
 				syncViewFilterLock();
 			};
 
@@ -1624,7 +1772,7 @@
 
 				for( i=window.localStorage.length - 1; i>=0; i-- ) {
 					storageKey = window.localStorage.key( i );
-					if ( storageKey && storageKey.indexOf( "DataTables_listing_" ) === 0 ) {
+					if ( storageKey && ( storageKey.indexOf( "DataTables_listing_" ) === 0 || storageKey.indexOf( "PresideListingFilters_" ) === 0 ) ) {
 						window.localStorage.removeItem( storageKey );
 					}
 				}
@@ -1632,6 +1780,233 @@
 				try {
 					window.localStorage.setItem( key, payload );
 				} catch ( retry ) {}
+			};
+
+			persistListingFilterState = function() {
+				var state = getListingUrlState()
+				  , key   = "PresideListingFilters_" + tableId
+				  , i, storageKey;
+
+				delete state.o;
+
+				try {
+					window.localStorage.setItem( key, JSON.stringify( state ) );
+					return;
+				} catch ( e ) {}
+
+				for( i=window.localStorage.length - 1; i>=0; i-- ) {
+					storageKey = window.localStorage.key( i );
+					if ( storageKey && storageKey.indexOf( "PresideListingFilters_" ) === 0 ) {
+						window.localStorage.removeItem( storageKey );
+					}
+				}
+
+				try {
+					window.localStorage.setItem( key, JSON.stringify( state ) );
+				} catch ( retry ) {}
+			};
+
+			loadListingFilterState = function() {
+				var raw, parsed;
+
+				try {
+					raw = window.localStorage.getItem( "PresideListingFilters_" + tableId );
+				} catch ( e ) {
+					return null;
+				}
+
+				if ( !raw ) {
+					return null;
+				}
+
+				try {
+					parsed = JSON.parse( raw );
+				} catch ( e ) {
+					return null;
+				}
+
+				if ( !parsed || typeof parsed !== "object" ) {
+					return null;
+				}
+
+				return parsed;
+			};
+
+			listingColumnIndexForField = function( field ) {
+				var found = -1;
+
+				if ( !dtApi || !field ) {
+					return found;
+				}
+
+				dtApi.columns().every( function() {
+					if ( found < 0 && String( this.dataSrc() ) === String( field ) ) {
+						found = this.index();
+					}
+				} );
+
+				return found;
+			};
+
+			getListingSortState = function() {
+				var order, i, col, idx, dir, field, out;
+
+				if ( !dtApi ) {
+					return [];
+				}
+
+				order = dtApi.order() || [];
+				out   = [];
+				for( i=0; i<order.length; i++ ) {
+					col = order[ i ];
+					if ( $.isArray( col ) ) {
+						idx = col[ 0 ];
+						dir = col[ 1 ];
+					} else if ( col && typeof col === "object" ) {
+						idx = col.column;
+						dir = col.dir;
+					} else {
+						continue;
+					}
+					field = dtApi.column( idx ).dataSrc();
+					if ( field && String( field ).charAt( 0 ) !== "_" ) {
+						out.push( [ String( field ), dir === "desc" ? "desc" : "asc" ] );
+					}
+				}
+
+				return out;
+			};
+
+			setListingSortState = function( pairs ) {
+				var mapped = []
+				  , i, field, dir, idx;
+
+				if ( !dtApi || !$.isArray( pairs ) ) {
+					return;
+				}
+
+				for( i=0; i<pairs.length; i++ ) {
+					field = pairs[ i ] && pairs[ i ][ 0 ];
+					dir   = pairs[ i ] && pairs[ i ][ 1 ] === "desc" ? "desc" : "asc";
+					idx   = listingColumnIndexForField( field );
+					if ( idx >= 0 ) {
+						mapped.push( [ idx, dir ] );
+					}
+				}
+
+				if ( mapped.length ) {
+					dtApi.order( mapped );
+				}
+			};
+
+			listingSortMatchesDefault = function( order ) {
+				return JSON.stringify( order || [] ) === JSON.stringify( listingDefaultSortFields || [] );
+			};
+
+			getListingUrlState = function() {
+				var advanced = []
+				  , extra    = []
+				  , raw      = $filterDiv.find( "[name=filter]" ).val();
+
+				if ( raw && raw.length ) {
+					try { advanced = JSON.parse( raw ); } catch( e ) { advanced = []; }
+				}
+				if ( !$.isArray( advanced ) ) {
+					advanced = [];
+				}
+				if ( everythingBar && everythingBar.getExtraFilters ) {
+					extra = everythingBar.getExtraFilters();
+				}
+
+				return {
+					  q : getSearchQuery()
+					, f : getFavourites() ? getFavourites().split( "," ).filter( Boolean ) : []
+					, a : advanced
+					, x : extra
+					, c : normalizeColumnSearchMap( lastColumnSearch || {} )
+					, o : getListingSortState()
+				};
+			};
+
+			encodeCurrentListingUrl = function() {
+				var state = getListingUrlState();
+
+				if ( listingSortMatchesDefault( state.o ) ) {
+					state.o = [];
+				}
+
+				if ( typeof PresideDatatables.encodeListingUrlState === "function" ) {
+					return PresideDatatables.encodeListingUrlState( state );
+				}
+
+				return "";
+			};
+
+			pushListingUrl = function() {
+				var encoded;
+
+				if ( !listingUrlReady || listingUrlApplying ) {
+					return;
+				}
+
+				encoded = encodeCurrentListingUrl();
+				if ( encoded === listingUrlLast ) {
+					return;
+				}
+
+				listingUrlLast = encoded;
+				persistListingFilterState();
+				if ( typeof PresideDatatables.writeListingUrlState === "function" ) {
+					PresideDatatables.writeListingUrlState( encoded, "push", tableId );
+				}
+			};
+
+			applyListingUrlState = function( state, opts ) {
+				var skipDraw = !!( opts && opts.skipDraw );
+
+				state = state || {};
+				listingUrlApplying = true;
+
+				if ( everythingBar ) {
+					everythingBar.setFavourites( state.f || [] );
+					everythingBar.setSearchQuery( state.q || "" );
+					if ( everythingBar.setExtraFilters ) {
+						everythingBar.setExtraFilters( state.x || [] );
+					} else if ( everythingBar.clearExtraFilters ) {
+						everythingBar.clearExtraFilters();
+					}
+				}
+				setAdvancedFilter( state.a || [] );
+				applyColumnSearch( state.c || {} );
+				syncColumnFilterChips();
+				if ( $.isArray( state.o ) ) {
+					setListingSortState( state.o.length ? state.o : listingDefaultSortFields );
+				}
+
+				if ( !skipDraw && dtApi ) {
+					dtApi.draw();
+				}
+				persistListingFilterState();
+				listingUrlApplying = false;
+			};
+
+			setupListingUrlSync = function() {
+				var ns = "listingUrl" + tableId;
+
+				if ( dtApi ) {
+					dtApi.on( "order.dt", function() {
+						pushListingUrl();
+					} );
+				}
+
+				$( window ).off( "popstate." + ns ).on( "popstate." + ns, function() {
+					var state = ( typeof PresideDatatables.readListingUrlState === "function" )
+						? PresideDatatables.readListingUrlState( tableId )
+						: null;
+
+					applyListingUrlState( state || listingUrlBaseline || {} );
+					listingUrlLast = encodeCurrentListingUrl();
+				} );
 			};
 
 			persistActiveView = function( viewId ) {
@@ -2118,6 +2493,14 @@
 					}
 				}
 
+				listingDefaultSortFields = [];
+				for( i=0; i<defaultSort.length; i++ ) {
+					col = colConfig[ defaultSort[ i ][ 0 ] ];
+					if ( col && col.data ) {
+						listingDefaultSortFields.push( [ col.data, defaultSort[ i ][ 1 ] === "desc" ? "desc" : "asc" ] );
+					}
+				}
+
 				datatable = $listingTable.DataTable( {
 					  columns        : colConfig
 					, order          : defaultSort
@@ -2158,13 +2541,24 @@
 						}
 					}
 					, initComplete : function(){
+						var storedFilters;
+
 						dtApi = this.api ? this.api() : datatable;
 						setupEverythingBar();
 						setupHeaderColumnUi();
 						if ( allowFilter ) {
 							setupFilters();
 						}
-						setupListingViews();
+						setupListingViews( { skipRestore : !!listingUrlPending } );
+						if ( listingUrlPending ) {
+							applyListingUrlState( listingUrlPending, { skipDraw : true } );
+							listingUrlPending = null;
+						} else if ( !( listingViews && listingViews.isNamedViewActive() ) ) {
+							storedFilters = loadListingFilterState();
+							if ( storedFilters ) {
+								applyListingUrlState( storedFilters, { skipDraw : true } );
+							}
+						}
 						dtApi.on( "preXhr", function( e, settings, data ) {
 							lastDtRequest = data;
 							captureColumnSearch( data );
@@ -2175,6 +2569,7 @@
 							if ( listingViews ) {
 								listingViews.refreshDirty();
 							}
+							pushListingUrl();
 							delete data.columns;
 							delete data.order;
 							delete data.search;
@@ -2187,9 +2582,13 @@
 						}
 
 						columnUiReady = true;
+						listingUrlBaseline = $.extend( true, {}, getListingUrlState() );
+						listingUrlLast     = encodeCurrentListingUrl();
+						setupListingUrlSync();
 						if ( !hasPreFilters ) {
 							dtApi.draw();
 						}
+						listingUrlReady = true;
 					}
 					, language : {
 						  emptyTable     : noRecordMessage
@@ -2431,6 +2830,7 @@
 					if ( listingViews ) {
 						listingViews.refreshDirty();
 					}
+					pushListingUrl();
 					redrawTable();
 					if ( allowManageFilter ) {
 						$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
@@ -2456,7 +2856,7 @@
 					filterState = dtApi.state() && dtApi.state().oFilter;
 				} catch( e ) {}
 
-				if ( typeof filterState !== "undefined" ) {
+				if ( typeof filterState !== "undefined" && !listingUrlPending ) {
 					if ( allowSavedViews ) {
 						filtersPopulated = true;
 						if ( everythingBar && filterState.search ) {

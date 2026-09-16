@@ -94,6 +94,152 @@
 		};
 	};
 
+	PresideDatatables.listingUrlParam = "lst";
+
+	PresideDatatables._listingUrlIdHash = function( tableId ) {
+		var str = String( tableId || "" )
+		  , h   = 2166136261
+		  , i, hex;
+
+		for( i=0; i<str.length; i++ ) {
+			h ^= str.charCodeAt( i );
+			h = Math.imul( h, 16777619 );
+		}
+
+		hex = ( h >>> 0 ).toString( 16 );
+		while ( hex.length < 8 ) {
+			hex = "0" + hex;
+		}
+
+		return hex;
+	};
+
+	PresideDatatables.listingUrlParamFor = function( tableId ) {
+		return PresideDatatables.listingUrlParam + PresideDatatables._listingUrlIdHash( tableId );
+	};
+
+	PresideDatatables._utf8ToBase64Url = function( str ) {
+		var b64 = btoa( encodeURIComponent( str ).replace( /%([0-9A-F]{2})/g, function( match, hex ) {
+			return String.fromCharCode( parseInt( hex, 16 ) );
+		} ) );
+
+		return b64.replace( /\+/g, "-" ).replace( /\//g, "_" ).replace( /=+$/g, "" );
+	};
+
+	PresideDatatables._base64UrlToUtf8 = function( encoded ) {
+		var b64 = String( encoded || "" ).replace( /-/g, "+" ).replace( /_/g, "/" );
+
+		while ( b64.length % 4 ) {
+			b64 += "=";
+		}
+
+		return decodeURIComponent( Array.prototype.map.call( atob( b64 ), function( ch ) {
+			return "%" + ( "00" + ch.charCodeAt( 0 ).toString( 16 ) ).slice( -2 );
+		} ).join( "" ) );
+	};
+
+	PresideDatatables.compactListingUrlState = function( state ) {
+		var compact = {};
+
+		state = state || {};
+		if ( state.q ) {
+			compact.q = state.q;
+		}
+		if ( state.f && state.f.length ) {
+			compact.f = state.f;
+		}
+		if ( state.a && state.a.length ) {
+			compact.a = state.a;
+		}
+		if ( state.x && state.x.length ) {
+			compact.x = state.x;
+		}
+		if ( state.c && typeof state.c === "object" && Object.keys( state.c ).length ) {
+			compact.c = state.c;
+		}
+		if ( state.o && state.o.length ) {
+			compact.o = state.o;
+		}
+
+		return compact;
+	};
+
+	PresideDatatables.encodeListingUrlState = function( state ) {
+		var compact = PresideDatatables.compactListingUrlState( state );
+
+		if ( !Object.keys( compact ).length ) {
+			return "";
+		}
+
+		try {
+			return PresideDatatables._utf8ToBase64Url( JSON.stringify( compact ) );
+		} catch ( e ) {
+			return "";
+		}
+	};
+
+	PresideDatatables.decodeListingUrlState = function( encoded ) {
+		var raw;
+
+		if ( !encoded ) {
+			return null;
+		}
+
+		try {
+			raw = JSON.parse( PresideDatatables._base64UrlToUtf8( encoded ) );
+		} catch ( e ) {
+			return null;
+		}
+
+		if ( !raw || typeof raw !== "object" ) {
+			return null;
+		}
+
+		return {
+			  q : raw.q || ""
+			, f : $.isArray( raw.f ) ? raw.f : []
+			, a : $.isArray( raw.a ) ? raw.a : []
+			, x : $.isArray( raw.x ) ? raw.x : []
+			, c : raw.c && typeof raw.c === "object" && !$.isArray( raw.c ) ? raw.c : {}
+			, o : $.isArray( raw.o ) ? raw.o : []
+		};
+	};
+
+	PresideDatatables.readListingUrlState = function( tableId ) {
+		var params, key;
+
+		try {
+			params = new URLSearchParams( window.location.search );
+			key    = PresideDatatables.listingUrlParamFor( tableId );
+			return PresideDatatables.decodeListingUrlState( params.get( key ) );
+		} catch ( e ) {
+			return null;
+		}
+	};
+
+	PresideDatatables.writeListingUrlState = function( encoded, mode, tableId ) {
+		var url, key;
+
+		try {
+			url = new URL( window.location.href );
+		} catch ( e ) {
+			return;
+		}
+
+		key = PresideDatatables.listingUrlParamFor( tableId );
+		if ( encoded ) {
+			url.searchParams.set( key, encoded );
+		} else {
+			url.searchParams.delete( key );
+		}
+
+		if ( mode === "replace" ) {
+			history.replaceState( history.state, document.title, url );
+		} else {
+			history.pushState( history.state, document.title, url );
+		}
+	};
+
 	PresideDatatables.migrateLegacyCookieState = function( tableId ) {
 		var cookieName, cookies, i, parts, name, value, decoded;
 
