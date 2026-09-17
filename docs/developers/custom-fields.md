@@ -34,7 +34,7 @@ Enabling custom fields on an object is a schema change (`autoSyncDb=false` sites
 ## Field kinds (v1)
 
 - **Static** — stored in `_cfv_{hostTable}` (EAV, typed columns). Types: text, textarea, integer, float, boolean, date, datetime, lookup, object_ref.
-- **Aggregate** — count/sum/min/max/avg over a many-to-many or one-to-many property. Read-only.
+- **Aggregate** — count/sum/min/max/avg over a one-to-many or many-to-many collection on the host object. Only offered when the object has such a collection. Optional data filter on the related records (for example, count of London addresses). Read-only.
 - **Conditional label** — ordered filter/label/style rules. Display-only (`autofilter=false`).
 
 Free-form SQL formulas are out of v1.
@@ -43,7 +43,7 @@ Free-form SQL formulas are out of v1.
 
 - Listing screens of opted-in objects get **Add custom field** / **Custom fields**.
 - Creating a field is a short first step: label, key (autoslug), field type, data type, and listing/export options. The field is saved **inactive**.
-- Editing a field is type-specific. Related-record fields pick an object; aggregates pick a collection and function.
+- Editing a field is type-specific. Related-record fields pick an object; aggregates pick a related collection, method, optional numeric field and optional related-record filter (the same shape as data-viz metrics).
 - Lookup options and conditional labels are managed from dedicated tabs on the field’s view-record screen (listing table with add, edit and delete).
 - Activate the field from the edit screen when configuration is complete.
 - View record shows a **Custom fields** group.

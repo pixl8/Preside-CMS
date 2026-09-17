@@ -14,6 +14,7 @@ component {
 	property name="customFieldTypesService"          inject="delayedInjector:customFieldTypesService";
 	property name="adminDataViewsService"            inject="delayedInjector:adminDataViewsService";
 	property name="rulesEngineExpressionService"     inject="delayedInjector:rulesEngineExpressionService";
+	property name="rulesEngineFilterService"         inject="delayedInjector:rulesEngineFilterService";
 
 	public any function init() {
 		return this;
@@ -139,8 +140,10 @@ component {
 			}
 		} else if ( kind == "aggregate" ) {
 			definition.type       = "numeric";
-			definition.renderer   = Len( Trim( field.renderer ?: "" ) ) ? field.renderer : "none";
 			definition.autofilter = true;
+			if ( Len( Trim( field.renderer ?: "" ) ) ) {
+				definition.renderer = field.renderer;
+			}
 		} else {
 			definition.type       = "string";
 			definition.renderer   = "customFieldConditionalLabel";
@@ -177,6 +180,7 @@ component {
 		var relatedProp = Trim( arguments.field.aggregate_property ?: "" );
 		var fn          = LCase( Trim( arguments.field.aggregate_function ?: "count" ) );
 		var valueProp   = Trim( arguments.field.aggregate_value_property ?: "" );
+		var filterId    = Trim( arguments.field.aggregate_filter ?: "" );
 		var relatedTo   = presideObjectService.getObjectPropertyAttribute(
 			  objectName    = arguments.objectName
 			, propertyName  = relatedProp
@@ -189,11 +193,179 @@ component {
 			return "0";
 		}
 
+		if ( Len( filterId ) && $isFeatureEnabled( "rulesEngine" ) ) {
+			var filtered = _buildFilteredAggregateFormula( argumentCollection=arguments, relatedTo=relatedTo, relatedId=relatedId, fn=fn, valueProp=valueProp, filterId=filterId, relatedProp=relatedProp );
+			if ( Len( filtered ) ) {
+				return filtered;
+			}
+		}
+
 		if ( fn == "count" || !Len( valueProp ) ) {
 			return "count( distinct ${prefix}#relatedProp#.#relatedId# )";
 		}
 
 		return "agg:#fn#{ ${prefix}#relatedProp#.#valueProp# }";
+	}
+
+	private string function _buildFilteredAggregateFormula(
+		  required struct field
+		, required string objectName
+		, required string relatedProp
+		, required string relatedTo
+		, required string relatedId
+		, required string fn
+		, required string valueProp
+		, required string filterId
+	) {
+		if ( !Len( arguments.relatedTo ) || !presideObjectService.objectExists( arguments.relatedTo ) ) {
+			return "";
+		}
+
+		var parentIdField     = presideObjectService.getIdField( arguments.objectName );
+		var parentPlaceholder = "__cf_parent_id__";
+		var relationship      = presideObjectService.getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.relatedProp
+			, attributeName = "relationship"
+			, defaultValue  = ""
+		);
+		var extraFilters = [ rulesEngineFilterService.prepareFilter(
+			  objectName = arguments.relatedTo
+			, filterId   = arguments.filterId
+		) ];
+		var sqlAndParams = {};
+
+		try {
+			if ( relationship == "one-to-many" ) {
+				var relationshipKey = presideObjectService.getObjectPropertyAttribute(
+					  objectName    = arguments.objectName
+					, propertyName  = arguments.relatedProp
+					, attributeName = "relationshipKey"
+					, defaultValue  = arguments.objectName
+				);
+				var aggExpression = ( arguments.fn == "count" || !Len( arguments.valueProp ) )
+					? "count( #arguments.relatedTo#.#arguments.relatedId# )"
+					: "#arguments.fn#( #arguments.relatedTo#.#arguments.valueProp# )";
+
+				ArrayAppend( extraFilters, { filter="#arguments.relatedTo#.#relationshipKey# = '#parentPlaceholder#'" } );
+
+				sqlAndParams = presideObjectService.selectData(
+					  objectName          = arguments.relatedTo
+					, selectFields        = [ "#aggExpression# as agg_value" ]
+					, extraFilters        = extraFilters
+					, getSqlAndParamsOnly = true
+					, formatSqlParams     = true
+				);
+			} else {
+				var parentAgg = ( arguments.fn == "count" || !Len( arguments.valueProp ) )
+					? "count( #arguments.relatedProp#.#arguments.relatedId# )"
+					: "#arguments.fn#( #arguments.relatedProp#.#arguments.valueProp# )";
+				var mmFilters = [ _rewriteFilterForRelatedProperty(
+					  prepared    = extraFilters[ 1 ]
+					, relatedTo   = arguments.relatedTo
+					, relatedProp = arguments.relatedProp
+				) ];
+
+				ArrayAppend( mmFilters, { filter="#arguments.objectName#.#parentIdField# = '#parentPlaceholder#'" } );
+
+				sqlAndParams = presideObjectService.selectData(
+					  objectName          = arguments.objectName
+					, selectFields        = [ "#parentAgg# as agg_value" ]
+					, extraFilters        = mmFilters
+					, getSqlAndParamsOnly = true
+					, formatSqlParams     = true
+				);
+			}
+		} catch ( any e ) {
+			return "";
+		}
+
+		var sql = _inlineSqlParams( sqlAndParams.sql ?: "", sqlAndParams.params ?: {} );
+		if ( !Len( Trim( sql ) ) ) {
+			return "";
+		}
+
+		if ( FindNoCase( "'#parentPlaceholder#'", sql ) ) {
+			sql = ReplaceNoCase( sql, "'#parentPlaceholder#'", "${prefix}#parentIdField#", "all" );
+		} else {
+			sql = ReplaceNoCase( sql, parentPlaceholder, "${prefix}#parentIdField#", "all" );
+		}
+
+		return "ifnull( ( #sql# ), 0 )";
+	}
+
+	private struct function _rewriteFilterForRelatedProperty(
+		  required struct prepared
+		, required string relatedTo
+		, required string relatedProp
+	) {
+		var rewritten = Duplicate( arguments.prepared );
+
+		if ( IsSimpleValue( rewritten.filter ?: "" ) ) {
+			rewritten.filter = ReplaceNoCase( rewritten.filter, arguments.relatedTo & ".", arguments.relatedProp & ".", "all" );
+		}
+		if ( Len( Trim( rewritten.having ?: "" ) ) ) {
+			rewritten.having = ReplaceNoCase( rewritten.having, arguments.relatedTo & ".", arguments.relatedProp & ".", "all" );
+		}
+		if ( IsArray( rewritten.extraJoins ?: "" ) ) {
+			for( var i=1; i<=ArrayLen( rewritten.extraJoins ); i++ ) {
+				var join = rewritten.extraJoins[ i ];
+				if ( ( join.tableAlias ?: "" ) == arguments.relatedTo ) {
+					join.tableAlias = arguments.relatedProp;
+				}
+				if ( ( join.joinToTable ?: "" ) == arguments.relatedTo ) {
+					join.joinToTable = arguments.relatedProp;
+				}
+			}
+		}
+
+		return rewritten;
+	}
+
+	private string function _inlineSqlParams( required string sql, required any params ) {
+		var sql        = arguments.sql;
+		var paramNames = [];
+
+		if ( IsStruct( arguments.params ) ) {
+			paramNames = StructKeyArray( arguments.params );
+			ArraySort( paramNames, function( a, b ){
+				return Len( b ) - Len( a );
+			} );
+			for( var name in paramNames ) {
+				sql = ReplaceNoCase( sql, ":" & name, _sqlLiteralFromParam( arguments.params[ name ] ), "all" );
+			}
+		} else if ( IsArray( arguments.params ) ) {
+			var named = Duplicate( arguments.params );
+			ArraySort( named, function( a, b ){
+				return Len( b.name ?: "" ) - Len( a.name ?: "" );
+			} );
+			for( var def in named ) {
+				if ( Len( Trim( def.name ?: "" ) ) ) {
+					sql = ReplaceNoCase( sql, ":" & def.name, _sqlLiteralFromParam( def ), "all" );
+				}
+			}
+		}
+
+		return sql;
+	}
+
+	private string function _sqlLiteralFromParam( required any param ) {
+		var value = arguments.param;
+		var type  = "";
+
+		if ( IsStruct( arguments.param ) ) {
+			value = arguments.param.value ?: "";
+			type  = arguments.param.type  ?: "";
+		}
+
+		if ( !Len( Trim( ToString( value ) ) ) && value != 0 && value != false ) {
+			return "null";
+		}
+		if ( ReFindNoCase( "int|numeric|decimal|float|double|bit|boolean", type ) || ( !Len( type ) && IsNumeric( value ) && !IsDate( value ) ) ) {
+			return ToString( Val( value ) );
+		}
+
+		return _sqlString( ToString( value ) );
 	}
 
 	private string function _buildConditionalFormula( required struct field, required string objectName ) {

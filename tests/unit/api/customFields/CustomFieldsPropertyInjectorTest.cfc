@@ -33,6 +33,49 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( formula ).toBe( "agg:sum{ ${prefix}orders.amount }" );
 			} );
+
+			it( "should bake a related-record filter into a one-to-many count formula", function(){
+				var injector      = _getInjector();
+				var mockFilterSvc = createStub();
+
+				variables.mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = "elf_test_object"
+					, propertyName  = "addresses"
+					, attributeName = "relatedTo"
+					, defaultValue  = ""
+				).$results( "address" );
+				variables.mockPoService.$( "getIdField" ).$args( "address" ).$results( "id" );
+				variables.mockPoService.$( "objectExists" ).$args( "address" ).$results( true );
+				variables.mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = "elf_test_object"
+					, propertyName  = "addresses"
+					, attributeName = "relationship"
+					, defaultValue  = ""
+				).$results( "one-to-many" );
+				variables.mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = "elf_test_object"
+					, propertyName  = "addresses"
+					, attributeName = "relationshipKey"
+					, defaultValue  = "elf_test_object"
+				).$results( "contact" );
+				mockFilterSvc.$( "prepareFilter" ).$results( { filter="address.city = :city" } );
+				variables.mockPoService.$( "selectData" ).$results( {
+					  sql    = "select count( address.id ) as agg_value from pobj_address address where address.city = :city and address.contact = '__cf_parent_id__'"
+					, params = { city={ value="London", type="varchar" } }
+				} );
+				injector.$property( propertyName="rulesEngineFilterService", mock=mockFilterSvc );
+
+				var formula = injector.buildFormula(
+					  field      = { id="fld-4", kind="aggregate", aggregate_property="addresses", aggregate_function="count", aggregate_filter="flt-1", key="london_addresses" }
+					, objectName = "elf_test_object"
+				);
+
+				expect( formula ).toInclude( "ifnull(" );
+				expect( formula ).toInclude( "${prefix}id" );
+				expect( formula ).toInclude( "London" );
+				expect( formula ).notToInclude( "__cf_parent_id__" );
+				expect( formula ).notToInclude( ":city" );
+			} );
 		} );
 
 		describe( "buildPropertyDefinition()", function(){
@@ -122,7 +165,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		injector.$property( propertyName="customFieldTypesService"         , mock=variables.mockTypesService );
 		injector.$property( propertyName="adminDataViewsService"           , mock=variables.mockAdminDataViewsService );
 		injector.$property( propertyName="rulesEngineExpressionService"    , mock=variables.mockExpressionService );
+		injector.$property( propertyName="rulesEngineFilterService"        , mock=createStub() );
 		injector.$property( propertyName="$helpers"                        , mock=helpers );
+		injector.$( "$isFeatureEnabled", true );
 
 		return injector;
 	}

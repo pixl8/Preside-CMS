@@ -2,9 +2,11 @@
 <form i18nBaseUri="preside-objects.custom_field:">
 	<tab id="default">
 		<fieldset id="aggregate" sortorder="30">
+			<field binding="custom_field.target_object"            control="hidden" />
 			<field binding="custom_field.aggregate_property"       control="customFieldAggregateProperty" required="true" />
-			<field binding="custom_field.aggregate_function"       control="enumSelect" enum="customFieldAggregateFunction" required="true" defaultValue="count" toggleFields="sum:aggregate_value_property|min:aggregate_value_property|max:aggregate_value_property|avg:aggregate_value_property" />
-			<field binding="custom_field.aggregate_value_property" control="customFieldAggregateValueProperty" />
+			<field binding="custom_field.aggregate_function"       control="enumRadioList" enum="customFieldAggregateFunction" required="true" defaultValue="count" toggleFields="sum:aggregate_value_property|min:aggregate_value_property|max:aggregate_value_property|avg:aggregate_value_property" />
+			<field binding="custom_field.aggregate_value_property" control="customFieldAggregateValueProperty" filterBy="target_object,aggregate_property" filterByField="target_object,aggregate_property" disabledIfUnfiltered="true" />
+			<field binding="custom_field.aggregate_filter"         control="customFieldAggregateFilterPicker" filterBy="target_object,aggregate_property" filterByField="target_object,aggregate_property" disabledIfUnfiltered="true" quickadd="true" quickedit="true" feature="rulesEngine" />
 		</fieldset>
 	</tab>
 </form>

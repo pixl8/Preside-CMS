@@ -5,7 +5,7 @@
 			<field binding="custom_field.label"         control="textinput" required="true" />
 			<field binding="custom_field.key"           control="autoSlug" basedOn="label" slugDelimiter="_" required="true" />
 			<field binding="custom_field.target_object" control="customFieldTargetObject" required="true" />
-			<field binding="custom_field.kind"          control="enumRadioList" enum="customFieldKind" required="true" defaultValue="static" toggleFields="static:data_type,batch_editable" />
+			<field binding="custom_field.kind"          control="customFieldKind" enum="customFieldKind" required="true" defaultValue="static" toggleFields="static:data_type,batch_editable" filterBy="target_object" />
 			<field binding="custom_field.data_type"     control="enumSelect" enum="customFieldDataType" />
 		</fieldset>
 		<fieldset id="management" sortorder="20">

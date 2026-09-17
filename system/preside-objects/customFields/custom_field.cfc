@@ -28,6 +28,7 @@ component displayname="Custom field" extends="preside.system.base.SystemPresideO
 	property name="aggregate_property"       type="string" dbtype="varchar" maxlength=100 required=false control="customFieldAggregateProperty";
 	property name="aggregate_function"       type="string" dbtype="varchar" maxlength=20  required=false enum="customFieldAggregateFunction";
 	property name="aggregate_value_property" type="string" dbtype="varchar" maxlength=100 required=false control="customFieldAggregateValueProperty";
+	property name="aggregate_filter"         relationship="many-to-one" relatedto="rules_engine_condition" required=false ondelete="set-null-if-no-cycle-check" control="customFieldAggregateFilterPicker" feature="rulesEngine";
 
 	property name="lookups"            relationship="one-to-many" relatedto="custom_field_lookup"            relationshipKey="field";
 	property name="conditional_rules"  relationship="one-to-many" relatedto="custom_field_conditional_rule"  relationshipKey="field" feature="rulesEngine";

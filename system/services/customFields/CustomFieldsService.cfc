@@ -431,8 +431,13 @@ component {
 	}
 
 	public array function listAggregateCandidateProperties( required string objectName ) {
+		var result = [];
+
+		if ( !Len( Trim( arguments.objectName ) ) || !presideObjectService.objectExists( arguments.objectName ) ) {
+			return result;
+		}
+
 		var properties = presideObjectService.getObjectProperties( arguments.objectName );
-		var result     = [];
 
 		for( var propName in properties ) {
 			var rel = properties[ propName ].relationship ?: "";
@@ -447,6 +452,23 @@ component {
 		}
 
 		return result;
+	}
+
+	public boolean function objectHasAggregateRelationships( required string objectName ) {
+		return ArrayLen( listAggregateCandidateProperties( arguments.objectName ) ) > 0;
+	}
+
+	public string function getRelatedObjectForAggregateProperty( required string objectName, required string propertyName ) {
+		if ( !Len( Trim( arguments.objectName ) ) || !Len( Trim( arguments.propertyName ) ) || !presideObjectService.objectExists( arguments.objectName ) ) {
+			return "";
+		}
+
+		return presideObjectService.getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.propertyName
+			, attributeName = "relatedTo"
+			, defaultValue  = ""
+		);
 	}
 
 	public array function listNumericRelatedProperties( required string relatedObject ) {

@@ -59,12 +59,17 @@ component extends="coldbox.system.Interceptor" {
 		}
 		_persistStashedValues( event, interceptData, recordId );
 		_refreshIfDefinitionChanged( interceptData );
+		_refreshIfAggregateFilterChanged( interceptData );
 	}
 
 	public void function preDeleteObjectData( event, interceptData ) {
 		var objectName = interceptData.objectName ?: "";
 		if ( objectName == "custom_field" ) {
 			interceptData.customFieldTargetObjects = _targetObjectsForDelete( interceptData );
+			return;
+		}
+		if ( objectName == "rules_engine_condition" ) {
+			interceptData.customFieldAggregateFilterTargets = _targetObjectsForAggregateFilter( interceptData );
 			return;
 		}
 
@@ -83,6 +88,11 @@ component extends="coldbox.system.Interceptor" {
 	public void function postDeleteObjectData( event, interceptData ) {
 		var targets = interceptData.customFieldTargetObjects ?: [];
 		for( var objectName in targets ) {
+			customFieldsPropertyInjector.refreshObject( objectName );
+		}
+
+		var filterTargets = interceptData.customFieldAggregateFilterTargets ?: [];
+		for( var objectName in filterTargets ) {
 			customFieldsPropertyInjector.refreshObject( objectName );
 		}
 	}
@@ -315,6 +325,45 @@ component extends="coldbox.system.Interceptor" {
 		) );
 
 		return latest && versionNumber != latest;
+	}
+
+	private void function _refreshIfAggregateFilterChanged( required struct interceptData ) {
+		if ( ( arguments.interceptData.objectName ?: "" ) != "rules_engine_condition" ) {
+			return;
+		}
+
+		var targets = _targetObjectsForAggregateFilter( arguments.interceptData );
+		for( var objectName in targets ) {
+			customFieldsPropertyInjector.refreshObject( objectName );
+		}
+	}
+
+	private array function _targetObjectsForAggregateFilter( required struct interceptData ) {
+		var ids = arguments.interceptData.id ?: "";
+		if ( !Len( ids ) && IsStruct( arguments.interceptData.filter ?: {} ) ) {
+			ids = arguments.interceptData.filter.id ?: "";
+		}
+		if ( !Len( ids ) ) {
+			return [];
+		}
+		if ( !IsArray( ids ) ) {
+			ids = ListToArray( ids );
+		}
+
+		try {
+			var records = presideObjectService.selectData(
+				  objectName   = "custom_field"
+				, filter       = { aggregate_filter=ids, kind="aggregate" }
+				, selectFields = [ "distinct target_object as target_object" ]
+			);
+			var objects = [];
+			for( var record in records ) {
+				ArrayAppend( objects, record.target_object );
+			}
+			return objects;
+		} catch ( any e ) {
+			return [];
+		}
 	}
 
 	private array function _targetObjectsForDelete( required struct interceptData ) {

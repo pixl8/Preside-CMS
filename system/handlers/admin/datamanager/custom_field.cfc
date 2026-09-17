@@ -70,6 +70,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		_validateCreateType( argumentCollection=arguments );
 	}
 
+	private void function preEditRecordAction( event, rc, prc, args={} ) {
+		_validateAggregateConfig( argumentCollection=arguments );
+	}
+
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
 		var formName = "preside-objects.custom_field.admin.edit";
 		var kind     = prc.record.kind ?: "";
@@ -165,6 +169,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			hint = translateResource( uri="preside-objects.custom_field:edit.conditional.hint" );
 		} else if ( kind == "static" && dataType == "lookup" ) {
 			hint = translateResource( uri="preside-objects.custom_field:edit.lookups.hint" );
+		} else if ( kind == "aggregate" ) {
+			hint = translateResource( uri="preside-objects.custom_field:edit.aggregate.hint" );
 		}
 
 		if ( Len( hint ) ) {
@@ -295,6 +301,29 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 		if ( ( formData.kind ?: "" ) == "static" && !Len( Trim( formData.data_type ?: "" ) ) ) {
 			validationResult.addError( fieldName="data_type", message="cms:validation.required.default" );
+		}
+
+		if ( ( formData.kind ?: "" ) == "aggregate" && !customFieldsService.objectHasAggregateRelationships( formData.target_object ?: "" ) ) {
+			validationResult.addError( fieldName="kind", message="customFields:validation.aggregate.no.relationships" );
+		}
+	}
+
+	private void function _validateAggregateConfig( event, rc, prc, args={} ) {
+		var formData         = args.formData         ?: {};
+		var validationResult = args.validationResult ?: "";
+		var kind             = prc.record.kind ?: ( formData.kind ?: "" );
+
+		if ( kind != "aggregate" || !IsObject( validationResult ) ) {
+			return;
+		}
+
+		if ( !Len( Trim( formData.aggregate_property ?: "" ) ) ) {
+			validationResult.addError( fieldName="aggregate_property", message="cms:validation.required.default" );
+		}
+
+		var fn = LCase( Trim( formData.aggregate_function ?: "count" ) );
+		if ( fn != "count" && !Len( Trim( formData.aggregate_value_property ?: "" ) ) ) {
+			validationResult.addError( fieldName="aggregate_value_property", message="cms:validation.required.default" );
 		}
 	}
 

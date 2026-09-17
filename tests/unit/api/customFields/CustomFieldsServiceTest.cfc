@@ -32,6 +32,47 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.getFieldKeyValidationError( "elf_test_object", "Bad Key" ) ).toBe( "bad format" );
 			} );
 		} );
+
+		describe( "objectHasAggregateRelationships()", function(){
+			it( "should return true when the object has a one-to-many or many-to-many property", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					gallery = { relationship="many-to-many", relatedTo="asset" }
+				} );
+				svc.$( "$translatePropertyName", "Gallery" );
+
+				expect( svc.objectHasAggregateRelationships( "elf_test_object" ) ).toBeTrue();
+			} );
+
+			it( "should return false when the object has no related collections", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					label = { relationship="none" }
+				} );
+
+				expect( svc.objectHasAggregateRelationships( "elf_test_object" ) ).toBeFalse();
+			} );
+		} );
+
+		describe( "getRelatedObjectForAggregateProperty()", function(){
+			it( "should return the relatedTo of the collection property", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "getObjectPropertyAttribute" ).$args(
+					  objectName    = "elf_test_object"
+					, propertyName  = "gallery"
+					, attributeName = "relatedTo"
+					, defaultValue  = ""
+				).$results( "asset" );
+
+				expect( svc.getRelatedObjectForAggregateProperty( "elf_test_object", "gallery" ) ).toBe( "asset" );
+			} );
+		} );
 	}
 
 	private any function _getService() {
