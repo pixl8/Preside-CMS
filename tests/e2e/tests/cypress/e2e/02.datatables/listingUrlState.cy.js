@@ -95,4 +95,17 @@ describe( 'Listing URL state', () => {
 		cy.get( '.object-listing-table tbody' ).should( 'contain.text', 'E2E Alpha 01' );
 		cy.get( '.object-listing-table tbody' ).should( 'not.contain.text', 'E2E Other 01' );
 	} );
+
+	it( 'writes a compound sort order to the URL and restores both columns', () => {
+		cy.get( 'th[data-field="label"] .dtcc-button_order' ).first().click();
+		cy.get( 'th[data-field="status"] .dtcc-button_order' ).first().click( { shiftKey : true } );
+
+		cy.location( 'search', { timeout : 15000 } ).should( 'match', listingUrlParam );
+		cy.get( 'th[data-field="label"] .listing-sort-priority', { timeout : 15000 } ).should( 'contain.text', '1' );
+		cy.get( 'th[data-field="status"] .listing-sort-priority' ).should( 'contain.text', '2' );
+
+		cy.reload();
+		cy.get( 'th[data-field="label"] .listing-sort-priority', { timeout : 20000 } ).should( 'contain.text', '1' );
+		cy.get( 'th[data-field="status"] .listing-sort-priority' ).should( 'contain.text', '2' );
+	} );
 } );

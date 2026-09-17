@@ -205,4 +205,86 @@ describe( 'Saved listing views', () => {
 		cy.get( '.everything-chip-saved' ).should( 'contain.text', 'Starred alphas' );
 		cy.get( '.object-listing-table tbody tr', { timeout : 15000 } ).should( 'have.length', 5 );
 	} );
+
+	it( 'saves and restores column sort with a named view', () => {
+		const viewName = `Cypress sorted ${ Date.now() }`;
+
+		cy.visitObjectListing( 'my_extension_object' );
+		cy.resetListingColumns();
+
+		cy.get( 'th[data-field="label"] .dtcc-button_order' ).first().click();
+		cy.get( 'th[data-field="label"]', { timeout : 15000 } ).should( 'satisfy', ( $th ) => {
+			const aria = $th.attr( 'aria-sort' ) || '';
+			const cls  = $th.attr( 'class' ) || '';
+			return /ascending|descending/.test( aria ) || /sorting_|dt-ordering-|asc|desc/.test( cls );
+		} );
+
+		cy.saveListingViewAs( viewName );
+		cy.openListingViews();
+		cy.get( '[data-view-action="apply"][data-view-id="default"]' ).click();
+		cy.get( '.listing-views-name' ).should( 'contain.text', 'Default' );
+
+		cy.openListingViews();
+		cy.contains( '.listing-views-item-label', viewName ).click();
+		cy.get( 'th[data-field="label"]', { timeout : 15000 } ).should( 'satisfy', ( $th ) => {
+			const aria = $th.attr( 'aria-sort' ) || '';
+			const cls  = $th.attr( 'class' ) || '';
+			return /ascending|descending/.test( aria ) || /sorting_|dt-ordering-|asc|desc/.test( cls );
+		} );
+
+		cy.reload();
+		cy.get( '.listing-views-name', { timeout : 20000 } ).should( 'contain.text', viewName );
+		cy.get( 'th[data-field="label"]', { timeout : 20000 } ).should( 'satisfy', ( $th ) => {
+			const aria = $th.attr( 'aria-sort' ) || '';
+			const cls  = $th.attr( 'class' ) || '';
+			return /ascending|descending/.test( aria ) || /sorting_|dt-ordering-|asc|desc/.test( cls );
+		} );
+	} );
+
+	it( 'uses a personal default assignment when Default is selected', () => {
+		const viewName = `Cypress default ${ Date.now() }`;
+
+		cy.visitObjectListing( 'my_extension_object' );
+		cy.resetListingColumns();
+		cy.openEverythingBar();
+		cy.contains( '.everything-bar-item', 'Starred alphas' ).click();
+		cy.get( '.everything-chip-saved' ).should( 'contain.text', 'Starred alphas' );
+		cy.saveListingViewAs( viewName );
+
+		cy.openListingViews();
+		cy.contains( 'a.listing-views-item-label', viewName )
+			.invoke( 'attr', 'data-view-id' )
+			.should( 'have.length.greaterThan', 0 )
+			.then( ( viewId ) => {
+				cy.get( '.object-listing-table' ).then( ( $table ) => {
+					cy.request( {
+						  method : 'POST'
+						, url    : $table.attr( 'data-save-listing-view-default-url' )
+						, form   : true
+						, body   : {
+							  object            : $table.attr( 'data-object-name' )
+							, listingKey        : $table.attr( 'data-listing-key' ) || $table.attr( 'data-object-name' )
+							, listingContextKey : $table.attr( 'data-listing-context-key' ) || ''
+							, viewId            : viewId
+							, scope             : 'individual'
+						  }
+					} ).its( 'body.success' ).should( 'eq', true );
+				} );
+			} );
+
+		cy.reload();
+		cy.get( '.object-listing-table tbody tr', { timeout : 20000 } ).should( 'have.length.greaterThan', 0 );
+		cy.openListingViews();
+		cy.get( '[data-view-action="apply"][data-view-id="default"]' ).click();
+		cy.get( '.listing-views-name' ).should( 'contain.text', 'Default' );
+		cy.get( '.everything-chip-saved', { timeout : 20000 } ).should( 'contain.text', 'Starred alphas' );
+		cy.get( '.object-listing-table tbody tr', { timeout : 15000 } ).should( 'have.length', 5 );
+
+		cy.get( '.everything-chip-saved .everything-chip-remove' ).click();
+		cy.get( '.everything-chip-saved' ).should( 'not.exist' );
+		cy.visit( '/admin/' );
+		cy.visit( '/admin/datamanager/object/?id=my_extension_object' );
+		cy.get( '.listing-views-name', { timeout : 20000 } ).should( 'contain.text', 'Default' );
+		cy.get( '.everything-chip-saved', { timeout : 20000 } ).should( 'contain.text', 'Starred alphas' );
+	} );
 } );

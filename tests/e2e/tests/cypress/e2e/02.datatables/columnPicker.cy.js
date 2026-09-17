@@ -17,4 +17,21 @@ describe( 'Listing column picker', () => {
 			.find( 'input[type=checkbox].listing-column-toggle' )
 			.should( 'not.be.checked' );
 	} );
+
+	it( 'groups visible columns above hidden ones and only visible columns can be dragged', () => {
+		cy.resetListingColumns();
+		cy.openListingColumnPicker();
+
+		cy.get( '.listing-colvis-visible .listing-column-row' ).should( 'have.length.greaterThan', 0 );
+		cy.get( '.listing-colvis-hidden .listing-column-drag:not(.is-placeholder)' ).should( 'not.exist' );
+		cy.contains( '.listing-colvis-hidden .listing-column-row label', 'Notes' )
+			.find( 'input[type=checkbox].listing-column-toggle' )
+			.check();
+
+		cy.contains( '.listing-colvis-visible .listing-column-row label', 'Notes' ).should( 'be.visible' );
+		cy.contains( '.listing-colvis-visible .listing-column-row', 'Notes' )
+			.find( '.listing-column-drag:not(.is-placeholder)' )
+			.should( 'exist' );
+		cy.get( '.object-listing-table thead' ).should( 'contain.text', 'Notes' );
+	} );
 } );
