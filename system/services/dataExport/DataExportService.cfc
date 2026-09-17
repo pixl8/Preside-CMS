@@ -380,7 +380,6 @@ component {
 	) {
 		var titles       = {};
 		var poService    = $getPresideObjectService();
-		var uriRoot      = poService.getResourceBundleUriRoot( arguments.objectName );
 		var defaults     = _getDefaultDataExportSettings();
 		var exportFields = poService.getObjectAttribute(
 			  objectName    = arguments.objectName
@@ -479,7 +478,7 @@ component {
 
 
 		for( var field in exportFields ) {
-			titles[ field ] = titles[ field ] ?: $translateResource( uri=uriRoot & "field.#field#.title", defaultValue=field );
+			titles[ field ] = titles[ field ] ?: $translatePropertyName( arguments.objectName, field );
 		}
 
 		return {
@@ -669,15 +668,11 @@ component {
 		, required struct  existingTitles
 		,          boolean expandNestedFields = false
 	) {
-		var baseUri = $getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
 		for( var field in arguments.fieldNames ) {
 			if ( !StructKeyExists( arguments.existingTitles, field ) ) {
 				var fieldKey   = field;
 				var fieldName  = ListFirst( field, "." );
-				var fieldTitle = $translateResource(
-					  uri          = baseUri & "field.#fieldName#.title"
-					, defaultValue = $translateResource( uri="cms:preside-objects.default.field.#fieldName#.title", defaultValue=fieldName )
-				);
+				var fieldTitle = $translatePropertyName( arguments.objectName, fieldName );
 
 				if ( arguments.expandNestedFields && ListLen( field, "." ) > 1 ) {
 					var nestedField       = ListLast( field, "." );

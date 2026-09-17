@@ -476,6 +476,33 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( filters.len() ).toBe( 1 );
 				expect( filters[ 1 ].field ).toBe( "notes" );
 			} );
+
+			it( "should emit formula quick filters for autofilter custom fields", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+				var filters       = [];
+				var byField       = {};
+				var filter        = {};
+
+				svc.$( "listAvailableColumns", [ "nickname", "gallery_count" ] );
+				svc.$( "$translatePropertyName", "Nickname" );
+				mockPoService.$( "getObjectAttribute", "" );
+				mockPoService.$( "getObjectProperties", {
+					  nickname      = { name="nickname", type="string", formula="( select 1 )", customField=true, autofilter=true, customFieldDataType="text" }
+					, gallery_count = { name="gallery_count", type="numeric", formula="count( 1 )", customField=true, autofilter=true, customFieldKind="aggregate" }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+
+				filters = svc.listQuickFilters( "elf_test_object" );
+				for( filter in filters ) {
+					byField[ filter.field ] = filter;
+				}
+
+				expect( byField.nickname.type ).toBe( "text" );
+				expect( byField.nickname.expressionId ).toBe( "presideobject_formulamatches_elf_test_object.nickname" );
+				expect( byField.gallery_count.type ).toBe( "numeric" );
+				expect( byField.gallery_count.expressionId ).toBe( "presideobject_formulacompares_elf_test_object.gallery_count" );
+			} );
 		} );
 
 		describe( "listingAllowsSavedViews()", function(){

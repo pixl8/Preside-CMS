@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field_conditional_rule:">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="custom_field_conditional_rule.field"      control="hidden" />
+			<field binding="custom_field_conditional_rule.label_text" required="true" />
+			<field binding="custom_field_conditional_rule.filter"     control="customFieldFilterPicker" quickadd="true" quickedit="true" />
+			<field binding="custom_field_conditional_rule.style"      control="enumSelect" enum="customFieldConditionalStyle" />
+			<field binding="custom_field_conditional_rule.icon"       control="iconPicker" />
+			<field binding="custom_field_conditional_rule.sort_order" control="spinner" required="true" />
+		</fieldset>
+	</tab>
+</form>

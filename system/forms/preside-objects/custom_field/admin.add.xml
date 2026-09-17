@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field:">
+	<tab id="default">
+		<fieldset id="basics" sortorder="10">
+			<field binding="custom_field.label"         control="textinput" required="true" />
+			<field binding="custom_field.key"           control="autoSlug" basedOn="label" slugDelimiter="_" required="true" />
+			<field binding="custom_field.target_object" control="customFieldTargetObject" required="true" />
+			<field binding="custom_field.kind"          control="enumRadioList" enum="customFieldKind" required="true" defaultValue="static" toggleFields="static:data_type,batch_editable" />
+			<field binding="custom_field.data_type"     control="enumSelect" enum="customFieldDataType" />
+		</fieldset>
+		<fieldset id="management" sortorder="20">
+			<field binding="custom_field.data_exportable" control="yesNoSwitch" defaultValue="true" />
+			<field binding="custom_field.batch_editable"  control="yesNoSwitch" defaultValue="true" />
+		</fieldset>
+	</tab>
+</form>
