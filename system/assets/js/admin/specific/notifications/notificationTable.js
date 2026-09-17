@@ -5,7 +5,6 @@
 ( function( $ ){
 
 	var $listingTable  = $( '.notifications-listing-table:first' )
-	  , searchDelay    = 400
 	  , objectTitle    = i18n.translateResource( "cms:notification.entity.title" ).toLowerCase()
 	  , setupDatatable
 	  , setupCheckboxBehaviour
@@ -15,55 +14,56 @@
 
 
 	setupDatatable = function(){
-		var $tableHeaders = $listingTable.find( 'thead > tr > th')
-		  , colConfig     = []
-		  , i;
+		if ( !$listingTable.length ) {
+			return;
+		}
 
-		colConfig.push( {
-			sClass    : "center",
-			bSortable : false,
-			sWidth    : "5em"
-		} );
-		colConfig.push( { bSortable : false } );
-		colConfig.push( {
-			sClass    : "center",
-			bSortable : false,
-			sWidth    : "9em"
-		} );
-
-		$listingTable.dataTable( {
-			aoColumns     : colConfig,
-			bStateSave    : true,
-			bFilter       : 0,
-			aLengthMenu   : [ 5, 10, 25, 50, 100 ],
-			sDom          : "<'row'<'col-sm-6'l>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
-			fnRowCallback : function( row ){
-				$row = $( row );
-				$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
-				$row.addClass( "clickable" ); // make work with clickable tr Preside system
-			},
-			oLanguage : {
-      			oAria : {
-					sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
-					sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
-				},
-				oPaginate : {
-					sFirst : i18n.translateResource( "cms:datatables.first", { data : [objectTitle], defaultValue : "" } ),
-					sLast : i18n.translateResource( "cms:datatables.last", { data : [objectTitle], defaultValue : "" } ),
-					sNext : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "" } ),
-					sPrevious : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "" } )
-				},
-				sEmptyTable : i18n.translateResource( "cms:datatables.emptyTable", { data : [objectTitle], defaultValue : "" } ),
-				sInfo : i18n.translateResource( "cms:datatables.info", { data : [objectTitle], defaultValue : "" } ),
-				sInfoEmpty : i18n.translateResource( "cms:datatables.infoEmpty", { data : [objectTitle], defaultValue : "" } ),
-				sInfoFiltered : i18n.translateResource( "cms:datatables.infoFiltered", { data : [objectTitle], defaultValue : "" } ),
-				sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [objectTitle], defaultValue : "" } ),
-				sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [objectTitle], defaultValue : "" } ),
-				sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [objectTitle], defaultValue : "" } ),
-				sProcessing : i18n.translateResource( "cms:datatables.processing", { data : [objectTitle], defaultValue : "" } ),
-				sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [objectTitle], defaultValue : "" } ),
-				sInfoPostFix : ''
-    		}
+		$listingTable.DataTable( {
+			  columns      : [
+				  { className : "center", orderable : false, width : "5em" }
+				, { orderable : false }
+				, { className : "center", orderable : false, width : "9em" }
+			  ]
+			, stateSave    : true
+			, searching    : false
+			, lengthMenu   : [ 5, 10, 25, 50, 100 ]
+			, layout       : {
+				  topStart    : null
+				, topEnd      : "pageLength"
+				, bottomStart : "info"
+				, bottomEnd   : "paging"
+			  }
+			, createdRow : function( row ){
+				var $row = $( row );
+				$row.attr( "data-context-container", "1" );
+				$row.addClass( "clickable" );
+			  }
+			, language : {
+				  emptyTable     : i18n.translateResource( "cms:datatables.emptyTable", { data : [objectTitle], defaultValue : "" } )
+				, info           : i18n.translateResource( "cms:datatables.info", { data : [objectTitle], defaultValue : "" } )
+				, infoEmpty      : i18n.translateResource( "cms:datatables.infoEmpty", { data : [objectTitle], defaultValue : "" } )
+				, infoFiltered   : i18n.translateResource( "cms:datatables.infoFiltered", { data : [objectTitle], defaultValue : "" } )
+				, thousands      : i18n.translateResource( "cms:datatables.infoThousands", { data : [objectTitle], defaultValue : "" } )
+				, lengthMenu     : i18n.translateResource( "cms:datatables.lengthMenu", { data : [objectTitle], defaultValue : "" } )
+				, loadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [objectTitle], defaultValue : "" } )
+				, processing     : i18n.translateResource( "cms:datatables.processing", { data : [objectTitle], defaultValue : "" } )
+				, zeroRecords    : i18n.translateResource( "cms:datatables.zeroRecords", { data : [objectTitle], defaultValue : "" } )
+				, search         : ""
+				, paginate : {
+					  first    : '<i class="fa fa-angle-double-left"></i>'
+					, previous : '<i class="fa fa-chevron-left"></i>'
+					, next     : '<i class="fa fa-chevron-right"></i>'
+					, last     : '<i class="fa fa-angle-double-right"></i>'
+				  }
+				, aria : {
+					paginate : {
+						  first    : i18n.translateResource( "cms:datatables.first", { data : [objectTitle], defaultValue : "First" } )
+						, previous : i18n.translateResource( "cms:datatables.previous", { data : [objectTitle], defaultValue : "Previous" } )
+						, next     : i18n.translateResource( "cms:datatables.next", { data : [objectTitle], defaultValue : "Next" } )
+						, last     : i18n.translateResource( "cms:datatables.last", { data : [objectTitle], defaultValue : "Last" } )
+					}
+				  }
+			  }
 		} );
 	};
 
