@@ -139,7 +139,7 @@ component extends="preside.system.base.AdminHandler" {
 				);
 
 				args.append( {
-					  useMultiActions = args.multiActions.len()
+					  useMultiActions = Len( Trim( args.multiActions ) ) > 0
 					, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
 				} );
 			}

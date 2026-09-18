@@ -118,7 +118,7 @@
 		, datasourceUrl       = args.datasourceUrl
 	);
 	args.listingContextLabel = listingContext.label;
-	instanceId = LCase( Hash( args.objectName & "|" & args.listingPreferenceKey & "|" & listingContext.key & "|" & SerializeJSON( args.filterContextData ) ) );
+	instanceId = LCase( Hash( args.objectName & "|" & args.listingPreferenceKey & "|" & listingContext.key & "|" & ArrayToList( args.gridFields ) & "|" & SerializeJSON( args.filterContextData ) ) );
 	tableId    = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	toolbarConfig = getSingleton( "dataListingPreferencesService" ).getToolbarConfig(
@@ -301,7 +301,7 @@
 			data-object-name="#args.objectName#"
 			data-object-title="#args.objectTitlePlural#"
 		    data-datasource-url="#args.datasourceUrl#"
-		    data-use-multi-actions="#args.useMultiActions#"
+		    data-use-multi-actions="#booleanFormat( args.useMultiActions )#"
 		    data-allow-search="#args.allowSearch#"
 		    data-allow-data-export="#allowDataExport#"
 		    data-allow-save-export="#allowSaveExport#"
