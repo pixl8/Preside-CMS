@@ -84,12 +84,13 @@
 	};
 
 	PresideListingViews.prototype.restore = function() {
-		var stored = this.config.activeView || "default"
+		var stored   = this.config.activeView || "default"
+		  , resolved = this._resolvedDefaultView()
 		  , view;
 
 		if ( stored && stored !== "default" ) {
 			view = this._viewById( stored );
-			if ( view ) {
+			if ( view && !( resolved && String( view.id ) === String( resolved.id ) ) ) {
 				this.applyNamedView( stored, { skipDraw : true, skipPersist : true } );
 				return;
 			}
