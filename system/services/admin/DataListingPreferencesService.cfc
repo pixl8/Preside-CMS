@@ -514,6 +514,16 @@ component {
 			, allowSavedViews      = arguments.allowSavedViews
 			, canShareViews        = arguments.allowSavedViews && arguments.canShareViews
 			, savedViews           = arguments.allowSavedViews ? listSavedViews( arguments.objectName, arguments.listingKey, arguments.contextKey ) : []
+			, resolvedDefaultViewId = arguments.allowSavedViews ? _resolvedDefaultViewId(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = arguments.contextKey
+			  ) : ""
+			, defaultAssignments   = arguments.allowSavedViews ? getListingDefaultAssignments(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = arguments.contextKey
+			  ) : {}
 		};
 	}
 
@@ -529,7 +539,39 @@ component {
 		return {
 			  columns     = Duplicate( arguments.columns )
 			, filterState = emptyFilterState()
+			, sort        = emptySortOrder()
 		};
+	}
+
+	public array function emptySortOrder() {
+		return [];
+	}
+
+	public array function sanitizeSortOrder(
+		  required any   sortOrder
+		,          array grantedColumns = []
+	) {
+		var source  = _deserializeSortOrder( arguments.sortOrder );
+		var result  = [];
+		var seen    = {};
+		var pair    = {};
+		var field   = "";
+		var dir     = "";
+
+		for( pair in source ) {
+			field = Trim( pair.field ?: "" );
+			dir   = ( LCase( Trim( pair.dir ?: "" ) ) == "desc" ) ? "desc" : "asc";
+			if ( !Len( field ) || StructKeyExists( seen, LCase( field ) ) ) {
+				continue;
+			}
+			if ( ArrayLen( arguments.grantedColumns ) && !ArrayFindNoCase( arguments.grantedColumns, field ) ) {
+				continue;
+			}
+			ArrayAppend( result, [ field, dir ] );
+			seen[ LCase( field ) ] = true;
+		}
+
+		return result;
 	}
 
 	public array function sanitizeViewColumns(
@@ -684,6 +726,7 @@ component {
 		, required string  label
 		, required array   columns
 		, required any     filterState
+		,          any     sort             = []
 		,          string  listingKey       = arguments.objectName
 		,          boolean isShared         = false
 		,          boolean canShare         = false
@@ -701,6 +744,7 @@ component {
 		var granted         = [];
 		var viewColumns     = [];
 		var viewFilterState = {};
+		var viewSort        = [];
 		var viewId          = "";
 		var sharing         = {};
 		var storedContext   = "";
@@ -717,6 +761,7 @@ component {
 		);
 		viewColumns     = sanitizeViewColumns( arguments.columns, granted, arguments.objectName );
 		viewFilterState = sanitizeFilterState( arguments.filterState, _permittedFilterIds( arguments.objectName ), granted );
+		viewSort        = sanitizeSortOrder( arguments.sort, granted );
 		sharing         = _normalizeSharing(
 			  sharingScope   = arguments.sharingScope
 			, userGroups     = arguments.userGroups
@@ -742,6 +787,7 @@ component {
 				, user_groups      = sharing.userGroups
 				, columns          = ArrayToList( viewColumns )
 				, filter_state     = SerializeJSON( viewFilterState )
+				, sort_order       = SerializeJSON( viewSort )
 			  }
 			, insertManyToManyRecords = true
 		);
@@ -759,6 +805,7 @@ component {
 				, shared      = sharing.isShared
 				, columns     = viewColumns
 				, filterState = viewFilterState
+				, sort        = viewSort
 			  }
 		};
 	}
@@ -770,6 +817,7 @@ component {
 		,          string  label            = ""
 		,          array   columns
 		,          any     filterState
+		,          any     sort
 		,          boolean isShared
 		,          boolean canShare         = false
 		,          string  sharingScope
@@ -808,6 +856,9 @@ component {
 		}
 		if ( StructKeyExists( arguments, "filterState" ) ) {
 			data.filter_state = SerializeJSON( sanitizeFilterState( arguments.filterState, _permittedFilterIds( arguments.objectName ), granted ) );
+		}
+		if ( StructKeyExists( arguments, "sort" ) ) {
+			data.sort_order = SerializeJSON( sanitizeSortOrder( arguments.sort, granted ) );
 		}
 		if ( StructKeyExists( arguments, "sharingScope" ) ) {
 			sharing = _normalizeSharing(
@@ -875,6 +926,313 @@ component {
 		return true;
 	}
 
+	public struct function resolveDefaultView(
+		  required string objectName
+		,          string listingKey = arguments.objectName
+		,          string contextKey = ""
+		,          string userId     = $getAdminLoggedInUserId()
+	) {
+		var context  = _normalizeContextKey( arguments.contextKey );
+		var views    = [];
+		var view     = {};
+		var item     = {};
+		var dao      = "";
+		var personal = "";
+		var groups   = [];
+		var groupRow = {};
+		var everyone = "";
+
+		if ( !Len( Trim( arguments.userId ) ) ) {
+			return {};
+		}
+
+		dao      = $getPresideObject( "admin_datatable_listing_default" );
+		views    = listSavedViews( arguments.objectName, arguments.listingKey, arguments.contextKey );
+		personal = dao.selectData(
+			  filter       = _listingDefaultIdentityFilter(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = context
+				, scope       = "individual"
+				, userId      = arguments.userId
+			  )
+			, selectFields = [ "saved_view" ]
+		);
+		if ( personal.recordCount ) {
+			view = _savedViewFromList( views, personal.saved_view );
+			if ( !StructIsEmpty( view ) ) {
+				return view;
+			}
+		}
+
+		groups = $getAdminPermissionService().listUserGroups( userId=arguments.userId, includeCatchAll=false );
+		if ( ArrayLen( groups ) ) {
+			groupRow = dao.selectData(
+				  filter       = _listingDefaultIdentityFilter(
+					  objectName  = arguments.objectName
+					, listingKey  = arguments.listingKey
+					, contextKey  = context
+					, scope       = "group"
+				  )
+				, extraFilters = [ { filter={ "security_group"=groups } } ]
+				, selectFields = [ "saved_view", "datemodified" ]
+				, orderBy      = "datemodified desc"
+			);
+			for( item in groupRow ) {
+				view = _savedViewFromList( views, item.saved_view );
+				if ( !StructIsEmpty( view ) ) {
+					return view;
+				}
+			}
+		}
+
+		everyone = dao.selectData(
+			  filter       = _listingDefaultIdentityFilter(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = context
+				, scope       = "global"
+			  )
+			, selectFields = [ "saved_view" ]
+		);
+		if ( everyone.recordCount ) {
+			view = _savedViewFromList( views, everyone.saved_view );
+			if ( !StructIsEmpty( view ) ) {
+				return view;
+			}
+		}
+
+		return {};
+	}
+
+	public struct function getListingDefaultAssignments(
+		  required string objectName
+		,          string listingKey = arguments.objectName
+		,          string contextKey = ""
+		,          string userId     = $getAdminLoggedInUserId()
+	) {
+		var context    = _normalizeContextKey( arguments.contextKey );
+		var dao        = "";
+		var personal   = "";
+		var everyone   = "";
+		var groupQry   = "";
+		var groups     = [];
+		var row        = {};
+		var result     = { personal="", everyone="", groups=[] };
+
+		if ( !Len( Trim( arguments.userId ) ) ) {
+			return result;
+		}
+
+		dao      = $getPresideObject( "admin_datatable_listing_default" );
+		personal = dao.selectData(
+			  filter       = _listingDefaultIdentityFilter(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = context
+				, scope       = "individual"
+				, userId      = arguments.userId
+			  )
+			, selectFields = [ "saved_view" ]
+		);
+		if ( personal.recordCount ) {
+			result.personal = personal.saved_view;
+		}
+
+		everyone = dao.selectData(
+			  filter       = _listingDefaultIdentityFilter(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = context
+				, scope       = "global"
+			  )
+			, selectFields = [ "saved_view" ]
+		);
+		if ( everyone.recordCount ) {
+			result.everyone = everyone.saved_view;
+		}
+
+		groups = $getAdminPermissionService().listUserGroups( userId=arguments.userId, includeCatchAll=false );
+		if ( ArrayLen( groups ) ) {
+			groupQry = dao.selectData(
+				  filter       = _listingDefaultIdentityFilter(
+					  objectName  = arguments.objectName
+					, listingKey  = arguments.listingKey
+					, contextKey  = context
+					, scope       = "group"
+				  )
+				, extraFilters = [ { filter={ "security_group"=groups } } ]
+				, selectFields = [ "saved_view", "security_group" ]
+			);
+			for( row in groupQry ) {
+				ArrayAppend( result.groups, {
+					  groupId = row.security_group
+					, viewId  = row.saved_view
+				} );
+			}
+		}
+
+		return result;
+	}
+
+	public struct function saveListingViewDefault(
+		  required string  viewId
+		, required string  objectName
+		,          string  listingKey   = arguments.objectName
+		,          string  contextKey   = ""
+		,          string  scope        = "individual"
+		,          string  userGroups   = ""
+		,          boolean canShare     = false
+		,          boolean namedContext = false
+	) {
+		var userId    = $getAdminLoggedInUserId();
+		var context   = _storedViewContextKey(
+			  contextKey   = arguments.contextKey
+			, namedContext = arguments.namedContext
+			, contextScope = "this"
+		);
+		var views     = [];
+		var view      = {};
+		var audience  = LCase( Trim( arguments.scope ) );
+		var groupIds  = ListToArray( arguments.userGroups );
+		var groupId   = "";
+
+		if ( !Len( userId ) || !Len( Trim( arguments.viewId ) ) ) {
+			return { success=false };
+		}
+		if ( !ArrayFindNoCase( [ "individual", "group", "global" ], audience ) ) {
+			return { success=false };
+		}
+		if ( audience != "individual" && !arguments.canShare ) {
+			return { success=false };
+		}
+
+		views = listSavedViews( arguments.objectName, arguments.listingKey, arguments.contextKey );
+		view  = _savedViewFromList( views, arguments.viewId );
+		if ( StructIsEmpty( view ) || !_viewAllowsDefaultAudience( arguments.viewId, audience, groupIds ) ) {
+			return { success=false };
+		}
+		if ( audience == "group" && !ArrayLen( groupIds ) ) {
+			return { success=false };
+		}
+
+		if ( audience == "individual" ) {
+			_upsertListingDefault(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = context
+				, scope       = "individual"
+				, savedViewId = arguments.viewId
+				, userId      = userId
+			);
+		} else if ( audience == "global" ) {
+			_upsertListingDefault(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = context
+				, scope       = "global"
+				, savedViewId = arguments.viewId
+			);
+		} else {
+			for( groupId in groupIds ) {
+				groupId = Trim( groupId );
+				if ( Len( groupId ) ) {
+					_upsertListingDefault(
+						  objectName  = arguments.objectName
+						, listingKey  = arguments.listingKey
+						, contextKey  = context
+						, scope       = "group"
+						, savedViewId = arguments.viewId
+						, groupId     = groupId
+					);
+				}
+			}
+		}
+
+		return {
+			  success              = true
+			, resolvedDefaultViewId = _resolvedDefaultViewId(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = arguments.contextKey
+			  )
+			, defaultAssignments   = getListingDefaultAssignments(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = arguments.contextKey
+			  )
+		};
+	}
+
+	public struct function clearListingViewDefault(
+		  required string  viewId
+		, required string  objectName
+		,          string  listingKey   = arguments.objectName
+		,          string  contextKey   = ""
+		,          boolean canShare     = false
+		,          boolean namedContext = false
+	) {
+		var userId  = $getAdminLoggedInUserId();
+		var context = _storedViewContextKey(
+			  contextKey   = arguments.contextKey
+			, namedContext = arguments.namedContext
+			, contextScope = "this"
+		);
+		var dao     = "";
+		var groups  = [];
+
+		if ( !Len( userId ) || !Len( Trim( arguments.viewId ) ) ) {
+			return { success=false };
+		}
+
+		dao = $getPresideObject( "admin_datatable_listing_default" );
+		dao.deleteData( filter=_listingDefaultIdentityFilter(
+			  objectName  = arguments.objectName
+			, listingKey  = arguments.listingKey
+			, contextKey  = context
+			, scope       = "individual"
+			, userId      = userId
+			, savedViewId = arguments.viewId
+		) );
+
+		if ( arguments.canShare ) {
+			dao.deleteData( filter=_listingDefaultIdentityFilter(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = context
+				, scope       = "global"
+				, savedViewId = arguments.viewId
+			) );
+			groups = $getAdminPermissionService().listUserGroups( userId=userId, includeCatchAll=false );
+			if ( ArrayLen( groups ) ) {
+				dao.deleteData(
+					  filter       = _listingDefaultIdentityFilter(
+						  objectName  = arguments.objectName
+						, listingKey  = arguments.listingKey
+						, contextKey  = context
+						, scope       = "group"
+						, savedViewId = arguments.viewId
+					  )
+					, extraFilters = [ { filter={ "security_group"=groups } } ]
+				);
+			}
+		}
+
+		return {
+			  success               = true
+			, resolvedDefaultViewId = _resolvedDefaultViewId(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = arguments.contextKey
+			  )
+			, defaultAssignments    = getListingDefaultAssignments(
+				  objectName  = arguments.objectName
+				, listingKey  = arguments.listingKey
+				, contextKey  = arguments.contextKey
+			)
+		};
+	}
+
 	public struct function getSavedViewFormData(
 		  required string viewId
 		, required string objectName
@@ -899,7 +1257,7 @@ component {
 		return {
 			  label            = record.label ?: ""
 			, sharing_scope    = _legacySharingScope( record )
-			, allow_group_edit = $helpers.IsTrue( record.allow_group_edit ?: false )
+			, allow_group_edit = $helpers.isTrue( record.allow_group_edit ?: false )
 			, user_groups      = groups
 			, context_scope    = Len( Trim( record.context_key ?: "" ) ) ? "this" : "global"
 		};
@@ -1013,6 +1371,193 @@ component {
 		return emptyFilterState();
 	}
 
+	private array function _deserializeSortOrder( required any sortOrder ) {
+		var parsed = [];
+		var item   = {};
+		var field  = "";
+		var dir    = "";
+		var result = [];
+
+		if ( IsArray( arguments.sortOrder ) ) {
+			parsed = Duplicate( arguments.sortOrder );
+		} else if ( IsSimpleValue( arguments.sortOrder ) && IsJSON( arguments.sortOrder ) ) {
+			parsed = DeserializeJSON( arguments.sortOrder );
+			if ( !IsArray( parsed ) ) {
+				return [];
+			}
+		} else {
+			return [];
+		}
+
+		for( item in parsed ) {
+			field = "";
+			dir   = "asc";
+			if ( IsArray( item ) && ArrayLen( item ) ) {
+				field = Trim( item[ 1 ] ?: "" );
+				if ( ArrayLen( item ) >= 2 ) {
+					dir = Trim( item[ 2 ] ?: "asc" );
+				}
+			} else if ( IsStruct( item ) ) {
+				field = Trim( item.field ?: ( item[ 1 ] ?: "" ) );
+				dir   = Trim( item.dir   ?: ( item[ 2 ] ?: "asc" ) );
+			}
+			if ( Len( field ) ) {
+				ArrayAppend( result, { field=field, dir=dir } );
+			}
+		}
+
+		return result;
+	}
+
+	private struct function _listingDefaultIdentityFilter(
+		  required string objectName
+		, required string listingKey
+		, required string contextKey
+		, required string scope
+		,          string userId      = ""
+		,          string groupId     = ""
+		,          string savedViewId = ""
+	) {
+		var filter = {
+			  object_name  = arguments.objectName
+			, listing_key  = arguments.listingKey
+			, context_key  = arguments.contextKey
+			, scope        = arguments.scope
+		};
+
+		if ( Len( Trim( arguments.userId ) ) ) {
+			filter.security_user = arguments.userId;
+		}
+		if ( Len( Trim( arguments.groupId ) ) ) {
+			filter.security_group = arguments.groupId;
+		}
+		if ( Len( Trim( arguments.savedViewId ) ) ) {
+			filter.saved_view = arguments.savedViewId;
+		}
+
+		return filter;
+	}
+
+	private struct function _savedViewFromList( required array views, required string viewId ) {
+		var item = {};
+
+		for( item in arguments.views ) {
+			if ( ( item.id ?: "" ) == arguments.viewId ) {
+				return item;
+			}
+		}
+
+		return {};
+	}
+
+	private string function _resolvedDefaultViewId(
+		  required string objectName
+		,          string listingKey = arguments.objectName
+		,          string contextKey = ""
+	) {
+		var view = resolveDefaultView(
+			  objectName = arguments.objectName
+			, listingKey = arguments.listingKey
+			, contextKey = arguments.contextKey
+		);
+
+		return view.id ?: "";
+	}
+
+	private boolean function _viewAllowsDefaultAudience(
+		  required string viewId
+		, required string scope
+		,          array  groupIds = []
+	) {
+		var record     = "";
+		var sharing    = "";
+		var viewGroups = [];
+		var groupId    = "";
+		var groupQry   = "";
+		var row        = {};
+
+		record = $getPresideObject( "admin_datatable_saved_view" ).selectData(
+			  id           = arguments.viewId
+			, selectFields = [ "id", "sharing_scope", "is_shared" ]
+		);
+		if ( !record.recordCount ) {
+			return false;
+		}
+		for( row in record ) {
+			sharing = _legacySharingScope( row );
+			break;
+		}
+		if ( arguments.scope == "individual" ) {
+			return true;
+		}
+		if ( arguments.scope == "global" ) {
+			return sharing == "global";
+		}
+		if ( !ArrayLen( arguments.groupIds ) ) {
+			return false;
+		}
+		if ( sharing == "global" ) {
+			return true;
+		}
+		if ( sharing != "group" ) {
+			return false;
+		}
+
+		groupQry = $getPresideObject( "admin_datatable_saved_view_user_group" ).selectData(
+			  filter       = { admin_datatable_saved_view=arguments.viewId }
+			, selectFields = [ "security_group" ]
+		);
+		viewGroups = ValueArray( groupQry.security_group );
+		for( groupId in arguments.groupIds ) {
+			if ( !ArrayFindNoCase( viewGroups, groupId ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private void function _upsertListingDefault(
+		  required string objectName
+		, required string listingKey
+		, required string contextKey
+		, required string scope
+		, required string savedViewId
+		,          string userId  = ""
+		,          string groupId = ""
+	) {
+		var dao      = $getPresideObject( "admin_datatable_listing_default" );
+		var filter   = _listingDefaultIdentityFilter(
+			  objectName = arguments.objectName
+			, listingKey = arguments.listingKey
+			, contextKey = arguments.contextKey
+			, scope      = arguments.scope
+			, userId     = arguments.userId
+			, groupId    = arguments.groupId
+		);
+		var existing = dao.selectData( filter=filter, selectFields=[ "id" ] );
+		var data     = {
+			  object_name  = arguments.objectName
+			, listing_key  = arguments.listingKey
+			, context_key  = arguments.contextKey
+			, scope        = arguments.scope
+			, saved_view   = arguments.savedViewId
+		};
+
+		if ( arguments.scope == "individual" ) {
+			data.security_user = arguments.userId;
+		} else if ( arguments.scope == "group" ) {
+			data.security_group = arguments.groupId;
+		}
+
+		if ( existing.recordCount ) {
+			dao.updateData( id=existing.id, data={ saved_view=arguments.savedViewId } );
+			return;
+		}
+
+		dao.insertData( data=data );
+	}
+
 	private string function _viewStateFingerprint( required struct state ) {
 		var columns     = arguments.state.columns ?: [];
 		var rawState    = arguments.state.filterState ?: ( arguments.state.filter_state ?: {} );
@@ -1035,7 +1580,7 @@ component {
 		ids = Duplicate( filterState.savedFilterIds );
 		ArraySort( ids, "textnocase" );
 
-		return LCase( ArrayToList( columns ) & "|" & ArrayToList( ids ) & "|" & SerializeJSON( filterState.advancedFilter ) & "|" & SerializeJSON( filterState.columnSearch ) );
+		return LCase( ArrayToList( columns ) & "|" & ArrayToList( ids ) & "|" & SerializeJSON( filterState.advancedFilter ) & "|" & SerializeJSON( filterState.columnSearch ) & "|" & SerializeJSON( sanitizeSortOrder( arguments.state.sort ?: ( arguments.state.sort_order ?: [] ) ) ) );
 	}
 
 	private array function _permittedFilterIds( required string objectName ) {
@@ -1130,6 +1675,7 @@ component {
 			, shared      = isShared
 			, columns     = sanitizeViewColumns( ListToArray( arguments.record.columns ?: "" ), arguments.granted, arguments.objectName )
 			, filterState = sanitizeFilterState( arguments.record.filter_state ?: "", arguments.permittedIds, arguments.granted )
+			, sort        = sanitizeSortOrder( arguments.record.sort_order ?: "", arguments.granted )
 		};
 	}
 
@@ -1153,7 +1699,7 @@ component {
 				, listing_key = arguments.listingKey
 				, owner       = userId
 			  }
-			, selectFields = [ "id", "label", "owner", "is_shared", "sharing_scope", "allow_group_edit", "columns", "filter_state", "context_key" ]
+			, selectFields = [ "id", "label", "owner", "is_shared", "sharing_scope", "allow_group_edit", "columns", "filter_state", "sort_order", "context_key" ]
 		);
 
 		if ( !record.recordCount ) {

@@ -178,6 +178,9 @@
 			  , updateListingViewUrl     = tableSettings.updateListingViewUrl     || ""
 			  , deleteListingViewUrl     = tableSettings.deleteListingViewUrl     || ""
 			  , saveListingViewFormUrl   = tableSettings.saveListingViewFormUrl   || ""
+			  , saveListingViewDefaultUrl = tableSettings.saveListingViewDefaultUrl || ""
+			  , clearListingViewDefaultUrl = tableSettings.clearListingViewDefaultUrl || ""
+			  , saveListingViewDefaultFormUrl = tableSettings.saveListingViewDefaultFormUrl || ""
 			  , hiddenGridFields         = tableSettings.hiddenGridFields         ? String( tableSettings.hiddenGridFields ).split( "," ).filter( Boolean ) : []
 			  , noRecordMessage          = tableSettings.noRecordMessage          || i18n.translateResource( "cms:datatables.emptyTable" )
 			  , noRecordTableHide        = tableSettings.noRecordTableHide        || false
@@ -225,6 +228,7 @@
 			  , stripListingTableColumnControlState, getListingUrlState, encodeCurrentListingUrl, pushListingUrl
 			  , applyListingUrlState, setupListingUrlSync, getListingSortState, setListingSortState
 			  , listingColumnIndexForField, listingSortMatchesDefault, persistListingFilterState, loadListingFilterState
+			  , syncListingSortBadges
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -653,16 +657,20 @@
 					, listingContextLabel : listingContextLabel || toolbarConfig.listingContextLabel || ""
 					, namedListingContext : namedListingContext || toolbarConfig.namedListingContext || false
 					, urls              : {
-						  save   : saveListingViewUrl
-						, update : updateListingViewUrl
-						, delete : deleteListingViewUrl
-						, form   : saveListingViewFormUrl
+						  save         : saveListingViewUrl
+						, update       : updateListingViewUrl
+						, delete       : deleteListingViewUrl
+						, form         : saveListingViewFormUrl
+						, saveDefault  : saveListingViewDefaultUrl
+						, clearDefault : clearListingViewDefaultUrl
+						, defaultForm  : saveListingViewDefaultFormUrl
 					  }
 					, getSnapshot       : getListingViewSnapshot
 					, applySnapshot     : applyListingViewSnapshot
 					, applyDefault      : applyListingDefaultView
 					, persistActiveView : persistActiveView
 					, onLockChange      : syncViewFilterLock
+					, defaultSort       : listingDefaultSortFields
 				} );
 				listingViews.restore();
 				syncViewFilterLock();
@@ -1082,36 +1090,124 @@
 							return idxs;
 						}
 
+						var suppressColvisRender = false;
+
+						function isLocked( idx ) {
+							return $( dt.column( idx ).header() ).hasClass( "listing-locked-column" );
+						}
+
+						function rowHtml( idx, visible, locked ) {
+							var col   = dt.column( idx )
+							  , label = $( "<div>" ).text( $.trim( col.title() ) ).html()
+							  , drag  = i18n.translateResource( "cms:datatables.columns.drag", { defaultValue : "Drag to reorder" } )
+							  , html  = '<div class="listing-column-row' + ( locked ? " is-locked" : "" ) + ( visible ? "" : " is-hidden" ) + '" data-index="' + idx + '">';
+
+							if ( visible && !locked ) {
+								html += '<span class="listing-column-drag" title="' + drag + '"><i class="fa fa-bars"></i></span>';
+							} else {
+								html += '<span class="listing-column-drag is-placeholder"></span>';
+							}
+
+							html += '<label class="listing-column-label">' +
+								'<input type="checkbox" class="listing-column-toggle no-ace"' + ( visible ? ' checked' : '' ) + ( locked ? ' disabled' : '' ) + ' />' +
+								'<span>' + label + '</span>' +
+							'</label></div>';
+							return html;
+						}
+
+						function visibleFieldsFromList() {
+							var fields = [];
+
+							$list.find( ".listing-colvis-visible .listing-column-row" ).each( function() {
+								var idx   = parseInt( $( this ).attr( "data-index" ), 10 )
+								  , field = dt.column( idx ).dataSrc();
+
+								if ( field ) {
+									fields.push( field );
+								}
+							} );
+
+							return fields;
+						}
+
+						function applyVisibleFieldOrder( fields ) {
+							if ( typeof applyColumnLayout !== "function" || !fields || !fields.length ) {
+								render();
+								return;
+							}
+
+							suppressColvisRender = true;
+							applyColumnLayout( fields );
+							suppressColvisRender = false;
+							render();
+						}
+
+						function bindSortable() {
+							var $visible = $list.find( ".listing-colvis-visible" );
+
+							if ( !$visible.length || !$.fn.sortable ) {
+								return;
+							}
+							if ( $visible.data( "ui-sortable" ) ) {
+								$visible.sortable( "destroy" );
+							}
+							$visible.sortable( {
+								  items  : ".listing-column-row:not(.is-locked)"
+								, handle : ".listing-column-drag"
+								, axis   : "y"
+								, update : function() {
+									var fields = visibleFieldsFromList();
+									setTimeout( function() {
+										applyVisibleFieldOrder( fields );
+									}, 0 );
+								  }
+							} );
+						}
+
 						function render() {
-							var html     = []
-							  , idxs     = userIndexes()
-							  , moveUp   = i18n.translateResource( "cms:datatables.columns.move.up", { defaultValue : "Move up" } )
-							  , moveDown = i18n.translateResource( "cms:datatables.columns.move.down", { defaultValue : "Move down" } )
-							  , i, idx, col, label, locked, visible;
+							var idxs     = userIndexes()
+							  , visible  = []
+							  , hidden   = []
+							  , locked   = []
+							  , unlocked = []
+							  , html     = []
+							  , i, idx;
 
 							for( i=0; i<idxs.length; i++ ) {
-								idx     = idxs[ i ];
-								col     = dt.column( idx );
-								label   = $( "<div>" ).text( $.trim( col.title() ) ).html();
-								locked  = $( col.header() ).hasClass( "listing-locked-column" );
-								visible = col.visible();
+								idx = idxs[ i ];
+								if ( dt.column( idx ).visible() ) {
+									visible.push( idx );
+								} else {
+									hidden.push( idx );
+								}
+							}
+							for( i=0; i<visible.length; i++ ) {
+								if ( isLocked( visible[ i ] ) ) {
+									locked.push( visible[ i ] );
+								} else {
+									unlocked.push( visible[ i ] );
+								}
+							}
 
-								html.push(
-									'<div class="listing-column-row" data-index="' + idx + '">' +
-										'<label class="listing-column-label">' +
-											'<input type="checkbox" class="listing-column-toggle no-ace"' + ( visible ? ' checked' : '' ) + ( locked ? ' disabled' : '' ) + ' />' +
-											'<span>' + label + '</span>' +
-										'</label>' +
-										'<span class="listing-column-order">' +
-											'<button type="button" class="listing-column-move" data-dir="up" title="' + moveUp + '"><i class="fa fa-chevron-up"></i></button>' +
-											'<button type="button" class="listing-column-move" data-dir="down" title="' + moveDown + '"><i class="fa fa-chevron-down"></i></button>' +
-										'</span>' +
-									'</div>'
-								);
+							html.push( '<div class="listing-colvis-visible">' );
+							for( i=0; i<locked.length; i++ ) {
+								html.push( rowHtml( locked[ i ], true, true ) );
+							}
+							for( i=0; i<unlocked.length; i++ ) {
+								html.push( rowHtml( unlocked[ i ], true, false ) );
+							}
+							html.push( '</div>' );
+							if ( hidden.length ) {
+								html.push( '<div class="listing-colvis-hidden">' );
+								for( i=0; i<hidden.length; i++ ) {
+									html.push( rowHtml( hidden[ i ], false, false ) );
+								}
+								html.push( '</div>' );
 							}
 
 							$list.html( html.join( "" ) );
 							filterRows();
+							bindSortable();
 						}
 
 						function filterRows() {
@@ -1122,32 +1218,28 @@
 							} );
 						}
 
-						$wrap.on( "click", ".listing-column-move", function( e ) {
-							var from = parseInt( $( this ).closest( ".listing-column-row" ).attr( "data-index" ), 10 )
-							  , dir  = $( this ).data( "dir" )
-							  , idxs = userIndexes()
-							  , pos  = idxs.indexOf( from )
-							  , swap = dir === "up" ? pos - 1 : pos + 1;
-
-							e.preventDefault();
-							e.stopPropagation();
-
-							if ( pos < 0 || swap < 0 || swap >= idxs.length || !dt.colReorder ) {
-								return;
-							}
-
-							dt.colReorder.move( from, idxs[ swap ] );
-						} );
-
-						$wrap.on( "click", ".listing-column-label, .listing-column-toggle", function( e ) {
+						$wrap.on( "click", ".listing-column-label, .listing-column-toggle, .listing-column-drag", function( e ) {
 							e.stopPropagation();
 						} );
 
 						$wrap.on( "change", ".listing-column-toggle", function() {
-							var $input = $( this )
-							  , idx    = parseInt( $input.closest( ".listing-column-row" ).attr( "data-index" ), 10 );
+							var $input  = $( this )
+							  , idx     = parseInt( $input.closest( ".listing-column-row" ).attr( "data-index" ), 10 )
+							  , checked = $input.is( ":checked" )
+							  , field   = dt.column( idx ).dataSrc()
+							  , fields;
 
-							dt.column( idx ).visible( $input.is( ":checked" ) );
+							if ( !checked ) {
+								dt.column( idx ).visible( false );
+								render();
+								return;
+							}
+
+							fields = visibleFieldsFromList();
+							if ( field && fields.indexOf( field ) === -1 ) {
+								fields.push( field );
+							}
+							applyVisibleFieldOrder( fields );
 						} );
 
 						$search.on( "input", function( e ) {
@@ -1155,7 +1247,11 @@
 							filterRows();
 						} );
 
-						dt.on( "columns-reordered", render );
+						dt.on( "columns-reordered", function() {
+							if ( !suppressColvisRender ) {
+								render();
+							}
+						} );
 						render();
 
 						return $wrap.get( 0 );
@@ -1226,7 +1322,10 @@
 			};
 
 			headingContent = function( extras ) {
-				var content = [ "order" ];
+				var content = [ {
+					  extend : "order"
+					, text   : i18n.translateResource( "cms:datatables.sort.toggle", { defaultValue : "Sort. Shift-click to add" } )
+				} ];
 
 				if ( extras && extras.length ) {
 					content.push( {
@@ -1752,6 +1851,8 @@
 					data.columns.forEach( function( col ) {
 						if ( col && typeof col === "object" ) {
 							delete col.columnControl;
+							delete col.data;
+							delete col.name;
 						}
 					} );
 				}
@@ -1901,6 +2002,42 @@
 				return JSON.stringify( order || [] ) === JSON.stringify( listingDefaultSortFields || [] );
 			};
 
+			syncListingSortBadges = function() {
+				var order = dtApi ? ( dtApi.order() || [] ) : []
+				  , show  = order.length > 1
+				  , ranks = {}
+				  , title = i18n.translateResource( "cms:datatables.sort.toggle", { defaultValue : "Sort. Shift-click to add" } );
+
+				order.forEach( function( col, i ) {
+					var idx = $.isArray( col ) ? col[ 0 ] : ( col && ( col.column !== undefined ? col.column : ( col.col !== undefined ? col.col : col.idx ) ) );
+					if ( typeof idx === "number" ) {
+						ranks[ idx ] = i + 1;
+					}
+				} );
+
+				$listingTable.find( "thead th" ).each( function() {
+					var $th    = $( this )
+					  , idx    = dtApi.column( this ).index()
+					  , $btn   = $th.find( ".dtcc-button_order" )
+					  , $badge = $btn.find( ".listing-sort-priority" )
+					  , rank   = ranks[ idx ];
+
+					if ( !$btn.length ) {
+						return;
+					}
+					$btn.attr( "title", title );
+					if ( show && rank ) {
+						if ( !$badge.length ) {
+							$badge = $( '<span class="listing-sort-priority"></span>' );
+							$btn.append( $badge );
+						}
+						$badge.text( rank ).show();
+					} else if ( $badge.length ) {
+						$badge.hide();
+					}
+				} );
+			};
+
 			getListingUrlState = function() {
 				var advanced = []
 				  , extra    = []
@@ -1994,6 +2131,7 @@
 				if ( dtApi ) {
 					dtApi.on( "order.dt", function() {
 						pushListingUrl();
+						syncListingSortBadges();
 					} );
 				}
 
@@ -2202,6 +2340,7 @@
 						, advancedFilter : andExpressionArrays( advanced, extra )
 						, columnSearch   : $.extend( {}, lastColumnSearch )
 					  }
+					, sort        : getListingSortState()
 				};
 			};
 
@@ -2253,7 +2392,8 @@
 
 			applyListingViewSnapshot = function( view, opts ) {
 				var filter   = normalizeFilterState( ( view && view.filterState ) || {} )
-				  , skipDraw = !!( opts && opts.skipDraw );
+				  , skipDraw = !!( opts && opts.skipDraw )
+				  , sort     = ( view && $.isArray( view.sort ) && view.sort.length ) ? view.sort : listingDefaultSortFields;
 
 				applyColumnLayout( view.columns || [] );
 				if ( everythingBar ) {
@@ -2265,6 +2405,7 @@
 				}
 				setAdvancedFilter( filter.advancedFilter || [] );
 				applyColumnSearch( filter.columnSearch || {} );
+				setListingSortState( sort );
 				syncColumnFilterChips();
 				syncViewFilterLock();
 
@@ -2285,6 +2426,7 @@
 				}
 				setAdvancedFilter( [] );
 				applyColumnSearch( {} );
+				setListingSortState( listingDefaultSortFields );
 				syncColumnFilterChips();
 				syncViewFilterLock();
 
@@ -2410,7 +2552,7 @@
 
 				for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
 					$header       = $( $tableHeaders.get(i) );
-					fieldName     = $header.data( "field" );
+					fieldName     = $header.attr( "data-field" ) || $header.data( "field" );
 					classNames    = [ "listing-data-column" ];
 					searchContent = searchContentForField( fieldName );
 
@@ -2425,8 +2567,8 @@
 					}
 
 					col = {
-						  data           : fieldName
-						, name           : fieldName
+						  data           : fieldName || null
+						, name           : fieldName || ( "_col" + i )
 						, title          : $.trim( $header.text() )
 						, defaultContent : ""
 						, className      : classNames.join( " " )
@@ -2553,7 +2695,7 @@
 						if ( listingUrlPending ) {
 							applyListingUrlState( listingUrlPending, { skipDraw : true } );
 							listingUrlPending = null;
-						} else if ( !( listingViews && listingViews.isNamedViewActive() ) ) {
+						} else if ( !( listingViews && listingViews.isNamedViewActive() ) && !( listingViews && listingViews.hasResolvedNamedDefault && listingViews.hasResolvedNamedDefault() ) ) {
 							storedFilters = loadListingFilterState();
 							if ( storedFilters ) {
 								applyListingUrlState( storedFilters, { skipDraw : true } );
@@ -2589,6 +2731,7 @@
 							dtApi.draw();
 						}
 						listingUrlReady = true;
+						syncListingSortBadges();
 					}
 					, language : {
 						  emptyTable     : noRecordMessage

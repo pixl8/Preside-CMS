@@ -24,6 +24,7 @@
 		this.applyDefault      = options.applyDefault || function(){};
 		this.persistActiveView = options.persistActiveView || function(){};
 		this.defaultColumnSet = ( this.config.currentColumns || [] ).slice();
+		this.defaultSort      = ( options.defaultSort || [] ).slice();
 		this.activeId         = "default";
 		this.editing          = false;
 		this.suppressPrefSave = false;
@@ -83,21 +84,31 @@
 	};
 
 	PresideListingViews.prototype.restore = function() {
-		var stored = this.config.activeView || "default"
+		var stored   = this.config.activeView || "default"
+		  , resolved = this._resolvedDefaultView()
 		  , view;
 
 		if ( stored && stored !== "default" ) {
 			view = this._viewById( stored );
-			if ( view ) {
+			if ( view && !( resolved && String( view.id ) === String( resolved.id ) ) ) {
 				this.applyNamedView( stored, { skipDraw : true, skipPersist : true } );
 				return;
 			}
-			this.applyDefaultView( { skipDraw : true } );
-			return;
 		}
 
-		this.activeId = "default";
-		this.render();
+		this.applyDefaultView( { skipDraw : true, skipPersist : true } );
+	};
+
+	PresideListingViews.prototype.hasResolvedNamedDefault = function() {
+		return !!this._resolvedDefaultView();
+	};
+
+	PresideListingViews.prototype._resolvedDefaultView = function() {
+		var id = this.config.resolvedDefaultViewId || "";
+		if ( !id || id === "default" ) {
+			return null;
+		}
+		return this._viewById( id );
 	};
 
 	PresideListingViews.prototype.isNamedViewActive = function() {
@@ -192,14 +203,20 @@
 	};
 
 	PresideListingViews.prototype.applyDefaultView = function( opts ) {
+		var resolved = this._resolvedDefaultView();
+
 		this.suppressPrefSave = true;
 		this.activeId = "default";
 		this.editing  = false;
 		this._persist( opts );
-		this.applyDefault( {
-			  columns  : this.defaultColumnSet
-			, skipDraw : !!( opts && opts.skipDraw )
-		} );
+		if ( resolved ) {
+			this.applySnapshot( resolved, opts || {} );
+		} else {
+			this.applyDefault( {
+				  columns  : this.defaultColumnSet
+				, skipDraw : !!( opts && opts.skipDraw )
+			} );
+		}
 		this.suppressPrefSave = false;
 		this.render();
 		this._syncLock();
@@ -222,7 +239,9 @@
 		this.$toggle.toggleClass( "is-editing", this.editing );
 		this.$root.toggleClass( "is-editing", this.editing );
 
-		html.push( this._itemHtml( "default", t( "cms:datatables.views.default", "Default" ), this.activeId === "default", false ) );
+		if ( !this._resolvedDefaultView() ) {
+			html.push( this._itemHtml( "default", t( "cms:datatables.views.default", "Default" ), this.activeId === "default", false ) );
+		}
 
 		for( i=0; i<views.length; i++ ) {
 			view = views[ i ];
@@ -242,6 +261,12 @@
 
 		html.push( '<div class="listing-views-actions">' );
 		html.push( '<a href="#" class="listing-views-action" data-view-action="save-as">' + t( "cms:datatables.views.saveAs", "Save as view..." ) + '</a>' );
+		if ( this.isNamedViewActive() ) {
+			html.push( '<a href="#" class="listing-views-action" data-view-action="set-default">' + t( "cms:datatables.views.setAsDefault", "Set as default..." ) + '</a>' );
+			if ( this._canClearDefault( this.activeId ) ) {
+				html.push( '<a href="#" class="listing-views-action" data-view-action="clear-default">' + t( "cms:datatables.views.clearDefault", "Clear default" ) + '</a>' );
+			}
+		}
 		if ( this.isNamedViewActive() && !this.editing ) {
 			html.push( '<a href="#" class="listing-views-action" data-view-action="edit">' + t( "cms:datatables.views.edit", "Edit view" ) + '</a>' );
 		}
@@ -269,15 +294,20 @@
 		html.push( '<div class="listing-views-group">' + $("<div>").text( title ).html() + '</div>' );
 		for( i=0; i<views.length; i++ ) {
 			view = views[ i ];
-			html.push( this._itemHtml( view.id, view.label, this.activeId === view.id, view.owner ) );
+			html.push( this._itemHtml( view.id, view.label, this._isViewSelected( view ), view.owner, view.id === ( this.config.resolvedDefaultViewId || "" ) ) );
 		}
 	};
 
-	PresideListingViews.prototype._itemHtml = function( id, label, selected, owner ) {
+	PresideListingViews.prototype._itemHtml = function( id, label, selected, owner, isDefault ) {
 		var html = '<div class="listing-views-item' + ( selected ? " is-selected" : "" ) + '">' +
 			'<a href="#" class="listing-views-item-label" data-view-action="apply" data-view-id="' + $("<div>").text( id ).html() + '">' +
-				$("<div>").text( label ).html() +
-			'</a>';
+				$("<div>").text( label ).html();
+
+		if ( isDefault ) {
+			html += ' <span class="listing-views-default-badge">' + t( "cms:datatables.views.default.badge", "Default" ) + '</span>';
+		}
+
+		html += '</a>';
 
 		if ( owner ) {
 			html += '<span class="listing-views-item-tools">' +
@@ -329,6 +359,14 @@
 			case "rename":
 				this.close();
 				this._promptSave( this._viewById( viewId ) );
+				break;
+			case "set-default":
+				this.close();
+				this._promptDefault( this.activeId );
+				break;
+			case "clear-default":
+				this.close();
+				this._clearDefault( this.activeId );
 				break;
 			case "delete":
 				this.close();
@@ -401,6 +439,7 @@
 				if ( $form.length && snapshot ) {
 					self._appendHidden( $form, "columns"             , ( snapshot.columns || [] ).join( "," ) );
 					self._appendHidden( $form, "filterState"         , JSON.stringify( snapshot.filterState || {} ) );
+					self._appendHidden( $form, "sort"                , JSON.stringify( snapshot.sort || [] ) );
 					self._appendHidden( $form, "grantedGridFields"   , ( self.config.grantedColumns || [] ).join( "," ) );
 					self._appendHidden( $form, "grantedGridFieldsSig", self.config.grantedColumnsSig || "" );
 				}
@@ -473,8 +512,9 @@
 			, label       : view.label
 			, columns     : ( snapshot.columns || [] ).join( "," )
 			, filterState : JSON.stringify( snapshot.filterState || {} )
-		}, function( updated ){
-			self._replaceView( updated );
+			, sort        : JSON.stringify( snapshot.sort || [] )
+		}, function( resp ){
+			self._replaceView( resp.view || {} );
 			self.editing = false;
 			self.render();
 			self._syncLock();
@@ -534,7 +574,7 @@
 			, success : function( resp ) {
 				if ( resp && resp.success ) {
 					if ( success ) {
-						success( resp.view || {} );
+						success( resp );
 					}
 					return;
 				}
@@ -591,8 +631,18 @@
 		return this._viewById( this.activeId );
 	};
 
+	PresideListingViews.prototype._isViewSelected = function( view ) {
+		if ( !view ) {
+			return false;
+		}
+		if ( this.activeId === view.id ) {
+			return true;
+		}
+		return this.activeId === "default" && view.id === ( this.config.resolvedDefaultViewId || "" );
+	};
+
 	PresideListingViews.prototype._activeLabel = function() {
-		var view = this._activeView();
+		var view = this._activeView() || this._resolvedDefaultView();
 		return view ? view.label : t( "cms:datatables.views.default", "Default" );
 	};
 
@@ -604,17 +654,29 @@
 	};
 
 	PresideListingViews.prototype._selectedState = function() {
-		var view = this._activeView();
+		var view     = this._activeView()
+		  , resolved = this._resolvedDefaultView();
+
 		if ( view ) {
 			return {
 				  columns     : view.columns || []
 				, filterState : view.filterState || { savedFilterIds : [], advancedFilter : [], columnSearch : {} }
+				, sort        : view.sort || []
+			};
+		}
+
+		if ( resolved ) {
+			return {
+				  columns     : resolved.columns || []
+				, filterState : resolved.filterState || { savedFilterIds : [], advancedFilter : [], columnSearch : {} }
+				, sort        : resolved.sort || this.defaultSort.slice()
 			};
 		}
 
 		return {
 			  columns     : this.defaultColumnSet.slice()
 			, filterState : { savedFilterIds : [], advancedFilter : [], columnSearch : {} }
+			, sort        : this.defaultSort.slice()
 		};
 	};
 
@@ -627,7 +689,114 @@
 			, savedFilterIds  : ids
 			, advancedFilter  : filter.advancedFilter || []
 			, columnSearch    : filter.columnSearch || {}
+			, sort            : state && state.sort ? state.sort : []
 		} );
+	};
+
+	PresideListingViews.prototype._canClearDefault = function( viewId ) {
+		var assignments = this.config.defaultAssignments || {}
+		  , groups      = assignments.groups || []
+		  , i;
+
+		if ( assignments.personal === viewId ) {
+			return true;
+		}
+		if ( this.config.canShareViews && assignments.everyone === viewId ) {
+			return true;
+		}
+		if ( this.config.canShareViews ) {
+			for( i=0; i<groups.length; i++ ) {
+				if ( groups[ i ].viewId === viewId ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	};
+
+	PresideListingViews.prototype._applyDefaultAssignment = function( data ) {
+		if ( !data ) {
+			return;
+		}
+		this.config.resolvedDefaultViewId = data.resolvedDefaultViewId || "";
+		this.config.defaultAssignments    = data.defaultAssignments || {};
+		if ( this.activeId === "default" ) {
+			this.applyDefaultView();
+			return;
+		}
+		this.render();
+	};
+
+	PresideListingViews.prototype._promptDefault = function( viewId ) {
+		var self       = this
+		  , formUrl    = this.urls.defaultForm || ""
+		  , qs         = []
+		  , iframemodal, rawIframe, iframeSrc, modalOptions, callbacks;
+
+		if ( !formUrl.length || !viewId ) {
+			return;
+		}
+
+		qs.push( "object=" + encodeURIComponent( this.objectName ) );
+		qs.push( "listingKey=" + encodeURIComponent( this.listingKey ) );
+		qs.push( "viewId=" + encodeURIComponent( viewId ) );
+		if ( this.listingContextKey ) {
+			qs.push( "listingContextKey=" + encodeURIComponent( this.listingContextKey ) );
+		}
+		if ( this.namedListingContext ) {
+			qs.push( "namedListingContext=true" );
+		}
+		iframeSrc = formUrl + ( formUrl.indexOf( "?" ) >= 0 ? "&" : "?" ) + qs.join( "&" );
+
+		modalOptions = {
+			  title     : t( "cms:datatables.views.default.title", "Set as default" )
+			, className : "listing-views-save-dialog"
+			, buttons   : {
+				  cancel : {
+					  label     : t( "cms:cancel.btn", "Cancel" )
+					, className : "btn-default"
+				  }
+				, save : {
+					  label     : t( "cms:datatables.views.default.btn", "Save default" )
+					, className : "btn-info"
+					, callback  : function() {
+						if ( rawIframe && rawIframe.listingViewDefaultForm ) {
+							rawIframe.listingViewDefaultForm.submitForm();
+							return false;
+						}
+						return true;
+					  }
+				  }
+			  }
+		};
+		callbacks = {
+			  onLoad : function( iframe ) {
+				rawIframe = iframe;
+				iframe.listingViewDefaultHost = {
+					  close   : function(){ iframemodal.close(); }
+					, onSaved : function( data ){ self._applyDefaultAssignment( data ); }
+				};
+			  }
+			, onShow : function( modal, iframe ) {
+				if ( iframe && iframe.listingViewDefaultForm ) {
+					iframe.listingViewDefaultForm.focusForm();
+				}
+				modal.on( "hidden.bs.modal", function(){
+					modal.remove();
+				} );
+			  }
+		};
+
+		iframemodal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
+		iframemodal.open();
+	};
+
+	PresideListingViews.prototype._clearDefault = function( viewId ) {
+		var self = this;
+
+		this._post( this.urls.clearDefault, { viewId : viewId }, function( data ){
+			self._applyDefaultAssignment( data );
+		}, t( "cms:datatables.views.default.clear.error", "That default could not be cleared." ) );
 	};
 
 	PresideListingViews.prototype._persist = function( opts ) {

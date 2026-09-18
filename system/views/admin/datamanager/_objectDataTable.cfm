@@ -41,6 +41,9 @@
 	param name="args.updateListingViewUrl"        type="string"  default=event.buildAdminLink( linkTo="datamanager.updateListingView" );
 	param name="args.deleteListingViewUrl"        type="string"  default=event.buildAdminLink( linkTo="datamanager.deleteListingView" );
 	param name="args.saveListingViewFormUrl"      type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingViewForm" );
+	param name="args.saveListingViewDefaultUrl"   type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingViewDefault" );
+	param name="args.clearListingViewDefaultUrl"  type="string"  default=event.buildAdminLink( linkTo="datamanager.clearListingViewDefault" );
+	param name="args.saveListingViewDefaultFormUrl" type="string" default=event.buildAdminLink( linkTo="datamanager.saveListingViewDefaultForm" );
 	param name="args.objectTitlePlural"           type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 	param name="args.excludeFilterExpressionTags" type="string"  default="";
 	param name="args.noRecordMessage"             type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
@@ -115,7 +118,7 @@
 		, datasourceUrl       = args.datasourceUrl
 	);
 	args.listingContextLabel = listingContext.label;
-	instanceId = LCase( Hash( args.objectName & "|" & args.listingPreferenceKey & "|" & listingContext.key & "|" & SerializeJSON( args.filterContextData ) ) );
+	instanceId = LCase( Hash( args.objectName & "|" & args.listingPreferenceKey & "|" & listingContext.key & "|" & ArrayToList( args.gridFields ) & "|" & SerializeJSON( args.filterContextData ) ) );
 	tableId    = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	toolbarConfig = getSingleton( "dataListingPreferencesService" ).getToolbarConfig(
@@ -298,7 +301,7 @@
 			data-object-name="#args.objectName#"
 			data-object-title="#args.objectTitlePlural#"
 		    data-datasource-url="#args.datasourceUrl#"
-		    data-use-multi-actions="#args.useMultiActions#"
+		    data-use-multi-actions="#booleanFormat( args.useMultiActions )#"
 		    data-allow-search="#args.allowSearch#"
 		    data-allow-data-export="#allowDataExport#"
 		    data-allow-save-export="#allowSaveExport#"
@@ -314,6 +317,9 @@
 		    data-update-listing-view-url="#args.updateListingViewUrl#"
 		    data-delete-listing-view-url="#args.deleteListingViewUrl#"
 		    data-save-listing-view-form-url="#args.saveListingViewFormUrl#"
+		    data-save-listing-view-default-url="#args.saveListingViewDefaultUrl#"
+		    data-clear-listing-view-default-url="#args.clearListingViewDefaultUrl#"
+		    data-save-listing-view-default-form-url="#args.saveListingViewDefaultFormUrl#"
 		    data-hidden-grid-fields="#ArrayToList( args.hiddenGridFields )#"
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"

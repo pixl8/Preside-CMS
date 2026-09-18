@@ -139,7 +139,7 @@ component extends="preside.system.base.AdminHandler" {
 				);
 
 				args.append( {
-					  useMultiActions = args.multiActions.len()
+					  useMultiActions = Len( Trim( args.multiActions ) ) > 0
 					, multiActionUrl  = event.buildAdminLink( objectName=objectName, operation="multiRecordAction" )
 				} );
 			}
@@ -1386,6 +1386,87 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		event.renderData( type="json", data={ success=deleted } );
+	}
+
+	public void function saveListingViewDefault( event, rc, prc ) {
+		_checkListingViewAccess( argumentCollection=arguments );
+
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+		var listingKey = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var canShare   = _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
+		var fromForm   = StructKeyExists( rc, "scope" );
+		var formName   = "admin.datamanager.saveListingViewDefault";
+		var formData   = {};
+		var validationResult = "";
+		var scope      = rc.scope ?: "individual";
+		var userGroups = rc.user_groups ?: "";
+
+		if ( fromForm ) {
+			formData         = event.getCollectionForForm( formName=formName );
+			validationResult = validateForm( formName=formName, formData=formData );
+			if ( !validationResult.validated() ) {
+				event.renderData( type="json", data={
+					  success          = false
+					, validationResult = translateValidationMessages( validationResult )
+				} );
+				return;
+			}
+			scope      = formData.scope ?: "individual";
+			userGroups = formData.user_groups ?: "";
+		}
+
+		event.renderData( type="json", data=dataListingPreferencesService.saveListingViewDefault(
+			  viewId        = rc.viewId ?: ""
+			, objectName    = objectName
+			, listingKey    = listingKey
+			, contextKey    = rc.listingContextKey ?: ""
+			, namedContext  = IsTrue( rc.namedListingContext ?: false )
+			, scope         = scope
+			, userGroups    = userGroups
+			, canShare      = canShare
+		) );
+	}
+
+	public void function clearListingViewDefault( event, rc, prc ) {
+		_checkListingViewAccess( argumentCollection=arguments );
+
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+		var listingKey = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName;
+		var canShare   = _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
+
+		event.renderData( type="json", data=dataListingPreferencesService.clearListingViewDefault(
+			  viewId       = rc.viewId ?: ""
+			, objectName   = objectName
+			, listingKey   = listingKey
+			, contextKey   = rc.listingContextKey ?: ""
+			, namedContext = IsTrue( rc.namedListingContext ?: false )
+			, canShare     = canShare
+		) );
+	}
+
+	public void function saveListingViewDefaultForm( event, rc, prc ) {
+		_checkListingViewAccess( argumentCollection=arguments );
+
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+		var canShare   = _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
+
+		event.include( "/js/admin/specific/saveFilterForm/" )
+		     .include( "/js/admin/specific/listingViewDefaultForm/" );
+
+		prc.modalClasses = "modal-dialog-less-padding";
+		prc.savedData    = { scope="individual" };
+
+		event.setView( view="/admin/datamanager/saveListingViewDefaultForm", layout="adminModalDialog", args={
+			  addRecordAction     = event.buildAdminLink( linkTo="datamanager.saveListingViewDefault" )
+			, savedData           = prc.savedData
+			, viewId              = Trim( rc.viewId ?: "" )
+			, objectName          = objectName
+			, listingKey          = Len( Trim( rc.listingKey ?: "" ) ) ? rc.listingKey : objectName
+			, listingContextKey   = rc.listingContextKey ?: ""
+			, namedListingContext = IsTrue( rc.namedListingContext ?: false )
+			, canShare            = canShare
+			, validationResult    = rc.validationResult ?: ""
+		} );
 	}
 
 	public void function quickEditForm( event, rc, prc ) {
@@ -3599,6 +3680,7 @@ component extends="preside.system.base.AdminHandler" {
 		var namedContext      = IsTrue( rc.namedListingContext ?: false );
 		var canShare          = _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
 		var filterState       = rc.filterState ?: {};
+		var sortOrder         = rc.sort ?: [];
 		var fromForm          = StructKeyExists( rc, "sharing_scope" );
 		var formName          = "preside-objects.admin_datatable_saved_view.admin.save";
 		var suppressFields    = [];
@@ -3611,6 +3693,12 @@ component extends="preside.system.base.AdminHandler" {
 			filterState = DeserializeJSON( filterState );
 		} else if ( !IsStruct( filterState ) && !IsArray( filterState ) ) {
 			filterState = {};
+		}
+		if ( IsSimpleValue( sortOrder ) && IsJSON( sortOrder ) ) {
+			sortOrder = DeserializeJSON( sortOrder );
+		}
+		if ( !IsArray( sortOrder ) ) {
+			sortOrder = [];
 		}
 
 		if ( !namedContext ) {
@@ -3646,6 +3734,9 @@ component extends="preside.system.base.AdminHandler" {
 			}
 			if ( StructKeyExists( rc, "filterState" ) ) {
 				updateArgs.filterState = filterState;
+			}
+			if ( StructKeyExists( rc, "sort" ) ) {
+				updateArgs.sort = sortOrder;
 			}
 			if ( StructKeyExists( rc, "isShared" ) ) {
 				updateArgs.isShared = IsTrue( rc.isShared );
@@ -3683,6 +3774,7 @@ component extends="preside.system.base.AdminHandler" {
 			, label             = fromForm ? ( formData.label ?: "" ) : ( rc.label ?: "" )
 			, columns           = ListToArray( rc.columns ?: "" )
 			, filterState       = filterState
+			, sort              = sortOrder
 			, isShared          = IsTrue( rc.isShared ?: false )
 			, canShare          = canShare
 			, sharingScope      = fromForm ? ( formData.sharing_scope ?: "" ) : ""
@@ -4760,6 +4852,9 @@ component extends="preside.system.base.AdminHandler" {
 			, "updateListingView"
 			, "deleteListingView"
 			, "saveListingViewForm"
+			, "saveListingViewDefault"
+			, "clearListingViewDefault"
+			, "saveListingViewDefaultForm"
 		];
 
 		if( onlyCheckForLoginActions.findNoCase( arguments.action ) ){
