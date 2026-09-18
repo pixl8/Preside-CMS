@@ -284,7 +284,8 @@ describe( 'Saved listing views', () => {
 		cy.get( '.everything-chip-saved', { timeout : 20000 } ).should( 'contain.text', 'Starred alphas' );
 		cy.get( '.object-listing-table tbody tr', { timeout : 15000 } ).should( 'have.length', 5 );
 
-		cy.get( '.everything-chip-saved .everything-chip-remove' ).should( 'not.exist' );
+		cy.get( '.everything-chip-saved .everything-chip-remove' ).click();
+		cy.get( '.everything-chip-saved' ).should( 'not.exist' );
 		cy.visit( '/admin/' );
 		cy.visit( '/admin/datamanager/object/?id=my_extension_object' );
 		cy.get( '.listing-views-name', { timeout : 20000 } ).should( 'contain.text', viewName );
