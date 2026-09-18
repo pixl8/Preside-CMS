@@ -367,13 +367,24 @@
 		  , defaultLabel = t( "cms:datatables.views.default", "Default" )
 		  , mine         = []
 		  , shared       = []
-		  , i, view;
+		  , resolvedId   = this.config.resolvedDefaultViewId || ""
+		  , i, view, hasNamedDefault;
 
 		if ( !this.config.allowSavedViews ) {
 			return items;
 		}
 
-		if ( this._matches( q, defaultLabel ) || this._matches( q, group ) ) {
+		hasNamedDefault = false;
+		if ( resolvedId && resolvedId !== "default" ) {
+			for( i=0; i<views.length; i++ ) {
+				if ( views[ i ].id === resolvedId ) {
+					hasNamedDefault = true;
+					break;
+				}
+			}
+		}
+
+		if ( !hasNamedDefault && ( this._matches( q, defaultLabel ) || this._matches( q, group ) ) ) {
 			items.push( this._viewItem( "default", defaultLabel, group ) );
 		}
 

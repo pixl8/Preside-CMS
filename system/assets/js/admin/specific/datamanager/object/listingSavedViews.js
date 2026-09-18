@@ -93,16 +93,9 @@
 				this.applyNamedView( stored, { skipDraw : true, skipPersist : true } );
 				return;
 			}
-			this.applyDefaultView( { skipDraw : true, skipPersist : true } );
-			return;
 		}
 
-		this.activeId = "default";
-		view = this._resolvedDefaultView();
-		if ( view ) {
-			this.applySnapshot( view, { skipDraw : true, skipPersist : true } );
-		}
-		this.render();
+		this.applyDefaultView( { skipDraw : true, skipPersist : true } );
 	};
 
 	PresideListingViews.prototype.hasResolvedNamedDefault = function() {
@@ -211,18 +204,19 @@
 	PresideListingViews.prototype.applyDefaultView = function( opts ) {
 		var resolved = this._resolvedDefaultView();
 
+		if ( resolved ) {
+			this.applyNamedView( resolved.id, opts );
+			return;
+		}
+
 		this.suppressPrefSave = true;
 		this.activeId = "default";
 		this.editing  = false;
 		this._persist( opts );
-		if ( resolved ) {
-			this.applySnapshot( resolved, opts || {} );
-		} else {
-			this.applyDefault( {
-				  columns  : this.defaultColumnSet
-				, skipDraw : !!( opts && opts.skipDraw )
-			} );
-		}
+		this.applyDefault( {
+			  columns  : this.defaultColumnSet
+			, skipDraw : !!( opts && opts.skipDraw )
+		} );
 		this.suppressPrefSave = false;
 		this.render();
 		this._syncLock();
@@ -245,7 +239,9 @@
 		this.$toggle.toggleClass( "is-editing", this.editing );
 		this.$root.toggleClass( "is-editing", this.editing );
 
-		html.push( this._itemHtml( "default", this._defaultItemLabel(), this.activeId === "default", false ) );
+		if ( !this._resolvedDefaultView() ) {
+			html.push( this._itemHtml( "default", t( "cms:datatables.views.default", "Default" ), this.activeId === "default", false ) );
+		}
 
 		for( i=0; i<views.length; i++ ) {
 			view = views[ i ];
@@ -298,7 +294,7 @@
 		html.push( '<div class="listing-views-group">' + $("<div>").text( title ).html() + '</div>' );
 		for( i=0; i<views.length; i++ ) {
 			view = views[ i ];
-			html.push( this._itemHtml( view.id, view.label, this.activeId === view.id, view.owner, view.id === ( this.config.resolvedDefaultViewId || "" ) ) );
+			html.push( this._itemHtml( view.id, view.label, this._isViewSelected( view ), view.owner, view.id === ( this.config.resolvedDefaultViewId || "" ) ) );
 		}
 	};
 
@@ -635,8 +631,18 @@
 		return this._viewById( this.activeId );
 	};
 
+	PresideListingViews.prototype._isViewSelected = function( view ) {
+		if ( !view ) {
+			return false;
+		}
+		if ( this.activeId === view.id ) {
+			return true;
+		}
+		return this.activeId === "default" && view.id === ( this.config.resolvedDefaultViewId || "" );
+	};
+
 	PresideListingViews.prototype._activeLabel = function() {
-		var view = this._activeView();
+		var view = this._activeView() || this._resolvedDefaultView();
 		return view ? view.label : t( "cms:datatables.views.default", "Default" );
 	};
 
@@ -685,14 +691,6 @@
 			, columnSearch    : filter.columnSearch || {}
 			, sort            : state && state.sort ? state.sort : []
 		} );
-	};
-
-	PresideListingViews.prototype._defaultItemLabel = function() {
-		var resolved = this._resolvedDefaultView();
-		if ( !resolved ) {
-			return t( "cms:datatables.views.default", "Default" );
-		}
-		return t( "cms:datatables.views.default", "Default" ) + " (" + t( "cms:datatables.views.default.using", "using: {1}", [ resolved.label ] ) + ")";
 	};
 
 	PresideListingViews.prototype._canClearDefault = function( viewId ) {
