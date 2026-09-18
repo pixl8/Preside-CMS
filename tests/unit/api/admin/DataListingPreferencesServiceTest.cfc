@@ -685,6 +685,39 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, { columns=[ "label" ], filterState={ savedFilterIds=[ "a", "b" ], advancedFilter=[], columnSearch={} } }
 				) ).toBeTrue();
 			} );
+
+			it( "should treat sort order as part of the snapshot", function(){
+				var svc = _getService();
+
+				expect( svc.viewStatesEqual(
+					  { columns=[ "label" ], filterState={ savedFilterIds=[], advancedFilter=[], columnSearch={} }, sort=[ [ "label", "asc" ] ] }
+					, { columns=[ "label" ], filterState={ savedFilterIds=[], advancedFilter=[], columnSearch={} }, sort=[ [ "label", "asc" ] ] }
+				) ).toBeTrue();
+				expect( svc.viewStatesEqual(
+					  { columns=[ "label" ], filterState={ savedFilterIds=[], advancedFilter=[], columnSearch={} }, sort=[ [ "label", "asc" ] ] }
+					, { columns=[ "label" ], filterState={ savedFilterIds=[], advancedFilter=[], columnSearch={} }, sort=[ [ "label", "desc" ] ] }
+				) ).toBeFalse();
+			} );
+		} );
+
+		describe( "sanitizeSortOrder()", function(){
+			it( "should keep granted fields and drop the rest", function(){
+				var svc = _getService();
+
+				expect( svc.sanitizeSortOrder(
+					  sortOrder       = [ [ "label", "desc" ], [ "secret", "asc" ], [ "status", "ASC" ] ]
+					, grantedColumns  = [ "label", "status" ]
+				) ).toBe( [ [ "label", "desc" ], [ "status", "asc" ] ] );
+			} );
+
+			it( "should accept a JSON array of field/dir pairs", function(){
+				var svc = _getService();
+
+				expect( svc.sanitizeSortOrder(
+					  sortOrder      = '[["datecreated","desc"]]'
+					, grantedColumns = [ "datecreated", "label" ]
+				) ).toBe( [ [ "datecreated", "desc" ] ] );
+			} );
 		} );
 
 		describe( "listEverythingBarActions()", function(){
@@ -776,6 +809,144 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( viewDao.$callLog().deleteData[ 1 ].id ).toBe( "view-1" );
 				expect( prefDao.$callLog().updateData[ 1 ].filter.active_view ).toBe( "view-1" );
 				expect( prefDao.$callLog().updateData[ 1 ].data.active_view ).toBe( "default" );
+			} );
+		} );
+
+		describe( "resolveDefaultView()", function(){
+			it( "should prefer a personal assignment, then the newest group assignment, then everyone", function(){
+				var svc       = _getService();
+				var mockDao   = createStub();
+				var mockPerms = createStub();
+				var views     = [
+					  { id="view-me"     , label="Mine" }
+					, { id="view-group"  , label="Group" }
+					, { id="view-all"    , label="Everyone" }
+				];
+
+				mockPerms.$( "listUserGroups", [ "group-1" ] );
+				svc.$( "$getAdminPermissionService", mockPerms );
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+				svc.$( "listSavedViews", views );
+				svc.$( "$getPresideObject" ).$args( "admin_datatable_listing_default" ).$results( mockDao );
+
+				mockDao.$( method="selectData", callback=function(){
+					var filter = arguments.filter ?: {};
+					if ( ( filter.scope ?: "" ) == "individual" ) {
+						return QueryNew( "saved_view", "varchar", [ [ "view-me" ] ] );
+					}
+					return QueryNew( "saved_view", "varchar" );
+				} );
+
+				expect( svc.resolveDefaultView( "my_extension_object" ).id ).toBe( "view-me" );
+
+				mockDao.$( method="selectData", callback=function(){
+					var filter = arguments.filter ?: {};
+					if ( ( filter.scope ?: "" ) == "group" ) {
+						return QueryNew( "saved_view", "varchar", [ [ "view-group" ] ] );
+					}
+					if ( ( filter.scope ?: "" ) == "global" ) {
+						return QueryNew( "saved_view", "varchar", [ [ "view-all" ] ] );
+					}
+					return QueryNew( "saved_view", "varchar" );
+				} );
+
+				expect( svc.resolveDefaultView( "my_extension_object" ).id ).toBe( "view-group" );
+
+				mockDao.$( method="selectData", callback=function(){
+					var filter = arguments.filter ?: {};
+					if ( ( filter.scope ?: "" ) == "global" ) {
+						return QueryNew( "saved_view", "varchar", [ [ "view-all" ] ] );
+					}
+					return QueryNew( "saved_view", "varchar" );
+				} );
+
+				expect( svc.resolveDefaultView( "my_extension_object" ).id ).toBe( "view-all" );
+			} );
+
+			it( "should skip assignments the user cannot see and fall back to synthetic default", function(){
+				var svc       = _getService();
+				var mockDao   = createStub();
+				var mockPerms = createStub();
+
+				mockPerms.$( "listUserGroups", [] );
+				svc.$( "$getAdminPermissionService", mockPerms );
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+				svc.$( "listSavedViews", [] );
+				svc.$( "$getPresideObject" ).$args( "admin_datatable_listing_default" ).$results( mockDao );
+				mockDao.$( "selectData", QueryNew( "saved_view", "varchar", [ [ "hidden-view" ] ] ) );
+
+				expect( svc.resolveDefaultView( "my_extension_object" ) ).toBe( {} );
+			} );
+		} );
+
+		describe( "getToolbarConfig()", function(){
+			it( "should expose a resolved default view id without reading it off the function call", function(){
+				var svc    = _getService();
+				var config = {};
+
+				svc.$( "listAvailableColumns", [ "label" ] );
+				svc.$( "getUserPreference", { columns=[ "label" ], activeView="default" } );
+				svc.$( "applyUserColumns", [ "label" ] );
+				svc.$( "listLockedColumns", [] );
+				svc.$( "listQuickFilters", [] );
+				svc.$( "listEverythingBarActions", [] );
+				svc.$( "listSavedViews", [ { id="view-1", label="Mine" } ] );
+				svc.$( "resolveDefaultView", { id="view-1", label="Mine" } );
+				svc.$( "getListingDefaultAssignments", { personal="view-1", everyone="", groups=[] } );
+				svc.$( "signGrantedColumns", "sig" );
+				svc.$( "$translatePropertyName", "Label" );
+
+				config = svc.getToolbarConfig(
+					  objectName       = "my_extension_object"
+					, gridFields       = [ "label" ]
+					, hiddenGridFields = []
+					, allowSavedViews  = true
+				);
+
+				expect( config.resolvedDefaultViewId ).toBe( "view-1" );
+
+				svc.$( "resolveDefaultView", {} );
+
+				config = svc.getToolbarConfig(
+					  objectName       = "my_extension_object"
+					, gridFields       = [ "label" ]
+					, hiddenGridFields = []
+					, allowSavedViews  = true
+				);
+
+				expect( config.resolvedDefaultViewId ).toBe( "" );
+			} );
+		} );
+
+		describe( "saveListingViewDefault()", function(){
+			it( "should refuse group and everyone defaults without share permission", function(){
+				var svc = _getService();
+
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+
+				expect( svc.saveListingViewDefault(
+					  viewId     = "view-1"
+					, objectName = "my_extension_object"
+					, scope      = "global"
+					, canShare   = false
+				).success ).toBeFalse();
+			} );
+
+			it( "should refuse an everyone default unless the view is shared globally", function(){
+				var svc         = _getService();
+				var mockViewDao = createStub();
+
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+				svc.$( "listSavedViews", [ { id="view-1", label="Mine" } ] );
+				svc.$( "$getPresideObject" ).$args( "admin_datatable_saved_view" ).$results( mockViewDao );
+				mockViewDao.$( "selectData", QueryNew( "id,sharing_scope,is_shared", "varchar,varchar,varchar", [ [ "view-1", "individual", "0" ] ] ) );
+
+				expect( svc.saveListingViewDefault(
+					  viewId     = "view-1"
+					, objectName = "my_extension_object"
+					, scope      = "global"
+					, canShare   = true
+				).success ).toBeFalse();
 			} );
 		} );
 	}

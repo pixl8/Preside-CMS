@@ -18,4 +18,5 @@ component extends="preside.system.base.SystemPresideObject" displayName="Admin d
 	property name="user_groups"       relationship="many-to-many" relatedTo="security_group" relatedVia="admin_datatable_saved_view_user_group";
 	property name="columns"           type="string"  dbtype="text"                    required=false autofilter=false;
 	property name="filter_state"      type="string"  dbtype="text"                    required=false autofilter=false;
+	property name="sort_order"        type="string"  dbtype="text"                    required=false autofilter=false;
 }

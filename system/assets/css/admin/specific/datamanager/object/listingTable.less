@@ -165,6 +165,20 @@
 		}
 	}
 
+	.listing-views-default-badge {
+		display       : inline-block;
+		margin-left   : 6px;
+		padding       : 1px 6px;
+		font-size     : 10px;
+		font-weight   : bold;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color         : @white;
+		background    : @blue;
+		border-radius : 8px;
+		vertical-align: middle;
+	}
+
 	.listing-views-item-tools {
 		flex-shrink : 0;
 		padding     : 0 4px 0 0;
@@ -676,6 +690,7 @@
 
 		.dtcc-button {
 			line-height : 1;
+			position    : relative;
 
 			&.dtcc-button_active {
 				opacity : 1;
@@ -683,6 +698,22 @@
 				.dtcc-button-icon {
 					color : @blue;
 				}
+			}
+
+			.listing-sort-priority {
+				position      : absolute;
+				top           : -4px;
+				right         : -4px;
+				min-width     : 14px;
+				height        : 14px;
+				padding       : 0 3px;
+				border-radius : 8px;
+				background    : @blue;
+				color         : @white;
+				font-size     : 9px;
+				line-height   : 14px;
+				text-align    : center;
+				font-weight   : bold;
 			}
 		}
 	}
@@ -772,6 +803,12 @@
 		}
 
 		.listing-colvis-list {
+			.listing-colvis-hidden {
+				margin-top  : 6px;
+				padding-top : 6px;
+				border-top  : 1px solid @default-panel-border-colour;
+			}
+
 			.listing-column-row {
 				display     : flex !important;
 				align-items : center;
@@ -782,6 +819,24 @@
 
 				&.hide {
 					display : none !important;
+				}
+
+				&.ui-sortable-helper {
+					background : @white;
+				}
+			}
+
+			.listing-column-drag {
+				display         : inline-flex;
+				align-items     : center;
+				justify-content : center;
+				width           : 14px;
+				color           : @default-light-font-colour;
+				cursor          : move;
+				flex-shrink     : 0;
+
+				&.is-placeholder {
+					cursor : default;
 				}
 			}
 
@@ -804,35 +859,6 @@
 					overflow      : hidden;
 					text-overflow : ellipsis;
 					white-space   : nowrap;
-				}
-			}
-
-			.listing-column-order {
-				display     : inline-flex;
-				flex        : 0 0 auto;
-				align-items : center;
-				gap         : 2px;
-				white-space : nowrap;
-			}
-
-			.listing-column-move {
-				display         : inline-flex;
-				align-items     : center;
-				justify-content : center;
-				width           : 18px;
-				height          : 18px;
-				padding         : 0;
-				line-height     : 1;
-				color           : @default-light-font-colour;
-				background      : transparent;
-				border          : 0;
-				box-shadow      : none;
-				border-radius   : 3px;
-
-				&:hover,
-				&:focus {
-					color      : @blue;
-					background : @white;
 				}
 			}
 		}

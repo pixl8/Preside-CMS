@@ -1061,6 +1061,7 @@ component {
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
 		settings.enum.listingViewSharingScope     = [ "global", "individual", "group" ];
+		settings.enum.listingViewDefaultScope     = [ "individual", "group", "global" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
