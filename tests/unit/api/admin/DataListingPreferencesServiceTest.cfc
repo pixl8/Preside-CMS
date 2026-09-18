@@ -879,6 +879,45 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getToolbarConfig()", function(){
+			it( "should expose a resolved default view id without reading it off the function call", function(){
+				var svc    = _getService();
+				var config = {};
+
+				svc.$( "listAvailableColumns", [ "label" ] );
+				svc.$( "getUserPreference", { columns=[ "label" ], activeView="default" } );
+				svc.$( "applyUserColumns", [ "label" ] );
+				svc.$( "listLockedColumns", [] );
+				svc.$( "listQuickFilters", [] );
+				svc.$( "listEverythingBarActions", [] );
+				svc.$( "listSavedViews", [ { id="view-1", label="Mine" } ] );
+				svc.$( "resolveDefaultView", { id="view-1", label="Mine" } );
+				svc.$( "getListingDefaultAssignments", { personal="view-1", everyone="", groups=[] } );
+				svc.$( "signGrantedColumns", "sig" );
+				svc.$( "$translatePropertyName", "Label" );
+
+				config = svc.getToolbarConfig(
+					  objectName       = "my_extension_object"
+					, gridFields       = [ "label" ]
+					, hiddenGridFields = []
+					, allowSavedViews  = true
+				);
+
+				expect( config.resolvedDefaultViewId ).toBe( "view-1" );
+
+				svc.$( "resolveDefaultView", {} );
+
+				config = svc.getToolbarConfig(
+					  objectName       = "my_extension_object"
+					, gridFields       = [ "label" ]
+					, hiddenGridFields = []
+					, allowSavedViews  = true
+				);
+
+				expect( config.resolvedDefaultViewId ).toBe( "" );
+			} );
+		} );
+
 		describe( "saveListingViewDefault()", function(){
 			it( "should refuse group and everyone defaults without share permission", function(){
 				var svc = _getService();

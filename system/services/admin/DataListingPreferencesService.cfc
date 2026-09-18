@@ -507,11 +507,11 @@ component {
 			, allowSavedViews      = arguments.allowSavedViews
 			, canShareViews        = arguments.allowSavedViews && arguments.canShareViews
 			, savedViews           = arguments.allowSavedViews ? listSavedViews( arguments.objectName, arguments.listingKey, arguments.contextKey ) : []
-			, resolvedDefaultViewId = arguments.allowSavedViews ? ( resolveDefaultView(
+			, resolvedDefaultViewId = arguments.allowSavedViews ? _resolvedDefaultViewId(
 				  objectName  = arguments.objectName
 				, listingKey  = arguments.listingKey
 				, contextKey  = arguments.contextKey
-			  ).id ?: "" ) : ""
+			  ) : ""
 			, defaultAssignments   = arguments.allowSavedViews ? getListingDefaultAssignments(
 				  objectName  = arguments.objectName
 				, listingKey  = arguments.listingKey
@@ -1144,11 +1144,11 @@ component {
 
 		return {
 			  success              = true
-			, resolvedDefaultViewId = ( resolveDefaultView(
+			, resolvedDefaultViewId = _resolvedDefaultViewId(
 				  objectName  = arguments.objectName
 				, listingKey  = arguments.listingKey
 				, contextKey  = arguments.contextKey
-			  ).id ?: "" )
+			  )
 			, defaultAssignments   = getListingDefaultAssignments(
 				  objectName  = arguments.objectName
 				, listingKey  = arguments.listingKey
@@ -1213,11 +1213,11 @@ component {
 
 		return {
 			  success               = true
-			, resolvedDefaultViewId = ( resolveDefaultView(
+			, resolvedDefaultViewId = _resolvedDefaultViewId(
 				  objectName  = arguments.objectName
 				, listingKey  = arguments.listingKey
 				, contextKey  = arguments.contextKey
-			  ).id ?: "" )
+			  )
 			, defaultAssignments    = getListingDefaultAssignments(
 				  objectName  = arguments.objectName
 				, listingKey  = arguments.listingKey
@@ -1441,6 +1441,20 @@ component {
 		}
 
 		return {};
+	}
+
+	private string function _resolvedDefaultViewId(
+		  required string objectName
+		,          string listingKey = arguments.objectName
+		,          string contextKey = ""
+	) {
+		var view = resolveDefaultView(
+			  objectName = arguments.objectName
+			, listingKey = arguments.listingKey
+			, contextKey = arguments.contextKey
+		);
+
+		return view.id ?: "";
 	}
 
 	private boolean function _viewAllowsDefaultAudience(
