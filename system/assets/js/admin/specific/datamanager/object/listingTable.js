@@ -1851,6 +1851,8 @@
 					data.columns.forEach( function( col ) {
 						if ( col && typeof col === "object" ) {
 							delete col.columnControl;
+							delete col.data;
+							delete col.name;
 						}
 					} );
 				}
@@ -2550,7 +2552,7 @@
 
 				for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
 					$header       = $( $tableHeaders.get(i) );
-					fieldName     = $header.data( "field" );
+					fieldName     = $header.attr( "data-field" ) || $header.data( "field" );
 					classNames    = [ "listing-data-column" ];
 					searchContent = searchContentForField( fieldName );
 
@@ -2565,8 +2567,8 @@
 					}
 
 					col = {
-						  data           : fieldName
-						, name           : fieldName
+						  data           : fieldName || null
+						, name           : fieldName || ( "_col" + i )
 						, title          : $.trim( $header.text() )
 						, defaultContent : ""
 						, className      : classNames.join( " " )
