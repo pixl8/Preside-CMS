@@ -84,13 +84,12 @@
 	};
 
 	PresideListingViews.prototype.restore = function() {
-		var stored   = this.config.activeView || "default"
-		  , resolved = this._resolvedDefaultView()
+		var stored = this.config.activeView || "default"
 		  , view;
 
 		if ( stored && stored !== "default" ) {
 			view = this._viewById( stored );
-			if ( view && !( resolved && String( view.id ) === String( resolved.id ) ) ) {
+			if ( view ) {
 				this.applyNamedView( stored, { skipDraw : true, skipPersist : true } );
 				return;
 			}
@@ -205,18 +204,19 @@
 	PresideListingViews.prototype.applyDefaultView = function( opts ) {
 		var resolved = this._resolvedDefaultView();
 
+		if ( resolved ) {
+			this.applyNamedView( resolved.id, opts );
+			return;
+		}
+
 		this.suppressPrefSave = true;
 		this.activeId = "default";
 		this.editing  = false;
 		this._persist( opts );
-		if ( resolved ) {
-			this.applySnapshot( resolved, opts || {} );
-		} else {
-			this.applyDefault( {
-				  columns  : this.defaultColumnSet
-				, skipDraw : !!( opts && opts.skipDraw )
-			} );
-		}
+		this.applyDefault( {
+			  columns  : this.defaultColumnSet
+			, skipDraw : !!( opts && opts.skipDraw )
+		} );
 		this.suppressPrefSave = false;
 		this.render();
 		this._syncLock();

@@ -278,18 +278,24 @@ describe( 'Saved listing views', () => {
 		cy.openListingViews();
 		cy.get( '[data-view-action="apply"][data-view-id="default"]' ).should( 'not.exist' );
 		cy.get( '.listing-views-dropdown' ).should( 'not.contain.text', 'using:' );
+		cy.get( '[data-view-action="edit"]' ).should( 'be.visible' );
+		cy.get( '[data-view-action="set-default"]' ).should( 'be.visible' );
 		cy.contains( '.listing-views-item', viewName ).should( 'have.class', 'is-selected' );
 		cy.contains( '.listing-views-item', viewName ).find( '.listing-views-default-badge' ).should( 'be.visible' );
 		cy.get( '.listing-views-toggle' ).click();
 		cy.get( '.listing-views-dropdown' ).should( 'have.class', 'hide' );
+		cy.get( '.object-listing-wrap' ).should( 'have.class', 'listing-view-locked' );
 		cy.get( '.everything-chip-saved', { timeout : 20000 } ).should( 'contain.text', 'Starred alphas' );
+		cy.get( '.everything-chip-saved .everything-chip-remove' ).should( 'not.exist' );
 		cy.get( '.object-listing-table tbody tr', { timeout : 15000 } ).should( 'have.length', 5 );
 
-		cy.get( '.everything-chip-saved .everything-chip-remove' ).click();
-		cy.get( '.everything-chip-saved' ).should( 'not.exist' );
 		cy.visit( '/admin/' );
 		cy.visit( '/admin/datamanager/object/?id=my_extension_object' );
 		cy.get( '.listing-views-name', { timeout : 20000 } ).should( 'contain.text', viewName );
+		cy.get( '.object-listing-wrap' ).should( 'have.class', 'listing-view-locked' );
 		cy.get( '.everything-chip-saved', { timeout : 20000 } ).should( 'contain.text', 'Starred alphas' );
+		cy.get( '.everything-chip-saved .everything-chip-remove' ).should( 'not.exist' );
+		cy.openListingViews();
+		cy.get( '[data-view-action="edit"]' ).should( 'be.visible' );
 	} );
 } );
