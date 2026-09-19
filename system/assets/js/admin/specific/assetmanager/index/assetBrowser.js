@@ -7,8 +7,10 @@
 	  , $tableHeaders     = $listingTable.find( 'thead > tr > th')
 	  , $titleAndActions  = $( '.title-and-actions-container' ).first()
 	  , $pageSubtitle     = $( '.page-subtitle' ).first()
-	  , $multiActions     = $( '#multi-action-buttons' )
+	, $multiActions     = $( '#multi-action-buttons' )
 	  , colConfig         = []
+	  , orderControl      = [ { target : 0, content : [ "order" ] } ]
+	  , noControl         = [ { target : 0, content : [] } ]
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
 	  , defaultPageLength = cfrequest.defaultPageLength || 10
@@ -38,7 +40,9 @@
 					$pageSubtitle.html( $node.find( '.folder-name:first' ).html() );
 					$multiActions.html( $( data.multiActions ).html() );
 
-					dataTable && dataTable.fnPageChange( 'first' );
+					if ( dataTable ) {
+						dataTable.page( "first" ).draw( "page" );
+					}
 				}
 				, beforeSend: function() {
 					$listingForm.presideLoadingSheen( true );
@@ -128,84 +132,105 @@
 	presideTreeNav = $tree.data( 'presideTreeNav' );
 
 	colConfig.push( {
-		sClass    : "center",
-		bSortable : false,
-		mData     : "_checkbox",
-		sWidth    : "5em"
+		  className      : "center"
+		, orderable      : false
+		, data           : "_checkbox"
+		, width          : "5em"
+		, defaultContent : ""
+		, columnControl  : noControl
 	} );
 	colConfig.push( {
-		  mData     : $( $tableHeaders.get(1) ).data( 'field' )
-		, sWidth    : $( $tableHeaders.get(1) ).data( 'width' ) || 'auto'
-		, bSortable : true
-		, sClass    : "asset-name"
+		  data           : $( $tableHeaders.get(1) ).data( "field" )
+		, width          : $( $tableHeaders.get(1) ).data( "width" ) || "auto"
+		, orderable      : true
+		, className      : "asset-name"
+		, defaultContent : ""
+		, columnControl  : orderControl
 	} );
 	colConfig.push( {
-		  mData     : $( $tableHeaders.get(2) ).data( 'field' )
-		, sWidth    : $( $tableHeaders.get(2) ).data( 'width' ) || 'auto'
-		, bSortable : true
+		  data           : $( $tableHeaders.get(2) ).data( "field" )
+		, width          : $( $tableHeaders.get(2) ).data( "width" ) || "auto"
+		, orderable      : true
+		, defaultContent : ""
+		, columnControl  : orderControl
 	} );
 	colConfig.push( {
-		  mData     : $( $tableHeaders.get(3) ).data( 'field' )
-		, sWidth    : $( $tableHeaders.get(3) ).data( 'width' ) || 'auto'
-		, bSortable : true
+		  data           : $( $tableHeaders.get(3) ).data( "field" )
+		, width          : $( $tableHeaders.get(3) ).data( "width" ) || "auto"
+		, orderable      : true
+		, defaultContent : ""
+		, columnControl  : orderControl
 	} );
 	colConfig.push( {
-		sClass    : "center",
-		bSortable : false,
-		sWidth    : "8em",
-		mData     : "_options"
+		  className      : "center"
+		, orderable      : false
+		, width          : "8em"
+		, data           : "_options"
+		, defaultContent : ""
+		, columnControl  : noControl
 	} );
 
-	dataTable = $listingTable.dataTable( {
-		aoColumns     : colConfig,
-		bServerSide   : true,
-		sAjaxSource   : buildAjaxLink( "assetmanager.assetsForListingGrid" ),
-		fnServerParams: function ( aoData ) {
-	    	aoData.push( { name : "folder", value : activeFolder } );
-		},
-		processing     : true,
-		bStateSave     : true,
-		bPaginate      : true,
-		bLengthChange  : true,
-		iDisplayLength : parseInt( defaultPageLength ),
-		aLengthMenu    : paginationOptions,
-		aaSorting      : [],
-		sDom           : "t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>",
-		fnRowCallback : function( row ){
-			$row = $( row );
-			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
-			$row.addClass( "clickable" ); // make work with clickable tr Preside system
-		},
-
-		oLanguage : {
-			oAria : {
-				sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
-				sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
-			},
-			oPaginate : {
-				sFirst : i18n.translateResource( "cms:datatables.first", { data : [assets], defaultValue : "" } ),
-				sLast : i18n.translateResource( "cms:datatables.last", { data : [assets], defaultValue : "" } ),
-				sNext : i18n.translateResource( "cms:datatables.next", { data : [assets], defaultValue : "" } ),
-				sPrevious : i18n.translateResource( "cms:datatables.previous", { data : [assets], defaultValue : "" } )
-			},
-			sEmptyTable : i18n.translateResource( "cms:datatables.emptyTable", { data : [assets], defaultValue : "" } ),
-			sInfo : i18n.translateResource( "cms:datatables.info", { data : [assets], defaultValue : "" } ),
-			sInfoEmpty : i18n.translateResource( "cms:datatables.infoEmpty", { data : [assets], defaultValue : "" } ),
-			sInfoFiltered : i18n.translateResource( "cms:datatables.infoFiltered", { data : [assets], defaultValue : "" } ),
-			sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [assets], defaultValue : "" } ),
-			sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [assets], defaultValue : "" } ),
-			sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [assets], defaultValue : "" } ),
-			sProcessing : $listingForm.presideLoadingSheen( true ),
-			sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [assets], defaultValue : "" } ),
-			sSearch : '',
-			sUrl : '',
-			sInfoPostFix : ''
-		}
-	}).on( 'draw.dt', function () {
-		setTimeout( function(){
-			$listingForm.presideLoadingSheen( false );
-		}, 400 );
-    });
+	dataTable = $listingTable.DataTable( {
+		  columns      : colConfig
+		, serverSide   : true
+		, processing   : false
+		, stateSave    : true
+		, paging       : true
+		, lengthChange : true
+		, searching    : false
+		, ordering     : { indicators : false, handler : false }
+		, pageLength   : parseInt( defaultPageLength, 10 )
+		, lengthMenu   : paginationOptions
+		, order        : []
+		, layout       : {
+			  topStart    : null
+			, topEnd      : null
+			, bottomStart : "info"
+			, bottomEnd   : [ "pageLength", "paging" ]
+		  }
+		, ajax : PresideDatatables.hungarianAjax( buildAjaxLink( "assetmanager.assetsForListingGrid" ), function( params ){
+			params.folder = activeFolder;
+		  } )
+		, createdRow : function( row ){
+			var $row = $( row );
+			$row.attr( "data-context-container", "1" );
+			$row.addClass( "clickable" );
+		  }
+		, preDrawCallback : function() {
+			$listingForm.presideLoadingSheen( true );
+		  }
+		, drawCallback : function() {
+			setTimeout( function(){
+				$listingForm.presideLoadingSheen( false );
+			}, 400 );
+		  }
+		, language : {
+			  emptyTable     : i18n.translateResource( "cms:datatables.emptyTable", { data : [assets], defaultValue : "" } )
+			, info           : i18n.translateResource( "cms:datatables.info", { data : [assets], defaultValue : "" } )
+			, infoEmpty      : i18n.translateResource( "cms:datatables.infoEmpty", { data : [assets], defaultValue : "" } )
+			, infoFiltered   : i18n.translateResource( "cms:datatables.infoFiltered", { data : [assets], defaultValue : "" } )
+			, thousands      : i18n.translateResource( "cms:datatables.infoThousands", { data : [assets], defaultValue : "" } )
+			, lengthMenu     : i18n.translateResource( "cms:datatables.lengthMenu", { data : [assets], defaultValue : "" } )
+			, loadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [assets], defaultValue : "" } )
+			, processing     : i18n.translateResource( "cms:datatables.processing", { data : [assets], defaultValue : "" } )
+			, zeroRecords    : i18n.translateResource( "cms:datatables.zeroRecords", { data : [assets], defaultValue : "" } )
+			, search         : ""
+			, paginate : {
+				  first    : '<i class="fa fa-angle-double-left"></i>'
+				, previous : '<i class="fa fa-chevron-left"></i>'
+				, next     : '<i class="fa fa-chevron-right"></i>'
+				, last     : '<i class="fa fa-angle-double-right"></i>'
+			  }
+			, aria : {
+				paginate : {
+					  first    : i18n.translateResource( "cms:datatables.first", { data : [assets], defaultValue : "First" } )
+					, previous : i18n.translateResource( "cms:datatables.previous", { data : [assets], defaultValue : "Previous" } )
+					, next     : i18n.translateResource( "cms:datatables.next", { data : [assets], defaultValue : "Next" } )
+					, last     : i18n.translateResource( "cms:datatables.last", { data : [assets], defaultValue : "Last" } )
+				}
+			  }
+		  }
+	} );
 
 	setupCheckboxBehaviour();
 	setupMultiActionButtons();
