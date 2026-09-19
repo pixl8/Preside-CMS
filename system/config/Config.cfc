@@ -1088,7 +1088,6 @@ component {
 		settings.enum.customFieldKind             = [ "static", "aggregate", "conditional_label" ];
 		settings.enum.customFieldDataType         = [ "text", "textarea", "integer", "float", "boolean", "date", "datetime", "lookup", "object_ref" ];
 		settings.enum.customFieldAggregateFunction = [ "count", "sum", "min", "max", "avg" ];
-		settings.enum.customFieldConditionalStyle = [ "default", "danger", "warning", "success", "info" ];
 	}
 
 	private void function __setupFormValidationProviders() {

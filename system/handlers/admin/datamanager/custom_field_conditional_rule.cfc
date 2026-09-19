@@ -6,6 +6,7 @@ component {
 	property name="customFieldsService"  inject="customFieldsService";
 	property name="customizationService" inject="dataManagerCustomizationService";
 	property name="presideObjectService" inject="presideObjectService";
+	property name="messageBox"           inject="messagebox@cbmessagebox";
 
 	variables.permissionBase = "customfields";
 	variables.parentTab      = "conditional_labels";
@@ -187,7 +188,108 @@ component {
 		var fieldId  = _getFieldId( argumentCollection=arguments );
 
 		if ( Len( fieldId ) ) {
-			formData.field = fieldId;
+			formData.field      = fieldId;
+			formData.sort_order = _nextSortOrder( fieldId );
+		}
+	}
+
+	private void function extraTopRightButtonsForObject( event, rc, prc, args={} ) {
+		var fieldId = _getFieldId( argumentCollection=arguments );
+		var actions = args.actions ?: [];
+
+		for( var i=ArrayLen( actions ); i>=1; i-- ) {
+			if ( ( actions[ i ].globalKey ?: "" ) != "o" ) {
+				continue;
+			}
+			if ( !Len( fieldId ) ) {
+				ArrayDeleteAt( actions, i );
+			} else {
+				actions[ i ].link = event.buildAdminLink(
+					  objectName  = variables.objectName
+					, operation   = "sortRecords"
+					, queryString = _withTargetObject( argumentCollection=arguments, queryString="field=#fieldId#" )
+				);
+			}
+		}
+
+		args.actions = actions;
+	}
+
+	private void function preFetchRecordsForSorting( event, rc, prc, args={} ) {
+		var fieldId = _getFieldId( argumentCollection=arguments );
+
+		if ( !Len( fieldId ) ) {
+			messageBox.error( translateResource( uri="preside-objects.custom_field_conditional_rule:sort.requires.field" ) );
+			setNextEvent( url=event.buildAdminLink( objectName="custom_field" ) );
+		}
+
+		args.extraFilters = args.extraFilters ?: [];
+		ArrayAppend( args.extraFilters, { filter={ field=fieldId } } );
+		prc.cancelLink = _parentViewLink( argumentCollection=arguments );
+	}
+
+	private string function buildSortRecordsLink( event, rc, prc, args={} ) {
+		_appendFieldQueryString( argumentCollection=arguments );
+
+		return runEvent(
+			  event          = "admin.objectLinks.buildSortRecordsLink"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+	}
+
+	private string function sortRecordsActionButtons( event, rc, prc, args={} ) {
+		var fieldId = _getFieldId( argumentCollection=arguments );
+		var buttons = runEvent(
+			  event          = "admin.datamanager._sortRecordsActionButtons"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+
+		if ( !Len( fieldId ) ) {
+			return buttons;
+		}
+
+		return '<input type="hidden" name="field" value="#EncodeForHtmlAttribute( fieldId )#" />' & buttons;
+	}
+
+	private array function getSortRecordsActionButtons( event, rc, prc, args={} ) {
+		var fieldId = _getFieldId( argumentCollection=arguments );
+
+		if ( Len( fieldId ) ) {
+			args.cancelAction = _parentViewLink( argumentCollection=arguments );
+		}
+
+		return runEvent(
+			  event          = "admin.datamanager._getSortRecordsActionButtons"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+	}
+
+	private numeric function _nextSortOrder( required string fieldId ) {
+		if ( !Len( arguments.fieldId ) ) {
+			return 1;
+		}
+
+		var existing = presideObjectService.selectData(
+			  objectName   = variables.objectName
+			, selectFields = [ "Max( sort_order ) as max_sort" ]
+			, filter       = { field=arguments.fieldId }
+		);
+
+		return Val( existing.max_sort ?: 0 ) + 1;
+	}
+
+	private void function _appendFieldQueryString( event, rc, prc, args={} ) {
+		var fieldId = _getFieldId( argumentCollection=arguments );
+		var qs      = args.queryString ?: "";
+
+		if ( Len( fieldId ) && !ReFindNoCase( "(^|&)field=", qs ) ) {
+			args.queryString = ListAppend( qs, "field=#fieldId#", "&" );
 		}
 	}
 

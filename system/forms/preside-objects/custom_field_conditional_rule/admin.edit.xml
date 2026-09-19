@@ -4,9 +4,7 @@
 		<fieldset id="default" sortorder="10">
 			<field binding="custom_field_conditional_rule.label_text" required="true" />
 			<field binding="custom_field_conditional_rule.filter"     control="customFieldFilterPicker" quickadd="true" quickedit="true" />
-			<field binding="custom_field_conditional_rule.style"      control="enumSelect" enum="customFieldConditionalStyle" />
-			<field binding="custom_field_conditional_rule.icon"       control="iconPicker" />
-			<field binding="custom_field_conditional_rule.sort_order" control="spinner" required="true" />
+			<field binding="custom_field_conditional_rule.colour"     control="simpleColourPicker" colourFormat="hex" />
 		</fieldset>
 	</tab>
 </form>

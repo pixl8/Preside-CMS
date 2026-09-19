@@ -3,6 +3,9 @@
  * @datamanagerEnabled            true
  * @datamanagerGridFields         label,target_object,kind,data_type,active,datemodified
  * @datamanagerSearchFields       label,key,target_object
+ * @datamanagerSortable           true
+ * @datamanagerSortField          sort_order
+ * @datamanagerDefaultSortOrder   sort_order,label
  * @datamanagerDisallowedOperations clone
  * @labelfield                    label
  * @feature                       customFields
@@ -16,7 +19,7 @@ component displayname="Custom field" extends="preside.system.base.SystemPresideO
 	property name="target_object" type="string" dbtype="varchar" maxlength=100 required=true uniqueindexes="objectkey|1" indexes="targetobject" control="customFieldTargetObject";
 	property name="slot"          type="string" dbtype="varchar" maxlength=50  required=false default="custom" control="customFieldSlot";
 	property name="sort_order"      type="numeric" dbtype="int"     required=false default=0;
-	property name="active"          type="boolean" dbtype="boolean" required=false default=false;
+	property name="active"          type="boolean" dbtype="boolean" required=false default=false renderer="booleanBadge";
 	property name="data_exportable" type="boolean" dbtype="boolean" required=false default=true;
 	property name="batch_editable"  type="boolean" dbtype="boolean" required=false default=true;
 

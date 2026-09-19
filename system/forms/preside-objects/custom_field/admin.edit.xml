@@ -6,8 +6,6 @@
 			<field binding="custom_field.key"       control="readonly" />
 			<field binding="custom_field.help_text" control="textarea" />
 			<field binding="custom_field.slot"      control="customFieldSlot" />
-			<field binding="custom_field.sort_order" control="spinner" />
-			<field binding="custom_field.active"    control="yesNoSwitch" />
 		</fieldset>
 		<fieldset id="management" sortorder="20">
 			<field binding="custom_field.data_exportable" control="yesNoSwitch" />

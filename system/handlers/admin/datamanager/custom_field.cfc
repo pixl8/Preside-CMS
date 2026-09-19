@@ -3,9 +3,11 @@
  */
 component extends="preside.system.base.EnhancedDataManagerBase" {
 
-	property name="customFieldsService"  inject="customFieldsService";
-	property name="customizationService" inject="dataManagerCustomizationService";
-	property name="formsService"         inject="formsService";
+	property name="customFieldsService"          inject="customFieldsService";
+	property name="customizationService"         inject="dataManagerCustomizationService";
+	property name="formsService"                 inject="formsService";
+	property name="presideObjectService"         inject="presideObjectService";
+	property name="customFieldsPropertyInjector" inject="customFieldsPropertyInjector";
 
 	variables.permissionBase = "customfields";
 	variables.infoCardStyle  = "definitionList";
@@ -64,7 +66,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	private void function preAddRecordAction( event, rc, prc, args={} ) {
 		var formData = args.formData ?: {};
 
-		formData.active = false;
+		formData.active     = false;
+		formData.sort_order = _nextSortOrder( formData.target_object ?: "" );
 		_normalizeTypeFields( formData );
 		_validateFieldKey( argumentCollection=arguments );
 		_validateCreateType( argumentCollection=arguments );
@@ -156,9 +159,6 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		}
 		if ( kind == "static" && Len( Trim( dataType ) ) ) {
 			ArrayAppend( parts, translateResource( uri="enum.customFieldDataType:#dataType#.label", defaultValue=dataType ) );
-		}
-		if ( !IsTrue( record.active ?: "" ) ) {
-			ArrayAppend( parts, translateResource( uri="preside-objects.custom_field:edit.inactive.hint" ) );
 		}
 
 		if ( ArrayLen( parts ) ) {
@@ -275,6 +275,197 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return _delegateObjectLink( argumentCollection=arguments, action="buildDeleteRecordActionLink" );
 	}
 
+	public void function toggleActiveAction( event, rc, prc, args={} ) {
+		if ( !hasCmsPermission( "customfields.manage" ) ) {
+			event.adminAccessDenied();
+		}
+
+		var recordId = Trim( rc.id ?: "" );
+		var field    = customFieldsService.getField( recordId );
+
+		if ( StructIsEmpty( field ) ) {
+			event.notFound();
+		}
+
+		var makeActive   = !IsTrue( field.active ?: "" );
+		var targetObject = field.target_object ?: "";
+		var objectTitle  = Len( targetObject ) ? translateResource( uri="preside-objects.#targetObject#:title", defaultValue=targetObject ) : targetObject;
+		var qs           = Len( targetObject ) ? "target_object=#targetObject#" : "";
+
+		presideObjectService.updateData(
+			  objectName = "custom_field"
+			, id         = recordId
+			, data       = { active=makeActive }
+		);
+
+		messageBox.info( translateResource(
+			  uri  = makeActive ? "preside-objects.custom_field:activate.success" : "preside-objects.custom_field:deactivate.success"
+			, data = [ field.label ?: field.key ?: recordId, objectTitle ]
+		) );
+
+		setNextEvent( url=event.buildAdminLink( objectName="custom_field", operation="viewRecord", recordId=recordId, queryString=qs ) );
+	}
+
+	private void function extraTopRightButtonsForObject( event, rc, prc, args={} ) {
+		var targetObject = _getTargetObject( argumentCollection=arguments );
+		var actions      = args.actions ?: [];
+
+		for( var i=ArrayLen( actions ); i>=1; i-- ) {
+			if ( ( actions[ i ].globalKey ?: "" ) != "o" ) {
+				continue;
+			}
+			if ( !Len( targetObject ) ) {
+				ArrayDeleteAt( actions, i );
+			} else {
+				actions[ i ].link = event.buildAdminLink(
+					  objectName  = "custom_field"
+					, operation   = "sortRecords"
+					, queryString = "target_object=#targetObject#"
+				);
+			}
+		}
+
+		args.actions = actions;
+	}
+
+	private void function extraTopRightButtonsForViewRecord( event, rc, prc, args={} ) {
+		var record       = _getViewRecord( argumentCollection=arguments );
+		var recordId     = prc.recordId ?: ( record.id ?: ( rc.id ?: "" ) );
+		var isActive     = IsTrue( record.active ?: "" );
+		var targetObject = _getTargetObject( argumentCollection=arguments );
+		var objectTitle  = Len( targetObject ) ? translateResource( uri="preside-objects.#targetObject#:title", defaultValue=targetObject ) : "";
+		var qs           = "id=#recordId#";
+
+		if ( Len( targetObject ) ) {
+			qs = ListAppend( qs, "target_object=#targetObject#", "&" );
+		}
+
+		ArrayPrepend( args.actions ?: [], {
+			  link      = event.buildAdminLink( linkto="datamanager.custom_field.toggleActiveAction", queryString=qs )
+			, btnClass  = isActive ? "btn-warning" : "btn-success"
+			, iconClass = isActive ? "fa-eye-slash" : "fa-check"
+			, title     = translateResource( uri="preside-objects.custom_field:#isActive ? 'deactivate' : 'activate'#.btn" )
+			, prompt    = translateResource(
+				  uri  = "preside-objects.custom_field:#isActive ? 'deactivate' : 'activate'#.prompt"
+				, data = [ record.label ?: record.key ?: recordId, objectTitle ]
+			  )
+		} );
+	}
+
+	private void function extraRecordActionsForGridListing( event, rc, prc, args={} ) {
+		var record       = args.record     ?: {};
+		var recordId     = record.id       ?: "";
+		var isActive     = IsTrue( record.active ?: "" );
+		var targetObject = record.target_object ?: _getTargetObject( argumentCollection=arguments );
+		var objectTitle  = Len( targetObject ) ? translateResource( uri="preside-objects.#targetObject#:title", defaultValue=targetObject ) : "";
+		var qs           = "id=#recordId#";
+
+		if ( Len( targetObject ) ) {
+			qs = ListAppend( qs, "target_object=#targetObject#", "&" );
+		}
+
+		ArrayAppend( args.actions ?: [], {
+			  link  = event.buildAdminLink( linkto="datamanager.custom_field.toggleActiveAction", queryString=qs )
+			, icon  = isActive ? "fa-eye-slash" : "fa-check"
+			, class = "confirmation-prompt"
+			, title = translateResource(
+				  uri  = "preside-objects.custom_field:#isActive ? 'deactivate' : 'activate'#.prompt"
+				, data = [ record.label ?: record.key ?: recordId, objectTitle ]
+			  )
+		} );
+	}
+
+	private void function preFetchRecordsForSorting( event, rc, prc, args={} ) {
+		var targetObject = _getTargetObject( argumentCollection=arguments );
+
+		if ( !Len( targetObject ) ) {
+			messageBox.error( translateResource( uri="preside-objects.custom_field:sort.requires.object" ) );
+			setNextEvent( url=event.buildAdminLink( objectName="custom_field" ) );
+		}
+
+		args.extraFilters = args.extraFilters ?: [];
+		ArrayAppend( args.extraFilters, { filter={ target_object=targetObject } } );
+		prc.cancelLink = event.buildAdminLink( objectName="custom_field", queryString="target_object=#targetObject#" );
+	}
+
+	private string function buildSortRecordsLink( event, rc, prc, args={} ) {
+		_appendTargetObjectQueryString( argumentCollection=arguments );
+
+		return runEvent(
+			  event          = "admin.objectLinks.buildSortRecordsLink"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+	}
+
+	private string function sortRecordsActionButtons( event, rc, prc, args={} ) {
+		var targetObject = _getTargetObject( argumentCollection=arguments );
+		var buttons      = runEvent(
+			  event          = "admin.datamanager._sortRecordsActionButtons"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+
+		if ( !Len( targetObject ) ) {
+			return buttons;
+		}
+
+		return '<input type="hidden" name="target_object" value="#EncodeForHtmlAttribute( targetObject )#" />' & buttons;
+	}
+
+	private array function getSortRecordsActionButtons( event, rc, prc, args={} ) {
+		var targetObject = _getTargetObject( argumentCollection=arguments );
+
+		if ( Len( targetObject ) ) {
+			args.cancelAction = event.buildAdminLink( objectName="custom_field", queryString="target_object=#targetObject#" );
+		}
+
+		return runEvent(
+			  event          = "admin.datamanager._getSortRecordsActionButtons"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
+	}
+
+	private void function postSortRecordsAction( event, rc, prc, args={} ) {
+		var targetObject = _getTargetObject( argumentCollection=arguments );
+
+		if ( !Len( targetObject ) && ArrayLen( args.sortedIds ?: [] ) ) {
+			var field = customFieldsService.getField( args.sortedIds[ 1 ] );
+			targetObject = field.target_object ?: "";
+		}
+		if ( Len( targetObject ) ) {
+			customFieldsPropertyInjector.refreshObject( targetObject );
+		}
+	}
+
+	private string function preViewRecordContent( event, rc, prc, args={} ) {
+		var record       = args.record ?: _getViewRecord( argumentCollection=arguments );
+		var recordId     = args.recordId ?: ( record.id ?: ( prc.recordId ?: "" ) );
+		var isActive     = IsTrue( record.active ?: "" );
+		var targetObject = record.target_object ?: _getTargetObject( argumentCollection=arguments );
+		var objectTitle  = Len( targetObject ) ? translateResource( uri="preside-objects.#targetObject#:title", defaultValue=targetObject ) : targetObject;
+		var qs           = "id=#recordId#";
+
+		if ( Len( targetObject ) ) {
+			qs = ListAppend( qs, "target_object=#targetObject#", "&" );
+		}
+
+		return renderView( view="/admin/datamanager/custom_field/_statusBanner", args={
+			  active       = isActive
+			, objectTitle  = objectTitle
+			, toggleLink   = event.buildAdminLink( linkto="datamanager.custom_field.toggleActiveAction", queryString=qs )
+			, toggleLabel  = translateResource( uri="preside-objects.custom_field:#isActive ? 'deactivate' : 'activate'#.btn" )
+			, togglePrompt = translateResource(
+				  uri  = "preside-objects.custom_field:#isActive ? 'deactivate' : 'activate'#.prompt"
+				, data = [ record.label ?: record.key ?: recordId, objectTitle ]
+			  )
+		} );
+	}
+
 	private void function _validateFieldKey( event, rc, prc, args={} ) {
 		var formData         = args.formData         ?: {};
 		var validationResult = args.validationResult ?: "";
@@ -335,6 +526,34 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		if ( ( arguments.formData.kind ?: "" ) == "aggregate" && !Len( Trim( arguments.formData.aggregate_function ?: "" ) ) ) {
 			arguments.formData.aggregate_function = "count";
 		}
+	}
+
+	private numeric function _nextSortOrder( required string targetObject ) {
+		if ( !Len( arguments.targetObject ) ) {
+			return 1;
+		}
+
+		var existing = presideObjectService.selectData(
+			  objectName   = "custom_field"
+			, selectFields = [ "Max( sort_order ) as max_sort" ]
+			, filter       = { target_object=arguments.targetObject }
+		);
+
+		return Val( existing.max_sort ?: 0 ) + 1;
+	}
+
+	private struct function _getViewRecord( event, rc, prc, args={} ) {
+		if ( IsStruct( args.record ?: "" ) && !StructIsEmpty( args.record ) ) {
+			return args.record;
+		}
+		if ( IsQuery( prc.record ?: "" ) && prc.record.recordCount ) {
+			return QueryRowToStruct( prc.record );
+		}
+		if ( IsStruct( prc.record ?: "" ) ) {
+			return prc.record;
+		}
+
+		return {};
 	}
 
 	private string function _getTargetObject( event, rc, prc, args={} ) {
