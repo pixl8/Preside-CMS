@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field:">
+	<tab id="default">
+		<fieldset id="management" sortorder="20">
+			<field binding="custom_field.batch_editable" control="yesNoSwitch" />
+		</fieldset>
+		<fieldset id="advanced" sortorder="90">
+			<field binding="custom_field.renderer" control="textinput" />
+		</fieldset>
+	</tab>
+</form>

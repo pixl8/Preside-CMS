@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field:">
+	<tab id="default">
+		<fieldset id="identity" sortorder="10">
+			<field binding="custom_field.label"     control="textinput" required="true" />
+			<field binding="custom_field.key"       control="readonly" />
+			<field binding="custom_field.help_text" control="textarea" />
+			<field binding="custom_field.slot"      control="customFieldSlot" />
+		</fieldset>
+		<fieldset id="management" sortorder="20">
+			<field binding="custom_field.data_exportable" control="yesNoSwitch" />
+		</fieldset>
+	</tab>
+</form>

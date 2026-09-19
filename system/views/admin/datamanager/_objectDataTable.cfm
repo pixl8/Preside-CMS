@@ -122,20 +122,20 @@
 	tableId    = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	toolbarConfig = getSingleton( "dataListingPreferencesService" ).getToolbarConfig(
-		  objectName         = args.objectName
-		, listingKey         = args.listingPreferenceKey
-		, contextKey         = listingContext.key
-		, contextLabel       = listingContext.label
-		, namedContext       = listingContext.named
-		, gridFields         = args.gridFields
-		, hiddenGridFields   = args.hiddenGridFields
-		, allowFilter        = args.allowFilter && allowUseFilter
-		, allowColumnFilter  = allowColumnFilter
-		, allowSearch        = args.allowSearch
-		, allowManageFilter  = allowManageFilter
-		, manageFilterLink   = manageFilterLink
-		, allowSavedViews    = allowSavedViews
-		, canShareViews      = canShareViews
+		  objectName             = args.objectName
+		, listingKey             = args.listingPreferenceKey
+		, contextKey             = listingContext.key
+		, contextLabel           = listingContext.label
+		, namedContext           = listingContext.named
+		, gridFields             = args.gridFields
+		, hiddenGridFields       = args.hiddenGridFields
+		, allowFilter            = args.allowFilter && allowUseFilter
+		, allowColumnFilter      = allowColumnFilter
+		, allowSearch            = args.allowSearch
+		, allowManageFilter      = allowManageFilter
+		, manageFilterLink       = manageFilterLink
+		, allowSavedViews        = allowSavedViews
+		, canShareViews          = canShareViews
 	);
 
 	if ( args.footerEnabled ) {

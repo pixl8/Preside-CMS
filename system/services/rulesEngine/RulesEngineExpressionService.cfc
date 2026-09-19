@@ -448,6 +448,31 @@ component displayName="RulesEngine Expression Service" {
 	 * Allows developers to dynamically add a new rules engine condition
 	 *
 	 */
+	/**
+	 * Drops auto-generated expressions for an object so they rebuild
+	 * on the next request that needs them.
+	 *
+	 * @autodoc true
+	 */
+	public void function clearDynamicExpressionsForObject( required string objectName ) {
+		variables._lazyLoadDone = variables._lazyLoadDone ?: {};
+		StructDelete( variables._lazyLoadDone, arguments.objectName );
+
+		var expressions = _getExpressions();
+		var toDelete    = [];
+
+		for( var expressionId in expressions ) {
+			var filterObjects = expressions[ expressionId ].filterObjects ?: [];
+			if ( ArrayFindNoCase( filterObjects, arguments.objectName ) && ReFindNoCase( "^presideobject_", expressionId ) ) {
+				ArrayAppend( toDelete, expressionId );
+			}
+		}
+
+		for( var expressionId in toDelete ) {
+			StructDelete( expressions, expressionId );
+		}
+	}
+
 	public void function addExpression(
 		  required string id
 		, required string expressionHandler
