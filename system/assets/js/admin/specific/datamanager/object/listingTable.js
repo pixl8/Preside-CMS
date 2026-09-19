@@ -228,7 +228,7 @@
 			  , stripListingTableColumnControlState, getListingUrlState, encodeCurrentListingUrl, pushListingUrl
 			  , applyListingUrlState, setupListingUrlSync, getListingSortState, setListingSortState
 			  , listingColumnIndexForField, listingSortMatchesDefault, persistListingFilterState, loadListingFilterState
-			  , syncListingSortBadges
+			  , syncListingSortBadges, syncPinnedColumnOverflow
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -2453,6 +2453,7 @@
 					saveVisibleColumns();
 					dtApi.columns.adjust();
 					applyListingFooter();
+					syncPinnedColumnOverflow();
 
 					if ( visible === false ) {
 						return;
@@ -2485,6 +2486,7 @@
 						saveVisibleColumns();
 						dtApi.columns.adjust();
 						applyListingFooter();
+						syncPinnedColumnOverflow();
 					}
 				} );
 
@@ -2513,13 +2515,27 @@
 				} );
 			};
 
+			syncPinnedColumnOverflow = function() {
+				var $scroller, el, overflowing;
+
+				if ( !$listingTable.hasClass( "has-pinned-end-column" ) ) {
+					$listingTable.removeClass( "is-horizontally-overflowing" );
+					return;
+				}
+
+				$scroller = $listingTable.closest( ".dt-container" ).children( ".dt-layout-row.dt-layout-table" );
+				el = $scroller.get( 0 );
+				overflowing = !!( el && ( el.scrollWidth > ( el.clientWidth + 1 ) ) );
+				$listingTable.toggleClass( "is-horizontally-overflowing", overflowing );
+			};
+
 			setupDatatable = function(){
 				var $tableHeaders        = $listingTable.find( "thead > tr:first > th")
 				  , colConfig            = []
 				  , defaultSort          = []
 				  , dynamicHeadersOffset = 1
 				  , lastDataIndex        = -1
-				  , i, $header, col, fieldName, searchContent, classNames, colVisDropdown;
+				  , i, $header, col, fieldName, searchContent, classNames, colVisDropdown, pinCol;
 
 				registerListingColumnControlPlugins();
 
@@ -2607,25 +2623,37 @@
 						, columnControl  : [ { target : 0, content : [] } ]
 					} );
 				}
-				if ( !noActions ) {
+					if ( !noActions ) {
 					colConfig.push( {
-						  className      : "text-right"
+						  className      : "text-right listing-options-column listing-pinned-end-column"
 						, orderable      : false
 						, searchable     : false
 						, data           : "_options"
 						, name           : "_options"
-						, width          : "13em"
+						, width          : "1%"
 						, defaultContent : ""
 						, columnControl  : [ { target : 0, content : allowColumnPicker ? [ colVisDropdown ] : [] } ]
 					} );
-				} else if ( allowColumnPicker && lastDataIndex >= 0 ) {
-					colConfig[ lastDataIndex ].columnControl[ 0 ].content.push( colVisDropdown );
+					$listingTable.addClass( "has-pinned-end-column" );
+				} else if ( allowColumnPicker && colConfig.length ) {
+					pinCol = colConfig[ colConfig.length - 1 ];
+					pinCol.columnControl = pinCol.columnControl || [ { target : 0, content : [] } ];
+					if ( !pinCol.columnControl[ 0 ] ) {
+						pinCol.columnControl[ 0 ] = { target : 0, content : [] };
+					}
+					pinCol.columnControl[ 0 ].content = pinCol.columnControl[ 0 ].content || [];
+					pinCol.columnControl[ 0 ].content.push( colVisDropdown );
+					pinCol.className = $.trim( String( pinCol.className || "" ).replace( /\s+/g, " " ) );
+					if ( pinCol.className.indexOf( "listing-pinned-end-column" ) === -1 ) {
+						pinCol.className = ( pinCol.className.length ? pinCol.className + " " : "" ) + "listing-pinned-end-column";
+					}
+					$listingTable.addClass( "has-pinned-end-column" );
 				}
 
 				for( i=0; i < $tableHeaders.length; i++ ){
 					$header = $( $tableHeaders.get(i) );
-					if ( typeof $header.data( "class" ) !== "undefined" && colConfig[ i ] && !$header.hasClass( "listing-data-column" ) ) {
-						colConfig[ i ].className = $header.data( "class" );
+					if ( $header.data( "class" ) && colConfig[ i ] && !$header.hasClass( "listing-data-column" ) ) {
+						colConfig[ i ].className = $.trim( ( colConfig[ i ].className ? colConfig[ i ].className + " " : "" ) + $header.data( "class" ) );
 					}
 					if ( typeof $header.data( "sortable" ) !== "undefined" && colConfig[ i ] ) {
 						colConfig[ i ].orderable = $header.data( "sortable" );
@@ -2681,6 +2709,9 @@
 						if( clickableRows ) {
 							$row.addClass( "clickable" );
 						}
+						if ( $listingTable.hasClass( "has-pinned-end-column" ) ) {
+							$row.children( "td" ).last().addClass( "listing-pinned-end-column" );
+						}
 					}
 					, initComplete : function(){
 						var storedFilters;
@@ -2732,6 +2763,15 @@
 						}
 						listingUrlReady = true;
 						syncListingSortBadges();
+						syncPinnedColumnOverflow();
+						if ( window.ResizeObserver ) {
+							new window.ResizeObserver( function() {
+								syncPinnedColumnOverflow();
+							} ).observe( $listingTable.closest( ".dt-container" ).children( ".dt-layout-row.dt-layout-table" ).get( 0 ) || $listingTable.get( 0 ) );
+						}
+						$( window ).on( "resize.listingPinOverflow." + tableId, function() {
+							syncPinnedColumnOverflow();
+						} );
 					}
 					, language : {
 						  emptyTable     : noRecordMessage
@@ -2821,6 +2861,7 @@
 						if ( dtApi ) {
 							updateSelectAllOptionRecordCount( dtApi.page.info().recordsTotal );
 						}
+						syncPinnedColumnOverflow();
 					}
 					, footerCallback: function() {
 						applyListingFooter();
