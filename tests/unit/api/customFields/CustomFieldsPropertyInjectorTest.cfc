@@ -90,7 +90,31 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, objectName = "elf_test_object"
 				);
 
-				expect( formula ).toBe( "${prefix}logo.asset_folder.label" );
+				expect( formula ).toBe( "${prefix}logo$asset_folder.label" );
+			} );
+
+			it( "should rewrite a nested custom-field formula using join-path syntax for multiple hops", function(){
+				var injector = _getInjector();
+
+				variables.mockCustomFieldsService.$( "resolveRelatedDataPath" ).$args(
+					  objectName       = "elf_test_object"
+					, relationshipPath = "logo.asset_folder"
+					, propertyName     = "nickname"
+				).$results( {
+					  valid        = true
+					, formula      = "( select shorttext_value from _cfv_pobj_asset_folder where field = 9 and record = ${prefix}id )"
+					, type         = "string"
+					, renderer     = ""
+					, relatedTo    = ""
+					, relationship = "none"
+				} );
+
+				var formula = injector.buildFormula(
+					  field      = { id="fld-8", kind="related_data", related_data_relationship="logo.asset_folder", related_data_property="nickname", key="logo_folder_nickname" }
+					, objectName = "elf_test_object"
+				);
+
+				expect( formula ).toInclude( "record = ${prefix}logo$asset_folder.id" );
 			} );
 
 			it( "should bake a related-record filter into a one-to-many count formula", function(){

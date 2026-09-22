@@ -243,11 +243,17 @@ component {
 			return "''";
 		}
 
+		var joinPath = _relatedDataJoinPath( relationshipPath );
+
 		if ( Len( Trim( resolved.formula ?: "" ) ) && FindNoCase( "${prefix}", resolved.formula ) ) {
-			return ReplaceNoCase( resolved.formula, "${prefix}", "${prefix}" & relationshipPath & ".", "all" );
+			return ReplaceNoCase( resolved.formula, "${prefix}", "${prefix}" & joinPath & ".", "all" );
 		}
 
-		return "${prefix}" & relationshipPath & "." & propertyName;
+		return "${prefix}" & joinPath & "." & propertyName;
+	}
+
+	private string function _relatedDataJoinPath( required string relationshipPath ) {
+		return Replace( arguments.relationshipPath, ".", "$", "all" );
 	}
 
 	private string function _buildFilteredAggregateFormula(
