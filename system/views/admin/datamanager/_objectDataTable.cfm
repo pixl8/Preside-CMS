@@ -384,7 +384,7 @@
 						<th>#translateResource( uri="cms:datamanager.translate.column.status" )#</th>
 					</cfif>
 					<cfif !args.noActions>
-						<th class="listing-options-column listing-pinned-end-column">&nbsp;</th>
+						<th>&nbsp;</th>
 					</cfif>
 				</tr>
 			</thead>

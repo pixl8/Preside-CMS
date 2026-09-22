@@ -492,6 +492,269 @@ component {
 		return result;
 	}
 
+	public boolean function objectHasRelatedDataRelationships( required string objectName ) {
+		return ArrayLen( listRelatedDataRelationshipPaths( objectName=arguments.objectName, maxHops=1 ) ) > 0;
+	}
+
+	public array function listRelatedDataRelationshipPaths( required string objectName, numeric maxHops=3 ) {
+		var result = [];
+
+		_collectRelatedDataRelationshipPaths(
+			  objectName    = arguments.objectName
+			, prefix        = ""
+			, prefixLabel   = ""
+			, remainingHops = arguments.maxHops
+			, result        = result
+		);
+
+		return result;
+	}
+
+	public string function getRelatedObjectForRelatedDataPath( required string objectName, required string relationshipPath ) {
+		if ( !Len( Trim( arguments.objectName ) ) || !Len( Trim( arguments.relationshipPath ) ) || !presideObjectService.objectExists( arguments.objectName ) ) {
+			return "";
+		}
+
+		var currentObject = arguments.objectName;
+
+		for( var hop in ListToArray( arguments.relationshipPath, "." ) ) {
+			if ( !_isUsableRelatedDataPropertyName( hop ) ) {
+				return "";
+			}
+
+			var properties = presideObjectService.getObjectProperties( currentObject );
+			if ( !StructKeyExists( properties, hop ) || !_isManyToOneProperty( properties[ hop ] ) ) {
+				return "";
+			}
+
+			var relatedTo = _relatedTo( properties[ hop ], hop );
+			if ( !Len( relatedTo ) || !presideObjectService.objectExists( relatedTo ) ) {
+				return "";
+			}
+
+			currentObject = relatedTo;
+		}
+
+		return currentObject;
+	}
+
+	public array function listRelatedDataProperties( required string objectName, required string relationshipPath ) {
+		var relatedObject = getRelatedObjectForRelatedDataPath( arguments.objectName, arguments.relationshipPath );
+		if ( !Len( relatedObject ) ) {
+			return [];
+		}
+
+		var properties = presideObjectService.getObjectProperties( relatedObject );
+		var names      = StructKeyArray( properties );
+		var result     = [];
+
+		ArraySort( names, "textnocase" );
+
+		for( var propName in names ) {
+			if ( !_isUsableRelatedDataPropertyName( propName ) || !_isRelatedDataValueProperty( properties[ propName ] ) ) {
+				continue;
+			}
+
+			ArrayAppend( result, {
+				  id    = propName
+				, label = _relatedDataPropertyLabel( relatedObject, propName, properties[ propName ] )
+			} );
+		}
+
+		return result;
+	}
+
+	public array function listRelatedDataTreeNodes(
+		  required string  objectName
+		,          string  relationshipPath = ""
+		,          numeric maxHops          = 3
+	) {
+		var currentObject = arguments.objectName;
+		var isRoot        = !Len( Trim( arguments.relationshipPath ) );
+
+		if ( !isRoot ) {
+			currentObject = getRelatedObjectForRelatedDataPath( arguments.objectName, arguments.relationshipPath );
+		}
+
+		if ( !Len( currentObject ) || !presideObjectService.objectExists( currentObject ) ) {
+			return [];
+		}
+
+		var properties       = presideObjectService.getObjectProperties( currentObject );
+		var names            = StructKeyArray( properties );
+		var hopCount         = ListLen( arguments.relationshipPath, "." );
+		var canExpandFurther = hopCount < arguments.maxHops;
+		var relationships    = [];
+		var fields           = [];
+
+		ArraySort( names, "textnocase" );
+
+		for( var propName in names ) {
+			if ( !_isUsableRelatedDataPropertyName( propName ) ) {
+				continue;
+			}
+
+			var prop  = properties[ propName ];
+			var isM2o = _isManyToOneProperty( prop );
+
+			if ( isRoot ) {
+				if ( !isM2o ) {
+					continue;
+				}
+
+				var relatedTo = _relatedTo( prop, propName );
+				if ( !Len( relatedTo ) || !presideObjectService.objectExists( relatedTo ) ) {
+					continue;
+				}
+
+				ArrayAppend( relationships, _relatedDataTreeNode(
+					  type             = "relationship"
+					, propertyName     = propName
+					, label            = _relatedDataPropertyLabel( currentObject, propName, prop )
+					, relationshipPath = ""
+					, path             = propName
+					, hasChildren      = true
+				) );
+				continue;
+			}
+
+			if ( !_isRelatedDataValueProperty( prop ) ) {
+				continue;
+			}
+
+			if ( isM2o ) {
+				var relatedTo = _relatedTo( prop, propName );
+				if ( !Len( relatedTo ) || !presideObjectService.objectExists( relatedTo ) ) {
+					continue;
+				}
+
+				ArrayAppend( relationships, _relatedDataTreeNode(
+					  type             = "relationship"
+					, propertyName     = propName
+					, label            = _relatedDataPropertyLabel( currentObject, propName, prop )
+					, relationshipPath = arguments.relationshipPath
+					, path             = arguments.relationshipPath & "." & propName
+					, hasChildren      = canExpandFurther
+				) );
+				continue;
+			}
+
+			ArrayAppend( fields, _relatedDataTreeNode(
+				  type             = "property"
+				, propertyName     = propName
+				, label            = _relatedDataPropertyLabel( currentObject, propName, prop )
+				, relationshipPath = arguments.relationshipPath
+				, path             = arguments.relationshipPath & "." & propName
+				, hasChildren      = false
+			) );
+		}
+
+		for( var field in fields ) {
+			ArrayAppend( relationships, field );
+		}
+
+		return relationships;
+	}
+
+	public string function getRelatedDataSelectionLabel(
+		  required string objectName
+		, required string relationshipPath
+		, required string propertyName
+	) {
+		if ( !Len( Trim( arguments.objectName ) ) || !Len( Trim( arguments.relationshipPath ) ) || !Len( Trim( arguments.propertyName ) ) ) {
+			return "";
+		}
+
+		var currentObject = arguments.objectName;
+		var labels        = [];
+
+		for( var hop in ListToArray( arguments.relationshipPath, "." ) ) {
+			if ( !presideObjectService.objectExists( currentObject ) ) {
+				return "";
+			}
+
+			var properties = presideObjectService.getObjectProperties( currentObject );
+			if ( !StructKeyExists( properties, hop ) || !_isManyToOneProperty( properties[ hop ] ) ) {
+				return "";
+			}
+
+			ArrayAppend( labels, _relatedDataPropertyLabel( currentObject, hop, properties[ hop ] ) );
+			currentObject = _relatedTo( properties[ hop ], hop );
+		}
+
+		if ( !Len( currentObject ) || !presideObjectService.objectExists( currentObject ) ) {
+			return "";
+		}
+
+		var terminalProperties = presideObjectService.getObjectProperties( currentObject );
+		if ( !StructKeyExists( terminalProperties, arguments.propertyName ) ) {
+			return "";
+		}
+
+		ArrayAppend( labels, _relatedDataPropertyLabel( currentObject, arguments.propertyName, terminalProperties[ arguments.propertyName ] ) );
+
+		return ArrayToList( labels, " → " );
+	}
+
+	public struct function resolveRelatedDataPath(
+		  required string objectName
+		, required string relationshipPath
+		, required string propertyName
+	) {
+		var result = {
+			  valid         = false
+			, path          = ""
+			, relatedObject = ""
+			, type          = "string"
+			, renderer      = ""
+			, relatedTo     = ""
+			, relationship  = "none"
+			, formula       = ""
+			, dataType      = "text"
+		};
+
+		var relatedObject = getRelatedObjectForRelatedDataPath( arguments.objectName, arguments.relationshipPath );
+		if ( !Len( relatedObject ) || !Len( Trim( arguments.propertyName ) ) || !_isUsableRelatedDataPropertyName( arguments.propertyName ) ) {
+			return result;
+		}
+
+		var properties = presideObjectService.getObjectProperties( relatedObject );
+		if ( !StructKeyExists( properties, arguments.propertyName ) || !_isRelatedDataValueProperty( properties[ arguments.propertyName ] ) ) {
+			return result;
+		}
+
+		var terminal         = properties[ arguments.propertyName ];
+		result.valid         = true;
+		result.relatedObject = relatedObject;
+		result.path          = arguments.relationshipPath & "." & arguments.propertyName;
+		result.relationship  = LCase( terminal.relationship ?: "none" );
+		result.type          = terminal.type ?: "string";
+		result.formula       = Trim( terminal.formula ?: "" );
+		result.renderer      = Trim( terminal.renderer ?: "" );
+		result.dataType      = _inferCustomFieldDataType( terminal );
+
+		if ( result.relationship == "many-to-one" ) {
+			result.relatedTo = _relatedTo( terminal, arguments.propertyName );
+			if ( !Len( result.renderer ) ) {
+				result.renderer = "manyToOne";
+			}
+		}
+
+		return result;
+	}
+
+	public boolean function isValidRelatedDataPath(
+		  required string objectName
+		, required string relationshipPath
+		, required string propertyName
+	) {
+		return $helpers.isTrue( resolveRelatedDataPath(
+			  objectName       = arguments.objectName
+			, relationshipPath = arguments.relationshipPath
+			, propertyName     = arguments.propertyName
+		).valid ?: false );
+	}
+
 	public string function evaluateConditionalLabel( required string encodedValue ) {
 		var parts = ListToArray( arguments.encodedValue, "." );
 		if ( ArrayLen( parts ) < 2 ) {
@@ -646,6 +909,122 @@ component {
 		}
 
 		return {};
+	}
+
+	private void function _collectRelatedDataRelationshipPaths(
+		  required string  objectName
+		, required string  prefix
+		, required string  prefixLabel
+		, required numeric remainingHops
+		, required array   result
+	) {
+		if ( arguments.remainingHops < 1 || !Len( Trim( arguments.objectName ) ) || !presideObjectService.objectExists( arguments.objectName ) ) {
+			return;
+		}
+
+		var properties = presideObjectService.getObjectProperties( arguments.objectName );
+		var names      = StructKeyArray( properties );
+
+		ArraySort( names, "textnocase" );
+
+		for( var propName in names ) {
+			if ( !_isUsableRelatedDataPropertyName( propName ) || !_isManyToOneProperty( properties[ propName ] ) ) {
+				continue;
+			}
+
+			var relatedTo = _relatedTo( properties[ propName ], propName );
+			if ( !Len( relatedTo ) || !presideObjectService.objectExists( relatedTo ) ) {
+				continue;
+			}
+
+			var id    = Len( arguments.prefix ) ? arguments.prefix & "." & propName : propName;
+			var label = Len( arguments.prefixLabel ) ? arguments.prefixLabel & " → " & $translatePropertyName( arguments.objectName, propName ) : $translatePropertyName( arguments.objectName, propName );
+
+			ArrayAppend( arguments.result, {
+				  id        = id
+				, label     = label
+				, relatedTo = relatedTo
+			} );
+
+			_collectRelatedDataRelationshipPaths(
+				  objectName    = relatedTo
+				, prefix        = id
+				, prefixLabel   = label
+				, remainingHops = arguments.remainingHops - 1
+				, result        = arguments.result
+			);
+		}
+	}
+
+	private struct function _relatedDataTreeNode(
+		  required string  type
+		, required string  propertyName
+		, required string  label
+		, required string  relationshipPath
+		, required string  path
+		, required boolean hasChildren
+	) {
+		return {
+			  "id"               = arguments.path
+			, "label"            = arguments.label
+			, "type"             = arguments.type
+			, "path"             = arguments.path
+			, "property"         = arguments.propertyName
+			, "relationshipPath" = arguments.relationshipPath
+			, "hasChildren"      = arguments.hasChildren
+		};
+	}
+
+	private boolean function _isUsableRelatedDataPropertyName( required string propertyName ) {
+		return Len( Trim( arguments.propertyName ) ) && Left( arguments.propertyName, 1 ) != "_";
+	}
+
+	private boolean function _isManyToOneProperty( required struct prop ) {
+		return LCase( arguments.prop.relationship ?: "none" ) == "many-to-one";
+	}
+
+	private boolean function _isRelatedDataValueProperty( required struct prop ) {
+		return !ListFindNoCase( "one-to-many,many-to-many,select-data-view", LCase( arguments.prop.relationship ?: "none" ) );
+	}
+
+	private string function _relatedTo( required struct prop, required string propertyName ) {
+		var relatedTo = Trim( arguments.prop.relatedTo ?: ( arguments.prop.relatedto ?: "" ) );
+
+		return Len( relatedTo ) ? relatedTo : arguments.propertyName;
+	}
+
+	private string function _relatedDataPropertyLabel( required string objectName, required string propertyName, required struct prop ) {
+		var label = Trim( arguments.prop.customFieldLabel ?: "" );
+
+		if ( Len( label ) ) {
+			return label;
+		}
+
+		return $translatePropertyName( arguments.objectName, arguments.propertyName );
+	}
+
+	private string function _inferCustomFieldDataType( required struct prop ) {
+		if ( _isManyToOneProperty( arguments.prop ) ) {
+			return "object_ref";
+		}
+
+		var type   = LCase( arguments.prop.type ?: "string" );
+		var dbtype = LCase( arguments.prop.dbtype ?: "" );
+
+		if ( type == "boolean" ) {
+			return "boolean";
+		}
+		if ( type == "numeric" ) {
+			return ListFindNoCase( "float,double,decimal,numeric", dbtype ) ? "float" : "integer";
+		}
+		if ( type == "date" ) {
+			return ListFindNoCase( "datetime,timestamp", dbtype ) ? "datetime" : "date";
+		}
+		if ( ListFindNoCase( "text,longtext,mediumtext", dbtype ) ) {
+			return "textarea";
+		}
+
+		return "text";
 	}
 
 	private boolean function _storageReady() {

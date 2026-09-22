@@ -204,19 +204,18 @@
 	PresideListingViews.prototype.applyDefaultView = function( opts ) {
 		var resolved = this._resolvedDefaultView();
 
-		if ( resolved ) {
-			this.applyNamedView( resolved.id, opts );
-			return;
-		}
-
 		this.suppressPrefSave = true;
 		this.activeId = "default";
 		this.editing  = false;
 		this._persist( opts );
-		this.applyDefault( {
-			  columns  : this.defaultColumnSet
-			, skipDraw : !!( opts && opts.skipDraw )
-		} );
+		if ( resolved ) {
+			this.applySnapshot( resolved, opts || {} );
+		} else {
+			this.applyDefault( {
+				  columns  : this.defaultColumnSet
+				, skipDraw : !!( opts && opts.skipDraw )
+			} );
+		}
 		this.suppressPrefSave = false;
 		this.render();
 		this._syncLock();

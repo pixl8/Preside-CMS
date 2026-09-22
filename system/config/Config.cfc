@@ -1085,7 +1085,7 @@ component {
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
 		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
 		settings.enum.timeFormatOptions           = [ "12h", "24h" ];
-		settings.enum.customFieldKind             = [ "static", "aggregate", "conditional_label" ];
+		settings.enum.customFieldKind             = [ "static", "aggregate", "related_data", "conditional_label" ];
 		settings.enum.customFieldDataType         = [ "text", "textarea", "integer", "float", "boolean", "date", "datetime", "lookup", "object_ref" ];
 		settings.enum.customFieldAggregateFunction = [ "count", "sum", "min", "max", "avg" ];
 	}

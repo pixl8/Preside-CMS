@@ -33,6 +33,9 @@ component displayname="Custom field" extends="preside.system.base.SystemPresideO
 	property name="aggregate_value_property" type="string" dbtype="varchar" maxlength=100 required=false control="customFieldAggregateValueProperty";
 	property name="aggregate_filter"         relationship="many-to-one" relatedto="rules_engine_condition" required=false ondelete="set-null-if-no-cycle-check" control="customFieldAggregateFilterPicker" feature="rulesEngine";
 
+	property name="related_data_relationship" type="string" dbtype="varchar" maxlength=255 required=false control="customFieldRelatedDataTree";
+	property name="related_data_property"     type="string" dbtype="varchar" maxlength=100 required=false control="hidden";
+
 	property name="lookups"            relationship="one-to-many" relatedto="custom_field_lookup"            relationshipKey="field";
 	property name="conditional_rules"  relationship="one-to-many" relatedto="custom_field_conditional_rule"  relationshipKey="field" feature="rulesEngine";
 	property name="lookup_count"             type="numeric" formula="Count( ${prefix}lookups.id )"            autofilter=false adminRenderer="none";

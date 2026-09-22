@@ -15,7 +15,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.infoCol2       = [ "data_type", "active", "slot" ];
 	variables.infoCol3       = [ "data_exportable", "batch_editable", "modified" ];
 	variables.tabs           = [ "lookups", "conditional_labels" ];
-	variables.extraSelectFieldsForViewRecord = [ "lookup_count", "conditional_rule_count" ];
+	variables.extraSelectFieldsForViewRecord = [ "lookup_count", "conditional_rule_count", "related_data_relationship", "related_data_property" ];
 
 	private boolean function checkPermission( event, rc, prc, args={} ) {
 		var key           = args.key ?: "";
@@ -75,6 +75,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	private void function preEditRecordAction( event, rc, prc, args={} ) {
 		_validateAggregateConfig( argumentCollection=arguments );
+		_validateRelatedDataConfig( argumentCollection=arguments );
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
@@ -171,6 +172,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			hint = translateResource( uri="preside-objects.custom_field:edit.lookups.hint" );
 		} else if ( kind == "aggregate" ) {
 			hint = translateResource( uri="preside-objects.custom_field:edit.aggregate.hint" );
+		} else if ( kind == "related_data" ) {
+			hint = translateResource( uri="preside-objects.custom_field:edit.related_data.hint" );
 		}
 
 		if ( Len( hint ) ) {
@@ -497,6 +500,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		if ( ( formData.kind ?: "" ) == "aggregate" && !customFieldsService.objectHasAggregateRelationships( formData.target_object ?: "" ) ) {
 			validationResult.addError( fieldName="kind", message="customFields:validation.aggregate.no.relationships" );
 		}
+
+		if ( ( formData.kind ?: "" ) == "related_data" && !customFieldsService.objectHasRelatedDataRelationships( formData.target_object ?: "" ) ) {
+			validationResult.addError( fieldName="kind", message="customFields:validation.related_data.no.relationships" );
+		}
 	}
 
 	private void function _validateAggregateConfig( event, rc, prc, args={} ) {
@@ -515,6 +522,36 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var fn = LCase( Trim( formData.aggregate_function ?: "count" ) );
 		if ( fn != "count" && !Len( Trim( formData.aggregate_value_property ?: "" ) ) ) {
 			validationResult.addError( fieldName="aggregate_value_property", message="cms:validation.required.default" );
+		}
+	}
+
+	private void function _validateRelatedDataConfig( event, rc, prc, args={} ) {
+		var formData         = args.formData         ?: {};
+		var validationResult = args.validationResult ?: "";
+		var kind             = prc.record.kind ?: ( formData.kind ?: "" );
+		var targetObject     = prc.record.target_object ?: ( formData.target_object ?: "" );
+
+		if ( kind != "related_data" || !IsObject( validationResult ) ) {
+			return;
+		}
+
+		var relationshipPath = Trim( formData.related_data_relationship ?: "" );
+		var propertyName     = Trim( formData.related_data_property     ?: "" );
+
+		if ( !Len( relationshipPath ) || !Len( propertyName ) ) {
+			validationResult.addError( fieldName="related_data_relationship", message="customFields:validation.related_data.invalid.path" );
+		} else {
+			var resolved = customFieldsService.resolveRelatedDataPath(
+				  objectName       = targetObject
+				, relationshipPath = relationshipPath
+				, propertyName     = propertyName
+			);
+			if ( !IsTrue( resolved.valid ?: false ) ) {
+				validationResult.addError( fieldName="related_data_relationship", message="customFields:validation.related_data.invalid.path" );
+			} else {
+				formData.data_type      = resolved.dataType ?: "";
+				formData.batch_editable = false;
+			}
 		}
 	}
 

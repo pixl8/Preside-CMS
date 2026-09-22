@@ -58,6 +58,217 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "objectHasRelatedDataRelationships()", function(){
+			it( "should return true when the object has a many-to-one property", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					logo = { relationship="many-to-one", relatedTo="asset" }
+				} );
+				svc.$( "$translatePropertyName", "Logo" );
+
+				expect( svc.objectHasRelatedDataRelationships( "elf_test_object" ) ).toBeTrue();
+			} );
+
+			it( "should return false when the object has no many-to-one properties", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					gallery = { relationship="many-to-many", relatedTo="asset" }
+				} );
+
+				expect( svc.objectHasRelatedDataRelationships( "elf_test_object" ) ).toBeFalse();
+			} );
+		} );
+
+		describe( "listRelatedDataRelationshipPaths()", function(){
+			it( "should include nested many-to-one hops", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset_folder" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					logo = { relationship="many-to-one", relatedTo="asset" }
+				} );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "asset" ).$results( {
+					  title        = { relationship="none", type="string" }
+					, asset_folder = { relationship="many-to-one", relatedTo="asset_folder" }
+				} );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "asset_folder" ).$results( {
+					label = { relationship="none", type="string" }
+				} );
+				svc.$( "$translatePropertyName" ).$args( "elf_test_object", "logo" ).$results( "Logo" );
+				svc.$( "$translatePropertyName" ).$args( "asset", "asset_folder" ).$results( "Folder" );
+
+				var paths = svc.listRelatedDataRelationshipPaths( "elf_test_object" );
+				var ids   = [];
+				for( var path in paths ) {
+					ArrayAppend( ids, path.id );
+				}
+
+				expect( ids ).toInclude( "logo" );
+				expect( ids ).toInclude( "logo.asset_folder" );
+			} );
+		} );
+
+		describe( "listRelatedDataTreeNodes()", function(){
+			it( "should list only many-to-one relationships at the root", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					  label = { relationship="none", type="string" }
+					, logo  = { relationship="many-to-one", relatedTo="asset" }
+					, gallery = { relationship="many-to-many", relatedTo="asset" }
+				} );
+				svc.$( "$translatePropertyName" ).$args( "elf_test_object", "logo" ).$results( "Logo" );
+
+				var nodes = svc.listRelatedDataTreeNodes( "elf_test_object" );
+				var ids   = [];
+				for( var node in nodes ) {
+					ArrayAppend( ids, node.id );
+				}
+
+				expect( ids ).toInclude( "logo" );
+				expect( ids ).notToInclude( "label" );
+				expect( ids ).notToInclude( "gallery" );
+				expect( nodes[ 1 ].type ).toBe( "relationship" );
+				expect( nodes[ 1 ].hasChildren ).toBeTrue();
+				expect( nodes[ 1 ].property ).toBe( "logo" );
+			} );
+
+			it( "should include fields, custom fields, formula fields and nested many-to-one hops", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset_folder" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					logo = { relationship="many-to-one", relatedTo="asset" }
+				} );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "asset" ).$results( {
+					  title        = { relationship="none", type="string" }
+					, nickname     = { relationship="none", type="string", formula="( select shorttext_value from _cfv_pobj_asset where record = ${prefix}id )", customField=true, customFieldLabel="Nickname" }
+					, asset_folder = { relationship="many-to-one", relatedTo="asset_folder" }
+					, versions     = { relationship="one-to-many", relatedTo="asset_version" }
+				} );
+				svc.$( "$translatePropertyName" ).$args( "asset", "title" ).$results( "Title" );
+				svc.$( "$translatePropertyName" ).$args( "asset", "asset_folder" ).$results( "Folder" );
+
+				var nodes = svc.listRelatedDataTreeNodes( "elf_test_object", "logo" );
+				var byId  = {};
+				for( var node in nodes ) {
+					byId[ node.id ] = node;
+				}
+
+				expect( byId ).toHaveKey( "logo.title" );
+				expect( byId ).toHaveKey( "logo.nickname" );
+				expect( byId ).toHaveKey( "logo.asset_folder" );
+				expect( byId ).notToHaveKey( "logo.versions" );
+				expect( byId[ "logo.title" ].type ).toBe( "property" );
+				expect( byId[ "logo.nickname" ].label ).toBe( "Nickname" );
+				expect( byId[ "logo.asset_folder" ].type ).toBe( "relationship" );
+				expect( byId[ "logo.asset_folder" ].hasChildren ).toBeTrue();
+				expect( byId[ "logo.asset_folder" ].relationshipPath ).toBe( "logo" );
+				expect( byId[ "logo.asset_folder" ].property ).toBe( "asset_folder" );
+				expect( nodes[ 1 ].type ).toBe( "relationship" );
+				expect( nodes[ ArrayLen( nodes ) ].type ).toBe( "property" );
+			} );
+
+			it( "should not offer further hops once the maximum depth is reached", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset_folder" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					logo = { relationship="many-to-one", relatedTo="asset" }
+				} );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "asset" ).$results( {
+					asset_folder = { relationship="many-to-one", relatedTo="asset_folder" }
+				} );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "asset_folder" ).$results( {
+					  label         = { relationship="none", type="string" }
+					, parent_folder = { relationship="many-to-one", relatedTo="asset_folder" }
+				} );
+				svc.$( "$translatePropertyName" ).$args( "asset_folder", "label" ).$results( "Label" );
+				svc.$( "$translatePropertyName" ).$args( "asset_folder", "parent_folder" ).$results( "Parent folder" );
+
+				var nodes = svc.listRelatedDataTreeNodes(
+					  objectName       = "elf_test_object"
+					, relationshipPath = "logo.asset_folder.parent_folder"
+					, maxHops          = 3
+				);
+				var byId = {};
+				for( var node in nodes ) {
+					byId[ node.id ] = node;
+				}
+
+				expect( byId ).toHaveKey( "logo.asset_folder.parent_folder.label" );
+				expect( byId ).toHaveKey( "logo.asset_folder.parent_folder.parent_folder" );
+				expect( byId[ "logo.asset_folder.parent_folder.parent_folder" ].hasChildren ).toBeFalse();
+			} );
+		} );
+
+		describe( "getRelatedDataSelectionLabel()", function(){
+			it( "should join translated relationship hops and the terminal field", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					logo = { relationship="many-to-one", relatedTo="asset" }
+				} );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "asset" ).$results( {
+					title = { relationship="none", type="string" }
+				} );
+				svc.$( "$translatePropertyName" ).$args( "elf_test_object", "logo" ).$results( "Logo" );
+				svc.$( "$translatePropertyName" ).$args( "asset", "title" ).$results( "Title" );
+
+				expect( svc.getRelatedDataSelectionLabel( "elf_test_object", "logo", "title" ) ).toBe( "Logo → Title" );
+			} );
+		} );
+			it( "should resolve a field on a related record, including formula properties", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					logo = { relationship="many-to-one", relatedTo="asset" }
+				} );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "asset" ).$results( {
+					nickname = { relationship="none", type="string", formula="( select shorttext_value from _cfv_pobj_asset where record = ${prefix}id )", customFieldLabel="Nickname" }
+				} );
+
+				var resolved = svc.resolveRelatedDataPath( "elf_test_object", "logo", "nickname" );
+
+				expect( resolved.valid ).toBeTrue();
+				expect( resolved.path ).toBe( "logo.nickname" );
+				expect( resolved.relatedObject ).toBe( "asset" );
+				expect( resolved.formula ).toInclude( "${prefix}id" );
+			} );
+
+			it( "should reject a one-to-many collection as the source field", function(){
+				var svc = _getService();
+
+				variables.mockPoService.$( "objectExists" ).$args( "elf_test_object" ).$results( true );
+				variables.mockPoService.$( "objectExists" ).$args( "asset" ).$results( true );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "elf_test_object" ).$results( {
+					logo = { relationship="many-to-one", relatedTo="asset" }
+				} );
+				variables.mockPoService.$( "getObjectProperties" ).$args( "asset" ).$results( {
+					versions = { relationship="one-to-many", relatedTo="asset_version" }
+				} );
+
+				expect( svc.resolveRelatedDataPath( "elf_test_object", "logo", "versions" ).valid ).toBeFalse();
+			} );
+		} );
+
 		describe( "getRelatedObjectForAggregateProperty()", function(){
 			it( "should return the relatedTo of the collection property", function(){
 				var svc = _getService();

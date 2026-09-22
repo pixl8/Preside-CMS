@@ -10,9 +10,10 @@ component {
 		var savedData    = args.savedData ?: {};
 		var targetObject = Trim( savedData.target_object ?: ( rc.target_object ?: "" ) );
 		var items        = Duplicate( enumService.listItems( args.enum ?: "customFieldKind" ) );
-		var canAggregate = Len( targetObject ) && customFieldsService.objectHasAggregateRelationships( targetObject );
-		var toggleFields = _getToggleFields( fields=( args.toggleFields ?: "" ), separator=( args.toggleSeparator ?: "|" ) );
-		var hasToggle    = false;
+		var canAggregate   = Len( targetObject ) && customFieldsService.objectHasAggregateRelationships( targetObject );
+		var canRelatedData = Len( targetObject ) && customFieldsService.objectHasRelatedDataRelationships( targetObject );
+		var toggleFields   = _getToggleFields( fields=( args.toggleFields ?: "" ), separator=( args.toggleSeparator ?: "|" ) );
+		var hasToggle      = false;
 
 		for( var i=1; i<=ArrayLen( items ); i++ ) {
 			var id = items[ i ].id ?: "";
@@ -22,6 +23,14 @@ component {
 				items[ i ].description = translateResource(
 					  uri          = Len( targetObject ) ? "enum.customFieldKind:aggregate.disabled.description" : "enum.customFieldKind:aggregate.chooseobject.description"
 					, defaultValue = "This object has no one-to-many or many-to-many collections to aggregate."
+				);
+			}
+
+			if ( id == "related_data" && !canRelatedData ) {
+				items[ i ].disabled    = true;
+				items[ i ].description = translateResource(
+					  uri          = Len( targetObject ) ? "enum.customFieldKind:related_data.disabled.description" : "enum.customFieldKind:related_data.chooseobject.description"
+					, defaultValue = "This object has no many-to-one relationships to related records."
 				);
 			}
 

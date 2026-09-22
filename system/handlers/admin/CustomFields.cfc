@@ -96,6 +96,21 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( type="json", data=rendered );
 	}
 
+	public void function fetchRelatedDataTreeNodes( event, rc, prc ) {
+		_checkManagePermission( argumentCollection=arguments );
+
+		var targetObject     = rc.target_object             ?: "";
+		var relationshipPath = rc.related_data_relationship ?: "";
+
+		event.renderData(
+			  type = "json"
+			, data = ( Len( targetObject ) && Len( relationshipPath ) ) ? customFieldsService.listRelatedDataTreeNodes(
+				  objectName       = targetObject
+				, relationshipPath = relationshipPath
+			) : []
+		);
+	}
+
 	public void function getFiltersForAggregateAjaxSelectControl( event, rc, prc ) {
 		_checkManagePermission( argumentCollection=arguments );
 		_applyRelatedFilterObject( rc );

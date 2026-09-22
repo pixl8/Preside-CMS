@@ -144,6 +144,22 @@ component {
 			if ( Len( Trim( field.renderer ?: "" ) ) ) {
 				definition.renderer = field.renderer;
 			}
+		} else if ( kind == "related_data" ) {
+			var resolved          = customFieldsService.resolveRelatedDataPath(
+				  objectName       = arguments.objectName
+				, relationshipPath = field.related_data_relationship ?: ""
+				, propertyName     = field.related_data_property     ?: ""
+			);
+			definition.type       = resolved.type ?: "string";
+			definition.autofilter = true;
+			if ( Len( Trim( field.renderer ?: "" ) ) ) {
+				definition.renderer = field.renderer;
+			} else if ( Len( Trim( resolved.renderer ?: "" ) ) ) {
+				definition.renderer = resolved.renderer;
+			}
+			if ( Len( Trim( resolved.relatedTo ?: "" ) ) ) {
+				definition.relatedto = resolved.relatedTo;
+			}
 		} else {
 			definition.type       = "string";
 			definition.renderer   = "customFieldConditionalLabel";
@@ -159,6 +175,8 @@ component {
 		switch( kind ) {
 			case "aggregate":
 				return _buildAggregateFormula( argumentCollection=arguments );
+			case "related_data":
+				return _buildRelatedDataFormula( argumentCollection=arguments );
 			case "conditional_label":
 				return _buildConditionalFormula( argumentCollection=arguments );
 		}
@@ -205,6 +223,31 @@ component {
 		}
 
 		return "agg:#fn#{ ${prefix}#relatedProp#.#valueProp# }";
+	}
+
+	private string function _buildRelatedDataFormula( required struct field, required string objectName ) {
+		var relationshipPath = Trim( arguments.field.related_data_relationship ?: "" );
+		var propertyName     = Trim( arguments.field.related_data_property     ?: "" );
+
+		if ( !Len( relationshipPath ) || !Len( propertyName ) ) {
+			return "''";
+		}
+
+		var resolved = customFieldsService.resolveRelatedDataPath(
+			  objectName       = arguments.objectName
+			, relationshipPath = relationshipPath
+			, propertyName     = propertyName
+		);
+
+		if ( !$helpers.isTrue( resolved.valid ?: false ) ) {
+			return "''";
+		}
+
+		if ( Len( Trim( resolved.formula ?: "" ) ) && FindNoCase( "${prefix}", resolved.formula ) ) {
+			return ReplaceNoCase( resolved.formula, "${prefix}", "${prefix}" & relationshipPath & ".", "all" );
+		}
+
+		return "${prefix}" & relationshipPath & "." & propertyName;
 	}
 
 	private string function _buildFilteredAggregateFormula(

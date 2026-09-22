@@ -34,6 +34,65 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( formula ).toBe( "agg:sum{ ${prefix}orders.amount }" );
 			} );
 
+			it( "should generate a related-data formula for a many-to-one column", function(){
+				var injector = _getInjector();
+
+				variables.mockCustomFieldsService.$( "resolveRelatedDataPath" ).$args(
+					  objectName       = "elf_test_object"
+					, relationshipPath = "logo"
+					, propertyName     = "title"
+				).$results( { valid=true, formula="", type="string", renderer="", relatedTo="", relationship="none" } );
+
+				var formula = injector.buildFormula(
+					  field      = { id="fld-5", kind="related_data", related_data_relationship="logo", related_data_property="title", key="logo_title" }
+					, objectName = "elf_test_object"
+				);
+
+				expect( formula ).toBe( "${prefix}logo.title" );
+			} );
+
+			it( "should rewrite a related custom-field formula with the many-to-one prefix", function(){
+				var injector = _getInjector();
+
+				variables.mockCustomFieldsService.$( "resolveRelatedDataPath" ).$args(
+					  objectName       = "elf_test_object"
+					, relationshipPath = "logo"
+					, propertyName     = "nickname"
+				).$results( {
+					  valid    = true
+					, formula  = "( select shorttext_value from _cfv_pobj_asset where field = 12 and record = ${prefix}id )"
+					, type     = "string"
+					, renderer = ""
+					, relatedTo = ""
+					, relationship = "none"
+				} );
+
+				var formula = injector.buildFormula(
+					  field      = { id="fld-6", kind="related_data", related_data_relationship="logo", related_data_property="nickname", key="logo_nickname" }
+					, objectName = "elf_test_object"
+				);
+
+				expect( formula ).toInclude( "record = ${prefix}logo.id" );
+				expect( formula ).notToInclude( "record = ${prefix}id )" );
+			} );
+
+			it( "should generate a nested related-data formula through multiple many-to-one hops", function(){
+				var injector = _getInjector();
+
+				variables.mockCustomFieldsService.$( "resolveRelatedDataPath" ).$args(
+					  objectName       = "elf_test_object"
+					, relationshipPath = "logo.asset_folder"
+					, propertyName     = "label"
+				).$results( { valid=true, formula="", type="string", renderer="", relatedTo="", relationship="none" } );
+
+				var formula = injector.buildFormula(
+					  field      = { id="fld-7", kind="related_data", related_data_relationship="logo.asset_folder", related_data_property="label", key="logo_folder" }
+					, objectName = "elf_test_object"
+				);
+
+				expect( formula ).toBe( "${prefix}logo.asset_folder.label" );
+			} );
+
 			it( "should bake a related-record filter into a one-to-many count formula", function(){
 				var injector      = _getInjector();
 				var mockFilterSvc = createStub();
@@ -114,6 +173,26 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( definition.control           ).toBe( "none" );
 				expect( definition.excludeDataExport ).toBeFalse();
 			} );
+
+			it( "should never mark related-data fields as editable", function(){
+				var injector = _getInjector();
+
+				variables.mockCustomFieldsService.$( "resolveRelatedDataPath" ).$args(
+					  objectName       = "elf_test_object"
+					, relationshipPath = "logo"
+					, propertyName     = "title"
+				).$results( { valid=true, formula="", type="string", renderer="", relatedTo="", relationship="none" } );
+
+				var definition = injector.buildPropertyDefinition(
+					  field      = { id=14, kind="related_data", related_data_relationship="logo", related_data_property="title", key="logo_title", label="Logo title", batch_editable=true }
+					, objectName = "elf_test_object"
+				);
+
+				expect( definition.batchEditable     ).toBeFalse();
+				expect( definition.control           ).toBe( "none" );
+				expect( definition.excludeDataExport ).toBeFalse();
+				expect( definition.autofilter        ).toBeTrue();
+			} );
 		} );
 	}
 
@@ -158,6 +237,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		variables.mockCustomFieldsService.$( "getFieldListingLabel", "Nickname" );
 		variables.mockCustomFieldsService.$( "getSlotViewGroup", "customFields" );
+		variables.mockCustomFieldsService.$( "resolveRelatedDataPath", { valid=false, formula="", type="string", renderer="", relatedTo="", relationship="none" } );
 
 		injector.$property( propertyName="presideObjectService"            , mock=variables.mockPoService );
 		injector.$property( propertyName="customFieldsService"             , mock=variables.mockCustomFieldsService );
