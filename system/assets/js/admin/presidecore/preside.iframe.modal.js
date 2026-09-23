@@ -81,7 +81,7 @@
 			  , modal          = this.modal = bootbox.dialog( this.modalOptions )
 			  , callbacks      = this.callbacks
 			  , getIframe      = this.getIframe
-			  , $parent        = $( parent.CKEDITOR.document.$ )
+			  , $parent        = ( parent.CKEDITOR && parent.CKEDITOR.document ) ? $( parent.CKEDITOR.document.$ ) : $( document )
 			  , $dialogIframe  = $parent.find( ".cke_dialog_ui_iframe:visible, .bootbox-body > iframe:visible" )
 			  , $parentModal   = $parent.find( ".bootbox.modal:visible" )
 			  , $parentEditor  = $parent.find( ".cke_dialog:visible" )
@@ -103,12 +103,20 @@
 				} );
 			}
 
-			if ( typeof callbacks.onShow === "function" ) {
-				modal.on( "shown.bs.modal", function(){
-					modal.off( "shown.bs.modal" );
-					callbacks.onShow( modal, getIframe() );
-				} );
-			}
+			modal.on( "shown.bs.modal", function(){
+				modal.off( "shown.bs.modal" );
+				var iframeWin = getIframe();
+
+				if ( iframeWin && iframeWin.presideJQuery ) {
+					iframeWin.presideJQuery( "table.object-listing-table" ).each( function(){
+						try { iframeWin.presideJQuery( this ).DataTable().draw(); } catch(e) {}
+					} );
+				}
+
+				if ( typeof callbacks.onShow === "function" ) {
+					callbacks.onShow( modal, iframeWin );
+				}
+			} );
 
 			modal.modal( "show" );
 		};

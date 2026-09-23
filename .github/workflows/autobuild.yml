@@ -17,8 +17,8 @@ jobs:
           - cfengine: "lucee@5.4"
             jdkVersion: "11"
             experimental: false
-          - cfengine: "lucee@^6.2.0-SNAPSHOT"
-            jdkVersion: "21"
+          - cfengine: "lucee@7.0"
+            jdkVersion: "25"
             experimental: true
     continue-on-error: ${{ matrix.experimental }}
     steps:
@@ -96,8 +96,8 @@ jobs:
           - cfengine: "lucee@5.4"
             jdkVersion: "11"
             experimental: false
-          - cfengine: "lucee@^6.1.1-SNAPSHOT"
-            jdkVersion: "21"
+          - cfengine: "lucee@7.0"
+            jdkVersion: "25"
             experimental: true
     continue-on-error: ${{ matrix.experimental }}
     steps:
@@ -155,6 +155,23 @@ jobs:
         with:
           browser: chrome
           working-directory: tests/e2e/tests
+          config: viewportWidth=1400,viewportHeight=900,defaultCommandTimeout=10000
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-${{ matrix.cfengine }}-jdk${{ matrix.jdkVersion }}
+          path: tests/e2e/tests/cypress/screenshots
+          if-no-files-found: ignore
+
+      - name: Upload Cypress videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos-${{ matrix.cfengine }}-jdk${{ matrix.jdkVersion }}
+          path: tests/e2e/tests/cypress/videos
+          if-no-files-found: ignore
 
   publish:
     name: Publish to Forgebox

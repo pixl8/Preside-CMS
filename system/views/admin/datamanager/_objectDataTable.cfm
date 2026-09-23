@@ -21,16 +21,29 @@
 	param name="args.allowFilter"                 type="boolean" default=true;
 	param name="args.allowDataExport"             type="boolean" default=false;
 	param name="args.allowSaveExport"             type="boolean" default=true;
-	param name="args.clickableRows"               type="boolean" default=true;
 	param name="args.compact"                     type="boolean" default=false;
+	param name="args.allowColumnPicker"           type="boolean" default=!IsTrue( args.compact );
+	param name="args.allowColumnFilter"           type="boolean" default=!IsTrue( args.compact );
+	param name="args.clickableRows"               type="boolean" default=true;
 	param name="args.batchEditableFields"         type="array"   default=[];
-	param name="args.datasourceUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, gridFields=ListAppend( ArrayToList( args.gridFields ), ArrayToList( args.hiddenGridFields ) ), isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
+	param name="args.listingPreferenceKey"        type="string"  default="#args.objectName#";
+	param name="args.listingContextKey"           type="string"  default="";
+	param name="args.listingContextLabel"         type="string"  default="";
+	param name="args.datasourceUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="ajaxListing", args={ useMultiActions=args.useMultiActions, isMultilingual=args.isMultilingual, draftsEnabled=args.draftsEnabled, noActions=args.noActions } );
 	param name="args.exportFilterString"          type="string"  default="";
 	param name="args.dataExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="exportDataAction"      );
 	param name="args.exportTemplate"              type="string"  default="";
 	param name="args.customExportUrl"             type="string"  default="";
 	param name="args.dataExportConfigUrl"         type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="dataExportConfigModal", queryString="exportTemplate=#args.exportTemplate#" );
 	param name="args.saveExportUrl"               type="string"  default=event.buildAdminLink( objectName=args.objectName, operation="saveExportAction" );
+	param name="args.saveListingColumnsUrl"       type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingColumns" );
+	param name="args.saveListingViewUrl"          type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingView" );
+	param name="args.updateListingViewUrl"        type="string"  default=event.buildAdminLink( linkTo="datamanager.updateListingView" );
+	param name="args.deleteListingViewUrl"        type="string"  default=event.buildAdminLink( linkTo="datamanager.deleteListingView" );
+	param name="args.saveListingViewFormUrl"      type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingViewForm" );
+	param name="args.saveListingViewDefaultUrl"   type="string"  default=event.buildAdminLink( linkTo="datamanager.saveListingViewDefault" );
+	param name="args.clearListingViewDefaultUrl"  type="string"  default=event.buildAdminLink( linkTo="datamanager.clearListingViewDefault" );
+	param name="args.saveListingViewDefaultFormUrl" type="string" default=event.buildAdminLink( linkTo="datamanager.saveListingViewDefaultForm" );
 	param name="args.objectTitlePlural"           type="string"  default=translateObjectName( objectName=args.objectName, plural=true );
 	param name="args.excludeFilterExpressionTags" type="string"  default="";
 	param name="args.noRecordMessage"             type="string"  default=translateResource( uri="cms:datatables.emptyTable" );
@@ -48,17 +61,18 @@
 		, paginationOptions = args.paginationOptions ?: getSetting( name="datamanager.defaults.datatable.paginationOptions", defaultValue=[ 5, 10, 25, 50, 100 ] )
 	} );
 
-	instanceId = LCase( Hash( serializeJSON( args.filterContextData ) & CallStackGet( "string" ) & args.datasourceUrl ) );
-	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
-
 	args.allowFilter  = IsTrue( args.allowFilter ?: "" ) && isFeatureEnabled( "rulesEngine" );
+
+	allowUseFilter    = false;
+	allowManageFilter = false;
+	manageFilterLink  = args.manageFilterLink ?: "";
+	favourites        = "";
 
 	if ( args.allowFilter ) {
 		favourites = renderViewlet( event="admin.rulesEngine.dataGridFavourites", args={ objectName=args.objectName } );
 
 		allowUseFilter    = IsTrue( args.allowUseFilter    ?: true );
 		allowManageFilter = IsTrue( args.allowManageFilter ?: true );
-		manageFilterLink  = args.manageFilterLink ?: "";
 
 		if ( allowManageFilter ) {
 			saveFilterFormEndpoint = event.buildAdminLink(
@@ -68,13 +82,75 @@
 		}
 	}
 
-	allowDataExport  = args.allowDataExport && isFeatureEnabled( "dataexport" );
-	allowSaveExport  = args.allowSaveExport && allowDataExport;
-	savedExportCount = Val( args.savedExportCount ?: "" );
-	savedExportsLink = args.savedExportsLink ?: "";
+	allowDataExport   = args.allowDataExport && isFeatureEnabled( "dataexport" );
+	allowSaveExport   = args.allowSaveExport && allowDataExport;
+	savedExportCount  = Val( args.savedExportCount ?: "" );
+	savedExportsLink  = args.savedExportsLink ?: "";
+	allowColumnPicker  = IsTrue( args.allowColumnPicker ?: !IsTrue( args.compact ) );
+	allowColumnFilter  = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ) ) && args.allowFilter;
+	savedViewArgs      = {
+		  objectName        = args.objectName
+		, allowColumnPicker = allowColumnPicker
+		, compact           = IsTrue( args.compact )
+	};
+	if ( StructKeyExists( args, "allowSavedViews" ) ) {
+		savedViewArgs.allowSavedViews = args.allowSavedViews;
+	}
+	allowSavedViews    = getSingleton( "dataListingPreferencesService" ).listingAllowsSavedViews( argumentCollection=savedViewArgs );
+	canShareViews      = allowSavedViews && IsTrue( args.canShareViews ?: false );
+	showListingToolbar = IsTrue( args.allowSearch ) || ( args.allowFilter && allowUseFilter ) || allowSavedViews;
+	everythingBarPlaceholder = translateResource(
+		  uri          = allowSavedViews ? "cms:datatables.everything.placeholder.withViews" : "cms:datatables.everything.placeholder"
+		, data         = [ args.objectTitlePlural ]
+		, defaultValue = translateResource( uri="cms:datamanager.search.placeholder", data=[ args.objectTitlePlural ] )
+	);
+
+	if ( !ArrayLen( args.centerAlignFields ) ) {
+		args.centerAlignFields = getSingleton( "dataManagerService" ).listCenterAlignFields( args.objectName );
+	}
+	if ( !ArrayLen( args.rightAlignFields ) ) {
+		args.rightAlignFields = getSingleton( "dataManagerService" ).listRightAlignFields( args.objectName );
+	}
+
+	listingContext     = getSingleton( "dataListingPreferencesService" ).resolveListingContext(
+		  listingContextKey   = args.listingContextKey
+		, listingContextLabel = args.listingContextLabel
+		, datasourceUrl       = args.datasourceUrl
+	);
+	args.listingContextLabel = listingContext.label;
+	instanceId = LCase( Hash( args.objectName & "|" & args.listingPreferenceKey & "|" & listingContext.key & "|" & ArrayToList( args.gridFields ) & "|" & SerializeJSON( args.filterContextData ) ) );
+	tableId    = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
+
+	toolbarConfig = getSingleton( "dataListingPreferencesService" ).getToolbarConfig(
+		  objectName         = args.objectName
+		, listingKey         = args.listingPreferenceKey
+		, contextKey         = listingContext.key
+		, contextLabel       = listingContext.label
+		, namedContext       = listingContext.named
+		, gridFields         = args.gridFields
+		, hiddenGridFields   = args.hiddenGridFields
+		, allowFilter        = args.allowFilter && allowUseFilter
+		, allowColumnFilter  = allowColumnFilter
+		, allowSearch        = args.allowSearch
+		, allowManageFilter  = allowManageFilter
+		, manageFilterLink   = manageFilterLink
+		, allowSavedViews    = allowSavedViews
+		, canShareViews      = canShareViews
+	);
 
 	if ( args.footerEnabled ) {
-		colCount = ArrayLen( args.gridFields );
+		headerFieldCount = ArrayLen( toolbarConfig.columns ?: [] );
+		if ( !headerFieldCount ) {
+			headerFieldCount = ArrayLen( args.gridFields );
+		} else if ( !allowColumnPicker ) {
+			headerFieldCount = 0;
+			for( var listingCol in toolbarConfig.columns ) {
+				if ( IsTrue( listingCol.visible ?: true ) ) {
+					headerFieldCount++;
+				}
+			}
+		}
+		colCount = headerFieldCount;
 		if ( args.useMultiActions ) {
 			colCount++;
 		}
@@ -90,7 +166,7 @@
 	}
 </cfscript>
 <cfoutput>
-	<div class="table-responsive<cfif args.compact> table-compact</cfif>" id="#tableId#-container">
+	<div class="table-responsive object-listing-wrap<cfif args.compact> table-compact</cfif><cfif !showListingToolbar> no-listing-toolbar</cfif>" id="#tableId#-container">
 		<cfif allowDataExport>
 			<form action="#args.dataExportUrl#" method="post" class="hide object-listing-table-export-form">
 				<input name="object" value="#args.objectName#" type="hidden">
@@ -110,9 +186,54 @@
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
 
+		<div class="<cfif showListingToolbar>object-listing-toolbar<cfelse>hide</cfif>" id="#tableId#-toolbar">
+			<script type="application/json" class="listing-toolbar-data">#SerializeJSON( toolbarConfig )#</script>
+			<cfif showListingToolbar>
+				<div class="object-listing-toolbar-row">
+					<cfif allowSavedViews>
+						<div class="listing-views">
+							<button type="button" class="listing-views-toggle" aria-haspopup="listbox" aria-expanded="false">
+								<span class="listing-views-name">#translateResource( uri="cms:datatables.views.default", defaultValue="Default" )#</span>
+								<span class="listing-views-dirty hide" title="#translateResource( uri='cms:datatables.views.dirty', defaultValue='Unsaved changes' )#"></span>
+								<i class="fa fa-caret-down"></i>
+							</button>
+							<div class="listing-views-dropdown hide" role="listbox"></div>
+						</div>
+					</cfif>
+					<div class="object-listing-everything-bar">
+						<div class="everything-bar-input-wrap input-icon">
+							<i class="fa fa-search everything-bar-icon data-table-search-icon"></i>
+							<input type="text"
+								class="everything-bar-input data-table-search form-control"
+								autocomplete="off"
+								data-global-key="s"
+								placeholder="#everythingBarPlaceholder#"
+							/>
+						</div>
+						<div class="everything-bar-dropdown hide" role="listbox"></div>
+					</div>
+					<cfif args.allowFilter && allowUseFilter>
+						<div class="filter-links-container">
+							<cfif allowManageFilter && Len( Trim( manageFilterLink ) )>
+								<a href="#manageFilterLink#"><i class="fa fa-fw fa-cogs"></i> #translateResource( "cms:datatables.manage.filters.link" )#</a>
+							</cfif>
+							<a href="##" class="advanced-filter-toggle"><i class="fa fa-fw fa-caret-right"></i> #translateResource( "cms:datatables.show.advanced.filters" )#</a>
+						</div>
+					</cfif>
+				</div>
+				<div class="everything-bar-chips"></div>
+			</cfif>
+		</div>
+
 		<cfif args.allowFilter>
 			<cfif allowUseFilter>
-				<div class="object-listing-table-filter hide" id="#tableId#-filter" data-allow-manage-filter="#booleanFormat( allowManageFilter )#" data-allow-use-filter="#booleanFormat( allowUseFilter )#" data-manage-filters-link="#manageFilterLink#">
+				<div class="object-listing-table-filter object-listing-advanced-filter hide" id="#tableId#-filter" data-allow-manage-filter="#booleanFormat( allowManageFilter )#" data-allow-use-filter="#booleanFormat( allowUseFilter )#" data-manage-filters-link="#manageFilterLink#">
+					<div class="object-listing-advanced-filter-header">
+						<h3>#translateResource( uri="cms:datatables.show.advanced.filters" )#</h3>
+						<button type="button" class="btn btn-link btn-sm advanced-filter-close">
+							<i class="fa fa-times"></i>
+						</button>
+					</div>
 					<div id="quick-filter-form-#instanceId#" class="in clearfix">
 						#renderFormControl(
 							  name        = "filter"
@@ -125,7 +246,7 @@
 							, label       = ""
 							, layout      = ""
 							, compact     = true
-							, showCount   = false
+							, showCount   = true
 							, showPreview = false
 						)#
 
@@ -180,10 +301,26 @@
 			data-object-name="#args.objectName#"
 			data-object-title="#args.objectTitlePlural#"
 		    data-datasource-url="#args.datasourceUrl#"
-		    data-use-multi-actions="#args.useMultiActions#"
+		    data-use-multi-actions="#booleanFormat( args.useMultiActions )#"
 		    data-allow-search="#args.allowSearch#"
 		    data-allow-data-export="#allowDataExport#"
 		    data-allow-save-export="#allowSaveExport#"
+		    data-allow-column-picker="#allowColumnPicker#"
+		    data-allow-column-filter="#allowColumnFilter#"
+		    data-allow-saved-views="#allowSavedViews#"
+		    data-listing-key="#args.listingPreferenceKey#"
+		    data-listing-context-key="#EncodeForHTML( listingContext.key )#"
+		    data-listing-context-label="#EncodeForHTML( listingContext.label )#"
+		    data-named-listing-context="#listingContext.named#"
+		    data-save-listing-columns-url="#args.saveListingColumnsUrl#"
+		    data-save-listing-view-url="#args.saveListingViewUrl#"
+		    data-update-listing-view-url="#args.updateListingViewUrl#"
+		    data-delete-listing-view-url="#args.deleteListingViewUrl#"
+		    data-save-listing-view-form-url="#args.saveListingViewFormUrl#"
+		    data-save-listing-view-default-url="#args.saveListingViewDefaultUrl#"
+		    data-clear-listing-view-default-url="#args.clearListingViewDefaultUrl#"
+		    data-save-listing-view-default-form-url="#args.saveListingViewDefaultFormUrl#"
+		    data-hidden-grid-fields="#ArrayToList( args.hiddenGridFields )#"
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"
 		    data-clickable-rows="#args.clickableRows#"
@@ -193,6 +330,8 @@
 		    data-no-record-message="#args.noRecordMessage#"
 		    data-no-record-table-hide="#args.noRecordTableHide#"
 		    data-no-record-table-hide-message="#EncodeForHTML( args.noRecordTableHideMessage )#"
+		    data-footer-enabled="#args.footerEnabled#"
+		    data-footer-wrap-with-row="#args.footerWrapWithRow#"
 		>
 			<thead>
 				<tr>
@@ -204,12 +343,29 @@
 							</label>
 						</th>
 					</cfif>
-					<cfloop array="#args.gridFields#" index="fieldName">
-						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>"
+					<cfset listingColumns = [] />
+					<cfif IsArray( toolbarConfig.columns ?: "" ) && ArrayLen( toolbarConfig.columns )>
+						<cfloop array="#toolbarConfig.columns#" item="listingCol">
+							<cfif allowColumnPicker || IsTrue( listingCol.visible ?: true )>
+								<cfset ArrayAppend( listingColumns, listingCol ) />
+							</cfif>
+						</cfloop>
+					</cfif>
+					<cfif !ArrayLen( listingColumns )>
+						<cfloop array="#args.gridFields#" index="fieldName">
+							<cfset ArrayAppend( listingColumns, { field=fieldName, label="", locked=false, visible=true } ) />
+						</cfloop>
+					</cfif>
+					<cfloop array="#listingColumns#" item="listingCol">
+						<cfset fieldName = listingCol.field />
+						<th class="listing-data-column<cfif IsTrue( listingCol.locked ?: false )> listing-locked-column<cfelse> listing-user-column</cfif><cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )> no-sorting</cfif>"
 							data-field="#ListLast( fieldName, '.' )#"
+							data-visible="#booleanFormat( IsTrue( listingCol.visible ?: true ) )#"
 							data-class="<cfif ArrayFindNoCase( args.centerAlignFields, fieldName )>dt-align-center<cfelseif ArrayFindNoCase( args.rightAlignFields, fieldName )>dt-align-right<cfelse></cfif>"
 						>
-							<cfif structKeyExists( args.gridHeaderLabels, fieldName ) >
+							<cfif Len( Trim( listingCol.label ?: "" ) )>
+								#listingCol.label#
+							<cfelseif structKeyExists( args.gridHeaderLabels, fieldName ) >
 								#args.gridHeaderLabels[ fieldName ]#
 							<cfelse>
 								#translatePropertyName( args.objectName, fieldName, "listing" )#
@@ -228,21 +384,22 @@
 						<th>#translateResource( uri="cms:datamanager.translate.column.status" )#</th>
 					</cfif>
 					<cfif !args.noActions>
-						<th>&nbsp;</th>
+						<th class="listing-options-column listing-pinned-end-column">&nbsp;</th>
 					</cfif>
 				</tr>
 			</thead>
 			<cfif args.footerEnabled>
-					<cfif args.footerWrapWithRow >
-						<tfoot>
-							<tr>
-								<th colspan="#colCount#"></th>
-							</tr>
-						</foot>
-					<cfelse>
-						<tfoot class="multi-column-footer">
-					</cfif>
-				</tfoot>
+				<cfif args.footerWrapWithRow>
+					<tfoot>
+						<tr>
+							<th colspan="#colCount#"></th>
+						</tr>
+					</tfoot>
+				<cfelse>
+					<tfoot class="multi-column-footer">
+						<tr></tr>
+					</tfoot>
+				</cfif>
 			</cfif>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">
 			</tbody>
