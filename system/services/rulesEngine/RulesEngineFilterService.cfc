@@ -757,8 +757,10 @@ component displayName="Rules Engine Filter Service" {
 			return "";
 		}
 
-		var unit = $translateResource(
-			  uri          = "enum.segmentationFilterTimeUnit:#filter.segmentation_frequency_unit#.cfmeasure"
+		var unit = $helpers.renderEnum(
+			  data         = filter.segmentation_frequency_unit
+			, enum         = "segmentationFilterTimeUnit"
+			, property     = "cfmeasure"
 			, defaultValue = "d"
 		);
 

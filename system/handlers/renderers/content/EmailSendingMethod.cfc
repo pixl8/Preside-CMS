@@ -6,14 +6,14 @@ component {
 	public string function adminDatatable( event, rc, prc, args={} ){
 		var method = args.data ?: "";
 
-		var icon  = translateResource( "enum.emailSendingMethod:#method#.iconClass" );
-		var label = translateResource( "enum.emailSendingMethod:#method#.shortlabel" );
+		var icon  = renderEnum( data=method, enum="emailSendingMethod", property="iconClass" );
+		var label = renderEnum( data=method, enum="emailSendingMethod", property="shortlabel" );
 
 		var type = args.record.schedule_type ?: "";
 
 		if ( method == "scheduled" && !isEmptyString( type ) ) {
-			icon  = translateResource( "enum.emailSendingScheduleType:#type#.iconClass" );
-			label = translateResource( "enum.emailSendingScheduleType:#type#.shortlabel" )
+			icon  = renderEnum( data=type, enum="emailSendingScheduleType", property="iconClass" );
+			label = renderEnum( data=type, enum="emailSendingScheduleType", property="shortlabel" );
 
 			if ( type == "repeat" ) {
 				var unit      = args.record.schedule_unit ?: "";
@@ -21,15 +21,17 @@ component {
 
 				if ( measure > 1 ) {
 					measure &= " ";
-					unit    = translateResource( uri="enum.timeUnit:#unit#.label.plural" );
+					unit    = renderEnum( data=unit, enum="timeUnit", property="label.plural" );
 				} else {
 					measure = "";
-					unit    = translateResource( uri="enum.timeUnit:#unit#.label.singular" );
+					unit    = renderEnum( data=unit, enum="timeUnit", property="label.singular" );
 				}
 
-				label = translateResource(
-					  uri  = "enum.emailSendingMethod:scheduled.withtype"
-					, data = [ translateResource( uri="cms:emailcenter.table.scheduled.repeat", data=[ "#measure##unit#" ] ) ]
+				label = renderEnum(
+					  data            = "scheduled"
+					, enum            = "emailSendingMethod"
+					, property        = "withtype"
+					, translationData = [ translateResource( uri="cms:emailcenter.table.scheduled.repeat", data=[ "#measure##unit#" ] ) ]
 				);
 			}
 		}

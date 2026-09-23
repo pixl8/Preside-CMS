@@ -17,7 +17,7 @@ component {
 		var icon      = "fa-globe light-grey";
 
 		if ( Len( Trim( webflowId ) ) && Len( Trim( posType ) ) ) {
-			icon = translateResource( uri="enum.webflowPositionType:#posType#.iconClass", defaultValue=icon );
+			icon = renderEnum( data=posType, enum="webflowPositionType", property="iconClass", defaultValue=icon );
 		}
 
 		return '<i class="fa fa-fw #icon#"></i> &nbsp;' & label;

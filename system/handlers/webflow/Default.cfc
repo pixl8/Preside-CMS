@@ -367,7 +367,7 @@ component {
 		}
 
 		if ( Len( progressbarLayout ) ) {
-			args.progressBarClass = translateResource( uri="enum.webflowProgressBarType:#progressbarLayout#.cssclass", defaultValue="" );
+			args.progressBarClass = renderEnum( data=progressbarLayout, enum="webflowProgressBarType", property="cssclass" );
 
 			if ( getController().viewletExists( "webflow.default.progressbar._#progressbarLayout#" ) ) {
 				return renderViewlet( event="webflow.default.progressbar._#progressbarLayout#", args=args );
