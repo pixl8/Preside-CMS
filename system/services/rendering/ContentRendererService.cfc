@@ -4,6 +4,7 @@
  *
  */
 component {
+	property name="enumService" inject="enumService";
 
 // CONSTRUCTOR
 
@@ -145,16 +146,43 @@ component {
 
 	public string function renderEnum(
 		  required string data
-		,          string enum         = ""
-		,          string objectName   = ""
-		,          string propertyName = ""
-		,          any    context      = "default"
-		,          string recordId     = ""
-		,          string enumRenderer = ""
+		,          string enum            = ""
+		,          string objectName      = ""
+		,          string propertyName    = ""
+		,          string property        = ""
+		,          string defaultValue
+		,          array  translationData = []
+		,          any    context         = "default"
+		,          string recordId        = ""
+		,          string enumRenderer    = ""
 	) {
-		if ( !$helpers.isEmptyString( arguments.objectName ) && !$helpers.isEmptyString( arguments.propertyName ) ) {
+		if ( !Len( Trim( arguments.enum ) ) && Len( Trim( arguments.objectName ) ) && Len( Trim( arguments.propertyName ) ) ) {
+			arguments.enum = $getPresideObjectService().getObjectPropertyAttribute(
+				  objectName    = arguments.objectName
+				, propertyName  = arguments.propertyName
+				, attributeName = "enum"
+				, defaultValue  = ""
+			);
+		}
+
+		if ( Len( Trim( arguments.property ) ) ) {
+			var translationArgs = {
+				  enum     = arguments.enum
+				, key      = arguments.data
+				, property = arguments.property
+				, data     = arguments.translationData
+			};
+
+			if ( StructKeyExists( arguments, "defaultValue" ) ) {
+				translationArgs.defaultValue = arguments.defaultValue;
+			}
+
+			return _getEnumService().translate( argumentCollection=translationArgs );
+		}
+
+		if ( Len( Trim( arguments.objectName ) ) && Len( Trim( arguments.propertyName ) ) ) {
 			arguments.enumRenderer = $getPresideObjectService().getObjectPropertyAttribute( objectName=arguments.objectName, propertyName=arguments.propertyName, attributeName="enumRenderer", defaultValue="enumLabel" );
-		} else if ( $helpers.isEmptyString( arguments.enumRenderer ) ) {
+		} else if ( !Len( Trim( arguments.enumRenderer ) ) ) {
 			arguments.enumRenderer = "enumLabel";
 		}
 
@@ -168,6 +196,18 @@ component {
 				, propertyName = arguments.propertyName
 				, recordId     = arguments.recordId
 			  }
+		);
+	}
+
+	public string function getEnumTranslationUri(
+		  required string data
+		, required string enum
+		, required string property
+	) {
+		return _getEnumService().getTranslationUri(
+			  enum     = arguments.enum
+			, key      = arguments.data
+			, property = arguments.property
 		);
 	}
 
@@ -670,5 +710,9 @@ component {
 	}
 	private void function _setDynamicFindAndReplaceService( required any dynamicFindAndReplaceService ) {
 	    _dynamicFindAndReplaceService = arguments.dynamicFindAndReplaceService;
+	}
+
+	private any function _getEnumService() {
+		return enumService;
 	}
 }

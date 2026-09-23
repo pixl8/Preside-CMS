@@ -14,6 +14,7 @@ component {
 	 */
 	public any function init( required struct configuredEnums ) {
 		_setConfiguredEnums( arguments.configuredEnums );
+		_setEnumTranslations( {} );
 
 		return this;
 	}
@@ -37,8 +38,8 @@ component {
 		for( var itemId in rawItems ) {
 			itemsWithLabelsAndDescriptions.append({
 				  id          = itemId
-				, label       = $translateResource( uri="enum.#arguments.enum#:#itemId#.label"      , defaultValue=itemId )
-				, description = $translateResource( uri="enum.#arguments.enum#:#itemId#.description", defaultValue=""     )
+				, label       = translate( enum=arguments.enum, key=itemId, property="label" )
+				, description = translate( enum=arguments.enum, key=itemId, property="description" )
 			});
 		}
 
@@ -54,10 +55,7 @@ component {
 			if ( !ArrayLen( restrictToKeys ) || ArrayFindNoCase( restrictToKeys, key ) ) {
 				var enumValue = {};
 				for( var propName in arguments.properties ) {
-					enumValue[ propName ] = $translateResource(
-						  uri          = "enum.#arguments.enum#:#key#.#propName#"
-						, defaultValue = ( propName == "label" ? key : "" )
-					);
+					enumValue[ propName ] = translate( enum=arguments.enum, key=key, property=propName );
 				}
 
 				enumProps[ key ] = enumValue;
@@ -68,7 +66,7 @@ component {
 	}
 
 	public string function getLabelByKey( required string enum, required string key ) {
-		return $translateResource( uri="enum.#arguments.enum#:#arguments.key#.label", defaultValue=arguments.key );
+		return translate( enum=arguments.enum, key=arguments.key, property="label" );
 	}
 
 	public string function getKeyByLabel( required string enum, required string label ) {
@@ -95,6 +93,80 @@ component {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Registers (or replaces) an enum and optional per-property i18n URI templates.
+	 * Templates may include `{key}` and `{enum}` placeholders. When a property has
+	 * no template, translations fall back to `enum.{enum}:{key}.{property}`.
+	 *
+	 * @autodoc            true
+	 * @enum.hint          ID of the enum to register
+	 * @keys.hint          Array of enum item keys, in display order
+	 * @translations.hint  Struct of property name to URI template, e.g. `{ label="preside-objects.{key}:title" }`
+	 *
+	 */
+	public void function registerEnum(
+		  required string enum
+		, required array  keys
+		,          struct translations = {}
+	) {
+		var configuredEnums  = _getConfiguredEnums();
+		var enumTranslations = _getEnumTranslations();
+
+		configuredEnums[ arguments.enum ]  = arguments.keys;
+		enumTranslations[ arguments.enum ] = Duplicate( arguments.translations );
+	}
+
+	/**
+	 * Translates an enum item property, using any URI template registered
+	 * for the enum or the default `enum.{enum}:{key}.{property}` pattern.
+	 *
+	 * @autodoc             true
+	 * @enum.hint           ID of the enum
+	 * @key.hint            Enum item key
+	 * @property.hint       i18n property, e.g. label, description, iconClass
+	 * @defaultValue.hint   Fallback when the resource is missing. Defaults to the key for `label`, otherwise empty string
+	 * @data.hint           Optional data array passed through to translateResource
+	 *
+	 */
+	public string function translate(
+		  required string enum
+		, required string key
+		, required string property
+		,          string defaultValue
+		,          array  data = []
+	) {
+		if ( !StructKeyExists( arguments, "defaultValue" ) ) {
+			arguments.defaultValue = ( arguments.property == "label" ? arguments.key : "" );
+		}
+
+		var translateArgs = {
+			  uri          = getTranslationUri( argumentCollection=arguments )
+			, defaultValue = arguments.defaultValue
+			, data         = arguments.data
+		};
+
+		return $translateResource( argumentCollection=translateArgs );
+	}
+
+	public string function getTranslationUri(
+		  required string enum
+		, required string key
+		, required string property
+	) {
+		var templates = _getEnumTranslations();
+		var template  = "";
+
+		if ( StructKeyExists( templates, arguments.enum ) ) {
+			template = templates[ arguments.enum ][ arguments.property ] ?: "";
+		}
+
+		if ( Len( template ) ) {
+			return Replace( Replace( template, "{key}", arguments.key, "all" ), "{enum}", arguments.enum, "all" );
+		}
+
+		return "enum.#arguments.enum#:#arguments.key#.#arguments.property#";
 	}
 
 	/**
@@ -140,5 +212,12 @@ component {
 	}
 	private void function _setConfiguredEnums( required struct configuredEnums ) {
 		_configuredEnums = arguments.configuredEnums;
+	}
+
+	private struct function _getEnumTranslations() {
+		return _enumTranslations;
+	}
+	private void function _setEnumTranslations( required struct enumTranslations ) {
+		_enumTranslations = arguments.enumTranslations;
 	}
 }

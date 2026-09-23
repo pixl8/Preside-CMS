@@ -122,8 +122,8 @@ component hint="Manage Preside i18n" extends="preside.system.base.Command" {
 			if ( ArrayLen( enums ) ) {
 				for ( var enumKey in enums ) {
 					var cols       = [];
-					var uri        = "enum.#enumName#:#enumKey#.label";
-					var translated = i18n.translateResource( uri=uri, defaultValue="" );
+					var uri        = getEnumTranslationUri( data=enumKey, enum=enumName, property="label" );
+					var translated = renderEnum( data=enumKey, enum=enumName, property="label", defaultValue="" );
 					var type       = isEmptyString( translated ) ? "error" : "success";
 
 					ArrayAppend( cols, {
