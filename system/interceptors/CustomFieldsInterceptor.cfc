@@ -42,6 +42,7 @@ component extends="coldbox.system.Interceptor" {
 	public void function postInsertObjectData( event, interceptData ) {
 		_persistStashedValues( event, interceptData, interceptData.newId ?: "" );
 		_refreshIfDefinitionChanged( interceptData );
+		_refreshIfLookupChanged( interceptData );
 	}
 
 	public void function preUpdateObjectData( event, interceptData ) {
@@ -58,6 +59,7 @@ component extends="coldbox.system.Interceptor" {
 		}
 		_persistStashedValues( event, interceptData, recordId );
 		_refreshIfDefinitionChanged( interceptData );
+		_refreshIfLookupChanged( interceptData );
 		_refreshIfAggregateFilterChanged( interceptData );
 	}
 
@@ -65,6 +67,10 @@ component extends="coldbox.system.Interceptor" {
 		var objectName = interceptData.objectName ?: "";
 		if ( objectName == "custom_field" ) {
 			interceptData.customFieldTargetObjects = _targetObjectsForDelete( interceptData );
+			return;
+		}
+		if ( objectName == "custom_field_lookup" ) {
+			interceptData.customFieldTargetObjects = _targetObjectsForLookupChange( interceptData );
 			return;
 		}
 		if ( objectName == "rules_engine_condition" ) {
@@ -259,6 +265,78 @@ component extends="coldbox.system.Interceptor" {
 		if ( Len( Trim( target ) ) ) {
 			customFieldsPropertyInjector.refreshObject( target );
 		}
+	}
+
+	private void function _refreshIfLookupChanged( required struct interceptData ) {
+		if ( ( arguments.interceptData.objectName ?: "" ) != "custom_field_lookup" ) {
+			return;
+		}
+
+		for( var objectName in _targetObjectsForLookupChange( arguments.interceptData ) ) {
+			customFieldsPropertyInjector.refreshObject( objectName );
+		}
+	}
+
+	private array function _targetObjectsForLookupChange( required struct interceptData ) {
+		var fieldIds = _toIdArray( arguments.interceptData.data.field ?: "" );
+		if ( IsStruct( arguments.interceptData.filter ?: {} ) ) {
+			ArrayAppend( fieldIds, _toIdArray( arguments.interceptData.filter.field ?: "" ), true );
+		}
+
+		if ( !ArrayLen( fieldIds ) ) {
+			var lookupIds = _lookupRecordIds( arguments.interceptData );
+			if ( !ArrayLen( lookupIds ) ) {
+				return [];
+			}
+
+			var lookups = presideObjectService.selectData(
+				  objectName   = "custom_field_lookup"
+				, filter       = { id=lookupIds }
+				, selectFields = [ "distinct field as field" ]
+			);
+			for( var lookup in lookups ) {
+				ArrayAppend( fieldIds, lookup.field );
+			}
+		}
+
+		if ( !ArrayLen( fieldIds ) ) {
+			return [];
+		}
+
+		var records = presideObjectService.selectData(
+			  objectName   = "custom_field"
+			, filter       = { id=fieldIds }
+			, selectFields = [ "distinct target_object as target_object" ]
+		);
+		var objects = [];
+		for( var record in records ) {
+			ArrayAppend( objects, record.target_object );
+		}
+
+		return objects;
+	}
+
+	private array function _lookupRecordIds( required struct interceptData ) {
+		var ids = _toIdArray( arguments.interceptData.newId ?: "" );
+		if ( !ArrayLen( ids ) ) {
+			ids = _toIdArray( arguments.interceptData.id ?: "" );
+		}
+		if ( !ArrayLen( ids ) && IsStruct( arguments.interceptData.filter ?: {} ) ) {
+			ids = _toIdArray( arguments.interceptData.filter.id ?: "" );
+		}
+
+		return ids;
+	}
+
+	private array function _toIdArray( required any ids ) {
+		if ( IsArray( arguments.ids ) ) {
+			return Duplicate( arguments.ids );
+		}
+		if ( IsSimpleValue( arguments.ids ) && Len( Trim( arguments.ids ) ) ) {
+			return ListToArray( arguments.ids );
+		}
+
+		return [];
 	}
 
 	private boolean function _isRestoringHistoricalVersion( required any event, required string objectName, required string recordId ) {
