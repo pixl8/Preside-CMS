@@ -14,36 +14,46 @@ component {
 	}
 
 	public string function index( event, rc, prc, args={} ) {
-		var rule = _ruleFromArgs( argumentCollection=arguments );
-		var label = EncodeForHTML( rule.label_text ?: "" );
+		var rules    = _rulesFromArgs( argumentCollection=arguments );
+		var rendered = [];
 
-		if ( !Len( label ) ) {
-			return "";
-		}
+		for( var rule in rules ) {
+			var label = EncodeForHTML( rule.label_text ?: "" );
 
-		var colour = _cssColour( rule.colour ?: ( rule.style ?: "" ) );
-		if ( !Len( colour ) ) {
-			return '<span class="badge">#label#</span>';
-		}
-
-		return '<span class="badge" style="background-color:#EncodeForHTMLAttribute( colour )#;color:#EncodeForHTMLAttribute( _contrastingTextColour( colour ) )#;">#label#</span>';
-	}
-
-	private struct function _ruleFromArgs( event, rc, prc, args={} ) {
-		if ( ( args.objectName ?: "" ) == "custom_field_conditional_rule" ) {
-			if ( IsStruct( args.record ?: "" ) && !StructIsEmpty( args.record ) ) {
-				return args.record;
+			if ( !Len( label ) ) {
+				continue;
 			}
 
-			return { label_text=args.data ?: "" };
+			var colour = _cssColour( rule.colour ?: ( rule.style ?: "" ) );
+			if ( !Len( colour ) ) {
+				ArrayAppend( rendered, '<span class="badge">#label#</span>' );
+			} else {
+				ArrayAppend( rendered, '<span class="badge" style="background-color:#EncodeForHTMLAttribute( colour )#;color:#EncodeForHTMLAttribute( _contrastingTextColour( colour ) )#;">#label#</span>' );
+			}
 		}
 
-		var ruleId = customFieldsService.evaluateConditionalLabel( args.data ?: "" );
-		if ( !Len( Trim( ruleId ) ) ) {
-			return {};
+		return ArrayToList( rendered, " " );
+	}
+
+	private array function _rulesFromArgs( event, rc, prc, args={} ) {
+		if ( ( args.objectName ?: "" ) == "custom_field_conditional_rule" ) {
+			if ( IsStruct( args.record ?: "" ) && !StructIsEmpty( args.record ) ) {
+				return [ args.record ];
+			}
+
+			return [ { label_text=args.data ?: "" } ];
 		}
 
-		return customFieldsService.getConditionalRuleById( ruleId );
+		var rules = [];
+
+		for( var ruleId in customFieldsService.evaluateConditionalLabels( args.data ?: "" ) ) {
+			var rule = customFieldsService.getConditionalRuleById( ruleId );
+			if ( !StructIsEmpty( rule ) ) {
+				ArrayAppend( rules, rule );
+			}
+		}
+
+		return rules;
 	}
 
 	private string function _cssColour( required string colour ) {

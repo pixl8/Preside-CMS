@@ -233,6 +233,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.getRelatedDataSelectionLabel( "elf_test_object", "logo", "title" ) ).toBe( "Logo → Title" );
 			} );
 		} );
+
+		describe( "resolveRelatedDataPath()", function(){
 			it( "should resolve a field on a related record, including formula properties", function(){
 				var svc = _getService();
 
@@ -284,6 +286,55 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.getRelatedObjectForAggregateProperty( "elf_test_object", "gallery" ) ).toBe( "asset" );
 			} );
 		} );
+
+		describe( "evaluateConditionalLabels()", function(){
+			it( "should return only the first matching rule in single mode", function(){
+				var svc = _getConditionalLabelService( "single" );
+
+				expect( svc.evaluateConditionalLabels( "15.record-1" ) ).toBe( [ "rule-1" ] );
+				expect( svc.evaluateConditionalLabel( "15.record-1" ) ).toBe( "rule-1" );
+			} );
+
+			it( "should return every matching rule in multiple mode", function(){
+				var svc = _getConditionalLabelService( "multiple" );
+
+				expect( svc.evaluateConditionalLabels( "15.record-1" ) ).toBe( [ "rule-1", "rule-2" ] );
+			} );
+
+			it( "should ignore rules without a condition", function(){
+				var svc = _getConditionalLabelService( "multiple" );
+
+				svc.$( "listConditionalRules", [
+					  { id="empty", filter="" }
+					, { id="rule-1", filter="filter-1" }
+				] );
+
+				expect( svc.evaluateConditionalLabels( "15.record-1" ) ).toBe( [ "rule-1" ] );
+			} );
+		} );
+	}
+
+	private any function _getConditionalLabelService( required string mode ) {
+		var svc = _getService();
+
+		svc.$( "getField", {
+			  id                     = "15"
+			, kind                   = "conditional_label"
+			, target_object          = "elf_test_object"
+			, conditional_label_mode = arguments.mode
+		} );
+		svc.$( "listConditionalRules", [
+			  { id="rule-1", filter="filter-1" }
+			, { id="rule-2", filter="filter-2" }
+		] );
+		variables.mockFilterService.$( method="prepareFilter", callback=function( required string objectName, required string filterId ){
+			return { filter=arguments.filterId };
+		} );
+		variables.mockPoService.$( method="dataExists", callback=function(){
+			return true;
+		} );
+
+		return svc;
 	}
 
 	private any function _getService() {
@@ -297,14 +348,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		variables.mockFormsService   = createStub();
 		variables.mockEnumService    = createStub();
 		variables.mockFilterService  = createStub();
-		variables.mockColdbox        = createStub();
 
 		helpers.$( method="isTrue", callback=function( val ){
 			return IsBoolean( arguments.val ?: "" ) && arguments.val;
 		} );
 
-		variables.mockColdbox.$( "getSetting", { objects={}, fieldTypes={} } );
-		svc.$( "$getColdbox", variables.mockColdbox );
 		svc.$( "$isFeatureEnabled", true );
 		svc.$( "$translateResource", "" );
 

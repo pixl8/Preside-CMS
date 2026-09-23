@@ -65,87 +65,6 @@ component {
 		return options;
 	}
 
-	public struct function getObjectConfig( required string objectName ) {
-		var customFieldsSettings = $getColdbox().getSetting( "customFields" );
-		var configured           = IsStruct( customFieldsSettings ) ? ( customFieldsSettings.objects ?: {} ) : {};
-		if ( !IsStruct( configured ) ) {
-			configured = {};
-		}
-
-		var defaults = {
-			  defaultSlot = "custom"
-			, slots       = {
-				custom = { viewGroup="customFields" }
-			  }
-		};
-
-		if ( StructKeyExists( configured, arguments.objectName ) && IsStruct( configured[ arguments.objectName ] ) ) {
-			defaults.append( configured[ arguments.objectName ], true );
-			if ( StructKeyExists( configured[ arguments.objectName ], "slots" ) ) {
-				defaults.slots.append( configured[ arguments.objectName ].slots, true );
-			}
-		}
-
-		return defaults;
-	}
-
-	public string function getSlotViewGroup( required string objectName, string slot="custom" ) {
-		var config = getObjectConfig( arguments.objectName );
-		var slots  = config.slots ?: {};
-		var slotId = Len( Trim( arguments.slot ) ) ? arguments.slot : ( config.defaultSlot ?: "custom" );
-
-		if ( StructKeyExists( slots, slotId ) ) {
-			return slots[ slotId ].viewGroup ?: "customFields";
-		}
-
-		return "customFields";
-	}
-
-	public array function listSlots( required string objectName ) {
-		var config = getObjectConfig( arguments.objectName );
-		var slots  = config.slots ?: {};
-		var result = [];
-
-		for( var slotId in slots ) {
-			ArrayAppend( result, {
-				  id        = slotId
-				, viewGroup = slots[ slotId ].viewGroup ?: "customFields"
-				, forms     = slots[ slotId ].forms     ?: {}
-				, label     = slots[ slotId ].label     ?: slotId
-			} );
-		}
-
-		return result;
-	}
-
-	public boolean function fieldHasInlineForm( required string objectName, required string slot ) {
-		var config = getObjectConfig( arguments.objectName );
-		var slots  = config.slots ?: {};
-		var slotId = Len( Trim( arguments.slot ) ) ? arguments.slot : "custom";
-
-		if ( !StructKeyExists( slots, slotId ) ) {
-			return false;
-		}
-
-		var forms = slots[ slotId ].forms ?: {};
-		return IsStruct( forms ) && StructCount( forms ) > 0;
-	}
-
-	public struct function getInlineFormPlacement( required string objectName, required string slot, required string formName ) {
-		var config = getObjectConfig( arguments.objectName );
-		var slots  = config.slots ?: {};
-		var slotId = Len( Trim( arguments.slot ) ) ? arguments.slot : "custom";
-
-		if ( StructKeyExists( slots, slotId ) ) {
-			var forms = slots[ slotId ].forms ?: {};
-			if ( StructKeyExists( forms, arguments.formName ) ) {
-				return forms[ arguments.formName ];
-			}
-		}
-
-		return {};
-	}
-
 	public array function listFields(
 		  required string  objectName
 		,          boolean includeInactive = false
@@ -321,8 +240,7 @@ component {
 	}
 
 	public string function buildValueEditFormName( required string objectName, required any record ) {
-		var fields       = listFieldsForRecord( objectName=arguments.objectName, record=arguments.record, kind="static" );
-		var targetObject = arguments.objectName;
+		var fields = listFieldsForRecord( objectName=arguments.objectName, record=arguments.record, kind="static" );
 
 		return formsService.createForm( function( formDefinition ){
 			formDefinition.setAttributes( i18nBaseUri="customFields:" );
@@ -330,10 +248,6 @@ component {
 			formDefinition.addFieldset( id="default", tab="default" );
 
 			for( var field in fields ) {
-				if ( fieldHasInlineForm( targetObject, field.slot ?: "custom" ) ) {
-					continue;
-				}
-
 				var type    = customFieldTypesService.getType( field.data_type ?: "text" );
 				var control = type.control ?: "textinput";
 				var args    = {
@@ -350,67 +264,6 @@ component {
 					var options = listLookupOptions( field.id );
 					var values  = [];
 					var labels  = [];
-					for( var option in options ) {
-						ArrayAppend( values, option.id );
-						ArrayAppend( labels, option.label );
-					}
-					args.control = "select";
-					args.values  = values;
-					args.labels  = labels;
-				}
-
-				if ( ( field.data_type ?: "" ) == "object_ref" && Len( Trim( field.related_object ?: "" ) ) ) {
-					args.control = "objectPicker";
-					args.object  = field.related_object;
-				}
-
-				formDefinition.addField( argumentCollection=args );
-			}
-		} );
-	}
-
-	public string function mergeInlineFieldsIntoForm(
-		  required string formName
-		, required string objectName
-		,          any    record = {}
-	) {
-		var fields     = listFieldsForRecord( objectName=arguments.objectName, record=arguments.record, kind="static" );
-		var toMerge    = [];
-
-		for( var field in fields ) {
-			var placement = getInlineFormPlacement( arguments.objectName, field.slot ?: "custom", arguments.formName );
-			if ( StructIsEmpty( placement ) ) {
-				continue;
-			}
-			ArrayAppend( toMerge, { field=field, placement=placement } );
-		}
-
-		if ( !ArrayLen( toMerge ) ) {
-			return "";
-		}
-
-		return formsService.createForm( function( formDefinition ){
-			for( var item in toMerge ) {
-				var field     = item.field;
-				var placement = item.placement;
-				var type      = customFieldTypesService.getType( field.data_type ?: "text" );
-				var args      = {
-					  name     = field.key
-					, tab      = placement.tab      ?: "default"
-					, fieldset = placement.fieldset ?: "default"
-					, control  = type.control ?: "textinput"
-					, label    = field.label
-					, help     = field.help_text ?: ""
-				};
-
-				if ( Len( Trim( placement.after ?: "" ) ) ) {
-					args.after = placement.after;
-				}
-
-				if ( ( field.data_type ?: "" ) == "lookup" ) {
-					var options = listLookupOptions( field.id );
-					var values  = [ "" ];
-					var labels  = [ "" ];
 					for( var option in options ) {
 						ArrayAppend( values, option.id );
 						ArrayAppend( labels, option.label );
@@ -756,41 +609,44 @@ component {
 	}
 
 	public string function evaluateConditionalLabel( required string encodedValue ) {
+		var matchingRules = evaluateConditionalLabels( arguments.encodedValue );
+
+		return ArrayLen( matchingRules ) ? matchingRules[ 1 ] : "";
+	}
+
+	public array function evaluateConditionalLabels( required string encodedValue ) {
 		var parts = ListToArray( arguments.encodedValue, "." );
 		if ( ArrayLen( parts ) < 2 ) {
-			return "";
+			return [];
 		}
 
 		var fieldId  = parts[ 1 ];
 		var recordId = ArrayToList( ArraySlice( parts, 2 ), "." );
 		var field    = getField( fieldId );
 		if ( StructIsEmpty( field ) ) {
-			return "";
+			return [];
 		}
 
-		var rules = listConditionalRules( fieldId );
+		var rules   = listConditionalRules( fieldId );
+		var matches = [];
 		if ( !ArrayLen( rules ) ) {
-			return "";
+			return matches;
 		}
 
-		var objectName = field.target_object ?: "";
 		for( var rule in rules ) {
 			if ( !Len( Trim( rule.filter ?: "" ) ) ) {
-				return rule.id;
+				continue;
 			}
-			if ( $isFeatureEnabled( "rulesEngine" ) && presideObjectService.dataExists(
-				  objectName   = objectName
-				, id           = recordId
-				, extraFilters = [ rulesEngineFilterService.prepareFilter(
-					  objectName = objectName
-					, filterId   = rule.filter
-				  ) ]
-			) ) {
-				return rule.id;
+			if ( _conditionalRuleMatches( field=field, rule=rule, recordId=recordId ) ) {
+				ArrayAppend( matches, rule.id );
+
+				if ( ( field.conditional_label_mode ?: "single" ) != "multiple" ) {
+					break;
+				}
 			}
 		}
 
-		return "";
+		return matches;
 	}
 
 	public struct function getConditionalRuleById( required string ruleId ) {
@@ -804,6 +660,127 @@ component {
 		}
 
 		return _recordToStruct( record );
+	}
+
+	public array function listConditionalRuleOptions( required string fieldId ) {
+		var options = [];
+
+		for( var rule in listConditionalRules( arguments.fieldId ) ) {
+			if ( Len( Trim( rule.filter ?: "" ) ) ) {
+				ArrayAppend( options, { id=rule.id, label=rule.label_text ?: rule.id } );
+			}
+		}
+
+		return options;
+	}
+
+	public struct function prepareConditionalLabelFilter(
+		  required string objectName
+		, required string fieldId
+		, required string ruleId
+	) {
+		var field = getField( arguments.fieldId );
+		if (
+			   StructIsEmpty( field )
+			|| ( field.kind ?: "" ) != "conditional_label"
+			|| ( field.target_object ?: "" ) != arguments.objectName
+		) {
+			return { filter="1=0", filterParams={} };
+		}
+
+		var clauses      = [];
+		var filterParams = {};
+		var selectedRule = {};
+		var earlierRules = [];
+
+		for( var rule in listConditionalRules( arguments.fieldId ) ) {
+			if ( ( rule.id ?: "" ) == arguments.ruleId ) {
+				selectedRule = rule;
+				break;
+			}
+			if ( Len( Trim( rule.filter ?: "" ) ) ) {
+				ArrayAppend( earlierRules, rule );
+			}
+		}
+
+		if ( StructIsEmpty( selectedRule ) || !Len( Trim( selectedRule.filter ?: "" ) ) ) {
+			return { filter="1=0", filterParams={} };
+		}
+
+		var selectedFilter = _conditionalRuleExistsFilter(
+			  objectName = arguments.objectName
+			, rule       = selectedRule
+		);
+		ArrayAppend( clauses, selectedFilter.filter );
+		StructAppend( filterParams, selectedFilter.filterParams );
+
+		if ( ( field.conditional_label_mode ?: "single" ) != "multiple" ) {
+			for( var earlierRule in earlierRules ) {
+				var earlierFilter = _conditionalRuleExistsFilter(
+					  objectName = arguments.objectName
+					, rule       = earlierRule
+					, negate     = true
+				);
+				ArrayAppend( clauses, earlierFilter.filter );
+				StructAppend( filterParams, earlierFilter.filterParams );
+			}
+		}
+
+		return {
+			  filter       = "( #ArrayToList( clauses, ' and ' )# )"
+			, filterParams = filterParams
+		};
+	}
+
+	private boolean function _conditionalRuleMatches(
+		  required struct field
+		, required struct rule
+		, required string recordId
+	) {
+		var objectName = arguments.field.target_object ?: "";
+
+		return $isFeatureEnabled( "rulesEngine" ) && presideObjectService.dataExists(
+			  objectName   = objectName
+			, id           = arguments.recordId
+			, extraFilters = [ rulesEngineFilterService.prepareFilter(
+				  objectName = objectName
+				, filterId   = arguments.rule.filter
+			  ) ]
+		);
+	}
+
+	private struct function _conditionalRuleExistsFilter(
+		  required string  objectName
+		, required struct  rule
+		,          boolean negate = false
+	) {
+		var dbAdapter = presideObjectService.getDbAdapterForObject( arguments.objectName );
+		var idField   = presideObjectService.getIdField( arguments.objectName );
+		var subQuery  = presideObjectService.selectData(
+			  objectName          = arguments.objectName
+			, selectFields        = [ idField ]
+			, extraFilters        = [ rulesEngineFilterService.prepareFilter(
+				  objectName = arguments.objectName
+				, filterId   = arguments.rule.filter
+			  ) ]
+			, autoGroupBy         = true
+			, getSqlAndParamsOnly = true
+			, formatSqlParams     = true
+		);
+		var subQueryAlias  = dbAdapter.escapeEntity( "conditional_label_#Replace( LCase( CreateUUID() ), '-', '', 'all' )#" );
+		var escapedId      = dbAdapter.escapeEntity( idField );
+		var escapedOuterId = dbAdapter.escapeEntity( "#arguments.objectName#.#idField#" );
+		var existsKeyword  = arguments.negate ? "not exists" : "exists";
+		var filterSql      = $helpers.obfuscateSqlForPreside( "
+			select #escapedId#
+			from ( #subQuery.sql# ) as #subQueryAlias#
+			where #escapedOuterId# = #subQueryAlias#.#escapedId#
+		" );
+
+		return {
+			  filter       = "#existsKeyword# ( #filterSql# )"
+			, filterParams = subQuery.params
+		};
 	}
 
 	public string function getFieldKeyValidationError(

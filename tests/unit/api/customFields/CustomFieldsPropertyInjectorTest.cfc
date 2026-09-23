@@ -169,21 +169,25 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, objectName = "elf_test_object"
 				);
 
-				expect( definition.batchEditable     ).toBeTrue();
-				expect( definition.excludeDataExport ).toBeFalse();
-				expect( definition.control           ).toBe( "textinput" );
-				expect( definition.customField       ).toBeTrue();
+				expect( definition.batchEditable        ).toBeTrue();
+				expect( definition.excludeDataExport    ).toBeFalse();
+				expect( definition.datamanagerUserColumn ).toBeTrue();
+				expect( definition.autofilter           ).toBeTrue();
+				expect( definition.control              ).toBe( "textinput" );
+				expect( definition.customField          ).toBeTrue();
 			} );
 
-			it( "should honour data_exportable and batch_editable flags on static fields", function(){
+			it( "should honour data_exportable, batch_editable, listing and filter flags on static fields", function(){
 				var injector   = _getInjector();
 				var definition = injector.buildPropertyDefinition(
-					  field      = { id=12, kind="static", data_type="text", key="nickname", label="Nickname", data_exportable=false, batch_editable=false }
+					  field      = { id=12, kind="static", data_type="text", key="nickname", label="Nickname", data_exportable=false, batch_editable=false, show_in_listing=false, filterable=false }
 					, objectName = "elf_test_object"
 				);
 
-				expect( definition.batchEditable     ).toBeFalse();
-				expect( definition.excludeDataExport ).toBeTrue();
+				expect( definition.batchEditable         ).toBeFalse();
+				expect( definition.excludeDataExport     ).toBeTrue();
+				expect( definition.datamanagerUserColumn ).toBeFalse();
+				expect( definition.autofilter            ).toBeFalse();
 			} );
 
 			it( "should never mark aggregate fields as batch editable", function(){
@@ -216,6 +220,45 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( definition.control           ).toBe( "none" );
 				expect( definition.excludeDataExport ).toBeFalse();
 				expect( definition.autofilter        ).toBeTrue();
+			} );
+
+			it( "should honour filterable=false on related-data fields", function(){
+				var injector = _getInjector();
+
+				variables.mockCustomFieldsService.$( "resolveRelatedDataPath" ).$args(
+					  objectName       = "elf_test_object"
+					, relationshipPath = "logo"
+					, propertyName     = "title"
+				).$results( { valid=true, formula="", type="string", renderer="", relatedTo="", relationship="none" } );
+
+				var definition = injector.buildPropertyDefinition(
+					  field      = { id=14, kind="related_data", related_data_relationship="logo", related_data_property="title", key="logo_title", label="Logo title", filterable=false }
+					, objectName = "elf_test_object"
+				);
+
+				expect( definition.autofilter ).toBeFalse();
+			} );
+
+			it( "should make conditional labels filterable but not sortable", function(){
+				var injector   = _getInjector();
+				var definition = injector.buildPropertyDefinition(
+					  field      = { id=15, kind="conditional_label", key="status_label", label="Status", filterable=true }
+					, objectName = "elf_test_object"
+				);
+
+				expect( definition.autofilter          ).toBeTrue();
+				expect( definition.datamanagerSortable ).toBeFalse();
+				expect( definition.renderer             ).toBe( "customFieldConditionalLabel" );
+			} );
+
+			it( "should honour filterable=false on conditional labels", function(){
+				var injector   = _getInjector();
+				var definition = injector.buildPropertyDefinition(
+					  field      = { id=15, kind="conditional_label", key="status_label", label="Status", filterable=false }
+					, objectName = "elf_test_object"
+				);
+
+				expect( definition.autofilter ).toBeFalse();
 			} );
 		} );
 	}
@@ -260,7 +303,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		variables.mockTypesService.$( "getRenderer", "plaintext" );
 
 		variables.mockCustomFieldsService.$( "getFieldListingLabel", "Nickname" );
-		variables.mockCustomFieldsService.$( "getSlotViewGroup", "customFields" );
 		variables.mockCustomFieldsService.$( "resolveRelatedDataPath", { valid=false, formula="", type="string", renderer="", relatedTo="", relationship="none" } );
 
 		injector.$property( propertyName="presideObjectService"            , mock=variables.mockPoService );

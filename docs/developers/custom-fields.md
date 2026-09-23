@@ -34,47 +34,27 @@ Enabling custom fields on an object is a schema change (`autoSyncDb=false` sites
 ## Field kinds (v1)
 
 - **Static** — stored in `_cfv_{hostTable}` (EAV, typed columns). Types: text, textarea, integer, float, boolean, date, datetime, lookup, object_ref.
-- **Aggregate** — count/sum/min/max/avg over a one-to-many or many-to-many collection on the host object. Only offered when the object has such a collection. Optional data filter on the related records (for example, count of London addresses). Read-only.
-- **Related data** — a column, custom field or formula field from a related record reached through one or more many-to-one relationships (for example, logo title, or logo folder label). Only offered when the object has a many-to-one relationship. Read-only.
-- **Conditional label** — ordered filter/label/colour rules. Display-only (`autofilter=false`).
+- **Aggregate** — count/sum/min/max/avg over a one-to-many or many-to-many collection on the host object. Optional data filter on the related records (for example, count of London addresses). Read-only. If the object has no suitable collection, this is caught when configuring the aggregation.
+- **Related data** — a column, custom field or formula field from a related record reached through one or more many-to-one relationships (for example, logo title, or logo folder label). Read-only. If the object has no many-to-one relationship, this is caught when choosing the related field.
+- **Conditional label** — ordered filter/label/colour rules. Each rule requires a condition. Single mode shows the first matching label; multiple mode shows every matching label.
 
 Free-form SQL formulas are out of v1.
 
 ## Default admin UI
 
 - Listing screens of opted-in objects get **Add custom field** / **Custom fields**.
-- Creating a field is a short first step: label, key (autoslug), field type, data type, and listing/export options. The field is saved **inactive**. Activate or deactivate from the field’s view-record screen (or the listing row action). Inactive fields are hidden from listings, export, filters and record screens.
+- Creating a field is a three-step admin webflow: identity and type; kind-specific config (related object, aggregate, or related-data tree); then listing, filter, export, batch-edit and optional activate. Lookup options and conditional labels are still added from the field’s view-record tabs after save.
+- Fields default to **inactive**. Activate immediately in the last step, or later from the field’s view-record screen (or the listing row action). Inactive fields are hidden from listings, export, filters and record screens.
 - Editing a field is type-specific. Related-record stored fields pick an object; aggregates pick a related collection, method, optional numeric field and optional related-record filter (the same shape as data-viz metrics). Related data fields use a tree of many-to-one relationships; expand a hop to load fields (including custom fields and formula fields) on that related record.
 - Lookup options and conditional labels are managed from dedicated tabs on the field’s view-record screen (listing table with add, edit and delete). Conditional labels are ordered with the tab’s **Sort records** button (core data manager sorting, scoped to that field).
+- Conditional-label columns cannot be sorted. Their quick filter accepts one or more configured labels; selections are ORed. In single mode, filtering for a label also excludes records matching any earlier label rule so results match what is displayed.
 - Sort fields for an object with the listing **Sort** button (core data manager sorting, scoped to that object).
 - View record shows a **Custom fields** group.
-- **Edit custom fields** is a dedicated action for static fields that are not placed inline.
+- **Edit custom fields** is a dedicated action for static field values.
 - Aggregates, related data and conditional labels are read-only everywhere.
+- Each field can be marked **Show in datamanager listings** (on by default). When off, it is omitted from the listing column picker.
+- Each field can be marked **Allow in listing filters** (on by default, always off for conditional labels). When off, it is omitted from listing filters and rules-engine auto expressions.
 - Each field can be marked **Include in data export** (on by default). When off, it is omitted from export field pickers and default export columns.
 - Stored fields can be marked **Batch editable** (on by default). Flagged static fields appear in the listing batch-edit menu and persist through the per-object value table.
 
-Permission `customfields.manage` is required to define fields. Editing values uses the host object’s existing `edit` permission.
-
-## Slot / placement API
-
-```cfc
-settings.customFields.objects.elf_test_object = {
-	  defaultSlot = "custom"
-	, slots       = {
-		custom = {
-			viewGroup = "customFields"
-			// no forms → dedicated Edit custom fields screen
-		}
-		// example of developer placement:
-		// main = {
-		//     viewGroup = "default",
-		//     forms = {
-		//         "preside-objects.elf_test_object.admin.edit" = { fieldset="default", after="status" },
-		//         "preside-objects.elf_test_object.admin.add"  = { fieldset="default", after="status" }
-		//     }
-		// }
-	  }
-};
-```
-
-Fields assigned to an inline form slot are omitted from the dedicated edit screen. `preRenderForm` merges static fields into those forms.
+Permissions `customfields.add`, `customfields.edit`, `customfields.delete` are required to define and manage fields. Editing values uses the host object’s existing `edit` permission.

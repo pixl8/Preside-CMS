@@ -12,65 +12,33 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.permissionBase = "customfields";
 	variables.infoCardStyle  = "definitionList";
 	variables.infoCol1       = [ "label", "key", "kind" ];
-	variables.infoCol2       = [ "data_type", "active", "slot" ];
-	variables.infoCol3       = [ "data_exportable", "batch_editable", "modified" ];
+	variables.infoCol2       = [ "data_type", "conditional_label_mode", "active" ];
+	variables.infoCol3       = [ "show_in_listing", "filterable", "data_exportable", "batch_editable" ];
 	variables.tabs           = [ "lookups", "conditional_labels" ];
 	variables.extraSelectFieldsForViewRecord = [ "lookup_count", "conditional_rule_count", "related_data_relationship", "related_data_property" ];
 
-	private boolean function checkPermission( event, rc, prc, args={} ) {
-		var key           = args.key ?: "";
-		var hasPermission = hasCmsPermission( "#variables.permissionBase#.manage" );
-
-		if ( ListFindNoCase( "read,navigate", key ) ) {
-			hasPermission = hasPermission || hasCmsPermission( "#variables.permissionBase#.manage" );
-		}
-
-		if ( !hasPermission && IsTrue( args.throwOnError ?: "" ) ) {
+	public string function addRecordForm( event, rc, prc, args={} ) {
+		if ( !hasCmsPermission( "customfields.add" ) ) {
 			event.adminAccessDenied();
 		}
 
-		return hasPermission;
-	}
-
-	private any function addRecordAction( event, rc, prc, args={} ) {
 		var targetObject = _getTargetObject( argumentCollection=arguments );
 		var listingQs    = Len( targetObject ) ? "target_object=#targetObject#" : "";
-		var successQs    = listingQs;
-		var kind         = rc.kind      ?: "";
-		var dataType     = rc.data_type ?: "";
-		var successOp    = "editRecord";
 
-		if ( kind == "conditional_label" ) {
-			successOp = "viewRecord";
-			successQs = ListAppend( successQs, "tab=conditional_labels", "&" );
-		} else if ( kind == "static" && dataType == "lookup" ) {
-			successOp = "viewRecord";
-			successQs = ListAppend( successQs, "tab=lookups", "&" );
+		if ( !Len( Trim( rc.flowRef ?: "" ) ) ) {
+			var thisUrl = event.getCurrentUrl();
+			var qsDelim = Find( "?", thisUrl ) ? "&" : "?";
+			setNextEvent( url=thisUrl & qsDelim & "flowRef=#CreateUUID()#" );
 		}
 
-		return runEvent(
-			  event          = "admin.datamanager._addRecordAction"
-			, private        = true
-			, prePostExempt  = true
-			, eventArguments = {
-				  args          = args
-				, object        = "custom_field"
-				, audit         = true
-				, successUrl    = event.buildAdminLink( objectName="custom_field", operation=successOp, recordId="{newid}", queryString=successQs )
-				, errorUrl      = event.buildAdminLink( objectName="custom_field", operation="addRecord", queryString=listingQs )
-				, addAnotherUrl = event.buildAdminLink( objectName="custom_field", operation="addRecord", queryString=listingQs )
-			  }
+		prc.pageSubTitle = translateResource( uri="preside-objects.custom_field:add.subtitle" );
+
+		return renderWebflow(
+			  webflowId   = "adminCreateCustomField"
+			, instanceRef = rc.flowRef
+			, lazyLoad    = false
+			, args        = { targetObject=targetObject, listingQs=listingQs }
 		);
-	}
-
-	private void function preAddRecordAction( event, rc, prc, args={} ) {
-		var formData = args.formData ?: {};
-
-		formData.active     = false;
-		formData.sort_order = _nextSortOrder( formData.target_object ?: "" );
-		_normalizeTypeFields( formData );
-		_validateFieldKey( argumentCollection=arguments );
-		_validateCreateType( argumentCollection=arguments );
 	}
 
 	private void function preEditRecordAction( event, rc, prc, args={} ) {
@@ -123,26 +91,6 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 			prc.pageTitle    = translateResource( uri="cms:datamanager.managecustomfields.title" );
 			prc.pageSubTitle = translateResource( uri="cms:datamanager.managecustomfields.subtitle", data=[ objectTitle ] );
-		}
-
-		return "";
-	}
-
-	private string function preRenderAddRecordForm( event, rc, prc, args={} ) {
-		var targetObject = _getTargetObject( argumentCollection=arguments );
-
-		prc.pageSubTitle = translateResource( uri="preside-objects.custom_field:add.subtitle" );
-
-		if ( Len( targetObject ) ) {
-			args.record = args.record ?: {};
-			args.record.target_object = targetObject;
-			args.additionalArgs = args.additionalArgs ?: {};
-			args.additionalArgs.fields = args.additionalArgs.fields ?: {};
-			args.additionalArgs.fields.target_object = {
-				  type         = "hidden"
-				, layout       = ""
-				, defaultValue = targetObject
-			};
 		}
 
 		return "";
@@ -279,7 +227,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	}
 
 	public void function toggleActiveAction( event, rc, prc, args={} ) {
-		if ( !hasCmsPermission( "customfields.manage" ) ) {
+		if ( !hasCmsPermission( "customfields.edit" ) ) {
 			event.adminAccessDenied();
 		}
 
@@ -496,22 +444,20 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		if ( ( formData.kind ?: "" ) == "static" && !Len( Trim( formData.data_type ?: "" ) ) ) {
 			validationResult.addError( fieldName="data_type", message="cms:validation.required.default" );
 		}
-
-		if ( ( formData.kind ?: "" ) == "aggregate" && !customFieldsService.objectHasAggregateRelationships( formData.target_object ?: "" ) ) {
-			validationResult.addError( fieldName="kind", message="customFields:validation.aggregate.no.relationships" );
-		}
-
-		if ( ( formData.kind ?: "" ) == "related_data" && !customFieldsService.objectHasRelatedDataRelationships( formData.target_object ?: "" ) ) {
-			validationResult.addError( fieldName="kind", message="customFields:validation.related_data.no.relationships" );
-		}
 	}
 
 	private void function _validateAggregateConfig( event, rc, prc, args={} ) {
 		var formData         = args.formData         ?: {};
 		var validationResult = args.validationResult ?: "";
 		var kind             = prc.record.kind ?: ( formData.kind ?: "" );
+		var targetObject     = Len( Trim( formData.target_object ?: "" ) ) ? formData.target_object : ( prc.record.target_object ?: "" );
 
 		if ( kind != "aggregate" || !IsObject( validationResult ) ) {
+			return;
+		}
+
+		if ( !customFieldsService.objectHasAggregateRelationships( targetObject ) ) {
+			validationResult.addError( fieldName="aggregate_property", message="customFields:validation.aggregate.no.relationships" );
 			return;
 		}
 
@@ -529,9 +475,14 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var formData         = args.formData         ?: {};
 		var validationResult = args.validationResult ?: "";
 		var kind             = prc.record.kind ?: ( formData.kind ?: "" );
-		var targetObject     = prc.record.target_object ?: ( formData.target_object ?: "" );
+		var targetObject     = Len( Trim( formData.target_object ?: "" ) ) ? formData.target_object : ( prc.record.target_object ?: "" );
 
 		if ( kind != "related_data" || !IsObject( validationResult ) ) {
+			return;
+		}
+
+		if ( !customFieldsService.objectHasRelatedDataRelationships( targetObject ) ) {
+			validationResult.addError( fieldName="related_data_relationship", message="customFields:validation.related_data.no.relationships" );
 			return;
 		}
 
@@ -553,30 +504,6 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				formData.batch_editable = false;
 			}
 		}
-	}
-
-	private void function _normalizeTypeFields( required struct formData ) {
-		if ( ( arguments.formData.kind ?: "" ) != "static" ) {
-			arguments.formData.data_type      = "";
-			arguments.formData.batch_editable = false;
-		}
-		if ( ( arguments.formData.kind ?: "" ) == "aggregate" && !Len( Trim( arguments.formData.aggregate_function ?: "" ) ) ) {
-			arguments.formData.aggregate_function = "count";
-		}
-	}
-
-	private numeric function _nextSortOrder( required string targetObject ) {
-		if ( !Len( arguments.targetObject ) ) {
-			return 1;
-		}
-
-		var existing = presideObjectService.selectData(
-			  objectName   = "custom_field"
-			, selectFields = [ "Max( sort_order ) as max_sort" ]
-			, filter       = { target_object=arguments.targetObject }
-		);
-
-		return Val( existing.max_sort ?: 0 ) + 1;
 	}
 
 	private struct function _getViewRecord( event, rc, prc, args={} ) {

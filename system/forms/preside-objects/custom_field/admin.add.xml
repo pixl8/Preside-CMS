@@ -5,12 +5,9 @@
 			<field binding="custom_field.label"         control="textinput" required="true" />
 			<field binding="custom_field.key"           control="autoSlug" basedOn="label" slugDelimiter="_" required="true" />
 			<field binding="custom_field.target_object" control="customFieldTargetObject" required="true" />
-			<field binding="custom_field.kind"          control="customFieldKind" enum="customFieldKind" required="true" defaultValue="static" toggleFields="static:data_type,batch_editable" filterBy="target_object" />
-			<field binding="custom_field.data_type"     control="enumSelect" enum="customFieldDataType" />
-		</fieldset>
-		<fieldset id="management" sortorder="20">
-			<field binding="custom_field.data_exportable" control="yesNoSwitch" defaultValue="true" />
-			<field binding="custom_field.batch_editable"  control="yesNoSwitch" defaultValue="true" />
+			<field binding="custom_field.kind"          control="customFieldKind" enum="customFieldKind" required="true" defaultValue="static" toggleFields="static:data_type|conditional_label:conditional_label_mode" filterBy="target_object" />
+			<field binding="custom_field.data_type"     control="enumRadioList" enum="customFieldDataType" defaultValue="text" />
+			<field binding="custom_field.conditional_label_mode" control="enumRadioList" enum="customFieldConditionalLabelMode" defaultValue="single" />
 		</fieldset>
 	</tab>
 </form>

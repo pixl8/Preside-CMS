@@ -100,10 +100,10 @@ component {
 			, customFieldKind        = kind
 			, customFieldLabel       = customFieldsService.getFieldListingLabel( field )
 			, customFieldHelp        = field.help_text ?: ""
-			, datamanagerUserColumn  = true
+			, datamanagerUserColumn  = $helpers.isTrue( field.show_in_listing ?: true )
 			, excludeDataExport      = !$helpers.isTrue( field.data_exportable ?: true )
 			, batchEditable          = false
-			, adminViewGroup         = customFieldsService.getSlotViewGroup( arguments.objectName, field.slot ?: "custom" )
+			, adminViewGroup         = "customFields"
 			, sortOrder              = Val( field.sort_order ?: 0 )
 		};
 
@@ -112,17 +112,17 @@ component {
 			var type                       = customFieldTypesService.getType( dataType );
 			definition.type                = type.type ?: "string";
 			definition.control             = customFieldTypesService.getControl( dataType );
-			definition.renderer            = customFieldTypesService.getRenderer( dataType, field.renderer ?: "" );
-			definition.autofilter          = true;
+			definition.renderer            = customFieldTypesService.getRenderer( dataType );
+			definition.autofilter          = $helpers.isTrue( field.filterable ?: true );
 			definition.batchEditable       = $helpers.isTrue( field.batch_editable ?: true );
 			definition.customFieldDataType = dataType;
 
 			if ( dataType == "object_ref" && Len( Trim( field.related_object ?: "" ) ) ) {
 				definition.relatedto = field.related_object;
-				definition.renderer  = Len( Trim( field.renderer ?: "" ) ) ? field.renderer : "manyToOne";
+				definition.renderer  = "manyToOne";
 			}
 			if ( dataType == "lookup" ) {
-				definition.renderer = Len( Trim( field.renderer ?: "" ) ) ? field.renderer : "customFieldLookup";
+				definition.renderer = "customFieldLookup";
 				definition.customFieldLookupOptions = customFieldsService.listLookupOptions( field.id );
 				definition.includeEmptyOption = true;
 				definition.values = [];
@@ -140,10 +140,7 @@ component {
 			}
 		} else if ( kind == "aggregate" ) {
 			definition.type       = "numeric";
-			definition.autofilter = true;
-			if ( Len( Trim( field.renderer ?: "" ) ) ) {
-				definition.renderer = field.renderer;
-			}
+			definition.autofilter = $helpers.isTrue( field.filterable ?: true );
 		} else if ( kind == "related_data" ) {
 			var resolved          = customFieldsService.resolveRelatedDataPath(
 				  objectName       = arguments.objectName
@@ -151,19 +148,18 @@ component {
 				, propertyName     = field.related_data_property     ?: ""
 			);
 			definition.type       = resolved.type ?: "string";
-			definition.autofilter = true;
-			if ( Len( Trim( field.renderer ?: "" ) ) ) {
-				definition.renderer = field.renderer;
-			} else if ( Len( Trim( resolved.renderer ?: "" ) ) ) {
+			definition.autofilter = $helpers.isTrue( field.filterable ?: true );
+			if ( Len( Trim( resolved.renderer ?: "" ) ) ) {
 				definition.renderer = resolved.renderer;
 			}
 			if ( Len( Trim( resolved.relatedTo ?: "" ) ) ) {
 				definition.relatedto = resolved.relatedTo;
 			}
 		} else {
-			definition.type       = "string";
-			definition.renderer   = "customFieldConditionalLabel";
-			definition.autofilter = false;
+			definition.type                = "string";
+			definition.renderer            = "customFieldConditionalLabel";
+			definition.autofilter          = $helpers.isTrue( field.filterable ?: true );
+			definition.datamanagerSortable = false;
 		}
 
 		return definition;

@@ -187,10 +187,16 @@ component {
 		var formData = args.formData ?: {};
 		var fieldId  = _getFieldId( argumentCollection=arguments );
 
+		_validateCondition( argumentCollection=arguments );
+
 		if ( Len( fieldId ) ) {
 			formData.field      = fieldId;
 			formData.sort_order = _nextSortOrder( fieldId );
 		}
+	}
+
+	private void function preEditRecordAction( event, rc, prc, args={} ) {
+		_validateCondition( argumentCollection=arguments );
 	}
 
 	private void function extraTopRightButtonsForObject( event, rc, prc, args={} ) {
@@ -282,6 +288,15 @@ component {
 		);
 
 		return Val( existing.max_sort ?: 0 ) + 1;
+	}
+
+	private void function _validateCondition( event, rc, prc, args={} ) {
+		var formData         = args.formData         ?: {};
+		var validationResult = args.validationResult ?: "";
+
+		if ( IsObject( validationResult ) && !Len( Trim( formData.filter ?: "" ) ) ) {
+			validationResult.addError( fieldName="filter", message="cms:validation.required.default" );
+		}
 	}
 
 	private void function _appendFieldQueryString( event, rc, prc, args={} ) {

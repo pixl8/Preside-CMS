@@ -650,7 +650,7 @@ component {
 		};
 		settings.adminMenuItems.customFields = {
 			  feature       = "customFields"
-			, permissionKey = "customfields.manage"
+			, permissionKey = "customfields.navigate"
 			, buildLinkArgs = { objectName="custom_field" }
 			, activeChecks  = { datamanagerObject="custom_field" }
 			, icon          = "fa-puzzle-piece"
@@ -767,7 +767,7 @@ component {
 			 }
 			, webflows               = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
 			, draftManager           = [ "navigate", "read", "add", "edit", "delete", "review", "publish" ]
-			, customfields           = [ "manage" ]
+			, customfields           = [ "navigate", "read", "add", "edit", "delete" ]
 		};
 
 		settings.adminRoles = StructNew( "linked" );
@@ -1085,9 +1085,11 @@ component {
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
 		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
 		settings.enum.timeFormatOptions           = [ "12h", "24h" ];
-		settings.enum.customFieldKind             = [ "static", "aggregate", "related_data", "conditional_label" ];
-		settings.enum.customFieldDataType         = [ "text", "textarea", "integer", "float", "boolean", "date", "datetime", "lookup", "object_ref" ];
-		settings.enum.customFieldAggregateFunction = [ "count", "sum", "min", "max", "avg" ];
+		settings.enum.customFieldKind                 = [ "static", "aggregate", "related_data", "conditional_label" ];
+		settings.enum.customFieldDataType             = [ "text", "textarea", "integer", "float", "boolean", "date", "datetime", "lookup", "object_ref" ];
+		settings.enum.customFieldAggregateFunction    = [ "count", "sum", "min", "max", "avg" ];
+		settings.enum.customFieldCreateFlag           = [ "show_in_listing", "filterable", "data_exportable", "batch_editable", "active" ];
+		settings.enum.customFieldConditionalLabelMode = [ "single", "multiple" ];
 	}
 
 	private void function __setupFormValidationProviders() {
@@ -1165,7 +1167,7 @@ component {
 	}
 
 	private void function __setupCustomFields() {
-		settings.customFields = { objects={}, fieldTypes={} };
+		settings.customFields = { fieldTypes={} };
 		settings.customFields.fieldTypes = {
 			  text      = { control="textinput" , type="string"  , typedColumn="shorttext_value", renderer="plaintext" }
 			, textarea  = { control="textarea"  , type="string"  , typedColumn=""               , renderer="plaintext" }

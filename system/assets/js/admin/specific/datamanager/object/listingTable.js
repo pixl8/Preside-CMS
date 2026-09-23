@@ -1321,11 +1321,15 @@
 				return [ { extend : "searchText", excludeLogic : [ "empty", "notEmpty" ] } ];
 			};
 
-			headingContent = function( extras ) {
-				var content = [ {
-					  extend : "order"
-					, text   : i18n.translateResource( "cms:datatables.sort.toggle", { defaultValue : "Sort. Shift-click to add" } )
-				} ];
+			headingContent = function( extras, orderable ) {
+				var content = [];
+
+				if ( orderable ) {
+					content.push( {
+						  extend : "order"
+						, text   : i18n.translateResource( "cms:datatables.sort.toggle", { defaultValue : "Sort. Shift-click to add" } )
+					} );
+				}
 
 				if ( extras && extras.length ) {
 					content.push( {
@@ -2573,7 +2577,7 @@
 						, defaultContent : ""
 						, className      : classNames.join( " " )
 						, visible        : $header.data( "visible" ) !== false && $header.data( "visible" ) !== "false"
-						, columnControl  : headingContent( searchContent )
+						, columnControl  : headingContent( searchContent, !$header.hasClass( "no-sorting" ) )
 					};
 					if ( $header.hasClass( "no-sorting" ) ) {
 						col.orderable = false;

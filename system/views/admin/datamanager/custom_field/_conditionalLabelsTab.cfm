@@ -13,6 +13,7 @@
 		, field              = fieldId
 		, listingContextKey  = "custom_field_conditional_rule_#fieldId#"
 		, hiddenGridFields   = [ "colour" ]
+		, sortableFields     = [ "sort_order" ]
 	} )#
 	<p class="text-center">
 		<a href="#event.buildAdminLink( objectName="custom_field_conditional_rule", operation="sortRecords", queryString="field=#fieldId#" )#" class="btn btn-info">

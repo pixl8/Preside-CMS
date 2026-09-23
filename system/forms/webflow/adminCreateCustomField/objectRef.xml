@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form i18nBaseUri="preside-objects.custom_field:">
 	<tab id="default">
-		<fieldset id="management" sortorder="20">
-			<field binding="custom_field.batch_editable" control="yesNoSwitch" />
+		<fieldset id="object_ref" sortorder="10">
+			<field name="related_object" control="dataManagerObjectPicker" required="true" />
 		</fieldset>
 	</tab>
 </form>

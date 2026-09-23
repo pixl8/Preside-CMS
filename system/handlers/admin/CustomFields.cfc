@@ -179,7 +179,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private void function _checkManagePermission( event, rc, prc ) {
-		if ( !hasCmsPermission( "customfields.manage" ) ) {
+		if ( !hasCmsPermission( "customfields.edit" ) ) {
 			event.adminAccessDenied();
 		}
 	}

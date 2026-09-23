@@ -56,11 +56,7 @@ component {
 		return getType( arguments.dataType ).control ?: "textinput";
 	}
 
-	public string function getRenderer( required string dataType, string renderer="" ) {
-		if ( Len( Trim( arguments.renderer ) ) ) {
-			return arguments.renderer;
-		}
-
+	public string function getRenderer( required string dataType ) {
 		return getType( arguments.dataType ).renderer ?: "plaintext";
 	}
 

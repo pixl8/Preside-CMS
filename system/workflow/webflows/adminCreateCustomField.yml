@@ -1,0 +1,105 @@
+version: 1.0.0
+webflow:
+  id: adminCreateCustomField
+  feature: customFields
+  singleton: true
+  adminFlow: true
+  init:
+    state:
+      handler:
+        event: admin.webflow.adminCreateCustomField.initState
+  postCancelHandler:
+    event: admin.webflow.adminCreateCustomField.postCancel
+
+  steps:
+  - id: basics
+    start: true
+    canCancel: true
+    display:
+      viewlet:
+        event: admin.webflow.adminCreateCustomField.basics
+    submission:
+      handler:
+        event: admin.webflow.adminCreateCustomField.basicsAction
+    next:
+    - objectRef
+    - aggregate
+    - relatedData
+    - permissions
+
+  - id: objectRef
+    canCancel: true
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $kind
+        pattern: static
+      and:
+      - ref: string.IsEqual
+        args:
+          value: $data_type
+          pattern: object_ref
+    display:
+      form: webflow.adminCreateCustomField.objectRef
+    submission:
+      handler:
+        event: admin.webflow.adminCreateCustomField.objectRefAction
+    prev:
+    - basics
+    next:
+    - permissions
+
+  - id: aggregate
+    canCancel: true
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $kind
+        pattern: aggregate
+    display:
+      form: webflow.adminCreateCustomField.aggregate
+    submission:
+      handler:
+        event: admin.webflow.adminCreateCustomField.aggregateAction
+    prev:
+    - basics
+    next:
+    - permissions
+
+  - id: relatedData
+    canCancel: true
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $kind
+        pattern: related_data
+    display:
+      form: webflow.adminCreateCustomField.relatedData
+    submission:
+      handler:
+        event: admin.webflow.adminCreateCustomField.relatedDataAction
+    prev:
+    - basics
+    next:
+    - permissions
+
+  - id: permissions
+    canCancel: true
+    display:
+      viewlet:
+        event: admin.webflow.adminCreateCustomField.permissions
+    submission:
+      handler:
+        event: admin.webflow.adminCreateCustomField.submitAction
+    prev:
+    - objectRef
+    - aggregate
+    - relatedData
+    - basics
+    next:
+    - confirmation
+
+  - id: confirmation
+    display:
+      viewlet:
+        event: admin.webflow.adminCreateCustomField.confirmation

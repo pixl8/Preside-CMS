@@ -17,16 +17,17 @@ component displayname="Custom field" extends="preside.system.base.SystemPresideO
 	property name="help_text"     type="string" dbtype="text"    required=false;
 	property name="kind"          type="string" dbtype="varchar" maxlength=30  required=true enum="customFieldKind" indexes="kind";
 	property name="target_object" type="string" dbtype="varchar" maxlength=100 required=true uniqueindexes="objectkey|1" indexes="targetobject" control="customFieldTargetObject";
-	property name="slot"          type="string" dbtype="varchar" maxlength=50  required=false default="custom" control="customFieldSlot";
 	property name="sort_order"      type="numeric" dbtype="int"     required=false default=0;
 	property name="active"          type="boolean" dbtype="boolean" required=false default=false renderer="booleanBadge";
-	property name="data_exportable" type="boolean" dbtype="boolean" required=false default=true;
-	property name="batch_editable"  type="boolean" dbtype="boolean" required=false default=true;
+	property name="show_in_listing" type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
+	property name="filterable"      type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
+	property name="data_exportable" type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
+	property name="batch_editable"  type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
 
-	property name="data_type" type="string" dbtype="varchar" maxlength=30 required=false enum="customFieldDataType";
-	property name="renderer"  type="string" dbtype="varchar" maxlength=50 required=false;
+	property name="data_type"   type="string" dbtype="varchar" maxlength=30 required=false enum="customFieldDataType";
 	property name="type_config" type="string" dbtype="text" required=false autofilter=false adminRenderer="none";
 	property name="related_object" type="string" dbtype="varchar" maxlength=100 required=false control="dataManagerObjectPicker";
+	property name="conditional_label_mode" type="string" dbtype="varchar" maxlength=20 required=false default="single" enum="customFieldConditionalLabelMode";
 
 	property name="aggregate_property"       type="string" dbtype="varchar" maxlength=100 required=false control="customFieldAggregateProperty";
 	property name="aggregate_function"       type="string" dbtype="varchar" maxlength=20  required=false enum="customFieldAggregateFunction";

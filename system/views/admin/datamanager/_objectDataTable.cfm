@@ -358,7 +358,13 @@
 					</cfif>
 					<cfloop array="#listingColumns#" item="listingCol">
 						<cfset fieldName = listingCol.field />
-						<th class="listing-data-column<cfif IsTrue( listingCol.locked ?: false )> listing-locked-column<cfelse> listing-user-column</cfif><cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )> no-sorting</cfif>"
+						<cfset propertySortable = getSingleton( "presideObjectService" ).getObjectPropertyAttribute(
+							  objectName    = args.objectName
+							, propertyName  = fieldName
+							, attributeName = "datamanagerSortable"
+							, defaultValue  = true
+						) />
+						<th class="listing-data-column<cfif IsTrue( listingCol.locked ?: false )> listing-locked-column<cfelse> listing-user-column</cfif><cfif !IsTrue( propertySortable ) || ( !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName ) )> no-sorting</cfif>"
 							data-field="#ListLast( fieldName, '.' )#"
 							data-visible="#booleanFormat( IsTrue( listingCol.visible ?: true ) )#"
 							data-class="<cfif ArrayFindNoCase( args.centerAlignFields, fieldName )>dt-align-center<cfelseif ArrayFindNoCase( args.rightAlignFields, fieldName )>dt-align-right<cfelse></cfif>"

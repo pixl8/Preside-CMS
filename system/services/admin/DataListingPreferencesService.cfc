@@ -14,6 +14,7 @@ component {
 	 * @enumService.inject                 enumService
 	 * @sessionStorage.inject              sessionStorage
 	 * @rulesEngineFilterService.inject    featureInjector:rulesEngine:rulesEngineFilterService
+	 * @customFieldsService.inject         featureInjector:customFields:customFieldsService
 	 * @dataManagerDefaults.inject         coldbox:setting:dataManager.defaults
 	 */
 	public any function init(
@@ -22,6 +23,7 @@ component {
 		, required any enumService
 		, required any sessionStorage
 		,          any rulesEngineFilterService
+		,          any customFieldsService
 		,          any dataManagerDefaults
 	) {
 		_setDataManagerService( arguments.dataManagerService );
@@ -29,6 +31,7 @@ component {
 		_setEnumService( arguments.enumService );
 		_setSessionStorage( arguments.sessionStorage );
 		_setRulesEngineFilterService( arguments.rulesEngineFilterService ?: NullValue() );
+		variables.customFieldsService = arguments.customFieldsService ?: NullValue();
 		_setDataManagerDefaults( IsStruct( arguments.dataManagerDefaults ?: "" ) ? arguments.dataManagerDefaults : {} );
 
 		return this;
@@ -2012,6 +2015,13 @@ component {
 			, label = $translatePropertyName( arguments.objectName, propName, "listing" )
 			, type  = propType
 		};
+
+		if ( ( prop.customFieldKind ?: "" ) == "conditional_label" && !IsNull( variables.customFieldsService ) ) {
+			base.type         = "enum";
+			base.expressionId = "presideobject_conditionallabelmatches_#arguments.objectName#.#propName#";
+			base.options      = variables.customFieldsService.listConditionalRuleOptions( prop.customFieldId ?: "" );
+			return base;
+		}
 
 		if ( dataType == "lookup" ) {
 			base.type         = "enum";

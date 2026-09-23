@@ -503,6 +503,33 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( byField.gallery_count.type ).toBe( "numeric" );
 				expect( byField.gallery_count.expressionId ).toBe( "presideobject_formulacompares_elf_test_object.gallery_count" );
 			} );
+
+			it( "should emit conditional-label options for filterable custom fields", function(){
+				var svc           = _getService();
+				var mockPoService = createStub();
+
+				svc.$( "listAvailableColumns", [ "status_label" ] );
+				svc.$( "$translatePropertyName", "Status" );
+				mockPoService.$( "getObjectAttribute", "" );
+				mockPoService.$( "getObjectProperties", {
+					status_label = { name="status_label", type="string", formula="concat( 15, '.', id )", customField=true, customFieldId=15, customFieldKind="conditional_label", autofilter=true }
+				} );
+				svc.$( "$getPresideObjectService", mockPoService );
+				variables.mockCustomFields.$( "listConditionalRuleOptions" ).$args( 15 ).$results( [
+					  { id="rule-1", label="Red" }
+					, { id="rule-2", label="Blue" }
+				] );
+
+				var filters = svc.listQuickFilters( "elf_test_object" );
+
+				expect( filters.len() ).toBe( 1 );
+				expect( filters[ 1 ].type ).toBe( "enum" );
+				expect( filters[ 1 ].expressionId ).toBe( "presideobject_conditionallabelmatches_elf_test_object.status_label" );
+				expect( filters[ 1 ].options ).toBe( [
+					  { id="rule-1", label="Red" }
+					, { id="rule-2", label="Blue" }
+				] );
+			} );
 		} );
 
 		describe( "listingAllowsSavedViews()", function(){
@@ -986,6 +1013,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		variables.mockCustomization  = createStub();
 		variables.mockEnum           = createStub();
 		variables.mockSessionStorage = createStub();
+		variables.mockCustomFields   = createStub();
 
 		variables.mockCustomization.$( "runCustomization", "" );
 		variables.mockSessionStorage.$( "getVar", "unit-test-listing-hmac-key" );
@@ -997,6 +1025,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, enumService              = variables.mockEnum
 			, sessionStorage           = variables.mockSessionStorage
 			, rulesEngineFilterService = NullValue()
+			, customFieldsService      = variables.mockCustomFields
 			, dataManagerDefaults      = arguments.dataManagerDefaults ?: { columnPickerFields="auto" }
 		) );
 

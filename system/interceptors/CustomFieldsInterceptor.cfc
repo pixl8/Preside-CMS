@@ -9,7 +9,6 @@ component extends="coldbox.system.Interceptor" {
 	property name="presideObjectService"            inject="delayedInjector:presideObjectService";
 	property name="versioningService"               inject="delayedInjector:versioningService";
 	property name="permissionService"               inject="delayedInjector:permissionService";
-	property name="formsService"                    inject="delayedInjector:formsService";
 
 	public void function configure() {}
 
@@ -97,27 +96,6 @@ component extends="coldbox.system.Interceptor" {
 		}
 	}
 
-	public void function postExtraTopRightButtonsForObject( event, interceptData ) {
-		var objectName = interceptData.objectName ?: "";
-		if ( !customFieldsService.isObjectEnabled( objectName ) || !permissionService.hasPermission( permissionKey="customfields.manage" ) ) {
-			return;
-		}
-
-		var actions = interceptData.actions ?: [];
-		ArrayAppend( actions, {
-			  link      = event.buildAdminLink( objectName="custom_field", operation="addRecord", queryString="target_object=#objectName#" )
-			, btnClass  = "btn-info"
-			, iconClass = "fa-puzzle-piece"
-			, title     = translateResource( uri="customFields:manage.fields.btn" )
-		} );
-		ArrayAppend( actions, {
-			  link      = event.buildAdminLink( objectName="custom_field", queryString="target_object=#objectName#" )
-			, btnClass  = "btn-default"
-			, iconClass = "fa-list"
-			, title     = translateResource( uri="customFields:list.fields.btn" )
-		} );
-	}
-
 	public void function postExtraTopRightButtonsForViewRecord( event, interceptData ) {
 		var objectName = interceptData.objectName ?: "";
 		var recordId   = interceptData.recordId   ?: ( prc.recordId ?: "" );
@@ -128,13 +106,7 @@ component extends="coldbox.system.Interceptor" {
 
 		var record   = presideObjectService.selectData( objectName=objectName, id=recordId );
 		var fields   = customFieldsService.listFieldsForRecord( objectName=objectName, record=record, kind="static" );
-		var editable = [];
-		for( var field in fields ) {
-			if ( !customFieldsService.fieldHasInlineForm( objectName, field.slot ?: "custom" ) ) {
-				ArrayAppend( editable, field );
-			}
-		}
-		if ( !ArrayLen( editable ) ) {
+		if ( !ArrayLen( fields ) ) {
 			return;
 		}
 
@@ -214,30 +186,6 @@ component extends="coldbox.system.Interceptor" {
 
 			StructAppend( record, values, false );
 			interceptData.savedData = record;
-		}
-
-		var mergeName  = customFieldsService.mergeInlineFieldsIntoForm(
-			  formName   = formName
-			, objectName = objectName
-			, record     = record
-		);
-
-		if ( Len( Trim( mergeName ) ) ) {
-			var extra = [];
-			var existingMerge = interceptData.mergeWithFormName ?: "";
-
-			if ( IsArray( existingMerge ) ) {
-				extra = Duplicate( existingMerge );
-			} else if ( Len( Trim( existingMerge ) ) ) {
-				ArrayAppend( extra, existingMerge );
-			}
-			ArrayAppend( extra, mergeName );
-
-			if ( ArrayLen( extra ) == 1 ) {
-				interceptData.mergeWithFormName = extra[ 1 ];
-			} else {
-				interceptData.mergeWithFormName = formsService.getMergedFormName( extra[ 1 ], ArraySlice( extra, 2 ) );
-			}
 		}
 	}
 
