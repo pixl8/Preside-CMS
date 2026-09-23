@@ -32,8 +32,6 @@ component {
 			event.notFound();
 		}
 
-		rc.target_object = parent.target_object ?: ( rc.target_object ?: "" );
-
 		customizationService.runCustomization(
 			  objectName     = "custom_field"
 			, action         = "rootBreadcrumb"
@@ -235,13 +233,12 @@ component {
 
 	private string function _parentViewLink( event, rc, prc, args={} ) {
 		var parent = _getParentField( argumentCollection=arguments );
-		var qs     = "tab=#variables.parentTab#";
 
-		if ( Len( parent.target_object ?: "" ) ) {
-			qs = ListAppend( qs, "target_object=#parent.target_object#", "&" );
-		}
-
-		return event.buildAdminLink( objectName="custom_field", recordId=parent.id ?: "", queryString=qs );
+		return event.buildAdminLink(
+			  objectName  = "custom_field"
+			, recordId    = parent.id ?: ""
+			, queryString = "tab=#variables.parentTab#"
+		);
 	}
 
 	private string function _withTargetObject( required string queryString, event, rc, prc, args={} ) {

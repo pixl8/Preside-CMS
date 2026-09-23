@@ -167,7 +167,7 @@ component {
 		var dataType     = state.data_type ?: "";
 
 		if ( !Len( newId ) ) {
-			setNextEvent( url=event.buildAdminLink( objectName="custom_field", queryString=qs ) );
+			setNextEvent( url=event.buildAdminLink( objectName="custom_field" ) );
 		}
 
 		if ( kind == "conditional_label" ) {
@@ -187,23 +187,9 @@ component {
 	}
 
 	private void function postCancel( event, rc, prc, args={}, wfInstance ) {
-		var targetObject = "";
-
-		if ( !IsNull( arguments.wfInstance ) ) {
-			try {
-				targetObject = Trim( arguments.wfInstance.getState().target_object ?: "" );
-			} catch ( any e ) {}
-		}
-		if ( !Len( targetObject ) ) {
-			targetObject = Trim( rc.target_object ?: "" );
-		}
-
 		messageBox.info( translateResource( uri="webflow.adminCreateCustomField:cancelled" ) );
 
-		setNextEvent( url=event.buildAdminLink(
-			  objectName  = "custom_field"
-			, queryString = Len( targetObject ) ? "target_object=#targetObject#" : ""
-		) );
+		setNextEvent( url=event.buildAdminLink( objectName="custom_field" ) );
 	}
 
 	private void function _validateForm(

@@ -4,7 +4,6 @@
 component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	property name="customFieldsService"          inject="customFieldsService";
-	property name="customizationService"         inject="dataManagerCustomizationService";
 	property name="formsService"                 inject="formsService";
 	property name="presideObjectService"         inject="presideObjectService";
 	property name="customFieldsPropertyInjector" inject="customFieldsPropertyInjector";
@@ -83,19 +82,6 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return "";
 	}
 
-	private string function preRenderListing( event, rc, prc, args={} ) {
-		var targetObject = _getTargetObject( argumentCollection=arguments );
-
-		if ( Len( targetObject ) ) {
-			var objectTitle = translateResource( uri="preside-objects.#targetObject#:title", defaultValue=targetObject );
-
-			prc.pageTitle    = translateResource( uri="cms:datamanager.managecustomfields.title" );
-			prc.pageSubTitle = translateResource( uri="cms:datamanager.managecustomfields.subtitle", data=[ objectTitle ] );
-		}
-
-		return "";
-	}
-
 	private string function preRenderEditRecordForm( event, rc, prc, args={} ) {
 		var record   = args.record ?: ( IsStruct( prc.record ?: "" ) ? prc.record : {} );
 		var kind     = record.kind ?: "";
@@ -151,53 +137,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return renderView( view="/admin/datamanager/custom_field/_conditionalLabelsTab", args=args );
 	}
 
-	private void function rootBreadcrumb( event, rc, prc, args={} ) {
-		var targetObject = _getTargetObject( argumentCollection=arguments );
-
-		if ( Len( targetObject ) ) {
-			customizationService.runCustomization(
-				  objectName     = targetObject
-				, action         = "rootBreadcrumb"
-				, defaultHandler = "admin.datamanager._rootBreadcrumb"
-				, args           = _parentBreadcrumbArgs( targetObject )
-			);
-		} else {
-			runEvent(
-				  event          = "admin.datamanager._rootBreadcrumb"
-				, private        = true
-				, prePostExempt  = true
-				, eventArguments = { args=args }
-			);
-		}
-	}
-
-	private void function objectBreadcrumb( event, rc, prc, args={} ) {
-		var targetObject = _getTargetObject( argumentCollection=arguments );
-
-		if ( Len( targetObject ) ) {
-			customizationService.runCustomization(
-				  objectName     = targetObject
-				, action         = "objectBreadcrumb"
-				, defaultHandler = "admin.datamanager._objectBreadcrumb"
-				, args           = _parentBreadcrumbArgs( targetObject )
-			);
-
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:datamanager.managecustomfields.breadcrumb.title" )
-				, link  = event.buildAdminLink( objectName="custom_field", queryString="target_object=#targetObject#" )
-			);
-		} else {
-			runEvent(
-				  event          = "admin.datamanager._objectBreadcrumb"
-				, private        = true
-				, prePostExempt  = true
-				, eventArguments = { args=args }
-			);
-		}
-	}
-
 	private string function buildListingLink( event, rc, prc, args={} ) {
-		return _delegateObjectLink( argumentCollection=arguments, action="buildListingLink" );
+		return runEvent(
+			  event          = "admin.objectLinks.buildListingLink"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args=args }
+		);
 	}
 
 	private string function buildViewRecordLink( event, rc, prc, args={} ) {
@@ -336,7 +282,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 		args.extraFilters = args.extraFilters ?: [];
 		ArrayAppend( args.extraFilters, { filter={ target_object=targetObject } } );
-		prc.cancelLink = event.buildAdminLink( objectName="custom_field", queryString="target_object=#targetObject#" );
+		prc.cancelLink = event.buildAdminLink( objectName="custom_field" );
 	}
 
 	private string function buildSortRecordsLink( event, rc, prc, args={} ) {
@@ -370,7 +316,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var targetObject = _getTargetObject( argumentCollection=arguments );
 
 		if ( Len( targetObject ) ) {
-			args.cancelAction = event.buildAdminLink( objectName="custom_field", queryString="target_object=#targetObject#" );
+			args.cancelAction = event.buildAdminLink( objectName="custom_field" );
 		}
 
 		return runEvent(
@@ -532,13 +478,6 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		}
 
 		return targetObject;
-	}
-
-	private struct function _parentBreadcrumbArgs( required string targetObject ) {
-		return {
-			  objectName  = arguments.targetObject
-			, objectTitle = translateResource( uri="preside-objects.#arguments.targetObject#:title", defaultValue=arguments.targetObject )
-		};
 	}
 
 	private string function _delegateObjectLink( event, rc, prc, args={}, required string action ) {
