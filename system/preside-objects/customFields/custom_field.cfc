@@ -16,7 +16,7 @@ component displayname="Custom field" extends="preside.system.base.SystemPresideO
 	property name="label"         type="string" dbtype="varchar" maxlength=200 required=true indexes="label";
 	property name="help_text"     type="string" dbtype="text"    required=false;
 	property name="kind"          type="string" dbtype="varchar" maxlength=30  required=true enum="customFieldKind" indexes="kind";
-	property name="target_object" type="string" dbtype="varchar" maxlength=100 required=true uniqueindexes="objectkey|1" indexes="targetobject" control="customFieldTargetObject";
+	property name="target_object" type="string" dbtype="varchar" maxlength=100 required=true uniqueindexes="objectkey|1" indexes="targetobject" control="customFieldTargetObject" enum="customFieldsEnabledObjects";
 	property name="sort_order"      type="numeric" dbtype="int"     required=false default=0;
 	property name="active"          type="boolean" dbtype="boolean" required=false default=false renderer="booleanBadge";
 	property name="show_in_listing" type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";

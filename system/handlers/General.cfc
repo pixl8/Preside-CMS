@@ -31,6 +31,7 @@ component {
 	property name="formsService"                  inject="delayedInjector:formsService";
 	property name="dmWorkflowFilterService"       inject="delayedInjector:datamanagerWorkflowFilterService";
 	property name="enumService"                   inject="enumService";
+	property name="customFieldsService"           inject="delayedInjector:customFieldsService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -289,12 +290,17 @@ component {
 	private void function _registerPresideObjectEnums() {
 		var objectNames   = [];
 		var pageTypeNames = [];
+		var customFieldsEnabledObjects = [];
 
 		for( var objectName in presideObjectService.listObjects() ) {
 			if ( presideObjectService.isPageType( objectName ) ) {
 				ArrayAppend( pageTypeNames, objectName );
 			} else {
 				ArrayAppend( objectNames, objectName );
+			}
+
+			if ( customFieldsService.isObjectEnabled( objectName ) ) {
+				ArrayAppend( customFieldsEnabledObjects, objectName );
 			}
 		}
 
@@ -314,6 +320,15 @@ component {
 				  label       = "page-types.{key}:name"
 				, iconClass   = "page-types.{key}:iconClass"
 				, description = "page-types.{key}:description"
+			  }
+		);
+		enumService.registerEnum(
+			  enum         = "customFieldsEnabledObjects"
+			, keys         = customFieldsEnabledObjects
+			, translations = {
+				  label       = "preside-objects.{key}:title"
+				, iconClass   = "preside-objects.{key}:iconClass"
+				, description = "preside-objects.{key}:description"
 			  }
 		);
 	}
