@@ -6,7 +6,7 @@
  * @datamanagerSortable           true
  * @datamanagerSortField          sort_order
  * @datamanagerDefaultSortOrder   sort_order,label
- * @datamanagerDisallowedOperations clone
+ * @datamanagerDisallowedOperations clone,batchedit,batchdelete
  * @labelfield                    label
  * @feature                       customFields
  */
