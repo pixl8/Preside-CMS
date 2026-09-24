@@ -260,6 +260,50 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( definition.autofilter ).toBeFalse();
 			} );
+
+			it( "should keep the standard renderer when display options are left at their defaults", function(){
+				var injector = _getInjector();
+
+				_useRealTypesService( injector, "boolean" );
+
+				var definition = injector.buildPropertyDefinition(
+					  field      = { id=16, kind="static", data_type="boolean", key="is_vip", label="VIP", type_config="" }
+					, objectName = "elf_test_object"
+				);
+
+				expect( definition.renderer ).toBe( "plaintext" );
+				expect( definition.customFieldDisplayConfig ).toInclude( "checkCross" );
+			} );
+
+			it( "should switch to the custom field renderer once display options differ from the defaults", function(){
+				var injector = _getInjector();
+
+				_useRealTypesService( injector, "boolean" );
+
+				var definition = injector.buildPropertyDefinition(
+					  field      = { id=17, kind="static", data_type="boolean", key="is_vip", label="VIP", type_config='{"booleanDisplay":"yesNo"}' }
+					, objectName = "elf_test_object"
+				);
+
+				expect( definition.renderer ).toBe( "customFieldBoolean" );
+			} );
+		} );
+	}
+
+	private void function _useRealTypesService( required any injector, required string dataType ) {
+		var realTypes = new preside.system.services.customFields.CustomFieldTypesService( configuredTypes={} );
+
+		variables.mockTypesService.$( "getType" ).$args( arguments.dataType ).$results( { type="boolean", control="yesNoSwitch" } );
+		variables.mockTypesService.$( "getControl" ).$args( arguments.dataType ).$results( "yesNoSwitch" );
+		variables.mockTypesService.$( "getTypedColumn" ).$args( arguments.dataType ).$results( "boolean_value" );
+		variables.mockTypesService.$( method="getDisplayConfig", callback=function( dataType, typeConfig ){
+			return realTypes.getDisplayConfig( argumentCollection=arguments );
+		} );
+		variables.mockTypesService.$( method="isDefaultDisplayConfig", callback=function( dataType, config ){
+			return realTypes.isDefaultDisplayConfig( argumentCollection=arguments );
+		} );
+		variables.mockTypesService.$( method="getDisplayRenderer", callback=function( dataType ){
+			return realTypes.getDisplayRenderer( argumentCollection=arguments );
 		} );
 	}
 
@@ -301,6 +345,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		variables.mockTypesService.$( "getType" ).$args( "text" ).$results( { type="string", control="textinput" } );
 		variables.mockTypesService.$( "getControl" ).$args( "text" ).$results( "textinput" );
 		variables.mockTypesService.$( "getRenderer", "plaintext" );
+		variables.mockTypesService.$( "getDisplayConfig", {} );
+		variables.mockTypesService.$( "isDefaultDisplayConfig", true );
+		variables.mockTypesService.$( "getDisplayRenderer", "" );
 
 		variables.mockCustomFieldsService.$( "getFieldListingLabel", "Nickname" );
 		variables.mockCustomFieldsService.$( "resolveRelatedDataPath", { valid=false, formula="", type="string", renderer="", relatedTo="", relationship="none" } );

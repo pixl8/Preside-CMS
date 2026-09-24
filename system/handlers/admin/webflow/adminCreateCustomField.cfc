@@ -3,10 +3,11 @@
  */
 component {
 
-	property name="customFieldsService"  inject="customFieldsService";
-	property name="formsService"         inject="formsService";
-	property name="presideObjectService" inject="presideObjectService";
-	property name="messageBox"           inject="messagebox@cbmessagebox";
+	property name="customFieldsService"     inject="customFieldsService";
+	property name="customFieldTypesService" inject="customFieldTypesService";
+	property name="formsService"            inject="formsService";
+	property name="presideObjectService"    inject="presideObjectService";
+	property name="messageBox"              inject="messagebox@cbmessagebox";
 
 	private struct function initState( event, rc, prc, args={} ) {
 		return {
@@ -51,6 +52,8 @@ component {
 			arguments.persistData.conditional_label_mode = "";
 		}
 
+		arguments.persistData.has_display_options = Len( _getDisplayFormName( arguments.persistData ) ) ? "yes" : "no";
+
 		runEvent(
 			  event          = "admin.datamanager.custom_field._validateFieldKey"
 			, private        = true
@@ -71,6 +74,32 @@ component {
 		if ( !Len( Trim( arguments.persistData.related_object ?: "" ) ) ) {
 			arguments.validationResult.addError( fieldName="related_object", message="cms:validation.required.default" );
 		}
+
+		return arguments.validationResult.validated();
+	}
+
+	private string function display( event, rc, prc, args={}, wfInstance ) {
+		var state = arguments.wfInstance.getState();
+
+		return renderForm(
+			  formName         = _getDisplayFormName( state )
+			, context          = "admin"
+			, formId           = "webflow-adminCreateCustomField-#( args.instanceRef ?: "" )#-display"
+			, savedData        = customFieldTypesService.getDisplayConfig( dataType=state.data_type ?: "", typeConfig=state )
+			, validationResult = rc.validationResult ?: ""
+		);
+	}
+
+	private boolean function displayAction( event, rc, prc, wfInstance, validationResult, persistData ) {
+		var state = arguments.wfInstance.getState();
+		StructAppend( arguments.persistData, { kind=state.kind ?: "static", data_type=state.data_type ?: "" }, false );
+
+		runEvent(
+			  event          = "admin.datamanager.custom_field._validateDisplayConfig"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = { args={ formData=arguments.persistData, validationResult=arguments.validationResult } }
+		);
 
 		return arguments.validationResult.validated();
 	}
@@ -228,6 +257,7 @@ component {
 		if ( kind == "static" ) {
 			data.data_type      = Trim( merged.data_type      ?: "" );
 			data.related_object = Trim( merged.related_object ?: "" );
+			data.type_config    = customFieldTypesService.buildTypeConfig( dataType=data.data_type, formData=merged );
 		} else {
 			data.data_type      = Trim( merged.data_type ?: "" );
 			data.batch_editable = false;
@@ -247,6 +277,16 @@ component {
 		}
 
 		return data;
+	}
+
+	private string function _getDisplayFormName( required struct state ) {
+		if ( ( arguments.state.kind ?: "" ) != "static" ) {
+			return "";
+		}
+
+		var group = customFieldTypesService.getDisplayGroup( arguments.state.data_type ?: "" );
+
+		return Len( group ) ? "custom-field-display.#group#" : "";
 	}
 
 	private string function _flagsToList( required any flags ) {

@@ -23,6 +23,7 @@ webflow:
         event: admin.webflow.adminCreateCustomField.basicsAction
     next:
     - objectRef
+    - display
     - aggregate
     - relatedData
     - permissions
@@ -44,6 +45,24 @@ webflow:
     submission:
       handler:
         event: admin.webflow.adminCreateCustomField.objectRefAction
+    prev:
+    - basics
+    next:
+    - permissions
+
+  - id: display
+    canCancel: true
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $has_display_options
+        pattern: "yes"
+    display:
+      viewlet:
+        event: admin.webflow.adminCreateCustomField.display
+    submission:
+      handler:
+        event: admin.webflow.adminCreateCustomField.displayAction
     prev:
     - basics
     next:
@@ -93,6 +112,7 @@ webflow:
         event: admin.webflow.adminCreateCustomField.submitAction
     prev:
     - objectRef
+    - display
     - aggregate
     - relatedData
     - basics

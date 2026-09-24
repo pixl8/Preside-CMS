@@ -1090,6 +1090,9 @@ component {
 		settings.enum.customFieldAggregateFunction    = [ "count", "sum", "min", "max", "avg" ];
 		settings.enum.customFieldCreateFlag           = [ "show_in_listing", "filterable", "data_exportable", "batch_editable", "active" ];
 		settings.enum.customFieldConditionalLabelMode = [ "single", "multiple" ];
+		settings.enum.customFieldBooleanDisplay       = [ "checkCross", "yesNo", "trueFalse", "customBadge" ];
+		settings.enum.customFieldDateDisplay          = [ "systemDefault", "short", "medium", "long", "relative" ];
+		settings.enum.customFieldNumberDisplay        = [ "standard", "currency", "percentage", "compact" ];
 	}
 
 	private void function __setupFormValidationProviders() {

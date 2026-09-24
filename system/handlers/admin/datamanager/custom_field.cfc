@@ -7,6 +7,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="formsService"                 inject="formsService";
 	property name="presideObjectService"         inject="presideObjectService";
 	property name="customFieldsPropertyInjector" inject="customFieldsPropertyInjector";
+	property name="customFieldTypesService"      inject="customFieldTypesService";
 
 	variables.permissionBase = "customfields";
 	variables.infoCardStyle  = "definitionList";
@@ -43,6 +44,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	private void function preEditRecordAction( event, rc, prc, args={} ) {
 		_validateAggregateConfig( argumentCollection=arguments );
 		_validateRelatedDataConfig( argumentCollection=arguments );
+		_validateDisplayConfig( argumentCollection=arguments );
+		_serialiseDisplayConfig( argumentCollection=arguments );
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
@@ -61,6 +64,11 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		}
 		if ( kind == "static" && Len( Trim( dataType ) ) && formsService.formExists( typeForm ) ) {
 			formName = formsService.getMergedFormName( formName, typeForm );
+		}
+
+		var displayForm = _getDisplayFormName( kind, dataType );
+		if ( Len( displayForm ) ) {
+			formName = formsService.getMergedFormName( formName, displayForm );
 		}
 
 		return formName;
@@ -88,6 +96,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var dataType = record.data_type ?: "";
 		var parts    = [];
 		var hint     = "";
+
+		if ( IsStruct( args.record ?: "" ) && Len( _getDisplayFormName( kind, dataType ) ) ) {
+			StructAppend( args.record, customFieldTypesService.getDisplayConfig(
+				  dataType   = dataType
+				, typeConfig = record.type_config ?: ""
+			) );
+		}
 
 		if ( Len( Trim( kind ) ) ) {
 			ArrayAppend( parts, translateResource( uri="enum.customFieldKind:#kind#.label", defaultValue=kind ) );
@@ -450,6 +465,63 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				formData.batch_editable = false;
 			}
 		}
+	}
+
+	private void function _serialiseDisplayConfig( event, rc, prc, args={} ) {
+		var record      = _getViewRecord( argumentCollection=arguments );
+		var dataType    = record.data_type ?: "";
+		var displayForm = _getDisplayFormName( record.kind ?: "", dataType );
+
+		if ( !Len( displayForm ) ) {
+			return;
+		}
+
+		args.formData = args.formData ?: {};
+		args.formData.type_config = customFieldTypesService.buildTypeConfig(
+			  dataType = dataType
+			, formData = event.getCollectionForForm( displayForm )
+		);
+	}
+
+	private void function _validateDisplayConfig( event, rc, prc, args={} ) {
+		var formData         = args.formData         ?: {};
+		var validationResult = args.validationResult ?: "";
+		var record           = _getViewRecord( argumentCollection=arguments );
+		var dataType         = Len( Trim( formData.data_type ?: "" ) ) ? formData.data_type : ( record.data_type ?: "" );
+		var kind             = Len( Trim( formData.kind      ?: "" ) ) ? formData.kind      : ( record.kind      ?: "" );
+
+		if ( !IsObject( validationResult ) || !Len( _getDisplayFormName( kind, dataType ) ) ) {
+			return;
+		}
+
+		var group = customFieldTypesService.getDisplayGroup( dataType );
+
+		if ( group == "number" ) {
+			var places = Trim( formData.decimalPlaces ?: "" );
+			var maximum = customFieldTypesService.getMaxDecimalPlaces();
+
+			if ( Len( places ) && ( !IsNumeric( places ) || Val( places ) != Int( Val( places ) ) || Val( places ) < 0 || Val( places ) > maximum ) ) {
+				validationResult.addError( fieldName="decimalPlaces", message="customFields:validation.display.decimal.places", params=[ maximum ] );
+			}
+		}
+
+		if ( group == "boolean" && ( formData.booleanDisplay ?: "" ) == "customBadge" ) {
+			for( var value in [ "true", "false" ] ) {
+				if ( !Len( Trim( formData[ "#value#Label" ] ?: "" ) ) && !Len( Trim( formData[ "#value#Colour" ] ?: "" ) ) ) {
+					validationResult.addError( fieldName="#value#Label", message="customFields:validation.display.badge.incomplete" );
+				}
+			}
+		}
+	}
+
+	private string function _getDisplayFormName( required string kind, required string dataType ) {
+		if ( arguments.kind != "static" ) {
+			return "";
+		}
+
+		var group = customFieldTypesService.getDisplayGroup( arguments.dataType );
+
+		return Len( group ) ? "custom-field-display.#group#" : "";
 	}
 
 	private struct function _getViewRecord( event, rc, prc, args={} ) {

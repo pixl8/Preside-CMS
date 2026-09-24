@@ -10,6 +10,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				service.$( "getConditionalRuleById" ).$args( "rule-1" ).$results( { label_text="Red", colour="##ff0000" } );
 				service.$( "getConditionalRuleById" ).$args( "rule-2" ).$results( { label_text="Blue", colour="##0000ff" } );
 				renderer.$property( propertyName="customFieldsService", mock=service );
+				renderer.$property( propertyName="customFieldBadgeService", mock=new preside.system.services.customFields.CustomFieldBadgeService() );
 
 				var rendered = renderer.index( args={ data="15.record-1" } );
 

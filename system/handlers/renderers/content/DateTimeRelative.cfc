@@ -6,4 +6,8 @@ component output=false {
 		return '<abbr title="' & renderContent( renderer="datetime", data=data ) & '">' & renderContent( renderer="datetime", data=data, context="relative" ) & "</abbr>";
 	}
 
+	public string function dataexport( event, rc, prc, args={} ) {
+		return renderContent( renderer="datetime", data=args.data ?: "" );
+	}
+
 }

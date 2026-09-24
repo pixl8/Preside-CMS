@@ -138,6 +138,15 @@ component {
 			if ( dataType == "datetime" ) {
 				definition.type = "date";
 			}
+
+			var displayConfig = customFieldTypesService.getDisplayConfig( dataType=dataType, typeConfig=field.type_config ?: "" );
+			if ( !StructIsEmpty( displayConfig ) ) {
+				definition.customFieldDisplayConfig = SerializeJson( displayConfig );
+
+				if ( !customFieldTypesService.isDefaultDisplayConfig( dataType, displayConfig ) ) {
+					definition.renderer = customFieldTypesService.getDisplayRenderer( dataType );
+				}
+			}
 		} else if ( kind == "aggregate" ) {
 			definition.type       = "numeric";
 			definition.autofilter = $helpers.isTrue( field.filterable ?: true );
