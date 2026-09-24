@@ -45,6 +45,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockDataExportTemplateService.$( "getSelectFields", defaultFields.selectFields );
 				mockPresideObjectService.$( "getObjectProperties", {} );
 				mockPresideObjectService.$( "getObjectAttribute", "" );
+				mockPresideObjectService.$( "getIdField", "id" );
 				mockColdbox.$( "handlerExists" ).$args( exporterHandler ).$results( true );
 				mockColdbox.$( "runEvent", mockResult );
 
@@ -128,6 +129,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockDataExportTemplateService.$( "getSelectFields", defaultFields.selectFields );
 				mockPresideObjectService.$( "getObjectProperties", {} );
 				mockPresideObjectService.$( "getObjectAttribute", "" );
+				mockPresideObjectService.$( "getIdField", "id" );
 				mockColdbox.$( "handlerExists" ).$args( exporterHandler ).$results( true );
 				mockColdbox.$( "runEvent", mockResult );
 
