@@ -68,6 +68,15 @@ component {
 		var isFormula    = Len( Trim( propertyDefinition.formula ?: "" ) );
 		var excludedKeys = listToArray( propertyDefinition.excludeAutoExpressions ?: "" );
 
+		if ( ( propertyDefinition.customFieldKind ?: "" ) == "conditional_label" ) {
+			return [ _createConditionalLabelMatchesExpression(
+				  objectName         = arguments.objectName
+				, propertyName       = propertyDefinition.name
+				, parentObjectName   = arguments.parentObjectName
+				, parentPropertyName = arguments.parentPropertyName
+			) ];
+		}
+
 		if ( isFormula && !Len( $getPresideObjectService().getIdField( arguments.objectName ) ) ) {
 			return [];
 		}
@@ -279,6 +288,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.TextFormulaPropertyMatches.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createConditionalLabelMatchesExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName ) {
+		var expression = _getCommonExpressionDefinition( argumentCollection=arguments );
+
+		expression.append( {
+			  id                = "presideobject_conditionallabelmatches_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
+			, fields            = { enumValue={ fieldType="text", required=true, default="" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.ConditionalLabelMatches.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.ConditionalLabelMatches.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.ConditionalLabelMatches.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.ConditionalLabelMatches.getText"
 		} );
 
 		return expression;

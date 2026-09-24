@@ -725,7 +725,7 @@ component extends="preside.system.base.AdminHandler" {
 		var field        = rc.field        ?: "";
 		var formControl  = {};
 		var recordCount  = ListLen( Trim( ids ) );
-		var fieldName    = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
+		var fieldName    = translatePropertyName( objectName, field );
 		var listingView  = event.buildAdminLink( objectName=objectName, operation="listing" );
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
@@ -2270,7 +2270,7 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = { objectName=objectName, actions=actions }
 		);
 
-		announceInterception( "postExtraTopRightButtonsForViewRecord", { objectName=objectName, actions=actions } );
+		announceInterception( "postExtraTopRightButtonsForViewRecord", { objectName=objectName, recordId=recordId, actions=actions } );
 
 		return actions;
 	}
@@ -3915,7 +3915,7 @@ component extends="preside.system.base.AdminHandler" {
 		var batchAll    = isTrue( args.batchAll ?: "" );
 		var recordCount = args.recordCount ?: ListLen( ids );
 		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
+		var fieldName   = translatePropertyName( object, field );
 
 		args.fieldFormControl = formsService.renderFormControlForObjectField(
 		      objectName = object

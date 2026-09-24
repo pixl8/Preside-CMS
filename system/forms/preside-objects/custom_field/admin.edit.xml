@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field:">
+	<tab id="default">
+		<fieldset id="identity" sortorder="10">
+			<field binding="custom_field.label"     control="textinput" sortorder="10"  required="true" />
+			<field binding="custom_field.key"       control="readonly"  sortorder="20" />
+			<field binding="custom_field.help_text" control="textarea"  sortorder="30" />
+		</fieldset>
+		<fieldset id="management" sortorder="20">
+			<field binding="custom_field.show_in_listing" control="yesNoSwitch" sortorder="10" />
+			<field binding="custom_field.filterable"      control="yesNoSwitch" sortorder="20" />
+			<field binding="custom_field.data_exportable" control="yesNoSwitch" sortorder="30" />
+		</fieldset>
+	</tab>
+</form>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field:">
+	<tab id="default">
+		<fieldset id="basics" sortorder="10">
+			<field binding="custom_field.label"         control="textinput" required="true" />
+			<field binding="custom_field.key"           control="autoSlug" basedOn="label" slugDelimiter="_" required="true" />
+			<field binding="custom_field.target_object" control="customFieldTargetObject" required="true" />
+			<field binding="custom_field.kind"          control="customFieldKind" enum="customFieldKind" required="true" defaultValue="static" toggleFields="static:data_type|conditional_label:conditional_label_mode" filterBy="target_object" />
+			<field binding="custom_field.data_type"     control="enumRadioList" enum="customFieldDataType" defaultValue="text" />
+			<field binding="custom_field.conditional_label_mode" control="enumRadioList" enum="customFieldConditionalLabelMode" defaultValue="single" />
+		</fieldset>
+	</tab>
+</form>

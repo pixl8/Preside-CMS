@@ -19,7 +19,7 @@
 				<li data-field="#HtmlEditFormat( field )#" class="field">
 					<a href="##">
 						<i class="fa fa-fw fa-pencil"></i>&nbsp;
-						#translateResource( uri="preside-objects.#args.objectName#:field.#field#.title", defaultValue=field )#
+						#translatePropertyName( args.objectName, field )#
 					</a>
 				</li>
 			</cfloop>

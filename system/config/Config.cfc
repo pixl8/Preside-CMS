@@ -38,6 +38,7 @@ component {
 		__setupMultilingualDefaults();
 		__setupFormBuilder();
 		__setupRulesEngine();
+		__setupCustomFields();
 		__setupTenancy();
 		__setupDataExport();
 		__setupFullPageCaching();
@@ -164,6 +165,7 @@ component {
 			, { class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} }
 			, { class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
 			, { class="preside.system.interceptors.DraftManagerInterceptor"             , properties={} }
+			, { class="preside.system.interceptors.CustomFieldsInterceptor"             , properties={} }
 		];
 
 		variables.interceptorSettings = {
@@ -414,6 +416,7 @@ component {
 			, "rulesEngine"
 			, "links"
 			, "urlRedirects"
+			, "customFields"
 			, "errorLogs"
 			, "auditTrail"
 			, "maintenanceMode"
@@ -645,6 +648,14 @@ component {
 			, icon          = "fa-map-signs"
 			, title         = "cms:rulesEngine.navigation.link"
 		};
+		settings.adminMenuItems.customFields = {
+			  feature       = "customFields"
+			, permissionKey = "customfields.navigate"
+			, buildLinkArgs = { objectName="custom_field" }
+			, activeChecks  = { datamanagerObject="custom_field" }
+			, icon          = "fa-puzzle-piece"
+			, title         = "preside-objects.custom_field:title"
+		};
 		settings.adminMenuItems.savedexport = {
 			  feature       = "dataexport"
 			, permissionKey = "savedExport.navigate"
@@ -756,11 +767,12 @@ component {
 			 }
 			, webflows               = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
 			, draftManager           = [ "navigate", "read", "add", "edit", "delete", "review", "publish" ]
+			, customfields           = [ "navigate", "read", "add", "edit", "delete" ]
 		};
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.system_alert.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*", "formbuilder.*", "formquestions.*", "draftManager.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.system_alert.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*", "formbuilder.*", "formquestions.*", "draftManager.*", "customfields.*" ];
 		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "formquestions.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "emailCenter.*", "!emailCenter.queue.*", "draftManager.*" ];
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read", "draftManager.*" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*", "formquestions.*" ];
@@ -1026,6 +1038,7 @@ component {
 			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, draftManager                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "cfflow", "datamanager", "datamanagerWorkflow" ] }
+			, customFields                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "admin", "datamanager" ] }
 		};
 
 		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {
@@ -1072,6 +1085,14 @@ component {
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
 		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
 		settings.enum.timeFormatOptions           = [ "12h", "24h" ];
+		settings.enum.customFieldKind                 = [ "static", "aggregate", "related_data", "conditional_label" ];
+		settings.enum.customFieldDataType             = [ "text", "textarea", "integer", "float", "boolean", "date", "datetime", "lookup", "object_ref" ];
+		settings.enum.customFieldAggregateFunction    = [ "count", "sum", "min", "max", "avg" ];
+		settings.enum.customFieldCreateFlag           = [ "show_in_listing", "filterable", "data_exportable", "batch_editable", "active" ];
+		settings.enum.customFieldConditionalLabelMode = [ "single", "multiple" ];
+		settings.enum.customFieldBooleanDisplay       = [ "checkCross", "yesNo", "trueFalse", "customBadge" ];
+		settings.enum.customFieldDateDisplay          = [ "systemDefault", "short", "medium", "long", "relative" ];
+		settings.enum.customFieldNumberDisplay        = [ "standard", "currency", "percentage", "compact" ];
 	}
 
 	private void function __setupFormValidationProviders() {
@@ -1146,6 +1167,21 @@ component {
 		settings.rulesEngine.contexts.user                  = { feature="websiteUsers", object="website_user" };
 		settings.rulesEngine.contexts.adminuser             = { feature="admin", object="security_user" };
 		settings.rulesEngine.contexts.formBuilderSubmission = { feature="formbuilder" };
+	}
+
+	private void function __setupCustomFields() {
+		settings.customFields = { fieldTypes={} };
+		settings.customFields.fieldTypes = {
+			  text      = { control="textinput" , type="string"  , typedColumn="shorttext_value", renderer="plaintext" }
+			, textarea  = { control="textarea"  , type="string"  , typedColumn=""               , renderer="plaintext" }
+			, integer   = { control="spinner"   , type="numeric" , typedColumn="int_value"      , renderer="integer"   }
+			, float     = { control="spinner"   , type="numeric" , typedColumn="float_value"    , renderer="none"      }
+			, boolean   = { control="yesNoSwitch", type="boolean" , typedColumn="boolean_value"  , renderer="boolean"   }
+			, date      = { control="datePicker"    , type="date"    , typedColumn="date_value"     , renderer="date"      }
+			, datetime  = { control="dateTimePicker", type="date"    , typedColumn="date_value"     , renderer="datetime"  }
+			, lookup    = { control="select"    , type="string"  , typedColumn="shorttext_value", renderer="customFieldLookup" }
+			, object_ref= { control="objectPicker", type="string", typedColumn="shorttext_value", renderer="manyToOne" }
+		};
 	}
 
 	private void function __setupTenancy() {

@@ -8,13 +8,15 @@ component extends="preside.system.base.AdminHandler" {
 	property name="datamanagerWorkflowService" inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
 	property name="draftManagerService"        inject="featureInjector:draftManager:DraftManagerService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
+	property name="presideCustomFieldsService" inject="featureInjector:customFields:customFieldsService";
 
-	variables.permissionSubBase  = "";
-	variables.systemDateRenderer = { renderer = "datetime", context="relative" };
-	variables.permissionKeyCache = {};
-	variables.maxTabCount        = 6;
-	variables.sidebarNavigation  = false;
-	variables.infoCardStyle      = "default";
+	variables.permissionSubBase       = "";
+	variables.systemDateRenderer      = { renderer = "datetime", context="relative" };
+	variables.permissionKeyCache      = {};
+	variables.maxTabCount             = 6;
+	variables.sidebarNavigation       = false;
+	variables.infoCardStyle           = "default";
+	variables.customFieldsTabEnabled  = true;
 
 // PUBLIC ACTIONS
 	private string function listingViewlet( event, rc, prc, args={} ) {
@@ -297,6 +299,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.tabs       = Duplicate( variables.tabs ?: [ "default" ] );
 		args.currentTab = rc.tab ?: "";
 
+		_addCustomFieldsTab( argumentCollection=arguments );
 		_addWorkflowTab( argumentCollection=arguments );
 
 		announceInterception( "preRenderDataManagerObjectTabs", args );
@@ -414,6 +417,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.tabs    = args.tabs ?: ( Duplicate( variables.tabs ?: [ "default" ] ) );
 		args.maxTabs = variables.maxTabCount;
 
+		_addCustomFieldsTab( argumentCollection=arguments );
 		_addWorkflowTab( argumentCollection=arguments );
 
 		announceInterception( "preRenderDataManagerObjectTabs", args );
@@ -486,6 +490,22 @@ component extends="preside.system.base.AdminHandler" {
 
 	private string function _auditTrailTab( event, rc, prc, args={} ) {
 		return renderViewlet( event="admin.audittrail.recordTrailViewlet", args={ recordId=args.recordId ?: "" } );
+	}
+
+	private string function _customFieldsTab( event, rc, prc, args={} ) {
+		var fields = _getCustomFieldsForRecord( argumentCollection=arguments );
+		if ( !ArrayLen( fields ) ) {
+			return "";
+		}
+
+		var group = adminDataViewsService.getViewGroupDetail(
+			  objectName = args.objectName ?: ""
+			, groupName  = "customFields"
+		);
+		group.properties = fields.map( ( field ) => field.key );
+		group.append( args, false );
+
+		return renderViewlet( event="admin.datahelpers.displayGroup", args=group );
 	}
 
 	private string function _workflowTab( event, rc, prc, args={} ) {
@@ -597,6 +617,46 @@ component extends="preside.system.base.AdminHandler" {
 		var allKeys = permissionService.listPermissionKeys();
 
 		return ArrayFindNoCase( allKeys, arguments.key );
+	}
+
+	private void function _addCustomFieldsTab( event, rc, prc, args={} ) {
+		if ( !( variables.customFieldsTabEnabled ?: true ) || !ArrayLen( _getCustomFieldsForRecord( argumentCollection=arguments ) ) ) {
+			return;
+		}
+
+		args.tabs = args.tabs ?: [];
+		if ( !_tabExists( args.tabs, "customFields" ) ) {
+			ArrayAppend( args.tabs, "customFields" );
+		}
+	}
+
+	private array function _getCustomFieldsForRecord( event, rc, prc, args={} ) {
+		if ( !isFeatureEnabled( "customFields" ) ) {
+			return [];
+		}
+
+		var objectName = args.objectName ?: "";
+		if ( !Len( objectName ) || !presideCustomFieldsService.isObjectEnabled( objectName ) ) {
+			return [];
+		}
+
+		return presideCustomFieldsService.listFieldsForRecord(
+			  objectName = objectName
+			, record     = args.record ?: {}
+		);
+	}
+
+	private boolean function _tabExists( required array tabs, required string tabId ) {
+		for( var tab in arguments.tabs ) {
+			if ( ( IsStruct( tab ) ? ( tab.id ?: "" ) : tab ) == arguments.tabId ) {
+				return true;
+			}
+			if ( IsStruct( tab ) && IsArray( tab.children ?: "" ) && _tabExists( tab.children, arguments.tabId ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void function _addWorkflowTab( event, rc, prc, args={} ) {

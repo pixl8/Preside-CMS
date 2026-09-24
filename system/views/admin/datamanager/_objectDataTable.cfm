@@ -122,20 +122,20 @@
 	tableId    = args.id ?: "object-listing-table-#LCase( args.objectName )#-#instanceId#";
 
 	toolbarConfig = getSingleton( "dataListingPreferencesService" ).getToolbarConfig(
-		  objectName         = args.objectName
-		, listingKey         = args.listingPreferenceKey
-		, contextKey         = listingContext.key
-		, contextLabel       = listingContext.label
-		, namedContext       = listingContext.named
-		, gridFields         = args.gridFields
-		, hiddenGridFields   = args.hiddenGridFields
-		, allowFilter        = args.allowFilter && allowUseFilter
-		, allowColumnFilter  = allowColumnFilter
-		, allowSearch        = args.allowSearch
-		, allowManageFilter  = allowManageFilter
-		, manageFilterLink   = manageFilterLink
-		, allowSavedViews    = allowSavedViews
-		, canShareViews      = canShareViews
+		  objectName             = args.objectName
+		, listingKey             = args.listingPreferenceKey
+		, contextKey             = listingContext.key
+		, contextLabel           = listingContext.label
+		, namedContext           = listingContext.named
+		, gridFields             = args.gridFields
+		, hiddenGridFields       = args.hiddenGridFields
+		, allowFilter            = args.allowFilter && allowUseFilter
+		, allowColumnFilter      = allowColumnFilter
+		, allowSearch            = args.allowSearch
+		, allowManageFilter      = allowManageFilter
+		, manageFilterLink       = manageFilterLink
+		, allowSavedViews        = allowSavedViews
+		, canShareViews          = canShareViews
 	);
 
 	if ( args.footerEnabled ) {
@@ -358,7 +358,13 @@
 					</cfif>
 					<cfloop array="#listingColumns#" item="listingCol">
 						<cfset fieldName = listingCol.field />
-						<th class="listing-data-column<cfif IsTrue( listingCol.locked ?: false )> listing-locked-column<cfelse> listing-user-column</cfif><cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )> no-sorting</cfif>"
+						<cfset propertySortable = getSingleton( "presideObjectService" ).getObjectPropertyAttribute(
+							  objectName    = args.objectName
+							, propertyName  = fieldName
+							, attributeName = "datamanagerSortable"
+							, defaultValue  = true
+						) />
+						<th class="listing-data-column<cfif IsTrue( listingCol.locked ?: false )> listing-locked-column<cfelse> listing-user-column</cfif><cfif !IsTrue( propertySortable ) || ( !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName ) )> no-sorting</cfif>"
 							data-field="#ListLast( fieldName, '.' )#"
 							data-visible="#booleanFormat( IsTrue( listingCol.visible ?: true ) )#"
 							data-class="<cfif ArrayFindNoCase( args.centerAlignFields, fieldName )>dt-align-center<cfelseif ArrayFindNoCase( args.rightAlignFields, fieldName )>dt-align-right<cfelse></cfif>"
@@ -384,7 +390,7 @@
 						<th>#translateResource( uri="cms:datamanager.translate.column.status" )#</th>
 					</cfif>
 					<cfif !args.noActions>
-						<th class="listing-options-column listing-pinned-end-column">&nbsp;</th>
+						<th>&nbsp;</th>
 					</cfif>
 				</tr>
 			</thead>

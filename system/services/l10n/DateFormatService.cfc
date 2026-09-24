@@ -278,7 +278,7 @@ component {
 		var localeSettings  = getSiteLocaleSettings();
 		var defaultSettings = $getColdbox().getSetting( "datetime.regionDefaults" );
 		var countryCode     = Len( localeSettings.locale ?: "" ) ? ListLast( localeSettings.locale, "_" ) : "";
-		var regionCode      = $translateResource( uri="enum.isoCountries:#countryCode#.region", defaultValue="" );
+		var regionCode      = $helpers.renderEnum( data=countryCode, enum="isoCountries", property="region" );
 
 		if ( Len( countryCode ) && Len( regionCode ) && StructKeyExists( defaultSettings, regionCode ) ) {
 			return defaultSettings[ regionCode ];

@@ -253,6 +253,13 @@ component {
 				defaults.sortOrder   = $translateResource( uri="draftManager:viewgroup.draft.sortOrder"  , defaultValue=1                    );
 				defaults.column      = $translateResource( uri="draftManager:viewgroup.draft.column"     , defaultValue="right"              );
 			break;
+			case "customFields":
+				defaults.title       = $translateResource( uri="customFields:viewgroup.custom.title"      , defaultValue=arguments.groupName  );
+				defaults.description = $translateResource( uri="customFields:viewgroup.custom.description", defaultValue=""                   );
+				defaults.iconClass   = $translateResource( uri="customFields:viewgroup.custom.iconclass"  , defaultValue="fa-puzzle-piece"    );
+				defaults.sortOrder   = $translateResource( uri="customFields:viewgroup.custom.sortorder"  , defaultValue=20                   );
+				defaults.column      = $translateResource( uri="customFields:viewgroup.custom.column"     , defaultValue="left"               );
+			break;
 		}
 
 		var detail = {
@@ -267,6 +274,10 @@ component {
 		detail.column = detail.column == "right" ? detail.column : "left";
 
 		return detail;
+	}
+
+	public void function clearCache() {
+		_setLocalCache( {} );
 	}
 
 	/**

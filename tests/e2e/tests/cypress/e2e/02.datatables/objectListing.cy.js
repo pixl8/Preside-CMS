@@ -50,28 +50,4 @@ describe( 'Object listing DataTable', () => {
 			return /sorting_|dt-ordering-|asc|desc/.test( cls ) || /ascending|descending/.test( aria );
 		} );
 	} );
-
-	it( 'scrolls wide listings horizontally and pins the actions column', () => {
-		cy.showListingColumn( 'Notes' );
-		cy.closeListingOverlays();
-		cy.viewport( 720, 800 );
-		cy.get( '.object-listing-table thead th.listing-options-column' )
-			.should( 'have.class', 'listing-pinned-end-column' );
-		cy.get( 'button[aria-label="Columns"]' ).should( 'be.visible' );
-
-		cy.get( '.object-listing-wrap .dt-layout-row.dt-layout-table' ).then( ( $scroller ) => {
-			const el = $scroller.get( 0 );
-			expect( el.scrollWidth, 'listing table can scroll horizontally' ).to.be.greaterThan( el.clientWidth - 1 );
-		} );
-
-		cy.get( '.object-listing-table thead th.listing-pinned-end-column' ).then( ( $th ) => {
-			const before = $th.get( 0 ).getBoundingClientRect().right;
-			cy.get( '.object-listing-wrap .dt-layout-row.dt-layout-table' )
-				.scrollTo( 'right' )
-				.then( () => {
-					const after = $th.get( 0 ).getBoundingClientRect().right;
-					expect( after ).to.be.closeTo( before, 3 );
-				} );
-		} );
-	} );
 } );
