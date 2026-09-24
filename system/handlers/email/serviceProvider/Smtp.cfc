@@ -13,15 +13,20 @@ component {
 		var port        = settings.port        ?: "";
 		var username    = settings.username    ?: "";
 		var password    = settings.password    ?: "";
-		var useTls      = IsTrue( settings.use_tls ?: "" );
+		var encryption  = Len( settings.encryption ?: "" ) ? settings.encryption : "none";
 		var params      = sendArgs.params      ?: {};
 		var attachments = sendArgs.attachments ?: [];
 
 		m.setTo( sendArgs.to.toList( ";" ) );
 		m.setFrom( sendArgs.from );
 		m.setSubject( sendArgs.subject );
-		m.setUseTls( useTls );
 		m.setAsync( asyncSmtp );
+
+		if ( encryption == "ssl" ) {
+			m.setUseSsl( true );
+		} else if ( encryption == "tls" ) {
+			m.setUseTls( true );
+		}
 
 		if ( sendArgs.cc.len()  ) {
 			m.setCc( sendArgs.cc.toList( ";" ) );
@@ -92,11 +97,11 @@ component {
 	private any function validateSettings( required struct settings, required any validationResult ) {
 		if ( IsTrue( settings.check_connection ?: "" ) ) {
 			var errorMessage = emailService.validateConnectionSettings(
-				  host     = arguments.settings.server    ?: ""
-				, port     = Val( arguments.settings.port ?: "" )
-				, username = arguments.settings.username  ?: ""
-				, password = arguments.settings.password  ?: ""
-				, useTls   = IsTrue( arguments.settings.use_tls ?: "" )
+				  host       = arguments.settings.server    ?: ""
+				, port       = Val( arguments.settings.port ?: "" )
+				, username   = arguments.settings.username  ?: ""
+				, password   = arguments.settings.password  ?: ""
+				, encryption = Len( settings.encryption ?: "" ) ? settings.encryption : "none"
 			);
 
 			if ( Len( Trim( errorMessage ) ) ) {

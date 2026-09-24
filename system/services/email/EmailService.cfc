@@ -133,13 +133,18 @@ component displayName="Email service" {
 	public string function validateConnectionSettings(
 		  required string  host
 		, required numeric port
-		,          string  username = ""
-		,          string  password = ""
+		,          string  username   = ""
+		,          string  password   = ""
+		,          string  encryption = "none"
 	) {
 		var errorMessage = "";
 		var props        = CreateObject( "java", "java.util.Properties" ).init();
 
-		props.put( "mail.smtp.starttls.enable", "true" );
+		if ( arguments.encryption == "tls" ) {
+			props.put( "mail.smtp.starttls.enable", "true" );
+		} else if ( arguments.encryption == "ssl" ) {
+			props.put( "mail.smtp.ssl.enable", "true" );
+		}
 		props.put( "mail.smtp.auth", "true" );
 
 		var mailSession = CreateObject( "java", "javax.mail.Session" ).getInstance( props, NullValue() );
