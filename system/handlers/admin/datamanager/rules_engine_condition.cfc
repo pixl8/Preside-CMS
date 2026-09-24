@@ -167,13 +167,17 @@ component extends="preside.system.base.AdminHandler" {
 				  		  objectName = record.filter_object
 						, filterId   = record.id
 					);
-					var count = rulesEngineFilterService.getMatchingRecordCount(
-						  objectName      = record.filter_object
-						, expressionArray = []
-						, savedFilters    = []
-						, extraFilters    = [ filter ]
-					);
-					QuerySetCell( args.records, "segmentation_last_count", count , QueryCurrentRow( args.records ) );
+
+					try {
+						var count = rulesEngineFilterService.getMatchingRecordCount(
+							  objectName      = record.filter_object
+							, expressionArray = []
+							, savedFilters    = []
+							, extraFilters    = [ filter ]
+							, logger          = args.logger
+						);
+						QuerySetCell( args.records, "segmentation_last_count", count , QueryCurrentRow( args.records ) );
+					} catch( any e ) {}
 				}
 			}
 		}
