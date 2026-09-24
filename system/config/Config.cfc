@@ -1051,6 +1051,7 @@ component {
 		settings.enum.emailSendingMethod          = [ "auto", "manual", "scheduled" ];
 		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
 		settings.enum.emailSendQueueStatus        = [ "queued", "sending" ];
+		settings.enum.emailSmtpEncryption         = [ "tls", "ssl", "none" ];
 		settings.enum.timeUnit                    = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
 		settings.enum.segmentationFilterTimeUnit  = [ "hour", "day" ];
 		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
