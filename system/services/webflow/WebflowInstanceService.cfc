@@ -622,8 +622,11 @@ component {
 				} );
 			} else {
 				ArrayAppend( extraFilters, {
-					  having       = "GROUP_CONCAT( DISTINCT instance_histories.result ) LIKE :stepId#paramSuffix#"
-					, filterParams = { "stepId#paramSuffix#"={ type="cf_sql_varchar", value="%#arguments.webflowStep#" } }
+					  filter       = "instance_steps.step = :stepId#paramSuffix# AND instance_steps.status = :stepStatus#paramSuffix#"
+					, filterParams = {
+						  "stepId#paramSuffix#"     = { type="cf_sql_varchar", value=arguments.webflowStep }
+						, "stepStatus#paramSuffix#" = { type="cf_sql_varchar", value="active"              }
+					}
 				} );
 			}
 		}
