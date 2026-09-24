@@ -11,13 +11,13 @@ component {
 		args.labels = [];
 
 		if ( !futureOnly ) {
-			ArrayAppend( args.values, [ "recent", "since", "before", "past", "pastminus", "pastequal", "yesterday", "lastweek", "lastmonth", "lastyear" ], true  );
+			ArrayAppend( args.values, [ "recent", "betweenago", "since", "before", "past", "pastminus", "pastequal", "yesterday", "lastweek", "lastmonth", "lastyear" ], true  );
 		}
 
 		ArrayAppend( args.values, [ "today", "thisweek", "thismonth", "thisyear" ], true );
 
 		if ( !pastOnly ) {
-			ArrayAppend( args.values, [ "upcoming", "until", "after", "future", "futureplus", "futureequal", "tomorrow", "nextweek", "nextmonth", "nextyear" ], true );
+			ArrayAppend( args.values, [ "upcoming", "betweenupcoming", "until", "after", "future", "futureplus", "futureequal", "tomorrow", "nextweek", "nextmonth", "nextyear" ], true );
 		}
 
 		for( var value in args.values ){
