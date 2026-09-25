@@ -67,7 +67,6 @@ component {
 		var objectNames        = poService.listObjects();
 		var groups             = {};
 		var groupedObjects     = [];
-		var extraGroupId       = "";
 
 		for( var objectName in arguments.extraObjects ) {
 			if ( Len( Trim( objectName ) ) && poService.objectExists( objectName ) && !objectNames.findNoCase( objectName ) ) {
@@ -79,28 +78,19 @@ component {
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
 			var siteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" ) : "";
 			var isInActiveTemplate = !useSites || siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
-			var isExtraObject      = arguments.extraObjects.findNoCase( objectName );
 
-			if ( isInActiveTemplate && ( Len( Trim( groupId ) ) || isExtraObject ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
-				if ( !Len( Trim( groupId ) ) ) {
-					groupId = extraGroupId;
-				}
+			if ( !Len( Trim( groupId ) ) && arguments.extraObjects.findNoCase( objectName ) ) {
+				groupId = objectName;
+			}
+
+			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
-					if ( groupId == extraGroupId ) {
-						groups[ groupId ] = {
-							  title       = ""
-							, description = ""
-							, icon        = ""
-							, objects     = []
-						};
-					} else {
-						groups[ groupId ] = {
-							  title       = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:title" )
-							, description = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:description" )
-							, icon        = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:iconclass" )
-							, objects     = []
-						};
-					}
+					groups[ groupId ] = {
+						  title       = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:title" )
+						, description = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:description" )
+						, icon        = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:iconclass" )
+						, objects     = []
+					};
 				}
 				groups[ groupId ].objects.append( {
 					  id        = objectName
@@ -114,18 +104,12 @@ component {
 			groups[ group ].objects.sort( function( obj1, obj2 ){
 				return obj1.title > obj2.title ? 1 : -1;
 			} );
-			if ( group != extraGroupId ) {
-				ArrayAppend( groupedObjects, groups[ group ] );
-			}
+			ArrayAppend( groupedObjects, groups[ group ] );
 		}
 
 		groupedObjects.sort( function( group1, group2 ){
 			return group1.title > group2.title ? 1 : -1;
 		} );
-
-		if ( StructKeyExists( groups, extraGroupId ) ) {
-			ArrayAppend( groupedObjects, groups[ extraGroupId ] );
-		}
 
 		return groupedObjects;
 

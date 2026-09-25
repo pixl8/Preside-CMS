@@ -111,18 +111,21 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					  { title="Another group", description="Another description", icon="another-icon-class", objects=[
 						  { id="object4", title="Object 4", iconClass="fa-object-4" }
 					  ] }
+					, { title="Object 3 group", description="Object 3 description", icon="object-3-icon-class", objects=[
+						  { id="object3", title="Object 3", iconClass="fa-object-3" }
+					  ] }
 					, { title="Some group", description="Some description", icon="an-icon-class", objects=[
 						  { id="object1", title="Object 1", iconClass="fa-object-1" }
 						, { id="object2", title="Object 2", iconClass="fa-object-2" }
-					  ] }
-					, { title="", description="", icon="", objects=[
-						  { id="object3", title="Object 3", iconClass="fa-object-3" }
 					  ] }
 				];
 				var groups = "";
 
 				mockPermissionService.$( "hasPermission", true );
 				mockPoService.$( "objectExists" ).$args( "object3" ).$results( true );
+				mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.groups.object3:title" ).$results( "Object 3 group" );
+				mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.groups.object3:description" ).$results( "Object 3 description" );
+				mockI18nPlugin.$( "translateResource" ).$args( uri="preside-objects.groups.object3:iconclass" ).$results( "object-3-icon-class" );
 
 				groups = dataManagerService.getGroupedObjects( extraObjects=[ "object3" ] );
 
