@@ -1,6 +1,7 @@
 describe( 'Listing column picker', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 		cy.visitObjectListing( 'my_extension_object' );
 	} );
 

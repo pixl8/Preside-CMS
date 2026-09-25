@@ -372,7 +372,17 @@
 			setupVersionTableUi = function( modalDialog ){
 				var $table       = $( modalDialog ).find( '.field-version-table' )
 				  , $previewPane = $( modalDialog ).find( '.preview-pane' )
-				  , entity       = i18n.translateResource( "cms:frontendeditor.version.entityname" );
+				  , entity       = i18n.translateResource( "cms:frontendeditor.version.entityname" )
+				  , colConfig    = [
+						{ mData : "datemodified"   , sWidth : "18em" },
+						{ mData : "_version_author" },
+						{
+							sClass    : "center",
+							bSortable : false,
+							mData     : "_options",
+							sWidth    : "9em"
+						}
+					];
 
 				if ( typeof $table.data( 'setupVersionTableUi' ) === 'undefined' ) {
 					$table.on( "click", ".preview-version", function( e ) {
@@ -431,61 +441,44 @@
 						} );
 					} );
 
-					$table.DataTable( {
-						  serverSide   : true
-						, processing   : false
-						, searching    : false
-						, lengthChange : false
-						, pageLength   : 4
-						, columns      : [
-							  { data : "datemodified"   , width : "18em", defaultContent : "" }
-							, { data : "_version_author", defaultContent : "" }
-							, {
-								  className      : "center"
-								, orderable      : false
-								, data           : "_options"
-								, width          : "9em"
-								, defaultContent : ""
-							  }
-						  ]
-						, layout : {
-							  topStart    : null
-							, topEnd      : null
-							, bottomStart : "info"
-							, bottomEnd   : "paging"
-						  }
-						, ajax : PresideDatatables.hungarianAjax( $table.data( "remote" ) )
-						, createdRow : function( row ){
-							var $row = $( row );
-							$row.attr( "data-context-container", "1" );
-							$row.addClass( "clickable" );
-						  }
-						, language : {
-							  emptyTable     : i18n.translateResource( "cms:datatables.emptyTable", { data : [entity], defaultValue : "" } )
-							, info           : i18n.translateResource( "cms:datatables.info", { data : [entity], defaultValue : "" } )
-							, infoEmpty      : i18n.translateResource( "cms:datatables.infoEmpty", { data : [entity], defaultValue : "" } )
-							, infoFiltered   : i18n.translateResource( "cms:datatables.infoFiltered", { data : [entity], defaultValue : "" } )
-							, thousands      : i18n.translateResource( "cms:datatables.infoThousands", { data : [entity], defaultValue : "" } )
-							, lengthMenu     : i18n.translateResource( "cms:datatables.lengthMenu", { data : [entity], defaultValue : "" } )
-							, loadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [entity], defaultValue : "" } )
-							, processing     : i18n.translateResource( "cms:datatables.processing", { data : [entity], defaultValue : "" } )
-							, zeroRecords    : i18n.translateResource( "cms:datatables.zeroRecords", { data : [entity], defaultValue : "" } )
-							, search         : ""
-							, paginate : {
-								  first    : '<i class="fa fa-angle-double-left"></i>'
-								, previous : '<i class="fa fa-chevron-left"></i>'
-								, next     : '<i class="fa fa-chevron-right"></i>'
-								, last     : '<i class="fa fa-angle-double-right"></i>'
-							  }
-							, aria : {
-								paginate : {
-									  first    : i18n.translateResource( "cms:datatables.first", { data : [entity], defaultValue : "First" } )
-									, previous : i18n.translateResource( "cms:datatables.previous", { data : [entity], defaultValue : "Previous" } )
-									, next     : i18n.translateResource( "cms:datatables.next", { data : [entity], defaultValue : "Next" } )
-									, last     : i18n.translateResource( "cms:datatables.last", { data : [entity], defaultValue : "Last" } )
-								}
-							  }
-						  }
+					$table.dataTable( {
+						bServerSide    : true,
+						bProcessing    : false,
+						bFilter        : false,
+						bLengthChange  : false,
+						iDisplayLength : 4,
+						aoColumns      : colConfig,
+						sDom           : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+						sAjaxSource    : $table.data( "remote" ),
+						fnRowCallback : function( row ){
+							$row = $( row );
+							$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
+							$row.addClass( "clickable" ); // make work with clickable tr Preside system
+						},
+						oLanguage : {
+							oAria : {
+								sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
+								sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
+							},
+							oPaginate : {
+								sFirst : i18n.translateResource( "cms:datatables.first", { data : [entity], defaultValue : "" } ),
+								sLast : i18n.translateResource( "cms:datatables.last", { data : [entity], defaultValue : "" } ),
+								sNext : i18n.translateResource( "cms:datatables.next", { data : [entity], defaultValue : "" } ),
+								sPrevious : i18n.translateResource( "cms:datatables.previous", { data : [entity], defaultValue : "" } )
+							},
+							sEmptyTable : i18n.translateResource( "cms:datatables.emptyTable", { data : [entity], defaultValue : "" } ),
+							sInfo : i18n.translateResource( "cms:datatables.info", { data : [entity], defaultValue : "" } ),
+							sInfoEmpty : i18n.translateResource( "cms:datatables.infoEmpty", { data : [entity], defaultValue : "" } ),
+							sInfoFiltered : i18n.translateResource( "cms:datatables.infoFiltered", { data : [entity], defaultValue : "" } ),
+							sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [entity], defaultValue : "" } ),
+							sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [entity], defaultValue : "" } ),
+							sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [entity], defaultValue : "" } ),
+							sProcessing : i18n.translateResource( "cms:datatables.processing", { data : [entity], defaultValue : "" } ),
+							sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [entity], defaultValue : "" } ),
+							sSearch : '',
+							sUrl : '',
+							sInfoPostFix : ''
+						}
 					} );
 
 					$table.data( 'setupVersionTableUi', true );

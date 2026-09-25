@@ -1,6 +1,7 @@
 describe( 'Everything bar saved filters', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 		cy.visitObjectListing( 'my_extension_object' );
 		cy.openEverythingBar();
 	} );

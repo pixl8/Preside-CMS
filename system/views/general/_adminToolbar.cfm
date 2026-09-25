@@ -1,6 +1,7 @@
 <!---@feature admin and cms--->
 <cfscript>
 	if ( event.isAdminUser() ) {
+		modernDataTables = isLabEnabled( "datatablesOverhaul" );
 		prc.adminToolbarDisplayMode = prc.adminToolbarDisplayMode ?: getSystemSetting( "frontend-editing", "admin_toolbar_mode", "fixed" );
 		showToolBar = !getModel( "loginService" ).twoFactorAuthenticationRequired() && prc.adminToolbarDisplayMode neq "none";
 
@@ -16,9 +17,10 @@
 		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
 		prc.adminQuickEditDisabled    = prc.adminQuickEditDisabled    ?: isTrue( getSystemSetting( "frontend-editing", "disable_quick_edit" ) );
 		event.include( "/js/admin/presidecore/" );
+		event.include( modernDataTables ? "/js/admin/datatablesCoreModern/" : "/js/admin/datatablesCore/" );
 
 		if ( prc.hasCmsPageEditPermissions ) {
-			event.include( "/js/admin/frontend/" );
+			event.include( modernDataTables ? "/js/admin/frontendModern/" : "/js/admin/frontend/" );
 			event.includeData({
 				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
 				, adminBaseUrl = event.getAdminPath()
@@ -27,6 +29,9 @@
 
 		event.include( "i18n-resource-bundle" );
 		event.include( "/css/admin/core/" );
+		if ( modernDataTables ) {
+			event.include( "/css/admin/specific/datatablesModern/" );
+		}
 		event.include( "/css/admin/frontend/" );
 
 		toolbarUrl = event.buildAdminLink(

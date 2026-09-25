@@ -46,6 +46,7 @@ component {
 		__setupIgnoreFile();
 		__setupWebflow();
 		__loadConfigurationFromExtensions();
+		__setupLabs();
 		__setupLocaleSettings();
 	}
 
@@ -1026,6 +1027,7 @@ component {
 			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, draftManager                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "cfflow", "datamanager", "datamanagerWorkflow" ] }
+			, labs                            = { enabled=true,  siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 		};
 
 		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {
@@ -1072,6 +1074,39 @@ component {
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
 		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
 		settings.enum.timeFormatOptions           = [ "12h", "24h" ];
+		settings.enum.labPreference               = [ "default", "off", "on" ];
+	}
+
+	private void function __setupLabs() {
+		var experimentId    = "";
+		var experiment      = "";
+		var mode            = "";
+		var hasConfigurable = false;
+
+		settings.labs = settings.labs ?: {};
+		settings.labs.experiments = settings.labs.experiments ?: {};
+
+		if ( !StructKeyExists( settings.labs.experiments, "datatablesOverhaul" ) ) {
+			settings.labs.experiments.datatablesOverhaul = {
+				mode = settings.env.LABS_DATATABLES_OVERHAUL ?: "labsDefaultOff"
+			};
+		}
+
+		for( experimentId in settings.labs.experiments ) {
+			experiment = settings.labs.experiments[ experimentId ];
+			if ( IsStruct( experiment ) ) {
+				mode = experiment.mode ?: "labsDefaultOff";
+			} else {
+				mode = "labsDefaultOff";
+			}
+			if ( mode != "alwaysOn" ) {
+				hasConfigurable = true;
+				break;
+			}
+		}
+
+		settings.features.labs = settings.features.labs ?: { enabled=true, siteTemplates=[ "*" ], widgets=[], dependsOn=[ "admin" ] };
+		settings.features.labs.enabled = hasConfigurable;
 	}
 
 	private void function __setupFormValidationProviders() {

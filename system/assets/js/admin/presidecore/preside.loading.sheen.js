@@ -3,13 +3,8 @@
 	var showSheen, hideSheen;
 
 	showSheen = function( $container ){
-		var $sheen = $container.children( ".preside-loading-sheen" );
+		var $sheen = $( '<div class="preside-loading-sheen"></div>' );
 
-		if ( $sheen.length ) {
-			return;
-		}
-
-		$sheen = $( '<div class="preside-loading-sheen"></div>' );
 		$container.append( $sheen );
 		$sheen.hide();
 		$sheen.fadeIn( "fast" );

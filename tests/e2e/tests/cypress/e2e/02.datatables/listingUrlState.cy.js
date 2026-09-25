@@ -3,6 +3,7 @@ describe( 'Listing URL state', () => {
 
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 		cy.visitObjectListing( 'my_extension_object' );
 	} );
 

@@ -5,6 +5,7 @@
 	event.include( "/css/admin/core/" );
 	event.include( "/css/admin/specific/login/" );
 	event.include( "/js/admin/presidecore/" );
+	event.include( isLabEnabled( "datatablesOverhaul" ) ? "/js/admin/datatablesCoreModern/" : "/js/admin/datatablesCore/" );
 	event.include( "/js/admin/specific/login/" );
 	event.include( "i18n-resource-bundle" );
 

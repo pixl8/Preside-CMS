@@ -8,7 +8,7 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	grunt.loadNpmTasks( 'grunt-rev' );
 
-	grunt.registerTask( 'default', [ 'uglify:core', 'uglify:specific', 'uglify:frontend', 'less', 'cssmin', 'clean:frequentChangers', 'rev:frequentChangers', 'rename' ] );
+	grunt.registerTask( 'default', [ 'uglify:core', 'uglify:legacyDatatablesCore', 'uglify:modernDatatablesCore', 'uglify:specific', 'uglify:frontend', 'less', 'cssmin', 'clean:frequentChangers', 'rev:frequentChangers', 'rename' ] );
 	grunt.registerTask( 'all'    , [ 'uglify', 'less', 'cssmin', 'clean:all', 'rev:all', 'rename' ] );
 
 	grunt.initConfig( {
@@ -27,7 +27,6 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/i18n.js'
 					, 'js/admin/presidecore/preside.richeditor.js'
 					, 'js/admin/presidecore/preside.bootbox.modal.js'
-					, 'js/admin/presidecore/preside.iframe.modal.js'
 					, 'js/admin/presidecore/preside.asset.picker.js'
 					, 'js/admin/presidecore/preside.object.picker.js'
 					, 'js/admin/presidecore/preside.object.configurator.js'
@@ -38,13 +37,34 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/preside.clickable.tableRows.js'
 					, 'js/admin/presidecore/preside.confirmation.prompts.js'
 					, 'js/admin/presidecore/preside.hotkeys.js'
-					, 'js/admin/presidecore/preside.loading.sheen.js'
 					, 'js/admin/presidecore/preside.url.builder.js'
 					, 'js/admin/presidecore/preside.validation.defaults.js'
 					, 'js/admin/presidecore/*.js'
+					, '!js/admin/presidecore/datatables.resize.fix.js'
+					, '!js/admin/presidecore/preside.iframe.modal.js'
+					, '!js/admin/presidecore/preside.loading.sheen.js'
+					, '!js/admin/presidecore/preside.static.datatable.js'
 					, '!js/admin/presidecore/_*.min.js'
 				],
 				dest: 'js/admin/presidecore/_presidecore.min.js'
+			},
+			legacyDatatablesCore: {
+				src: [
+					  'js/admin/presidecore/datatables.resize.fix.js'
+					, 'js/admin/presidecore/preside.iframe.modal.js'
+					, 'js/admin/presidecore/preside.loading.sheen.js'
+					, 'js/admin/presidecore/preside.static.datatable.js'
+				],
+				dest: 'js/admin/datatablesCore/_datatablesCore.min.js'
+			},
+			modernDatatablesCore: {
+				src: [
+					  'js/admin/presidecoreModern/datatables.resize.fix.js'
+					, 'js/admin/presidecoreModern/preside.iframe.modal.js'
+					, 'js/admin/presidecoreModern/preside.loading.sheen.js'
+					, 'js/admin/presidecoreModern/preside.static.datatable.js'
+				],
+				dest: 'js/admin/datatablesCoreModern/_datatablesCoreModern.min.js'
 			},
 			specific:{
 				files: [{
@@ -77,16 +97,33 @@ module.exports = function( grunt ) {
 					dest: 'js/admin/frontend/_frontend.min.js'
 				},{
 					  src  : [
-					  	"js/admin/lib/plugins/jquery.dataTables.js", // must come first
-					  	"js/admin/lib/plugins/jquery.moment.js", // must come first
-					  	"js/admin/lib/plugins/jquery.dataTables.dateTime.js",
-					  	"js/admin/lib/plugins/jquery.dataTables.colReorder.js",
-					  	"js/admin/lib/plugins/jquery.dataTables.columnControl.js",
-					  	"js/admin/lib/plugins/jquery.dataTables.bootstrap.js",
-					  	"js/admin/lib/plugins/jquery.dataTables.columnControlBootstrap.js",
-					  	"js/admin/lib/plugins/*.js"
+						"js/admin/lib/plugins/jquery.moment.js",
+						"js/admin/lib/plugins/*.js",
+						"!js/admin/lib/plugins/jquery.dataTables*.js"
 					  ]
-					, dest : "js/admin/lib/plugins-3.0.002.min.js"
+					, dest : "js/admin/lib/plugins-1.8.004.min.js"
+				},{
+					  src  : [
+						"js/admin/lib/plugins/jquery.dataTables.js",
+						"js/admin/lib/plugins/jquery.dataTables.bootstrap.js",
+						"js/admin/lib/plugins/jquery.dataTables.filterDelay.js"
+					  ]
+					, dest : "js/admin/lib/datatables-1.9.4.min.js"
+				},{
+					  src  : [
+						"js/admin/lib/pluginsModern/jquery.dataTables.js",
+						"js/admin/lib/pluginsModern/jquery.dataTables.dateTime.js",
+						"js/admin/lib/pluginsModern/jquery.dataTables.colReorder.js",
+						"js/admin/lib/pluginsModern/jquery.dataTables.columnControl.js",
+						"js/admin/lib/pluginsModern/jquery.dataTables.bootstrap.js",
+						"js/admin/lib/pluginsModern/jquery.dataTables.columnControlBootstrap.js",
+						"js/admin/lib/pluginsModern/jquery.dataTables.filterDelay.js",
+						"js/admin/lib/pluginsModern/jquery.dataTables.preside.adapter.js"
+					  ]
+					, dest : "js/admin/lib/datatables-3.0.4.min.js"
+				},{
+					  src  : ["js/admin/frontendModern/*.js", "!js/admin/frontendModern/*.min.js" ]
+					, dest : "js/admin/frontendModern/_frontendModern.min.js"
 				},{
 					  src  : ["js/admin/lib/ace/ace.js", "js/admin/lib/ace/ace-elements.js"]
 					, dest : "js/admin/lib/ace-1.0.0.min.js"
@@ -183,7 +220,7 @@ module.exports = function( grunt ) {
 		clean: {
 			frequentChangers : {
 				files : [{
-					  src    : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js", "js/frontend/**/_*.min.js" ]
+					  src    : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js", "js/admin/datatablesCore/_*.min.js", "js/admin/datatablesCoreModern/_*.min.js", "js/frontend/**/_*.min.js" ]
 					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}, {
 					  src    : [ "css/admin/**/_*.min.css", "css/frontend/**/_*.min.css" ]
@@ -208,7 +245,7 @@ module.exports = function( grunt ) {
 			},
 			frequentChangers: {
 				files : [
-					  { src : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js", "js/frontend/**/_*.min.js" ]  }
+					  { src : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js", "js/admin/datatablesCore/_*.min.js", "js/admin/datatablesCoreModern/_*.min.js", "js/frontend/**/_*.min.js" ]  }
 					, { src : "css/**/**/_*.min.css" }
 				]
 			},
@@ -238,7 +275,7 @@ module.exports = function( grunt ) {
 
 		watch: {
 			frequentChangers: {
-				files : [ "css/**/**/*.less", "css/**/**/*.css", "js/admin/presidecore/*.js", "js/admin/specific/**/*.js", "js/frontend/**/*.js", "!css/**/**/*.min.css", "!js/**/*.min.js" ],
+				files : [ "css/**/**/*.less", "css/**/**/*.css", "js/admin/presidecore/*.js", "js/admin/presidecoreModern/*.js", "js/admin/specific/**/*.js", "js/frontend/**/*.js", "!css/**/**/*.min.css", "!js/**/*.min.js" ],
 				tasks : [ "default" ]
 			}
 		}

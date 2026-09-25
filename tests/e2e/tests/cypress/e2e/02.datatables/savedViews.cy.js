@@ -1,6 +1,7 @@
 describe( 'Saved listing views', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 		cy.visit( '/admin/' );
 		cy.clearListingViews();
 	} );

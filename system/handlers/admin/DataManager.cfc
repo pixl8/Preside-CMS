@@ -173,54 +173,15 @@ component extends="preside.system.base.AdminHandler" {
 				args.exportFilterString &= ( Len( args.exportFilterString ) ? "&" : "" ) & "activeCategoryId=#rc.activeCategoryId#";
 			}
 
-			args.allowColumnPicker    = IsTrue( args.allowColumnPicker ?: !IsTrue( args.compact ?: false ) );
-			args.allowColumnFilter    = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ?: false ) );
-			args.listingPreferenceKey = args.listingPreferenceKey ?: objectName;
+			var listingLabEnabled = isLabEnabled( "datatablesOverhaul" );
 
-			if ( !Len( Trim( args.datasourceUrl ?: "" ) ) ) {
-				args.datasourceUrl = event.buildAdminLink(
-					  objectName = objectName
-					, operation  = "ajaxListing"
-					, args       = {
-						  useMultiActions = IsTrue( args.useMultiActions ?: false )
-						, isMultilingual  = IsTrue( args.isMultilingual  ?: false )
-						, draftsEnabled   = IsTrue( args.draftsEnabled   ?: false )
-						, noActions       = IsTrue( args.noActions       ?: false )
-					  }
-				);
-			}
-
-			var listingContext = dataListingPreferencesService.resolveListingContext(
-				  listingContextKey   = args.listingContextKey   ?: ""
-				, listingContextLabel = args.listingContextLabel ?: ""
-				, datasourceUrl       = args.datasourceUrl
-			);
-			args.listingContextLabel = listingContext.label;
-
-			var savedViewArgs = {
-				  objectName        = objectName
-				, allowColumnPicker = args.allowColumnPicker
-				, compact           = IsTrue( args.compact ?: false )
-			};
-			if ( StructKeyExists( args, "allowSavedViews" ) ) {
-				savedViewArgs.allowSavedViews = args.allowSavedViews;
-			}
-			args.allowSavedViews = dataListingPreferencesService.listingAllowsSavedViews( argumentCollection=savedViewArgs );
-			args.canShareViews = args.allowSavedViews && _checkPermission( argumentCollection=arguments, object=objectName, key="sharelistingviews", throwOnError=false );
-
-			if ( args.allowColumnPicker ) {
-				var extraFields = Duplicate( args.gridFields );
-				ArrayAppend( extraFields, args.hiddenGridFields ?: [], true );
-
-				args.gridFields = dataListingPreferencesService.applyUserColumns(
-					  objectName    = objectName
-					, listingKey    = args.listingPreferenceKey
-					, contextKey    = listingContext.key
-					, defaultFields = args.gridFields
-					, available     = dataListingPreferencesService.listAvailableColumns(
-						  objectName  = objectName
-						, extraFields = extraFields
-					  )
+			if ( listingLabEnabled ) {
+				_prepareModernObjectListingArgs(
+					  event      = event
+					, rc         = rc
+					, prc        = prc
+					, args       = args
+					, objectName = objectName
 				);
 			}
 
@@ -231,7 +192,11 @@ component extends="preside.system.base.AdminHandler" {
 				, args           = args
 			);
 
-			listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
+			if ( listingLabEnabled ) {
+				listing = renderView( view="/admin/datamanager/_objectDataTableModern", args=args );
+			} else {
+				listing = renderView( view="/admin/datamanager/_objectDataTable", args=args );
+			}
 		}
 
 		if ( args.usesTreeView && !args.treeOnly ) {
@@ -240,6 +205,72 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		return listing;
+	}
+
+	private void function _prepareModernObjectListingArgs(
+		  required any    event
+		, required struct rc
+		, required struct prc
+		, required struct args
+		, required string objectName
+	) {
+		args.allowColumnPicker    = IsTrue( args.allowColumnPicker ?: !IsTrue( args.compact ?: false ) );
+		args.allowColumnFilter    = IsTrue( args.allowColumnFilter ?: !IsTrue( args.compact ?: false ) );
+		args.listingPreferenceKey = args.listingPreferenceKey ?: arguments.objectName;
+
+		if ( !Len( Trim( args.datasourceUrl ?: "" ) ) ) {
+			args.datasourceUrl = event.buildAdminLink(
+				  objectName = arguments.objectName
+				, operation  = "ajaxListing"
+				, args       = {
+					  useMultiActions = IsTrue( args.useMultiActions ?: false )
+					, isMultilingual  = IsTrue( args.isMultilingual  ?: false )
+					, draftsEnabled   = IsTrue( args.draftsEnabled   ?: false )
+					, noActions       = IsTrue( args.noActions       ?: false )
+				  }
+			);
+		}
+
+		var listingContext = dataListingPreferencesService.resolveListingContext(
+			  listingContextKey   = args.listingContextKey   ?: ""
+			, listingContextLabel = args.listingContextLabel ?: ""
+			, datasourceUrl       = args.datasourceUrl
+		);
+		args.listingContextLabel = listingContext.label;
+
+		var savedViewArgs = {
+			  objectName        = arguments.objectName
+			, allowColumnPicker = args.allowColumnPicker
+			, compact           = IsTrue( args.compact ?: false )
+		};
+		if ( StructKeyExists( args, "allowSavedViews" ) ) {
+			savedViewArgs.allowSavedViews = args.allowSavedViews;
+		}
+		args.allowSavedViews = dataListingPreferencesService.listingAllowsSavedViews( argumentCollection=savedViewArgs );
+		args.canShareViews = args.allowSavedViews && _checkPermission(
+			  event        = event
+			, rc           = rc
+			, prc          = prc
+			, object       = arguments.objectName
+			, key          = "sharelistingviews"
+			, throwOnError = false
+		);
+
+		if ( args.allowColumnPicker ) {
+			var extraFields = Duplicate( args.gridFields );
+			ArrayAppend( extraFields, args.hiddenGridFields ?: [], true );
+
+			args.gridFields = dataListingPreferencesService.applyUserColumns(
+				  objectName    = arguments.objectName
+				, listingKey    = args.listingPreferenceKey
+				, contextKey    = listingContext.key
+				, defaultFields = args.gridFields
+				, available     = dataListingPreferencesService.listAvailableColumns(
+					  objectName  = arguments.objectName
+					, extraFields = extraFields
+				  )
+			);
+		}
 	}
 
 	private string function _listingMultiActions( event, rc, prc, args={} ) {
@@ -1276,6 +1307,10 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function saveListingColumns( event, rc, prc ) {
 		var objectName = rc.object ?: ( prc.objectName ?: "" );
+
+		if ( !isLabEnabled( "datatablesOverhaul" ) ) {
+			event.adminAccessDenied();
+		}
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName, throwOnError=true );
 
@@ -3817,6 +3852,10 @@ component extends="preside.system.base.AdminHandler" {
 	) {
 		_checkPermission( argumentCollection=arguments, key="read", object=arguments.objectName, throwOnError=true );
 
+		if ( !isLabEnabled( "datatablesOverhaul" ) ) {
+			event.adminAccessDenied();
+		}
+
 		if ( !Len( Trim( arguments.objectName ) ) || !dataListingPreferencesService.listingAllowsSavedViews(
 			  objectName        = arguments.objectName
 			, allowColumnPicker = true
@@ -4598,8 +4637,13 @@ component extends="preside.system.base.AdminHandler" {
 // private utility methods
 	private struct function _getAjaxListingGridFieldAccess( required string objectName ) {
 		var collection = getRequestContext().getCollection();
-		var listingKey = Len( Trim( collection.listingKey ?: "" ) ) ? collection.listingKey : arguments.objectName;
 		var requested  = ListToArray( Len( Trim( form.gridFields ?: "" ) ) ? form.gridFields : ( collection.gridFields ?: "" ) );
+
+		if ( !isLabEnabled( "datatablesOverhaul" ) ) {
+			return _legacyAjaxListingGridFieldAccess( objectName=arguments.objectName, requestedFields=requested );
+		}
+
+		var listingKey = Len( Trim( collection.listingKey ?: "" ) ) ? collection.listingKey : arguments.objectName;
 		var granted    = ListToArray( form.grantedGridFields ?: ( collection.grantedGridFields ?: "" ) );
 		var sig        = form.grantedGridFieldsSig ?: ( collection.grantedGridFieldsSig ?: "" );
 		var allowed    = dataListingPreferencesService.getGrantedListingColumns(
@@ -4616,6 +4660,19 @@ component extends="preside.system.base.AdminHandler" {
 				, grantedColumns  = allowed
 				, defaultFields   = dataListingPreferencesService.listDefaultColumns( arguments.objectName )
 			  )
+		};
+	}
+
+	private struct function _legacyAjaxListingGridFieldAccess( required string objectName, required array requestedFields ) {
+		var gridFields = Duplicate( arguments.requestedFields );
+
+		if ( !ArrayLen( gridFields ) ) {
+			gridFields = _getObjectFieldsForGrid( arguments.objectName );
+		}
+
+		return {
+			  allowed    = []
+			, gridFields = gridFields
 		};
 	}
 
@@ -4639,11 +4696,15 @@ component extends="preside.system.base.AdminHandler" {
 		var gridFields = dataManagerService.listGridFields( arguments.objectName );
 
 		if ( Len( rc.gridFields ?: "" ) ) {
-			gridFields = dataListingPreferencesService.filterRequestedGridFields(
-				  requestedFields = ListToArray( rc.gridFields )
-				, grantedColumns  = dataListingPreferencesService.listAvailableColumns( arguments.objectName )
-				, defaultFields   = gridFields
-			);
+			if ( isLabEnabled( "datatablesOverhaul" ) ) {
+				gridFields = dataListingPreferencesService.filterRequestedGridFields(
+					  requestedFields = ListToArray( rc.gridFields )
+					, grantedColumns  = dataListingPreferencesService.listAvailableColumns( arguments.objectName )
+					, defaultFields   = gridFields
+				);
+			} else {
+				return ListToArray( rc.gridFields );
+			}
 		}
 
 		if ( !draftManagerService.checkManagerEnabled( objectName=arguments.objectName ) ) {
@@ -4662,11 +4723,27 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function _getObjectCenterAlignFields( required string objectName ) {
-		return dataManagerService.listCenterAlignFields( arguments.objectName );
+		if ( isLabEnabled( "datatablesOverhaul" ) ) {
+			return dataManagerService.listCenterAlignFields( arguments.objectName );
+		}
+
+		return ListToArray( presideObjectService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerCenterAlignFields"
+			, defaultValue  = ""
+		) );
 	}
 
 	private array function _getObjectRightAlignFields( required string objectName ) {
-		return dataManagerService.listRightAlignFields( arguments.objectName );
+		if ( isLabEnabled( "datatablesOverhaul" ) ) {
+			return dataManagerService.listRightAlignFields( arguments.objectName );
+		}
+
+		return ListToArray( presideObjectService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerRightAlignFields"
+			, defaultValue  = ""
+		) );
 	}
 
 	public string function _getObjectListingCategoryField( required string objectName ) {

@@ -30,6 +30,7 @@ const runAskFilter = ( query ) => {
 describe( 'Everything bar custom query actions', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 		cy.visitObjectListing( 'my_extension_object' );
 	} );
 
