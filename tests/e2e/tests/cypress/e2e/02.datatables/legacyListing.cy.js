@@ -38,6 +38,19 @@ describe( 'Legacy listing when Labs is off', () => {
 		cy.get( '.object-listing-table tbody' ).should( 'not.contain.text', 'E2E Beta 01' );
 	} );
 
+	it( 'does not trigger a global hotkey when a search input loses focus during typing', () => {
+		cy.get( '.data-table-search' ).then( ( $search ) => {
+			cy.wrap( $search ).focus().blur().trigger( 'keydown', {
+				  key     : 'a'
+				, keyCode : 65
+				, which   : 65
+			} );
+		} );
+
+		cy.url().should( 'not.include', '/addRecord/' );
+		cy.get( '.object-listing-table' ).should( 'be.visible' );
+	} );
+
 	it( 'paginates and sorts with the stable controls', () => {
 		cy.get( '.object-listing-table tbody tr' ).should( 'have.length', 10 );
 		cy.get( '.dataTables_paginate .next:not(.disabled) a' ).first().click();
