@@ -67,29 +67,46 @@ component {
 		var objectNames        = poService.listObjects();
 		var groups             = {};
 		var groupedObjects     = [];
-		var groupedObjectIds   = [];
-		var extraEntries       = [];
+		var extraGroupId       = "";
+
+		for( var objectName in arguments.extraObjects ) {
+			if ( Len( Trim( objectName ) ) && poService.objectExists( objectName ) && !objectNames.findNoCase( objectName ) ) {
+				objectNames.append( objectName );
+			}
+		}
 
 		for( var objectName in objectNames ){
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
 			var siteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" ) : "";
 			var isInActiveTemplate = !useSites || siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
+			var isExtraObject      = arguments.extraObjects.findNoCase( objectName );
 
-			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
+			if ( isInActiveTemplate && ( Len( Trim( groupId ) ) || isExtraObject ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
+				if ( !Len( Trim( groupId ) ) ) {
+					groupId = extraGroupId;
+				}
 				if ( !StructKeyExists( groups, groupId ) ) {
-					groups[ groupId ] = {
-						  title       = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:title" )
-						, description = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:description" )
-						, icon        = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:iconclass" )
-						, objects     = []
-					};
+					if ( groupId == extraGroupId ) {
+						groups[ groupId ] = {
+							  title       = ""
+							, description = ""
+							, icon        = ""
+							, objects     = []
+						};
+					} else {
+						groups[ groupId ] = {
+							  title       = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:title" )
+							, description = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:description" )
+							, icon        = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:iconclass" )
+							, objects     = []
+						};
+					}
 				}
 				groups[ groupId ].objects.append( {
 					  id        = objectName
 					, title     = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
 					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-database" )
 				} );
-				groupedObjectIds.append( objectName );
 			}
 		}
 
@@ -97,41 +114,17 @@ component {
 			groups[ group ].objects.sort( function( obj1, obj2 ){
 				return obj1.title > obj2.title ? 1 : -1;
 			} );
-			ArrayAppend( groupedObjects, groups[ group ] );
+			if ( group != extraGroupId ) {
+				ArrayAppend( groupedObjects, groups[ group ] );
+			}
 		}
 
 		groupedObjects.sort( function( group1, group2 ){
 			return group1.title > group2.title ? 1 : -1;
 		} );
 
-		for( var objectName in arguments.extraObjects ) {
-			if ( !Len( Trim( objectName ) ) || groupedObjectIds.findNoCase( objectName ) || !poService.objectExists( objectName ) ) {
-				continue;
-			}
-
-			var extraSiteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates", defaultValue="*" ) : "";
-			var extraIsInActiveTemplate = !useSites || extraSiteTemplates == "*" || ListFindNoCase( extraSiteTemplates, activeSiteTemplate );
-
-			if ( extraIsInActiveTemplate && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
-				extraEntries.append( {
-					  id        = objectName
-					, title     = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
-					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-database" )
-				} );
-				groupedObjectIds.append( objectName );
-			}
-		}
-
-		if ( extraEntries.len() ) {
-			extraEntries.sort( function( obj1, obj2 ){
-				return obj1.title > obj2.title ? 1 : -1;
-			} );
-			groupedObjects.append( {
-				  title       = ""
-				, description = ""
-				, icon        = ""
-				, objects     = extraEntries
-			} );
+		if ( StructKeyExists( groups, extraGroupId ) ) {
+			ArrayAppend( groupedObjects, groups[ extraGroupId ] );
 		}
 
 		return groupedObjects;
