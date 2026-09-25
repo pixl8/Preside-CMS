@@ -210,6 +210,10 @@ Cypress.Commands.add( 'saveListingViewAs', ( name ) => {
 Cypress.Commands.add( 'setListingLabPreference', ( value ) => {
 	cy.visit( '/admin/editProfile/labs/' );
 	cy.get( `input[name="datatablesOverhaul"][value="${ value }"]` ).check( { force : true } );
+
+	cy.intercept( 'GET', /editProfile\/labs/ ).as( 'labsReloaded' );
 	cy.get( 'form.edit-object-form button[type=submit]' ).click();
-	cy.contains( 'Your Labs preferences have been updated' );
+	cy.wait( '@labsReloaded' );
+
+	cy.get( `input[name="datatablesOverhaul"][value="${ value }"]` ).should( 'be.checked' );
 } );
