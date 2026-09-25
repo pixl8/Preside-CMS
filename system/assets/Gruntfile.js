@@ -41,8 +41,6 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/preside.validation.defaults.js'
 					, 'js/admin/presidecore/*.js'
 					, '!js/admin/presidecore/datatables.resize.fix.js'
-					, '!js/admin/presidecore/preside.iframe.modal.js'
-					, '!js/admin/presidecore/preside.loading.sheen.js'
 					, '!js/admin/presidecore/preside.static.datatable.js'
 					, '!js/admin/presidecore/_*.min.js'
 				],
@@ -51,8 +49,6 @@ module.exports = function( grunt ) {
 			legacyDatatablesCore: {
 				src: [
 					  'js/admin/presidecore/datatables.resize.fix.js'
-					, 'js/admin/presidecore/preside.iframe.modal.js'
-					, 'js/admin/presidecore/preside.loading.sheen.js'
 					, 'js/admin/presidecore/preside.static.datatable.js'
 				],
 				dest: 'js/admin/datatablesCore/_datatablesCore.min.js'
@@ -60,8 +56,6 @@ module.exports = function( grunt ) {
 			modernDatatablesCore: {
 				src: [
 					  'js/admin/presidecoreModern/datatables.resize.fix.js'
-					, 'js/admin/presidecoreModern/preside.iframe.modal.js'
-					, 'js/admin/presidecoreModern/preside.loading.sheen.js'
 					, 'js/admin/presidecoreModern/preside.static.datatable.js'
 				],
 				dest: 'js/admin/datatablesCoreModern/_datatablesCoreModern.min.js'

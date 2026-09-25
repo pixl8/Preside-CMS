@@ -17,9 +17,9 @@
 		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
 		prc.adminQuickEditDisabled    = prc.adminQuickEditDisabled    ?: isTrue( getSystemSetting( "frontend-editing", "disable_quick_edit" ) );
 		event.include( "/js/admin/presidecore/" );
-		event.include( modernDataTables ? "/js/admin/datatablesCoreModern/" : "/js/admin/datatablesCore/" );
 
 		if ( prc.hasCmsPageEditPermissions ) {
+			event.include( modernDataTables ? "/js/admin/datatablesCoreModern/" : "/js/admin/datatablesCore/" );
 			event.include( modernDataTables ? "/js/admin/frontendModern/" : "/js/admin/frontend/" );
 			event.includeData({
 				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
