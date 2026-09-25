@@ -7,7 +7,7 @@ component {
 
 	public string function index( event, rc, prc, args={} ) {
 		var groupedObjects = dataManagerService.getGroupedObjects();
-		var objectNames    = presideObjectService.listObjects();
+		var extraObjects   = getSetting( name="extraObjectsDataManagerPicker", defaultValue=[] );
 
 		args.values = [ "" ]; // show the default values as empty
 		args.labels = [ "" ]; // show the default labels as empty
@@ -19,14 +19,8 @@ component {
 			}
 		}
 
-		for ( var objectName in objectNames ) {
-			var pickerEnabled = presideObjectService.getObjectAttribute(
-				  objectName    = objectName
-				, attributeName = "dataManagerObjectPickerEnabled"
-				, defaultValue  = false
-			);
-
-			if ( IsTrue( pickerEnabled ) && !args.values.findNoCase( objectName ) && hasCmsPermission(
+		for ( var objectName in extraObjects ) {
+			if ( presideObjectService.objectExists( objectName ) && !args.values.findNoCase( objectName ) && hasCmsPermission(
 				  permissionKey = "datamanager.navigate"
 				, context       = "datamanager"
 				, contextKeys   = [ objectName ]
