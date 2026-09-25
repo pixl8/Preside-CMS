@@ -104,6 +104,51 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( groups ).toBe( expected );
 			} );
+
+			it( "should include extra objects that are not in a data manager group", function(){
+				var dataManagerService = _getService();
+				var expected = [
+					  { title="Another group", description="Another description", icon="another-icon-class", objects=[
+						  { id="object4", title="Object 4", iconClass="fa-object-4" }
+					  ] }
+					, { title="Some group", description="Some description", icon="an-icon-class", objects=[
+						  { id="object1", title="Object 1", iconClass="fa-object-1" }
+						, { id="object2", title="Object 2", iconClass="fa-object-2" }
+					  ] }
+					, { title="", description="", icon="", objects=[
+						  { id="object3", title="Object 3", iconClass="fa-object-3" }
+					  ] }
+				];
+				var groups = "";
+
+				mockPermissionService.$( "hasPermission", true );
+				mockPoService.$( "objectExists" ).$args( "object3" ).$results( true );
+
+				groups = dataManagerService.getGroupedObjects( extraObjects=[ "object3" ] );
+
+				expect( groups ).toBe( expected );
+			} );
+
+			it( "should not duplicate extra objects that already belong to a group", function(){
+				var dataManagerService = _getService();
+				var expected = [
+					  { title="Another group", description="Another description", icon="another-icon-class", objects=[
+						  { id="object4", title="Object 4", iconClass="fa-object-4" }
+					  ] }
+					, { title="Some group", description="Some description", icon="an-icon-class", objects=[
+						  { id="object1", title="Object 1", iconClass="fa-object-1" }
+						, { id="object2", title="Object 2", iconClass="fa-object-2" }
+					  ] }
+				];
+				var groups = "";
+
+				mockPermissionService.$( "hasPermission", true );
+				mockPoService.$( "objectExists" ).$args( "object1" ).$results( true );
+
+				groups = dataManagerService.getGroupedObjects( extraObjects=[ "object1" ] );
+
+				expect( groups ).toBe( expected );
+			} );
 		} );
 
 		describe( "isObjectAvailableInDataManager()", function(){

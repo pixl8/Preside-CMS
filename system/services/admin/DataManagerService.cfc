@@ -58,7 +58,7 @@ component {
 	}
 
 // PUBLIC METHODS
-	public array function getGroupedObjects() {
+	public array function getGroupedObjects( array extraObjects=[] ) {
 		var poService          = _getPresideObjectService();
 		var permsService       = _getPermissionService();
 		var useSites           = $isFeatureEnabled( "sites" );
@@ -67,6 +67,8 @@ component {
 		var objectNames        = poService.listObjects();
 		var groups             = {};
 		var groupedObjects     = [];
+		var groupedObjectIds   = [];
+		var extraEntries       = [];
 
 		for( var objectName in objectNames ){
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
@@ -87,6 +89,7 @@ component {
 					, title     = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
 					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-database" )
 				} );
+				groupedObjectIds.append( objectName );
 			}
 		}
 
@@ -100,6 +103,36 @@ component {
 		groupedObjects.sort( function( group1, group2 ){
 			return group1.title > group2.title ? 1 : -1;
 		} );
+
+		for( var objectName in arguments.extraObjects ) {
+			if ( !Len( Trim( objectName ) ) || groupedObjectIds.findNoCase( objectName ) || !poService.objectExists( objectName ) ) {
+				continue;
+			}
+
+			var extraSiteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates", defaultValue="*" ) : "";
+			var extraIsInActiveTemplate = !useSites || extraSiteTemplates == "*" || ListFindNoCase( extraSiteTemplates, activeSiteTemplate );
+
+			if ( extraIsInActiveTemplate && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
+				extraEntries.append( {
+					  id        = objectName
+					, title     = i18nPlugin.translateResource( uri="preside-objects.#objectName#:title" )
+					, iconClass = i18nPlugin.translateResource( uri="preside-objects.#objectName#:iconClass", defaultValue="fa-database" )
+				} );
+				groupedObjectIds.append( objectName );
+			}
+		}
+
+		if ( extraEntries.len() ) {
+			extraEntries.sort( function( obj1, obj2 ){
+				return obj1.title > obj2.title ? 1 : -1;
+			} );
+			groupedObjects.append( {
+				  title       = ""
+				, description = ""
+				, icon        = ""
+				, objects     = extraEntries
+			} );
+		}
 
 		return groupedObjects;
 
