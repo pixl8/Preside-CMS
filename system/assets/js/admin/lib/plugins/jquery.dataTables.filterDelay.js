@@ -1,17 +1,31 @@
 ( function( $ ){
-	var ext = $.fn.dataTableExt || ( $.fn.dataTable && $.fn.dataTable.ext );
+	$.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( settings, iDelay ) {
+		var $dt = this;
 
-	if ( !ext ) {
-		return;
-	}
-	ext.oApi = ext.oApi || {};
-	ext.oApi.fnSetFilteringDelay = function() {
-		return this;
-	};
+		iDelay = iDelay || 250;
 
-	if ( $.fn.dataTable && $.fn.dataTable.Api ) {
-		$.fn.dataTable.Api.register( "fnSetFilteringDelay()", function() {
-			return this;
+		return this.each( function ( i ) {
+			$.fn.dataTableExt.iApiIndex = i;
+			var $filterContainer = $dt.fnSettings().aanFeatures.f;
+
+			if ( ( typeof $filterContainer !== "undefined" ) && $filterContainer.length ) {
+				var $searchBox      = $( 'input', $filterContainer )
+				  , oTimerId        = null
+				  , sPreviousSearch = $searchBox.val();
+
+
+				$searchBox.unbind( 'keyup' ).bind( 'keyup', function() {
+					if ( sPreviousSearch === null || sPreviousSearch != $searchBox.val() ) {
+						sPreviousSearch = $searchBox.val();
+
+						window.clearTimeout( oTimerId );
+						oTimerId = window.setTimeout( function() {
+							$.fn.dataTableExt.iApiIndex = i;
+							$dt.fnFilter( $searchBox.val() );
+						}, iDelay );
+					}
+				});
+			}
 		} );
-	}
+	};
 } )( presideJQuery );

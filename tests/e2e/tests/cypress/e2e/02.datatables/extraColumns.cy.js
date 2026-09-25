@@ -1,6 +1,7 @@
 describe( 'Application extra listing columns', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 	} );
 
 	it( 'keeps non-default columns out of the listing but available in the picker', () => {

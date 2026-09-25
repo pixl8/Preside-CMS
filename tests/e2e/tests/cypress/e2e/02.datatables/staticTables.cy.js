@@ -1,6 +1,7 @@
 describe( 'Static DataTables', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 		cy.visit( '/admin/emailcenter/systemtemplates/' );
 	} );
 

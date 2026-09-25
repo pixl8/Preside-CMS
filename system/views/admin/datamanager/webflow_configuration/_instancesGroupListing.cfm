@@ -6,8 +6,8 @@
 	webflowId      = groupingConfig.webflowId   ?: "";
 	groupedRefs    = groupingConfig.groupedRefs ?: QueryNew( "" );
 
-	event.include( "/js/admin/specific/datamanager/object/");
-	event.include( "/css/admin/specific/datamanager/object/");
+	event.include( isLabEnabled( "datatablesOverhaul" ) ? "/js/admin/specific/datamanager/objectModern/" : "/js/admin/specific/datamanager/object/" );
+	event.include( isLabEnabled( "datatablesOverhaul" ) ? "/css/admin/specific/datamanager/objectModern/" : "/css/admin/specific/datamanager/object/" );
 	event.includeData( {
 		  useMultiActions     = false
 		, allowSearch         = false
