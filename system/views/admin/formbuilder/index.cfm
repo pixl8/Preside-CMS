@@ -20,7 +20,7 @@
 		</div>
 	</cfif>
 
-	#renderView( view="/admin/datamanager/_objectDataTable", args={
+	#renderView( view=getObjectDataTableView(), args={
 		  objectName      = "formbuilder_form"
 		, gridFields      = [ "name", "description", "locked", "active", "active_from", "active_to", "datemodified" ]
 		, datasourceUrl   = event.buildAdminLink( "formbuilder.getFormsForAjaxDataTables" )

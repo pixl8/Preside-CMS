@@ -18,7 +18,7 @@
 		</cfif>
 	</div>
 
-	#renderView( view="/admin/datamanager/_objectDataTable", args={
+	#renderView( view=getObjectDataTableView(), args={
 		  objectName      = objectName
 		, useMultiActions = true
 		, multiActionUrl  = event.buildAdminLink( linkTo='urlRedirects.deleteRuleAction' )

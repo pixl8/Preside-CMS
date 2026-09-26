@@ -37,19 +37,19 @@
 
 	registerHotkeys = function(){
 		$('body')
-				.keydown( 'g'     , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleGotoMode( e );   } } )
-				.keyup  ( '/'     , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { focusInSearchBox( e ); } } )
+				.keydown( 'g'     , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { toggleGotoMode( e );   } } )
+				.keyup  ( '/'     , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { focusInSearchBox( e ); } } )
 				.keydown( 'esc'   , escapeFeatures )
-				.keydown( 'comma' , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
-				.keydown( 'period', function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
-				.keydown( 't'     , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { switchUiTabs( e );     } } )
-				.keydown( 'up'    , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'up'    ); } } )
-				.keydown( 'down'  , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'down'  ); } } )
-				.keydown( 'left'  , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'left'  ); } } )
-				.keydown( 'right' , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'right' ); } } )
+				.keydown( 'comma' , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
+				.keydown( 'period', function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
+				.keydown( 't'     , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { switchUiTabs( e );     } } )
+				.keydown( 'up'    , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { processArrows( e, 'up'    ); } } )
+				.keydown( 'down'  , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { processArrows( e, 'down'  ); } } )
+				.keydown( 'left'  , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { processArrows( e, 'left'  ); } } )
+				.keydown( 'right' , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { processArrows( e, 'right' ); } } )
 				.keypress( function( e ){
 					if ( e.which === devConsoleToggleKey ){
-						if ( !userIsTyping() || ( userIsTyping() && terminalIsActive() ) ) {
+						if ( !userIsTyping( e.target ) || ( userIsTyping( e.target ) && terminalIsActive() ) ) {
 							toggleTerminal(e) ;
 						}
 					}
@@ -236,7 +236,7 @@
 		  , $container
 		  , $target;
 
-		if ( userIsTyping() || isModifierPressed( e ) ) {
+		if ( userIsTyping( e.target ) || isModifierPressed( e ) ) {
 			if ( e.keyCode === 27 ) { // escape key
 				if ( terminalIsActive() ) {
 					disableTerminal();
@@ -334,8 +334,8 @@
 		}
 	};
 
-	userIsTyping = function(){
-		var $focused = $(':focus')
+	userIsTyping = function( eventTarget ){
+		var $focused = eventTarget ? $( eventTarget ) : $(':focus')
 
 		if ( terminalIsActive() ) {
 			return true;

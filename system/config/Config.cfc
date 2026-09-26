@@ -46,6 +46,7 @@ component {
 		__setupIgnoreFile();
 		__setupWebflow();
 		__loadConfigurationFromExtensions();
+		__setupLabs();
 		__setupLocaleSettings();
 	}
 
@@ -707,7 +708,7 @@ component {
 			  cms                    = [ "access" ]
 			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches", "clone" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
-			, datamanager            = [ "navigate", "read", "add", "edit","batchedit", "delete", "batchdelete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft", "clone", "usefilters", "managefilters" ]
+			, datamanager            = [ "navigate", "read", "add", "edit","batchedit", "delete", "batchdelete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft", "clone", "usefilters", "managefilters", "sharelistingviews" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
 			, passwordPolicyManager  = [ "manage" ]
@@ -891,6 +892,7 @@ component {
 		settings.dataManager.defaults = {};
 		settings.dataManager.defaults.typeToConfirmDelete      = false;
 		settings.dataManager.defaults.typeToConfirmBatchDelete = true;
+		settings.dataManager.defaults.columnPickerFields       = "auto";
 		settings.dataManager.defaults.datatable = {}
 		settings.dataManager.defaults.datatable.paginationOptions = [ 5, 10, 25, 50, 100 ];
 		settings.dataManager.defaults.datatable.defaultPageLength = 10;
@@ -1025,6 +1027,7 @@ component {
 			, "devtools.new"                  = { enabled=false, siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, draftManager                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "cfflow", "datamanager", "datamanagerWorkflow" ] }
+			, labs                            = { enabled=true,  siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 		};
 
 		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {
@@ -1057,6 +1060,8 @@ component {
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed", "cancelled" ];
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
+		settings.enum.listingViewSharingScope     = [ "global", "individual", "group" ];
+		settings.enum.listingViewDefaultScope     = [ "individual", "group", "global" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
@@ -1069,6 +1074,39 @@ component {
 		settings.enum.webflowProgressBarType      = [ "simpledot", "dotwithtext", "textbased" ];
 		settings.enum.draftStatus                 = [ "draft", "review", "publish" ];
 		settings.enum.timeFormatOptions           = [ "12h", "24h" ];
+		settings.enum.labPreference               = [ "default", "off", "on" ];
+	}
+
+	private void function __setupLabs() {
+		var experimentId    = "";
+		var experiment      = "";
+		var mode            = "";
+		var hasConfigurable = false;
+
+		settings.labs = settings.labs ?: {};
+		settings.labs.experiments = settings.labs.experiments ?: {};
+
+		if ( !StructKeyExists( settings.labs.experiments, "datatablesOverhaul" ) ) {
+			settings.labs.experiments.datatablesOverhaul = {
+				mode = settings.env.LABS_DATATABLES_OVERHAUL ?: "labsDefaultOff"
+			};
+		}
+
+		for( experimentId in settings.labs.experiments ) {
+			experiment = settings.labs.experiments[ experimentId ];
+			if ( IsStruct( experiment ) ) {
+				mode = experiment.mode ?: "labsDefaultOff";
+			} else {
+				mode = "labsDefaultOff";
+			}
+			if ( mode != "alwaysOn" ) {
+				hasConfigurable = true;
+				break;
+			}
+		}
+
+		settings.features.labs = settings.features.labs ?: { enabled=true, siteTemplates=[ "*" ], widgets=[], dependsOn=[ "admin" ] };
+		settings.features.labs.enabled = hasConfigurable;
 	}
 
 	private void function __setupFormValidationProviders() {

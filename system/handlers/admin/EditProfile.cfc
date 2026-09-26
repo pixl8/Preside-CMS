@@ -6,6 +6,8 @@ component extends="preside.system.base.AdminHandler" {
 	property name="passwordPolicyService" inject="passwordPolicyService";
 	property name="i18n"                  inject="i18n";
 	property name="applicationsService"   inject="applicationsService";
+	property name="labsService"           inject="labsService";
+	property name="formsService"          inject="formsService";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -236,6 +238,77 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=homepageUrl );
 	}
 
+	public void function labs( event, rc, prc ) {
+		if ( !labsService.hasConfigurableExperiments() ) {
+			event.notFound();
+		}
+
+		prc.pageIcon  = "flask";
+		prc.pageTitle = translateResource( uri="cms:editProfile.labs.page.title" );
+		prc.savedData = {};
+		prc.formName  = _buildLabsForm();
+
+		for( var experimentId in labsService.listConfigurableExperiments() ) {
+			prc.savedData[ experimentId ] = labsService.getUserPreference( experimentId );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:editProfile.labs.page.title" )
+			, link  = event.buildAdminLink( linkTo="editProfile.labs" )
+		);
+	}
+
+	public void function saveLabsAction( event, rc, prc ) {
+		if ( !labsService.hasConfigurableExperiments() ) {
+			event.notFound();
+		}
+
+		var formName = _buildLabsForm();
+		var formData = event.getCollectionForForm( formName );
+
+		for( var experimentId in labsService.listConfigurableExperiments() ) {
+			labsService.saveUserPreference(
+				  experimentId = experimentId
+				, value        = formData[ experimentId ] ?: "default"
+			);
+		}
+
+		event.audit(
+			  action = "edit_profile_labs"
+			, type   = "userprofile"
+		);
+
+		messageBox.info( translateResource( uri="cms:editProfile.labs.updated.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="editProfile.labs" ) );
+	}
+
+	private string function _buildLabsForm() {
+		var experiments = labsService.listConfigurableExperiments();
+
+		return formsService.createForm( function( formDefinition ){
+			for( var experimentId in experiments ) {
+				formDefinition.addFieldset(
+					  id          = experimentId
+					, tab         = "default"
+					, title       = "cms:editProfile.labs.experiment.#experimentId#.title"
+					, description = "cms:editProfile.labs.experiment.#experimentId#.description"
+				);
+
+				formDefinition.addField( argumentCollection={
+					  name     = experimentId
+					, fieldset = experimentId
+					, tab      = "default"
+					, control  = "enumRadioList"
+					, enum     = "labPreference"
+					, label    = "cms:editProfile.labs.experiment.#experimentId#.title"
+					, layout   = "formcontrols.layouts.fieldWithHiddenLabel"
+					, required = false
+					, default  = "default"
+				} );
+			}
+		} );
+	}
+
 	private void function _setupEditProfileTabs( event, rc, prc ) {
 		var secondaryNavItems = [];
 		var currentEvent = event.getCurrentEvent();
@@ -266,6 +339,14 @@ component extends="preside.system.base.AdminHandler" {
 			, title  = translateResource( uri="cms:notifications.preferences.tab.title" )
 			, icon   = "fa-bell"
 		});
+		if ( labsService.hasConfigurableExperiments() ) {
+			secondaryNavItems.append({
+				  active = currentEvent == "admin.editProfile.labs"
+				, link   = event.buildAdminLink( "editProfile.labs" )
+				, title  = translateResource( uri="cms:editProfile.labs.secondary.nav.title" )
+				, icon   = "fa-flask"
+			});
+		}
 
 		prc.secondaryNav = renderView( view="/admin/layout/secondaryNavigation", args={ items=secondaryNavItems } );
 	}
