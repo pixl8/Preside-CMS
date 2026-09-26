@@ -2856,11 +2856,14 @@
 						( $sheenTarget.length ? $sheenTarget : $container ).presideLoadingSheen( true );
 					}
 					, drawCallback : function() {
+						var api = dtApi || this.api();
+
 						$listingTable.closest( ".dt-container" ).presideLoadingSheen( false );
 						$container.presideLoadingSheen( false );
 						if ( dtApi ) {
 							updateSelectAllOptionRecordCount( dtApi.page.info().recordsTotal );
 						}
+						api.columns.adjust();
 						syncPinnedColumnOverflow();
 					}
 					, footerCallback: function() {
