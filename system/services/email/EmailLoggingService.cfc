@@ -585,31 +585,100 @@ component {
 	 *
 	 */
 	public boolean function deleteExpiredContent( any logger ) {
-		var canLog   = StructKeyExists( arguments, "logger" );
-		var canInfo  = canLog && logger.canInfo();
-		var canError = canLog && logger.canError();
-		var dao      = $getPresideObject( "email_template_send_log_content");
+		var canLog        = StructKeyExists( arguments, "logger" );
+		var canInfo       = canLog && logger.canInfo();
+		var canError      = canLog && logger.canError();
+		var batchSize     = 1000;
+		var dao           = $getPresideObject( "email_template_send_log_content" );
+		var contentIdField = dao.getIdField();
 
 		if ( canInfo ) { logger.info( "Deleting expired email content from logs..." ); }
 
-		var deleted  = dao.deleteData(
-			  filter       = "expires <= :expires"
-			, filterParams = { expires=now() }
-		);
+		try {
+			var hadAbortIssue = false;
+			var totalDeleted  = 0;
+			var batchDeleted  = 0;
+			do {
+				var expiredBatch = dao.selectData(
+					  filter       = "expires <= :expires"
+					, filterParams = { expires=now() }
+					, selectFields = [ contentIdField ]
+					, maxRows      = batchSize
+				);
+				if ( !expiredBatch.recordCount ) { break; }
+				var batchIds = [];
+				for ( var row in expiredBatch ) {
+					if ( Len( Trim( row[ contentIdField ] ?: "" ) ) ) {
+						arrayAppend( batchIds, row[ contentIdField ] );
+					}
+				}
+				if ( !ArrayLen( batchIds ) ) {
+					if ( canError ) { logger.error( "Delete expired email content aborted: no valid IDs found in selected batch." ); }
+					hadAbortIssue = true;
+					break;
+				}
+				batchDeleted  = dao.deleteData( filter={ "#contentIdField#"=batchIds } );
+				if ( batchDeleted != ArrayLen( batchIds ) && canError ) {
+					logger.error( "Delete expired email content mismatch: selected [#ArrayLen( batchIds )#] IDs but deleted [#batchDeleted#] rows." );
+				}
+				if ( batchDeleted <= 0 ) {
+					if ( canError ) { logger.error( "Delete expired email content aborted: selected batch but deleted zero rows." ); }
+					hadAbortIssue = true;
+					break;
+				}
+				totalDeleted += batchDeleted;
+			} while ( expiredBatch.recordCount == batchSize );
 
-		if ( canInfo ) { logger.info( "Content of [#deleted#] emails deleted." ); }
+			if ( canInfo ) { logger.info( "Content of [#totalDeleted#] emails deleted." ); }
 
-		var emailSettings = $getPresideCategorySettings( "email" );
-		if ( $helpers.isTrue( emailSettings.remove_view_online_content ?: "" ) && ( val( emailSettings.view_online_content_expiry ?: "" ) > 0 ) ) {
-			var deleted = $getPresideObject( "email_template_view_online_content").deleteData(
-				  filter       = "datecreated <= :datecreated"
-				, filterParams = { datecreated=dateAdd( "d", -val( emailSettings.view_online_content_expiry ), now() ) }
-			);
+			var emailSettings = $getPresideCategorySettings( "email" );
+			if ( $helpers.isTrue( emailSettings.remove_view_online_content ?: "" ) && ( val( emailSettings.view_online_content_expiry ?: "" ) > 0 ) ) {
+				var viewOnlineContentDao = $getPresideObject( "email_template_view_online_content" );
+				var viewContentIdField   = viewOnlineContentDao.getIdField();
+				var expiryDate           = dateAdd( "d", -val( emailSettings.view_online_content_expiry ), now() );
+				var totalViewDeleted     = 0;
+				var batchViewDeleted     = 0;
+				do {
+					var expiredViewBatch = viewOnlineContentDao.selectData(
+						  filter       = "datecreated <= :datecreated"
+						, filterParams = { datecreated=expiryDate }
+						, selectFields = [ viewContentIdField ]
+						, maxRows      = batchSize
+					);
+					if ( !expiredViewBatch.recordCount ) { break; }
+					var batchViewIds = [];
+					for ( var viewRow in expiredViewBatch ) {
+						if ( Len( Trim( viewRow[ viewContentIdField ] ?: "" ) ) ) {
+							arrayAppend( batchViewIds, viewRow[ viewContentIdField ] );
+						}
+					}
+					if ( !ArrayLen( batchViewIds ) ) {
+						if ( canError ) { logger.error( "Delete view online content aborted: no valid IDs found in selected batch." ); }
+						hadAbortIssue = true;
+						break;
+					}
+					batchViewDeleted  = viewOnlineContentDao.deleteData( filter={ "#viewContentIdField#"=batchViewIds } );
+					if ( batchViewDeleted != ArrayLen( batchViewIds ) && canError ) {
+						logger.error( "Delete view online content mismatch: selected [#ArrayLen( batchViewIds )#] IDs but deleted [#batchViewDeleted#] rows." );
+					}
+					if ( batchViewDeleted <= 0 ) {
+						if ( canError ) { logger.error( "Delete view online content aborted: selected batch but deleted zero rows." ); }
+						hadAbortIssue = true;
+						break;
+					}
+					totalViewDeleted += batchViewDeleted;
+				} while ( expiredViewBatch.recordCount == batchSize );
 
-			if ( canInfo ) { logger.info( "[#deleted#] emails' view online contents deleted." ); }
+				if ( canInfo ) { logger.info( "[#totalViewDeleted#] emails' view online contents deleted." ); }
+			}
+
+			return !hadAbortIssue;
+		} catch( any e ) {
+			if ( canError ) {
+				logger.error( "Delete expired email content task failed. Message: [#e.message#], detail: [#( e.detail ?: '' )#].", e );
+			}
+			return false;
 		}
-
-		return true;
 	}
 
 	/**
