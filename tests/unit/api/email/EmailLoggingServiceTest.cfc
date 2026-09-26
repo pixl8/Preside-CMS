@@ -80,6 +80,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  messageId = messageId
 					, activity  = activity
 					, extraData = extraData
+					, userIp    = "8.8.8.8"
 				);
 
 				expect( mockLogActivityDao.$callLog().insertData.len() ).toBe( 1 );
@@ -87,7 +88,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  message       = messageId
 					, activity_type = activity
 					, extra_data    = SerializeJson( extraData )
-					, user_ip       = cgi.remote_addr
+					, user_ip       = "8.8.8.8"
 					, user_agent    = cgi.http_user_agent
 					, datecreated   = Now()
 				} ]);
@@ -112,6 +113,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  messageId = messageId
 					, activity  = activity
 					, extraData = extraData
+					, userIp    = "8.8.8.8"
 				);
 
 				expect( mockLogActivityDao.$callLog().insertData.len() ).toBe( 1 );
@@ -119,7 +121,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  message       = messageId
 					, activity_type = activity
 					, extra_data    = SerializeJson( expectedData )
-					, user_ip       = cgi.remote_addr
+					, user_ip       = "8.8.8.8"
 					, user_agent    = cgi.http_user_agent
 					, link          = extraData.link
 					, code          = extraData.code
@@ -147,6 +149,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  messageId = messageId
 					, activity  = activity
 					, extraData = extraData
+					, userIp    = "8.8.8.8"
 				);
 
 				expect( service.$callLog().$announceInterception.len() ).toBe( 1 );
@@ -154,13 +157,33 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  message       = messageId
 					, activity_type = activity
 					, extra_data    = SerializeJson( expectedData )
-					, user_ip       = cgi.remote_addr
+					, user_ip       = "8.8.8.8"
 					, user_agent    = cgi.http_user_agent
 					, link          = extraData.link
 					, code          = extraData.code
 					, reason        = extraData.reason
 					, datecreated   = Now()
 				} ] );
+			} );
+
+			it( "should blank out private or loopback IP addresses when recording activity", function(){
+				var service   = _getService();
+				var messageId = CreateUUId();
+				var activity  = "blah";
+				var extraData = { blah=CreateUUId(), test=Now() };
+
+				mockLogActivityDao.$( "insertData", CreateUUId() );
+				_setupMockMessageQuery( messageId );
+
+				service.recordActivity(
+					messageId = messageId
+					, activity  = activity
+					, extraData = extraData
+					, userIp    = "127.0.0.1"
+				);
+
+				expect( mockLogActivityDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockLogActivityDao.$callLog().insertData[ 1 ][ 1 ].user_ip ).toBe( "" );
 			} );
 		} );
 
