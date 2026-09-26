@@ -332,7 +332,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
 					  filter       = "id = :id and ( opened is null or opened = :opened )"
 					, filterParams = { id=logId, opened=false }
-					, data         = { opened=true, opened_date=nowish, opened_count=1 }
+					, data         = { opened=true, opened_date=nowish, open_count=1 }
 				} );
 				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
 				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId, true ] );
@@ -356,7 +356,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
 					  filter       = "id = :id and ( opened is null or opened = :opened )"
 					, filterParams = { id=logId, opened=false }
-					, data         = { opened=true, opened_count=1 }
+					, data         = { opened=true, open_count=1 }
 				} );
 				expect( service.$callLog().markAsDelivered.len() ).toBe( 1 );
 				expect( service.$callLog().markAsDelivered[1] ).toBe( [ logId, true ] );

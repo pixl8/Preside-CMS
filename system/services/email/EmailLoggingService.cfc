@@ -351,7 +351,7 @@ component {
 		,          string  ipAddress = cgi.remote_addr
 		,          date    eventDate = Now()
  	) {
-		var data = { opened = true, opened_count=1 };
+		var data = { opened = true, open_count=1 };
 
 		if ( !arguments.softMark ) {
 			data.opened_date = _getNow();
