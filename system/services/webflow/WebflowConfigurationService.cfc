@@ -779,16 +779,35 @@ component {
 	}
 
 	private struct function _getExistingSingletonFlowForStartupCheck( required string webflowId ) {
+		var isSiteTenanted = _webflowConfigSiteTenanted();
+
 		if ( !StructKeyExists( request, "_webflowSingletonsStartupCache" ) ) {
 			request._webflowSingletonsStartupCache = {};
+		}
 
-			var rawflows = $getPresideObject( "webflow_configuration" ).selectData( filter="instance_ref is null" );
-			for( var f in rawFlows ) {
-				request._webflowSingletonsStartupCache[ f.webflow_id ] = f;
+		if ( isSiteTenanted ) {
+			var currentSiteId = $getRequestContext().getSiteId();
+
+			if ( !StructKeyExists( request._webflowSingletonsStartupCache, currentSiteId ) ) {
+				request._webflowSingletonsStartupCache[ currentSiteId ] = {};
+				_populateSingletonFlowCache( request._webflowSingletonsStartupCache[ currentSiteId ] );
 			}
+
+			return request._webflowSingletonsStartupCache[ currentSiteId ][ arguments.webflowId ] ?: {};
+		}
+
+		if ( StructIsEmpty( request._webflowSingletonsStartupCache ) ) {
+			_populateSingletonFlowCache( request._webflowSingletonsStartupCache );
 		}
 
 		return request._webflowSingletonsStartupCache[ arguments.webflowId ] ?: {};
+	}
+
+	private void function _populateSingletonFlowCache( required struct cache ) {
+		var rawflows = $getPresideObject( "webflow_configuration" ).selectData( filter="instance_ref is null" );
+		for( var f in rawFlows ) {
+			arguments.cache[ f.webflow_id ] = f;
+		}
 	}
 
 	private struct function _getExistingNonSingletonFlowForStartupCheck( required string webflowId, required string instanceRef, string siteId="" ) {
