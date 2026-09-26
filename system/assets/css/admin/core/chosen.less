@@ -365,6 +365,43 @@
   cursor: default;
 }
 
+.chosen-loading {
+  opacity: 0.5 !important;
+}
+
+.chosen-loading, .chosen-loading .chosen-single, .chosen-loading .chosen-choices .search-field, .chosen-loading a {
+  cursor: wait;
+}
+.chosen-container-single.chosen-loading .chosen-single span::after {
+  content: "";
+  display: inline-block;
+  margin-left: 6px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #aaa;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: chosen-loading-spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+.chosen-container-multi.chosen-loading .chosen-choices .search-field::before {
+  content: "";
+  display: inline-block;
+  margin-right: 6px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #aaa;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: chosen-loading-spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+@keyframes chosen-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* @end */
 /* @group Right to Left */
 .chosen-rtl {
