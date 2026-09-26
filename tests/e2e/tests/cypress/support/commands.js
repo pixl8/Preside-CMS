@@ -124,9 +124,17 @@ Cypress.Commands.add( 'openEverythingBar', () => {
 	cy.get( '.everything-bar-dropdown' ).should( 'not.have.class', 'hide' );
 } );
 
-Cypress.Commands.add( 'everythingBarGroups', () => {
+Cypress.Commands.add( 'everythingBarSections', () => {
 	return cy.get( '.everything-bar-dropdown .everything-bar-group' ).then( ( $groups ) => {
-		return [ ...$groups ].map( ( el ) => el.textContent.replace( /\s+/g, ' ' ).trim() );
+		return [ ...$groups ].map( ( el ) => el.querySelector( '.everything-bar-group-label' ).textContent.trim() );
+	} );
+} );
+
+Cypress.Commands.add( 'expandEverythingBarSection', ( label ) => {
+	cy.contains( '.everything-bar-group', label ).then( ( $section ) => {
+		if ( $section.attr( 'aria-expanded' ) !== 'true' ) {
+			cy.wrap( $section ).click();
+		}
 	} );
 } );
 

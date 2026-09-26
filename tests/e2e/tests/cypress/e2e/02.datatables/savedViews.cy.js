@@ -170,6 +170,7 @@ describe( 'Saved listing views', () => {
 		cy.get( '.object-listing-table tbody tr', { timeout : 15000 } ).should( 'have.length', 5 );
 
 		cy.openEverythingBar();
+		cy.expandEverythingBarSection( 'Uncategorised filters' );
 		cy.contains( '.everything-bar-item', 'Loose other filter' ).click();
 		cy.get( '.everything-chip-saved' ).should( 'contain.text', 'Starred alphas' );
 		cy.get( '.everything-chip-saved' ).should( 'contain.text', 'Loose other filter' );
