@@ -115,20 +115,6 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			prc.pageSubTitle = ArrayToList( parts, " · " );
 		}
 
-		if ( kind == "conditional_label" ) {
-			hint = translateResource( uri="preside-objects.custom_field:edit.conditional.hint" );
-		} else if ( kind == "static" && dataType == "lookup" ) {
-			hint = translateResource( uri="preside-objects.custom_field:edit.lookups.hint" );
-		} else if ( kind == "aggregate" ) {
-			hint = translateResource( uri="preside-objects.custom_field:edit.aggregate.hint" );
-		} else if ( kind == "related_data" ) {
-			hint = translateResource( uri="preside-objects.custom_field:edit.related_data.hint" );
-		}
-
-		if ( Len( hint ) ) {
-			return '<div class="alert alert-info"><p><i class="fa fa-fw fa-info-circle"></i> #HtmlEditFormat( hint )#</p></div>';
-		}
-
 		return "";
 	}
 
@@ -369,7 +355,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		return renderView( view="/admin/datamanager/custom_field/_statusBanner", args={
 			  active       = isActive
 			, objectTitle  = objectTitle
-			, toggleLink   = event.buildAdminLink( linkto="datamanager.custom_field.toggleActiveAction", queryString=qs )
+			, toggleLink   = isActive ? "" : event.buildAdminLink( linkto="datamanager.custom_field.toggleActiveAction", queryString=qs )
 			, toggleLabel  = translateResource( uri="preside-objects.custom_field:#isActive ? 'deactivate' : 'activate'#.btn" )
 			, togglePrompt = translateResource(
 				  uri  = "preside-objects.custom_field:#isActive ? 'deactivate' : 'activate'#.prompt"

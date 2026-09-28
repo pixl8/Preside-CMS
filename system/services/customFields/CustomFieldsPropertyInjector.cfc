@@ -8,13 +8,15 @@
  */
 component {
 
-	property name="presideObjectService"             inject="delayedInjector:presideObjectService";
-	property name="customFieldsService"              inject="delayedInjector:customFieldsService";
-	property name="customFieldsValueTableService"    inject="delayedInjector:customFieldsValueTableService";
-	property name="customFieldTypesService"          inject="delayedInjector:customFieldTypesService";
-	property name="adminDataViewsService"            inject="delayedInjector:adminDataViewsService";
-	property name="rulesEngineExpressionService"     inject="delayedInjector:rulesEngineExpressionService";
-	property name="rulesEngineFilterService"         inject="delayedInjector:rulesEngineFilterService";
+	property name="presideObjectService"                          inject="delayedInjector:presideObjectService";
+	property name="customFieldsService"                           inject="delayedInjector:customFieldsService";
+	property name="customFieldsValueTableService"                 inject="delayedInjector:customFieldsValueTableService";
+	property name="customFieldTypesService"                       inject="delayedInjector:customFieldTypesService";
+	property name="adminDataViewsService"                         inject="delayedInjector:adminDataViewsService";
+	property name="rulesEngineExpressionService"                  inject="delayedInjector:rulesEngineExpressionService";
+	property name="rulesEngineFilterService"                      inject="delayedInjector:rulesEngineFilterService";
+	property name="rulesEngineFilterExpressionsJsHandler"         inject="delayedInjector:rulesEngineFilterExpressionsJsHandler";
+	property name="rulesEngineConditionsExpressionsJsHandler"     inject="delayedInjector:rulesEngineConditionsExpressionsJsHandler";
 
 	public any function init() {
 		return this;
@@ -26,11 +28,11 @@ component {
 		}
 
 		for( var objectName in customFieldsService.listEnabledObjects() ) {
-			refreshObject( objectName );
+			refreshObject( objectName=objectName, queueExpressionRefresh=false );
 		}
 	}
 
-	public void function refreshObject( required string objectName ) {
+	public void function refreshObject( required string objectName, boolean queueExpressionRefresh=true ) {
 		if ( !$isFeatureEnabled( "customFields" ) || !customFieldsService.isObjectEnabled( arguments.objectName ) ) {
 			return;
 		}
@@ -78,8 +80,83 @@ component {
 		}
 		if ( $isFeatureEnabled( "rulesEngine" ) ) {
 			try {
-				rulesEngineExpressionService.clearDynamicExpressionsForObject( arguments.objectName );
+				rulesEngineExpressionService.invalidateAutoExpressionCache( arguments.objectName );
 			} catch ( any e ) {}
+
+			if ( arguments.queueExpressionRefresh ) {
+				_queueExpressionRefresh( arguments.objectName );
+			}
+		}
+	}
+
+	private void function _queueExpressionRefresh( required string objectName ) {
+		variables._expressionRefreshQueued  = variables._expressionRefreshQueued  ?: {};
+		variables._expressionRefreshThreads = variables._expressionRefreshThreads ?: {};
+		variables._expressionRefreshQueued[ arguments.objectName ] = CreateUUId();
+
+		var expressionLocale = "";
+		try {
+			expressionLocale = $i18n.getFwLocale();
+		} catch ( any e ) {}
+
+		lock name="customFieldExpressionRefresh-#arguments.objectName#" timeout=5 throwontimeout=false {
+			var runningName = variables._expressionRefreshThreads[ arguments.objectName ] ?: "";
+			if ( _expressionRefreshThreadIsRunning( runningName ) ) {
+				return;
+			}
+
+			var threadName = "cfExpr_#LCase( Hash( arguments.objectName & CreateUUId() ) )#";
+			variables._expressionRefreshThreads[ arguments.objectName ] = threadName;
+
+			thread
+				name              = threadName
+				objectName        = arguments.objectName
+				expressionService = rulesEngineExpressionService
+				filterRoute       = rulesEngineFilterExpressionsJsHandler
+				conditionRoute    = rulesEngineConditionsExpressionsJsHandler
+				queued            = variables._expressionRefreshQueued
+				locale            = expressionLocale
+			{
+				var processed  = "";
+				var objectName = attributes.objectName;
+				var token      = "";
+
+				while ( true ) {
+					token = attributes.queued[ objectName ] ?: "";
+					if ( !Len( token ) || token == processed ) {
+						sleep( 100 );
+						token = attributes.queued[ objectName ] ?: "";
+						if ( !Len( token ) || token == processed ) {
+							break;
+						}
+					}
+
+					try {
+						attributes.expressionService.refreshAutoExpressionsForObject( objectName, attributes.locale );
+						attributes.filterRoute.bustCache();
+						attributes.conditionRoute.bustCache();
+					} catch ( any refreshError ) {}
+
+					processed = token;
+				}
+			}
+		}
+	}
+
+	private boolean function _expressionRefreshThreadIsRunning( required string threadName ) {
+		if ( !Len( arguments.threadName ) ) {
+			return false;
+		}
+
+		try {
+			if ( !StructKeyExists( cfthread, arguments.threadName ) ) {
+				return false;
+			}
+
+			var status = cfthread[ arguments.threadName ].status ?: "";
+			return status == "RUNNING" || status == "NOT_STARTED";
+		} catch ( any e ) {
+			return false;
 		}
 	}
 

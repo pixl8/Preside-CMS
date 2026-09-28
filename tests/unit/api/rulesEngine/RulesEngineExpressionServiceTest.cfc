@@ -698,6 +698,19 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getFilterObjectsForExpression( "expression6.context4" ) ).toBe( [ "objectz", "usergroup" ] );
 			} );
 		} );
+
+		describe( "_expressionFileIsForObject()", function(){
+			it( "should match cached filter and condition files for the object without matching similarly named objects", function(){
+				var service = _getService();
+
+				makePublic( service, "_expressionFileIsForObject" );
+
+				expect( service._expressionFileIsForObject( "filterexpressions-en_GB-crm_contact-ABCDEF.json", "crm_contact", [] ) ).toBeTrue();
+				expect( service._expressionFileIsForObject( "filterexpressions-en_GB-crm_contact_note-ABCDEF.json", "crm_contact", [] ) ).toBeFalse();
+				expect( service._expressionFileIsForObject( "conditionexpressions-en-web.user-ABCDEF.json", "crm_contact", [ "web.user" ] ) ).toBeTrue();
+				expect( service._expressionFileIsForObject( "conditionexpressions-en-webXuser-ABCDEF.json", "crm_contact", [ "web.user" ] ) ).toBeFalse();
+			} );
+		} );
 	}
 
 

@@ -249,7 +249,7 @@ component {
 			, filterable             = ArrayFindNoCase( flags, "filterable"      ) > 0
 			, data_exportable        = ArrayFindNoCase( flags, "data_exportable" ) > 0
 			, batch_editable         = ArrayFindNoCase( flags, "batch_editable"  ) > 0
-			, active                 = ArrayFindNoCase( flags, "active"          ) > 0
+			, active                 = false
 			, conditional_label_mode = kind == "conditional_label" ? ( merged.conditional_label_mode ?: "single" ) : ""
 			, sort_order             = _nextSortOrder( merged.target_object ?: "" )
 		};
