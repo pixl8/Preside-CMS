@@ -111,6 +111,77 @@ component {
 		_clearRequestCache( arguments.experimentId );
 	}
 
+	public array function listSignpostExperiments() {
+		var userId        = $getAdminLoggedInUserId();
+		var preferences   = {};
+		var experimentIds = [];
+		var result        = [];
+		var experimentId  = "";
+		var preference    = "";
+
+		if ( !Len( Trim( userId ) ) ) {
+			return result;
+		}
+
+		preferences   = _getUserPreferences();
+		experimentIds = listConfigurableExperiments();
+
+		for( experimentId in experimentIds ) {
+			preference = preferences[ experimentId ] ?: { value="default", signpost_dismissed=false };
+
+			if ( preference.value == "off" || preference.signpost_dismissed || isEnabled( experimentId ) ) {
+				continue;
+			}
+
+			ArrayAppend( result, {
+				  id    = experimentId
+				, title = $translateResource(
+					  uri          = "cms:editProfile.labs.experiment.#experimentId#.title"
+					, defaultValue = experimentId
+				)
+			} );
+		}
+
+		return result;
+	}
+
+	public void function dismissSignpost( required array experimentIds ) {
+		var userId       = $getAdminLoggedInUserId();
+		var configurable = [];
+		var dao          = "";
+		var experimentId = "";
+		var existing     = "";
+
+		if ( !Len( Trim( userId ) ) ) {
+			return;
+		}
+
+		configurable = listConfigurableExperiments();
+		dao          = $getPresideObject( "admin_lab_preference" );
+
+		for( experimentId in arguments.experimentIds ) {
+			if ( !ArrayFindNoCase( configurable, experimentId ) ) {
+				continue;
+			}
+
+			existing = dao.selectData(
+				  filter       = { security_user=userId, experiment=experimentId }
+				, selectFields = [ "id" ]
+			);
+
+			if ( existing.recordCount ) {
+				dao.updateData( id=existing.id, data={ signpost_dismissed=true } );
+			} else {
+				dao.insertData( {
+					  security_user      = userId
+					, experiment         = experimentId
+					, value              = "default"
+					, signpost_dismissed = true
+				} );
+			}
+		}
+	}
+
 // PRIVATE HELPERS
 	private boolean function _resolveEnabled( required string experimentId ) {
 		var experiments = _getExperiments();
@@ -168,6 +239,31 @@ component {
 
 	private boolean function _settingIsOn( required string value ) {
 		return CompareNoCase( arguments.value, "on" ) == 0 || $helpers.isTrue( arguments.value );
+	}
+
+	private struct function _getUserPreferences() {
+		var userId = $getAdminLoggedInUserId();
+		var prefs  = {};
+		var rows   = "";
+		var i      = 0;
+
+		if ( !Len( Trim( userId ) ) ) {
+			return prefs;
+		}
+
+		rows = $getPresideObject( "admin_lab_preference" ).selectData(
+			  filter       = { security_user=userId }
+			, selectFields = [ "experiment", "value", "signpost_dismissed" ]
+		);
+
+		for( i=1; i<=rows.recordCount; i++ ) {
+			prefs[ rows.experiment[ i ] ] = {
+				  value              = _normalizePreference( rows.value[ i ] )
+				, signpost_dismissed = $helpers.isTrue( rows.signpost_dismissed[ i ] ?: "" )
+			};
+		}
+
+		return prefs;
 	}
 
 	private void function _clearRequestCache( required string experimentId ) {

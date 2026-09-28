@@ -163,6 +163,97 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( StructKeyExists( svc.$callLog(), "$getPresideObject" ) ).toBeFalse();
 			} );
 		} );
+
+		describe( "listSignpostExperiments()", function(){
+			it( "should return nothing when there is no logged-in administrator", function(){
+				expect( _getService().listSignpostExperiments() ).toBe( [] );
+			} );
+
+			it( "should include a configurable experiment that is off by default and has not been dismissed", function(){
+				var svc = _getService( { experiments={
+					  datatablesOverhaul = { mode="labsDefaultOff" }
+					, forcedOn           = { mode="alwaysOn" }
+				} } );
+
+				_stubSignpostPreferences( svc, _preferenceQuery( includeRow=false ) );
+				svc.$( "$translateResource", "DataTables listing overhaul" );
+
+				expect( svc.listSignpostExperiments() ).toBe( [ {
+					  id    = "datatablesOverhaul"
+					, title = "DataTables listing overhaul"
+				} ] );
+			} );
+
+			it( "should exclude an experiment that is already on", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOn" } } } );
+
+				_stubSignpostPreferences( svc, _preferenceQuery( includeRow=false ) );
+
+				expect( svc.listSignpostExperiments() ).toBe( [] );
+			} );
+
+			it( "should exclude an experiment the user has explicitly turned off", function(){
+				var svc = _getService();
+
+				_stubSignpostPreferences( svc, _preferenceQuery( value="off" ) );
+
+				expect( svc.listSignpostExperiments() ).toBe( [] );
+			} );
+
+			it( "should exclude an experiment whose signpost has been dismissed", function(){
+				var svc = _getService();
+
+				_stubSignpostPreferences( svc, _preferenceQuery( signpostDismissed=true ) );
+
+				expect( svc.listSignpostExperiments() ).toBe( [] );
+			} );
+		} );
+
+		describe( "dismissSignpost()", function(){
+			it( "should insert a default preference when dismissing an experiment with no row", function(){
+				var svc     = _getService();
+				var mockDao = _stubSignpostPreferences( svc, QueryNew( "id" ) );
+
+				mockDao.$( "insertData", "preference-1" );
+
+				svc.dismissSignpost( [ "datatablesOverhaul" ] );
+
+				expect( mockDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().insertData[ 1 ][ 1 ] ).toBe( {
+					  security_user      = "user-1"
+					, experiment         = "datatablesOverhaul"
+					, value              = "default"
+					, signpost_dismissed = true
+				} );
+			} );
+
+			it( "should set the dismissed flag without changing the saved preference", function(){
+				var svc     = _getService();
+				var mockDao = _stubSignpostPreferences( svc, QueryNew( "id", "varchar", [ [ "preference-1" ] ] ) );
+
+				mockDao.$( "updateData", 1 );
+
+				svc.dismissSignpost( [ "datatablesOverhaul" ] );
+
+				expect( mockDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().updateData[ 1 ].data ).toBe( { signpost_dismissed=true } );
+				expect( StructKeyExists( mockDao.$callLog(), "insertData" ) ).toBeFalse();
+			} );
+
+			it( "should ignore unknown experiments and logged-out calls", function(){
+				var svc     = _getService();
+				var mockDao = _stubSignpostPreferences( svc, QueryNew( "id" ) );
+
+				svc.dismissSignpost( [ "missing" ] );
+
+				expect( ArrayLen( mockDao.$callLog().selectData ?: [] ) ).toBe( 0 );
+
+				svc.$( "$getAdminLoggedInUserId", "" );
+				svc.dismissSignpost( [ "datatablesOverhaul" ] );
+
+				expect( ArrayLen( mockDao.$callLog().selectData ?: [] ) ).toBe( 0 );
+			} );
+		} );
 	}
 
 	private any function _getService( struct labsConfig ) {
@@ -197,6 +288,28 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		}
 
 		mockDao.$( "selectData", records );
+	}
+
+	private any function _stubSignpostPreferences( required any svc, required query records ) {
+		var mockDao = createStub();
+
+		arguments.svc.$( "$getAdminLoggedInUserId", "user-1" );
+		arguments.svc.$( "$getPresideObject" ).$args( "admin_lab_preference" ).$results( mockDao );
+		mockDao.$( "selectData", arguments.records );
+
+		return mockDao;
+	}
+
+	private query function _preferenceQuery( string value="default", boolean signpostDismissed=false, boolean includeRow=true ) {
+		if ( !arguments.includeRow ) {
+			return QueryNew( "experiment,value,signpost_dismissed", "varchar,varchar,bit" );
+		}
+
+		return QueryNew(
+			  "experiment,value,signpost_dismissed"
+			, "varchar,varchar,bit"
+			, [ [ "datatablesOverhaul", arguments.value, arguments.signpostDismissed ] ]
+		);
 	}
 
 }
