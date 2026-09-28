@@ -208,13 +208,13 @@
 
 	.listing-views-actions {
 		margin-top : 6px;
-		padding    : 8px 12px 0;
+		padding    : 0 0 4px;
 		border-top : 1px solid @default-panel-border-colour;
 	}
 
 	.listing-views-action {
 		display     : block;
-		padding     : 4px 0;
+		padding     : 4px 12px;
 		font-size   : 13px;
 		color       : @blue;
 
@@ -864,7 +864,7 @@
 		--dtcc-search-input_border              : 1px solid @default-input-border-colour;
 		--dtcc-search-input_border-radius       : 3px;
 		--dtcc-search-input_padding             : 4px 8px;
-		--dtcc-search-input_margin-top          : 0;
+		--dtcc-search-input_margin-top          : 5px;
 		--dtcc-title_background                 : transparent;
 		--dt-datetime-table_hover-background    : @blue;
 		--dt-datetime-table-selected_background : @blue;
@@ -892,6 +892,10 @@
 			color          : @default-light-font-colour;
 			background     : transparent;
 			text-align     : left;
+
+			&:empty {
+				display : none;
+			}
 		}
 
 		.dtcc-search-title {
@@ -1071,19 +1075,29 @@
 
 			.chosen-container-multi .chosen-choices {
 				min-height       : 28px;
-				padding          : 2px 6px;
+				padding          : 4px 6px 0;
 				border           : 1px solid @default-input-border-colour;
 				border-radius    : 3px;
 				background-color : @white;
 				background-image : none;
 
+				li.search-choice {
+					margin      : 0 6px 4px 0;
+					padding     : 3px 8px;
+					line-height : 18px;
+
+					.remove-choice-link {
+						margin-left : 8px;
+					}
+				}
+
 				li.search-field {
+					margin         : 0 0 4px;
 					padding-bottom : 0;
-					margin-top     : 0;
 
 					input[type="text"] {
 						height     : 22px !important;
-						padding    : 0 !important;
+						padding    : 0 2px !important;
 						margin     : 0 !important;
 						font-size  : 13px;
 						box-shadow : none;

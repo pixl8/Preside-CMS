@@ -259,6 +259,7 @@
 		}
 
 		html.push( '<div class="listing-views-actions">' );
+		html.push( '<div class="listing-views-group">' + $("<div>").text( t( "cms:datatables.views.current", "Current view" ) ).html() + '</div>' );
 		html.push( '<a href="#" class="listing-views-action" data-view-action="save-as">' + t( "cms:datatables.views.saveAs", "Save as view..." ) + '</a>' );
 		if ( this.isNamedViewActive() ) {
 			html.push( '<a href="#" class="listing-views-action" data-view-action="set-default">' + t( "cms:datatables.views.setAsDefault", "Set as default..." ) + '</a>' );
