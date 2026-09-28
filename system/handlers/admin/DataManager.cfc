@@ -207,6 +207,22 @@ component extends="preside.system.base.AdminHandler" {
 		return listing;
 	}
 
+	private string function _objectDataTableModernFromLegacy( event, rc, prc, args={} ) {
+		var objectName = args.objectName ?: "";
+
+		args.gridFields = args.gridFields ?: _getObjectFieldsForGrid( objectName );
+
+		_prepareModernObjectListingArgs(
+			  event      = event
+			, rc         = rc
+			, prc        = prc
+			, args       = args
+			, objectName = objectName
+		);
+
+		return renderView( view="/admin/datamanager/_objectDataTableModern", args=args );
+	}
+
 	private void function _prepareModernObjectListingArgs(
 		  required any    event
 		, required struct rc
