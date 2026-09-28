@@ -1,6 +1,7 @@
 describe( 'Asset manager listing', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 		cy.visit( '/admin/assetmanager/' );
 	} );
 

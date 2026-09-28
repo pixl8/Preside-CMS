@@ -6,8 +6,8 @@
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName );
 	gridFields           = [ /* TODO */ ];
 
-	event.include( "/js/admin/specific/datamanager/object/");
-	event.include( "/css/admin/specific/datamanager/object/");
+	event.include( isLabEnabled( "datatablesOverhaul" ) ? "/js/admin/specific/datamanager/objectModern/" : "/js/admin/specific/datamanager/object/" );
+	event.include( isLabEnabled( "datatablesOverhaul" ) ? "/css/admin/specific/datamanager/objectModern/" : "/css/admin/specific/datamanager/object/" );
 	event.includeData( {
 		  objectName          = args.objectName
 		, datasourceUrl       = args.datasourceUrl

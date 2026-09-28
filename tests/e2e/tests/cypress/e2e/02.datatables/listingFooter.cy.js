@@ -1,6 +1,7 @@
 describe( 'Application listing footer spec', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 	} );
 
 	it( 'renders footer cells for the object default columns', () => {

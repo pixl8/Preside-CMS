@@ -26,7 +26,7 @@
 		#prc.infoCard#
 	</cfif>
 
-	#renderView( view="/admin/datamanager/_objectDataTable", args={
+	#renderView( view=getObjectDataTableView(), args={
 		  objectName          = objectName
 		, useMultiActions     = canDelete
 		, datasourceUrl       = event.buildAdminLink( linkTo="emailCenter.customTemplates.getRecordsForAjaxDataTables" )

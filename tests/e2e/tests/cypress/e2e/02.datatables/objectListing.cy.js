@@ -1,10 +1,18 @@
 describe( 'Object listing DataTable', () => {
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 		cy.visitObjectListing( 'my_extension_object' );
 	} );
 
 	it( 'renders the everything bar, records, and listing chrome', () => {
+		cy.get( 'script[src*="plugins-1.8.004.min.js"]' ).should( 'have.length', 1 );
+		cy.get( 'script[src*="datatables-3.0.4.min.js"]' ).should( 'have.length', 1 );
+		cy.get( 'script[src*="datatables-1.9.4.min.js"]' ).should( 'not.exist' );
+		cy.get( 'script[src*="/presidecore/"]' ).should( 'have.length', 1 );
+		cy.get( 'script[src*="/datatablesCoreModern/"]' ).should( 'have.length', 1 );
+		cy.get( 'script[src*="/datatablesCore/"]' ).should( 'not.exist' );
+		cy.get( 'script[src*="objectModern"]' ).should( 'have.length', 1 );
 		cy.get( '.everything-bar-input' )
 			.should( 'be.visible' )
 			.and( 'have.attr', 'placeholder' )

@@ -1,6 +1,6 @@
 <!---@feature admin--->
 <cfscript>
-	event.include( "/js/admin/specific/notifications/" );
+	event.include( isLabEnabled( "datatablesOverhaul" ) ? "/js/admin/specific/notificationsModern/" : "/js/admin/specific/notifications/" );
 
 	notificationCount      = args.notificationCount   ?: 0;
 </cfscript>
