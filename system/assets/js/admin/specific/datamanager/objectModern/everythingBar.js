@@ -253,10 +253,6 @@
 		this.itemData = [];
 		this.navigationData = [];
 
-		if ( this.viewFiltersLocked ) {
-			html.push( '<div class="everything-bar-locked-note">' + t( "cms:datatables.views.filters.locked", "This view's filters stay applied. You can add more, or edit the view to change them." ) + '</div>' );
-		}
-
 		for( i=0; i<actions.length; i++ ) {
 			html.push( this._itemHtml( actions[ i ] ) );
 		}
