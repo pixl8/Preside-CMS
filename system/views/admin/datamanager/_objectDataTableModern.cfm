@@ -204,13 +204,20 @@
 						<div class="everything-bar-input-wrap input-icon">
 							<i class="fa fa-search everything-bar-icon data-table-search-icon"></i>
 							<input type="text"
+								id="#tableId#-everything-input"
 								class="everything-bar-input data-table-search form-control"
 								autocomplete="off"
 								data-global-key="s"
 								placeholder="#everythingBarPlaceholder#"
+								role="combobox"
+								aria-label="#everythingBarPlaceholder#"
+								aria-autocomplete="list"
+								aria-haspopup="tree"
+								aria-expanded="false"
+								aria-controls="#tableId#-everything-dropdown"
 							/>
 						</div>
-						<div class="everything-bar-dropdown hide" role="listbox"></div>
+						<div id="#tableId#-everything-dropdown" class="everything-bar-dropdown hide" role="tree" aria-labelledby="#tableId#-everything-input"></div>
 					</div>
 					<cfif args.allowFilter && allowUseFilter>
 						<div class="filter-links-container">

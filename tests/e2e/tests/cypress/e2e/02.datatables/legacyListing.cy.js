@@ -51,6 +51,16 @@ describe( 'Legacy listing when Labs is off', () => {
 		cy.get( '.object-listing-table' ).should( 'be.visible' );
 	} );
 
+	it( 'toggles the developer console with the backtick hotkey when nothing is focused', () => {
+		cy.get( 'body' ).trigger( 'keypress', {
+			  key     : '`'
+			, keyCode : 96
+			, which   : 96
+		} );
+
+		cy.get( '#preside-terminal' ).should( 'be.visible' );
+	} );
+
 	it( 'paginates and sorts with the stable controls', () => {
 		cy.get( '.object-listing-table tbody tr' ).should( 'have.length', 10 );
 		cy.get( '.dataTables_paginate .next:not(.disabled) a' ).first().click();

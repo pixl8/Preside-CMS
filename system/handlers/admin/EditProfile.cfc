@@ -282,6 +282,23 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="editProfile.labs" ) );
 	}
 
+	public void function dismissLabsSignpostAction( event, rc, prc ) {
+		var experimentIds = [];
+
+		if ( !labsService.hasConfigurableExperiments() ) {
+			event.renderData( type="json", data={ dismissed=false } );
+			return;
+		}
+
+		for( var experiment in labsService.listSignpostExperiments() ) {
+			ArrayAppend( experimentIds, experiment.id );
+		}
+
+		labsService.dismissSignpost( experimentIds );
+
+		event.renderData( type="json", data={ dismissed=true } );
+	}
+
 	private string function _buildLabsForm() {
 		var experiments = labsService.listConfigurableExperiments();
 
