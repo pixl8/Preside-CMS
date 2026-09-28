@@ -12,8 +12,8 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @contentRendererService.inject contentRendererService
-	 * @dataManagerService.inject     dataManagerService
+	 * @contentRendererService.inject delayedInjector:contentRendererService
+	 * @dataManagerService.inject     delayedInjector:dataManagerService
 	 */
 	public any function init( required any contentRendererService, required any dataManagerService ) {
 		_setContentRendererService( arguments.contentRendererService );
