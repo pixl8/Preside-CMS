@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Harness — frontend-editor maximize</title>
+	<link rel="stylesheet" href="/dist/tiptap.min.css">
+	<style>
+		/* Replicates the hostile bits of Preside's FRONT-END editor chrome
+		   (system/assets/css/admin/frontend/frontendEditor.less + toolbar.less):
+		   a fixed, max-width, z-index-100 wrapper (stacking context) around the
+		   editor, plus the admin toolbar at z-index 103 and the sheen at 99. */
+		body{font-family:sans-serif;margin:0;background:#eef1f4;color:#222;height:3000px}
+		.preside-admin-toolbar{position:fixed;top:0;left:0;width:100%;height:45px;background:#2c3d4e;color:#fff;z-index:103;line-height:45px;padding:0 10px}
+		.frontend-editor-modal-sheen{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;opacity:.5;z-index:99}
+		.content-editor-editor-container{position:fixed;top:100px;left:0;right:0;margin:0 auto;z-index:100;padding-bottom:100px;min-width:500px;max-width:810px}
+		.content-editor-editor-buttons{position:fixed;bottom:0;left:0;width:100%;background:#2c3d4e;text-align:right;padding:5px}
+		/* ...and the SITE's own fixed header, which core's chrome predates: it out-stacks
+		   even the 1040 band tiptap.css lifts the editor into, so it is src/frontendFit.js
+		   that has to push the editor clear of it (expect top ≈ 120 + 8). */
+		.site-header{position:fixed;top:0;left:0;width:100%;height:120px;background:#fff;border-bottom:1px solid #ccc;z-index:5000;line-height:120px;text-align:center;font-weight:bold}
+	</style>
+</head>
+<body>
+	<div class="preside-admin-toolbar">admin toolbar (z-index 103)</div>
+	<div class="site-header">site header (fixed, z-index 5000)</div>
+	<div class="frontend-editor-modal-sheen"></div>
+	<div class="presidecms content-editor-editor-container">
+		<form class="content-editor-form">
+			<!-- width=800 / height=400, exactly as _editorTemplate.cfm renders it -->
+			<textarea id="content" name="content" class="richeditor frontend-container"
+				data-toolbar="Maximize|Bold,Italic|Format"
+				data-width="800" data-min-height="180" data-max-height="400"><p>Frontend editor content.</p></textarea>
+			<div class="content-editor-editor-buttons"><button type="button">Save draft</button></div>
+		</form>
+	</div>
+
+	<script src="/vendor/jquery.js"></script>
+	<script src="/mocks.js"></script>
+	<script src="/dist/tiptap.bundle.min.js"></script>
+	<script src="/dist/facade.min.js"></script>
+	<script>
+		presideJQuery(function(){
+			// frontendEditors.js keeps the instance, not the facade wrapper.
+			window.testEditor = new PresideRichEditor( document.getElementById( "content" ) ).editor;
+		});
+	</script>
+</body>
+</html>

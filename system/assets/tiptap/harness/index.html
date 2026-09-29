@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Preside editor harness</title>
+	<script>
+		// Harness-only shim: this page hosts ckeditor.html in an <iframe>. Preside's
+		// preside.richeditor.js dialogDefinition handler reads `parent.CKEDITOR.document`
+		// (it assumes the parent window has CKEDITOR, as in the real single-page admin).
+		// Provide a minimal stub so the CKEditor pane's dialogs open when nested here.
+		window.CKEDITOR = window.CKEDITOR || { document: { $: document } };
+	</script>
+	<style>
+		body{font-family:sans-serif;margin:0;background:#eef1f4;color:#222}
+		header{background:#222;color:#fff;padding:12px 16px}
+		.wrap{display:flex;gap:0;height:calc(100vh - 49px)}
+		.col{flex:1;display:flex;flex-direction:column;border-right:1px solid #ccc}
+		.col:last-child{border-right:0}
+		.col h2{margin:0;padding:8px 12px;font-size:13px;background:#f0f0f0;border-bottom:1px solid #ddd}
+		.col.ck h2{background:#1a5296;color:#fff}
+		.col.tt h2{background:#0a7d5a;color:#fff}
+		iframe{flex:1;border:0;width:100%}
+	</style>
+</head>
+<body>
+	<header>Preside rich-editor harness — CKEditor (left) vs Tiptap (right), both with mocked Preside deps
+		&nbsp;·&nbsp; <a href="/fidelity.html" style="color:#9cf">fidelity matrix</a>
+		&nbsp;·&nbsp; <a href="/test-realworld.html" style="color:#9cf">real-world config tests</a>
+		&nbsp;·&nbsp; <a href="/test-plugin-api.html" style="color:#9cf">plugin API</a>
+	</header>
+	<div class="wrap">
+		<div class="col ck"><h2>CKEditor 4 (current)</h2><iframe src="/ckeditor.html"></iframe></div>
+		<div class="col tt"><h2>Tiptap (replacement)</h2><iframe src="/tiptap.html"></iframe></div>
+	</div>
+</body>
+</html>
