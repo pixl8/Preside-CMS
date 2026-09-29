@@ -7,9 +7,10 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	grunt.loadNpmTasks( 'grunt-rev' );
+	grunt.loadNpmTasks( 'grunt-exec' );
 
 	grunt.registerTask( 'default', [ 'uglify:core', 'uglify:legacyDatatablesCore', 'uglify:modernDatatablesCore', 'uglify:specific', 'uglify:frontend', 'less', 'cssmin', 'clean:frequentChangers', 'rev:frequentChangers', 'rename' ] );
-	grunt.registerTask( 'all'    , [ 'uglify', 'less', 'cssmin', 'clean:all', 'rev:all', 'rename' ] );
+	grunt.registerTask( 'all'    , [ 'uglify', 'less', 'cssmin', 'clean:all', 'rev:all', 'rename', 'exec:tiptap' ] );
 
 	grunt.initConfig( {
 		uglify: {
@@ -266,6 +267,13 @@ module.exports = function( grunt ) {
 
 					return dest + pathSplit.join( "/" );
 				}
+			}
+		},
+
+		exec: {
+			tiptap: {
+				  cmd : "npm install && npm run build"
+				, cwd : "tiptap"
 			}
 		},
 

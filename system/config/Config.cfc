@@ -89,6 +89,7 @@ component {
 			, "preside-ext-db-perf-enhancements"
 			, "preside-ext-email-log-performance"
 			, "preside-ext-workflow"
+			, "preside-ext-tiptap"
 		];
 
 		settings.activeExtensions = application.activeExtensions = new preside.system.services.devtools.ExtensionManagerService(
@@ -943,6 +944,59 @@ component {
 		};
 		settings.ckeditor.linkPicker = _getRicheditorLinkPickerConfig();
 		settings.ckeditor.toolbars   = _getCkEditorToolbarConfig();
+
+		settings.tiptap          = settings.tiptap ?: {};
+		settings.tiptap.i18nKeys = settings.tiptap.i18nKeys ?: [];
+		settings.tiptap.i18nKeys.append( [
+			  "toolbar.bold", "toolbar.italic", "toolbar.underline", "toolbar.strike"
+			, "toolbar.subscript", "toolbar.superscript", "toolbar.blockquote"
+			, "toolbar.numberedlist", "toolbar.bulletedlist", "toolbar.outdent", "toolbar.indent"
+			, "toolbar.justifyleft", "toolbar.justifycenter", "toolbar.justifyright", "toolbar.justifyblock"
+			, "toolbar.align"
+			, "toolbar.horizontalrule", "toolbar.table", "toolbar.removeformat"
+			, "toolbar.specialchar", "toolbar.find", "toolbar.replace"
+			, "toolbar.bidiltr", "toolbar.bidirtl"
+			, "toolbar.undo", "toolbar.redo", "toolbar.maximize"
+			, "toolbar.presidelink", "toolbar.presideunlink", "toolbar.presideanchor"
+			, "toolbar.widgets", "toolbar.imagepicker", "toolbar.attachmentpicker"
+			, "toolbar.codesnippet", "toolbar.source", "toolbar.format", "toolbar.styles"
+			, "toolbar.theme.dark", "toolbar.theme.light"
+			, "styles.none", "styles.block", "styles.inline", "styles.object"
+			, "format.panelTitle"
+			, "format.p", "format.h1", "format.h2", "format.h3", "format.h4", "format.h5", "format.h6", "format.pre", "format.div"
+			, "picker.ok", "picker.cancel", "picker.close"
+			, "picker.link.title", "picker.image.title", "picker.attachment.title", "picker.widget.title"
+			, "anchor.dialog.title", "anchor.dialog.placeholder", "anchor.tooltip"
+			, "embed.edithint", "embed.loading.image", "embed.loading.attachment", "embed.error"
+			, "embed.edit", "embed.remove"
+			, "image.resize", "image.align.left", "image.align.center", "image.align.right"
+			, "image.size.percent", "image.size.original", "image.refresh", "image.edit", "image.remove"
+			, "find.title", "find.find", "find.replace", "find.replaceall"
+			, "find.findwhat", "find.replacewith", "find.findoptions"
+			, "find.matchcase", "find.matchword", "find.matchcyclic"
+			, "find.notfound", "find.replaced"
+			, "specialchar.title", "specialchar.options"
+			, "table.insert", "table.gridsize", "table.gridcell", "table.withheaderrow"
+			, "table.column.before", "table.column.after", "table.column.delete"
+			, "table.row.before", "table.row.after", "table.row.delete"
+			, "table.cells.merge", "table.cells.split"
+			, "table.headerrow", "table.headercolumn", "table.delete"
+			, "draghandle.tooltip", "draghandle.insert"
+			, "slash.title", "slash.empty"
+			, "slash.group.format", "slash.group.block", "slash.group.preside", "slash.group.widget"
+			, "slash.h1", "slash.h1.hint", "slash.h2", "slash.h2.hint", "slash.h3", "slash.h3.hint"
+			, "slash.paragraph", "slash.paragraph.hint", "slash.bulletlist", "slash.bulletlist.hint"
+			, "slash.orderedlist", "slash.orderedlist.hint", "slash.blockquote", "slash.blockquote.hint"
+			, "slash.codeblock", "slash.codeblock.hint", "slash.hr", "slash.hr.hint"
+			, "slash.table", "slash.table.hint", "slash.image", "slash.image.hint"
+			, "slash.attachment", "slash.attachment.hint", "slash.widget", "slash.widget.hint"
+			, "slash.link", "slash.link.hint", "slash.anchor", "slash.anchor.hint"
+			, "outline.title", "outline.empty", "outline.untitled"
+			, "footer.words", "footer.chars", "footer.readingtime", "resize.tooltip"
+			, "editmode.trigger", "editmode.off", "editmode.classic", "editmode.modern"
+			, "editmode.modern.unavailable", "editmode.unsaved.confirm"
+			, "bubble.title"
+		], true );
 	}
 
 	private void function __setupFormSettings() {
@@ -1030,6 +1084,7 @@ component {
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, draftManager                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "cfflow", "datamanager", "datamanagerWorkflow" ] }
 			, labs                            = { enabled=true,  siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
+			, tiptapEditor                    = { enabled=true,  siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 		};
 
 		if ( IsBoolean( settings.env.TASKMANAGER_USE_RANDOM_OFFSET ?: "" ) ) {
@@ -1092,6 +1147,12 @@ component {
 		if ( !StructKeyExists( settings.labs.experiments, "datatablesOverhaul" ) ) {
 			settings.labs.experiments.datatablesOverhaul = {
 				mode = settings.env.LABS_DATATABLES_OVERHAUL ?: "labsDefaultOff"
+			};
+		}
+
+		if ( !StructKeyExists( settings.labs.experiments, "tiptapEditor" ) ) {
+			settings.labs.experiments.tiptapEditor = {
+				mode = settings.env.LABS_TIPTAP_EDITOR ?: "labsDefaultOff"
 			};
 		}
 

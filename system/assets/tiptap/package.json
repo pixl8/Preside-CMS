@@ -1,0 +1,28 @@
+{
+  "name": "preside-tiptap",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Build tooling for the Preside Tiptap rich-editor external. Bundles Tiptap v3 into self-contained IIFEs served by Preside's Sticker.",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch"
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.29.2",
+    "@tiptap/extension-placeholder": "^3.29.2",
+    "@tiptap/extension-subscript": "^3.29.2",
+    "@tiptap/extension-superscript": "^3.29.2",
+    "@tiptap/extension-table": "^3.29.2",
+    "@tiptap/extension-table-cell": "^3.29.2",
+    "@tiptap/extension-table-header": "^3.29.2",
+    "@tiptap/extension-table-row": "^3.29.2",
+    "@tiptap/extension-text-align": "^3.29.2",
+    "@tiptap/pm": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
+    "@tiptap/suggestion": "^3.29.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

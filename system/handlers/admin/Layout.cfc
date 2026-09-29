@@ -12,6 +12,9 @@ component {
 	property name="environmentMessage"       inject="coldbox:setting:environmentMessage";
 	property name="applicationsService"      inject="applicationsService";
 	property name="labsService"              inject="labsService";
+	property name="widgetsService"           inject="widgetsService";
+	property name="siteService"              inject="siteService";
+	property name="ckeditorSettings"         inject="coldbox:setting:ckeditor";
 	property name="i18n"                     inject="i18n";
 
 	private string function environmentBanner( event, rc, prc, args={} ) {
@@ -136,6 +139,16 @@ component {
 		return ArrayToList( rendered, " " );
 	}
 
+	private string function richEditorJs( event, rc, prc, args={} ) {
+		if ( labsService.isEnabled( "tiptapEditor" ) ) {
+			args.tiptapWidgets = _getTiptapWidgets();
+
+			return renderView( view="/admin/layout/tiptapEditorJs", args=args );
+		}
+
+		return renderView( view="/admin/layout/ckEditorClassicJs", args=args );
+	}
+
 	private string function userNavItem( event, rc, prc, args={} ) {
 		args.experiments = labsService.listSignpostExperiments();
 
@@ -169,5 +182,49 @@ component {
 		});
 
 		return renderView( view="/admin/layout/applicationDropdownItem", args=args );
+	}
+
+	private array function _getTiptapWidgets() {
+		var tiptapWidgets      = [];
+		var slashCategories    = [ "default" ];
+		var slashCategory      = "";
+		var slashWidgets       = {};
+		var slashWidgetId      = "";
+		var slashWidget        = "";
+		var activeSiteTemplate = "";
+
+		try {
+			for ( slashCategory in ListToArray( ckeditorSettings.defaults.defaultConfigs.widgetCategories ?: "" ) ) {
+				if ( !slashCategories.findNoCase( Trim( slashCategory ) ) ) {
+					slashCategories.append( Trim( slashCategory ) );
+				}
+			}
+
+			slashWidgets       = widgetsService.getWidgets( categories=slashCategories );
+			activeSiteTemplate = isFeatureEnabled( "sites" ) ? siteService.getActiveSiteTemplate() : "";
+
+			for ( slashWidgetId in slashWidgets ) {
+				slashWidget = slashWidgets[ slashWidgetId ];
+
+				if ( isFeatureEnabled( "sites" ) && slashWidget.siteTemplates != "*" && !ListFindNoCase( slashWidget.siteTemplates ?: "", activeSiteTemplate ) ) {
+					continue;
+				}
+
+				tiptapWidgets.append( {
+					  id          = slashWidgetId
+					, title       = translateResource( uri=slashWidget.title       , defaultValue=slashWidgetId )
+					, description = translateResource( uri=slashWidget.description , defaultValue="" )
+					, categories  = slashWidget.categories ?: []
+				} );
+			}
+
+			tiptapWidgets.sort( function( a, b ){
+				return a.title == b.title ? 0 : ( a.title > b.title ? 1 : -1 );
+			} );
+		} catch ( any e ) {
+			tiptapWidgets = [];
+		}
+
+		return tiptapWidgets;
 	}
 }

@@ -1,0 +1,2413 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Harness — real-world config tests</title>
+	<link rel="stylesheet" href="/dist/tiptap.min.css">
+	<style>
+		body{font-family:sans-serif;margin:0;background:#eef1f4;color:#222}
+		header{background:#5a2d7d;color:#fff;padding:10px 16px;font-size:15px}
+		header a{color:#e2c9f0}
+		main{max-width:900px;margin:20px auto;background:#fff;padding:20px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+		.note{font-size:12px;color:#666;margin:0 0 14px}
+		#results li{font-size:13px;margin:3px 0}
+		#results .pass{color:#0a7d5a}
+		#results .fail{color:#c0392b;font-weight:bold}
+		#summary{font-size:15px;font-weight:bold;margin:12px 0}
+		.fixture{margin:18px 0}
+		.fixture h3{font-size:13px;margin:0 0 4px;color:#555}
+	</style>
+	<!-- ADMIN STYLE LEAK EMULATION (T19). Reproduces what the Preside admin page
+	     actually does to an in-page editable: Ace/bootstrap set html{font-size:10px}
+	     (so every `rem` resolves against 10px instead of the 16px an iframe root
+	     has) plus body/element/global rules that reach into the content.
+	     The editable is inside an IFRAME (src/editorFrame.js), so none of this can
+	     reach it - that is the whole point, and T19 is what proves it.
+
+	     The second block is the two forms that DEFEAT any specificity-based
+	     isolation, which is why the `all:revert` wall this replaced could never have
+	     worked: `!important` beats a reset outright, and (0,2,1)+ outranks the
+	     (0,2,0) the reset sat at. Both are ordinary content of a real stylesheet. -->
+	<style>
+		html{font-size:10px}
+		body{font-family:"Trebuchet MS",sans-serif;font-size:14px}
+		*,*:before,*:after{box-sizing:border-box}
+		p{letter-spacing:3px}
+		h2{font-family:"Courier New",monospace;font-weight:bold}
+		ul{padding-left:60px}
+	</style>
+	<style>
+		p{font-style:italic !important}
+		body main .tiptap-editor-container p{text-transform:uppercase}
+	</style>
+</head>
+<body>
+	<header>Preside Tiptap — <strong>real-world configuration tests</strong> &nbsp;·&nbsp; <a href="/">index</a></header>
+	<main>
+		<p class="note">
+			Each case reproduces a CKEditor customisation pattern found verbatim in real
+			Preside sites/extensions (named toolbars from <code>settings.ckeditor.toolbars</code>,
+			<code>defaultConfigs.stylesSet</code> appends, stylesheet appends, and custom
+			CKEditor config files / the stock core <code>/ckeditorExtensions/config.js</code>).
+			Assertions run automatically; results below and on <code>window.__results</code> /
+			<code>window.__done</code>.
+		</p>
+
+		<div id="summary">running…</div>
+		<ul id="results"></ul>
+
+		<!-- T1: preside-ext-ready-membership-cms-basics named toolbar
+		     settings.ckeditor.toolbars.bolditaliclinkandformat = 'Bold|Italic|PresideLink,PresideUnlink|Format'
+		     (arrives client-side pre-resolved by CkEditorToolbarHelper.getToolbarDefinition) -->
+		<div class="fixture"><h3>T1 — cms-basics “bolditaliclinkandformat” toolbar</h3>
+			<textarea name="t1" class="richeditor"
+				data-toolbar="Bold|Italic|PresideLink,PresideUnlink|Format"><p>one</p></textarea>
+		</div>
+
+		<!-- T2: preside-ext-pdf-templating toolbar - full CKEditor button set incl.
+		     many buttons with no Tiptap analogue (Find/Replace/Scayt/SpecialChar/
+		     CreateDiv/BidiLtr/BidiRtl/Language/Cut/Copy/SelectAll). Must mount and
+		     skip the unmapped names gracefully. -->
+		<div class="fixture"><h3>T2 — pdf-templating toolbar (unmapped CKEditor buttons)</h3>
+			<textarea name="t2" class="richeditor"
+				data-toolbar="Maximize,-,Source,|Cut,Copy,-,Undo,Redo|Find,Replace,-,SelectAll,-,Scayt|ImagePicker,SpecialChar|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat|NumberedList,BulletedList,Table,HorizontalRule,-,Outdent,Indent,-,Blockquote,CreateDiv|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language"><p>two</p></textarea>
+		</div>
+
+		<!-- T3/T4: rptestbed site Config.cfc appends content stylesheets;
+		     cms-basics appends a stylesSet entry:
+		     ArrayAppend( settings.ckeditor.defaults.defaultConfigs.stylesSet,
+		       { name:'table.compact', element:'table', attributes:{ 'class':'table table-compact' } } )
+		     (stylesSet lands in cfrequest.ckeditorDefaultConfigs - set in the script below) -->
+		<div class="fixture"><h3>T3/T4 — stylesSet append + content stylesheets → Styles dropdown</h3>
+			<textarea name="t3" class="richeditor"
+				data-toolbar="Bold,Italic|Styles"
+				data-stylesheets="/content-sample.css"><p>three</p><table><tr><td>x</td></tr></table></textarea>
+		</div>
+
+		<!-- T3b: the two combos SIDE BY SIDE in one group, and a `-` between them.
+		     Untested before, and it is the case the reported "no gap between Styles
+		     and Format" bug lived in: as controls inside one group block they sat 5px
+		     apart with no border between and read as a single merged control. Each is
+		     canGroup:false in CKEditor, so each must render as its own block - and the
+		     separator between two combos is DROPPED (CKEditor's `k = e && t`). -->
+		<div class="fixture"><h3>T3b — Styles + Format adjacent (combo blocks, dropped separator)</h3>
+			<textarea name="t3b" class="richeditor"
+				data-toolbar="Bold,Italic|Styles,-,Format|Undo"
+				data-stylesheets="/content-sample.css"><p>three-b</p></textarea>
+		</div>
+
+		<!-- T3c: a sheet whose ONLY harvested styles are `table.*` - i.e. all OBJECT
+		     styles. In a paragraph none of them is applicable, so stylescombo's
+		     `refresh` disables the whole combo. This is exactly the reported
+		     screenshot: CKEditor's Styles button greyed out in a paragraph. -->
+		<div class="fixture"><h3>T3c — object-only stylesheet → Styles disabled in a paragraph</h3>
+			<textarea name="t3c" class="richeditor"
+				data-toolbar="Bold|Styles"
+				data-stylesheets="/content-tables-only.css"><p>three-c</p><table><tr><td>y</td></tr></table></textarea>
+		</div>
+
+		<!-- T5: site-provided custom CKEditor config file (the
+		     settings.ckeditor.defaults.configFile / per-field customConfig contract).
+		     custom-config-fixture.js mirrors the stock core file's plugin boilerplate
+		     plus real config: toolbar_harnessCustom, format_tags, ENTER_BR,
+		     disallowedContent. -->
+		<div class="fixture"><h3>T5 — custom config file (named toolbar, enterMode, filters)</h3>
+			<textarea name="t5" class="richeditor"
+				data-toolbar="harnessCustom"
+				data-custom-config="/custom-config-fixture.js"><p>five</p></textarea>
+		</div>
+
+		<!-- T6: stock core config file (cfrequest.ckeditorConfig =
+		     /ckeditorExtensions/config.js via mocks.js) - plugin registration must
+		     no-op against the shim and the editor must be fully functional. -->
+		<div class="fixture"><h3>T6 — stock core /ckeditorExtensions/config.js is harmless</h3>
+			<textarea name="t6" class="richeditor"
+				data-toolbar="Bold,Italic"><p>six</p></textarea>
+		</div>
+		<!-- T7: a field opting out of the light/dark toggle
+		     (data-custom-default-configs='{"darkMode":false}' - the same shape a site
+		     sets via settings.ckeditor.defaults.defaultConfigs.darkMode). -->
+		<div class="fixture"><h3>T7 — darkMode:false suppresses the theme toggle</h3>
+			<textarea name="t7" class="richeditor"
+				data-toolbar="Bold,Italic"
+				data-custom-default-configs='{"darkMode":false}'><p>seven</p></textarea>
+		</div>
+		<!-- T8: a field opting out of the document outline navigator
+		     (data-custom-default-configs='{"outline":false}'). -->
+		<div class="fixture"><h3>T8 — outline:false suppresses the outline navigator</h3>
+			<textarea name="t8" class="richeditor"
+				data-toolbar="Bold,Italic"><h2>eight</h2><p>body</p></textarea>
+		</div>
+		<div class="fixture"><h3>T8 — outline:false</h3>
+			<textarea name="t8b" class="richeditor"
+				data-toolbar="Bold,Italic"
+				data-custom-default-configs='{"outline":false}'><h2>eight b</h2><p>body</p></textarea>
+		</div>
+		<!-- T9: a short field with far more headings than the rail can show, to
+		     exercise railPlan()'s adaptive depth (drop a heading level at a time,
+		     then sample every Nth). Content is injected by the script below. -->
+		<div class="fixture"><h3>T9 — heading-heavy document (adaptive rail depth)</h3>
+			<textarea name="t9" class="richeditor"
+				data-toolbar="Bold,Italic"
+				data-min-height="120" data-max-height="120"><p>filled in by the test script</p></textarea>
+		</div>
+		<!-- T22/T23/T24: the CKEditor buttons this extension used to skip -
+		     Find, Replace (one dialog, two tabs), Insert Special Character, and the
+		     two text-direction buttons. -->
+		<div class="fixture"><h3>T22/T23/T24 — Find/Replace, special characters, text direction</h3>
+			<textarea name="t22" class="richeditor"
+				data-toolbar="Bold|Find,Replace,SpecialChar|BidiLtr,BidiRtl"><p>The cat sat on the mat</p><p>Another line</p></textarea>
+		</div>
+		<!-- T26: the source view (src/sourceView.js). Its own fixture: the content
+		     covers every layout case at once - top-level blocks, a nested list, a
+		     <pre> whose whitespace is significant, an entity, and a Preside token. -->
+		<div class="fixture"><h3>T26 — source view: CKEditor's layout, highlighted, display-only</h3>
+			<textarea name="t26" class="richeditor"
+				data-toolbar="Source,Maximize|Bold"><h1>Title</h1><p>Hello <strong>bold</strong> text</p><ul><li>one</li><li>two</li></ul><ol><li>parent<ol><li>child</li></ol></li></ol><pre><code>  keep
+   this</code></pre>{{widget:news:{"limit":3}:widget}}<p>two &amp; three</p></textarea>
+		</div>
+		<!-- T28: list normalisation. The <p> ListItem's `paragraph block*` schema puts
+		     in every <li> is an editing artifact, not stored markup - except where
+		     storing it bare would not survive a reload. Its own field, because these
+		     checks setData/getData repeatedly. -->
+		<div class="fixture"><h3>T28 — lists: the schema's &lt;p&gt; in and out of storage</h3>
+			<textarea name="t28" class="richeditor" data-toolbar="Bold|NumberedList,BulletedList"><p>x</p></textarea>
+		</div>
+		<!-- T25: the manual resize grip (CKEditor's `resize` plugin). Three fields:
+		     the default (vertical), one opting out, and one allowing both axes. -->
+		<div class="fixture"><h3>T25 — resize grip: default / disabled / both axes</h3>
+			<textarea name="t25" class="richeditor"
+				data-toolbar="Bold,Italic"><p>resize me</p></textarea>
+			<textarea name="t25off" class="richeditor"
+				data-toolbar="Bold,Italic"
+				data-custom-default-configs='{"resize_enabled":false}'><p>no grip</p></textarea>
+			<textarea name="t25both" class="richeditor"
+				data-toolbar="Bold,Italic"
+				data-custom-default-configs='{"resize_dir":"both","resize_minWidth":200}'><p>both axes</p></textarea>
+			<textarea name="t25pinned" class="richeditor"
+				data-toolbar="Bold,Italic"
+				data-custom-default-configs='{"resize_minHeight":300,"resize_maxHeight":300}'><p>no room to move</p></textarea>
+			<!-- Its own capped field for the min-lowering case, rather than borrowing
+			     T9's: resizing a field the outline tests also measure made those
+			     assertions race the rail's (rAF-deferred) re-centring. -->
+			<textarea name="t25small" class="richeditor"
+				data-toolbar="Bold,Italic"
+				data-min-height="120" data-max-height="120"><p>tiny field</p></textarea>
+		</div>
+	</main>
+
+	<script src="/vendor/jquery.js"></script>
+	<script src="/mocks.js"></script>
+	<script>
+		// What preside-ext-ready-membership-cms-basics does server-side, as it
+		// reaches the client (ckEditorJs.cfm includeData -> cfrequest).
+		window.cfrequest.ckeditorDefaultConfigs.stylesSet = [
+			{ name: "table.compact", element: "table", attributes: { "class": "table table-compact" } }
+		];
+	</script>
+	<script src="/dist/tiptap.bundle.min.js"></script>
+	<script src="/dist/facade.min.js"></script>
+	<script>
+	presideJQuery( function() {
+		var $ = presideJQuery;
+		var results = [], listEl = document.getElementById( "results" );
+		// Take the DOM focus BEFORE building a command chain, then chain without
+		// `.focus()`. Tiptap's focus command has a Safari-only branch that focuses the
+		// DOM synchronously; that makes prosemirror dispatch a selection correction
+		// mid-chain, and the chain's own transaction is then applied to a state it was
+		// not built from ("Applying a mismatched transaction"), losing the chain. Its
+		// own `view.hasFocus()` guard is the way out, so focus first. This is the same
+		// discipline src/editorFocus.js applies in the editor's own chrome - a real
+		// user click focuses the editable natively, which is what this stands in for.
+		function edFocus( e ) {
+			try { if ( e && !e.isDestroyed && e.view && !e.view.hasFocus() ) { e.view.focus(); } } catch ( err ) {}
+			return e;
+		}
+
+		function check( label, ok, detail ) {
+			results.push( { label: label, ok: !!ok, detail: detail || "" } );
+			var li = document.createElement( "li" );
+			li.className = ok ? "pass" : "fail";
+			li.textContent = ( ok ? "✓ " : "✗ " ) + label + ( !ok && detail ? " — " + detail : "" );
+			listEl.appendChild( li );
+		}
+		function toolbarOf( name ) {
+			return $( "textarea[name=" + name + "]" ).next( ".tiptap-editor-container" ).find( ".tiptap-toolbar" );
+		}
+		// ---- reaching into the editing frame ---------------------------------
+		// The editable lives in an IFRAME (src/editorFrame.js), so it is not
+		// reachable with container.find() / querySelector() - those cannot cross a
+		// document boundary. Modern inline mode has no frame, so every helper falls
+		// back to the container and the same test text works for both.
+		function frameElOf( container ) {
+			var el = ( container && container.jquery ) ? container[ 0 ] : container;
+			if ( !el ) { return null; }
+			if ( !el.querySelector ) { return null; }
+			return el.classList && el.classList.contains( "tiptap-editor-frame" )
+				? el : el.querySelector( "iframe.tiptap-editor-frame" );
+		}
+		// The editable's visible BOX in this document: the frame when there is one
+		// (it is the viewport the content is clipped to), else the mount div.
+		function surfaceEl( container ) {
+			var el = ( container && container.jquery ) ? container[ 0 ] : container;
+			return frameElOf( el ) || el.querySelector( ".tiptap-editor-mount" );
+		}
+		function frameDocOf( container ) {
+			var f = frameElOf( container );
+			return f ? f.contentDocument : document;
+		}
+		// jQuery set of matches from inside the frame's document.
+		function $in( container, sel ) {
+			var el = ( container && container.jquery ) ? container[ 0 ] : container;
+			var f  = frameElOf( el );
+			return $( f ? f.contentDocument.querySelectorAll( sel ) : el.querySelectorAll( sel ) );
+		}
+		// Hover a block the way the drag handle listens for it. Mouse tracking is
+		// bound INSIDE the frame (src/dragHandle.js keeps the whole drag in one
+		// document), so the synthetic move has to be dispatched there - in frame
+		// coordinates, which is the space an in-frame element's own rect is already
+		// in.
+		function hoverAt( container, el ) {
+			var r = el.getBoundingClientRect();
+			var d = frameDocOf( container );
+			var w = d.defaultView || window;
+			( d.documentElement || ( container.jquery ? container[ 0 ] : container ) )
+				.dispatchEvent( new w.MouseEvent( "mousemove",
+					{ clientY: r.top + 4, clientX: r.left + 40, bubbles: true } ) );
+			return r;
+		}
+		// What actually scrolls the content: the frame's own document, or the mount.
+		function scrollerOf( container ) {
+			var f = frameElOf( container );
+			if ( f ) { return f.contentDocument.documentElement; }
+			var el = ( container && container.jquery ) ? container[ 0 ] : container;
+			return el.querySelector( ".tiptap-editor-mount" );
+		}
+		function footerOf( name ) {
+			return $( "textarea[name=" + name + "]" ).next( ".tiptap-editor-container" ).find( ".tiptap-footer" );
+		}
+		// The light/dark toggle is chrome, not a toolbar-config button (it lives in the
+		// footer status bar regardless of the configured toolbar) - excluded here so
+		// these assertions stay about what the config asked for.
+		function buttonTitles( name ) {
+			return toolbarOf( name ).find( "button.tiptap-btn" ).not( ".tiptap-dropdown-trigger" ).not( ".tiptap-theme-toggle" )
+				.map( function() { return this.title || this.getAttribute( "aria-label" ); } ).get();
+		}
+
+		// Mount explicitly (same as formFields.js / tiptap.html) - jQuery's ready
+		// fires before the facade's own DOMContentLoaded bootstrap, so instances
+		// wouldn't exist yet if we relied on it.
+		// T9's fixture: 30 h2/h3/h4 triplets in a 120px-tall field - far more
+		// headings than its rail can show, so railPlan() has to shed detail.
+		var t9html = "";
+		for ( var t9i = 1; t9i <= 30; t9i++ ) {
+			t9html += "<h2>Section " + t9i + "</h2><p>body</p><h3>Sub " + t9i + "</h3><p>body</p><h4>Detail " + t9i + "</h4><p>body</p>";
+		}
+		$( "textarea[name=t9]" ).val( t9html );
+
+		$( "textarea.richeditor" ).each( function() { new PresideRichEditor( this ); } );
+
+		// ---- T1: cms-basics named toolbar ---------------------------------
+		var t1 = buttonTitles( "t1" );
+		check( "T1 toolbar renders exactly Bold/Italic/Link/Unlink", JSON.stringify( t1 ) === JSON.stringify( [ "Bold", "Italic", "Link", "Unlink" ] ), JSON.stringify( t1 ) );
+		check( "T1 Format dropdown present", toolbarOf( "t1" ).find( ".tiptap-dropdown-trigger" ).length === 1 );
+
+		// ---- T2: pdf-templating toolbar -----------------------------------
+		var inst2 = CKEDITOR.instances.t2;
+		var t2 = buttonTitles( "t2" );
+		check( "T2 editor mounted despite unmapped buttons", !!inst2 && toolbarOf( "t2" ).length === 1 );
+		check( "T2 mapped buttons render (Bold, Image, Table, Undo)",
+			t2.indexOf( "Bold" ) > -1 && t2.indexOf( "Image" ) > -1 && t2.indexOf( "Table" ) > -1 && t2.indexOf( "Undo" ) > -1, JSON.stringify( t2 ) );
+		// Still unmapped (no analogue, or a browser/plugin feature): spell check, the
+		// browser's own Cut/Copy/SelectAll, CKEditor's CreateDiv and Language.
+		var unmapped = [ "Scayt", "SelectAll", "CreateDiv", "Language", "Cut", "Copy" ];
+		check( "T2 unmapped CKEditor buttons skipped silently", t2.filter( function( t ) { return unmapped.indexOf( t ) > -1; } ).length === 0, JSON.stringify( t2 ) );
+		// ...and the five that USED to be on that list now render (T22-T24 exercise
+		// what they do). Titles are the CKEditor labels - see src/i18n.js.
+		var nowMapped = [ "Find", "Replace", "Insert Special Character", "Text direction from left to right", "Text direction from right to left" ];
+		check( "T2 Find/Replace/SpecialChar/Bidi* now render",
+			nowMapped.filter( function( t ) { return t2.indexOf( t ) === -1; } ).length === 0, JSON.stringify( t2 ) );
+		check( "T2 editor functional (getData round-trip)", inst2 && inst2.getData() === "<p>two</p>", inst2 && inst2.getData() );
+
+		// ---- toolbar chrome: CKEditor's grouped blocks ---------------------
+		// The toolbar is a grey tray of WHITE grouped blocks, as CKEditor's is (the
+		// numbers in src/tiptap.css are lifted from .cke_top / .cke_toolgroup).
+		( function() {
+			var $g = toolbarOf( "t2" ).find( ".tiptap-toolbar-group" ).eq( 0 );
+			var cs = getComputedStyle( $g[ 0 ] );
+			check( "T2 button groups are drawn as blocks on the tray",
+				cs.backgroundColor === "rgb(255, 255, 255)" && cs.borderTopWidth === "1px"
+				&& getComputedStyle( toolbarOf( "t2" )[ 0 ] ).backgroundColor === "rgb(238, 238, 238)",
+				cs.backgroundColor + " on " + getComputedStyle( toolbarOf( "t2" )[ 0 ] ).backgroundColor );
+
+			// A separator only means something BETWEEN two controls. This toolbar is the
+			// real pdf-templating one, whose groups put "-" next to buttons we do not
+			// implement: "Cut,Copy,-,Undo,Redo" leaves a LEADING separator once Cut and
+			// Copy are skipped, and "Find,Replace,-,SelectAll,-,Scayt" leaves two
+			// TRAILING ones. Against the group's own border those read as doubled
+			// lines - the "sometimes there are two of them" look.
+			var groups = toolbarOf( "t2" ).find( ".tiptap-toolbar-group" );
+			var bad = [];
+			groups.each( function( i ) {
+				var kids = Array.prototype.slice.call( this.children );
+				var isSep = function( el ) { return el && el.classList.contains( "tiptap-toolbar-sep" ); };
+				kids.forEach( function( el, n ) {
+					if ( !isSep( el ) ) { return; }
+					if ( n === 0 || n === kids.length - 1 || isSep( kids[ n - 1 ] ) ) { bad.push( i + ":" + n ); }
+				} );
+			} );
+			check( "T2 no leading, trailing or doubled separators in any group", bad.length === 0, bad.join( "," ) );
+			// ...and the ones that ARE between controls survive (Maximize,-,Source).
+			check( "T2 a separator between two real buttons is kept",
+				groups.eq( 0 ).find( ".tiptap-toolbar-sep" ).length === 1,
+				groups.eq( 0 ).find( ".tiptap-toolbar-sep" ).length + " in the first group" );
+
+			// ONE caret per dropdown trigger, and never the bare `caret` class:
+			// `caret` belongs to BOOTSTRAP (and Ace), whose own rule draws a border
+			// triangle - in the admin every dropdown showed two arrows stacked.
+			var $t3tb = toolbarOf( "t3" );   // Bold,Italic|Styles
+			check( "T2 dropdown triggers carry exactly one caret",
+				$t3tb.find( ".tiptap-dropdown-trigger .tiptap-caret" ).length === 1
+				&& $t3tb.find( ".tiptap-dropdown-trigger" ).children().length === 2,
+				$t3tb.find( ".tiptap-dropdown-trigger" ).html() );
+			check( "T2 no chrome uses the bootstrap-owned `caret` / `lbl` class names",
+				$( ".tiptap-editor-container" ).find( ".caret, .lbl" ).length === 0 );
+
+			// EVERY GROUP IN A ROW IS THE SAME HEIGHT, and every control in it sits at
+			// the same top. This toolbar has both custom-rendered triggers (the Table
+			// grid picker and the collapsed Align dropdown), and they were the ONLY
+			// groups a pixel taller than the rest: as an inline-block the
+			// .tiptap-dropdown wrapper opened an inline formatting context, and a
+			// trigger holding only boxes (an svg, an icon span) has its baseline
+			// synthesized at its bottom edge, so the strut's descent was added below
+			// it. The wrapper is a flex container now - no strut, no stray pixel,
+			// whatever a future trigger happens to contain.
+			var rows = {}, offRow = [], offTop = [];
+			groups.each( function() {
+				var r = this.getBoundingClientRect();
+				var k = Math.round( r.top );
+				( rows[ k ] = rows[ k ] || [] ).push( { h: Math.round( r.height ), el: this } );
+			} );
+			Object.keys( rows ).forEach( function( k ) {
+				var row = rows[ k ];
+				var h   = row[ 0 ].h;
+				row.forEach( function( g ) {
+					if ( g.h !== h ) { offRow.push( k + ":" + g.h + " vs " + h ); }
+					// Only the controls on the row - not the items inside a CLOSED
+					// dropdown menu, which are display:none and measure at 0.
+					$( g.el ).find( "button" ).not( ".tiptap-dropdown-menu button" ).each( function() {
+						var top = Math.round( this.getBoundingClientRect().top );
+						if ( top !== Math.round( row[ 0 ].el.querySelector( "button" ).getBoundingClientRect().top ) ) {
+							offTop.push( k + ":" + ( this.title || this.className ) + "@" + top );
+						}
+					} );
+				} );
+			} );
+			check( "T2 every group in a row is the same height (custom triggers included)",
+				offRow.length === 0, offRow.join( ", " ) );
+			check( "T2 every button in a row shares one top edge",
+				offTop.length === 0, offTop.join( ", " ) );
+			// ...and a dropdown wrapper that sits INSIDE a group (the Align and Table
+			// pickers - both plain buttons in CKEditor, so both stay grouped) adds
+			// nothing of its own around its trigger. This is the flex-vs-inline-block
+			// bug: as an inline-block the wrapper opened an inline formatting context
+			// and a trigger holding only boxes got a synthesized baseline, making those
+			// two groups a pixel taller than every other block in the tray.
+			// A Format/Styles combo is deliberately EXCLUDED: it is canGroup:false, so
+			// it is its own block and legitimately carries that block's border+padding.
+			var wrapBad = [];
+			$( ".tiptap-editor-container .tiptap-dropdown" ).not( ".tiptap-combo" ).each( function() {
+				var t = this.querySelector( ".tiptap-btn" );
+				if ( t && Math.round( this.getBoundingClientRect().height ) !== Math.round( t.getBoundingClientRect().height ) ) {
+					wrapBad.push( this.className + " " + this.getBoundingClientRect().height );
+				}
+			} );
+			check( "T2 a grouped dropdown wrapper is exactly its trigger's height", wrapBad.length === 0, wrapBad.join( ", " ) );
+
+			// ---- Combos are their own blocks (CKEditor's canGroup:false) ---------
+			// T3b's toolbar is `Bold,Italic|Styles,-,Format|Undo`, so it must render
+			// FOUR top-level blocks: a group, two standalone combos, a group.
+			var $row3b = toolbarOf( "t3b" );
+			var kinds  = $row3b.children().map( function() {
+				return this.classList.contains( "tiptap-combo" ) ? "combo"
+					: this.classList.contains( "tiptap-toolbar-group" ) ? "group"
+					: this.classList.contains( "tiptap-toolbar-sep" ) ? "sep" : this.className;
+			} ).get();
+			check( "T3b Styles and Format each render as their own block, outside any group",
+				kinds.join( "," ) === "group,combo,combo,group", kinds.join( "," ) );
+			// `k = e && t`: CKEditor only remembers a deferred separator while a group is
+			// open, so one between two combos is discarded.
+			check( "T3b the `-` between two combos is dropped",
+				$row3b.children( ".tiptap-toolbar-sep" ).length === 0 );
+			// The gap is real, and it is CKEditor's: .cke_combo_button's `margin:0 6px..`
+			// matching .cke_toolgroup's. Sharing one group block put them 5px apart with
+			// no border between - the reported "no separator gap" bug.
+			var $combos = $row3b.children( ".tiptap-combo" );
+			var gap = Math.round( $combos.eq( 1 ).offset().left - ( $combos.eq( 0 ).offset().left + $combos.eq( 0 ).outerWidth() ) );
+			check( "T3b the two combo blocks are visibly separated (6px, as CKEditor's are)",
+				gap >= 5 && gap <= 7, "gap=" + gap );
+
+			// ---- The combo greys out when no style applies (stylescombo `refresh`) --
+			// T3c's sheet harvests ONLY `table.*`, i.e. all OBJECT styles, so in a
+			// paragraph none is applicable. This is the reported screenshot.
+			var $t3c = toolbarOf( "t3c" ).find( '.tiptap-dropdown-trigger[data-cmd="Styles"]' );
+			check( "T3c Styles is disabled in a paragraph when only object styles exist",
+				$t3c.prop( "disabled" ) === true );
+			( function() {
+				var tip = CKEDITOR.instances.t3c._t, pos = null;
+				tip.state.doc.descendants( function( n, p ) {
+					if ( n.type.name === "tableCell" && pos === null ) { pos = p + 1; }
+				} );
+				tip.commands.focus();
+				tip.commands.setTextSelection( pos + 1 );
+				check( "T3c ...and enables again with the caret inside a table",
+					$t3c.prop( "disabled" ) === false );
+				tip.commands.setTextSelection( 1 );
+			} )();
+		} )();
+
+		// ---- T5: custom config file ---------------------------------------
+		var inst5 = CKEDITOR.instances.t5;
+		var t5 = buttonTitles( "t5" );
+		check( "T5 toolbar_harnessCustom resolved from config file", JSON.stringify( t5 ) === JSON.stringify( [ "Bold", "Italic" ] ), JSON.stringify( t5 ) );
+		check( "T5 numeric CKEDITOR.ENTER_BR → enterMode 'br'", inst5 && inst5.config.enterMode === "br", inst5 && inst5.config.enterMode );
+		check( "T5 file disallowedContent reaches paste filtering config", inst5 && inst5.config.defaultConfigs.disallowedContent === "*{text-shadow*}" );
+		check( "T5 instance defaultConfigs override file format_tags (CKEditor precedence)",
+			inst5 && inst5.config.defaultConfigs.format_tags === "p;h1;h2;h3;h4;h5;h6;pre;div", inst5 && inst5.config.defaultConfigs.format_tags );
+
+		// ---- T6: stock core config file -----------------------------------
+		var inst6 = CKEDITOR.instances.t6;
+		check( "T6 editor mounts with the stock core config.js loaded", !!inst6 && !!toolbarOf( "t6" ).length );
+		check( "T6 plugin registration no-ops (CKEDITOR.plugins shimmed)", typeof CKEDITOR.plugins.addExternal === "function" );
+		check( "T6 getData round-trip", inst6 && inst6.getData() === "<p>six</p>", inst6 && inst6.getData() );
+		check( "T6 file extraPlugins captured but harmless", inst6 && /widgets/.test( inst6.config.defaultConfigs.extraPlugins || "" ), inst6 && inst6.config.defaultConfigs.extraPlugins );
+
+		// ---- T7: light/dark toggle ----------------------------------------
+		check( "T7 theme toggle right-aligned in the footer status bar", footerOf( "t1" ).find( ".tiptap-footer-right .tiptap-theme-toggle" ).length === 1 );
+		check( "T7 no toggle left in the toolbar", toolbarOf( "t1" ).find( ".tiptap-theme-toggle" ).length === 0 );
+		check( "T7 darkMode:false field renders no toggle",
+			toolbarOf( "t7" ).find( ".tiptap-theme-toggle" ).length === 0 && footerOf( "t7" ).find( ".tiptap-theme-toggle" ).length === 0 );
+
+		var $anyToggle  = footerOf( "t1" ).find( ".tiptap-theme-toggle" );
+		var containers  = function() { return $( ".tiptap-editor-container" ); };
+		var darkCount   = function() { return containers().filter( ".tiptap-dark" ).length; };
+		$anyToggle[ 0 ].click();
+		check( "T7 toggling re-themes every editor on the page", darkCount() === containers().length, darkCount() + "/" + containers().length );
+		check( "T7 content is untouched by the theme", CKEDITOR.instances.t1.getData() === "<p>one</p>", CKEDITOR.instances.t1.getData() );
+		$anyToggle[ 0 ].click();
+		check( "T7 toggling back returns to light", darkCount() === 0 );
+
+		// ---- T8/T9: document outline navigator ----------------------------
+		// The rail's row count depends on measured layout, so these run from the
+		// poll below (a few frames in) rather than inline - see outlineChecks().
+		function outlineOf( name ) {
+			return $( "textarea[name=" + name + "]" ).next( ".tiptap-editor-container" ).find( ".tiptap-outline" );
+		}
+		function outlineChecks() {
+			check( "T8 outline rail + panel rendered by default", outlineOf( "t8" ).find( ".tiptap-outline-rail" ).length === 1 );
+			check( "T8 one rail marker + one panel entry per heading",
+				outlineOf( "t8" ).find( ".tiptap-outline-row" ).length === 1 && outlineOf( "t8" ).find( ".tiptap-outline-item" ).length === 1 );
+			check( "T8 outline:false renders no navigator", outlineOf( "t8b" ).length === 0 );
+
+			var $t9   = outlineOf( "t9" );
+			var rows  = $t9.find( ".tiptap-outline-row" ).length;
+			var items = $t9.find( ".tiptap-outline-item" ).length;
+			check( "T9 outline sheds detail to fit (fewer markers than the 90 headings)", rows > 0 && rows < 90, rows + " markers for 90 headings" );
+			check( "T9 panel lists exactly the headings the markers represent", items === rows, items + " entries vs " + rows + " markers" );
+			// Neither list may outgrow the editable it is measured against.
+			var mountH = surfaceEl( $t9.closest( ".tiptap-editor-container" ) ).clientHeight;
+			var panelH = $t9.find( ".tiptap-outline-panel" )[ 0 ].scrollHeight;
+			check( "T9 panel fits the editor without scrolling", panelH <= mountH, panelH + "px of list in a " + mountH + "px editable" );
+			// The rail must stay centred on the EDITABLE no matter how long the
+			// heading list is (the panel is out of flow precisely so it cannot
+			// stretch the wrapper and push the rail upwards).
+			var railBox  = $t9.find( ".tiptap-outline-rail" )[ 0 ].getBoundingClientRect();
+			var mountBox = surfaceEl( $t9.closest( ".tiptap-editor-container" ) ).getBoundingClientRect();
+			var offCentre = Math.abs( ( railBox.top + railBox.bottom ) / 2 - ( mountBox.top + mountBox.bottom ) / 2 );
+			check( "T9 rail stays centred on the editable", offCentre <= 1, offCentre + "px off centre" );
+
+			check( "T9 rail stays inside the editor",
+				$t9.find( ".tiptap-outline-rail" )[ 0 ].getBoundingClientRect().bottom
+					<= $t9.closest( ".tiptap-editor-container" )[ 0 ].getBoundingClientRect().bottom + 1 );
+
+			// Clicking an entry moves the caret into that heading (and scrolls to it).
+			var inst9 = CKEDITOR.instances.t9;
+			var data9 = inst9.getData();
+			$t9.find( ".tiptap-outline-item" ).eq( 40 ).trigger( "click" );
+			check( "T9 clicking an entry puts the caret in that heading", inst9._t.isActive( "heading" ) );
+			check( "T9 navigating leaves the content untouched", inst9.getData() === data9 );
+
+			// ---- T10: the documented opt-out paths -------------------------
+			// Site-wide is settings.ckeditor.defaults.defaultConfigs reaching the
+			// client as cfrequest.ckeditorDefaultConfigs; per-field is the form
+			// control's customDefaultConfigs struct, serialised by core's
+			// formcontrols/richeditor view into data-custom-default-configs. A field
+			// must be able to override the site either way (README > Configuration).
+			var probes = [];
+			function probe( customDefaultConfigs ) {
+				var ta = document.createElement( "textarea" );
+				ta.className = "richeditor";
+				ta.name      = "probe" + probes.length;
+				ta.value     = "<h2>Alpha</h2><p>x</p>";
+				if ( customDefaultConfigs ) { ta.setAttribute( "data-custom-default-configs", customDefaultConfigs ); }
+				document.querySelector( "main" ).appendChild( ta );
+				new PresideRichEditor( ta );
+				var container = ta.nextSibling;
+				probes.push( CKEDITOR.instances[ ta.name ] );
+				return {
+					  outline    : !!container.querySelector( ".tiptap-outline" )
+					, footer     : !!container.querySelector( ".tiptap-footer" )
+					, themeToggle: !!container.querySelector( ".tiptap-theme-toggle" )
+					, tableTools : !!container.querySelector( ".tiptap-table-bubble" )
+					// The drag rail lives INSIDE the frame (a drag must begin and end in
+					// one document - see src/dragHandle.js), and the gutter class with it,
+					// on the frame's own <html>.
+					, dragHandle : !!$in( container, ".tiptap-drag-handle" ).length
+					, blockInsert: !!$in( container, ".tiptap-block-insert" ).length
+					, gutter     : ( ( frameElOf( container )
+					                  ? frameDocOf( container ).documentElement.className
+					                  : container.className ).match( /tiptap-gutter-\d/ ) || [ "" ] )[ 0 ]
+					, slashMenu  : !!( CKEDITOR.instances[ ta.name ]._t.extensionManager.extensions || [] )
+						.filter( function( e ) { return e.name === "presideSlashMenu"; } ).length
+				};
+			}
+
+			var on = probe();
+			check( "T10 all four chrome features are on by default",
+				on.outline && on.footer && on.themeToggle && on.tableTools, JSON.stringify( on ) );
+
+			var tableOff = probe( '{"tableTools":false}' );
+			check( "T10 a field can turn the table tools off",
+				!tableOff.tableTools && tableOff.outline, JSON.stringify( tableOff ) );
+
+			check( "T10 the drag handle and slash menu are on by default", on.dragHandle && on.slashMenu, JSON.stringify( on ) );
+
+			var dragOff = probe( '{"dragHandle":false}' );
+			check( "T10 a field can turn the drag handle off (and keeps its gutter)",
+				!dragOff.dragHandle && dragOff.slashMenu, JSON.stringify( dragOff ) );
+
+			var slashOff = probe( '{"slashMenu":false}' );
+			check( "T10 a field can turn the slash menu off",
+				!slashOff.slashMenu && slashOff.dragHandle, JSON.stringify( slashOff ) );
+			// The "+" only types a "/", so with no slash menu it must not be offered -
+			// and the gutter narrows to the grip alone rather than leaving a gap.
+			check( "T10 slashMenu:false also drops the '+' and narrows the gutter",
+				!slashOff.blockInsert && slashOff.gutter === "tiptap-gutter-1", JSON.stringify( slashOff ) );
+
+			var siteDefaults = window.cfrequest.ckeditorDefaultConfigs;
+			siteDefaults.outline = siteDefaults.darkMode = siteDefaults.wordcount = false;
+
+			var siteOff = probe();
+			check( "T10 site-wide defaultConfigs turn each of them off",
+				!siteOff.outline && !siteOff.footer && !siteOff.themeToggle, JSON.stringify( siteOff ) );
+
+			var fieldOn = probe( '{"outline":true,"wordcount":true,"darkMode":true}' );
+			check( "T10 a field can re-enable what the site turned off",
+				fieldOn.outline && fieldOn.footer && fieldOn.themeToggle, JSON.stringify( fieldOn ) );
+
+			delete siteDefaults.outline; delete siteDefaults.darkMode; delete siteDefaults.wordcount;
+
+			var fieldOff = probe( '{"outline":false}' );
+			check( "T10 a field can turn the outline off while the site leaves it on",
+				!fieldOff.outline && fieldOff.footer, JSON.stringify( fieldOff ) );
+
+			// ---- T11: navigating must not move the admin page ----------------
+			// When the field shows all of its content there is nothing to scroll to,
+			// so clicking an outline entry may only move the caret + highlight. The
+			// old scrollIntoView() fallback had no scroller of its own, so the
+			// browser satisfied it by scrolling the PAGE - yanking the form around
+			// under a heading that was already on screen.
+			var shortTa = document.createElement( "textarea" );
+			shortTa.className = "richeditor";
+			shortTa.name      = "shortfield";
+			shortTa.value     = "<h2>Alpha</h2><p>a</p><h2>Beta</h2><p>b</p>";
+			shortTa.setAttribute( "data-max-height", "auto" );   // no cap: grows to fit
+			document.querySelector( "main" ).appendChild( shortTa );
+			new PresideRichEditor( shortTa );
+
+			var shortContainer = shortTa.nextSibling;
+			var shortMount     = surfaceEl( shortContainer );
+			var shortScroller  = scrollerOf( shortContainer );
+
+			// data-max-height="auto" is what ckEditorJs.cfm sends when the setting is
+			// unset; `parseInt( "auto" ) || 0` used to make that max-height:0px.
+			check( "T11 maxHeight 'auto' leaves the editable uncapped", !shortMount.style.maxHeight && shortMount.clientHeight > 20,
+				"max-height=" + ( shortMount.style.maxHeight || "(none)" ) + ", height=" + shortMount.clientHeight );
+			// The frame's own DOCUMENT is the scroller, not the frame element.
+			check( "T11 a fully-visible field has nothing to scroll", shortScroller.scrollHeight - shortScroller.clientHeight <= 4 );
+
+			shortContainer.scrollIntoView( { block: "center" } );
+			var pageBefore = window.pageYOffset;
+			shortContainer.querySelectorAll( ".tiptap-outline-item" )[ 1 ].click();
+			check( "T11 clicking an entry does not scroll the page", window.pageYOffset === pageBefore,
+				pageBefore + " -> " + window.pageYOffset );
+			check( "T11 ...but the caret still lands in that heading", CKEDITOR.instances.shortfield._t.isActive( "heading" ) );
+			check( "T11 ...and the entry is highlighted", !!shortContainer.querySelector( ".tiptap-outline-item.is-active" ) );
+
+			try { CKEDITOR.instances.shortfield.destroy(); } catch ( e ) {}
+			$( shortTa ).remove();
+
+			// ---- T12: table grid picker + bubble toolbar ---------------------
+			// T2's toolbar includes Table, so it already has the picker.
+			var $t2tb    = toolbarOf( "t2" );
+			var $t2c     = $t2tb.closest( ".tiptap-editor-container" );
+			var $trigger = $t2tb.find( '.tiptap-btn[data-cmd=Table]' );
+
+			// The picker tracks the pointer through document.elementFromPoint (so a
+			// captured drag keeps working), which only resolves for on-screen
+			// coordinates - scroll the fixture in before synthesising pointer events.
+			$t2c[ 0 ].scrollIntoView( { block: "center" } );
+
+			check( "T12 the Table button is an enumerable icon button, not a value-labelled dropdown",
+				$trigger.length === 1 && !$trigger.hasClass( "tiptap-dropdown-trigger" ) && $trigger.attr( "title" ) === "Table" );
+
+			$trigger.trigger( "click" );
+			var $menu = $t2c.find( ".tiptap-table-grid-menu" );
+			check( "T12 clicking it opens the grid-size picker", $menu.hasClass( "open" ) );
+			check( "T12 the grid starts at 5x5 (it grows towards 10x10 on demand)",
+				$menu.find( ".tiptap-table-grid-row" ).length === 5
+				&& $menu.find( ".tiptap-table-grid-row:first-child .tiptap-table-grid-cell" ).length === 5 );
+
+			// Hovering a cell highlights the whole R x C block and captions it.
+			function hoverCell( r, c ) {
+				var cell = $menu.find( '.tiptap-table-grid-cell[data-r=' + r + '][data-c=' + c + ']' )[ 0 ];
+				var box  = cell.getBoundingClientRect();
+				$menu.find( ".tiptap-table-grid" )[ 0 ].dispatchEvent( new PointerEvent( "pointermove", {
+					  clientX: box.left + box.width / 2, clientY: box.top + box.height / 2
+					, bubbles: true, isPrimary: true, pointerId: 1, pointerType: "mouse"
+				} ) );
+			}
+			hoverCell( 2, 3 );
+			check( "T12 hovering highlights the R x C block and captions it",
+				$menu.find( ".tiptap-table-grid-cell.is-on" ).length === 6
+				&& $menu.find( ".tiptap-table-grid-caption" ).text() === "2 x 3",
+				$menu.find( ".tiptap-table-grid-caption" ).text() );
+
+			// Reaching the current edge grows the grid rather than capping there.
+			hoverCell( 5, 5 );
+			check( "T12 reaching the edge grows the grid", $menu.find( ".tiptap-table-grid-row" ).length === 6 );
+
+			// Commit 2x3 with the header row ticked (the default).
+			var inst2Data = CKEDITOR.instances.t2.getData();
+			hoverCell( 2, 3 );
+			var $grid = $menu.find( ".tiptap-table-grid" );
+			[ "pointerdown", "pointerup" ].forEach( function( type ) {
+				var box = $menu.find( '.tiptap-table-grid-cell[data-r=2][data-c=3]' )[ 0 ].getBoundingClientRect();
+				$grid[ 0 ].dispatchEvent( new PointerEvent( type, {
+					  clientX: box.left + box.width / 2, clientY: box.top + box.height / 2
+					, bubbles: true, cancelable: true, isPrimary: true, button: 0, pointerId: 1, pointerType: "mouse"
+				} ) );
+			} );
+			check( "T12 releasing closes the picker", !$menu.hasClass( "open" ) );
+
+			var $tbl = $in( $t2c, ".tiptap-editor-mount table" );
+			check( "T12 the chosen size is what gets inserted", $tbl.find( "tr" ).length === 2
+				&& $tbl.find( "tr:first-child > *" ).length === 3, $tbl.find( "tr" ).length + " rows" );
+			check( "T12 'with header row' produces <th> in the first row only",
+				$tbl.find( "tr:first-child > th" ).length === 3 && $tbl.find( "tr:last-child > td" ).length === 3 );
+
+			// ---- T13: alignment collapses into one dropdown ------------------
+			// CKEditor named the four alignments as four separate buttons. They now
+			// render as a single trigger + a row of icons, but the menu must offer
+			// EXACTLY what the toolbar named - never all four - or a site that
+			// deliberately withheld one would silently get it back.
+			function alignFixture( toolbar, name ) {
+				var ta = document.createElement( "textarea" );
+				ta.className = "richeditor";
+				ta.name      = name;
+				ta.value     = "<p>x</p>";
+				ta.setAttribute( "data-toolbar", toolbar );
+				document.querySelector( "main" ).appendChild( ta );
+				new PresideRichEditor( ta );
+				var $c = $( ta ).next( ".tiptap-editor-container" );
+				alignFixtures.push( ta );
+				return {
+					  cmds : $c.find( ".tiptap-toolbar [data-cmd]" ).map( function() { return this.getAttribute( "data-cmd" ); } ).get()
+					, items: $c.find( ".tiptap-align-menu button" ).map( function() { return this.title; } ).get()
+					, $c   : $c
+				};
+			}
+			var alignFixtures = [];
+
+			var aAll = alignFixture( "Bold|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock", "a_all" );
+			check( "T13 four Justify buttons collapse to one Align trigger",
+				JSON.stringify( aAll.cmds ) === JSON.stringify( [ "Bold", "Align" ] ), JSON.stringify( aAll.cmds ) );
+			check( "T13 the menu offers all four when all four were named",
+				JSON.stringify( aAll.items ) === JSON.stringify( [ "Align left", "Align center", "Align right", "Justify" ] ),
+				JSON.stringify( aAll.items ) );
+
+			var aSub = alignFixture( "Bold|JustifyLeft,JustifyCenter", "a_sub" );
+			check( "T13 a subset toolbar gets a menu of ONLY the alignments it named",
+				JSON.stringify( aSub.items ) === JSON.stringify( [ "Align left", "Align center" ] ), JSON.stringify( aSub.items ) );
+
+			var aOne = alignFixture( "Bold|JustifyCenter", "a_one" );
+			check( "T13 a single alignment stays a plain button (no one-item menu)",
+				JSON.stringify( aOne.cmds ) === JSON.stringify( [ "Bold", "JustifyCenter" ] ) && !aOne.items.length,
+				JSON.stringify( aOne.cmds ) );
+
+			var aSplit = alignFixture( "Bold|JustifyLeft,Italic,JustifyRight", "a_split" );
+			check( "T13 non-adjacent alignments still collapse, at the first one's slot",
+				JSON.stringify( aSplit.cmds ) === JSON.stringify( [ "Bold", "Align", "Italic" ] ), JSON.stringify( aSplit.cmds ) );
+
+			// The trigger reflects the CURRENT alignment rather than a fixed icon.
+			var $alignC   = aAll.$c;
+			var alignTrig = $alignC.find( '[data-cmd=Align]' )[ 0 ];
+			var alignMenu = $alignC.find( ".tiptap-align-menu" )[ 0 ];
+			function alignIcon() { return alignTrig.querySelector( ".tiptap-align-icon" ).innerHTML; }
+			function pickAlign( label ) {
+				alignTrig.click();
+				var b = $( alignMenu ).find( 'button[title="' + label + '"]' )[ 0 ];
+				b.dispatchEvent( new MouseEvent( "mousedown", { bubbles: true, cancelable: true } ) );
+				b.click();
+				return alignIcon();
+			}
+			CKEDITOR.instances.a_all._t.commands.focus();
+			check( "T13 nothing is active with no alignment applied", !alignTrig.classList.contains( "is-active" ) );
+
+			var icons = [ pickAlign( "Align left" ), pickAlign( "Align center" ), pickAlign( "Align right" ), pickAlign( "Justify" ) ];
+			check( "T13 the trigger icon tracks the current alignment", new Set( icons ).size === 4 );
+			check( "T13 the trigger is active once an alignment is applied", alignTrig.classList.contains( "is-active" ) );
+			check( "T13 the chosen alignment is the one marked active in the menu",
+				$( alignMenu ).find( "button.is-active" ).attr( "title" ) === "Justify",
+				$( alignMenu ).find( "button.is-active" ).attr( "title" ) );
+			check( "T13 picking an alignment writes it to the content",
+				/text-align:\s*justify/.test( CKEDITOR.instances.a_all.getData() ), CKEDITOR.instances.a_all.getData() );
+
+			alignFixtures.forEach( function( ta ) {
+				try { CKEDITOR.instances[ ta.name ].destroy(); } catch ( e ) {}
+				$( ta ).remove();
+			} );
+
+			// It is chrome: nothing it draws may reach getData().
+			var withTable = CKEDITOR.instances.t2.getData();
+			check( "T12 the table serialises without colgroup / style / chrome classes",
+				!/colgroup/i.test( withTable ) && !/<table[^>]*style=/i.test( withTable )
+				&& !/tiptap-table|selectedCell/.test( withTable ), withTable );
+
+			probes.forEach( function( inst ) { try { inst.destroy(); } catch ( e ) {} } );
+			$( "textarea[name^=probe]" ).remove();
+
+			// The bubble's own state lands a frame later (tableTools.js throttles
+			// its refresh through requestAnimationFrame), so its assertions have to
+			// wait for one - checking synchronously here would read the pre-refresh
+			// DOM and pass/fail for the wrong reason.
+			return tableBubbleChecks( $t2c, inst2Data );
+		}
+
+		// ---- T14/T15: the "/" insert menu + the block drag handle -------------
+		// Both hang off a fresh fixture so the earlier tests' edits cannot affect
+		// them. Returns a promise (the menu opens a frame after the "/" lands).
+		function slashAndDragChecks() {
+			var ta = document.createElement( "textarea" );
+			ta.className = "richeditor";
+			ta.name      = "slashdrag";
+			ta.value     = "<h2>Alpha</h2><p>Body text</p><blockquote>Quoted</blockquote>";
+			document.querySelector( "main" ).appendChild( ta );
+			new PresideRichEditor( ta );
+
+			var inst = CKEDITOR.instances.slashdrag;
+			var ed   = inst._t;
+			var $c   = $( ta ).next( ".tiptap-editor-container" );
+			$c[ 0 ].scrollIntoView( { block: "center" } );
+
+			// ---- T15: drag handle (synchronous) ----------------------------
+			var handle = $in( $c, ".tiptap-drag-handle" )[ 0 ];
+			// The gutter class is on the FRAME's <html>: the padding it applies is on
+			// the mount, which lives in the frame's document.
+			check( "T15 the drag handle renders and the gutter is applied",
+				!!handle && frameDocOf( $c ).documentElement.classList.contains( "tiptap-has-draghandle" ) );
+
+			// The gutter holds "+" AND the grip, and is sized for both. The "+" only
+			// types a "/", so it must not be rendered when the slash menu is off.
+			check( "T15 the gutter holds both the insert button and the grip",
+				$in( $c, ".tiptap-block-gutter .tiptap-block-insert" ).length === 1
+				&& $in( $c, ".tiptap-block-gutter .tiptap-drag-handle" ).length === 1
+				&& frameDocOf( $c ).documentElement.classList.contains( "tiptap-gutter-2" ) );
+
+			var bq  = $in( $c, ".tiptap-editor-mount blockquote" )[ 0 ];
+			var bqr = bq.getBoundingClientRect();
+			function hoverBlock( el ) { return hoverAt( $c, el ); }
+			// `is-visible` lives on the gutter wrapper, not the grip - both controls
+			// show and move together.
+			var gutter = $in( $c, ".tiptap-block-gutter" )[ 0 ];
+			hoverBlock( bq );
+			check( "T15 hovering a block shows the grip, aligned to its first line",
+				gutter.classList.contains( "is-visible" )
+				&& Math.abs( gutter.getBoundingClientRect().top - bqr.top ) < 14 );
+			check( "T15 the grip sits in the gutter, left of the text",
+				handle.getBoundingClientRect().right <= bqr.left );
+
+			// Clicking selects the whole block - which is what makes the image/table
+			// chrome appear for it, so the grip doubles as "select this".
+			handle.click();
+			check( "T15 clicking the grip selects the whole block",
+				!!ed.state.selection.node && ed.state.selection.node.type.name === "blockquote",
+				ed.state.selection.node ? ed.state.selection.node.type.name : "(not a node selection)" );
+
+			// A full synthetic drag: Playwright's mouse-based dragTo does NOT drive
+			// native HTML5 dnd, so the sequence has to be dispatched by hand with one
+			// shared DataTransfer, exactly as a real drag carries.
+			var before = inst.getData();
+			hoverBlock( bq );
+			var dt = new DataTransfer();
+			handle.dispatchEvent( new DragEvent( "dragstart", { bubbles: true, cancelable: true, dataTransfer: dt } ) );
+			check( "T15 dragstart arms ProseMirror with exactly that block",
+				!!ed.view.dragging && ed.view.dragging.move === true
+				&& ed.view.dragging.slice.content.firstChild.type.name === "blockquote" );
+
+			var h2  = $in( $c, ".tiptap-editor-mount h2" )[ 0 ];
+			var h2r = h2.getBoundingClientRect();
+			var at  = { clientX: Math.round( h2r.left + 10 ), clientY: Math.round( h2r.top + 1 ) };
+			ed.view.dom.dispatchEvent( new DragEvent( "dragover", $.extend( { bubbles: true, cancelable: true, dataTransfer: dt }, at ) ) );
+			ed.view.dom.dispatchEvent( new DragEvent( "drop"    , $.extend( { bubbles: true, cancelable: true, dataTransfer: dt }, at ) ) );
+			handle.dispatchEvent( new DragEvent( "dragend", { bubbles: true, dataTransfer: dt } ) );
+
+			var after = inst.getData();
+			check( "T15 dropping moves the block", after !== before && /^<blockquote>/.test( after.trim() ), after );
+			check( "T15 the block is moved, not copied",
+				( after.match( /<blockquote>/g ) || [] ).length === ( before.match( /<blockquote>/g ) || [] ).length );
+			check( "T15 dragend clears the drag state", ed.view.dragging === null );
+			ed.commands.undo();
+			check( "T15 undo restores the original order byte-identically", inst.getData() === before, inst.getData() );
+
+			// The "+" opens the slash menu DIRECTLY at a fresh empty block - same
+			// popup/items as typing "/", but no "/" character in the document.
+			function slashMenuOpen() {
+				var m = document.querySelector( ".tiptap-slash-menu" );
+				return !!m && m.classList.contains( "is-open" );
+			}
+			function closeManualMenu() {
+				document.dispatchEvent( new KeyboardEvent( "keydown", { key: "Escape", bubbles: true } ) );
+			}
+			var blocksBefore = ed.state.doc.childCount;
+			hoverBlock( $in( $c, ".tiptap-editor-mount h2" )[ 0 ] );
+			$in( $c, ".tiptap-block-insert" )[ 0 ].click();
+			check( "T15 '+' inserts an EMPTY block below and opens the menu (no '/' typed)",
+				ed.state.doc.childCount === blocksBefore + 1
+				&& ed.state.selection.$from.parent.textContent === ""
+				&& slashMenuOpen(),
+				ed.state.doc.childCount + " blocks, caret block = '" + ed.state.selection.$from.parent.textContent + "', menu " + slashMenuOpen() );
+
+			// typed characters filter the manual menu without landing in the doc
+			document.dispatchEvent( new KeyboardEvent( "keydown", { key: "q", bubbles: true } ) );
+			document.dispatchEvent( new KeyboardEvent( "keydown", { key: "u", bubbles: true } ) );
+			document.dispatchEvent( new KeyboardEvent( "keydown", { key: "o", bubbles: true } ) );
+			var manualLabels = Array.prototype.map.call(
+				document.querySelectorAll( ".tiptap-slash-menu .tiptap-slash-label" ),
+				function( e ) { return e.textContent; } );
+			check( "T15 typing filters the '+' menu, nothing lands in the doc",
+				JSON.stringify( manualLabels ) === JSON.stringify( [ "Quote" ] )
+				&& ed.state.selection.$from.parent.textContent === "",
+				JSON.stringify( manualLabels ) + " / block='" + ed.state.selection.$from.parent.textContent + "'" );
+			closeManualMenu();
+			check( "T15 Escape closes the '+' menu", !slashMenuOpen() );
+
+			// On an already-empty paragraph it must REUSE the block, not stack blanks.
+			ed.chain().focus( "end" ).insertContent( "<p></p>" ).run();
+			var blocksWithBlank = ed.state.doc.childCount;
+			var $blanks = $in( $c, ".tiptap-editor-mount .ProseMirror > p" ).filter( function() { return this.textContent === ""; } );
+			hoverBlock( $blanks[ $blanks.length - 1 ] );
+			$in( $c, ".tiptap-block-insert" )[ 0 ].click();
+			check( "T15 '+' on an empty paragraph reuses it rather than stacking blanks",
+				ed.state.doc.childCount === blocksWithBlank && slashMenuOpen(),
+				ed.state.doc.childCount + " vs " + blocksWithBlank );
+			closeManualMenu();
+
+			// ---- T14: the "/" menu (async - opens a frame after the char lands) --
+			// A real slash goes through the input handler; inserting the character via
+			// a transaction is enough for @tiptap/suggestion, which watches state.
+			ed.chain().focus( "end" ).run();
+			edFocus( ed ).chain().insertContent( "<p></p>" ).run();
+			edFocus( ed ).chain().insertContent( "/" ).run();
+
+			return new Promise( function( resolve ) {
+				requestAnimationFrame( function() { requestAnimationFrame( function() {
+					var menu = document.querySelector( ".tiptap-slash-menu" );
+					check( "T14 typing / in an empty block opens the insert menu",
+						!!menu && menu.classList.contains( "is-open" ) );
+
+					var labels = Array.prototype.map.call(
+						( menu || document.createElement( "div" ) ).querySelectorAll( ".tiptap-slash-label" ),
+						function( e ) { return e.textContent; } );
+					check( "T14 it offers the block formats", labels.indexOf( "Heading 1" ) > -1 && labels.indexOf( "Table" ) > -1, JSON.stringify( labels ) );
+					check( "T14 it offers Preside's own elements", [ "Image", "Attachment", "Widget", "Link", "Anchor" ]
+						.every( function( l ) { return labels.indexOf( l ) > -1; } ), JSON.stringify( labels ) );
+
+					// Widgets come from cfrequest.tiptapWidgets, filtered by the FIELD's
+					// widgetCategories using Preside's own "empty means default" rule -
+					// so the mock's "richcontent" gallery must NOT appear on this field.
+					check( "T14 it lists individual widgets by name", labels.indexOf( "Featured news" ) > -1, JSON.stringify( labels ) );
+					check( "T14 widgets outside the field's categories are excluded",
+						labels.indexOf( "Image gallery" ) === -1, JSON.stringify( labels ) );
+
+					// Filtering, then insert.
+					edFocus( ed ).chain().insertContent( "quo" ).run();
+					requestAnimationFrame( function() { requestAnimationFrame( function() {
+						var filtered = Array.prototype.map.call(
+							document.querySelectorAll( ".tiptap-slash-menu .tiptap-slash-label" ),
+							function( e ) { return e.textContent; } );
+						check( "T14 typing filters the list", JSON.stringify( filtered ) === JSON.stringify( [ "Quote" ] ), JSON.stringify( filtered ) );
+
+						// Enter picks the highlighted item; the "/quo" text must go with it.
+						var beforePick = inst.getData();
+						check( "T14 the /query text is in the document while the menu is open", /\/quo/.test( beforePick ) );
+						ed.view.dom.dispatchEvent( new KeyboardEvent( "keydown", { key: "Enter", bubbles: true, cancelable: true } ) );
+
+						requestAnimationFrame( function() { requestAnimationFrame( function() {
+							var out = inst.getData();
+							check( "T14 picking an item removes the /query text", !/\/quo/.test( out ), out );
+							check( "T14 ...and applies the item", /<blockquote>/.test( out ), out );
+							check( "T14 the menu closes after picking",
+								!document.querySelector( ".tiptap-slash-menu" ).classList.contains( "is-open" ) );
+
+							// Real slashes in prose must never open it (dates, paths, and/or).
+							edFocus( ed ).chain().insertContent( " and/or 12/05/2026" ).run();
+							requestAnimationFrame( function() { requestAnimationFrame( function() {
+								check( "T14 a slash mid-sentence does not open the menu",
+									!document.querySelector( ".tiptap-slash-menu" ).classList.contains( "is-open" ) );
+								check( "T14 ...and the typed text survives intact",
+									/and\/or 12\/05\/2026/.test( inst.getData() ), inst.getData() );
+
+								try { inst.destroy(); } catch ( e ) {}
+								$( ta ).remove();
+								resolve( tableDragChecks() );
+							} ); } );
+						} ); } );
+					} ); } );
+				} ); } );
+			} );
+		}
+
+		// ---- T16: dragging a TABLE must move it, not copy it -------------------
+		// Regression: prosemirror-tables silently normalises a NodeSelection on a
+		// table away unless allowTableNodeSelection is true (it defaults to false).
+		// The grip's selection therefore collapsed to a cell inside the table, and
+		// ProseMirror's move-on-drop deleted THAT instead of the table - leaving the
+		// original behind, i.e. the table was DUPLICATED. See src/index.js.
+		function tableDragChecks() {
+			var ta = document.createElement( "textarea" );
+			ta.className = "richeditor";
+			ta.name       = "tabledrag";
+			ta.value      = "<h2>Alpha</h2><p>Body</p><p>Tail</p>";
+			document.querySelector( "main" ).appendChild( ta );
+			new PresideRichEditor( ta );
+
+			var inst = CKEDITOR.instances.tabledrag;
+			var ed   = inst._t;
+			var $c   = $( ta ).next( ".tiptap-editor-container" );
+			$c[ 0 ].scrollIntoView( { block: "center" } );
+
+			ed.chain().focus( "start" ).insertTable( { rows: 2, cols: 2, withHeaderRow: true } ).run();
+
+			// A NodeSelection on a table has to be POSSIBLE at all - that is the fix.
+			var tablePos = null;
+			ed.state.doc.forEach( function( node, offset ) { if ( tablePos === null && node.type.name === "table" ) { tablePos = offset; } } );
+			ed.view.dispatch( ed.state.tr.setSelection( window.PresideTiptap.NodeSelection.create( ed.state.doc, tablePos ) ) );
+			check( "T16 a NodeSelection on a table survives (allowTableNodeSelection)",
+				!!ed.state.selection.node && ed.state.selection.node.type.name === "table",
+				ed.state.selection.node ? ed.state.selection.node.type.name : "(normalised away)" );
+
+			// Wait out ProseMirror's history newGroupDelay (500ms) so the insert and
+			// the drag are separate undo steps - as a real user's pause would make
+			// them. Without this the two amalgamate and undo reverts both at once.
+			return new Promise( function( resolve ) {
+				setTimeout( function() {
+					var before   = inst.getData();
+					var countFn  = function( s ) { return ( s.match( /<table>/g ) || [] ).length; };
+					var tablesBefore = countFn( before );
+
+					var tbl = $in( $c, ".tiptap-editor-mount table" )[ 0 ];
+					var r   = hoverAt( $c, tbl );
+
+					var handle = $in( $c, ".tiptap-drag-handle" )[ 0 ];
+					var dt = new DataTransfer();
+					handle.dispatchEvent( new DragEvent( "dragstart", { bubbles: true, cancelable: true, dataTransfer: dt } ) );
+					check( "T16 dragging a table arms ProseMirror with the table itself",
+						!!ed.view.dragging && ed.view.dragging.slice.content.firstChild.type.name === "table" );
+
+					var tail = $in( $c, ".tiptap-editor-mount .ProseMirror > p" ).last()[ 0 ];
+					var t2   = tail.getBoundingClientRect();
+					var at   = { clientX: Math.round( t2.left + 10 ), clientY: Math.round( t2.top + 1 ) };
+					ed.view.dom.dispatchEvent( new DragEvent( "dragover", $.extend( { bubbles: true, cancelable: true, dataTransfer: dt }, at ) ) );
+					ed.view.dom.dispatchEvent( new DragEvent( "drop"    , $.extend( { bubbles: true, cancelable: true, dataTransfer: dt }, at ) ) );
+					handle.dispatchEvent( new DragEvent( "dragend", { bubbles: true, dataTransfer: dt } ) );
+
+					var after = inst.getData();
+					check( "T16 the table is MOVED, not duplicated",
+						countFn( after ) === tablesBefore, countFn( after ) + " tables (expected " + tablesBefore + ")" );
+					check( "T16 ...and it really moved", after !== before && !/^<table>/.test( after.trim() ) );
+					ed.commands.undo();
+					check( "T16 undo restores the table's original position byte-identically",
+						inst.getData() === before, inst.getData().slice( 0, 60 ) );
+
+					// allowTableNodeSelection must not have cost us the table bubble.
+					var cells = [];
+					ed.state.doc.descendants( function( n, p ) { if ( n.type.name === "tableCell" ) { cells.push( p ); } } );
+					edFocus( ed ).chain().setTextSelection( cells[ 0 ] + 1 ).run();
+					requestAnimationFrame( function() { requestAnimationFrame( function() {
+						check( "T16 the table bubble still opens with the caret in a cell",
+							$c.find( ".tiptap-table-bubble" ).hasClass( "is-open" ) );
+						try { inst.destroy(); } catch ( e ) {}
+						$( ta ).remove();
+						resolve( columnWidthChecks() );
+					} ); } );
+				}, 900 );
+			} );
+		}
+
+		// ---- T17: column widths persist ---------------------------------------
+		// Resizing writes Tiptap's `colwidth` onto the cells, which the EDITOR reads
+		// back - but no browser understands it, so normalize.js also keeps a
+		// <colgroup>, which is the only thing that makes the width render on the
+		// site. A table nobody resized must still serialise without one, so an
+		// existing CKEditor corpus does not churn just by being opened and saved.
+		//
+		// NOTE: the actual drag cannot be driven by synthetic mouse events (same
+		// limitation as HTML5 dnd in T15) - prosemirror-tables only arms its handle
+		// for real pointer input. These set colwidth the way a completed drag does
+		// and assert the SERIALISATION, which is the part with a contract.
+		function columnWidthChecks() {
+			var ta = document.createElement( "textarea" );
+			ta.className = "richeditor";
+			ta.name       = "colwidth";
+			ta.value      = "<p>x</p>";
+			document.querySelector( "main" ).appendChild( ta );
+			new PresideRichEditor( ta );
+
+			var inst = CKEDITOR.instances.colwidth;
+			var ed   = inst._t;
+			ed.chain().focus( "start" ).insertTable( { rows: 2, cols: 3, withHeaderRow: true } ).run();
+
+			var untouched = inst.getData();
+			check( "T17 an unresized table stores no <colgroup> (no churn for existing content)",
+				!/<colgroup/.test( untouched ) && !/<table[^>]*style=/.test( untouched ),
+				( untouched.match( /<table[\s\S]*?<\/table>/ ) || [ "" ] )[ 0 ] );
+
+			// Resize the first column, exactly as a finished drag leaves it.
+			var cells = [];
+			ed.state.doc.descendants( function( n, p ) {
+				if ( n.type.name === "tableHeader" || n.type.name === "tableCell" ) { cells.push( { p: p, n: n } ); }
+			} );
+			var tr = ed.state.tr;
+			tr.setNodeMarkup( cells[ 0 ].p, undefined, $.extend( {}, cells[ 0 ].n.attrs, { colwidth: [ 180 ] } ) );
+			ed.view.dispatch( tr );
+
+			var resized = inst.getData();
+			check( "T17 a resized column persists as <colgroup><col style=\"width:...\">",
+				/<colgroup><col style="width:180px">/.test( resized ),
+				( resized.match( /<colgroup>[\s\S]*?<\/colgroup>/ ) || [ "(none)" ] )[ 0 ] );
+			check( "T17 the resize-handle min-width noise is not persisted", !/min-width/.test( resized ) );
+			check( "T17 Tiptap's editing min-width on <table> is still stripped", !/<table[^>]*style=/.test( resized ) );
+
+			// Round-trip: the editor must recover the width, and re-saving must not drift.
+			inst.setData( resized );
+			var widths = [];
+			ed.state.doc.descendants( function( n ) {
+				if ( n.type.name === "tableHeader" || n.type.name === "tableCell" ) { widths.push( n.attrs.colwidth ); }
+			} );
+			check( "T17 reloading recovers the width in the editor",
+				widths.some( function( w ) { return w && w[ 0 ] === 180; } ), JSON.stringify( widths.slice( 0, 3 ) ) );
+			check( "T17 re-saving is idempotent (no drift on repeated saves)",
+				inst.getData() === resized, inst.getData().slice( 0, 90 ) );
+
+			// The plugin's floor must match the css floor, or a column could be
+			// dragged narrower than the editor will ever render it.
+			var tableExt = ed.extensionManager.extensions.filter( function( e ) { return e.name === "table"; } )[ 0 ];
+			var cellCss  = getComputedStyle( $in( $( ta ).next( ".tiptap-editor-container" ), "td" )[ 0 ] );
+			check( "T17 cellMinWidth matches the css min-width (what you drag is what you store)",
+				tableExt.options.cellMinWidth + "px" === cellCss.minWidth && cellCss.boxSizing === "border-box",
+				tableExt.options.cellMinWidth + "px vs css " + cellCss.minWidth + " / " + cellCss.boxSizing );
+
+			try { inst.destroy(); } catch ( e ) {}
+			$( ta ).remove();
+			return leakChecks();
+		}
+
+		// ---- T18: create/destroy leak audit ------------------------------------
+		// The slash menu's popup lives on <body> (so a capped field cannot clip
+		// it), which puts it outside the container the facade removes on destroy -
+		// it must be cleaned up by the extension's own onDestroy. This bit hard
+		// once Modern inline mode started destroying and recreating the editor on
+		// every save: each cycle leaked one popup div.
+		function leakChecks() {
+			var before = document.querySelectorAll( ".tiptap-slash-menu" ).length;
+			for ( var i = 0; i < 6; i++ ) {
+				var ta = document.createElement( "textarea" );
+				ta.className = "richeditor";
+				ta.name      = "leak";
+				ta.value     = "<p>leak probe</p>";
+				document.querySelector( "main" ).appendChild( ta );
+				new PresideRichEditor( ta );
+
+				var inst = CKEDITOR.instances.leak;
+				// Force the body-portalled popup into existence (it is created
+				// lazily on first open) so the audit exercises the real leak path.
+				inst._t.storage.presideSlashMenu.popup.open();
+				try { inst.destroy(); } catch ( e ) {}
+				$( ta ).remove();
+			}
+			// Compared against `before`, not zero: editors from earlier cases are
+			// still alive on this page and own popups legitimately. Growth across
+			// full create/destroy cycles is what a leak looks like.
+			var after = document.querySelectorAll( ".tiptap-slash-menu" ).length;
+			check( "T18 no orphaned slash-menu popups after 6 create/destroy cycles",
+				after === before, after + " popups (started with " + before + ")" );
+			return Promise.resolve();
+		}
+
+		// Resolves once the deferred table-bubble assertions have run.
+		function tableBubbleChecks( $t2c, originalData ) {
+			return new Promise( function( resolve ) {
+				requestAnimationFrame( function() { requestAnimationFrame( function() {
+					var $bubble = $t2c.find( ".tiptap-table-bubble" );
+					function bubbleBtn( label ) { return $bubble.find( 'button[title="' + label + '"]' )[ 0 ]; }
+
+					check( "T12 the bubble opens with the caret in a cell", $bubble.hasClass( "is-open" ) );
+					check( "T12 merge/split are disabled without a multi-cell selection",
+						bubbleBtn( "Merge cells" ).disabled && bubbleBtn( "Split cell" ).disabled );
+					check( "T12 row/column ops are enabled", !bubbleBtn( "Insert row below" ).disabled
+						&& !bubbleBtn( "Delete column" ).disabled );
+
+					// A real cell selection highlights the cells and enables merge.
+					var ed = CKEDITOR.instances.t2._t;
+					var cellPositions = [];
+					ed.state.doc.descendants( function( node, pos ) {
+						if ( node.type.name === "tableCell" ) { cellPositions.push( pos ); }
+					} );
+					ed.commands.setCellSelection( { anchorCell: cellPositions[ 0 ], headCell: cellPositions[ 1 ] } );
+
+					requestAnimationFrame( function() { requestAnimationFrame( function() {
+						check( "T12 a multi-cell selection is highlighted and enables merge",
+							$in( $t2c, ".selectedCell" ).length === 2 && !bubbleBtn( "Merge cells" ).disabled,
+							$in( $t2c, ".selectedCell" ).length + " cells highlighted" );
+
+						// A bubble command must actually edit the table.
+						edFocus( ed ).chain().addRowAfter().run();
+						check( "T12 a bubble command actually edits the table",
+							$in( $t2c, ".tiptap-editor-mount table tr" ).length === 3,
+							$in( $t2c, ".tiptap-editor-mount table tr" ).length + " rows" );
+
+						edFocus( ed ).chain().deleteTable().run();
+						check( "T12 deleting the table restores the original content",
+							CKEDITOR.instances.t2.getData() === originalData, CKEDITOR.instances.t2.getData() );
+
+						requestAnimationFrame( function() { requestAnimationFrame( function() {
+							check( "T12 the bubble closes when the table is gone",
+								!$t2c.find( ".tiptap-table-bubble" ).hasClass( "is-open" ) );
+							resolve( slashAndDragChecks() );
+						} ); } );
+					} ); } );
+				} ); } );
+			} );
+		}
+
+		// ---- T19: the admin's CSS must not reach the content -----------------
+		// The <style> block in this page's head emulates the real admin leak (see
+		// the comment there). Everything asserted here is about the EDITABLE only:
+		// getData() must be untouched by any of it.
+		function isolationChecks() {
+			var $c  = $( "textarea[name=t3]" ).next( ".tiptap-editor-container" );
+			var pm  = $in( $c, ".tiptap-editor-mount .ProseMirror" )[ 0 ];
+			var before = CKEDITOR.instances.t3.getData();
+			var ed  = CKEDITOR.instances.t3._t;
+
+			// Give the editable something of each kind to measure.
+			ed.commands.setContent( '<p>para</p><p class="lead">lead</p><h2>heading</h2><ul><li>item</li></ul>' );
+
+			var cs = getComputedStyle( pm );
+			var p  = pm.querySelector( "p" ), h2 = pm.querySelector( "h2" ), ul = pm.querySelector( "ul" );
+
+			// 1. The content stylesheet's `body` rule styles the editable (it was the
+			//    iframe's body), rather than being scoped to a <body> that isn't there.
+			// 0. THE BOUNDARY ITSELF. Everything below follows from the editable
+			//    living in its own document, so assert that first - if this ever goes
+			//    back to being an in-page div, the rest of T19 becomes meaningless
+			//    rather than failing loudly.
+			check( "T19 the editable lives in its own document (the editing frame)",
+				!!frameElOf( $c ) && pm.ownerDocument === frameDocOf( $c ) && pm.ownerDocument !== document );
+
+			// 1. The content stylesheet's `body` rule styles the editable, because the
+			//    frame HAS a body. This needed a selector-rewriting hack before (a
+			//    scoped `body{...}` matched nothing) and now just works.
+			check( "T19 content CSS `body` font applies to the editable",
+				/Palatino/i.test( cs.fontFamily ), cs.fontFamily );
+
+			// 2. `rem` resolves against the FRAME's root (16px), not the admin's
+			//    html{font-size:10px}: body{font-size:1.5rem} is 24px, not 15px. This
+			//    is the bug no amount of CSS could fix - rem always resolves against
+			//    the document root, and a shadow root is not one. A second document is.
+			check( "T19 rem resolves against the frame's root, not the admin's 10px",
+				cs.fontSize === "24px", cs.fontSize );
+
+			// 3. ...and `em` chains off that correctly: p.lead{1.25em} of 24px = 30px.
+			//    Worth asserting separately - rebasing rem to px broke the chain
+			//    silently, since the px it produced was only ever approximate.
+			var leadP = pm.querySelector( "p.lead" );
+			check( "T19 em chains off the content CSS body size (1.25em of 24px)",
+				!!leadP && getComputedStyle( leadP ).fontSize === "30px",
+				leadP ? getComputedStyle( leadP ).fontSize : "(no p.lead)" );
+
+			// 4. Admin element rules do not reach the content.
+			check( "T19 admin `p{letter-spacing}` does not reach the content",
+				getComputedStyle( p ).letterSpacing === "normal", getComputedStyle( p ).letterSpacing );
+			check( "T19 admin `ul{padding-left:60px}` does not reach the content",
+				getComputedStyle( ul ).paddingLeft !== "60px", getComputedStyle( ul ).paddingLeft );
+			check( "T19 admin `*{box-sizing}` does not reach the content",
+				getComputedStyle( p ).boxSizing === "content-box", getComputedStyle( p ).boxSizing );
+
+			// 5. THE TWO THAT BEAT THE OLD RESET, and the reason this is an iframe and
+			//    not a cleverer stylesheet. Nothing crosses a document boundary, so
+			//    both are simply absent here.
+			check( "T19 an admin `!important` rule does NOT reach the content",
+				getComputedStyle( p ).fontStyle === "normal", getComputedStyle( p ).fontStyle );
+			check( "T19 a higher-specificity admin rule does NOT reach the content",
+				getComputedStyle( p ).textTransform === "none", getComputedStyle( p ).textTransform );
+
+			// 6. The content stylesheet reaches the editable UNMODIFIED - as the site
+			//    wrote it, sharing the site's own cache. Nothing rewrites it for the
+			//    editable any more; the transformed copy that survives is scoped to
+			//    the Format/Styles previews.
+			check( "T19 the content stylesheet is injected into the frame unmodified",
+				( function() {
+					var links = frameDocOf( $c ).querySelectorAll( "link[data-preside-content-css]" );
+					return links.length === 1 && /content-sample\.css/.test( links[ 0 ].getAttribute( "href" ) );
+				} )() );
+
+			// 4. ...and where both have an opinion, the content CSS wins (this is the
+			//    "combining with / winning out over my styles" complaint).
+			check( "T19 content CSS h2 font beats the admin's h2 font",
+				/Georgia/i.test( getComputedStyle( h2 ).fontFamily ), getComputedStyle( h2 ).fontFamily );
+
+			// 5. Chrome inside the editable is unlayered, so the reset never strips it.
+			check( "T19 our own content chrome still styles itself (td border-box)",
+				( function() {
+					ed.commands.setContent( "<table><tr><td>x</td></tr></table>" );
+					var td = pm.querySelector( "td" );
+					return td && getComputedStyle( td ).boxSizing === "border-box";
+				} )() );
+
+			// 5b. ...including chrome that lives INSIDE the editable AND HAS ITS OWN
+			//     SUBTREE. The image bubble (src/imageTools.js) is the only such
+			//     chrome, and while the bubble's own elements were excluded from the
+			//     reset, their descendants were not: `.tiptap-btn svg` is (0,1,1) and
+			//     lost, so all six icons collapsed to a 0x0 box, and `revert` also
+			//     discarded the SVGs' own stroke="currentColor" / fill="none"
+			//     presentation attributes (author origin too). Six blank buttons.
+			//     Measured on the markup shape - a real image node view would need the
+			//     async preview render, and the bug was purely in the selector.
+			check( "T19 icon chrome INSIDE the editable survives the reset (image bubble)",
+				( function() {
+					var probe = document.createElement( "span" );
+					probe.className = "tiptap-embed-frame";
+					probe.innerHTML = '<span class="tiptap-image-bubble" style="display:flex">'
+						+ '<button type="button" class="tiptap-btn tiptap-image-align">'
+						+ '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"'
+						+ ' stroke="currentColor" stroke-width="2"><path d="M4 6l16 0"/></svg>'
+						+ '</button></span>';
+					pm.appendChild( probe );
+					var svg = probe.querySelector( "svg" );
+					var box = svg.getBoundingClientRect();
+					var st  = getComputedStyle( svg ).stroke;
+					probe.parentNode.removeChild( probe );
+					return Math.round( box.width ) === 16 && Math.round( box.height ) === 16
+					    && st !== "none";
+				} )() );
+
+			// 6. THE EDITABLE MUST STILL BE EDITABLE. WebKit implements the
+			//    `contenteditable` attribute by mapping it to
+			//    `-webkit-user-modify:read-write` as a PRESENTATIONAL HINT, and those
+			//    sit at the bottom of the AUTHOR origin - so `all:revert` reverted it
+			//    away and the editable went read-only in Safari: no caret, no typing,
+			//    text still selectable. Blink applies the same mapping below the author
+			//    origin, so this assertion only ever fails in WebKit - which is exactly
+			//    why it is here. isContentEditable is the engine's own answer.
+			ed.commands.setContent( "<p>para</p>" );
+			check( "T19 the editable is still editable after the reset (webkit user-modify)",
+				pm.isContentEditable === true, String( pm.isContentEditable ) );
+			ed.commands.insertContent( "typed" );
+			check( "T19 ...and text can actually be inserted into it",
+				/typed/.test( pm.textContent ), pm.textContent );
+
+			// 7. `-webkit-user-modify` INHERITS, so restating read-write on the
+			//    editable must be paired with read-only on the embeds - otherwise the
+			//    server-rendered preview HTML inside a contenteditable=false node view
+			//    becomes editable.
+			check( "T19 a contenteditable=false node view stays non-editable",
+				( function() {
+					ed.commands.setContent( '<div contenteditable="false" class="img-placeholder">x</div>' );
+					var el = pm.querySelector( "[contenteditable=false]" );
+					return !el || el.isContentEditable === false;
+				} )() );
+
+			ed.commands.setContent( before );
+			check( "T19 none of it changed the stored content", CKEDITOR.instances.t3.getData() === before,
+				CKEDITOR.instances.t3.getData() );
+
+			// ---- T20: maximize must not re-parent the container -----------------
+			// RE-PARENTING AN IFRAME RE-INITIALISES ITS DOCUMENT (chromium, webkit and
+			// firefox all replace it with a fresh about:blank), so the old
+			// portal-to-<body> maximize wiped the editable out of the DOM. It looked
+			// survivable from the outside - ProseMirror's state is JS-side, so getData()
+			// and even insertContent() still worked against a detached view - which is
+			// why this asserts the DOM identity of the document and the editable, not
+			// just that the editor still answers.
+			var maxParent  = $c[ 0 ].parentElement;
+			var maxDoc     = frameDocOf( $c );
+			var maxEditable = pm;
+			CKEDITOR.instances.t3.execCommand( "maximize" );
+			check( "T20 maximize does not move the container",
+				$c[ 0 ].parentElement === maxParent );
+			check( "T20 maximize does not replace the frame's document",
+				frameDocOf( $c ) === maxDoc && frameElOf( $c ).contentDocument === maxDoc );
+			check( "T20 the editable is the same live node, still connected",
+				frameDocOf( $c ).querySelector( ".ProseMirror" ) === maxEditable && maxEditable.isConnected );
+			check( "T20 the content is still on screen",
+				maxEditable.textContent.length > 0 && frameElOf( $c ).getBoundingClientRect().height > 100,
+				maxEditable.textContent.length + " chars, frame "
+					+ Math.round( frameElOf( $c ).getBoundingClientRect().height ) + "px" );
+			check( "T20 the container fills the viewport",
+				Math.round( $c[ 0 ].getBoundingClientRect().width ) === window.innerWidth );
+			CKEDITOR.instances.t3.execCommand( "maximize" );
+			check( "T20 un-maximizing restores it in place, content intact",
+				$c[ 0 ].parentElement === maxParent
+				&& frameDocOf( $c ).querySelector( ".ProseMirror" ) === maxEditable
+				&& CKEDITOR.instances.t3.getData() === before );
+
+			// The TOOLBAR BUTTON is a different code path from execCommand("maximize"):
+			// the command has the container to hand (this._container), while the button
+			// only has the editor, and the editable is in the FRAME - so a
+			// same-document closest() from view.dom found no container and the button
+			// silently toggled nothing. t2 is the fixture whose toolbar has Maximize.
+			var $c2   = $( "textarea[name=t2]" ).next( ".tiptap-editor-container" );
+			var $maxB = toolbarOf( "t2" ).find( '.tiptap-btn[data-cmd=Maximize]' );
+			check( "T20 the toolbar renders a Maximize button", $maxB.length === 1 );
+			if ( $maxB.length ) {
+				$maxB[ 0 ].click();
+				check( "T20 the toolbar BUTTON maximizes (not just execCommand)",
+					$c2[ 0 ].classList.contains( "is-maximized" )
+					&& Math.round( $c2[ 0 ].getBoundingClientRect().width ) === window.innerWidth,
+					Math.round( $c2[ 0 ].getBoundingClientRect().width ) + " vs " + window.innerWidth );
+				check( "T20 ...and lights up while maximized",
+					$maxB[ 0 ].classList.contains( "is-active" ) );
+				$maxB[ 0 ].click();
+				check( "T20 ...and the button restores it",
+					!$c2[ 0 ].classList.contains( "is-maximized" )
+					&& !$maxB[ 0 ].classList.contains( "is-active" )
+					&& !document.documentElement.classList.contains( "tiptap-maximized-host" ) );
+			}
+
+			// ---- T21: widgets are BLOCK chips, and a click selects the node --------
+			// Asserted on the node views alone: they are created synchronously (with a
+			// loading label) so none of this waits on the preview render.
+			var widgetHtml = "{{widget:news:%7B%7D:widget}}{{widget:events:%7B%7D:widget}}";
+			CKEDITOR.instances.t3.setData( widgetHtml );
+			var chips = $in( $c, ".widget-placeholder" );
+			check( "T21 two widget tokens make two placeholders", chips.length === 2, chips.length + " found" );
+			if ( chips.length === 2 ) {
+				var box1 = chips[ 0 ].getBoundingClientRect();
+				var box2 = chips[ 1 ].getBoundingClientRect();
+				// They are block nodes in the schema; as `display:inline-block` their DOM
+				// shared a line and two widgets in a row sat side by side.
+				check( "T21 consecutive widgets STACK rather than sharing a line",
+					box2.top >= box1.bottom - 1,
+					"first bottom=" + Math.round( box1.bottom ) + ", second top=" + Math.round( box2.top ) );
+				// ...but still shrink-wrap, so a widget reads as a chip not a full-width bar
+				check( "T21 ...and still shrink-wrap to their content",
+					box1.width > 10 && box1.width < frameElOf( $c ).clientWidth - 40,
+					Math.round( box1.width ) + "px in a " + frameElOf( $c ).clientWidth + "px editor" );
+
+				// A click selects the NODE, so the chip gets the selected border instead
+				// of the browser painting a text selection across its preview.
+				var fdoc21 = frameDocOf( $c );
+				var fwin21 = fdoc21.defaultView;
+				var cr = chips[ 0 ].getBoundingClientRect();
+				chips[ 0 ].dispatchEvent( new fwin21.MouseEvent( "mousedown",
+					{ bubbles: true, button: 0, clientX: cr.left + 10, clientY: cr.top + 8 } ) );
+				var sel21 = CKEDITOR.instances.t3._t.state.selection;
+				check( "T21 clicking a widget selects the node",
+					!!sel21.node && sel21.node.type.name === "presideWidget",
+					sel21.node ? sel21.node.type.name : "(not a node selection)" );
+				check( "T21 ...the chip itself carries the selected outline",
+					chips[ 0 ].classList.contains( "ProseMirror-selectednode" )
+					&& fwin21.getComputedStyle( chips[ 0 ] ).outlineStyle === "solid",
+					fwin21.getComputedStyle( chips[ 0 ] ).outlineStyle );
+				check( "T21 ...and no text is selected inside it",
+					!( fdoc21.getSelection && String( fdoc21.getSelection() ).length ),
+					String( fdoc21.getSelection ? fdoc21.getSelection() : "" ).slice( 0, 30 ) );
+				check( "T21 the widget tokens round-trip unchanged",
+					CKEDITOR.instances.t3.getData() === widgetHtml, CKEDITOR.instances.t3.getData() );
+
+				// The selected embed gets the SAME bubble the image has, with just Edit
+				// and Remove: a widget/attachment has no geometry to offer. Same chrome,
+				// same placement, shared code (src/embedBubble.js).
+				var bub21 = chips[ 0 ].querySelector( ".tiptap-embed-bubble" );
+				check( "T21 the selected widget shows a bubble with exactly Edit + Remove",
+					!!bub21 && fwin21.getComputedStyle( bub21 ).display === "flex"
+					&& bub21.querySelectorAll( "button" ).length === 2
+					&& !!bub21.querySelector( ".tiptap-embed-edit" )
+					&& !!bub21.querySelector( ".tiptap-embed-remove" ),
+					bub21 ? bub21.querySelectorAll( "button" ).length + " buttons, display "
+						+ fwin21.getComputedStyle( bub21 ).display : "(no bubble)" );
+				// It is chrome: it must not be in the second, unselected chip's view of
+				// the world, and it must never reach getData().
+				var bub21b = chips[ 1 ].querySelector( ".tiptap-embed-bubble" );
+				check( "T21 ...and an unselected embed's bubble stays hidden",
+					!!bub21b && fwin21.getComputedStyle( bub21b ).display === "none" );
+
+				// The first chip is at the very TOP of the field, so there is no room
+				// above it: the bubble has to flip below rather than land on the toolbar.
+				check( "T21 ...it flips below when there is no room above",
+					bub21.classList.contains( "is-below" )
+					&& bub21.getBoundingClientRect().top
+						>= fdoc21.querySelector( ".tiptap-editor-mount" ).getBoundingClientRect().top - 1,
+					bub21.className );
+
+				// Remove deletes that node and nothing else.
+				bub21.querySelector( ".tiptap-embed-remove" ).click();
+				check( "T21 Remove deletes just that embed",
+					CKEDITOR.instances.t3.getData() === "{{widget:events:%7B%7D:widget}}",
+					CKEDITOR.instances.t3.getData() );
+				// Undo is deliberately NOT asserted here: this block is synchronous, and
+				// ProseMirror's history amalgamates transactions inside `newGroupDelay`
+				// (500ms), so the remove joins the setData above it and one undo reverts
+				// both - which looks exactly like "undo is broken" (the same trap as T16,
+				// which waits 900ms and does cover undo). The removal is an ordinary
+				// deleteRange, so there is nothing bespoke here for undo to get wrong.
+			}
+			CKEDITOR.instances.t3.setData( before );
+		}
+
+		// ---- T22/T23/T24: Find/Replace, special characters, text direction ----
+		// The three dialogs live on <body> (src/dialog.js), OUTSIDE the editing
+		// frame, while everything they act on is inside it - so these tests reach
+		// across the boundary exactly as the modules do.
+		var inst22 = CKEDITOR.instances.t22;
+		var ed22   = inst22 && inst22._t;
+		var $c22   = $( "textarea[name=t22]" ).next( ".tiptap-editor-container" );
+		var orig22 = inst22 && inst22.getData();
+
+		// The dialog lives in a SHADOW ROOT on a host div (src/dialog.js): the admin
+		// theme cannot style it, and equally nothing outside can query into it
+		// without the host's shadowRoot. Everything below goes through here.
+		function dlgHost() { return document.querySelector( ".tiptap-dialog-host" ); }
+		function dlg() { var h = dlgHost(); return h ? ( h.shadowRoot || h ) : null; }
+		function tbBtn( name ) { return toolbarOf( "t22" ).find( '.tiptap-btn[data-cmd=' + name + ']' )[ 0 ]; }
+		function findInputs() {
+			var inputs = dlg().querySelectorAll( ".tiptap-dialog-input" );
+			return { find: inputs[ 0 ], replace: inputs[ 1 ] };
+		}
+		function search( term, o ) {
+			var d = dlg();
+			// Find lives on the Find tab (as it did in CKEditor), so make sure we are
+			// on it - the search state itself survives a tab change.
+			d.querySelector( '.tiptap-dialog-tab[data-tab=find]' ).click();
+			var i = findInputs();
+			i.find.value = term;
+			i.find.dispatchEvent( new Event( "input", { bubbles: true } ) );
+			d.querySelector( ".tiptap-find-options" ).querySelectorAll( "input[type=checkbox]" )[ 0 ].checked = !!( o && o.matchCase );
+			d.querySelector( ".tiptap-find-options" ).querySelectorAll( "input[type=checkbox]" )[ 1 ].checked = !!( o && o.matchWord );
+			d.querySelector( ".tiptap-find-go" ).click();
+			return d;
+		}
+		function matchSpans() { return $in( $c22, ".tiptap-find-match" ); }
+		function statusText() { return dlg().querySelector( ".tiptap-dialog-status" ).textContent; }
+
+		function findReplaceChecks() {
+			// --- the dialog itself -------------------------------------------------
+			// A selection prefills "Find what", as CKEditor's onShow did.
+			edFocus( ed22 );
+			ed22.commands.setTextSelection( { from: 5, to: 8 } );  // "cat"
+			tbBtn( "Find" ).click();
+			check( "T22 the Find button opens the dialog on the Find tab",
+				!!dlg() && dlg().querySelector( ".tiptap-dialog" ).getAttribute( "data-tab" ) === "find" );
+			check( "T22 both tabs are offered (one dialog, as CKEditor had)",
+				dlg().querySelectorAll( ".tiptap-dialog-tab" ).length === 2 );
+			check( "T22 the replace row is hidden on the Find tab",
+				getComputedStyle( dlg().querySelector( ".tiptap-dialog-row-replace" ) ).display === "none" );
+			check( "T22 the selected text prefills 'Find what'",
+				findInputs().find.value === "cat", findInputs().find.value );
+
+			// The dialog lives on <body>, where the HOST page styles it - and this
+			// page emulates the admin's leak (html{font-size:10px}, a body font,
+			// letter-spacing on p). Form controls do not inherit font AT ALL, so
+			// without the reset in src/tiptap.css an input/button renders in the UA's
+			// Arial next to panel text in the page's family, at a size nobody chose.
+			// One family, and only the three sizes of the type scale.
+			( function() {
+				var panel  = dlg().querySelector( ".tiptap-dialog" );
+				var family = getComputedStyle( panel ).fontFamily;
+				var parts  = panel.querySelectorAll( ".tiptap-dialog-title, .tiptap-dialog-tab, .tiptap-dialog-label,"
+					+ " .tiptap-dialog-input, .tiptap-dialog-btn, .tiptap-find-option, .tiptap-find-options legend,"
+					+ " .tiptap-dialog-status" );
+				var families = {}, sizes = {}, spacing = {};
+				Array.prototype.forEach.call( parts, function( el ) {
+					var cs = getComputedStyle( el );
+					families[ cs.fontFamily ] = 1;
+					sizes[ Math.round( parseFloat( cs.fontSize ) ) ] = 1;
+					spacing[ cs.letterSpacing ] = 1;
+				} );
+				check( "T22 every part of the dialog uses ONE font family",
+					Object.keys( families ).length === 1 && Object.keys( families )[ 0 ] === family,
+					Object.keys( families ).join( " | " ) );
+				check( "T22 ...and only the three sizes of its type scale (14/13/12)",
+					Object.keys( sizes ).filter( function( px ) { return [ "12", "13", "14" ].indexOf( px ) === -1; } ).length === 0,
+					Object.keys( sizes ).join( "," ) + "px" );
+				check( "T22 ...and the admin's letter-spacing does not leak in",
+					Object.keys( spacing ).length === 1 && Object.keys( spacing )[ 0 ] === "normal",
+					Object.keys( spacing ).join( " | " ) );
+
+				// THE BOUNDARY. The dialog is portalled to <body>, which in the admin is
+				// bootstrap + Ace territory - and a panel built from a fieldset, a
+				// legend, labels, inputs and buttons is exactly what an admin theme has
+				// opinions about. This is what the real admin did to the first version:
+				// a 21px legend with a rule across the dialog, options forced onto one
+				// line, re-skinned checkboxes, resized controls - several with
+				// !important, which no reset can out-specify. The dialog lives in a
+				// shadow root precisely so none of it lands.
+				var leak = document.createElement( "style" );
+				leak.textContent =
+					  "legend{font-size:21px!important;width:100%!important;border-bottom:2px solid #f00!important;margin-bottom:20px!important}"
+					+ "label{display:inline-block!important;font-weight:bold!important}"
+					+ "fieldset{border:none!important;padding:0!important}"
+					+ "input[type=text]{font-size:17px!important}"
+					+ "input[type=checkbox]{width:22px!important;height:22px!important}"
+					+ "button{font-size:18px!important;text-transform:uppercase!important}";
+				document.head.appendChild( leak );
+
+				var legendEl = panel.querySelector( ".tiptap-find-options legend" );
+				var optEl    = panel.querySelector( ".tiptap-find-option" );
+				var boxEl    = optEl.querySelector( "input[type=checkbox]" );
+				var fsEl     = panel.querySelector( ".tiptap-find-options" );
+				var btnEl    = panel.querySelector( ".tiptap-dialog-btn" );
+				var inEl     = panel.querySelector( ".tiptap-dialog-input" );
+
+				check( "T22 an admin `!important` legend rule does not reach the dialog",
+					Math.round( parseFloat( getComputedStyle( legendEl ).fontSize ) ) === 12
+					&& getComputedStyle( legendEl ).borderBottomWidth === "0px",
+					getComputedStyle( legendEl ).fontSize + " / border " + getComputedStyle( legendEl ).borderBottomWidth );
+				check( "T22 ...nor one that forces every label inline (the options stay stacked)",
+					getComputedStyle( optEl ).display === "flex", getComputedStyle( optEl ).display );
+				check( "T22 ...nor one that strips the fieldset border",
+					getComputedStyle( fsEl ).borderTopWidth === "1px", getComputedStyle( fsEl ).borderTopWidth );
+				check( "T22 ...nor one that re-sizes the controls",
+					Math.round( parseFloat( getComputedStyle( inEl ).fontSize ) ) === 13
+					&& Math.round( parseFloat( getComputedStyle( boxEl ).width ) ) === 14,
+					getComputedStyle( inEl ).fontSize + " / checkbox " + getComputedStyle( boxEl ).width );
+				check( "T22 ...nor one that shouts in the buttons",
+					Math.round( parseFloat( getComputedStyle( btnEl ).fontSize ) ) === 13
+					&& getComputedStyle( btnEl ).textTransform === "none",
+					getComputedStyle( btnEl ).fontSize + " / " + getComputedStyle( btnEl ).textTransform );
+
+				leak.remove();
+			} )();
+
+			// --- finding ------------------------------------------------------------
+			ed22.commands.setTextSelection( 1 );
+			search( "sat" );
+			check( "T22 a match is highlighted", matchSpans().length === 1 && matchSpans()[ 0 ].textContent === "sat",
+				matchSpans().length + " span(s)" );
+			check( "T22 searching does NOT touch the document", inst22.getData() === orig22, inst22.getData() );
+
+			search( "zzz" );
+			check( "T22 no match reports CKEditor's own message",
+				statusText() === "The specified text was not found." && matchSpans().length === 0, statusText() );
+
+			// A match never spans a block boundary (CKEditor's walker treated one as a
+			// match boundary), but it does span inline marks.
+			search( "matAnother" );
+			check( "T22 a match cannot span a block boundary", matchSpans().length === 0, statusText() );
+
+			// Whole-word: "at" is inside cat/sat/mat but is not a word in any of them.
+			search( "at", { matchWord: true } );
+			check( "T22 'match whole word' rejects a mid-word hit", matchSpans().length === 0, statusText() );
+			search( "at" );
+			check( "T22 ...and finds it with the option off", matchSpans().length === 1 );
+
+			// Case: from the top, "the" case-sensitively must skip the leading "The".
+			search( "the", { matchCase: true } );
+			check( "T22 'match case' skips the wrong-case hit",
+				matchSpans().length === 1 && /^The cat sat on $/.test( matchSpans()[ 0 ].previousSibling.textContent || "" ),
+				JSON.stringify( matchSpans().length ? ( matchSpans()[ 0 ].previousSibling || {} ).textContent : null ) );
+
+			// --- replacing ----------------------------------------------------------
+			// The Replace BUTTON opens the same dialog on the other tab, and doing so
+			// replaces the open one (one dialog at a time).
+			tbBtn( "Replace" ).click();
+			check( "T22 the Replace button opens the same dialog on the Replace tab",
+				document.querySelectorAll( ".tiptap-dialog-host" ).length === 1
+				&& dlg().querySelector( ".tiptap-dialog" ).getAttribute( "data-tab" ) === "replace" );
+			check( "T22 the replace row is shown on the Replace tab",
+				getComputedStyle( dlg().querySelector( ".tiptap-dialog-row-replace" ) ).display !== "none" );
+
+			ed22.commands.setTextSelection( 1 );
+			var i22 = findInputs();
+			i22.find.value = "cat";
+			i22.find.dispatchEvent( new Event( "input", { bubbles: true } ) );
+			i22.replace.value = "dog";
+			// CKEditor's two-click Replace: the first click FINDS, the second replaces.
+			dlg().querySelector( ".tiptap-find-replace" ).click();
+			check( "T22 the first Replace click only finds", inst22.getData() === orig22, inst22.getData() );
+			dlg().querySelector( ".tiptap-find-replace" ).click();
+			check( "T22 the second Replace click replaces that match",
+				inst22.getData() === "<p>The dog sat on the mat</p><p>Another line</p>", inst22.getData() );
+
+			// Replace All: from the top, never cyclic, CKEditor's own count message.
+			inst22.setData( orig22 );
+			ed22.commands.setTextSelection( 1 );
+			i22 = findInputs();
+			i22.find.value = "at";
+			i22.find.dispatchEvent( new Event( "input", { bubbles: true } ) );
+			i22.replace.value = "AT";
+			var beforeAll = inst22.getData();
+			dlg().querySelector( ".tiptap-find-replaceall" ).click();
+			check( "T22 Replace All replaces every occurrence",
+				inst22.getData() === "<p>The cAT sAT on the mAT</p><p>Another line</p>", inst22.getData() );
+			check( "T22 ...and reports CKEditor's count message",
+				statusText() === "3 occurrence(s) replaced.", statusText() );
+
+			// Closing drops the highlight, selects the match and re-focuses the editable.
+			search( "mAT" );
+			dlg().querySelector( ".tiptap-find-close" ).click();
+			check( "T22 closing removes the dialog and the highlight",
+				!dlg() && matchSpans().length === 0 );
+			check( "T22 ...and the match the user stopped at becomes the selection",
+				ed22.state.doc.textBetween( ed22.state.selection.from, ed22.state.selection.to ) === "mAT",
+				ed22.state.doc.textBetween( ed22.state.selection.from, ed22.state.selection.to ) );
+
+			// Replace All is ONE undo step. ProseMirror's history amalgamates
+			// transactions within newGroupDelay (500ms), so the setData above has to be
+			// allowed to fall out of the group first or one undo would revert both -
+			// the same trap T16 documents.
+			return new Promise( function( resolve ) {
+				setTimeout( function() {
+					ed22.commands.setTextSelection( 1 );
+					tbBtn( "Replace" ).click();
+					var i = findInputs();
+					i.find.value = "AT";
+					i.find.dispatchEvent( new Event( "input", { bubbles: true } ) );
+					i.replace.value = "at";
+					var before = inst22.getData();
+					dlg().querySelector( ".tiptap-find-replaceall" ).click();
+					check( "T22 Replace All changed the content", inst22.getData() !== before );
+					dlg().querySelector( ".tiptap-find-close" ).click();
+					edFocus( ed22 );
+					ed22.commands.undo();
+					check( "T22 ...as a SINGLE undo step", inst22.getData() === before, inst22.getData() );
+					resolve();
+				}, 900 );
+			} );
+		}
+
+		function specialCharChecks() {
+			inst22.setData( "<p>ab</p>" );
+			tbBtn( "SpecialChar" ).click();
+			var d     = dlg();
+			var cells = d.querySelectorAll( ".tiptap-specialchar-cell" );
+			check( "T23 the picker offers CKEditor's whole default list", cells.length === 210, cells.length + " cells" );
+			check( "T23 ...laid out in CKEditor's 17 columns",
+				getComputedStyle( d.querySelector( ".tiptap-specialchar-grid" ) ).gridTemplateColumns.split( " " ).length === 17 );
+
+			var ellipsis = null;
+			for ( var i = 0; i < cells.length; i++ ) {
+				if ( cells[ i ].title === "Horizontal ellipsis" ) { ellipsis = cells[ i ]; break; }
+			}
+			check( "T23 characters carry CKEditor's own names", !!ellipsis );
+			ellipsis.dispatchEvent( new MouseEvent( "mouseenter", { bubbles: false } ) );
+			check( "T23 hovering previews the character and its HTML form",
+				d.querySelector( ".tiptap-specialchar-big" ).textContent === "…"
+				&& d.querySelector( ".tiptap-specialchar-html" ).textContent === "&hellip;",
+				d.querySelector( ".tiptap-specialchar-html" ).textContent );
+
+			// Inserted as the CHARACTER (CKEditor's insertText), at the caret.
+			edFocus( ed22 );
+			ed22.commands.setTextSelection( 2 );
+			ellipsis.click();
+			check( "T23 clicking inserts the character at the caret, not the entity",
+				inst22.getData() === "<p>a…b</p>", inst22.getData() );
+			check( "T23 ...and closes the dialog", !dlg() );
+
+			// insertText carries the marks across, so a character inserted inside a
+			// bold run stays bold (CKEditor's insertText did the same with its styles).
+			inst22.setData( "<p><strong>ab</strong></p>" );
+			tbBtn( "SpecialChar" ).click();
+			var cells2 = dlg().querySelectorAll( ".tiptap-specialchar-cell" );
+			var ell2 = null;
+			for ( var j = 0; j < cells2.length; j++ ) {
+				if ( cells2[ j ].title === "Horizontal ellipsis" ) { ell2 = cells2[ j ]; break; }
+			}
+			edFocus( ed22 );
+			ed22.commands.setTextSelection( 2 );
+			ell2.click();
+			check( "T23 a character inserted inside a bold run keeps the mark",
+				inst22.getData() === "<p><strong>a…b</strong></p>", inst22.getData() );
+		}
+
+		function bidiChecks() {
+			// CKEditor's bidi plugin wrote the `dir` ATTRIBUTE on the block.
+			inst22.setData( "<p>one</p>" );
+			edFocus( ed22 );
+			ed22.commands.setTextSelection( 2 );
+			tbBtn( "BidiRtl" ).click();
+			check( "T24 BidiRtl writes dir=\"rtl\" on the block",
+				inst22.getData() === '<p dir="rtl">one</p>', inst22.getData() );
+			check( "T24 ...and the RTL button lights up", tbBtn( "BidiRtl" ).classList.contains( "is-active" ) );
+
+			// useComputedState (CKEditor's default): applying the direction the block
+			// would have ANYWAY removes the attribute rather than writing dir="ltr".
+			tbBtn( "BidiLtr" ).click();
+			check( "T24 BidiLtr in an LTR field REMOVES the attribute (no dir=\"ltr\")",
+				inst22.getData() === "<p>one</p>", inst22.getData() );
+			check( "T24 ...and the LTR button reads as on (the computed direction)",
+				tbBtn( "BidiLtr" ).classList.contains( "is-active" )
+				&& !tbBtn( "BidiRtl" ).classList.contains( "is-active" ) );
+
+			// An inline `direction:` would beat the attribute, so it is dropped - as
+			// CKEditor's removeStyle did - and nothing else in the style is touched.
+			inst22.setData( '<p style="direction:rtl;color:red">x</p>' );
+			edFocus( ed22 );
+			ed22.commands.setTextSelection( 2 );
+			tbBtn( "BidiRtl" ).click();
+			// (Asserted on content rather than on an exact string: the browser
+			// reserialises a style attribute it has parsed - "color: red;" - and the
+			// attribute order in the output is the serializer's, not ours.)
+			check( "T24 an inline direction: is stripped, the rest of the style kept",
+				/dir="rtl"/.test( inst22.getData() )
+				&& /color:\s*red/.test( inst22.getData() )
+				&& !/direction/.test( inst22.getData() ), inst22.getData() );
+
+			// A container the selection fully encloses takes the attribute itself
+			// (the grip's NodeSelection on a table is exactly this case).
+			inst22.setData( "<table><tr><td>x</td></tr></table>" );
+			edFocus( ed22 );
+			ed22.commands.setNodeSelection( 0 );
+			tbBtn( "BidiRtl" ).click();
+			check( "T24 a fully selected table takes dir itself, not its cells",
+				/^<table dir="rtl">/.test( inst22.getData() ) && inst22.getData().indexOf( '<td dir' ) === -1,
+				inst22.getData() );
+
+			// Fidelity: a `dir` already in stored content round-trips untouched (it
+			// used to be dropped, because the schema had no such attribute).
+			inst22.setData( '<p dir="rtl">stored</p>' );
+			check( "T24 an existing dir attribute round-trips unchanged",
+				inst22.getData() === '<p dir="rtl">stored</p>', inst22.getData() );
+
+			inst22.setData( orig22 );
+		}
+
+		// ---- T25: the manual resize grip -------------------------------------
+		// CKEditor put a `◢` in the bottom-right of the bottom bar; ours is the same
+		// control in the same corner (src/resize.js). A drag is driven with real
+		// PointerEvents - the module uses pointer capture, so mouse events would not
+		// exercise it (the same trap as T15's HTML5 drag and T17's column resize).
+		function containerOf( name ) { return $( "textarea[name=" + name + "]" ).next( ".tiptap-editor-container" ); }
+		function gripOf( name ) { return containerOf( name ).find( ".tiptap-resizer" ); }
+		function dragGrip( name, dx, dy ) {
+			var grip = gripOf( name )[ 0 ];
+			var r    = grip.getBoundingClientRect();
+			var base = { pointerId: 7, isPrimary: true, button: 0, bubbles: true };
+			function ev( type, x, y ) {
+				grip.dispatchEvent( new PointerEvent( type, Object.assign( {}, base, { clientX: x, clientY: y } ) ) );
+			}
+			ev( "pointerdown", r.left + 4, r.top + 4 );
+			ev( "pointermove", r.left + 4 + dx, r.top + 4 + dy );
+			ev( "pointerup"  , r.left + 4 + dx, r.top + 4 + dy );
+		}
+		function frameH( name ) { return frameElOf( containerOf( name )[ 0 ] ).offsetHeight; }
+
+		function resizeChecks() {
+			// Rendered in the footer's right-hand slot, beside the light/dark toggle.
+			check( "T25 the grip renders in the footer's bottom-right corner",
+				footerOf( "t25" ).find( ".tiptap-footer-right .tiptap-resizer" ).length === 1 );
+			// resize_dir defaults to "vertical", and the cursor says which axis is live.
+			check( "T25 it is vertical-only by default, as CKEditor's resize_dir is",
+				gripOf( "t25" ).hasClass( "is-vertical" )
+				&& getComputedStyle( gripOf( "t25" )[ 0 ] ).cursor === "ns-resize",
+				gripOf( "t25" )[ 0 ].className + " / " + getComputedStyle( gripOf( "t25" )[ 0 ] ).cursor );
+
+			// Dragging down grows the editor by the distance dragged.
+			var h0 = frameH( "t25" );
+			dragGrip( "t25", 0, 120 );
+			var h1 = frameH( "t25" );
+			check( "T25 dragging down grows the editor by the drag distance",
+				Math.abs( ( h1 - h0 ) - 120 ) <= 2, h0 + " -> " + h1 );
+
+			// ...and the chosen height STICKS: the frame stops auto-growing (min and max
+			// are pinned to it) and taller content scrolls inside it instead.
+			var inst25 = CKEDITOR.instances.t25;
+			inst25._t.commands.insertContent( "<p>a</p><p>b</p><p>c</p><p>d</p><p>e</p><p>f</p><p>g</p><p>h</p>" );
+			return new Promise( function( resolve ) {
+				setTimeout( function() {
+					check( "T25 the chosen height sticks when content is added",
+						frameH( "t25" ) === h1, h1 + " -> " + frameH( "t25" ) );
+					check( "T25 ...and the frame scrolls its own document instead",
+						frameDocOf( containerOf( "t25" ) ).documentElement.style.overflowY === "auto",
+						frameDocOf( containerOf( "t25" ) ).documentElement.style.overflowY );
+
+					// Dragging up shrinks it again.
+					dragGrip( "t25", 0, -60 );
+					check( "T25 dragging up shrinks it", Math.abs( ( h1 - 60 ) - frameH( "t25" ) ) <= 2,
+						h1 + " -> " + frameH( "t25" ) );
+
+					// The keyboard path (the grip is focusable; CKEditor's was mouse-only).
+					var hk = frameH( "t25" );
+					gripOf( "t25" )[ 0 ].dispatchEvent( new KeyboardEvent( "keydown", { key: "ArrowDown", bubbles: true } ) );
+					check( "T25 arrow keys resize it too", frameH( "t25" ) > hk, hk + " -> " + frameH( "t25" ) );
+
+					// Maximized, there is nothing to resize - CKEditor hides its resizer on
+					// the maximize event; ours is a rule on the container's class.
+					inst25.execCommand( "maximize" );
+					check( "T25 the grip is hidden while maximized",
+						getComputedStyle( gripOf( "t25" )[ 0 ] ).display === "none" );
+					inst25.execCommand( "maximize" );
+					check( "T25 ...and back after restoring",
+						getComputedStyle( gripOf( "t25" )[ 0 ] ).display !== "none" );
+
+					// resize_enabled:false - the CKEditor config a site would set.
+					check( "T25 resize_enabled:false renders no grip", gripOf( "t25off" ).length === 0 );
+
+					// An axis with no room to move is not draggable (CKEditor's own test is
+					// min !== max), so a field pinning height and offering no other axis
+					// gets no grip at all.
+					check( "T25 resize_minHeight === resize_maxHeight leaves no grip",
+						gripOf( "t25pinned" ).length === 0 );
+
+					// resize_dir:"both" drags width as well.
+					check( "T25 resize_dir:'both' offers both axes",
+						gripOf( "t25both" ).hasClass( "is-both" )
+						&& getComputedStyle( gripOf( "t25both" )[ 0 ] ).cursor === "se-resize",
+						getComputedStyle( gripOf( "t25both" )[ 0 ] ).cursor );
+					var w0 = containerOf( "t25both" )[ 0 ].offsetWidth;
+					dragGrip( "t25both", -80, 40 );
+					check( "T25 ...and dragging it narrows the container",
+						Math.abs( ( w0 - 80 ) - containerOf( "t25both" )[ 0 ].offsetWidth ) <= 2,
+						w0 + " -> " + containerOf( "t25both" )[ 0 ].offsetWidth );
+
+					// THE MIN-LOWERING RULE. CKEditor's default resize_minHeight is 250,
+					// and Preside's default maxHeight is 300 - so a stock field starts
+					// UNDER the minimum, and without CKEditor's own
+					// `resize_minHeight > current && ( resize_minHeight = current )` the
+					// first pixel of drag would jump it taller. t9 is capped at 120.
+					var smallH = frameH( "t25small" );
+					dragGrip( "t25small", 0, 10 );
+					check( "T25 a field smaller than the default minimum does not jump",
+						Math.abs( ( smallH + 10 ) - frameH( "t25small" ) ) <= 2,
+						smallH + " -> " + frameH( "t25small" ) );
+
+					resolve();
+				}, 150 );
+			} );
+		}
+
+		// ---- T26: the source view -------------------------------------------
+		// The view lays the stored markup out for READING and must put it back
+		// untouched: the layout is inserted newlines/tabs at block boundaries and
+		// nothing else, so `getData()` stays byte-identical (tokens included) unless
+		// the user actually edits something.
+		function sourceChecks() {
+			return new Promise( function( resolve ) {
+				var $c   = $( "textarea[name=t26]" ).next( ".tiptap-editor-container" );
+				var inst = CKEDITOR.instances.t26;
+				var fdoc = frameDocOf( $c );
+				var btn  = $c.find( "[data-cmd=Source]" )[ 0 ];
+				var original = inst.getData();
+
+				btn.click();
+
+				var wrap = fdoc.querySelector( ".tiptap-source-wrap" );
+				var ta   = fdoc.querySelector( ".tiptap-source" );
+				var hl   = fdoc.querySelector( ".tiptap-source-hl" );
+				check( "T26 the source view opens inside the editing frame",
+					!!wrap && !!ta && !!hl && ta.ownerDocument === fdoc && fdoc !== document );
+
+				var text = ta ? ta.value : "";
+				// CKEditor's own writer shape: a BLANK line between top-level blocks, a
+				// tab per level inside a list, and inline content never broken up.
+				check( "T26 top-level blocks are separated by a blank line",
+					/<\/h1>\n\n<p>/.test( text ), JSON.stringify( text.slice( 0, 60 ) ) );
+				check( "T26 list items are indented one tab per level",
+					text.indexOf( "<ul>\n\t<li>" ) > -1, JSON.stringify( text ) );
+				check( "T26 a text block keeps its inline content on one line",
+					text.indexOf( "<p>Hello <strong>bold</strong> text</p>" ) > -1 );
+				// <pre> is the case where whitespace IS content: it must come through
+				// exactly, however the rest is laid out.
+				check( "T26 <pre> content is left byte-for-byte alone",
+					text.indexOf( "  keep\n   this" ) > -1, JSON.stringify( text ) );
+
+				// THE VIEW SHOWS THE STORED MARKUP, NOT TIPTAP'S INTERNAL HTML. It used to
+				// build from `tokenize( getHTML() )`, which put the schema's <p> inside
+				// every <li> on screen - a wrapper normalize.js does not persist. The
+				// nested item is the case that made this visible from two directions at
+				// once: its <p> WAS being stored (the bug), and its siblings' were not.
+				check( "T26 no <li> in the source view carries the schema's <p> wrapper",
+					text.indexOf( "<li><p>" ) === -1 && !/<li>\s*\n?\s*<p>/.test( text ), JSON.stringify( text ) );
+				check( "T26 a sublist's parent item shows its text bare, as it is stored",
+					/<li>\s*parent\s*<ol>/.test( text ), JSON.stringify( text ) );
+				// Formatting aside, every byte on screen is a byte getData() would store.
+				// Undo the layout and it must match exactly: the formatter only ever
+				// INSERTS newlines and tabs at block boundaries, and never breaks inline
+				// content across lines, so stripping them all is lossless - EXCEPT inside
+				// <pre>, where whitespace is content. So <pre> is held out, less the one
+				// newline the formatter adds after its open tag (which every HTML parser
+				// drops, and which is why it is allowed to add it at all).
+				var pres  = [];
+				var flat  = text.replace( /<pre[\s\S]*?<\/pre>/g, function( m ) {
+					pres.push( m.replace( /^(<pre[^>]*>)\n/, "$1" ) );
+					return "@@PRE" + ( pres.length - 1 ) + "@@";
+				} );
+				flat = flat.replace( /\n+\t*/g, "" ).replace( /@@PRE(\d+)@@/g, function( _, i ) { return pres[ +i ]; } );
+				check( "T26 the view is the stored markup, formatting aside",
+					flat === original, flat + "\n  !==  \n" + original );
+
+				// The paint layer has to render the SAME characters at the SAME metrics as
+				// the textarea over it, or the highlight slides off the text.
+				check( "T26 the highlight layer paints exactly the text in the textarea",
+					hl && hl.textContent.replace( /\n$/, "" ) === text );
+				var metrics = [ "fontFamily", "fontSize", "lineHeight", "letterSpacing", "paddingTop",
+				                "paddingLeft", "paddingRight", "tabSize", "whiteSpace", "overflowWrap",
+				                "boxSizing", "fontWeight", "textIndent" ];
+				var a = fdoc.defaultView.getComputedStyle( ta );
+				var b = fdoc.defaultView.getComputedStyle( hl );
+				var drift = metrics.filter( function( p ) { return a[ p ] !== b[ p ]; } );
+				check( "T26 both layers share every metric that moves a glyph", drift.length === 0,
+					drift.map( function( p ) { return p + ": " + a[ p ] + " vs " + b[ p ]; } ).join( ", " ) );
+
+				// Highlighting: a Preside token is ONE span (never split by the tag
+				// scanner), and markup is coloured by part.
+				check( "T26 a {{...}} token is highlighted as a single unit",
+					hl.querySelectorAll( ".tt-src-token" ).length === 1
+					&& /^\{\{widget:news/.test( hl.querySelector( ".tt-src-token" ).textContent ) );
+				check( "T26 tags, attributes and values are highlighted separately",
+					hl.querySelectorAll( ".tt-src-tag" ).length > 3
+					&& hl.querySelectorAll( ".tt-src-punct" ).length > 3 );
+
+				// The outline rail would navigate a document that is not on screen.
+				check( "T26 the outline rail is hidden while the source is up",
+					!$c.find( ".tiptap-outline" ).length
+					|| fdoc.defaultView.parent.getComputedStyle( $c.find( ".tiptap-outline" )[ 0 ] ).display === "none" );
+				check( "T26 the view fills the editor box it was given",
+					fdoc.documentElement.clientHeight - ( wrap.offsetTop + wrap.offsetHeight ) <= 2,
+					wrap.offsetTop + "+" + wrap.offsetHeight + " in " + fdoc.documentElement.clientHeight );
+				// The mount's left padding is the drag gutter's room. There is no rail over
+				// the source, so the code must not be indented by a gutter it does not have.
+				var mount = fdoc.querySelector( ".tiptap-editor-mount" );
+				check( "T26 the drag gutter's indent is given back to the code",
+					fdoc.defaultView.getComputedStyle( mount ).paddingLeft === "0px"
+					&& Math.abs( wrap.getBoundingClientRect().left - mount.getBoundingClientRect().left ) < 1,
+					fdoc.defaultView.getComputedStyle( mount ).paddingLeft );
+
+				// Tab indents rather than walking the focus out of the view.
+				var caret = ta.value.length;
+				ta.setSelectionRange( caret, caret );
+				ta.dispatchEvent( new fdoc.defaultView.KeyboardEvent( "keydown", { key: "Tab", bubbles: true, cancelable: true } ) );
+				var tabbed = ta.value.charAt( caret ) === "\t";
+				ta.value = text;   // put it back so the no-edit close below is honest
+
+				check( "T26 Tab inserts a tab instead of moving the focus", tabbed );
+
+				btn.click();   // close, unchanged
+				setTimeout( function() {
+					check( "T26 open-then-close changes nothing at all (byte-identical)",
+						inst.getData() === original, inst.getData() );
+					check( "T26 ...and the rail is back", !$c.find( ".tiptap-outline" ).length
+						|| getComputedStyle( $c.find( ".tiptap-outline" )[ 0 ] ).display !== "none" );
+
+					// Now EDIT one thing. Only that edit may land: the token, the <pre>
+					// whitespace and the entity all have to survive the round trip.
+					btn.click();
+					var fdoc2 = frameDocOf( $c );
+					var ta2 = fdoc2.querySelector( ".tiptap-source" );
+					var edited = ta2.value.replace( "<h1>Title</h1>", "<h1>Retitled</h1>" );
+					ta2.value = edited;
+					ta2.dispatchEvent( new fdoc2.defaultView.Event( "input" ) );
+					btn.click();
+
+					setTimeout( function() {
+						check( "T26 an edit applies, and ONLY the edit",
+							inst.getData() === original.replace( "<h1>Title</h1>", "<h1>Retitled</h1>" ),
+							inst.getData() );
+						check( "T26 the {{widget}} token survives the round trip",
+							inst.getData().indexOf( '{{widget:news:{"limit":3}:widget}}' ) > -1 );
+						check( "T26 <pre> whitespace and the &amp; entity survive it too",
+							inst.getData().indexOf( "  keep\n   this" ) > -1
+							&& inst.getData().indexOf( "two &amp; three" ) > -1 );
+
+						// Re-opening gives the user their OWN layout back (keyed on the
+						// document, so it is dropped the moment the editable changes).
+						btn.click();
+						var ta3 = frameDocOf( $c ).querySelector( ".tiptap-source" );
+						check( "T26 re-opening keeps the layout the user left behind",
+							ta3.value === edited, JSON.stringify( ta3.value.slice( 0, 40 ) ) );
+						btn.click();
+						setTimeout( resolve, 60 );
+					}, 120 );
+				}, 120 );
+			} );
+		}
+
+		// ---- T28: list normalisation ----------------------------------------
+		// ListItem is `paragraph block*`, so ProseMirror wraps every item's text in a
+		// <p> while editing. normalize.js unwraps it on the way out so an existing
+		// CKEditor-authored corpus does not churn - INCLUDING on an item that also
+		// holds a sublist, which the old length test missed. The exception is the
+		// empty wrapper: see the comment on the rule, and the stability check below.
+		function listNormaliseChecks() {
+			var inst = CKEDITOR.instances.t28;
+			function trip( html ) { inst.setData( html ); return inst.getData(); }
+
+			check( "T28 a flat list item stores no <p> wrapper",
+				trip( "<ul><li>one</li><li>two</li></ul>" ) === "<ul><li>one</li><li>two</li></ul>",
+				trip( "<ul><li>one</li><li>two</li></ul>" ) );
+
+			// The reported bug: an item holding a sublist kept its wrapper, because it
+			// has two element children and the rule only unwrapped an only child.
+			var nested = trip( "<ul><li>parent<ul><li>child</li><li>sibling</li></ul></li><li>after</li></ul>" );
+			check( "T28 a sublist's parent item stores its text bare, as CKEditor did",
+				nested === "<ul><li>parent<ul><li>child</li><li>sibling</li></ul></li><li>after</li></ul>", nested );
+			check( "T28 ...and that survives a save/reload cycle unchanged",
+				trip( nested ) === nested, trip( nested ) );
+
+			// Deeper nesting is the same rule applied at each level.
+			var deep = trip( "<ul><li>a<ul><li>b<ol><li>c</li></ol></li></ul></li></ul>" );
+			check( "T28 nesting is unwrapped at every level",
+				deep === "<ul><li>a<ul><li>b<ol><li>c</li></ol></li></ul></li></ul>", deep );
+
+			// THE EMPTY WRAPPER IS DELIBERATELY KEPT. CKEditor stored `<li><ol>…</ol></li>`
+			// for an unlabelled sublist parent, but our parser cannot read that back - a
+			// leading <ol> does not satisfy `paragraph block*`, so the item SPLITS into
+			// two sibling lists and the nesting is lost. Round-trip stability beats byte
+			// fidelity here, so the noise stays. If this ever starts failing because the
+			// parser learned the shape, unwrap it too and delete this note.
+			var bare = trip( "<ol><li><p></p><ol><li>sub</li></ol></li></ol>" );
+			check( "T28 an EMPTY leading wrapper is kept, so the nesting reloads",
+				bare === "<ol><li><p></p><ol><li>sub</li></ol></li></ol>", bare );
+			check( "T28 ...and it is stable across a save/reload cycle",
+				trip( bare ) === bare, trip( bare ) );
+
+			// The wrapper is only ever dropped where it carries nothing: a genuinely
+			// multi-paragraph item keeps both, or its text would run together on one
+			// line, and an attributed <p> is never touched at all.
+			var multi = trip( "<ul><li><p>a</p><p>b</p></li></ul>" );
+			check( "T28 a multi-paragraph item keeps both wrappers",
+				multi === "<ul><li><p>a</p><p>b</p></li></ul>", multi );
+			var classed = trip( '<ul><li><p class="lead">a</p><ul><li>b</li></ul></li></ul>' );
+			check( "T28 an attributed <p> is left wrapped even beside a sublist",
+				classed === '<ul><li><p class="lead">a</p><ul><li>b</li></ul></li></ul>', classed );
+		}
+
+		// ---- T27: an embed's links do not navigate while the editor is open --
+		// The previews are real server-rendered HTML, and an attachment renders as an
+		// `<a href>` to the asset - so clicking the paperclip or the filename
+		// DOWNLOADED the file from inside the editor, where the click was meant to
+		// select the embed. Waits for the real preview fetch, so the anchor under test
+		// is the server's own markup rather than something this test wrote.
+		function attachmentLinkChecks() {
+			return new Promise( function( resolve ) {
+				var inst = CKEDITOR.instances.t26;
+				var $c   = $( "textarea[name=t26]" ).next( ".tiptap-editor-container" );
+				var orig = inst.getData();
+				var cfg  = encodeURIComponent( JSON.stringify( { asset: "ASSET-DOC-1", name: "brochure.pdf" } ) );
+				var tok  = "{{attachment:" + cfg + ":attachment}}";
+				inst.setData( "<p>lead</p>" + tok + "<p>tail</p>" );
+
+				var tries = 0;
+				( function poll() {
+					var fdoc = frameDocOf( $c );
+					var a    = fdoc.querySelector( ".attachment-placeholder a" );
+					if ( !a && ++tries < 60 ) { return setTimeout( poll, 100 ); }
+
+					check( "T27 the attachment preview renders the server's own download link",
+						!!a && /^\/mock\/asset\//.test( a.getAttribute( "href" ) || "" ),
+						a ? a.getAttribute( "href" ) : "(no anchor rendered)" );
+					if ( !a ) { inst.setData( orig ); return resolve(); }
+
+					var fwin = fdoc.defaultView;
+					var r    = a.getBoundingClientRect();
+					// A cancelled click is exactly what stops the browser activating the
+					// link, so defaultPrevented IS the contract. (Also verified with a real
+					// Playwright mouse: no navigation, no download, no request.)
+					var ev = new fwin.MouseEvent( "click",
+						{ bubbles: true, cancelable: true, button: 0, clientX: r.left + 6, clientY: r.top + 6 } );
+					a.dispatchEvent( ev );
+					check( "T27 clicking the attachment link does not activate it", ev.defaultPrevented );
+
+					// Middle-click opens the download in a new tab, so it is cancelled too.
+					var aux = new fwin.MouseEvent( "auxclick",
+						{ bubbles: true, cancelable: true, button: 1, clientX: r.left + 6, clientY: r.top + 6 } );
+					a.dispatchEvent( aux );
+					check( "T27 ...nor does a middle click", aux.defaultPrevented );
+
+					// What the click SHOULD do: select the embed, so it can be edited or
+					// removed with the bubble.
+					var chip = fdoc.querySelector( ".attachment-placeholder" );
+					var down = new fwin.MouseEvent( "mousedown",
+						{ bubbles: true, cancelable: true, button: 0, clientX: r.left + 6, clientY: r.top + 6 } );
+					a.dispatchEvent( down );
+					var sel = inst._t.state.selection;
+					check( "T27 ...and the click selects the embed instead",
+						!!sel.node && sel.node.type.name === "presideAttachment",
+						sel.node ? sel.node.type.name : "(not a node selection)" );
+					check( "T27 the attachment gets the same Edit + Remove bubble",
+						!!chip.querySelector( ".tiptap-embed-edit" ) && !!chip.querySelector( ".tiptap-embed-remove" )
+						&& chip.querySelector( ".tiptap-embed-bubble" ).querySelectorAll( "button" ).length === 2 );
+					check( "T27 the attachment token round-trips unchanged",
+						inst.getData() === "<p>lead</p>" + tok + "<p>tail</p>", inst.getData() );
+
+					// SCOPED TO EMBEDS, not a blanket "cancel every link click": the guard
+					// lives on the node view, which is the same reason it disappears the
+					// moment editing ends (Classic closing, or Modern re-rendering the
+					// region from the server) and the links are the page's own again.
+					inst.setData( '<p>text <a href="/somewhere">a link</a></p>' );
+					var plain = frameDocOf( $c ).querySelector( ".ProseMirror a" );
+					var pev   = new fwin.MouseEvent( "click", { bubbles: true, cancelable: true, button: 0 } );
+					if ( plain ) { plain.dispatchEvent( pev ); }
+					check( "T27 an ordinary content link is left alone (the guard is embed-scoped)",
+						!!plain && !pev.defaultPrevented );
+
+					inst.setData( orig );
+					setTimeout( resolve, 60 );
+				} )();
+			} );
+		}
+
+		// Set by the T4c block below; needs two real scrolls and the rAF-throttled
+		// reposition between them, so it runs with the other deferred suites.
+		var comboScrollCheck = function() { return Promise.resolve(); };
+
+		// ---- T3/T4: Styles dropdown (async - the content CSS <link> loads in the
+		//      editing frame, and the entries are harvested from it) -----------
+		// The list lives in the PANEL IFRAME now (src/comboPanel.js), so it has to be
+		// read out of that document - `.tiptap-dropdown-menu` no longer exists in the
+		// host page at all.
+		function stylesPanelDoc( name ) {
+			var $tb = toolbarOf( name || "t3" );
+			var $tr = $tb.find( '.tiptap-dropdown-trigger[data-cmd="Styles"]' );
+			if ( $tr.prop( "disabled" ) ) { return null; }
+			$tr.trigger( "click" );                       // builds the panel lazily
+			var host = document.querySelector( ".tiptap-combo-panel.is-open" );
+			var doc  = host && host.querySelector( "iframe" ).contentDocument;
+			return { doc: doc, close: function() { $tr.trigger( "click" ); } };
+		}
+		function stylesMenuItems( name ) {
+			var p = stylesPanelDoc( name );
+			if ( !p || !p.doc ) { return []; }
+			var items = [].slice.call( p.doc.querySelectorAll( ".tiptap-fmt-preview" ) )
+				.map( function( el ) { return el.textContent; } );
+			p.close();
+			return items;
+		}
+		// `table.compact` is an OBJECT style, so it is only APPLICABLE - and therefore
+		// only listed - with the caret inside a table (CKEditor's checkApplicable:
+		// `path.contains( element )`). t3's content carries one.
+		function stylesMenuItemsInTable() {
+			var tip = CKEDITOR.instances.t3._t, pos = null;
+			tip.state.doc.descendants( function( n, p ) {
+				if ( n.type.name === "tableCell" && pos === null ) { pos = p + 1; }
+			} );
+			tip.commands.focus();
+			tip.commands.setTextSelection( pos + 1 );
+			var items = stylesMenuItems( "t3" );
+			tip.commands.setTextSelection( 1 );   // back to the paragraph
+			return items;
+		}
+		var tries = 0;
+		( function pollStyles() {
+			var items = stylesMenuItems();
+			var hasHarvested = items.indexOf( "p.lead" ) > -1;
+			if ( hasHarvested || ++tries > 40 ) {
+				var inTable = hasHarvested ? stylesMenuItemsInTable() : [];
+				check( "T3 stylesSet append appears in Styles dropdown (table.compact, caret in a table)",
+					inTable.indexOf( "table.compact" ) > -1, JSON.stringify( inTable ) );
+				check( "T4 stylesheet-harvested selector appears (p.lead from /content-sample.css)", hasHarvested, JSON.stringify( items ) );
+
+				// ---- The harvest is CKEditor's stylesheetparser algorithm ----------
+				// Every one of these comes from a DESCENDANT selector in
+				// content-sample.css whose first simple selector is `element.class`.
+				// Before the port, the raw selectorText was tested and the whole
+				// descendant tail became the class name AND the visible label - the
+				// reported `table.table-striped tbody tr:nth-child(2n)` entries.
+				var junk = items.concat( inTable ).filter( function( n ) {
+					return /[\s>+~:\[\]#]/.test( n );
+				} );
+				check( "T4 no entry label carries a combinator, pseudo, attribute or space",
+					junk.length === 0, JSON.stringify( junk ) );
+				var ruled = inTable.filter( function( n ) { return n === "table.table-ruled"; } );
+				check( "T4 two `table.table-ruled ...` selectors dedupe to ONE entry",
+					ruled.length === 1, JSON.stringify( inTable ) );
+				check( "T4 descendant tails are dropped (table.table-striped, not the whole selector)",
+					inTable.indexOf( "table.table-striped" ) > -1, JSON.stringify( inTable ) );
+				check( "T4 stylesheetParser_skipSelectors drops `.btn-primary` and `body.home p`",
+					items.indexOf( "body.home" ) === -1 && !items.some( function( n ) { return /btn-primary/.test( n ); } ),
+					JSON.stringify( items ) );
+				// CKEditor's own strip regex leaves a stray `]`, giving a broken
+				// `p.lead]` that dedupes separately from the real `p.lead`.
+				check( "T4 an attribute selector does not produce a second, broken entry",
+					items.filter( function( n ) { return /^p\.lead/.test( n ); } ).length === 1, JSON.stringify( items ) );
+
+				// ---- The panel is a frame with the sheet UNMODIFIED ----------------
+				// This is what makes an entry preview in the site's own typography, and
+				// it is why the scoped/rewritten copy that used to be injected into the
+				// ADMIN's head is gone. Both halves are asserted: the link is there, and
+				// nothing landed in the host document.
+				var pd = stylesPanelDoc( "t3" );
+				var panelLinks = pd && pd.doc
+					? [].slice.call( pd.doc.querySelectorAll( "link[rel=stylesheet]" ) ).map( function( l ) { return l.getAttribute( "href" ); } )
+					: [];
+				check( "T4 the Styles panel is an IFRAME with the content sheet linked unmodified",
+					panelLinks.indexOf( "/content-sample.css" ) > -1, JSON.stringify( panelLinks ) );
+				// The `@layer` block in the fixture sheet is the specific regression: the
+				// old serialiser had no branch for it (no legacy numeric rule type), so it
+				// was emitted UNSCOPED into the admin's own <head>, restyling the admin.
+				check( "T4 no content CSS is injected into the admin document (no @layer leak)",
+					document.querySelectorAll( 'style[data-preside-content-css]' ).length === 0
+					&& !document.querySelector( 'head link[href*="content-sample.css"]' ) );
+				if ( pd ) { pd.close(); }
+
+				// ---- T4c: the panel is a body-portalled FIXED frame, so three things a
+				//      plain absolutely-positioned menu got for free have to be done by
+				//      hand here. All three were reported bugs.
+				( function() {
+					var $tr = toolbarOf( "t3b" ).find( '.tiptap-dropdown-trigger[data-cmd="Format"]' );
+					var trig = $tr[ 0 ];
+					trig.scrollIntoView( { block: "center" } );
+					$tr.trigger( "click" );
+					var host = document.querySelector( ".tiptap-combo-panel.is-open" );
+					if ( !host ) { check( "T4c panel opens", false ); return; }
+
+					// 1. IT MUST BE OPAQUE. The host is portalled to <body>, i.e. OUTSIDE
+					//    .tiptap-editor-container - so `background:var(--tt-menu-bg)`
+					//    resolved to nothing and the panel rendered fully TRANSPARENT over
+					//    the page. The variables are now declared for the host too.
+					var cs = getComputedStyle( host );
+					check( "T4c the panel is opaque (--tt-* reach the body-portalled host)",
+						cs.backgroundColor === "rgb(255, 255, 255)" && cs.borderTopWidth === "1px",
+						cs.backgroundColor + " / border " + cs.borderTopWidth );
+
+					// 3. A CLICK IN THE EDITABLE MUST CLOSE IT. The editable is in the
+					//    editing IFRAME, so a mousedown there never reaches the host
+					//    document - a host-only listener left the panel open over the very
+					//    content the user had just clicked into.
+					var fd = CKEDITOR.instances.t3b._t.view.dom.ownerDocument;
+					var target = fd.querySelector( ".ProseMirror p" ) || fd.querySelector( ".ProseMirror" );
+					target.dispatchEvent( new fd.defaultView.MouseEvent( "mousedown", { bubbles: true, cancelable: true } ) );
+					check( "T4c a mousedown in the editable (inside the frame) closes the panel",
+						!document.querySelector( ".tiptap-combo-panel.is-open" ) );
+
+					// 2. IT MUST FOLLOW THE TRIGGER ON SCROLL. `fixed` + placed once from
+					//    the trigger's viewport rect meant it hung in space while the admin
+					//    form scrolled away underneath it. Deferred, since it needs two
+					//    real scrolls and the rAF-throttled reposition between them.
+					comboScrollCheck = function() { return new Promise( function( resolve ) {
+						trig.scrollIntoView( { block: "center" } );
+						$tr.trigger( "click" );
+						var h = document.querySelector( ".tiptap-combo-panel.is-open" );
+						if ( !h ) { resolve(); return; }
+						var t0 = trig.getBoundingClientRect().top, p0 = h.getBoundingClientRect().top;
+						var y0 = window.scrollY;
+						window.scrollBy( 0, 150 );
+						setTimeout( function() {
+							var t1 = trig.getBoundingClientRect().top, p1 = h.getBoundingClientRect().top;
+							check( "T4c the panel follows its trigger when the page scrolls",
+								Math.abs( ( t1 - t0 ) - ( p1 - p0 ) ) <= 2,
+								"trigger " + Math.round( t1 - t0 ) + " vs panel " + Math.round( p1 - p0 ) );
+							// ...and gives up rather than pointing at a control off screen.
+							window.scrollBy( 0, 4000 );
+							setTimeout( function() {
+								check( "T4c ...and closes once the trigger is scrolled out of view",
+									!document.querySelector( ".tiptap-combo-panel.is-open" ) );
+								window.scrollTo( 0, y0 );
+								resolve();
+							}, 240 );
+						}, 240 );
+					} ); };
+				} )();
+
+				// ---- T4b: tag-aware INLINE styles -----------------------------------
+				// Preside's default validSelectors allows sixteen element prefixes, and
+				// CKEditor lists small/i/b/em/strong unconditionally (they are INLINE, so
+				// checkApplicable returns true) - on a Bootstrap-ish site that really is
+				// `small.text-muted`, `strong.text-danger`. They used to be dropped here,
+				// because the only class-bearing mark rendered a <span>.
+				( function() {
+					var inlineWanted = [ "small.text-muted", "strong.text-danger", "em.subtle", "span.hl" ];
+					var missing = inlineWanted.filter( function( n ) { return items.indexOf( n ) === -1; } );
+					check( "T4b inline styles on small/strong/em/span all appear", missing.length === 0, JSON.stringify( missing ) );
+
+					var tip = CKEDITOR.instances.t3._t;
+					var orig = tip.getHTML();
+
+					function roundTrips( html ) { tip.commands.setContent( html ); return tip.getHTML() === html; }
+
+					check( "T4b <small class> round-trips as <small>, not a span",
+						roundTrips( '<p><small class="text-muted">m</small></p>' ) );
+					check( "T4b <strong class> round-trips",  roundTrips( '<p><strong class="text-danger">d</strong></p>' ) );
+					check( "T4b <em class> round-trips",      roundTrips( '<p><em class="subtle">s</em></p>' ) );
+					check( "T4b <span class> round-trips",    roundTrips( '<p><span class="hl">h</span></p>' ) );
+					// THE SAFETY ARGUMENT for touching the schema: a field that never
+					// applies an inline style must serialise byte-identically to before.
+					// passthroughAttr renders nothing when the attribute is null.
+					check( "T4b an UNCLASSED strong/em/small is byte-identical (no churn)",
+						roundTrips( '<p><strong>a</strong> <em>b</em> <small>c</small></p>' ) );
+					// Known, documented collapse: StarterKit already normalises b -> strong
+					// and i -> em, so CKEditor's `b.x` vs `strong.x` distinction is lost.
+					tip.commands.setContent( '<p><b class="text-danger">b</b></p>' );
+					check( "T4b <b class> becomes <strong class> (the documented collapse)",
+						tip.getHTML() === '<p><strong class="text-danger">b</strong></p>', tip.getHTML() );
+
+					// Applying, and CKEditor's removeStyle semantics: toggling a style off
+					// takes the ELEMENT off, not just its class.
+					tip.commands.setContent( "<p>hello world</p>" );
+					tip.commands.focus();
+					tip.commands.setTextSelection( { from: 1, to: 6 } );
+					var $tr = toolbarOf( "t3" ).find( '.tiptap-dropdown-trigger[data-cmd="Styles"]' );
+					function clickStyle( label ) {
+						$tr.trigger( "click" );
+						var fd = document.querySelector( ".tiptap-combo-panel.is-open iframe" ).contentDocument;
+						var it = [].slice.call( fd.querySelectorAll( ".tiptap-fmt-preview" ) ).filter( function( e ) { return e.textContent === label; } )[ 0 ];
+						if ( !it ) { $tr.trigger( "click" ); return null; }
+						it.dispatchEvent( new fd.defaultView.MouseEvent( "mousedown", { bubbles: true, cancelable: true } ) );
+						return tip.getHTML();
+					}
+					check( "T4b applying small.text-muted wraps the selection in <small class>",
+						clickStyle( "small.text-muted" ) === '<p><small class="text-muted">hello</small> world</p>', tip.getHTML() );
+					tip.commands.focus(); tip.commands.setTextSelection( { from: 1, to: 6 } );
+					clickStyle( "strong.text-danger" );
+					check( "T4b ...and strong.text-danger nests on top of it",
+						/<strong class="text-danger">/.test( tip.getHTML() ), tip.getHTML() );
+					tip.commands.focus(); tip.commands.setTextSelection( { from: 1, to: 6 } );
+					clickStyle( "strong.text-danger" );
+					check( "T4b toggling it off removes the <strong> as well as the class (removeStyle)",
+						tip.getHTML() === '<p><small class="text-muted">hello</small> world</p>', tip.getHTML() );
+
+					tip.commands.setContent( orig );
+				} )();
+				isolationChecks();
+				specialCharChecks();
+				bidiChecks();
+				listNormaliseChecks();
+				// Both of these end in deferred assertions (the table bubble's, and the
+				// undo-grouping delay), so the summary has to wait rather than render
+				// mid-run.
+				Promise.resolve( comboScrollCheck() )
+					.then( findReplaceChecks, findReplaceChecks )
+					.then( attachmentLinkChecks, attachmentLinkChecks )
+					.then( sourceChecks, sourceChecks )
+					.then( resizeChecks, resizeChecks )
+					.then( outlineChecks, outlineChecks )
+					.then( finish, finish );
+				return;
+			}
+			setTimeout( pollStyles, 100 );
+		} )();
+
+		function finish() {
+			var failed = results.filter( function( r ) { return !r.ok; } ).length;
+			document.getElementById( "summary" ).textContent =
+				( results.length - failed ) + " passed, " + failed + " failed";
+			document.getElementById( "summary" ).style.color = failed ? "#c0392b" : "#0a7d5a";
+			window.__results = results;
+			window.__done = true;
+		}
+	} );
+	</script>
+</body>
+</html>
