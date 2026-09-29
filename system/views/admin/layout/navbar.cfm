@@ -24,7 +24,7 @@
 					#systemAlertsMenu#
 
 					<li>#notificationsMenu#</li>
-					<li>#userMenu#</li>
+					#renderViewlet( event="admin.layout.userNavItem", args={ userMenu=userMenu } )#
 
 					<cfif Len( Trim( systemMenu ) )>
 						<li>#systemMenu#</li>
