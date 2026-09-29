@@ -76,7 +76,7 @@ component displayname="Email Bot Detection Service" {
 	 */
 	public boolean function matchesHoneyPot( messageId, userAgent, ipAddress, eventDate ) {
 		var timePeriodInHalf = ( getBotDetectionSettings().honeyPotTimezoneSeconds / 2 );
-		var filter = "message = :message and activity_type = :activity_type and (
+		var filter = "message = :message and activity_type = :activity_type and datecreated between :startdate and :enddate and (
 		       user_ip     = :user_ip
 		    or user_agent  = :user_agent
 		    or datecreated between :startdate and :enddate
@@ -135,7 +135,7 @@ component displayname="Email Bot Detection Service" {
 		if ( !StructKeyExists( variables, "_botDetectionSettings" ) ) {
 			// ensures raw struct of settings we get passed has all the keys we need
 			variables._botDetectionSettings = {
-				  userAgents              = botDetectionSettings.userAgents              ?: [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird", "healthcheck", "zabbix", "kube-probe" ]
+				  userAgents              = botDetectionSettings.userAgents              ?: [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "healthcheck", "zabbix", "kube-probe" ]
 				, tooManyClicksCount      = botDetectionSettings.tooManyClicksCount      ?: 10
 				, tooManyClicksSeconds    = botDetectionSettings.tooManyClicksSeconds    ?: 10
 				, honeyPotTimezoneSeconds = botDetectionSettings.honeyPotTimezoneSeconds ?: 10

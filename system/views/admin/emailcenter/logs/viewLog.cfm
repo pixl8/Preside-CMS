@@ -172,6 +172,17 @@
 										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.honeypotclick.title" ) />
 										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.honeypotclick.message" ) />
 									</cfcase>
+									<cfcase value="bot_open">
+										<cfset logIcon    = "fa-eye orange" />
+										<cfset logTitle   = translateResource( uri="cms:mailcenter.logs.action.bot_open.title" ) />
+										<cfset logMessage = translateResource( uri="cms:mailcenter.logs.action.bot_open.message" ) />
+									</cfcase>
+									<cfcase value="bot_click">
+										<cfset logIcon      = "fa-mouse-pointer orange" />
+										<cfset logTitle     = translateResource( uri="cms:mailcenter.logs.action.bot_click.title" ) />
+										<cfset renderedLink = Trim( renderEmailTrackingLink( prc.activity.link ?: "", prc.activity.link_title ?: "", prc.activity.link_body ?: "" ) ) />
+										<cfset logMessage   = translateResource( uri="cms:mailcenter.logs.action.bot_click.message", data=[ renderedLink ] ) />
+									</cfcase>
 									<cfdefaultcase>
 										<cfcontinue/>
 									</cfdefaultcase>
@@ -186,7 +197,7 @@
 									, message         = logMessage
 									, ipAddress       = prc.activity.user_ip
 									, userAgent       = prc.activity.user_agent
-									, showAuditTrail  = ArrayFindNoCase( [ "open", "click" ], prc.activity.activity_type )
+									, showAuditTrail  = ArrayFindNoCase( [ "open", "click", "bot_open", "bot_click" ], prc.activity.activity_type )
 								} )#
 							</cfloop>
 						</div>
