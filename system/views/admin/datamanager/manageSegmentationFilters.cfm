@@ -11,9 +11,10 @@
 
 	<cfif hasAnyFilters>
 		#objectDataTable( objectName="rules_engine_condition", args={
-			  usesTreeView = true
-			, treeOnly     = true
-			, gridFields   = [ "condition_name", "segmentation_tag_preview", "segmentation_last_count", "segmentation_last_calculation", "segmentation_last_time_taken" ]
+			  usesTreeView      = true
+			, treeOnly          = true
+			, allowColumnPicker = false
+			, gridFields        = [ "condition_name", "segmentation_tag_preview", "segmentation_last_count", "segmentation_last_calculation", "segmentation_last_time_taken" ]
 		} )#
 	<cfelse>
 		<p class="alert alert-warning">

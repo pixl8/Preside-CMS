@@ -2811,30 +2811,7 @@ component displayName="Preside Object Service" {
 		}
 
 		for( var i=1; i <=fields.len(); i++ ){
-			var objName = "";
-			var match   = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", fields[i], 1, true );
-
-			match = match.len[1] ? Mid( fields[i], match.pos[1], match.len[1] ) : "";
-
-			if ( Len( Trim( match ) ) ) {
-				var labelField = "";
-				if ( ListLen( match, "." ) == 1 ) {
-					objName = arguments.objectName;
-				} else {
-					objName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
-				}
-
-				labelField = getObjectAttribute( objName, "labelfield", "label" );
-				if ( !Len( labelField ) ) {
-					throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
-				}
-
-				if ( ListLen( labelField, "." ) > 1 ) {
-					fields[i] = Replace( fields[i], "#arguments.objectName#.${labelfield}", "${labelfield}", "all" );
-					fields[i] = Replace( fields[i], ".${labelfield}", "$${labelfield}", "all" );
-				}
-				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
-			}
+			fields[i] = _expandLabelFieldPlaceholder( fields[i], arguments.objectName );
 
 			fields[i] = expandFormulaFields(
 				  objectName = arguments.objectName
@@ -4193,6 +4170,37 @@ component displayName="Preside Object Service" {
 		return REReplaceNoCase( Trim( text ), '\bas\b\s+(\w+)(?!\s*[`\"\[])$', "as #dbAdapter.escapeEntity( "\1" )#" );
 	}
 
+	private string function _expandLabelFieldPlaceholder( required string expression, required string objectName ) {
+		var match      = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", arguments.expression, 1, true );
+		var objName    = "";
+		var labelField = "";
+		var expanded   = arguments.expression;
+
+		match = match.len[1] ? Mid( arguments.expression, match.pos[1], match.len[1] ) : "";
+
+		if ( !Len( Trim( match ) ) ) {
+			return arguments.expression;
+		}
+
+		if ( ListLen( match, "." ) == 1 ) {
+			objName = arguments.objectName;
+		} else {
+			objName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
+		}
+
+		labelField = getObjectAttribute( objName, "labelfield", "label" );
+		if ( !Len( labelField ) ) {
+			throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
+		}
+
+		if ( ListLen( labelField, "." ) > 1 ) {
+			expanded = Replace( expanded, "#arguments.objectName#.${labelfield}", "${labelfield}", "all" );
+			expanded = Replace( expanded, ".${labelfield}", "$${labelfield}", "all" );
+		}
+
+		return Replace( expanded, "${labelfield}", labelField, "all" );
+	}
+
 	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins, required array selectFields ) {
 		var items         = ListToArray( arguments.orderBy );
 		var rebuilt       = [];
@@ -4202,7 +4210,12 @@ component displayName="Preside Object Service" {
 		var aggregateArgs = {};
 
 		for( var item in items ) {
-			propertyName = expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
+			propertyName = expandFormulaFields(
+				  objectName   = arguments.objectName
+				, expression   = _expandLabelFieldPlaceholder( Trim( ListFirst( item, " " ) ), arguments.objectName )
+				, dbAdapter    = arguments.dbAdapter
+				, includeAlias = false
+			);
 			direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
 
 			if ( left( propertyName, 4 ) == "agg:" ) {

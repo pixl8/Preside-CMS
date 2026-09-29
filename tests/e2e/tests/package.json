@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "cypress:run": "cypress run --browser chromium",
+    "cypress:open": "cypress open --e2e --browser chromium"
+  },
   "devDependencies": {
     "cypress": "^13.10.0"
   }

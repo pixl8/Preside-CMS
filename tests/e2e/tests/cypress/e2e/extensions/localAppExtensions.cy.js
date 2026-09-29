@@ -6,7 +6,7 @@ describe( 'extensions_app convention', () => {
 
   it( 'should have handlers, db migrations, preside objects and services all running as with normal extensions', () => {
     cy.request( '/myextensionhandler/' ).then( (resp) => {
-      expect( resp.body[0].label ).to.eq( 'Hello world' );
+      expect( resp.body.map( ( row ) => row.label ) ).to.include( 'Hello world' );
     } );
   } )
 

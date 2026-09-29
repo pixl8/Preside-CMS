@@ -141,7 +141,7 @@ component extends="preside.system.base.adminHandler" {
 		var relatedObject    = presideObjectService.getObjectPropertyAttribute( objectName=objectName, propertyName=propertyName, attributeName="relatedTo" );
 		var gridFields       = adminDataViewsService.listGridFieldsForRelationshipPropertyTable( objectName, propertyName );
 
-		return renderView( view="/admin/datamanager/_objectDataTable", args={
+		return renderView( view=getObjectDataTableView(), args={
 			  objectName               = relatedObject
 			, gridFields               = gridFields
 			, dataSourceUrl            = dataSourceUrl

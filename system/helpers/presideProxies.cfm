@@ -281,6 +281,12 @@
 		<cfreturn getSingleton( "featureService" ).isFeatureDefined( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="isLabEnabled" access="public" returntype="boolean" output="false">
+		<cfargument name="experimentId" type="string" required="true" /><cfsilent>
+
+		<cfreturn getSingleton( "labsService" ).isEnabled( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 	<cffunction name="isExtensionInstalled" access="public" returntype="boolean" output="false">
 		<cfargument name="extensionId" type="string" required="true" /><cfsilent>
 
@@ -319,7 +325,50 @@
 		<cfreturn getSingleton( "PresideObjectService" ).isFlaggingEnabled( objectName=arguments.objectName )>
 	</cfsilent></cffunction>
 
+	<cffunction name="includeAdminRequestAssets" access="public" returntype="any" output="false">
+		<cfargument name="handler" type="string" required="false" default="" />
+		<cfargument name="action"  type="string" required="false" default="" /><cfsilent>
+
+		<cfscript>
+			var event         = getController().getRequestContext();
+			var modern        = isLabEnabled( "datatablesOverhaul" );
+			var handlerPath   = Len( arguments.handler ) ? arguments.handler : event.getCurrentHandler();
+			var actionPath    = Len( arguments.action  ) ? arguments.action  : event.getCurrentAction();
+			var jsHandlerPath = handlerPath;
+			var jsActionPath  = actionPath;
+			var cssActionPath = actionPath;
+
+			if ( modern ) {
+				event.include( "/css/admin/specific/datatablesModern/" );
+
+				if ( CompareNoCase( handlerPath, "notifications" ) == 0 ) {
+					jsHandlerPath = "notificationsModern";
+				}
+				if ( CompareNoCase( handlerPath, "assetmanager" ) == 0 && CompareNoCase( actionPath, "index" ) == 0 ) {
+					jsActionPath = "indexModern";
+				}
+				if ( CompareNoCase( handlerPath, "datamanager" ) == 0 && CompareNoCase( actionPath, "object" ) == 0 ) {
+					jsActionPath  = "objectModern";
+					cssActionPath = "objectModern";
+				}
+			}
+
+			event.include( "/css/admin/specific/#handlerPath#/", false );
+			event.include( "/css/admin/specific/#handlerPath#/#cssActionPath#/", false );
+			event.include( "/js/admin/presidecore/" );
+			event.include( modern ? "/js/admin/datatablesCoreModern/" : "/js/admin/datatablesCore/" );
+			event.include( "/js/admin/specific/#jsHandlerPath#/", false );
+			event.include( "/js/admin/specific/#handlerPath#/#jsActionPath#/", false );
+		</cfscript>
+
+		<cfreturn event />
+	</cfsilent></cffunction>
+
 <!--- datamanager --->
+	<cffunction name="getObjectDataTableView" access="public" returntype="string" output="false"><cfsilent>
+		<cfreturn isLabEnabled( "datatablesOverhaul" ) ? "/admin/datamanager/_objectDataTableModern" : "/admin/datamanager/_objectDataTable" />
+	</cfsilent></cffunction>
+
 	<cffunction name="objectDataTable" access="public" returntype="string" output="false">
 		<cfargument name="objectName" type="string" required="true" />
 		<cfargument name="args"       type="struct" required="false" default="#StructNew()#" /><cfsilent>

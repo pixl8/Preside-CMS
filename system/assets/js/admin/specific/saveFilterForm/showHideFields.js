@@ -1,7 +1,8 @@
 ( function( $ ){
 
-	var $favouriteInput = $( "[name=is_favourite]" )
-	  , $form           = $favouriteInput.length ? $favouriteInput.closest( "form" ) : [];
+	var $scopeInput     = $( "[name=filter_sharing_scope], [name=sharing_scope]" ).first()
+	  , $favouriteInput = $( "[name=is_favourite]" )
+	  , $form           = $scopeInput.length ? $scopeInput.closest( "form" ) : ( $favouriteInput.length ? $favouriteInput.closest( "form" ) : [] );
 
 	if ( $form.length ) {
 		var $groupFilterFieldset   = $form.find( "#fieldset-group-filter" )
@@ -20,7 +21,9 @@
 
 			return "";
 		}
-		getFilterScope = function(){ return getRadioValue( "filter_sharing_scope" ) };
+		getFilterScope = function(){
+			return getRadioValue( "filter_sharing_scope" ) || getRadioValue( "sharing_scope" );
+		};
 
 		enableFieldsetsBasedOnFilterScope = function(){
 			var filterScope = getFilterScope();
@@ -36,6 +39,9 @@
 		};
 
 		toggleFolderPicker = function(){
+			if ( !$favouriteInput.length || !$folderPickerContainer.length ) {
+				return;
+			}
 			if ( $favouriteInput.is( ":checked" ) ) {
 				$folderPickerContainer.hide();
 			} else {
@@ -43,7 +49,7 @@
 			}
 		};
 
-		$form.on( "click change", "[name=filter_sharing_scope]", enableFieldsetsBasedOnFilterScope );
+		$form.on( "click change", "[name=filter_sharing_scope], [name=sharing_scope]", enableFieldsetsBasedOnFilterScope );
 		$form.on( "click change", "[name=is_favourite]", toggleFolderPicker );
 
 		enableFieldsetsBasedOnFilterScope();
