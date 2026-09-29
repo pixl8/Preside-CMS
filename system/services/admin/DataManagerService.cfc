@@ -240,7 +240,7 @@ component {
 			if ( Len( Trim( attributes.uniqueindexes ?: "" ) ) ) {
 				return false;
 			}
-			if ( Len( Trim( attributes.formula ?: "" ) ) ) {
+			if ( Len( Trim( attributes.formula ?: "" ) ) && !( IsBoolean( attributes.customField ?: "" ) && attributes.customField ) ) {
 				return false;
 			}
 			if ( propertyName.reFind( "^_" ) ) {

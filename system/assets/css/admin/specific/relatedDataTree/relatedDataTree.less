@@ -1,0 +1,59 @@
+@import url( 'globals.less' );
+
+.presidecms {
+	.form-group-grid:has( .related-data-tree ) {
+		align-items : start;
+
+		> .control-label {
+			padding-top : 0;
+			line-height : 20px;
+		}
+	}
+
+	.related-data-tree {
+		.related-data-tree-summary {
+			margin      : 0 0 8px;
+			padding-top : 0;
+			line-height : 20px;
+			font-weight : bold;
+		}
+
+		.related-data-tree-nav {
+			max-height : 280px;
+			overflow   : auto;
+			padding    : 6px 8px;
+			border     : 1px solid @default-separator-border-colour;
+		}
+
+		.tree-node {
+			cursor : pointer;
+		}
+
+		.related-data-tree-spacer {
+			visibility : hidden;
+		}
+
+		.tree-folder-header,
+		.tree-item {
+			.fa-fw {
+				margin-right : 0;
+			}
+
+			.node-name,
+			.node-label {
+				display : inline;
+			}
+		}
+
+		.related-data-tree-loading,
+		.related-data-tree-error,
+		.related-data-tree-empty {
+			padding : 6px 0;
+			color   : @default-light-font-colour;
+		}
+
+		.related-data-tree-error {
+			color : @red;
+		}
+	}
+}

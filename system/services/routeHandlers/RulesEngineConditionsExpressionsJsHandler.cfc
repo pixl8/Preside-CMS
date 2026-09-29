@@ -37,6 +37,10 @@ component {
 		return Len( Trim( buildArgs.conditionExpressionsContext ?: "" ) );
 	}
 
+	public void function bustCache() {
+		variables._applicationCacheBuster = LCase( CreateUUId() );
+	}
+
 	public string function build( required struct buildArgs, required any event ) {
 		var ruleContext = buildArgs.conditionExpressionsContext ?: "";
 		var path   = "/#i18n.getFwLocale()#/#ruleContext#/#LCase( Hash( variables._applicationCacheBuster & event.getAdminUserId() ) )#/";

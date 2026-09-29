@@ -26,6 +26,6 @@ component {
 			}
 		}
 
-		return translateResource( uri="enum.webflowSessionType:#typeI18nKey#.label" );
+		return renderEnum( data=typeI18nKey, enum="webflowSessionType", property="label" );
 	}
 }

@@ -33,12 +33,8 @@ component {
 			}
 		}
 
-		var baseI18nUri = presideObjectService.getResourceBundleUriRoot( objectName=objectName );
 		for( var prop in args.values ) {
-			args.labels.append( translateResource(
-				  uri          = baseI18nUri & "field.#prop#.title"
-				, defaultValue = translateResource( uri="cms:preside-objects.default.field.#prop#.title", defaultValue=prop )
-			) );
+			args.labels.append( translatePropertyName( objectName, prop ) );
 		}
 
 		return renderView( view="formcontrols/select/index", args=args );

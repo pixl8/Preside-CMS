@@ -180,7 +180,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service    = _getService();
 				var objectName = "my_object";
 				var fieldList  = "field1,field2,field3";
-				var uriRoot    = "blah.blah.#CreateUUId()#:";
 				var titles     = {
 					  field1 = "Field 1" & CreateUUId()
 					, field2 = "Field 2" & CreateUUId()
@@ -191,11 +190,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  objectName    = objectName
 					, attributeName = "dataExportFields"
 				).$results( fieldList );
-				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( uriRoot )
 
-				service.$( "$translateResource" ).$args( uri=uriRoot & "field.field1.title", defaultValue="field1" ).$results( titles.field1 );
-				service.$( "$translateResource" ).$args( uri=uriRoot & "field.field2.title", defaultValue="field2" ).$results( titles.field2 );
-				service.$( "$translateResource" ).$args( uri=uriRoot & "field.field3.title", defaultValue="field3" ).$results( titles.field3 );
+				service.$( "$translatePropertyName" ).$args( objectName, "field1" ).$results( titles.field1 );
+				service.$( "$translatePropertyName" ).$args( objectName, "field2" ).$results( titles.field2 );
+				service.$( "$translatePropertyName" ).$args( objectName, "field3" ).$results( titles.field3 );
 
 				var result = service.getDefaultExportFieldsForObject( objectName );
 
@@ -208,7 +206,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return a set of fieldnames automatically parsed from the object that match auto exportable criteria. i.e. formula fields, short string fields, numerics, dates and many-to-one fields", function(){
 				var service    = _getService();
 				var objectName = "my_object";
-				var uriRoot    = "blah.blah.#CreateUUId()#:";
 				var props      = StructNew( 'linked' );
 				var allProps   = {
 					  id              = { type="string", dbtype="varchar", maxlength=35 }
@@ -258,12 +255,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, attributeName = "dataExportDefaultFieldsOrder"
 				).$results( "" );
 				mockPresideObjectService.$( "getObjectProperties" ).$args( objectName ).$results( props );
-				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( uriRoot )
 
-				service.$( "$translateResource" ).$args( uri=uriRoot & "field.id.title"            , defaultValue="id"             ).$results( titles.id             );
-				service.$( "$translateResource" ).$args( uri=uriRoot & "field.datecreated.title"   , defaultValue="datecreated"    ).$results( titles.datecreated    );
-				service.$( "$translateResource" ).$args( uri=uriRoot & "field.numberField.title"   , defaultValue="numberField"    ).$results( titles.numberField    );
-				service.$( "$translateResource" ).$args( uri=uriRoot & "field.manyToOneField.title", defaultValue="manyToOneField" ).$results( titles.manyToOneField );
+				service.$( "$translatePropertyName" ).$args( objectName, "id"             ).$results( titles.id             );
+				service.$( "$translatePropertyName" ).$args( objectName, "datecreated"    ).$results( titles.datecreated    );
+				service.$( "$translatePropertyName" ).$args( objectName, "numberField"    ).$results( titles.numberField    );
+				service.$( "$translatePropertyName" ).$args( objectName, "manyToOneField" ).$results( titles.manyToOneField );
 
 				var result = service.getDefaultExportFieldsForObject( objectName );
 

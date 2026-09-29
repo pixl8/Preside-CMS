@@ -108,6 +108,10 @@
 		<cfreturn getSingleton( "ContentRendererService" ).renderEnum( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="getEnumTranslationUri" access="public" returntype="string" output="false"><cfsilent>
+		<cfreturn getSingleton( "ContentRendererService" ).getEnumTranslationUri( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 <!--- WIDGETS --->
 	<cffunction name="renderWidget" access="public" returntype="any" output="false"><cfsilent>
 		<cfreturn getSingleton( "widgetsService" ).renderWidget( argumentCollection = arguments ) />
@@ -215,6 +219,16 @@
 		<cfargument name="defaultValue" type="string" required="false" default="#arguments.propertyName#" /><cfsilent>
 
 		<cfscript>
+			var customFieldLabel = getSingleton( "presideObjectService" ).getObjectPropertyAttribute(
+				  objectName    = arguments.objectName
+				, propertyName  = arguments.propertyName
+				, attributeName = "customFieldLabel"
+				, defaultValue  = ""
+			);
+			if ( Len( Trim( customFieldLabel ) ) ) {
+				return customFieldLabel;
+			}
+
 			var baseUri      = getSingleton( "presideObjectService" ).getResourceBundleUriRoot( arguments.objectName );
 			var fullUri      = baseUri & "field.#propertyName#.title";
 			var defaultValue = translateResource( uri="cms:preside-objects.default.field.#propertyName#.title", defaultValue=arguments.defaultValue );

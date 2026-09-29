@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field:">
+	<tab id="default">
+		<fieldset id="conditional" sortorder="15">
+			<field binding="custom_field.conditional_label_mode" control="enumRadioList" enum="customFieldConditionalLabelMode" defaultValue="single" />
+		</fieldset>
+	</tab>
+</form>

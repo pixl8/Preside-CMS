@@ -61,6 +61,15 @@ component extends="preside.system.modules.cbi18n.models.i18n" {
 	}
 
 	public string function translatePropertyName( required string objectName, required string propertyName, string context="" ) {
+		var customFieldLabel = presideObjectService.getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.propertyName
+			, attributeName = "customFieldLabel"
+		);
+		if ( Len( Trim( customFieldLabel ) ) ) {
+			return customFieldLabel;
+		}
+
 		var baseUri          = presideObjectService.getResourceBundleUriRoot( arguments.objectName );
 		var contextTranslate = "";
 

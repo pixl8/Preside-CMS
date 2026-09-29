@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field:">
+	<tab id="default">
+		<fieldset id="related_data" sortorder="10">
+			<field name="target_object"             control="hidden" />
+			<field name="related_data_relationship" control="customFieldRelatedDataTree" required="true" />
+			<field name="related_data_property"     control="hidden" required="true" layout="" />
+		</fieldset>
+	</tab>
+</form>

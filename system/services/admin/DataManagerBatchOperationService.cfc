@@ -9,6 +9,8 @@
  */
 component displayName="Data manager batch operation service" {
 
+	property name="customFieldsService" inject="delayedInjector:customFieldsService";
+
 // CONSTRUCTOR
 	/**
 	 *
@@ -63,7 +65,7 @@ component displayName="Data manager batch operation service" {
 		if ( canInfo ) {
 			uriRoot = pobjService.getResourceBundleUriRoot( arguments.objectName );
 			objectTitle = $translateResource( uri=uriRoot & "title.singular", defaultValue=arguments.objectName );
-			fieldTitle  = $translateResource( uri=uriRoot & "field.#arguments.fieldName#.title", defaultValue=arguments.fieldName );
+			fieldTitle  = $translatePropertyName( arguments.objectName, arguments.fieldName );
 			arguments.logger.info( $translateResource( uri="cms:datamanager.batchedit.task.starting.message", data=[ objectTitle, fieldTitle, NumberFormat( totalRecords ) ] ) );
 		}
 
@@ -88,7 +90,14 @@ component displayName="Data manager batch operation service" {
 						if ( canWarn ) { arguments.logger.warn( "Task interrupted. Cancelling." ); }
 						break;
 					}
-					if ( !isMultiValue ) {
+					if ( _isCustomField( objectName, arguments.fieldName ) ) {
+						_batchEditCustomField(
+							  objectName = objectName
+							, recordId   = sourceId
+							, fieldName  = arguments.fieldName
+							, value      = value
+						);
+					} else if ( !isMultiValue ) {
 						pobjService.updateData(
 							  objectName              = objectName
 							, data                    = { "#arguments.fieldName#" = value }
@@ -491,6 +500,41 @@ component displayName="Data manager batch operation service" {
 		}
 
 		return false;
+	}
+
+	private boolean function _isCustomField( required string objectName, required string fieldName ) {
+		if ( !$isFeatureEnabled( "customFields" ) ) {
+			return false;
+		}
+
+		return $helpers.isTrue( $getPresideObjectService().getObjectPropertyAttribute(
+			  objectName    = arguments.objectName
+			, propertyName  = arguments.fieldName
+			, attributeName = "customField"
+		) );
+	}
+
+	private void function _batchEditCustomField(
+		  required string objectName
+		, required string recordId
+		, required string fieldName
+		, required any    value
+	) {
+		customFieldsService.saveValues(
+			  objectName = arguments.objectName
+			, recordId   = arguments.recordId
+			, values     = { "#arguments.fieldName#" = arguments.value }
+		);
+
+		$getPresideObjectService().updateData(
+			  objectName           = arguments.objectName
+			, data                 = {}
+			, filter               = { id=arguments.recordId }
+			, clearCaches          = false
+			, forceVersionCreation = true
+		);
+
+		customFieldsService.snapshotRecordValues( arguments.objectName, arguments.recordId );
 	}
 
 // GETTERS AND SETTERS
