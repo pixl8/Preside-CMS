@@ -8,12 +8,25 @@
 component {
 
 	/**
-	 * @labsConfig.inject coldbox:setting:labs
+	 * @labsConfig.inject  coldbox:setting:labs
+	 * @enumService.inject delayedInjector:enumService
 	 */
-	public any function init( required struct labsConfig ) {
+	public any function init( required struct labsConfig, required any enumService ) {
 		_setLabsConfig( arguments.labsConfig );
+		_setEnumService( arguments.enumService );
 
 		return this;
+	}
+
+	public void function registerExperimentsEnum() {
+		_getEnumService().registerEnum(
+			  enum         = "labsExperiment"
+			, keys         = listConfigurableExperiments()
+			, translations = {
+				  label       = "cms:editProfile.labs.experiment.{key}.title"
+				, description = "cms:editProfile.labs.experiment.{key}.description"
+			  }
+		);
 	}
 
 	public boolean function isEnabled( required string experimentId ) {
@@ -188,7 +201,6 @@ component {
 		var spec        = "";
 		var mode        = "";
 		var userPref    = "";
-		var sysDefault  = "";
 
 		if ( !StructKeyExists( experiments, arguments.experimentId ) ) {
 			return false;
@@ -213,12 +225,13 @@ component {
 			return false;
 		}
 
-		sysDefault = $getPresideSetting( category="labs", setting=arguments.experimentId, default="" );
-		if ( Len( Trim( sysDefault ) ) ) {
-			return _settingIsOn( sysDefault );
-		}
+		return _isEnabledSystemWide( arguments.experimentId );
+	}
 
-		return mode == "labsDefaultOn";
+	private boolean function _isEnabledSystemWide( required string experimentId ) {
+		var enabledExperiments = $getPresideSetting( category="labs", setting="enabled_experiments", default="" );
+
+		return ListFindNoCase( enabledExperiments, arguments.experimentId ) > 0;
 	}
 
 	private string function _normalizeMode( required string mode ) {
@@ -235,10 +248,6 @@ component {
 		}
 
 		return "default";
-	}
-
-	private boolean function _settingIsOn( required string value ) {
-		return CompareNoCase( arguments.value, "on" ) == 0 || $helpers.isTrue( arguments.value );
 	}
 
 	private struct function _getUserPreferences() {
@@ -283,6 +292,13 @@ component {
 	}
 	private void function _setLabsConfig( required struct labsConfig ) {
 		_labsConfig = arguments.labsConfig;
+	}
+
+	private any function _getEnumService() {
+		return _enumService;
+	}
+	private void function _setEnumService( required any enumService ) {
+		_enumService = arguments.enumService;
 	}
 
 }
