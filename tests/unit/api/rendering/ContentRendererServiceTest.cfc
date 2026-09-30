@@ -267,13 +267,51 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected, result );
 	}
 
+	function test19_renderEnum_shouldDelegatePropertyTranslationToEnumService(){
+		var svc = _getRendererService();
+
+		mockEnumService.$( "translate" )
+			.$args( enum="custom", key="first", property="iconClass", data=[] )
+			.$results( "fa-check" );
+
+		expect( svc.renderEnum( data="first", enum="custom", property="iconClass" ) ).toBe( "fa-check" );
+	}
+
+	function test20_renderEnum_shouldPassFallbackAndTranslationDataToEnumService(){
+		var svc             = _getRendererService();
+		var translationData = [ "one" ];
+
+		mockEnumService.$( "translate" )
+			.$args( enum="custom", key="first", property="message", data=translationData, defaultValue="Fallback" )
+			.$results( "Translated" );
+
+		expect( svc.renderEnum(
+			  data            = "first"
+			, enum            = "custom"
+			, property        = "message"
+			, defaultValue    = "Fallback"
+			, translationData = translationData
+		) ).toBe( "Translated" );
+	}
+
+	function test21_getEnumTranslationUri_shouldDelegateToEnumService(){
+		var svc = _getRendererService();
+
+		mockEnumService.$( "getTranslationUri" )
+			.$args( enum="custom", key="first", property="label" )
+			.$results( "registered.first:title" );
+
+		expect( svc.getEnumTranslationUri( data="first", enum="custom", property="label" ) ).toBe( "registered.first:title" );
+	}
+
 // PRIVATE HELPERS
 	private any function _getRendererService() output=false {
 		var presideObjectService = _getPresideObjectService();
 		var logger               = _getTestLogger();
 		var assetCache           = _getCacheBox().getCache( "renderedAssetCache" );
 
-		mockColdBox = getMockBox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+		mockColdBox     = getMockBox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+		mockEnumService = getMockBox().createEmptyMock( "preside.system.services.enum.EnumService" );
 
 		var svc = getMockBox().createMock( object=new preside.system.services.rendering.ContentRendererService(
 			  logger               = logger
@@ -287,6 +325,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		) );
 
 		svc.$( "$announceInterception" );
+		svc.$( "_getEnumService", mockEnumService );
 
 		return svc;
 	}

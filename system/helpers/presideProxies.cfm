@@ -108,6 +108,10 @@
 		<cfreturn getSingleton( "ContentRendererService" ).renderEnum( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="getEnumTranslationUri" access="public" returntype="string" output="false"><cfsilent>
+		<cfreturn getSingleton( "ContentRendererService" ).getEnumTranslationUri( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 <!--- WIDGETS --->
 	<cffunction name="renderWidget" access="public" returntype="any" output="false"><cfsilent>
 		<cfreturn getSingleton( "widgetsService" ).renderWidget( argumentCollection = arguments ) />
