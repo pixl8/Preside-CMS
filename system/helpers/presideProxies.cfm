@@ -108,6 +108,10 @@
 		<cfreturn getSingleton( "ContentRendererService" ).renderEnum( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="getEnumTranslationUri" access="public" returntype="string" output="false"><cfsilent>
+		<cfreturn getSingleton( "ContentRendererService" ).getEnumTranslationUri( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 <!--- WIDGETS --->
 	<cffunction name="renderWidget" access="public" returntype="any" output="false"><cfsilent>
 		<cfreturn getSingleton( "widgetsService" ).renderWidget( argumentCollection = arguments ) />
@@ -279,6 +283,12 @@
 
 	<cffunction name="isFeatureDefined" access="public" returntype="boolean" output="false"><cfsilent>
 		<cfreturn getSingleton( "featureService" ).isFeatureDefined( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
+	<cffunction name="isLabEnabled" access="public" returntype="boolean" output="false">
+		<cfargument name="experimentId" type="string" required="true" /><cfsilent>
+
+		<cfreturn getSingleton( "labsService" ).isEnabled( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
 	<cffunction name="isExtensionInstalled" access="public" returntype="boolean" output="false">
