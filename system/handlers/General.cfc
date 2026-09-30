@@ -31,6 +31,7 @@ component {
 	property name="formsService"                  inject="delayedInjector:formsService";
 	property name="dmWorkflowFilterService"       inject="delayedInjector:datamanagerWorkflowFilterService";
 	property name="enumService"                   inject="enumService";
+	property name="labsService"                   inject="delayedInjector:labsService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -280,6 +281,7 @@ component {
 		}
 		if ( isFeatureEnabled( "admin" ) ) {
 			systemAlertsService.setupSystemAlerts();
+			labsService.registerExperimentsEnum();
 		}
 		if ( isFeatureEnabled( "presideForms" ) ) {
 			formsService.formExists( "hack-to-ensure-service-initialised" );
