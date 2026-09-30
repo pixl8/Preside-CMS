@@ -17,9 +17,9 @@ component {
 		}
 
 		for ( var value in values ) {
-			var iconClass = translateResource( uri="enum.#enum#:#value#.iconClass", defaultValue="" );
+			var iconClass = renderEnum( data=value, enum=enum, property="iconClass" );
 			var icon      = Len( iconClass ) ? '<i class="fa fa-fw #iconClass#"></i>&nbsp;' : "";
-			var label     = translateResource( uri="enum.#enum#:#value#.label", defaultValue=value );
+			var label     = renderEnum( data=value, enum=enum, property="label" );
 
 			ArrayAppend( rendered, icon & label );
 		}

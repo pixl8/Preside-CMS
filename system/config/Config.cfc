@@ -1079,10 +1079,11 @@ component {
 	}
 
 	private void function __setupLabs() {
-		var experimentId    = "";
-		var experiment      = "";
-		var mode            = "";
-		var hasConfigurable = false;
+		var experimentId         = "";
+		var experiment           = "";
+		var mode                 = "";
+		var hasConfigurable      = false;
+		var defaultOnExperiments = [];
 
 		settings.labs = settings.labs ?: {};
 		settings.labs.experiments = settings.labs.experiments ?: {};
@@ -1102,8 +1103,15 @@ component {
 			}
 			if ( mode != "alwaysOn" ) {
 				hasConfigurable = true;
-				break;
 			}
+			if ( mode == "labsDefaultOn" ) {
+				ArrayAppend( defaultOnExperiments, experimentId );
+			}
+		}
+
+		if ( !StructKeyExists( settings.env, "labs.enabled_experiments" ) ) {
+			ArraySort( defaultOnExperiments, "textnocase" );
+			settings.env[ "labs.enabled_experiments" ] = ArrayToList( defaultOnExperiments );
 		}
 
 		settings.features.labs = settings.features.labs ?: { enabled=true, siteTemplates=[ "*" ], widgets=[], dependsOn=[ "admin" ] };
