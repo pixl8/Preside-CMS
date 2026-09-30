@@ -17,57 +17,61 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.isEnabled( "missingExperiment" ) ).toBeFalse();
 			} );
 
-			it( "should return false for labsDefaultOff when there is no system setting and no user preference", function(){
+			it( "should return false when the experiment is not in the system-wide enabled_experiments list and there is no user preference", function(){
 				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
+
+				_stubEnabledExperiments( svc, "" );
 
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
 			} );
 
-			it( "should return true for labsDefaultOn when there is no system setting and no user preference", function(){
-				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOn" } } } );
+			it( "should return true when the experiment is in the system-wide enabled_experiments list and there is no user preference", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" }, tiptapEditor={ mode="labsDefaultOff" } } } );
+
+				_stubEnabledExperiments( svc, "tiptapEditor,datatablesOverhaul" );
 
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
 			} );
 
-			it( "should use the system-config value when the user preference is default", function(){
+			it( "should use the system-wide enabled_experiments list when the user preference is default", function(){
 				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
 
 				_stubUserPreference( svc, "default" );
-				svc.$( "$getPresideSetting" ).$args( category="labs", setting="datatablesOverhaul", default="" ).$results( "on" );
+				_stubEnabledExperiments( svc, "datatablesOverhaul" );
 
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
 			} );
 
-			it( "should treat a yes/no switch value of 1 as on", function(){
+			it( "should match experiments in the enabled_experiments list case insensitively", function(){
 				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
 
-				svc.$( "$getPresideSetting" ).$args( category="labs", setting="datatablesOverhaul", default="" ).$results( "1" );
+				_stubEnabledExperiments( svc, "DATATABLESOVERHAUL" );
 
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
 			} );
 
-			it( "should treat a yes/no switch value of 0 as off, even when the code default is on", function(){
-				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOn" } } } );
+			it( "should not enable an experiment whose ID is only a partial match of a listed experiment", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
 
-				svc.$( "$getPresideSetting" ).$args( category="labs", setting="datatablesOverhaul", default="" ).$results( "0" );
+				_stubEnabledExperiments( svc, "datatablesOverhaulV2" );
 
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
 			} );
 
-			it( "should honour a user on preference over a system off default", function(){
+			it( "should honour a user on preference when the experiment is not enabled system-wide", function(){
 				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
 
 				_stubUserPreference( svc, "on" );
-				svc.$( "$getPresideSetting" ).$args( category="labs", setting="datatablesOverhaul", default="" ).$results( "off" );
+				_stubEnabledExperiments( svc, "" );
 
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
 			} );
 
-			it( "should honour a user off preference over a system on default", function(){
+			it( "should honour a user off preference when the experiment is enabled system-wide", function(){
 				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOn" } } } );
 
 				_stubUserPreference( svc, "off" );
-				svc.$( "$getPresideSetting" ).$args( category="labs", setting="datatablesOverhaul", default="" ).$results( "on" );
+				_stubEnabledExperiments( svc, "datatablesOverhaul" );
 
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
 			} );
@@ -80,6 +84,28 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
 				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
 				expect( svc.$callLog().$getPresideSetting.len() ).toBe( 1 );
+			} );
+		} );
+
+		describe( "registerExperimentsEnum()", function(){
+			it( "should register a labsExperiment enum of configurable experiments with labels and descriptions translated from the labs i18n bundle", function(){
+				var svc = _getService( { experiments={
+					  tiptapEditor       = { mode="labsDefaultOff" }
+					, datatablesOverhaul = { mode="labsDefaultOn" }
+					, alreadyShipped     = { mode="alwaysOn" }
+				} } );
+
+				svc.registerExperimentsEnum();
+
+				var log = mockEnumService.$callLog().registerEnum;
+
+				expect( ArrayLen( log ) ).toBe( 1 );
+				expect( log[ 1 ].enum ).toBe( "labsExperiment" );
+				expect( log[ 1 ].keys ).toBe( [ "datatablesOverhaul", "tiptapEditor" ] );
+				expect( log[ 1 ].translations ).toBe( {
+					  label       = "labs:{key}.title"
+					, description = "labs:{key}.description"
+				} );
 			} );
 		} );
 
@@ -188,6 +214,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOn" } } } );
 
 				_stubSignpostPreferences( svc, _preferenceQuery( includeRow=false ) );
+				_stubEnabledExperiments( svc, "datatablesOverhaul" );
 
 				expect( svc.listSignpostExperiments() ).toBe( [] );
 			} );
@@ -258,8 +285,13 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 	private any function _getService( struct labsConfig ) {
 		var mockHelpers = createStub();
-		var svc         = CreateMock( object=new preside.system.services.admin.LabsService(
-			labsConfig = arguments.labsConfig ?: { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } }
+
+		mockEnumService = createStub();
+		mockEnumService.$( "registerEnum" );
+
+		var svc = CreateMock( object=new preside.system.services.admin.LabsService(
+			  labsConfig  = arguments.labsConfig ?: { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } }
+			, enumService = mockEnumService
 		) );
 
 		StructDelete( request, "_presideLabsEnabled" );
@@ -272,6 +304,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		svc.$( "$getPresideSetting", "" );
 
 		return svc;
+	}
+
+	private void function _stubEnabledExperiments( required any svc, required string value ) {
+		arguments.svc.$( "$getPresideSetting" ).$args( category="labs", setting="enabled_experiments", default="" ).$results( arguments.value );
 	}
 
 	private void function _stubUserPreference( required any svc, required string value ) {

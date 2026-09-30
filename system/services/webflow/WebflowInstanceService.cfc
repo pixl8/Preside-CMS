@@ -403,7 +403,7 @@ component {
 			for( var step in allSteps ) {
 				var stepId     = Trim( step.step ?: "" );
 				var stepLabel  = StructKeyExists( stepTitles, stepId ) ? "#stepTitles[ stepId ]# (#stepId#)" : stepId;
-				var stepStatus = $translateResource( uri="enum.cfflowStepStatus:#step.status#.label", defaultValue=step.status );
+				var stepStatus = $helpers.renderEnum( data=step.status, enum="cfflowStepStatus", property="label", defaultValue=step.status );
 
 				plantUml &= 'state "#stepStatus#" as #stepId#<<#LCase( step.status )#>>: #stepLabel#' & nl;
 
