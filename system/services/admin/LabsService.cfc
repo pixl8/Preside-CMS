@@ -23,8 +23,8 @@ component {
 			  enum         = "labsExperiment"
 			, keys         = listConfigurableExperiments()
 			, translations = {
-				  label       = "cms:editProfile.labs.experiment.{key}.title"
-				, description = "cms:editProfile.labs.experiment.{key}.description"
+				  label       = "labs:{key}.title"
+				, description = "labs:{key}.description"
 			  }
 		);
 	}
@@ -149,7 +149,7 @@ component {
 			ArrayAppend( result, {
 				  id    = experimentId
 				, title = $translateResource(
-					  uri          = "cms:editProfile.labs.experiment.#experimentId#.title"
+					  uri          = "labs:#experimentId#.title"
 					, defaultValue = experimentId
 				)
 			} );

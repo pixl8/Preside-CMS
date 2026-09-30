@@ -88,7 +88,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "registerExperimentsEnum()", function(){
-			it( "should register a labsExperiment enum of configurable experiments with labels and descriptions translated from the edit profile labs resources", function(){
+			it( "should register a labsExperiment enum of configurable experiments with labels and descriptions translated from the labs i18n bundle", function(){
 				var svc = _getService( { experiments={
 					  tiptapEditor       = { mode="labsDefaultOff" }
 					, datatablesOverhaul = { mode="labsDefaultOn" }
@@ -103,8 +103,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( log[ 1 ].enum ).toBe( "labsExperiment" );
 				expect( log[ 1 ].keys ).toBe( [ "datatablesOverhaul", "tiptapEditor" ] );
 				expect( log[ 1 ].translations ).toBe( {
-					  label       = "cms:editProfile.labs.experiment.{key}.title"
-					, description = "cms:editProfile.labs.experiment.{key}.description"
+					  label       = "labs:{key}.title"
+					, description = "labs:{key}.description"
 				} );
 			} );
 		} );
