@@ -40,6 +40,19 @@
 		</div>
 	</cfif>
 
+	<div class="task-manager-list dataTables_wrapper">
+		<div class="well well-sm">
+			<div class="dataTables_filter">
+				<label>
+					<span class="input-icon">
+						<input type="text" class="data-table-search task-manager-search" data-global-key="s" autocomplete="off" placeholder="#EncodeForHtmlAttribute( translateResource( 'cms:taskmanager.search.placeholder' ) )#">
+						<i class="fa fa-search data-table-search-icon"></i>
+					</span>
+				</label>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+
 	<cfif taskGroups.len() gt 1>
 		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">
@@ -59,6 +72,10 @@
 	<cfloop array="#taskGroups#" index="i" item="group">
 		<cfif taskGroups.len() gt 1>
 			<div id="group-tab-#i#" class="tab-pane<cfif i==activeTaskGroup> active</cfif>">
+				<h4 class="task-group-heading">
+					<i class="fa fa-fw #group.iconClass#"></i>
+					#group.title#
+				</h4>
 		</cfif>
 
 		<table class="table table-striped table-hover">
@@ -76,8 +93,8 @@
 			</thead>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
 				<cfloop array="#group.tasks#" index="i" item="task">
-					<tr class="clickable" data-context-container="1">
-						<td title="#htmlEditFormat( task.description )#">
+					<tr class="clickable" data-context-container="1" data-task-search="#EncodeForHtmlAttribute( LCase( task.name & ' ' & task.task_key & ' ' & task.description & ' ' & group.title ) )#">
+						<td title="#EncodeForHtmlAttribute( task.description )#">
 							#renderContent( 'boolean', task.enabled, [ "adminDataTable", "admin" ] )#
 							&nbsp;
 							#task.name#
@@ -154,7 +171,7 @@
 
 									<cfif canRunTasks>
 										<cfif task.is_running>
-											<a href="#event.buildAdminLink( linkTo='taskmanager.killRunningTaskAction', queryString='task=' & task.task_key )#" data-context-key="k" class="confirmation-prompt" title="#HtmlEditFormat( translateResource( 'cms:taskmanager.killtask.prompt' ) )#">
+											<a href="#event.buildAdminLink( linkTo='taskmanager.killRunningTaskAction', queryString='task=' & task.task_key )#" data-context-key="k" class="confirmation-prompt" title="#EncodeForHtmlAttribute( translateResource( 'cms:taskmanager.killtask.prompt' ) )#">
 												<i class="fa fa-fw fa-plug red"></i>
 											</a>
 										<cfelse>
@@ -179,4 +196,10 @@
 			</div>
 		</div>
 	</cfif>
+
+	<p class="task-manager-no-results alert alert-warning">
+		<i class="fa fa-fw fa-search"></i>
+		#translateResource( "cms:taskmanager.search.noresults" )#
+	</p>
+	</div>
 </cfoutput>
