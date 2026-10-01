@@ -56,3 +56,44 @@
 .kill-task {
 	margin-left : 4px;
 }
+
+.task-manager-list {
+	.task-group-heading,
+	.task-manager-no-results {
+		display : none;
+	}
+
+	.task-group-heading {
+		margin : 0 0 10px 0;
+	}
+
+	&.searching {
+		.nav-tabs {
+			display : none;
+		}
+
+		.tab-content {
+			margin-left : 0;
+		}
+
+		.tab-content > .tab-pane {
+			display : block;
+		}
+
+		.tab-content > .tab-pane.no-search-results {
+			display : none;
+		}
+
+		.task-group-heading {
+			display : block;
+		}
+
+		tr.no-search-match {
+			display : none;
+		}
+
+		&.no-matches .task-manager-no-results {
+			display : block;
+		}
+	}
+}
