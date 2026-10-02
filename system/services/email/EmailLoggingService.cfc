@@ -1508,7 +1508,7 @@ component {
 		}];
 	}
 
-	private function _processEventForStatsTables( message, activity, data={}, first, numeric hitCount=1, date hitDate ) {
+	private function _processEventForStatsTables( message, activity, data={}, boolean first=false, numeric hitCount=1, date hitDate ) {
 		if ( !Len( arguments.message ) ) {
 			return;
 		}
