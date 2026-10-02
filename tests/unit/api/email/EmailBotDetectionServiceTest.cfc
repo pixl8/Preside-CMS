@@ -30,7 +30,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "matchesHoneyPot()", function(){
-			it( "should return true if the request belongs to a message that had a recent honey pot click or matches IP or user agent of recent honey pot click activity", function(){
+			it( "should return true if the message had a honeypot click within the configured time frame of the event", function(){
 				var svc                = _getService();
 				var mockLogActivityDao = createStub();
 				var messageId          = CreateUUId();
@@ -39,18 +39,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var eventDate          = Now();
 				var args               = {};
 
-				args.filter = "message = :message and activity_type = :activity_type and datecreated between :startdate and :enddate and (
-		       user_ip     = :user_ip
-		    or user_agent  = :user_agent
-		    or datecreated between :startdate and :enddate
-		)";
+				args.filter = "message = :message and activity_type = :activity_type and datecreated between :startdate and :enddate";
 				args.filterParams = {
 					  message       = messageId
 					, activity_type = "honeypotclick"
-					, user_ip       = ipAddress
-					, user_agent    = userAgent
-					, startDate = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
-					, endDate   = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
+					, startDate     = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
+					, endDate       = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
 				};
 
 				svc.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao )
@@ -74,18 +68,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var eventDate          = Now();
 				var args               = {};
 
-				args.filter = "message = :message and activity_type = :activity_type and datecreated between :startdate and :enddate and (
-		       user_ip     = :user_ip
-		    or user_agent  = :user_agent
-		    or datecreated between :startdate and :enddate
-		)";
+				args.filter = "message = :message and activity_type = :activity_type and datecreated between :startdate and :enddate";
 				args.filterParams = {
 					  message       = messageId
 					, activity_type = "honeypotclick"
-					, user_ip       = ipAddress
-					, user_agent    = userAgent
-					, startDate = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
-					, endDate   = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
+					, startDate     = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
+					, endDate       = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
 				};
 
 				svc.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao )
