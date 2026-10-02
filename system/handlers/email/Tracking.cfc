@@ -12,7 +12,7 @@ component {
 	public void function open( event, rc, prc ) {
 		var messageId = Trim( rc.mid ?: "" );
 
-		if ( messageId.len() ) {
+		if ( messageId.len() && emailLoggingService.sendLogExists( messageId ) ) {
 			try {
 				emailLoggingService.processOpenEvent(
 					  messageId = messageId
@@ -20,7 +20,7 @@ component {
 					, ipAddress = event.getClientIp()
 				);
 			} catch( any e ) {
-				// ignore errors that will be due to original email log no longer existing
+				logError( e );
 			}
 		}
 
@@ -37,6 +37,10 @@ component {
 			link = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
 
 			if ( link.recordCount ) {
+				if ( messageId.len() && !emailLoggingService.sendLogExists( messageId ) ) {
+					event.notFound();
+				}
+
 				if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link.href ) ) {
 					try {
 						emailLoggingService.processClickEvent(
@@ -48,7 +52,7 @@ component {
 							, ipAddress = event.getClientIp()
 						);
 					} catch( any e ) {
-						// ignore errors that will be due to original email log no longer existing
+						logError( e );
 					}
 				}
 
@@ -69,6 +73,10 @@ component {
 			event.notFound();
 		}
 
+		if ( messageId.len() && !emailLoggingService.sendLogExists( messageId ) ) {
+			event.notFound();
+		}
+
 		if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link ) ) {
 			try {
 				emailLoggingService.processClickEvent(
@@ -78,7 +86,7 @@ component {
 					, ipAddress = event.getClientIp()
 				);
 			} catch( any e ) {
-				// ignore errors that will be due to original email log no longer existing
+				logError( e );
 			}
 		}
 
@@ -86,11 +94,19 @@ component {
 	}
 
 	public void function honeyPot( event, rc, prc ) {
-		emailLoggingService.recordHoneyPotHit(
-			  messageId = ( rc.mid  ?: "" )
-			, userAgent = event.getUserAgent()
-			, ipAddress = event.getClientIp()
-		);
+		var messageId = Trim( rc.mid ?: "" );
+
+		if ( messageId.len() && emailLoggingService.sendLogExists( messageId ) ) {
+			try {
+				emailLoggingService.recordHoneyPotHit(
+					  messageId = messageId
+					, userAgent = event.getUserAgent()
+					, ipAddress = event.getClientIp()
+				);
+			} catch( any e ) {
+				logError( e );
+			}
+		}
 
 		setNextEvent( url="/" );
 	}
