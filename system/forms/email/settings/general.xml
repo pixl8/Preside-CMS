@@ -32,5 +32,20 @@ This form is used for configuring general email settings
 			<field sortorder="10" name="disable_link_checking"   control="yesnoswitch" required="false" default="false" />
 			<field sortorder="20" name="link_checking_allowlist" control="textarea" />
 		</fieldset>
+		<fieldset id="botdetection" sortorder="70" feature="emailTrackingBotDetection">
+			<field sortorder="10" name="bot_score_threshold"            control="spinner"  required="false" defaultvalue="50"   minValue="1" maxValue="100" />
+			<field sortorder="20" name="bot_weight_high"                control="spinner"  required="false" defaultvalue="50"   minValue="0" maxValue="100" />
+			<field sortorder="30" name="bot_weight_medium"              control="spinner"  required="false" defaultvalue="25"   minValue="0" maxValue="100" />
+			<field sortorder="40" name="bot_weight_low"                 control="spinner"  required="false" defaultvalue="10"   minValue="0" maxValue="100" />
+			<field sortorder="50" name="bot_sweep_delay_seconds"        control="spinner"  required="false" defaultvalue="90"   minValue="1" />
+			<field sortorder="60" name="bot_reclassify_window_seconds"  control="spinner"  required="false" defaultvalue="1800" minValue="1" />
+			<field sortorder="70" name="bot_event_count_threshold"      control="spinner"  required="false" defaultvalue="6"    minValue="1" />
+			<field sortorder="80" name="bot_distinct_link_threshold"    control="spinner"  required="false" defaultvalue="5"    minValue="1" />
+			<field sortorder="90" name="bot_click_burst_count"          control="spinner"  required="false" defaultvalue="10"   minValue="1" />
+			<field sortorder="100" name="bot_click_burst_seconds"       control="spinner"  required="false" defaultvalue="10"   minValue="1" />
+			<field sortorder="110" name="bot_honeypot_window_seconds"   control="spinner"  required="false" defaultvalue="10"   minValue="1" />
+			<field sortorder="120" name="bot_gateway_seconds"           control="spinner"  required="false" defaultvalue="5"    minValue="0" />
+			<field sortorder="130" name="bot_scanner_user_agents"       control="textarea" required="false" defaultvalue="proofpoint&#10;mimecast&#10;barracuda&#10;safelinks&#10;antispam-agent&#10;skypeuripreview&#10;^mozilla/5\.0$" />
+		</fieldset>
 	</tab>
 </form>

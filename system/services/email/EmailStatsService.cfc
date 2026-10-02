@@ -42,7 +42,7 @@ component {
 				  argumentCollection = arguments.data
 				, emailTemplateId    = arguments.emailTemplateId
 				, hitDate            = arguments.hitDate
-				, clicCount          = arguments.hitCount
+				, clickCount         = arguments.hitCount
 			);
 		}
 		if ( arguments.first ) {

@@ -8,9 +8,8 @@
  */
 component {
 
-	variables._lib       = [];
-	variables._jsoup     = "";
-	variables._oneMinute = CreateTimespan( 0, 0, 1, 0 );
+	variables._lib   = [];
+	variables._jsoup = "";
 
 // CONSTRUCTOR
 	/**
@@ -301,18 +300,27 @@ component {
 		  required string messageId
 		, required string userAgent
 		, required string ipAddress
+		,          struct requestMeta = {}
 	) {
 		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
-			markAsOpened( argumentCollection=arguments, id=arguments.messageId );
+			markAsOpened(
+				  id        = arguments.messageId
+				, userAgent = arguments.userAgent
+				, ipAddress = arguments.ipAddress
+			);
 			return;
 		}
 
-		$createTask(
-			  event                = "email.tracking.processOpenEventWithBotDetection"
-			, args                 = arguments
-			, runIn                = _oneMinute
-			, discardAfterInterval = _oneMinute
-			, reference            = arguments.messageId
+		recordActivity(
+			  messageId             = arguments.messageId
+			, activity              = "open"
+			, userIp                = arguments.ipAddress
+			, userAgent             = arguments.userAgent
+			, eventDate             = _getNow()
+			, extraData             = arguments.requestMeta
+			, classification        = "tentative"
+			, recordStats           = false
+			, announceInterception  = false
 		);
 	}
 
@@ -363,9 +371,10 @@ component {
 	 */
 	public void function markAsOpened(
 		  required string  id
-		,          boolean softMark  = false
-		,          string  userAgent = cgi.http_user_agent
-		,          string  ipAddress = cgi.remote_addr
+		,          boolean softMark    = false
+		,          boolean skipActivity = false
+		,          string  userAgent    = cgi.http_user_agent
+		,          string  ipAddress    = cgi.remote_addr
 		,          date    eventDate
 	) {
 		if ( !StructKeyExists( arguments, "eventDate" ) || !IsDate( arguments.eventDate ) ) {
@@ -398,14 +407,23 @@ component {
 		markAsDelivered( arguments.id, true );
 
 		if ( !arguments.softMark ) {
-			recordActivity(
-				  messageId = arguments.id
-				, activity  = "open"
-				, first     = ( updated > 0 )
-				, userIp    = arguments.ipAddress
-				, userAgent = arguments.userAgent
-				, eventDate = arguments.eventDate
-			);
+			if ( arguments.skipActivity ) {
+				_processEventForStatsTables(
+					  message  = arguments.id
+					, activity = "open"
+					, first    = ( updated > 0 )
+					, hitDate  = arguments.eventDate
+				);
+			} else {
+				recordActivity(
+					  messageId = arguments.id
+					, activity  = "open"
+					, first     = ( updated > 0 )
+					, userIp    = arguments.ipAddress
+					, userAgent = arguments.userAgent
+					, eventDate = arguments.eventDate
+				);
+			}
 		}
 	}
 
@@ -423,6 +441,10 @@ component {
 			, userIp    = arguments.ipAddress
 			, userAgent = arguments.userAgent
 		);
+
+		if ( $isFeatureEnabled( "emailTrackingBotDetection" ) ) {
+			classifyMessageTracking( arguments.messageId, true );
+		}
 	}
 
 	public void function processClickEvent(
@@ -432,18 +454,35 @@ component {
 		,          string linkBody  = ""
 		,          string userAgent = cgi.http_user_agent
 		,          string ipAddress = cgi.remote_addr
+		,          struct requestMeta = {}
 	) {
 		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
-			recordClick( argumentCollection=arguments, id=arguments.messageId );
+			recordClick(
+				  id        = arguments.messageId
+				, link      = arguments.link
+				, linkTitle = arguments.linkTitle
+				, linkBody  = arguments.linkBody
+				, userAgent = arguments.userAgent
+				, ipAddress = arguments.ipAddress
+			);
 			return;
 		}
 
-		$createTask(
-			  event                = "email.tracking.processClickEventWithBotDetection"
-			, args                 = arguments
-			, runIn                = _oneMinute
-			, discardAfterInterval = _oneMinute
-			, reference            = arguments.messageId
+		var extra = Duplicate( arguments.requestMeta );
+		extra.link       = arguments.link;
+		extra.link_title = arguments.linkTitle;
+		extra.link_body  = arguments.linkBody;
+
+		recordActivity(
+			  messageId            = arguments.messageId
+			, activity             = "click"
+			, extraData            = extra
+			, userIp               = arguments.ipAddress
+			, userAgent            = arguments.userAgent
+			, eventDate            = _getNow()
+			, classification       = "tentative"
+			, recordStats          = false
+			, announceInterception = false
 		);
 	}
 
@@ -503,9 +542,10 @@ component {
 		, required string link
 		,          string linkTitle = ""
 		,          string linkBody  = ""
-		,          date   eventDate = Now()
-		,          string userAgent = cgi.http_user_agent
-		,          string ipAddress = cgi.remote_addr
+		,          date    eventDate    = Now()
+		,          string  userAgent    = cgi.http_user_agent
+		,          string  ipAddress    = cgi.remote_addr
+		,          boolean skipActivity = false
 	) {
 		var dao           = $getPresideObject( "email_template_send_log" );
 		var updated       = false;
@@ -525,15 +565,25 @@ component {
 		}
 
 		if ( updated ) {
-			recordActivity(
-				  messageId = arguments.id
-				, activity  = "click"
-				, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
-				, first     = wasFirstClick
-				, userIp    = arguments.ipAddress
-				, userAgent = arguments.userAgent
-				, eventDate = arguments.eventDate
-			);
+			if ( arguments.skipActivity ) {
+				_processEventForStatsTables(
+					  message  = arguments.id
+					, activity = "click"
+					, data     = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
+					, first    = wasFirstClick
+					, hitDate  = arguments.eventDate
+				);
+			} else {
+				recordActivity(
+					  messageId = arguments.id
+					, activity  = "click"
+					, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
+					, first     = wasFirstClick
+					, userIp    = arguments.ipAddress
+					, userAgent = arguments.userAgent
+					, eventDate = arguments.eventDate
+				);
+			}
 		}
 
 		markAsOpened( id=id, softMark=true, userAgent=arguments.userAgent, ipAddress=arguments.ipAddress );
@@ -676,8 +726,10 @@ component {
 		var trackingPixel = "<img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" />";
 
 		if ( $isFeatureEnabled( "emailTrackingBotDetection" ) ) {
-			var honeyPotUrl = $getRequestContext().buildLink( linkto="email.tracking.honeypot", queryString="mid=" & arguments.messageId );
-			trackingPixel = '<a href="#honeyPotUrl#">#trackingPixel#</a>';
+			var honeyPotUrl  = $getRequestContext().buildLink( linkto="email.tracking.honeypot", queryString="mid=" & arguments.messageId );
+			var honeyPotLink = '<a href="#honeyPotUrl#" style="display:inline-block;overflow:hidden;width:1px;height:1px;font-size:1px;line-height:1px;color:transparent;">Preferences</a>';
+
+			trackingPixel &= honeyPotLink;
 		}
 
 		if ( FindNoCase( "</body>", messageHtml ) ) {
@@ -779,8 +831,11 @@ component {
 		,          struct  extraData = {}
 		,          string  userIp    = cgi.remote_addr
 		,          string  userAgent = cgi.http_user_agent
-		,          boolean first     = false
-		,          date    eventDate = Now()
+		,          boolean first                = false
+		,          date    eventDate            = Now()
+		,          string  classification       = ""
+		,          boolean recordStats          = true
+		,          boolean announceInterception = true
 	) {
 		var fieldsToAddFromExtraData = [ "link", "code", "reason", "link_title", "link_body" ];
 		var extra = StructCopy( arguments.extraData );
@@ -792,6 +847,10 @@ component {
 			, datecreated   = arguments.eventDate
 		};
 
+		if ( Len( arguments.classification ) ) {
+			data.classification = arguments.classification;
+		}
+
 		for( var field in extra ) {
 			if ( ArrayFind( fieldsToAddFromExtraData, LCase( field ) ) ) {
 				data[ field ] = extra[ field ];
@@ -800,20 +859,25 @@ component {
 		}
 		data.extra_data = SerializeJson( extra );
 
-		try {
-			$announceInterception( "onEmail#arguments.activity#", data );
-		} catch( any e ) {
-			$raiseError( e );
+		if ( arguments.announceInterception ) {
+			try {
+				$announceInterception( "onEmail#arguments.activity#", data );
+			} catch( any e ) {
+				$raiseError( e );
+			}
 		}
 
 		try {
 			$getPresideObject( "email_template_send_log_activity" ).insertData( data );
-			_processEventForStatsTables(
-				  message  = data.message
-				, activity = arguments.activity
-				, data     = data
-				, first    = arguments.first
-			);
+			if ( arguments.recordStats ) {
+				_processEventForStatsTables(
+					  message  = data.message
+					, activity = arguments.activity
+					, data     = data
+					, first    = arguments.first
+					, hitDate  = arguments.eventDate
+				);
+			}
 		} catch( database e ) {
 			// ignore missing logs when recording activity - but record the error for
 			// info only
@@ -1038,7 +1102,262 @@ component {
 		);
 	}
 
+	public void function classifyTentativeTrackingEvents() {
+		if ( !$isFeatureEnabled( "emailTrackingBotDetection" ) ) {
+			return;
+		}
+
+		var settings = _getEmailBotDetectionService().getBotDetectionSettings();
+		var cutoff   = DateAdd( "s", -Val( settings.sweepDelaySeconds ?: 90 ), _getNow() );
+		var messages = $getPresideObject( "email_template_send_log_activity" ).selectData(
+			  selectFields = [ "message" ]
+			, filter       = "classification = :classification and datecreated <= :cutoff and activity_type in ( 'open', 'click' )"
+			, filterParams = { classification="tentative", cutoff={ type="cf_sql_timestamp", value=cutoff } }
+			, groupBy      = "message"
+		);
+
+		for ( var message in messages ) {
+			try {
+				classifyMessageTracking( message.message, false );
+			} catch ( any e ) {
+				$raiseError( e );
+			}
+		}
+	}
+
+	public void function classifyMessageTracking( required string messageId, boolean includeImmature=false ) {
+		var events   = _trackingEventsForMessage( arguments.messageId );
+		var settings = _getEmailBotDetectionService().getBotDetectionSettings();
+		var sentDate = _sendDateForMessage( arguments.messageId );
+		var now      = _getNow();
+		var tracked  = 0;
+		var volume   = false;
+
+		for ( var event in events ) {
+			if ( ListFindNoCase( "open,click,bot_open,bot_click", event.activityType ) ) {
+				tracked++;
+			}
+		}
+
+		volume = tracked >= Val( settings.eventCountThreshold ?: 6 );
+
+		for ( var event in events ) {
+			if ( !_shouldScoreTrackingEvent( event, settings, now, arguments.includeImmature, volume ) ) {
+				continue;
+			}
+
+			applyTrackingClassification(
+				  activity = event
+				, score    = _getEmailBotDetectionService().scoreTrackingEvent(
+					  event         = event
+					, messageEvents = events
+					, sentDate      = sentDate
+				)
+			);
+		}
+	}
+
+	public void function applyTrackingClassification( required struct activity, required struct score ) {
+		var activityType = arguments.activity.activityType ?: "";
+		var previous     = arguments.activity.classification ?: "";
+		var isBot        = IsBoolean( arguments.score.isBot ?: "" ) && arguments.score.isBot;
+		var newType      = activityType;
+		var dao          = $getPresideObject( "email_template_send_log_activity" );
+
+		if ( ListFindNoCase( "open,bot_open", activityType ) ) {
+			newType = isBot ? "bot_open" : "open";
+		} else if ( ListFindNoCase( "click,bot_click", activityType ) ) {
+			newType = isBot ? "bot_click" : "click";
+		} else {
+			return;
+		}
+
+		var newClassification = isBot ? "bot" : "human";
+		var updated = dao.updateData(
+			  filter       = "id = :id and classification = :classification"
+			, filterParams = { id=arguments.activity.id, classification=previous }
+			, data         = {
+				  activity_type  = newType
+				, classification = newClassification
+				, bot_score      = Val( arguments.score.score ?: 0 )
+				, bot_signals    = ArrayToList( arguments.score.signals ?: [], "," )
+			}
+		);
+
+		if ( !updated || newClassification == previous ) {
+			return;
+		}
+
+		if ( previous == "tentative" && isBot ) {
+			_processEventForStatsTables(
+				  message  = arguments.activity.message
+				, activity = newType
+				, data     = _trackingStatData( arguments.activity )
+				, hitDate  = arguments.activity.eventDate
+			);
+		} else if ( previous == "tentative" ) {
+			_confirmHumanTracking( arguments.activity, newType );
+		} else if ( previous == "human" && isBot ) {
+			_reverseHumanTrackingStat( arguments.activity, activityType );
+			_processEventForStatsTables(
+				  message  = arguments.activity.message
+				, activity = newType
+				, data     = _trackingStatData( arguments.activity )
+				, hitDate  = arguments.activity.eventDate
+			);
+		} else if ( previous == "bot" && !isBot ) {
+			_processEventForStatsTables(
+				  message   = arguments.activity.message
+				, activity  = activityType
+				, data      = _trackingStatData( arguments.activity )
+				, hitCount  = -1
+				, hitDate   = arguments.activity.eventDate
+			);
+			_confirmHumanTracking( arguments.activity, newType );
+		}
+	}
+
 // PRIVATE HELPERS
+	private array function _trackingEventsForMessage( required string messageId ) {
+		var rows   = $getPresideObject( "email_template_send_log_activity" ).selectData(
+			  filter       = "message = :message and activity_type in ( 'open', 'click', 'bot_open', 'bot_click', 'honeypotclick' )"
+			, filterParams = { message=arguments.messageId }
+		);
+		var events = [];
+
+		for ( var row in rows ) {
+			events.append( {
+				  id             = row.id
+				, message        = row.message
+				, activityType   = row.activity_type ?: ""
+				, userAgent      = row.user_agent ?: ""
+				, ipAddress      = row.user_ip ?: ""
+				, eventDate      = row.datecreated
+				, link           = row.link ?: ""
+				, linkTitle      = row.link_title ?: ""
+				, linkBody       = row.link_body ?: ""
+				, classification = row.classification ?: ""
+				, extraData      = _activityExtra( row.extra_data ?: "" )
+			} );
+		}
+
+		return events;
+	}
+
+	private struct function _activityExtra( required string extraData ) {
+		if ( !Len( Trim( arguments.extraData ) ) ) {
+			return {};
+		}
+
+		try {
+			var parsed = DeserializeJson( arguments.extraData );
+			return IsStruct( parsed ) ? parsed : {};
+		} catch ( any e ) {
+			return {};
+		}
+	}
+
+	private any function _sendDateForMessage( required string messageId ) {
+		var log = $getPresideObject( "email_template_send_log" ).selectData(
+			  id           = arguments.messageId
+			, selectFields = [ "sent_date" ]
+		);
+
+		return log.recordCount ? ( log.sent_date ?: "" ) : "";
+	}
+
+	private boolean function _shouldScoreTrackingEvent( required struct event, required struct settings, required date now, required boolean includeImmature, required boolean volume ) {
+		var activityType   = arguments.event.activityType ?: "";
+		var classification = arguments.event.classification ?: "";
+		var age            = DateDiff( "s", arguments.event.eventDate, arguments.now );
+		var reclassify     = arguments.includeImmature || arguments.volume;
+
+		if ( !ListFindNoCase( "open,click,bot_open,bot_click", activityType ) ) {
+			return false;
+		}
+
+		if ( classification == "tentative" ) {
+			return age >= Val( arguments.settings.sweepDelaySeconds ?: 90 ) || arguments.includeImmature || arguments.volume;
+		}
+
+		return reclassify && ListFindNoCase( "human,bot", classification ) && age >= 0 && age <= Val( arguments.settings.reclassifyWindowSeconds ?: 1800 );
+	}
+
+	private struct function _trackingStatData( required struct activity ) {
+		return {
+			  link       = arguments.activity.link ?: ""
+			, link_title = arguments.activity.linkTitle ?: ""
+			, link_body  = arguments.activity.linkBody ?: ""
+		};
+	}
+
+	private void function _confirmHumanTracking( required struct activity, required string activityType ) {
+		if ( arguments.activityType == "open" ) {
+			markAsOpened(
+				  id           = arguments.activity.message
+				, skipActivity = true
+				, userAgent    = arguments.activity.userAgent
+				, ipAddress    = arguments.activity.ipAddress
+				, eventDate    = arguments.activity.eventDate
+			);
+			return;
+		}
+
+		recordClick(
+			  id           = arguments.activity.message
+			, link         = arguments.activity.link ?: ""
+			, linkTitle    = arguments.activity.linkTitle ?: ""
+			, linkBody     = arguments.activity.linkBody ?: ""
+			, eventDate    = arguments.activity.eventDate
+			, userAgent    = arguments.activity.userAgent
+			, ipAddress    = arguments.activity.ipAddress
+			, skipActivity = true
+		);
+	}
+
+	private void function _reverseHumanTrackingStat( required struct activity, required string activityType ) {
+		var column = arguments.activityType == "open" ? "open_count" : "click_count";
+
+		_decrementSendLogCount( arguments.activity.message, column );
+		_processEventForStatsTables(
+			  message  = arguments.activity.message
+			, activity = arguments.activityType
+			, data     = _trackingStatData( arguments.activity )
+			, hitCount = -1
+			, hitDate  = arguments.activity.eventDate
+		);
+
+		if ( !_messageHasActivity( arguments.activity.message, arguments.activityType, arguments.activity.id ) ) {
+			_processEventForStatsTables(
+				  message  = arguments.activity.message
+				, activity = arguments.activityType == "open" ? "unique_open" : "unique_click"
+				, hitCount = -1
+				, hitDate  = arguments.activity.eventDate
+			);
+		}
+	}
+
+	private boolean function _messageHasActivity( required string messageId, required string activityType, required string exceptId ) {
+		return $getPresideObject( "email_template_send_log_activity" ).dataExists(
+			  filter       = "message = :message and activity_type = :activity_type and id <> :id"
+			, filterParams = { message=arguments.messageId, activity_type=arguments.activityType, id=arguments.exceptId }
+		);
+	}
+
+	private void function _decrementSendLogCount( required string id, required string column ) {
+		var dao     = $getPresideObject( "email_template_send_log" );
+		var adapter = dao.getDbAdapter();
+		var table   = adapter.escapeEntity( dao.getTableName() );
+		var col     = adapter.escapeEntity( arguments.column );
+		var idCol   = adapter.escapeEntity( "id" );
+
+		_getSqlRunner().runSql(
+			  dsn    = dao.getDsn()
+			, sql    = "update #table# set #col# = case when #col# > 0 then #col# - 1 else 0 end where #idCol# = :id"
+			, params = [ { name="id", type="cf_sql_varchar", value=arguments.id } ]
+		);
+	}
+
 	private struct function _getAdditionalDataForRecipientType( required string recipientType, required string recipientId, required struct sendArgs ) {
 		var additional           = {};
 		var recipientTypeService = _getRecipientTypeService();
@@ -1189,7 +1508,7 @@ component {
 		}];
 	}
 
-	private function _processEventForStatsTables( message, activity, data={}, first ) {
+	private function _processEventForStatsTables( message, activity, data={}, boolean first=false, numeric hitCount=1, date hitDate ) {
 		if ( !Len( arguments.message ) ) {
 			return;
 		}
@@ -1212,9 +1531,10 @@ component {
 		if ( Len( template.email_template ) ) {
 			_getEmailStatsService().recordHit(
 				  emailTemplateId = template.email_template
-				, hitDate         = Now()
+				, hitDate         = ( StructKeyExists( arguments, "hitDate" ) && IsDate( arguments.hitDate ) ) ? arguments.hitDate : Now()
 				, hitStat         = _activityToHitStat( arguments.activity )
-				, first           = arguments.first
+				, hitCount        = arguments.hitCount
+				, first           = arguments.first && arguments.hitCount > 0
 				, data            = arguments.data
 			);
 		}
