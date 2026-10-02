@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/index.ts"],"sourcesContent":["import { Placeholder } from '@tiptap/extensions'\n\nexport type { PlaceholderOptions } from '@tiptap/extensions'\nexport { Placeholder } from '@tiptap/extensions'\n\nexport default Placeholder\n"],"mappings":";AAAA,SAAS,mBAAmB;AAG5B,SAAS,eAAAA,oBAAmB;AAE5B,IAAO,gBAAQ;","names":["Placeholder"]}

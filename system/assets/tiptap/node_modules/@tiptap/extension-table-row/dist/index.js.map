@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/index.ts"],"sourcesContent":["import { TableRow } from '@tiptap/extension-table'\n\nexport type { TableRowOptions } from '@tiptap/extension-table'\nexport { TableRow } from '@tiptap/extension-table'\n\nexport default TableRow\n"],"mappings":";AAAA,SAAS,gBAAgB;AAGzB,SAAS,YAAAA,iBAAgB;AAEzB,IAAO,gBAAQ;","names":["TableRow"]}
