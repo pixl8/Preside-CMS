@@ -40,7 +40,7 @@ component output=false {
 		bundle.asset( "/js/admin/lib/jquery-ui/" ).dependsOn( "/js/admin/lib/jquery/" );
 		bundle.asset( "/js/admin/lib/bootstrap/" ).dependsOn( "/js/admin/lib/jquery/" );
 		bundle.asset( "/js/admin/lib/ace/"       ).dependsOn( "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" );
-		bundle.asset( "/js/admin/lib/plugins/"         ).dependsOn( "/js/admin/lib/bootstrap/" );
+		bundle.asset( "/js/admin/lib/plugins/"         ).dependsOn( "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" );
 		bundle.asset( "/js/admin/lib/datatables/"      ).dependsOn( "/js/admin/lib/plugins/" );
 		bundle.asset( "/js/admin/lib/datatablesModern/" ).dependsOn( "/js/admin/lib/plugins/" );
 		bundle.asset( "/js/admin/presidecore/"   ).dependsOn( "/js/admin/lib/ace/", "/js/admin/lib/plugins/", "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" )
