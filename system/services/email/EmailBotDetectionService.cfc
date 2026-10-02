@@ -63,10 +63,8 @@ component displayname="Email Bot Detection Service" {
 	}
 
 	/**
-	 * Returns true if there is a matching "honeypot" click event
-	 * for the given email send log ID that either matches the provided
-	 * IP/User agent, or happened within the configured time frame
-	 * of the honeypot click event.
+	 * Returns true if the email send log has a honeypot click
+	 * within the configured time frame of this event.
 	 *
 	 * @autodoc   true
 	 * @messageId ID of the email send log to which the event belongs
@@ -76,18 +74,12 @@ component displayname="Email Bot Detection Service" {
 	 */
 	public boolean function matchesHoneyPot( messageId, userAgent, ipAddress, eventDate ) {
 		var timePeriodInHalf = ( getBotDetectionSettings().honeyPotTimezoneSeconds / 2 );
-		var filter = "message = :message and activity_type = :activity_type and (
-		       user_ip     = :user_ip
-		    or user_agent  = :user_agent
-		    or datecreated between :startdate and :enddate
-		)";
+		var filter = "message = :message and activity_type = :activity_type and datecreated between :startdate and :enddate";
 		var params = {
 			  message       = arguments.messageId
 			, activity_type = "honeypotclick"
-			, user_ip       = arguments.ipAddress
-			, user_agent    = arguments.userAgent
-			, startDate = { type="cf_sql_timestamp", value=DateAdd( "s", -timePeriodInHalf, arguments.eventDate ) }
-			, endDate   = { type="cf_sql_timestamp", value=DateAdd( "s",  timePeriodInHalf, arguments.eventDate ) }
+			, startDate     = { type="cf_sql_timestamp", value=DateAdd( "s", -timePeriodInHalf, arguments.eventDate ) }
+			, endDate       = { type="cf_sql_timestamp", value=DateAdd( "s",  timePeriodInHalf, arguments.eventDate ) }
 		};
 
 		return $getPresideObject( "email_template_send_log_activity" ).dataExists(
@@ -135,7 +127,7 @@ component displayname="Email Bot Detection Service" {
 		if ( !StructKeyExists( variables, "_botDetectionSettings" ) ) {
 			// ensures raw struct of settings we get passed has all the keys we need
 			variables._botDetectionSettings = {
-				  userAgents              = botDetectionSettings.userAgents              ?: [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird", "healthcheck", "zabbix", "kube-probe" ]
+				  userAgents              = botDetectionSettings.userAgents              ?: [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "healthcheck", "zabbix", "kube-probe" ]
 				, tooManyClicksCount      = botDetectionSettings.tooManyClicksCount      ?: 10
 				, tooManyClicksSeconds    = botDetectionSettings.tooManyClicksSeconds    ?: 10
 				, honeyPotTimezoneSeconds = botDetectionSettings.honeyPotTimezoneSeconds ?: 10
