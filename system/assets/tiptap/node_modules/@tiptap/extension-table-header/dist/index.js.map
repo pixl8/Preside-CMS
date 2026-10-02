@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/index.ts"],"sourcesContent":["import { TableHeader } from '@tiptap/extension-table'\n\nexport type { TableHeaderOptions } from '@tiptap/extension-table'\nexport { TableHeader } from '@tiptap/extension-table'\n\nexport default TableHeader\n"],"mappings":";AAAA,SAAS,mBAAmB;AAG5B,SAAS,eAAAA,oBAAmB;AAE5B,IAAO,gBAAQ;","names":["TableHeader"]}

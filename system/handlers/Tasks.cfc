@@ -13,6 +13,7 @@ component {
 	property name="assetQueueService"       inject="featureInjector:assetQueue:assetQueueService";
 	property name="batchOperationService"   inject="featureInjector:admin:dataManagerBatchOperationService";
 	property name="formBuilderService"      inject="featureInjector:formbuilder:formBuilderService";
+	property name="emailTrackingLogService" inject="featureInjector:emailTrackingBotDetection:emailLoggingService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -122,5 +123,21 @@ component {
 	 */
 	private boolean function deleteExpiredFormBuilderSubmissions( logger ) {
 		return formBuilderService.deleteExpiredSubmissions( arguments.logger ?: NullValue() );
+	}
+
+	/**
+	 * Score tentative email opens and clicks once sibling requests have had time to arrive
+	 *
+	 * @priority     5
+	 * @schedule     0 * * * * *
+	 * @timeout      300
+	 * @displayName  Classify email tracking events
+	 * @displayGroup Email
+	 * @feature      emailTrackingBotDetection
+	 */
+	private boolean function classifyEmailTrackingEvents( logger ) {
+		emailTrackingLogService.classifyTentativeTrackingEvents();
+
+		return true;
 	}
 }

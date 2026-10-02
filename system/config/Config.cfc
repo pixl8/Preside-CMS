@@ -901,10 +901,22 @@ component {
 		settings.email.smtp = {};
 		settings.email.smtp.async = IsBoolean( settings.env.SMTP_ASYNC ?: "" ) ? settings.env.SMTP_ASYNC : true;
 		settings.email.botDetection = {
-			  userAgents              = [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "healthcheck", "zabbix", "kube-probe" ]
-			, tooManyClicksCount      = 10
-			, tooManyClicksSeconds    = 10
-			, honeyPotTimezoneSeconds = 10
+			  userAgents                = [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "healthcheck", "zabbix", "kube-probe" ]
+			, scannerUserAgents         = [ "proofpoint", "mimecast", "barracuda", "safelinks", "antispam-agent", "skypeuripreview", "^mozilla/5\.0$" ]
+			, tooManyClicksCount        = 10
+			, tooManyClicksSeconds      = 10
+			, honeyPotTimezoneSeconds   = 10
+			, scoreThreshold            = 50
+			, weightHigh                = 50
+			, weightMedium              = 25
+			, weightLow                 = 10
+			, sweepDelaySeconds         = 90
+			, reclassifyWindowSeconds   = 1800
+			, eventCountThreshold       = 6
+			, distinctLinkThreshold     = 5
+			, gatewaySeconds            = 5
+			, cfBotScoreMax             = 30
+			, ipFanoutThreshold         = 2
 		};
 	}
 

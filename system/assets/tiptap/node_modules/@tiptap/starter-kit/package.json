@@ -1,0 +1,70 @@
+{
+  "name": "@tiptap/starter-kit",
+  "version": "3.29.2",
+  "description": "starter kit for tiptap",
+  "keywords": [
+    "tiptap",
+    "tiptap starter kit"
+  ],
+  "homepage": "https://tiptap.dev",
+  "bugs": {
+    "url": "https://github.com/ueberdosis/tiptap/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ueberdosis/tiptap",
+    "directory": "packages/starter-kit"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/ueberdosis"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.ts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.29.2",
+    "@tiptap/extension-bullet-list": "^3.29.2",
+    "@tiptap/extension-bold": "^3.29.2",
+    "@tiptap/extension-blockquote": "^3.29.2",
+    "@tiptap/extension-code": "^3.29.2",
+    "@tiptap/extension-code-block": "^3.29.2",
+    "@tiptap/extension-document": "^3.29.2",
+    "@tiptap/extension-hard-break": "^3.29.2",
+    "@tiptap/extension-heading": "^3.29.2",
+    "@tiptap/extension-horizontal-rule": "^3.29.2",
+    "@tiptap/extension-italic": "^3.29.2",
+    "@tiptap/extension-gapcursor": "^3.29.2",
+    "@tiptap/extension-dropcursor": "^3.29.2",
+    "@tiptap/extension-link": "^3.29.2",
+    "@tiptap/extension-list-item": "^3.29.2",
+    "@tiptap/extension-list-keymap": "^3.29.2",
+    "@tiptap/extension-ordered-list": "^3.29.2",
+    "@tiptap/extension-list": "^3.29.2",
+    "@tiptap/extension-underline": "^3.29.2",
+    "@tiptap/extension-text": "^3.29.2",
+    "@tiptap/extension-strike": "^3.29.2",
+    "@tiptap/extensions": "^3.29.2",
+    "@tiptap/pm": "^3.29.2",
+    "@tiptap/extension-paragraph": "^3.29.2"
+  },
+  "scripts": {
+    "build": "tsup"
+  }
+}

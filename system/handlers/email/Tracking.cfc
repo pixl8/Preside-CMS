@@ -15,9 +15,10 @@ component {
 		if ( messageId.len() && emailLoggingService.sendLogExists( messageId ) ) {
 			try {
 				emailLoggingService.processOpenEvent(
-					  messageId = messageId
-					, userAgent = event.getUserAgent()
-					, ipAddress = event.getClientIp()
+					  messageId   = messageId
+					, userAgent   = event.getUserAgent()
+					, ipAddress   = event.getClientIp()
+					, requestMeta = _trackingRequestMeta()
 				);
 			} catch( any e ) {
 				logError( e );
@@ -44,12 +45,13 @@ component {
 				if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link.href ) ) {
 					try {
 						emailLoggingService.processClickEvent(
-							  messageId = messageId
-							, link      = link.href
-							, linkTitle = link.title
-							, linkBody  = link.body
-							, userAgent = event.getUserAgent()
-							, ipAddress = event.getClientIp()
+							  messageId   = messageId
+							, link        = link.href
+							, linkTitle   = link.title
+							, linkBody    = link.body
+							, userAgent   = event.getUserAgent()
+							, ipAddress   = event.getClientIp()
+							, requestMeta = _trackingRequestMeta()
 						);
 					} catch( any e ) {
 						logError( e );
@@ -80,10 +82,11 @@ component {
 		if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link ) ) {
 			try {
 				emailLoggingService.processClickEvent(
-					  messageId = messageId
-					, link      = link
-					, userAgent = event.getUserAgent()
-					, ipAddress = event.getClientIp()
+					  messageId   = messageId
+					, link        = link
+					, userAgent   = event.getUserAgent()
+					, ipAddress   = event.getClientIp()
+					, requestMeta = _trackingRequestMeta()
 				);
 			} catch( any e ) {
 				logError( e );
@@ -109,6 +112,14 @@ component {
 		}
 
 		setNextEvent( url="/" );
+	}
+
+	private struct function _trackingRequestMeta() {
+		return {
+			  accept_language = cgi.http_accept_language ?: ""
+			, cf_bot_score    = cgi.http_cf_bot_score    ?: ""
+			, cf_verified_bot = cgi.http_cf_verified_bot ?: ""
+		};
 	}
 
 

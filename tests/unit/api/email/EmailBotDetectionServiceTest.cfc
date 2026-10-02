@@ -101,132 +101,140 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "tooManyClicksInShortPeriod()", function(){
-			it( "should return true if there more than the configured threshold of clicks in the given time period around the given event", function(){
-				var svc         = _getService();
-				var mockTaskDao = createStub();
-				var messageId   = CreateUUId();
-				var eventDate   = Now();
-				var args        = {};
+		describe( "scoreTrackingEvent()", function(){
+			it( "should stay under the threshold for a single medium signal", function(){
+				var svc       = _getService();
+				var eventDate = Now();
+				var event     = _trackedEvent( eventDate, "198.51.100.10", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" );
 
-				args.recordcount = true
-				args.filter = "reference = :reference and event = :event and datecreated between :startdate and :enddate";
-				args.filterParams = {
-					  reference = messageId
-					, event     = "email.tracking.processClickEventWithBotDetection"
-					, startDate = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
-					, endDate   = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
-				}
+				event.ipAddress = "203.0.113.10";
 
-				svc.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao )
-				mockTaskDao.$( "selectData" ).$args( argumentCollection=args ).$results( 20 );
+				var result = svc.scoreTrackingEvent(
+					  event         = event
+					, messageEvents = [ event ]
+					, sentDate      = DateAdd( "h", -2, eventDate )
+				);
 
-				expect( svc.tooManyClicksInShortPeriod(
-					  messageId = messageId
-					, eventDate = eventDate
-				) ).toBe( true );
-
+				expect( result.isBot ).toBe( false );
+				expect( result.signals ).toBe( [ "datacenter_ip" ] );
+				expect( result.score ).toBe( 25 );
 			} );
 
-			it( "should return false if there are less than the configured threshold of clicks in the given time period around the given event", function(){
-				var svc         = _getService();
-				var mockTaskDao = createStub();
-				var messageId   = CreateUUId();
-				var eventDate   = Now();
-				var args        = {};
+			it( "should cross the threshold when medium signals combine", function(){
+				var svc       = _getService();
+				var eventDate = Now();
+				var event     = _trackedEvent( eventDate, "203.0.113.10", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" );
+				var result    = svc.scoreTrackingEvent(
+					  event         = event
+					, messageEvents = [ event ]
+					, sentDate      = eventDate
+				);
 
-				args.recordcount = true
-				args.filter = "reference = :reference and event = :event and datecreated between :startdate and :enddate";
-				args.filterParams = {
-					  reference = messageId
-					, event     = "email.tracking.processClickEventWithBotDetection"
-					, startDate = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
-					, endDate   = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
+				expect( result.isBot ).toBe( true );
+				expect( result.signals ).toInclude( "datacenter_ip" );
+				expect( result.signals ).toInclude( "seconds_since_send" );
+			} );
+
+			it( "should treat a honeypot hit with the same user agent as a bot", function(){
+				var svc       = _getService();
+				var eventDate = Now();
+				var click     = _trackedEvent( eventDate, "198.51.100.10", "SameAgent" );
+				var honeypot  = _trackedEvent( DateAdd( "s", -3, eventDate ), "203.0.113.20", "SameAgent" );
+
+				honeypot.activityType = "honeypotclick";
+
+				var result = svc.scoreTrackingEvent(
+					  event         = click
+					, messageEvents = [ click, honeypot ]
+					, sentDate      = DateAdd( "h", -2, eventDate )
+				);
+
+				expect( result.isBot ).toBe( true );
+				expect( result.signals ).toInclude( "honeypot_user_agent" );
+			} );
+
+			it( "should classify a message with many events and no honeypot hit", function(){
+				var svc       = _getService();
+				var eventDate = Now();
+				var events    = [];
+				var i         = 1;
+
+				for ( i = 1; i <= 6; i++ ) {
+					events.append( _trackedEvent( DateAdd( "n", i, eventDate ), "198.51.100.10", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36", "https://example.com/news" ) );
 				}
 
-				svc.$( "$getPresideObject" ).$args( "taskmanager_adhoc_task" ).$results( mockTaskDao )
-				mockTaskDao.$( "selectData" ).$args( argumentCollection=args ).$results( 5 );
+				var result = svc.scoreTrackingEvent(
+					  event         = events[ 1 ]
+					, messageEvents = events
+					, sentDate      = DateAdd( "h", -2, eventDate )
+				);
 
-				expect( svc.tooManyClicksInShortPeriod(
-					  messageId = messageId
-					, eventDate = eventDate
-				) ).toBe( false );
+				expect( result.isBot ).toBe( true );
+				expect( result.signals ).toInclude( "event_count" );
+				expect( result.signals ).notToInclude( "honeypot_user_agent" );
+			} );
+
+			it( "should not classify two opens from different devices as a bot", function(){
+				var svc       = _getService();
+				var eventDate = Now();
+				var phone     = _trackedEvent( eventDate, "198.51.100.10", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1" );
+				var laptop    = _trackedEvent( DateAdd( "n", 1, eventDate ), "198.51.100.11", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36" );
+
+				phone.activityType  = "open";
+				laptop.activityType = "open";
+
+				var result = svc.scoreTrackingEvent(
+					  event         = laptop
+					, messageEvents = [ phone, laptop ]
+					, sentDate      = DateAdd( "h", -2, eventDate )
+				);
+
+				expect( result.isBot ).toBe( false );
+				expect( result.signals ).notToInclude( "ip_fanout" );
 			} );
 		} );
 
 		describe( "isBot()", function(){
-			it( "should return false if ALL of the bot detection subroutines return false", function(){
-				var svc = _getService();
-				var args = {
-					  messageId = CreateUUId()
-					, ipAddress = CreateUUId()
-					, userAgent = CreateUUId()
-					, eventDate = Now()
-				};
-
-				svc.$( "isBotAgent" ).$args( args.userAgent ).$results( false );
-				svc.$( "matchesHoneyPot" ).$args( argumentCollection=args ).$results( false );
-				svc.$( "tooManyClicksInShortPeriod" ).$args( argumentCollection=args ).$results( false );
-
-				expect( svc.isBot( argumentCollection=args ) ).toBe( false );
-			} );
-
-			it( "should return true if ANY of the bot detection subroutines return true", function(){
-				var svc = _getService();
-				var args = {
-					  messageId = CreateUUId()
-					, ipAddress = CreateUUId()
-					, userAgent = CreateUUId()
-					, eventDate = Now()
-				};
-
-				svc.$( "isBotAgent" ).$args( args.userAgent ).$results( true );
-				svc.$( "matchesHoneyPot" ).$args( argumentCollection=args ).$results( false );
-				svc.$( "tooManyClicksInShortPeriod" ).$args( argumentCollection=args ).$results( false );
-
-				expect( svc.isBot( argumentCollection=args ) ).toBe( true );
-
-				svc.$( "isBotAgent" ).$args( args.userAgent ).$results( false );
-				svc.$( "matchesHoneyPot" ).$args( argumentCollection=args ).$results( true );
-				svc.$( "tooManyClicksInShortPeriod" ).$args( argumentCollection=args ).$results( false );
-
-				expect( svc.isBot( argumentCollection=args ) ).toBe( true );
-
-				svc.$( "isBotAgent" ).$args( args.userAgent ).$results( false );
-				svc.$( "matchesHoneyPot" ).$args( argumentCollection=args ).$results( false );
-				svc.$( "tooManyClicksInShortPeriod" ).$args( argumentCollection=args ).$results( true );
-
-				expect( svc.isBot( argumentCollection=args ) ).toBe( true );
-
-				svc.$( "isBotAgent" ).$args( args.userAgent ).$results( true );
-				svc.$( "matchesHoneyPot" ).$args( argumentCollection=args ).$results( true );
-				svc.$( "tooManyClicksInShortPeriod" ).$args( argumentCollection=args ).$results( true );
-
-				expect( svc.isBot( argumentCollection=args ) ).toBe( true );
-			} );
-
 			it( "should raise an interception point and allow custom code to override the result", function(){
 				var svc = _getService();
-				var args = {
-					  messageId = CreateUUId()
-					, ipAddress = CreateUUId()
-					, userAgent = CreateUUId()
-					, eventDate = Now()
-				};
-
-				svc.$( "isBotAgent" ).$args( args.userAgent ).$results( false );
-				svc.$( "matchesHoneyPot" ).$args( argumentCollection=args ).$results( true );
-				svc.$( "tooManyClicksInShortPeriod" ).$args( argumentCollection=args ).$results( false );
 
 				svc.$( method="$announceInterception", callback=function( ev, data ){
 					if ( arguments.ev == "onDetectEmailEventBot" ) {
-						if ( !arguments.data.isBotAgent && arguments.data.matchesHoneyPot && !arguments.data.tooManyClicks ) {
-							arguments.data.isBot = false;
-						}
+						arguments.data.isBot = false;
 					}
 				} );
 
-				expect( svc.isBot( argumentCollection=args ) ).toBe( false );
+				expect( svc.isBot(
+					  messageId   = CreateUUId()
+					, ipAddress   = "203.0.113.10"
+					, userAgent   = ""
+					, eventDate   = Now()
+					, requestMeta = { accept_language="en" }
+				) ).toBe( false );
+			} );
+		} );
+
+		describe( "getBotDetectionSettings()", function(){
+			it( "should use saved email settings when they are present", function(){
+				var svc = createMock( object=new preside.system.services.email.EmailBotDetectionService() );
+
+				svc.$property( propertyName="botDetectionSettings", mock={
+					  scoreThreshold = 50
+					, weightHigh     = 50
+					, weightMedium   = 25
+				} );
+				svc.$( "$getPresideCategorySettings" ).$args( "email" ).$results( {
+					  bot_score_threshold      = 70
+					, bot_weight_medium        = 30
+					, bot_scanner_user_agents  = "Proofpoint"
+				} );
+
+				var settings = svc.getBotDetectionSettings();
+
+				expect( settings.scoreThreshold ).toBe( 70 );
+				expect( settings.weightMedium ).toBe( 30 );
+				expect( settings.weightHigh ).toBe( 50 );
+				expect( settings.scannerUserAgents ).toBe( [ "Proofpoint" ] );
 			} );
 		} );
 	}
@@ -236,15 +244,37 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		variables.botDetectionSettings = {
 			  userAgents              = [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "healthcheck", "zabbix", "kube-probe" ]
+			, scannerUserAgents       = [ "proofpoint", "mimecast", "barracuda", "safelinks", "antispam-agent", "skypeuripreview", "^mozilla/5\.0$" ]
 			, tooManyClicksCount      = 10
 			, tooManyClicksSeconds    = 10
 			, honeyPotTimezoneSeconds = 10
+			, scoreThreshold          = 50
+			, weightHigh              = 50
+			, weightMedium            = 25
+			, weightLow               = 10
+			, eventCountThreshold     = 6
+			, distinctLinkThreshold   = 5
+			, gatewaySeconds          = 5
+			, cfBotScoreMax           = 30
+			, ipFanoutThreshold       = 2
 		};
 
 		svc.$( "getBotDetectionSettings", botDetectionSettings );
 		svc.$( "$announceInterception" );
 
 		return svc;
+	}
+
+	private struct function _trackedEvent( required date eventDate, required string ipAddress, required string userAgent, string link="" ) {
+		return {
+			  activityType   = "click"
+			, userAgent      = arguments.userAgent
+			, ipAddress      = arguments.ipAddress
+			, eventDate      = arguments.eventDate
+			, link           = arguments.link
+			, classification = "tentative"
+			, extraData      = { accept_language="en", cf_bot_score="", cf_verified_bot="" }
+		};
 	}
 
 }

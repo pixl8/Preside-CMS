@@ -574,13 +574,13 @@ email content
 
 			} );
 
-			it( "should wrap the tracking pixel in a 'honeypot' link tag when the email tracking bot detection feature is enabled", function() {
+			it( "should append an off-screen honeypot link when the email tracking bot detection feature is enabled", function() {
 				var service = _getService();
 				var messageId = CreateUUId();
 				var trackingUrl = CreateUUId();
 				var honeyPotUrl = CreateUUId();
 				var htmlMessage = CreateUUId();
-				var htmlMessageWithPixel = htmlMessage & "<a href=""#honeyPotUrl#""><img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" /></a>";
+				var htmlMessageWithPixel = htmlMessage & "<img src=""#trackingUrl#"" width=""1"" height=""1"" style=""width:1px;height:1px"" /><a href=""#honeyPotUrl#"" style=""display:inline-block;overflow:hidden;width:1px;height:1px;font-size:1px;line-height:1px;color:transparent;"">Preferences</a>";
 				var mockRc = CreateStub();
 
 				service.$( "$getRequestContext", mockRc );
@@ -739,6 +739,105 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 				expect( service.$callLog().recordActivity[ 1 ].activity ).toBe( "bot_click" );
 				expect( service.$callLog().recordActivity[ 1 ].extraData ).toBe( { link=link, link_title="", link_body="" } );
 				expect( service.$callLog().recordActivity[ 1 ].eventDate ).toBe( eventDate );
+			} );
+		} );
+
+		describe( "insertClickTrackingLinks() honeypot markup", function(){
+			it( "should leave the off-screen honeypot link unrewritten", function(){
+				var service     = _getService();
+				var messageId   = CreateUUId();
+				var trackingUrl = "https://example.com/e/t/o/?mid=#messageId#";
+				var honeyPotUrl = "https://example.com/e/t/h/?mid=#messageId#";
+				var html        = "<html><body><p>Hello</p></body></html>";
+				var mockRc      = CreateStub();
+
+				service.$( "$getRequestContext", mockRc );
+				service.$( "$isFeatureEnabled" ).$args( "emailTrackingBotDetection" ).$results( true );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.open", querystring="mid=" & messageId ).$results( trackingUrl );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.honeypot", querystring="mid=" & messageId ).$results( honeyPotUrl );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.click", querystring="mid=#messageId#&link=" ).$results( "https://example.com/e/t/c/?mid=#messageId#&link=" );
+				mockRc.$( "buildLink" ).$args( linkto="email.tracking.honeypot" ).$results( "https://example.com/e/t/h/" );
+
+				var withPixel = service.insertTrackingPixel( messageId=messageId, messageHtml=html );
+				var rewritten = service.insertClickTrackingLinks( messageId=messageId, messageHtml=withPixel );
+
+				expect( withPixel ).toInclude( honeyPotUrl );
+				expect( rewritten ).toInclude( honeyPotUrl );
+				expect( rewritten ).notToInclude( ToBase64( honeyPotUrl ) );
+			} );
+		} );
+
+		describe( "applyTrackingClassification()", function(){
+			it( "should move a tentative click that scores as a bot onto bot_click", function(){
+				var service    = _getService();
+				var activityId = CreateUUId();
+				var messageId  = CreateUUId();
+				var eventDate  = DateAdd( "n", -5, Now() );
+
+				mockLogActivityDao.$( "updateData", 1 );
+				service.$( "_processEventForStatsTables" );
+
+				service.applyTrackingClassification(
+					  activity = {
+						  id             = activityId
+						, message        = messageId
+						, activityType   = "click"
+						, classification = "tentative"
+						, userAgent      = "SameAgent"
+						, ipAddress      = "198.51.100.10"
+						, eventDate      = eventDate
+						, link           = "https://example.com/news"
+						, linkTitle      = ""
+						, linkBody       = ""
+					}
+					, score = { isBot=true, score=50, signals=[ "honeypot_user_agent" ] }
+				);
+
+				expect( mockLogActivityDao.$callLog().updateData[ 1 ].data.activity_type ).toBe( "bot_click" );
+				expect( mockLogActivityDao.$callLog().updateData[ 1 ].data.classification ).toBe( "bot" );
+				expect( service.$callLog()._processEventForStatsTables[ 1 ].activity ).toBe( "bot_click" );
+			} );
+		} );
+
+		describe( "classifyMessageTracking()", function(){
+			it( "should reclassify an earlier tentative click when a honeypot hit shares its user agent", function(){
+				var service   = _getService();
+				var messageId = CreateUUId();
+				var clickId   = CreateUUId();
+				var clickDate = DateAdd( "n", -2, Now() );
+				var rows      = QueryNew(
+					  "id,message,activity_type,user_agent,user_ip,datecreated,link,link_title,link_body,classification,extra_data"
+					, "varchar,varchar,varchar,varchar,varchar,timestamp,varchar,varchar,varchar,varchar,varchar"
+					, [ [
+						  clickId
+						, messageId
+						, "click"
+						, "SameAgent"
+						, "198.51.100.10"
+						, clickDate
+						, "https://example.com/news"
+						, ""
+						, ""
+						, "tentative"
+						, "{""accept_language"":""en""}"
+					] ]
+				);
+
+				mockLogActivityDao.$( "selectData", rows );
+				mockLogDao.$( "selectData", QueryNew( "sent_date", "timestamp", [ [ DateAdd( "h", -1, clickDate ) ] ] ) );
+				mockLogActivityDao.$( "updateData", 1 );
+				mockBotDetectionService.$( "getBotDetectionSettings", {
+					  sweepDelaySeconds       = 90
+					, reclassifyWindowSeconds = 1800
+					, eventCountThreshold     = 6
+				} );
+				mockBotDetectionService.$( "scoreTrackingEvent", { isBot=true, score=50, signals=[ "honeypot_user_agent" ] } );
+				service.$( "_processEventForStatsTables" );
+
+				service.classifyMessageTracking( messageId, true );
+
+				expect( mockLogActivityDao.$callLog().updateData[ 1 ].data.activity_type ).toBe( "bot_click" );
+				expect( service.$callLog()._processEventForStatsTables[ 1 ].activity ).toBe( "bot_click" );
 			} );
 		} );
 	}
