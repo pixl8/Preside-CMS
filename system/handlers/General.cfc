@@ -30,6 +30,8 @@ component {
 	property name="IgnoreFileService"             inject="delayedInjector:IgnoreFileService";
 	property name="formsService"                  inject="delayedInjector:formsService";
 	property name="dmWorkflowFilterService"       inject="delayedInjector:datamanagerWorkflowFilterService";
+	property name="enumService"                   inject="enumService";
+	property name="labsService"                   inject="delayedInjector:labsService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -272,17 +274,51 @@ component {
 			i18n.setFwLocale( request.DefaultLocaleFromCookie );
 		}
 
+		_registerPresideObjectEnums();
+
 		if ( isFeatureEnabled( "dataExport" ) ) {
 			dataExportTemplateService.setupTemplatesEnum();
 		}
 		if ( isFeatureEnabled( "admin" ) ) {
 			systemAlertsService.setupSystemAlerts();
+			labsService.registerExperimentsEnum();
 		}
 		if ( isFeatureEnabled( "presideForms" ) ) {
 			formsService.formExists( "hack-to-ensure-service-initialised" );
 		}
 	}
 
+	private void function _registerPresideObjectEnums() {
+		var objectNames   = [];
+		var pageTypeNames = [];
+
+		for( var objectName in presideObjectService.listObjects() ) {
+			if ( presideObjectService.isPageType( objectName ) ) {
+				ArrayAppend( pageTypeNames, objectName );
+			} else {
+				ArrayAppend( objectNames, objectName );
+			}
+		}
+
+		enumService.registerEnum(
+			  enum         = "presideobjects"
+			, keys         = objectNames
+			, translations = {
+				  label       = "preside-objects.{key}:title"
+				, iconClass   = "preside-objects.{key}:iconClass"
+				, description = "preside-objects.{key}:description"
+			  }
+		);
+		enumService.registerEnum(
+			  enum         = "presidepagetypes"
+			, keys         = pageTypeNames
+			, translations = {
+				  label       = "page-types.{key}:name"
+				, iconClass   = "page-types.{key}:iconClass"
+				, description = "page-types.{key}:description"
+			  }
+		);
+	}
 
 	private void function _startHeartbeats() {
 		if ( isFeatureEnabled( "emailQueueHeartBeat" ) ) {

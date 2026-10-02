@@ -11,6 +11,7 @@ component {
 	property name="environmentBannerConfig"  inject="coldbox:setting:environmentBannerConfig";
 	property name="environmentMessage"       inject="coldbox:setting:environmentMessage";
 	property name="applicationsService"      inject="applicationsService";
+	property name="labsService"              inject="labsService";
 	property name="i18n"                     inject="i18n";
 
 	private string function environmentBanner( event, rc, prc, args={} ) {
@@ -133,6 +134,21 @@ component {
 		}
 
 		return ArrayToList( rendered, " " );
+	}
+
+	private string function userNavItem( event, rc, prc, args={} ) {
+		args.experiments = labsService.listSignpostExperiments();
+
+		if ( ArrayLen( args.experiments ) ) {
+			args.dismissUrl = event.buildAdminLink( linkTo="editProfile.dismissLabsSignpostAction" );
+			args.csrfToken  = event.getCsrfToken();
+			args.labsUrl    = event.buildAdminLink( linkTo="editProfile.labs" );
+
+			event.include( "/js/admin/specific/layout/" )
+			     .include( "/css/admin/specific/layout/" );
+		}
+
+		return renderView( view="/admin/layout/userNavItem", args=args );
 	}
 
 	private string function applicationNav( event, rc, prc, args={} ) {

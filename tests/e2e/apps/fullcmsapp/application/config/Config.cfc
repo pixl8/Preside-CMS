@@ -49,6 +49,7 @@ component extends="preside.system.config.Config" {
 		settings.default_log_level  = "information";
 		settings.sql_log_name       = "End to End test site";
 		settings.sql_log_level      = "information";
+		settings.labs.experiments.datatablesOverhaul = { mode="labsDefaultOn" };
 	}
 
 	private void function _setupRicheditor() {

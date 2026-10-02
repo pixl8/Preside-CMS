@@ -1,0 +1,351 @@
+component extends="tests.resources.HelperObjects.PresideBddTestCase" {
+
+	function run() {
+		describe( "isEnabled()", function(){
+			it( "should return true when the experiment mode is alwaysOn, even if the user and system default are off", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="alwaysOn" } } } );
+
+				_stubUserPreference( svc, "off" );
+				svc.$( "$getPresideSetting", "off" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
+			} );
+
+			it( "should return false when the experiment is unknown", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOn" } } } );
+
+				expect( svc.isEnabled( "missingExperiment" ) ).toBeFalse();
+			} );
+
+			it( "should return false when the experiment is not in the system-wide enabled_experiments list and there is no user preference", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
+
+				_stubEnabledExperiments( svc, "" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
+			} );
+
+			it( "should return true when the experiment is in the system-wide enabled_experiments list and there is no user preference", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" }, tiptapEditor={ mode="labsDefaultOff" } } } );
+
+				_stubEnabledExperiments( svc, "tiptapEditor,datatablesOverhaul" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
+			} );
+
+			it( "should use the system-wide enabled_experiments list when the user preference is default", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
+
+				_stubUserPreference( svc, "default" );
+				_stubEnabledExperiments( svc, "datatablesOverhaul" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
+			} );
+
+			it( "should match experiments in the enabled_experiments list case insensitively", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
+
+				_stubEnabledExperiments( svc, "DATATABLESOVERHAUL" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
+			} );
+
+			it( "should not enable an experiment whose ID is only a partial match of a listed experiment", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
+
+				_stubEnabledExperiments( svc, "datatablesOverhaulV2" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
+			} );
+
+			it( "should honour a user on preference when the experiment is not enabled system-wide", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
+
+				_stubUserPreference( svc, "on" );
+				_stubEnabledExperiments( svc, "" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeTrue();
+			} );
+
+			it( "should honour a user off preference when the experiment is enabled system-wide", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOn" } } } );
+
+				_stubUserPreference( svc, "off" );
+				_stubEnabledExperiments( svc, "datatablesOverhaul" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
+			} );
+
+			it( "should cache the result on the request", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
+
+				svc.$( "$getPresideSetting", "" );
+
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
+				expect( svc.isEnabled( "datatablesOverhaul" ) ).toBeFalse();
+				expect( svc.$callLog().$getPresideSetting.len() ).toBe( 1 );
+			} );
+		} );
+
+		describe( "registerExperimentsEnum()", function(){
+			it( "should register a labsExperiment enum of configurable experiments with labels and descriptions translated from the labs i18n bundle", function(){
+				var svc = _getService( { experiments={
+					  tiptapEditor       = { mode="labsDefaultOff" }
+					, datatablesOverhaul = { mode="labsDefaultOn" }
+					, alreadyShipped     = { mode="alwaysOn" }
+				} } );
+
+				svc.registerExperimentsEnum();
+
+				var log = mockEnumService.$callLog().registerEnum;
+
+				expect( ArrayLen( log ) ).toBe( 1 );
+				expect( log[ 1 ].enum ).toBe( "labsExperiment" );
+				expect( log[ 1 ].keys ).toBe( [ "datatablesOverhaul", "tiptapEditor" ] );
+				expect( log[ 1 ].translations ).toBe( {
+					  label       = "labs:{key}.title"
+					, description = "labs:{key}.description"
+				} );
+			} );
+		} );
+
+		describe( "listConfigurableExperiments()", function(){
+			it( "should omit experiments whose mode is alwaysOn", function(){
+				var svc = _getService( { experiments={
+					  datatablesOverhaul = { mode="labsDefaultOff" }
+					, alreadyShipped     = { mode="alwaysOn" }
+				} } );
+
+				expect( svc.listConfigurableExperiments() ).toBe( [ "datatablesOverhaul" ] );
+			} );
+
+			it( "should report whether any configurable experiments remain", function(){
+				var none = _getService( { experiments={ alreadyShipped={ mode="alwaysOn" } } } );
+				var some = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } } );
+
+				expect( none.hasConfigurableExperiments() ).toBeFalse();
+				expect( some.hasConfigurableExperiments() ).toBeTrue();
+			} );
+		} );
+
+		describe( "getUserPreference()", function(){
+			it( "should return default when there is no logged-in administrator", function(){
+				expect( _getService().getUserPreference( "datatablesOverhaul" ) ).toBe( "default" );
+			} );
+
+			it( "should normalize an invalid stored value to default", function(){
+				var svc = _getService();
+
+				_stubUserPreference( svc, "invalid" );
+
+				expect( svc.getUserPreference( "datatablesOverhaul" ) ).toBe( "default" );
+			} );
+		} );
+
+		describe( "saveUserPreference()", function(){
+			it( "should insert a new user preference", function(){
+				var svc     = _getService();
+				var mockDao = createStub();
+
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+				svc.$( "$getPresideObject" ).$args( "admin_lab_preference" ).$results( mockDao );
+				mockDao.$( "selectData", QueryNew( "id" ) );
+				mockDao.$( "insertData", "preference-1" );
+
+				svc.saveUserPreference( experimentId="datatablesOverhaul", value="on" );
+
+				expect( mockDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().insertData[ 1 ][ 1 ] ).toBe( {
+					  security_user = "user-1"
+					, experiment    = "datatablesOverhaul"
+					, value         = "on"
+				} );
+			} );
+
+			it( "should update an existing user preference and clear the request cache", function(){
+				var svc     = _getService();
+				var mockDao = createStub();
+
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+				svc.$( "$getPresideObject" ).$args( "admin_lab_preference" ).$results( mockDao );
+				mockDao.$( "selectData", QueryNew( "id", "varchar", [ [ "preference-1" ] ] ) );
+				mockDao.$( "updateData", 1 );
+				request._presideLabsEnabled = { datatablesOverhaul=false };
+
+				svc.saveUserPreference( experimentId="datatablesOverhaul", value="on" );
+
+				expect( mockDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().updateData[ 1 ].id ).toBe( "preference-1" );
+				expect( mockDao.$callLog().updateData[ 1 ].data ).toBe( { value="on" } );
+				expect( StructKeyExists( request._presideLabsEnabled, "datatablesOverhaul" ) ).toBeFalse();
+			} );
+
+			it( "should ignore unknown experiments", function(){
+				var svc = _getService();
+
+				svc.$( "$getAdminLoggedInUserId", "user-1" );
+				svc.saveUserPreference( experimentId="missing", value="on" );
+
+				expect( StructKeyExists( svc.$callLog(), "$getPresideObject" ) ).toBeFalse();
+			} );
+		} );
+
+		describe( "listSignpostExperiments()", function(){
+			it( "should return nothing when there is no logged-in administrator", function(){
+				expect( _getService().listSignpostExperiments() ).toBe( [] );
+			} );
+
+			it( "should include a configurable experiment that is off by default and has not been dismissed", function(){
+				var svc = _getService( { experiments={
+					  datatablesOverhaul = { mode="labsDefaultOff" }
+					, forcedOn           = { mode="alwaysOn" }
+				} } );
+
+				_stubSignpostPreferences( svc, _preferenceQuery( includeRow=false ) );
+				svc.$( "$translateResource", "DataTables listing overhaul" );
+
+				expect( svc.listSignpostExperiments() ).toBe( [ {
+					  id    = "datatablesOverhaul"
+					, title = "DataTables listing overhaul"
+				} ] );
+			} );
+
+			it( "should exclude an experiment that is already on", function(){
+				var svc = _getService( { experiments={ datatablesOverhaul={ mode="labsDefaultOn" } } } );
+
+				_stubSignpostPreferences( svc, _preferenceQuery( includeRow=false ) );
+				_stubEnabledExperiments( svc, "datatablesOverhaul" );
+
+				expect( svc.listSignpostExperiments() ).toBe( [] );
+			} );
+
+			it( "should exclude an experiment the user has explicitly turned off", function(){
+				var svc = _getService();
+
+				_stubSignpostPreferences( svc, _preferenceQuery( value="off" ) );
+
+				expect( svc.listSignpostExperiments() ).toBe( [] );
+			} );
+
+			it( "should exclude an experiment whose signpost has been dismissed", function(){
+				var svc = _getService();
+
+				_stubSignpostPreferences( svc, _preferenceQuery( signpostDismissed=true ) );
+
+				expect( svc.listSignpostExperiments() ).toBe( [] );
+			} );
+		} );
+
+		describe( "dismissSignpost()", function(){
+			it( "should insert a default preference when dismissing an experiment with no row", function(){
+				var svc     = _getService();
+				var mockDao = _stubSignpostPreferences( svc, QueryNew( "id" ) );
+
+				mockDao.$( "insertData", "preference-1" );
+
+				svc.dismissSignpost( [ "datatablesOverhaul" ] );
+
+				expect( mockDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().insertData[ 1 ][ 1 ] ).toBe( {
+					  security_user      = "user-1"
+					, experiment         = "datatablesOverhaul"
+					, value              = "default"
+					, signpost_dismissed = true
+				} );
+			} );
+
+			it( "should set the dismissed flag without changing the saved preference", function(){
+				var svc     = _getService();
+				var mockDao = _stubSignpostPreferences( svc, QueryNew( "id", "varchar", [ [ "preference-1" ] ] ) );
+
+				mockDao.$( "updateData", 1 );
+
+				svc.dismissSignpost( [ "datatablesOverhaul" ] );
+
+				expect( mockDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockDao.$callLog().updateData[ 1 ].data ).toBe( { signpost_dismissed=true } );
+				expect( StructKeyExists( mockDao.$callLog(), "insertData" ) ).toBeFalse();
+			} );
+
+			it( "should ignore unknown experiments and logged-out calls", function(){
+				var svc     = _getService();
+				var mockDao = _stubSignpostPreferences( svc, QueryNew( "id" ) );
+
+				svc.dismissSignpost( [ "missing" ] );
+
+				expect( ArrayLen( mockDao.$callLog().selectData ?: [] ) ).toBe( 0 );
+
+				svc.$( "$getAdminLoggedInUserId", "" );
+				svc.dismissSignpost( [ "datatablesOverhaul" ] );
+
+				expect( ArrayLen( mockDao.$callLog().selectData ?: [] ) ).toBe( 0 );
+			} );
+		} );
+	}
+
+	private any function _getService( struct labsConfig ) {
+		var mockHelpers = createStub();
+
+		mockEnumService = createStub();
+		mockEnumService.$( "registerEnum" );
+
+		var svc = CreateMock( object=new preside.system.services.admin.LabsService(
+			  labsConfig  = arguments.labsConfig ?: { experiments={ datatablesOverhaul={ mode="labsDefaultOff" } } }
+			, enumService = mockEnumService
+		) );
+
+		StructDelete( request, "_presideLabsEnabled" );
+
+		svc.$property( propertyName="$helpers", mock=mockHelpers );
+		mockHelpers.$( method="isTrue", callback=function( val ){
+			return IsBoolean( arguments.val ?: "" ) && arguments.val;
+		} );
+		svc.$( "$getAdminLoggedInUserId", "" );
+		svc.$( "$getPresideSetting", "" );
+
+		return svc;
+	}
+
+	private void function _stubEnabledExperiments( required any svc, required string value ) {
+		arguments.svc.$( "$getPresideSetting" ).$args( category="labs", setting="enabled_experiments", default="" ).$results( arguments.value );
+	}
+
+	private void function _stubUserPreference( required any svc, required string value ) {
+		var mockDao = createStub();
+		var records = "";
+
+		arguments.svc.$( "$getAdminLoggedInUserId", "user-1" );
+		arguments.svc.$( "$getPresideObject" ).$args( "admin_lab_preference" ).$results( mockDao );
+
+		if ( arguments.value == "default" ) {
+			records = QueryNew( "value" );
+		} else {
+			records = QueryNew( "value", "varchar", [ [ arguments.value ] ] );
+		}
+
+		mockDao.$( "selectData", records );
+	}
+
+	private any function _stubSignpostPreferences( required any svc, required query records ) {
+		var mockDao = createStub();
+
+		arguments.svc.$( "$getAdminLoggedInUserId", "user-1" );
+		arguments.svc.$( "$getPresideObject" ).$args( "admin_lab_preference" ).$results( mockDao );
+		mockDao.$( "selectData", arguments.records );
+
+		return mockDao;
+	}
+
+	private query function _preferenceQuery( string value="default", boolean signpostDismissed=false, boolean includeRow=true ) {
+		if ( !arguments.includeRow ) {
+			return QueryNew( "experiment,value,signpost_dismissed", "varchar,varchar,bit" );
+		}
+
+		return QueryNew(
+			  "experiment,value,signpost_dismissed"
+			, "varchar,varchar,bit"
+			, [ [ "datatablesOverhaul", arguments.value, arguments.signpostDismissed ] ]
+		);
+	}
+
+}

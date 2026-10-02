@@ -109,7 +109,7 @@
 								</h4>
 							</div>
 							<div class="panel-body">
-								#renderView( view="/admin/datamanager/_objectDataTable", args={
+								#renderView( view=getObjectDataTableView(), args={
 									  objectName        = "email_template_send_log"
 									, useMultiActions   = false
 									, datasourceUrl     = event.buildAdminLink( linkTo="emailCenter.getFilteredRecipientsForStatsTables", queryString="id=#args.templateId#&statType=mostActive" )
@@ -187,7 +187,7 @@
 								}
 							</cfscript>
 
-							#renderView( view="/admin/datamanager/_objectDataTable", args={
+							#renderView( view=getObjectDataTableView(), args={
 								  objectName        = "email_template_send_log"
 								, useMultiActions   = false
 								, datasourceUrl     = event.buildAdminLink( linkTo="emailCenter.getFilteredRecipientsForStatsTables", queryString="id=#args.templateId#&statType=#stat#" )
