@@ -3,28 +3,42 @@ describe( 'Custom fields', () => {
 	const fieldValue = 'E2E-NICKNAME-VALUE';
 	const fieldKey   = `e2e_nick_${ Date.now().toString( 36 ).replace( /[^a-z0-9]/g, '' ) }`.substring( 0, 40 );
 
+	const clickWebflowNext = () => {
+		cy.get( 'form.webflow-form button.webflow-next-btn' ).should( 'be.visible' ).click();
+	};
+
 	beforeEach( () => {
 		cy.superuserAdminLogin();
+		cy.setListingLabPreference( 'on' );
 	} );
 
-	it( 'lets an admin create a static field, pick it as a column, then edit and view the value', () => {
+	it( 'lets an admin create a static field, activate it, pick it as a column, then edit and view the value', () => {
 		cy.visit( `/admin/datamanager/addRecord/?object=custom_field&target_object=my_extension_object` );
 
-		cy.get( 'input[name="key"]' ).should( 'be.visible' ).clear().type( fieldKey );
+		cy.get( 'form.webflow-form' ).should( 'be.visible' );
 		cy.get( 'input[name="label"]' ).should( 'be.visible' ).clear().type( fieldLabel );
-		cy.get( 'body' ).then( ( $body ) => {
-			if ( $body.find( 'input[name="kind"][value="static"]' ).length ) {
-				cy.get( 'input[name="kind"][value="static"]' ).check( { force : true } );
-			}
-		} );
-		cy.get( 'select[name="data_type"], input[name="data_type"]' ).first().then( ( $el ) => {
-			if ( $el.is( 'select' ) ) {
-				cy.wrap( $el ).select( 'text' );
-			}
-		} );
-		cy.get( 'form.form-horizontal button[type="submit"], form button.btn-info[type="submit"]' )
-			.first()
-			.click();
+		cy.get( 'input[name="key"]' ).clear().type( fieldKey );
+		cy.get( 'input[name="kind"][value="static"]' ).check( { force : true } );
+		cy.get( 'input[name="data_type"][value="text"]' ).check( { force : true } );
+		clickWebflowNext();
+
+		cy.get( 'input[name="include_in_edit_form"]' ).should( 'exist' );
+		clickWebflowNext();
+
+		cy.get( 'input[name="flags"]' ).should( 'exist' );
+		clickWebflowNext();
+
+		cy.url( { timeout : 20000 } ).should( 'include', 'viewRecord' );
+		cy.contains( fieldLabel ).should( 'be.visible' );
+
+		cy.get( '.alert-warning a.btn-success' )
+			.should( 'be.visible' )
+			.invoke( 'attr', 'href' )
+			.then( ( href ) => {
+				cy.request( href );
+			} );
+		cy.reload();
+		cy.get( '.alert-success' ).should( 'be.visible' );
 
 		cy.visitObjectListing( 'my_extension_object' );
 		cy.resetListingColumns();
@@ -33,6 +47,7 @@ describe( 'Custom fields', () => {
 
 		cy.showListingColumn( fieldLabel );
 		cy.get( '.object-listing-table thead' ).should( 'contain.text', fieldLabel );
+		cy.closeListingOverlays();
 
 		cy.get( '.object-listing-table tbody tr a' ).first().click();
 		cy.contains( 'a, button', 'Edit custom fields' ).click();
