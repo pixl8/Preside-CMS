@@ -117,6 +117,85 @@ component {
 		return arguments.field.label ?: ( arguments.field.key ?: "" );
 	}
 
+	/**
+	 * The name an admin must type to confirm deletion of a field.
+	 *
+	 * @autodoc true
+	 */
+	public string function getDeletionConfirmationName( required struct field ) {
+		var name = Trim( arguments.field.label ?: "" );
+
+		if ( !Len( name ) ) {
+			name = Trim( arguments.field.key ?: "" );
+		}
+
+		return name;
+	}
+
+	/**
+	 * Whether the typed confirmation matches the field name.
+	 *
+	 * @autodoc true
+	 */
+	public boolean function deletionConfirmationMatches( required struct field, required string typedName ) {
+		var expected = getDeletionConfirmationName( arguments.field );
+
+		return Len( expected ) && Compare( Trim( arguments.typedName ), expected ) == 0;
+	}
+
+	/**
+	 * How many records have a non-empty stored value for a static field.
+	 * Other field kinds do not store their own values.
+	 *
+	 * @autodoc true
+	 */
+	public numeric function countStoredValues( required struct field ) {
+		if ( ( arguments.field.kind ?: "" ) != "static" ) {
+			return 0;
+		}
+
+		var objectName = Trim( arguments.field.target_object ?: "" );
+		if ( !Len( objectName ) || !customFieldsValueTableService.valueObjectExists( objectName ) ) {
+			return 0;
+		}
+
+		return presideObjectService.selectData(
+			  objectName      = customFieldsValueTableService.getValueObjectName( objectName )
+			, filter          = { field=arguments.field.id ?: "" }
+			, extraFilters    = [ { filter="field_value is not null and field_value <> ''" } ]
+			, selectFields    = [ "1 as record" ]
+			, recordCountOnly = true
+		);
+	}
+
+	/**
+	 * Removes stored values, lookup options and conditional rules for a field.
+	 * The value table has no database cascade, so this runs before the field row is deleted.
+	 *
+	 * @autodoc true
+	 */
+	public void function deleteFieldData( required struct field ) {
+		var fieldId = arguments.field.id ?: "";
+		if ( !Len( Trim( fieldId ) ) ) {
+			return;
+		}
+
+		var objectName = Trim( arguments.field.target_object ?: "" );
+		if ( ( arguments.field.kind ?: "" ) == "static" && Len( objectName ) && customFieldsValueTableService.valueObjectExists( objectName ) ) {
+			presideObjectService.deleteData(
+				  objectName = customFieldsValueTableService.getValueObjectName( objectName )
+				, filter     = { field=fieldId }
+			);
+		}
+
+		if ( presideObjectService.objectExists( "custom_field_lookup" ) ) {
+			presideObjectService.deleteData( objectName="custom_field_lookup", filter={ field=fieldId } );
+		}
+		if ( presideObjectService.objectExists( "custom_field_conditional_rule" ) ) {
+			presideObjectService.deleteData( objectName="custom_field_conditional_rule", filter={ field=fieldId } );
+		}
+	}
+
 	public array function listLookupOptions( required string fieldId ) {
 		var records = $getPresideObject( "custom_field_lookup" ).selectData(
 			  filter  = { field=arguments.fieldId }

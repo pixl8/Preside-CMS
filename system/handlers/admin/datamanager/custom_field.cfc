@@ -9,12 +9,13 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	property name="customFieldsPropertyInjector" inject="customFieldsPropertyInjector";
 	property name="customFieldTypesService"      inject="customFieldTypesService";
 
-	variables.permissionBase = "customfields";
-	variables.infoCardStyle  = "definitionList";
-	variables.infoCol1       = [ "label", "key", "kind" ];
-	variables.infoCol2       = [ "data_type", "conditional_label_mode", "active" ];
-	variables.infoCol3       = [ "show_in_listing", "filterable", "data_exportable", "batch_editable" ];
-	variables.tabs           = [ "lookups", "conditional_labels" ];
+	variables.permissionBase        = "customfields";
+	variables.deleteConfirmFormName = "preside-objects.custom_field.admin.delete.confirm";
+	variables.infoCardStyle         = "definitionList";
+	variables.infoCol1              = [ "label", "key", "kind" ];
+	variables.infoCol2              = [ "data_type", "conditional_label_mode", "active" ];
+	variables.infoCol3              = [ "show_in_listing", "filterable", "data_exportable", "batch_editable" ];
+	variables.tabs                  = [ "lookups", "conditional_labels" ];
 	variables.extraSelectFieldsForViewRecord = [ "lookup_count", "conditional_rule_count", "related_data_relationship", "related_data_property" ];
 
 	public string function addRecordForm( event, rc, prc, args={} ) {
@@ -249,6 +250,100 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				, data = [ record.label ?: record.key ?: recordId, objectTitle ]
 			  )
 		} );
+
+		_pointDeleteActionAtConfirmation( event, args.actions ?: [], recordId );
+	}
+
+	public void function confirmDelete( event, rc, prc ) {
+		checkPermission(
+			  event = arguments.event
+			, rc    = arguments.rc
+			, prc   = arguments.prc
+			, args  = { key="delete", object="custom_field", throwOnError=true }
+		);
+
+		var field = customFieldsService.getField( Trim( rc.id ?: "" ) );
+		if ( StructIsEmpty( field ) ) {
+			event.notFound();
+		}
+
+		var targetObject = field.target_object ?: "";
+		var objectTitle  = Len( targetObject ) ? translateResource( uri="preside-objects.#targetObject#:title", defaultValue=targetObject ) : targetObject;
+		var fieldName    = customFieldsService.getDeletionConfirmationName( field );
+		var storesValues = ( field.kind ?: "" ) == "static";
+
+		prc.pageIcon  = "trash";
+		prc.pageTitle = translateResource( uri="preside-objects.custom_field:delete.page.title" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="preside-objects.custom_field:title" )
+			, link  = event.buildAdminLink( objectName="custom_field" )
+		);
+		event.addAdminBreadCrumb(
+			  title = fieldName
+			, link  = event.buildAdminLink( objectName="custom_field", operation="viewRecord", recordId=field.id )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="preside-objects.custom_field:delete.breadcrumb" )
+			, link  = ""
+		);
+
+		event.setView( view="/admin/datamanager/custom_field/confirmDelete" );
+		prc.fieldName        = fieldName;
+		prc.objectTitle      = objectTitle;
+		prc.storesValues     = storesValues;
+		prc.storedValueCount = storesValues ? customFieldsService.countStoredValues( field ) : 0;
+		prc.versioned        = storesValues && Len( targetObject ) && presideObjectService.objectIsVersioned( targetObject );
+		prc.formName         = variables.deleteConfirmFormName;
+		prc.deleteAction     = event.buildAdminLink( objectName="custom_field", recordId=field.id, operation="deleteRecordAction" );
+		prc.actionButtons    = [
+			  {
+				  type      = "link"
+				, href      = event.buildAdminLink( objectName="custom_field", operation="viewRecord", recordId=field.id )
+				, class     = "btn-default"
+				, globalKey = "c"
+				, iconClass = "fa-reply"
+				, label     = translateResource( uri="cms:datamanager.cancel.btn" )
+			  }
+			, {
+				  type      = "button"
+				, class     = "btn-danger"
+				, iconClass = "fa-trash"
+				, name      = "_deleteAction"
+				, value     = "delete"
+				, label     = translateResource( uri="preside-objects.custom_field:delete.submit.btn" )
+			  }
+		];
+	}
+
+	private void function preDeleteRecordAction( event, rc, prc, args={} ) {
+		var recordId = Trim( rc.id ?: "" );
+		if ( !Len( recordId ) || ListLen( recordId ) != 1 ) {
+			messageBox.error( translateResource( uri="preside-objects.custom_field:delete.confirmation.mismatch" ) );
+			setNextEvent( url=event.buildAdminLink( objectName="custom_field" ) );
+		}
+
+		var field = customFieldsService.getField( recordId );
+		if ( StructIsEmpty( field ) ) {
+			return;
+		}
+
+		var confirmUrl = event.buildAdminLink( linkTo="datamanager.custom_field.confirmDelete", queryString="id=#recordId#" );
+		if ( !StructKeyExists( rc, "confirmation_name" ) ) {
+			setNextEvent( url=confirmUrl );
+		}
+
+		var formData         = event.getCollectionForForm( variables.deleteConfirmFormName );
+		var validationResult = validateForm( formName=variables.deleteConfirmFormName, formData=formData );
+
+		if ( validationResult.validated() && !customFieldsService.deletionConfirmationMatches( field, formData.confirmation_name ?: "" ) ) {
+			validationResult.addError( fieldName="confirmation_name", message="preside-objects.custom_field:delete.confirmation.mismatch" );
+		}
+		if ( !validationResult.validated() ) {
+			setNextEvent( url=confirmUrl, persistStruct={ validationResult=validationResult } );
+		}
+
+		customFieldsService.deleteFieldData( field );
 	}
 
 	private void function extraRecordActionsForGridListing( event, rc, prc, args={} ) {
@@ -272,6 +367,29 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				, data = [ record.label ?: record.key ?: recordId, objectTitle ]
 			  )
 		} );
+
+		_pointDeleteActionAtConfirmation( event, args.actions ?: [], recordId );
+	}
+
+	private void function _pointDeleteActionAtConfirmation( required any event, required array actions, required string recordId ) {
+		if ( !Len( Trim( arguments.recordId ) ) ) {
+			return;
+		}
+
+		var confirmLink = event.buildAdminLink( linkTo="datamanager.custom_field.confirmDelete", queryString="id=#arguments.recordId#" );
+		var deleteTitle = translateResource( uri="preside-objects.custom_field:delete.btn" );
+
+		for( var action in arguments.actions ) {
+			if ( !FindNoCase( "deleteRecordAction", action.link ?: "" ) ) {
+				continue;
+			}
+
+			action.link   = confirmLink;
+			action.title  = deleteTitle;
+			action.prompt = "";
+			action.match  = "";
+			action.class  = Trim( ReReplaceNoCase( action.class ?: "", "confirmation-prompt", "" ) );
+		}
 	}
 
 	private void function preFetchRecordsForSorting( event, rc, prc, args={} ) {

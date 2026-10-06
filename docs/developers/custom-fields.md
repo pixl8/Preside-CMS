@@ -57,5 +57,6 @@ Free-form SQL formulas are out of v1.
 - Each field can be marked **Allow in listing filters** (on by default, always off for conditional labels). When off, it is omitted from listing filters and rules-engine auto expressions.
 - Each field can be marked **Include in data export** (on by default). When off, it is omitted from export field pickers and default export columns.
 - Stored fields can be marked **Batch editable** (on by default). Flagged static fields appear in the listing batch-edit menu and persist through the per-object value table.
+- Deleting a field opens a confirmation screen. The button is labelled **Delete...**. The admin must type the field name. Stored fields report how many records have a value. Confirming runs the standard data manager delete, including the delete permission and the audit log.
 
 Permissions `customfields.add`, `customfields.edit`, `customfields.delete` are required to define and manage fields. Editing values uses the host object’s existing `edit` permission.

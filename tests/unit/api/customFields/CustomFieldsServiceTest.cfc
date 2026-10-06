@@ -457,6 +457,35 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( billingTab.fieldsets[ 1 ].title ).toBe( "Main" );
 			} );
 		} );
+
+		describe( "deletion confirmation", function(){
+			it( "should match the field label exactly, ignoring surrounding spaces", function(){
+				var svc   = _getService();
+				var field = { label="Newsletter opt in", key="newsletter_opt_in", kind="static" };
+
+				expect( svc.getDeletionConfirmationName( field ) ).toBe( "Newsletter opt in" );
+				expect( svc.deletionConfirmationMatches( field, "Newsletter opt in" ) ).toBeTrue();
+				expect( svc.deletionConfirmationMatches( field, "  Newsletter opt in  " ) ).toBeTrue();
+				expect( svc.deletionConfirmationMatches( field, "newsletter opt in" ) ).toBeFalse();
+			} );
+
+			it( "should fall back to the field key when the label is empty", function(){
+				var svc = _getService();
+
+				expect( svc.getDeletionConfirmationName( { label="", key="joined_on" } ) ).toBe( "joined_on" );
+			} );
+
+			it( "should count stored values only for static fields", function(){
+				var svc = _getService();
+
+				variables.mockValueTables.$( "valueObjectExists", true );
+				variables.mockValueTables.$( "getValueObjectName", "_cfv_crm_contact" );
+				variables.mockPoService.$( "selectData", 3 );
+
+				expect( svc.countStoredValues( { id=19, kind="aggregate", target_object="crm_contact" } ) ).toBe( 0 );
+				expect( svc.countStoredValues( { id=19, kind="static", target_object="crm_contact" } ) ).toBe( 3 );
+			} );
+		} );
 	}
 
 	private any function _getConditionalLabelService( required string mode ) {
