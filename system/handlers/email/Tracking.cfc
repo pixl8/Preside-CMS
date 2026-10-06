@@ -12,15 +12,16 @@ component {
 	public void function open( event, rc, prc ) {
 		var messageId = Trim( rc.mid ?: "" );
 
-		if ( messageId.len() ) {
+		if ( messageId.len() && emailLoggingService.sendLogExists( messageId ) ) {
 			try {
 				emailLoggingService.processOpenEvent(
-					  messageId = messageId
-					, userAgent = event.getUserAgent()
-					, ipAddress = event.getClientIp()
+					  messageId   = messageId
+					, userAgent   = event.getUserAgent()
+					, ipAddress   = event.getClientIp()
+					, requestMeta = _trackingRequestMeta()
 				);
 			} catch( any e ) {
-				// ignore errors that will be due to original email log no longer existing
+				logError( e );
 			}
 		}
 
@@ -37,18 +38,23 @@ component {
 			link = getModel( dsl="presidecms:object:email_template_shortened_link" ).selectData( id=link );
 
 			if ( link.recordCount ) {
+				if ( messageId.len() && !emailLoggingService.sendLogExists( messageId ) ) {
+					event.notFound();
+				}
+
 				if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link.href ) ) {
 					try {
 						emailLoggingService.processClickEvent(
-							  messageId = messageId
-							, link      = link.href
-							, linkTitle = link.title
-							, linkBody  = link.body
-							, userAgent = event.getUserAgent()
-							, ipAddress = event.getClientIp()
+							  messageId   = messageId
+							, link        = link.href
+							, linkTitle   = link.title
+							, linkBody    = link.body
+							, userAgent   = event.getUserAgent()
+							, ipAddress   = event.getClientIp()
+							, requestMeta = _trackingRequestMeta()
 						);
 					} catch( any e ) {
-						// ignore errors that will be due to original email log no longer existing
+						logError( e );
 					}
 				}
 
@@ -69,16 +75,21 @@ component {
 			event.notFound();
 		}
 
+		if ( messageId.len() && !emailLoggingService.sendLogExists( messageId ) ) {
+			event.notFound();
+		}
+
 		if ( messageId.len() && !ReFindNoCase( ignoreLinkPattern, link ) ) {
 			try {
 				emailLoggingService.processClickEvent(
-					  messageId = messageId
-					, link      = link
-					, userAgent = event.getUserAgent()
-					, ipAddress = event.getClientIp()
+					  messageId   = messageId
+					, link        = link
+					, userAgent   = event.getUserAgent()
+					, ipAddress   = event.getClientIp()
+					, requestMeta = _trackingRequestMeta()
 				);
 			} catch( any e ) {
-				// ignore errors that will be due to original email log no longer existing
+				logError( e );
 			}
 		}
 
@@ -86,13 +97,29 @@ component {
 	}
 
 	public void function honeyPot( event, rc, prc ) {
-		emailLoggingService.recordHoneyPotHit(
-			  messageId = ( rc.mid  ?: "" )
-			, userAgent = event.getUserAgent()
-			, ipAddress = event.getClientIp()
-		);
+		var messageId = Trim( rc.mid ?: "" );
+
+		if ( messageId.len() && emailLoggingService.sendLogExists( messageId ) ) {
+			try {
+				emailLoggingService.recordHoneyPotHit(
+					  messageId = messageId
+					, userAgent = event.getUserAgent()
+					, ipAddress = event.getClientIp()
+				);
+			} catch( any e ) {
+				logError( e );
+			}
+		}
 
 		setNextEvent( url="/" );
+	}
+
+	private struct function _trackingRequestMeta() {
+		return {
+			  accept_language = cgi.http_accept_language ?: ""
+			, cf_bot_score    = cgi.http_cf_bot_score    ?: ""
+			, cf_verified_bot = cgi.http_cf_verified_bot ?: ""
+		};
 	}
 
 
