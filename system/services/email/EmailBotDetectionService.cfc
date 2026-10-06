@@ -81,52 +81,52 @@ component displayname="Email Bot Detection Service" {
 		}
 
 		if ( _honeypotSharesUserAgent( arguments.event, arguments.messageEvents, Val( settings.honeyPotTimezoneSeconds ?: 10 ) ) ) {
-			signals.append( "honeypot_user_agent" );
+			ArrayAppend( signals, "honeypot_user_agent" );
 			score += high;
 		}
 
 		if ( _clicksAreBunched( arguments.event, tracked, Val( settings.tooManyClicksCount ?: 10 ), Val( settings.tooManyClicksSeconds ?: 10 ) ) ) {
-			signals.append( "click_burst" );
+			ArrayAppend( signals, "click_burst" );
 			score += medium;
 		}
 
 		if ( isDatacenterIp( arguments.event.ipAddress ?: "" ) ) {
-			signals.append( "datacenter_ip" );
+			ArrayAppend( signals, "datacenter_ip" );
 			score += medium;
 		}
 
 		if ( _cloudflareSaysBot( extra.cf_bot_score ?: "", Val( settings.cfBotScoreMax ?: 30 ) ) ) {
-			signals.append( "cf_bot_score" );
+			ArrayAppend( signals, "cf_bot_score" );
 			score += high;
 		}
 
 		if ( !Len( Trim( extra.accept_language ?: "" ) ) ) {
-			signals.append( "missing_accept_language" );
+			ArrayAppend( signals, "missing_accept_language" );
 			score += low;
 		}
 
 		if ( tracked.len() >= Val( settings.eventCountThreshold ?: 6 ) ) {
-			signals.append( "event_count" );
+			ArrayAppend( signals, "event_count" );
 			score += high;
 		}
 
 		if ( _distinctLinkCount( tracked ) >= Val( settings.distinctLinkThreshold ?: 5 ) ) {
-			signals.append( "distinct_links" );
+			ArrayAppend( signals, "distinct_links" );
 			score += high;
 		}
 
 		if ( _ipFanoutCounts( arguments.event, tracked, Val( settings.ipFanoutThreshold ?: 2 ), Val( settings.eventCountThreshold ?: 6 ) ) ) {
-			signals.append( "ip_fanout" );
+			ArrayAppend( signals, "ip_fanout" );
 			score += medium;
 		}
 
 		if ( _isGatewayScan( arguments.event, arguments.sentDate, Val( settings.gatewaySeconds ?: 5 ) ) ) {
-			signals.append( "seconds_since_send" );
+			ArrayAppend( signals, "seconds_since_send" );
 			score += medium;
 		}
 
 		if ( _matchesAgentList( arguments.event.userAgent ?: "", settings.userAgents ?: [] ) || _matchesAgentList( arguments.event.userAgent ?: "", settings.scannerUserAgents ?: [] ) ) {
-			signals.append( "scanner_user_agent" );
+			ArrayAppend( signals, "scanner_user_agent" );
 			score += high;
 		}
 
@@ -283,7 +283,7 @@ component displayname="Email Bot Detection Service" {
 	}
 
 	private boolean function _hasSignal( required array signals, required string name ) {
-		return arguments.signals.findNoCase( arguments.name ) > 0;
+		return ArrayFindNoCase( arguments.signals, arguments.name ) > 0;
 	}
 
 	private boolean function _isAffirmative( required string value ) {
@@ -295,7 +295,7 @@ component displayname="Email Bot Detection Service" {
 		var counted = [ "open", "click", "bot_open", "bot_click" ];
 
 		for ( var event in arguments.messageEvents ) {
-			if ( counted.findNoCase( event.activityType ?: "" ) ) {
+			if ( ArrayFindNoCase( counted, event.activityType ?: "" ) ) {
 				tracked.append( event );
 			}
 		}
@@ -392,7 +392,7 @@ component displayname="Email Bot Detection Service" {
 			}
 		}
 
-		return StructCount( ips ) >= arguments.ipThreshold && ( shared || arguments.tracked.len() >= arguments.volumeThreshold );
+		return StructCount( ips ) >= arguments.ipThreshold && ( shared || ArrayLen( arguments.tracked ) >= arguments.volumeThreshold );
 	}
 
 	private boolean function _isGatewayScan( required struct event, any sentDate, required numeric gatewaySeconds ) {

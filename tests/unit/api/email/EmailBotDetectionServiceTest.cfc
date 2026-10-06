@@ -148,7 +148,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var i         = 1;
 
 				for ( i = 1; i <= 6; i++ ) {
-					events.append( _trackedEvent( DateAdd( "n", i, eventDate ), "198.51.100.10", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36", "https://example.com/news" ) );
+					ArrayAppend( events, _trackedEvent( DateAdd( "n", i, eventDate ), "198.51.100.10", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36", "https://example.com/news" ) );
 				}
 
 				var result = svc.scoreTrackingEvent(
