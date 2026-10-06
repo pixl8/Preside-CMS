@@ -1,5 +1,8 @@
 {
   "devDependencies": {
-    "cypress": "^13.10.0"
+    "cypress": "^16.1.1"
+  },
+  "allowScripts": {
+    "cypress@16.1.1": true
   }
 }
