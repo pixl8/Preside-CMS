@@ -79,7 +79,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var admin = renderer.admin( event=_getEventStub(), args=_args( "2026-09-24 14:30:00" ) );
 
 				expect( admin ).toInclude( ">20 minutes ago</abbr>" );
-				expect( admin ).toInclude( "24&##x2f;09&##x2f;2026" );
+				expect( ReFind( '<abbr title="[^"]+"', admin ) ).toBeGT( 0 );
+				expect( DecodeForHtml( ReReplace( admin, '^.*<abbr title="([^"]+)".*$', "\1" ) ) ).toBe( "24/09/2026 14:30:00" );
 			} );
 
 			it( "should never use relative time when exporting", function(){
