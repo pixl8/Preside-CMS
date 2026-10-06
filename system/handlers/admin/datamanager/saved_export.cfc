@@ -34,7 +34,6 @@ component {
 		var records = args.records ?: QueryNew('');
 
 		for ( var record in records ) {
-			querySetCell( records, "label", _decorateLabelForListing( record.id ), queryCurrentRow( records ) );
 			querySetCell( records, "schedule", cronUtil.describeCronTabExression( record.schedule, i18n.getFwLanguageCode() ), queryCurrentRow( records ) );
 		}
 	}
@@ -225,23 +224,5 @@ component {
 			  templateId = ( args.record.template ?: "" )
 			, objectName = rc.filterObject
 		);
-	}
-
-// HELPERS
-	private string function _decorateLabelForListing( required string recordId ) {
-		var detail     = presideObjectService.selectData( objectName="saved_export", id=arguments.recordId );
-		var objectName = detail.object_name ?: "";
-		var baseUri    = "";
-
-		args.icon        = "";
-		args.label       = detail.label       ?: "";
-		args.description = detail.description ?: "";
-
-		if ( !isEmpty( objectName ) ) {
-			baseUri   = presideObjectService.getResourceBundleUriRoot( objectName );
-			args.icon = translateResource( uri=baseUri & "iconclass", defaultValue="fa-database" );
-		}
-
-		return renderView( view="/admin/savedExport/_savedExportLabel", args=args );
 	}
 }
