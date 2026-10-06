@@ -22,7 +22,14 @@ component displayname="Custom field" extends="preside.system.base.SystemPresideO
 	property name="show_in_listing" type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
 	property name="filterable"      type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
 	property name="data_exportable" type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
-	property name="batch_editable"  type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
+	property name="batch_editable"       type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
+	property name="include_in_add_form"  type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
+	property name="include_in_edit_form" type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
+	property name="form_placement"       type="string"  dbtype="varchar" maxlength=20  required=false default="auto" enum="customFieldFormPlacement";
+	property name="form_tab"             type="string"  dbtype="varchar" maxlength=100 required=false;
+	property name="form_tab_label"       type="string"  dbtype="varchar" maxlength=200 required=false;
+	property name="form_fieldset"        type="string"  dbtype="varchar" maxlength=100 required=false;
+	property name="form_fieldset_label"  type="string"  dbtype="varchar" maxlength=200 required=false;
 
 	property name="data_type"   type="string" dbtype="varchar" maxlength=30 required=false enum="customFieldDataType";
 	property name="type_config" type="string" dbtype="text" required=false autofilter=false adminRenderer="none";

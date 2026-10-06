@@ -138,6 +138,55 @@ component {
 		return arguments.validationResult.validated();
 	}
 
+	private string function forms( event, rc, prc, args={}, wfInstance ) {
+		var state = arguments.wfInstance.getState();
+
+		if ( !StructKeyExists( state, "include_in_add_form" ) ) {
+			state.include_in_add_form = true;
+		}
+		if ( !StructKeyExists( state, "include_in_edit_form" ) ) {
+			state.include_in_edit_form = true;
+		}
+		if ( !Len( Trim( state.form_placement ?: "" ) ) ) {
+			state.form_placement = "auto";
+		}
+
+		return renderForm(
+			  formName         = "webflow.adminCreateCustomField.forms"
+			, context          = "admin"
+			, formId           = "webflow-adminCreateCustomField-#( args.instanceRef ?: "" )#-forms"
+			, savedData        = state
+			, validationResult = rc.validationResult ?: ""
+		);
+	}
+
+	private boolean function formsAction( event, rc, prc, args={}, wfInstance, validationResult, persistData ) {
+		var state    = arguments.wfInstance.getState();
+		var prepared = customFieldsService.prepareFormPlacement(
+			  formData  = arguments.persistData
+			, catalogue = customFieldsService.getFormPlacementCatalogue( state.target_object ?: "" )
+		);
+
+		_validateForm(
+			  formName         = "webflow.adminCreateCustomField.forms"
+			, formData         = arguments.persistData
+			, validationResult = arguments.validationResult
+		);
+
+		if ( Len( prepared.error ?: "" ) ) {
+			arguments.validationResult.addError( fieldName=prepared.errorField, message=prepared.error );
+		}
+		if ( !arguments.validationResult.validated() ) {
+			return false;
+		}
+
+		StructDelete( prepared, "error" );
+		StructDelete( prepared, "errorField" );
+		StructAppend( arguments.persistData, prepared, true );
+
+		return true;
+	}
+
 	private string function permissions( event, rc, prc, args={}, wfInstance ) {
 		var state = arguments.wfInstance.getState();
 
@@ -255,12 +304,22 @@ component {
 		};
 
 		if ( kind == "static" ) {
-			data.data_type      = Trim( merged.data_type      ?: "" );
-			data.related_object = Trim( merged.related_object ?: "" );
-			data.type_config    = customFieldTypesService.buildTypeConfig( dataType=data.data_type, formData=merged );
+			data.data_type           = Trim( merged.data_type      ?: "" );
+			data.related_object      = Trim( merged.related_object ?: "" );
+			data.type_config         = customFieldTypesService.buildTypeConfig( dataType=data.data_type, formData=merged );
+			data.include_in_add_form = StructKeyExists( merged, "include_in_add_form" ) ? merged.include_in_add_form : true;
+			data.include_in_edit_form = StructKeyExists( merged, "include_in_edit_form" ) ? merged.include_in_edit_form : true;
+			data.form_placement      = Len( Trim( merged.form_placement ?: "" ) ) ? merged.form_placement : "auto";
+			data.form_tab            = Trim( merged.form_tab ?: "" );
+			data.form_tab_label      = Trim( merged.form_tab_label ?: "" );
+			data.form_fieldset       = Trim( merged.form_fieldset ?: "" );
+			data.form_fieldset_label = Trim( merged.form_fieldset_label ?: "" );
 		} else {
-			data.data_type      = Trim( merged.data_type ?: "" );
-			data.batch_editable = false;
+			data.data_type            = Trim( merged.data_type ?: "" );
+			data.batch_editable       = false;
+			data.include_in_add_form  = false;
+			data.include_in_edit_form = false;
+			data.form_placement       = "auto";
 		}
 
 		if ( kind == "aggregate" ) {

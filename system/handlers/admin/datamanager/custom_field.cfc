@@ -46,6 +46,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		_validateRelatedDataConfig( argumentCollection=arguments );
 		_validateDisplayConfig( argumentCollection=arguments );
 		_serialiseDisplayConfig( argumentCollection=arguments );
+		_normaliseFormPlacement( argumentCollection=arguments );
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
@@ -556,6 +557,30 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		if ( Len( targetObject ) && !ReFindNoCase( "(^|&)target_object=", qs ) ) {
 			args.queryString = ListAppend( qs, "target_object=#targetObject#", "&" );
 		}
+	}
+
+	private void function _normaliseFormPlacement( event, rc, prc, args={} ) {
+		if ( ( prc.record.kind ?: "" ) != "static" ) {
+			return;
+		}
+
+		var prepared = customFieldsService.prepareFormPlacement(
+			  formData  = args.formData ?: {}
+			, catalogue = customFieldsService.getFormPlacementCatalogue( prc.record.target_object ?: "" )
+		);
+
+		if ( Len( prepared.error ?: "" ) ) {
+			args.validationResult.addError( fieldName=prepared.errorField, message=prepared.error );
+			return;
+		}
+
+		args.formData.include_in_add_form  = prepared.include_in_add_form;
+		args.formData.include_in_edit_form = prepared.include_in_edit_form;
+		args.formData.form_placement       = prepared.form_placement;
+		args.formData.form_tab             = prepared.form_tab;
+		args.formData.form_tab_label       = prepared.form_tab_label;
+		args.formData.form_fieldset        = prepared.form_fieldset;
+		args.formData.form_fieldset_label  = prepared.form_fieldset_label;
 	}
 
 }

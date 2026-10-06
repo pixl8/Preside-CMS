@@ -12,9 +12,13 @@ component {
 	property name="customFieldTypesService"       inject="delayedInjector:customFieldTypesService";
 	property name="customFieldsPropertyInjector"  inject="delayedInjector:customFieldsPropertyInjector";
 	property name="customFieldsValueTableService" inject="delayedInjector:customFieldsValueTableService";
-	property name="formsService"                  inject="delayedInjector:formsService";
-	property name="enumService"                   inject="delayedInjector:enumService";
+	property name="formsService"                      inject="delayedInjector:formsService";
+	property name="dataManagerCustomizationService"   inject="delayedInjector:dataManagerCustomizationService";
+	property name="enumService"                       inject="delayedInjector:enumService";
 	property name="rulesEngineFilterService"      inject="delayedInjector:rulesEngineFilterService";
+
+	variables.CREATED_ITEM_SORTORDER       = 1000000000;
+	variables.CUSTOM_FIELDS_TAB_SORTORDER  = 1000000010;
 
 	public any function init() {
 		return this;
@@ -248,39 +252,362 @@ component {
 			formDefinition.addFieldset( id="default", tab="default" );
 
 			for( var field in fields ) {
-				var type    = customFieldTypesService.getType( field.data_type ?: "text" );
-				var control = type.control ?: "textinput";
-				var args    = {
-					  name      = field.key
-					, fieldset  = "default"
-					, tab       = "default"
-					, control   = control
-					, label     = field.label
-					, help      = field.help_text ?: ""
-					, required  = false
-				};
-
-				if ( ( field.data_type ?: "" ) == "lookup" ) {
-					var options = listLookupOptions( field.id );
-					var values  = [];
-					var labels  = [];
-					for( var option in options ) {
-						ArrayAppend( values, option.id );
-						ArrayAppend( labels, option.label );
-					}
-					args.control = "select";
-					args.values  = values;
-					args.labels  = labels;
-				}
-
-				if ( ( field.data_type ?: "" ) == "object_ref" && Len( Trim( field.related_object ?: "" ) ) ) {
-					args.control = "objectPicker";
-					args.object  = field.related_object;
-				}
-
+				var args = _staticValueFieldArgs( field );
+				args.tab      = "default";
+				args.fieldset = "default";
 				formDefinition.addField( argumentCollection=args );
 			}
 		} );
+	}
+
+	/**
+	 * Tabs and fieldsets an admin can place a custom field on.
+	 * Built from the object's add and edit forms, plus tabs created by other custom fields.
+	 *
+	 * @autodoc true
+	 */
+	public array function getFormPlacementCatalogue( required string objectName ) {
+		if ( !isObjectEnabled( arguments.objectName ) ) {
+			return [];
+		}
+
+		var forms = [];
+
+		for( var action in [ "getAddRecordFormName", "getEditRecordFormName" ] ) {
+			var formName = _recordFormNameFromCustomization( arguments.objectName, action );
+			if ( !Len( formName ) ) {
+				continue;
+			}
+
+			try {
+				ArrayAppend( forms, formsService.getForm( formName ) );
+			} catch ( any e ) {}
+		}
+
+		return buildFormPlacementCatalogueFromSources(
+			  sourceForms = forms
+			, fields      = listFields( objectName=arguments.objectName, includeInactive=true )
+		);
+	}
+
+	/**
+	 * Merges add or edit form tabs with tabs and fieldsets declared by custom fields.
+	 *
+	 * @autodoc true
+	 */
+	public array function buildFormPlacementCatalogueFromSources( required array sourceForms, required array fields ) {
+		var tabs       = [];
+		var placements = Duplicate( arguments.fields );
+
+		for( var sourceForm in arguments.sourceForms ) {
+			for( var sourceTab in ( sourceForm.tabs ?: [] ) ) {
+				if ( !Len( Trim( sourceTab.id ?: "" ) ) || ( IsBoolean( sourceTab.deleted ?: "" ) && sourceTab.deleted ) ) {
+					continue;
+				}
+
+				var existing = _findCatalogueItem( tabs, sourceTab.id );
+				if ( StructIsEmpty( existing ) ) {
+					existing = {
+						  id        = sourceTab.id
+						, label     = _formItemLabel( sourceTab )
+						, created   = false
+						, fieldsets = []
+					};
+					ArrayAppend( tabs, existing );
+				}
+
+				for( var fieldset in ( sourceTab.fieldsets ?: [] ) ) {
+					if ( !Len( Trim( fieldset.id ?: "" ) ) || ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) ) {
+						continue;
+					}
+					if ( StructIsEmpty( _findCatalogueItem( existing.fieldsets, fieldset.id ) ) ) {
+						ArrayAppend( existing.fieldsets, {
+							  id      = fieldset.id
+							, label   = _formItemLabel( fieldset )
+							, created = false
+						} );
+					}
+				}
+			}
+		}
+
+		placements.sort( function( left, right ){
+			var order = Val( left.sort_order ?: 0 ) - Val( right.sort_order ?: 0 );
+			if ( order != 0 ) {
+				return order;
+			}
+
+			return CompareNoCase( left.label ?: "", right.label ?: "" );
+		} );
+
+		for( var field in placements ) {
+			if ( ( field.form_placement ?: "" ) != "manual" ) {
+				continue;
+			}
+			if ( !Len( Trim( field.form_tab ?: "" ) ) || !Len( Trim( field.form_fieldset ?: "" ) ) ) {
+				continue;
+			}
+
+			var tab = _findCatalogueItem( tabs, field.form_tab );
+			if ( StructIsEmpty( tab ) ) {
+				tab = {
+					  id             = field.form_tab
+					, label          = Len( Trim( field.form_tab_label ?: "" ) ) ? field.form_tab_label : field.form_tab
+					, created        = true
+					, labelFromField = Len( Trim( field.form_tab_label ?: "" ) ) > 0
+					, fieldsets      = []
+				};
+				ArrayAppend( tabs, tab );
+			} else if ( ( tab.created ?: false ) && Len( Trim( field.form_tab_label ?: "" ) ) && !( tab.labelFromField ?: false ) ) {
+				tab.label          = field.form_tab_label;
+				tab.labelFromField = true;
+			}
+
+			var fieldset = _findCatalogueItem( tab.fieldsets, field.form_fieldset );
+			if ( StructIsEmpty( fieldset ) ) {
+				ArrayAppend( tab.fieldsets, {
+					  id      = field.form_fieldset
+					, label   = Len( Trim( field.form_fieldset_label ?: "" ) ) ? field.form_fieldset_label : field.form_fieldset
+					, created = true
+				} );
+			}
+		}
+
+		return tabs;
+	}
+
+	/**
+	 * Turns a posted placement into stored column values.
+	 * error is a resource URI when the manual placement is incomplete.
+	 *
+	 * @autodoc true
+	 */
+	public struct function prepareFormPlacement( required struct formData, required array catalogue ) {
+		var placement = ( arguments.formData.form_placement ?: "auto" ) == "manual" ? "manual" : "auto";
+		var result    = {
+			  include_in_add_form  = _booleanWithDefault( arguments.formData.include_in_add_form  ?: "", true )
+			, include_in_edit_form = _booleanWithDefault( arguments.formData.include_in_edit_form ?: "", true )
+			, form_placement       = placement
+			, form_tab             = ""
+			, form_tab_label       = ""
+			, form_fieldset        = ""
+			, form_fieldset_label  = ""
+			, errorField           = ""
+			, error                = ""
+		};
+
+		if ( placement != "manual" ) {
+			return result;
+		}
+
+		var tabId    = Trim( arguments.formData.form_tab ?: "" );
+		var tabLabel = Trim( arguments.formData.form_tab_label ?: "" );
+		var tab      = _findCatalogueItem( arguments.catalogue, tabId );
+
+		if ( tabId == "__new__" || !Len( tabId ) ) {
+			if ( !Len( tabLabel ) ) {
+				result.errorField = "form_tab_label";
+				result.error      = "customFields:formPlacement.validation.tabLabel";
+				return result;
+			}
+
+			result.form_tab       = _uniqueCatalogueId( arguments.catalogue, _placementSlug( tabLabel ) );
+			result.form_tab_label = tabLabel;
+			tab = { id=result.form_tab, fieldsets=[] };
+		} else if ( StructIsEmpty( tab ) ) {
+			result.errorField = "form_tab";
+			result.error      = "customFields:formPlacement.validation.tab";
+			return result;
+		} else {
+			result.form_tab = tab.id;
+			if ( tab.created ?: false ) {
+				result.form_tab_label = tab.label ?: "";
+			}
+		}
+
+		var fieldsetId    = Trim( arguments.formData.form_fieldset ?: "" );
+		var fieldsetLabel = Trim( arguments.formData.form_fieldset_label ?: "" );
+		var fieldsets     = tab.fieldsets ?: [];
+		var fieldset      = _findCatalogueItem( fieldsets, fieldsetId );
+
+		if ( fieldsetId == "__new__" || !Len( fieldsetId ) ) {
+			if ( !Len( fieldsetLabel ) ) {
+				result.errorField = "form_fieldset_label";
+				result.error      = "customFields:formPlacement.validation.fieldsetLabel";
+				return result;
+			}
+
+			result.form_fieldset       = _uniqueCatalogueId( fieldsets, _placementSlug( fieldsetLabel ) );
+			result.form_fieldset_label = fieldsetLabel;
+		} else if ( StructIsEmpty( fieldset ) ) {
+			result.errorField = "form_fieldset";
+			result.error      = "customFields:formPlacement.validation.fieldset";
+			return result;
+		} else {
+			result.form_fieldset = fieldset.id;
+			if ( fieldset.created ?: false ) {
+				result.form_fieldset_label = fieldset.label ?: "";
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Static fields that should appear on the add or edit form.
+	 *
+	 * @autodoc true
+	 */
+	public array function filterFieldsForRecordForm( required array fields, required string operation ) {
+		var included = [];
+
+		for( var field in arguments.fields ) {
+			if ( ( field.kind ?: "static" ) != "static" ) {
+				continue;
+			}
+			if ( _includedOnForm( field, arguments.operation ) ) {
+				ArrayAppend( included, field );
+			}
+		}
+
+		return included;
+	}
+
+	/**
+	 * Form fragment that places static custom fields onto an add or edit form.
+	 *
+	 * @autodoc true
+	 */
+	public struct function buildRecordFormDefinition( required array fields ) {
+		var formDefinition = new preside.system.services.forms.FormDefinition();
+
+		appendRecordFormFields( formDefinition, arguments.fields );
+
+		return formDefinition.getRawDefinition();
+	}
+
+	/**
+	 * Adds static custom fields to a dynamic form definition.
+	 *
+	 * @autodoc true
+	 */
+	public void function appendRecordFormFields( required any formDefinition, required array fields ) {
+		var hasAuto = false;
+
+		for( var field in arguments.fields ) {
+			if ( ( field.form_placement ?: "auto" ) != "manual" ) {
+				hasAuto = true;
+				break;
+			}
+		}
+
+		if ( hasAuto ) {
+			arguments.formDefinition.addTab(
+				  id        = "customFields"
+				, sortorder = CUSTOM_FIELDS_TAB_SORTORDER
+				, title     = "customFields:formtab.customFields.title"
+			);
+			arguments.formDefinition.addFieldset(
+				  id        = "customFields"
+				, tab       = "customFields"
+				, sortorder = 10
+				, title     = "customFields:formtab.customFields.title"
+			);
+		}
+
+		for( var field in arguments.fields ) {
+			var placement  = ( field.form_placement ?: "auto" ) == "manual" ? "manual" : "auto";
+			var tabId      = "customFields";
+			var fieldsetId = "customFields";
+
+			if ( placement == "manual" ) {
+				tabId      = Trim( field.form_tab      ?: "" );
+				fieldsetId = Trim( field.form_fieldset ?: "" );
+				if ( !Len( tabId ) || !Len( fieldsetId ) ) {
+					continue;
+				}
+
+				var tabLabel      = Trim( field.form_tab_label      ?: "" );
+				var fieldsetLabel = Trim( field.form_fieldset_label ?: "" );
+
+				if ( Len( tabLabel ) ) {
+					arguments.formDefinition.modifyTab( id=tabId, title=tabLabel, sortorder=CREATED_ITEM_SORTORDER );
+				} else {
+					arguments.formDefinition.modifyTab( id=tabId );
+				}
+
+				if ( Len( fieldsetLabel ) ) {
+					arguments.formDefinition.modifyFieldset( id=fieldsetId, tab=tabId, title=fieldsetLabel, sortorder=CREATED_ITEM_SORTORDER );
+				} else {
+					arguments.formDefinition.modifyFieldset( id=fieldsetId, tab=tabId );
+				}
+			}
+
+			var args = _staticValueFieldArgs( field );
+			args.tab      = tabId;
+			args.fieldset = fieldsetId;
+			arguments.formDefinition.addField( argumentCollection=args );
+		}
+	}
+
+	/**
+	 * Returns the add or edit form name, merged with the custom field fragment when there is anything to show.
+	 *
+	 * @autodoc true
+	 */
+	public string function getMergedRecordFormName(
+		  required string objectName
+		, required string baseFormName
+		, required string operation
+	) {
+		if ( !isObjectEnabled( arguments.objectName ) || !Len( Trim( arguments.baseFormName ) ) ) {
+			return arguments.baseFormName;
+		}
+
+		var fields = filterFieldsForRecordForm(
+			  fields    = listFields( objectName=arguments.objectName, kind="static" )
+			, operation = arguments.operation
+		);
+
+		if ( !ArrayLen( fields ) ) {
+			return arguments.baseFormName;
+		}
+
+		var service     = this;
+		var dynamicName = formsService.createForm( function( formDefinition ){
+			service.appendRecordFormFields( formDefinition, fields );
+		} );
+
+		var mergedName     = formsService.getMergedFormName( arguments.baseFormName, dynamicName );
+		var formDefinition = formsService.getForm( mergedName );
+
+		formDefinition.customFieldObject = arguments.objectName;
+		_ensureVisibleTabTitles( mergedName );
+
+		return mergedName;
+	}
+
+	/**
+	 * Object whose add or edit form this is, including merged dynamic forms.
+	 *
+	 * @autodoc true
+	 */
+	public string function objectNameFromRecordForm( required string formName ) {
+		var match = ReMatchNoCase( "^preside-objects\.([a-z0-9_]+)\.admin\.(add|edit)($|\.)", arguments.formName );
+
+		if ( ArrayLen( match ) ) {
+			return ListGetAt( arguments.formName, 2, "." );
+		}
+
+		if ( !FindNoCase( "dynamicform-", arguments.formName ) ) {
+			return "";
+		}
+
+		try {
+			return Trim( formsService.getForm( arguments.formName ).customFieldObject ?: "" );
+		} catch ( any e ) {
+			return "";
+		}
 	}
 
 	public array function listAggregateCandidateProperties( required string objectName ) {
@@ -872,6 +1199,159 @@ component {
 				, field  = arguments.field.id
 			  }
 		);
+	}
+
+	private struct function _staticValueFieldArgs( required struct field ) {
+		var type = customFieldTypesService.getType( arguments.field.data_type ?: "text" );
+		var args = {
+			  name      = arguments.field.key
+			, control   = type.control ?: "textinput"
+			, label     = arguments.field.label ?: ""
+			, help      = arguments.field.help_text ?: ""
+			, required  = false
+			, sortorder = Val( arguments.field.sort_order ?: 0 )
+		};
+
+		if ( ( arguments.field.data_type ?: "" ) == "lookup" ) {
+			var options = listLookupOptions( arguments.field.id ?: "" );
+			var values  = [];
+			var labels  = [];
+
+			for( var option in options ) {
+				ArrayAppend( values, option.id );
+				ArrayAppend( labels, option.label );
+			}
+
+			args.control = "select";
+			args.values  = values;
+			args.labels  = labels;
+		}
+
+		if ( ( arguments.field.data_type ?: "" ) == "object_ref" && Len( Trim( arguments.field.related_object ?: "" ) ) ) {
+			args.control = "objectPicker";
+			args.object  = arguments.field.related_object;
+		}
+
+		return args;
+	}
+
+	private string function _recordFormNameFromCustomization( required string objectName, required string action ) {
+		var defaultHandler = arguments.action == "getAddRecordFormName" ? "admin.datamanager._getAddRecordFormName" : "admin.datamanager._getEditRecordFormName";
+		var formName       = "";
+
+		try {
+			formName = dataManagerCustomizationService.runCustomization(
+				  objectName     = arguments.objectName
+				, action         = arguments.action
+				, defaultHandler = defaultHandler
+				, args           = { objectName=arguments.objectName }
+			);
+		} catch ( any e ) {
+			return "";
+		}
+
+		return Trim( formName ?: "" );
+	}
+
+	private boolean function _includedOnForm( required struct field, required string operation ) {
+		var key = arguments.operation == "add" ? "include_in_add_form" : "include_in_edit_form";
+
+		if ( !StructKeyExists( arguments.field, key ) ) {
+			return true;
+		}
+
+		return _booleanWithDefault( arguments.field[ key ], true );
+	}
+
+	private boolean function _booleanWithDefault( required any value, required boolean defaultValue ) {
+		if ( !IsSimpleValue( arguments.value ) || !Len( Trim( arguments.value ) ) ) {
+			return arguments.defaultValue;
+		}
+
+		return $helpers.isTrue( arguments.value );
+	}
+
+	private struct function _findCatalogueItem( required array items, required string id ) {
+		if ( !Len( arguments.id ) || arguments.id == "__new__" ) {
+			return {};
+		}
+
+		for( var item in arguments.items ) {
+			if ( ( item.id ?: "" ) == arguments.id ) {
+				return item;
+			}
+		}
+
+		return {};
+	}
+
+	private string function _formItemLabel( required struct item ) {
+		var title = Trim( arguments.item.title ?: "" );
+		var id    = arguments.item.id ?: "";
+
+		if ( !Len( title ) ) {
+			return _fallbackItemLabel( id );
+		}
+		if ( Find( ":", title ) ) {
+			var translated = $translateResource( uri=title, defaultValue="" );
+			return Len( translated ) ? translated : _fallbackItemLabel( id );
+		}
+
+		return title;
+	}
+
+	private string function _fallbackItemLabel( required string id ) {
+		if ( arguments.id == "default" ) {
+			return $translateResource( uri="customFields:formtab.general.title", defaultValue=arguments.id );
+		}
+
+		return arguments.id;
+	}
+
+	private void function _ensureVisibleTabTitles( required string formName ) {
+		var formDefinition = formsService.getForm( arguments.formName );
+
+		for( var tab in ( formDefinition.tabs ?: [] ) ) {
+			if ( !_tabTitleIsVisible( tab ) ) {
+				tab.title = "customFields:formtab.general.title";
+			}
+		}
+	}
+
+	private boolean function _tabTitleIsVisible( required struct tab ) {
+		var title = Trim( arguments.tab.title ?: "" );
+
+		if ( !Len( title ) ) {
+			return false;
+		}
+		if ( Find( ":", title ) ) {
+			return Len( $translateResource( uri=title, defaultValue="" ) ) > 0;
+		}
+
+		return true;
+	}
+
+	private string function _placementSlug( required string label ) {
+		var slug = LCase( ReReplace( arguments.label, "[^a-zA-Z0-9]+", "_", "all" ) );
+
+		slug = ReReplace( slug, "^_+|_+$", "", "all" );
+		if ( !Len( slug ) || !ReFind( "^[a-z]", slug ) ) {
+			slug = "item_#slug#";
+		}
+
+		return "cf_#slug#";
+	}
+
+	private string function _uniqueCatalogueId( required array items, required string preferredId ) {
+		var candidate = arguments.preferredId;
+		var suffix    = 2;
+
+		while ( !StructIsEmpty( _findCatalogueItem( arguments.items, candidate ) ) ) {
+			candidate = arguments.preferredId & "_" & suffix;
+			suffix++;
+		}
+
+		return candidate;
 	}
 
 	private struct function _recordToStruct( required any record ) {

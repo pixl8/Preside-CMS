@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_field:">
+	<tab id="default">
+		<fieldset id="forms" sortorder="10">
+			<field name="include_in_add_form"  control="yesNoSwitch"   defaultValue="true" sortorder="10" />
+			<field name="include_in_edit_form" control="yesNoSwitch"   defaultValue="true" sortorder="20" />
+			<field name="form_placement"       control="enumRadioList" enum="customFieldFormPlacement" defaultValue="auto" sortorder="30" toggleFields="manual:form_tab" />
+			<field name="form_tab"             control="customFieldFormPlacement" sortorder="40" nolabel="true" />
+			<field name="form_tab_label"       control="none" />
+			<field name="form_fieldset"        control="none" />
+			<field name="form_fieldset_label"  control="none" />
+		</fieldset>
+	</tab>
+</form>

@@ -312,6 +312,151 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( svc.evaluateConditionalLabels( "15.record-1" ) ).toBe( [ "rule-1" ] );
 			} );
 		} );
+
+		describe( "buildFormPlacementCatalogueFromSources()", function(){
+			it( "should union add and edit tabs with created custom field tabs without duplicating ids", function(){
+				var svc = _getService();
+				var catalogue = svc.buildFormPlacementCatalogueFromSources(
+					  sourceForms = [
+						  { tabs=[ { id="basic", title="Basic", fieldsets=[ { id="details", title="Details" } ] } ] }
+						, { tabs=[
+							  { id="basic", title="Basic", fieldsets=[ { id="details", title="Details" }, { id="extra", title="Extra" } ] }
+							, { id="notes", title="Notes", fieldsets=[ { id="notes", title="Notes" } ] }
+						  ] }
+					  ]
+					, fields = [
+						  { form_placement="manual", form_tab="cf_billing", form_tab_label="Billing", form_fieldset="cf_main", form_fieldset_label="Main", sort_order=10, label="A" }
+						, { form_placement="manual", form_tab="cf_billing", form_tab_label="Other", form_fieldset="cf_main", form_fieldset_label="Other set", sort_order=20, label="B" }
+						, { form_placement="auto", sort_order=1, label="Auto" }
+					  ]
+				);
+				var ids     = [];
+				var basic   = {};
+				var billing = {};
+
+				for( var tab in catalogue ) {
+					ArrayAppend( ids, tab.id );
+					if ( tab.id == "basic" ) {
+						basic = tab;
+					}
+					if ( tab.id == "cf_billing" ) {
+						billing = tab;
+					}
+				}
+
+				expect( ArrayLen( ids ) ).toBe( 3 );
+				expect( ArrayLen( basic.fieldsets ) ).toBe( 2 );
+				expect( billing.label ).toBe( "Billing" );
+				expect( billing.created ).toBeTrue();
+				expect( ArrayLen( billing.fieldsets ) ).toBe( 1 );
+				expect( billing.fieldsets[ 1 ].label ).toBe( "Main" );
+			} );
+		} );
+
+		describe( "prepareFormPlacement()", function(){
+			it( "should clear placement when automatic and slug new tabs without colliding", function(){
+				var svc = _getService();
+				var catalogue = [
+					  { id="basic", label="Basic", created=false, fieldsets=[ { id="details", label="Details", created=false } ] }
+					, { id="cf_billing", label="Billing", created=true, fieldsets=[ { id="cf_main", label="Main", created=true } ] }
+				];
+				var automatic = svc.prepareFormPlacement(
+					  formData  = { form_placement="auto", include_in_add_form=false, include_in_edit_form=true }
+					, catalogue = catalogue
+				);
+				var created = svc.prepareFormPlacement(
+					  formData  = { form_placement="manual", form_tab="__new__", form_tab_label="Billing", form_fieldset="__new__", form_fieldset_label="Main", include_in_add_form=true, include_in_edit_form=true }
+					, catalogue = catalogue
+				);
+				var existing = svc.prepareFormPlacement(
+					  formData  = { form_placement="manual", form_tab="basic", form_fieldset="details", include_in_add_form=true, include_in_edit_form=true }
+					, catalogue = catalogue
+				);
+				var createdExisting = svc.prepareFormPlacement(
+					  formData  = { form_placement="manual", form_tab="cf_billing", form_fieldset="cf_main", include_in_add_form=true, include_in_edit_form=true }
+					, catalogue = catalogue
+				);
+				var missing = svc.prepareFormPlacement(
+					  formData  = { form_placement="manual", form_tab="nope", form_fieldset="details", include_in_add_form=true, include_in_edit_form=true }
+					, catalogue = catalogue
+				);
+
+				expect( automatic.form_tab ).toBe( "" );
+				expect( automatic.include_in_add_form ).toBeFalse();
+				expect( automatic.include_in_edit_form ).toBeTrue();
+				expect( created.form_tab ).toBe( "cf_billing_2" );
+				expect( created.form_tab_label ).toBe( "Billing" );
+				expect( created.form_fieldset ).toBe( "cf_main" );
+				expect( existing.form_tab_label ).toBe( "" );
+				expect( existing.form_fieldset_label ).toBe( "" );
+				expect( createdExisting.form_tab_label ).toBe( "Billing" );
+				expect( createdExisting.form_fieldset_label ).toBe( "Main" );
+				expect( missing.error ).toBe( "customFields:formPlacement.validation.tab" );
+			} );
+		} );
+
+		describe( "filterFieldsForRecordForm()", function(){
+			it( "should keep static fields included on the requested form and default missing flags to included", function(){
+				var svc = _getService();
+				var editFields = svc.filterFieldsForRecordForm(
+					  fields = [
+						  { key="add_only", kind="static", include_in_add_form=true, include_in_edit_form=false }
+						, { key="edit_only", kind="static", include_in_add_form=false, include_in_edit_form=true }
+						, { key="aggregate", kind="aggregate", include_in_add_form=true, include_in_edit_form=true }
+						, { key="unset", kind="static" }
+					  ]
+					, operation = "edit"
+				);
+				var keys = [];
+
+				for( var field in editFields ) {
+					ArrayAppend( keys, field.key );
+				}
+
+				expect( keys ).toBe( [ "edit_only", "unset" ] );
+			} );
+		} );
+
+		describe( "buildRecordFormDefinition()", function(){
+			it( "should put automatic fields on the custom fields tab and manual fields on the chosen or created tab", function(){
+				var svc = _getService();
+				var definition = "";
+				var customTab  = {};
+				var basicTab   = {};
+				var billingTab = {};
+
+				variables.mockTypesService.$( "getType", { control="textinput" } );
+
+				definition = svc.buildRecordFormDefinition( [
+					  { key="nickname", label="Nickname", data_type="text", sort_order=5, form_placement="auto", kind="static" }
+					, { key="website", label="Website", data_type="text", sort_order=8, form_placement="manual", form_tab="basic", form_fieldset="details", kind="static" }
+					, { key="po_number", label="PO number", data_type="text", sort_order=3, form_placement="manual", form_tab="cf_billing", form_tab_label="Billing", form_fieldset="cf_main", form_fieldset_label="Main", kind="static" }
+				] );
+
+				for( var tab in definition.tabs ) {
+					if ( tab.id == "customFields" ) {
+						customTab = tab;
+					}
+					if ( tab.id == "basic" ) {
+						basicTab = tab;
+					}
+					if ( tab.id == "cf_billing" ) {
+						billingTab = tab;
+					}
+				}
+
+				expect( customTab.title ).toBe( "customFields:formtab.customFields.title" );
+				expect( customTab.fieldsets[ 1 ].fields[ 1 ].name ).toBe( "nickname" );
+				expect( customTab.fieldsets[ 1 ].fields[ 1 ].label ).toBe( "Nickname" );
+				expect( basicTab.fieldsets[ 1 ].fields[ 1 ].name ).toBe( "website" );
+				expect( Val( basicTab.sortorder ?: basicTab.sortOrder ?: 0 ) ).toBe( 0 );
+				expect( billingTab.title ).toBe( "Billing" );
+				expect( Val( billingTab.sortorder ?: billingTab.sortOrder ?: 0 ) ).toBe( 1000000000 );
+				expect( Val( customTab.sortorder ?: customTab.sortOrder ?: 0 ) ).toBeGT( 999999999 );
+				expect( billingTab.fieldsets[ 1 ].fields[ 1 ].name ).toBe( "po_number" );
+				expect( billingTab.fieldsets[ 1 ].title ).toBe( "Main" );
+			} );
+		} );
 	}
 
 	private any function _getConditionalLabelService( required string mode ) {

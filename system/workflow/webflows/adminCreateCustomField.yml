@@ -26,6 +26,7 @@ webflow:
     - display
     - aggregate
     - relatedData
+    - forms
     - permissions
 
   - id: objectRef
@@ -48,6 +49,7 @@ webflow:
     prev:
     - basics
     next:
+    - forms
     - permissions
 
   - id: display
@@ -66,6 +68,7 @@ webflow:
     prev:
     - basics
     next:
+    - forms
     - permissions
 
   - id: aggregate
@@ -102,6 +105,26 @@ webflow:
     next:
     - permissions
 
+  - id: forms
+    canCancel: true
+    condition:
+      ref: string.IsEqual
+      args:
+        value: $kind
+        pattern: static
+    display:
+      viewlet:
+        event: admin.webflow.adminCreateCustomField.forms
+    submission:
+      handler:
+        event: admin.webflow.adminCreateCustomField.formsAction
+    prev:
+    - objectRef
+    - display
+    - basics
+    next:
+    - permissions
+
   - id: permissions
     canCancel: true
     display:
@@ -111,6 +134,7 @@ webflow:
       handler:
         event: admin.webflow.adminCreateCustomField.submitAction
     prev:
+    - forms
     - objectRef
     - display
     - aggregate

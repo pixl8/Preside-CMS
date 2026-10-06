@@ -165,7 +165,7 @@ component extends="coldbox.system.Interceptor" {
 
 	public void function preRenderForm( event, interceptData ) {
 		var formName   = interceptData.formName ?: "";
-		var objectName = _objectNameFromForm( formName );
+		var objectName = customFieldsService.objectNameFromRecordForm( formName );
 		if ( !Len( objectName ) || !customFieldsService.isObjectEnabled( objectName ) ) {
 			return;
 		}
@@ -415,15 +415,6 @@ component extends="coldbox.system.Interceptor" {
 		}
 
 		return objects;
-	}
-
-	private string function _objectNameFromForm( required string formName ) {
-		var match = ReMatchNoCase( "^preside-objects\.([a-z0-9_]+)\.admin\.(add|edit)$", arguments.formName );
-		if ( ArrayLen( match ) ) {
-			return ListGetAt( arguments.formName, 2, "." );
-		}
-
-		return "";
 	}
 
 	private void function _applyCustomFieldProperties() {
