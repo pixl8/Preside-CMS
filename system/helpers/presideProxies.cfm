@@ -219,6 +219,16 @@
 		<cfargument name="defaultValue" type="string" required="false" default="#arguments.propertyName#" /><cfsilent>
 
 		<cfscript>
+			var customFieldLabel = getSingleton( "presideObjectService" ).getObjectPropertyAttribute(
+				  objectName    = arguments.objectName
+				, propertyName  = arguments.propertyName
+				, attributeName = "customFieldLabel"
+				, defaultValue  = ""
+			);
+			if ( Len( Trim( customFieldLabel ) ) ) {
+				return customFieldLabel;
+			}
+
 			var baseUri      = getSingleton( "presideObjectService" ).getResourceBundleUriRoot( arguments.objectName );
 			var fullUri      = baseUri & "field.#propertyName#.title";
 			var defaultValue = translateResource( uri="cms:preside-objects.default.field.#propertyName#.title", defaultValue=arguments.defaultValue );

@@ -92,10 +92,19 @@ component extends="preside.system.base.adminHandler" {
 
 			renderedValue = _renderNoValue( objectName=objectName, propertyName=propertyName, propertyValue=renderedValue );
 
+			var propertyTitle = presideObjectService.getObjectPropertyAttribute(
+				  objectName    = objectName
+				, propertyName  = propertyName
+				, attributeName = "customFieldLabel"
+			);
+			if ( !Len( Trim( propertyTitle ) ) ) {
+				propertyTitle = translateResource( uri="#uriRoot#field.#propertyName#.title", defaultValue=translateResource( uri="cms:preside-objects.default.field.#propertyName#.title", defaultValue=propertyName ) );
+			}
+
 			ArrayAppend( args.renderedProps, {
 				  objectName    = objectName
 				, propertyName  = propertyName
-				, propertyTitle = translateResource( uri="#uriRoot#field.#propertyName#.title", defaultValue=translateResource( uri="cms:preside-objects.default.field.#propertyName#.title", defaultValue=propertyName ) )
+				, propertyTitle = propertyTitle
 				, recordId      = recordId
 				, value         = prc.record[ propertyName ] ?: ""
 				, rendered      = renderedValue

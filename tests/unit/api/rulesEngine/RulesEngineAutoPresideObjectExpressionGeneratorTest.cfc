@@ -2,6 +2,25 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	function run() {
 		describe( "generateExpressionsForProperty()", function(){
+			it( "should generate the conditional-label expression instead of a formula-text expression", function(){
+				var builder = _getBuilder();
+				_mockContexts( "elf_test_object" );
+				var expressions = builder.generateExpressionsForProperty(
+					  objectName         = "elf_test_object"
+					, propertyDefinition = {
+						  name            = "status_label"
+						, type            = "string"
+						, formula         = "concat( 15, '.', id )"
+						, customFieldKind = "conditional_label"
+						, autofilter      = true
+					}
+				);
+
+				expect( expressions.len() ).toBe( 1 );
+				expect( expressions[ 1 ].id ).toBe( "presideobject_conditionallabelmatches_elf_test_object.status_label" );
+				expect( expressions[ 1 ].filterHandler ).toBe( "rules.dynamic.presideObjectExpressions.ConditionalLabelMatches.prepareFilters" );
+			} );
+
 			it( "should return a configured '(property) is/is not empty' expression for a string property that is nullable", function(){
 				var builder      = _getBuilder();
 				var objectName   = "some_object";

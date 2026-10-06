@@ -209,7 +209,13 @@
 						</th>
 					</cfif>
 					<cfloop array="#args.gridFields#" index="fieldName">
-						<th class="<cfif !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName )>no-sorting</cfif>"
+						<cfset propertySortable = getSingleton( "presideObjectService" ).getObjectPropertyAttribute(
+							  objectName    = args.objectName
+							, propertyName  = fieldName
+							, attributeName = "datamanagerSortable"
+							, defaultValue  = true
+						) />
+						<th class="<cfif !IsTrue( propertySortable ) || ( !isEmpty( args.sortableFields ) and !arrayContains( args.sortableFields, fieldName ) )>no-sorting</cfif>"
 							data-field="#ListLast( fieldName, '.' )#"
 							data-class="<cfif ArrayFindNoCase( args.centerAlignFields, fieldName )>dt-align-center<cfelseif ArrayFindNoCase( args.rightAlignFields, fieldName )>dt-align-right<cfelse></cfif>"
 						>

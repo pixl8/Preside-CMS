@@ -14,6 +14,7 @@ component {
 	 * @enumService.inject                 enumService
 	 * @sessionStorage.inject              sessionStorage
 	 * @rulesEngineFilterService.inject    featureInjector:rulesEngine:rulesEngineFilterService
+	 * @customFieldsService.inject         featureInjector:customFields:customFieldsService
 	 * @dataManagerDefaults.inject         coldbox:setting:dataManager.defaults
 	 */
 	public any function init(
@@ -22,6 +23,7 @@ component {
 		, required any enumService
 		, required any sessionStorage
 		,          any rulesEngineFilterService
+		,          any customFieldsService
 		,          any dataManagerDefaults
 	) {
 		_setDataManagerService( arguments.dataManagerService );
@@ -29,6 +31,7 @@ component {
 		_setEnumService( arguments.enumService );
 		_setSessionStorage( arguments.sessionStorage );
 		_setRulesEngineFilterService( arguments.rulesEngineFilterService ?: NullValue() );
+		variables.customFieldsService = arguments.customFieldsService ?: NullValue();
 		_setDataManagerDefaults( IsStruct( arguments.dataManagerDefaults ?: "" ) ? arguments.dataManagerDefaults : {} );
 
 		return this;
@@ -88,7 +91,8 @@ component {
 	 */
 	public array function listAvailableColumns(
 		  required string objectName
-		,          array  extraFields = []
+		,          array  extraFields             = []
+		,          string listingContextKey       = ""
 	) {
 		var customized = _getCustomizationService().runCustomization(
 			  objectName    = arguments.objectName
@@ -338,7 +342,7 @@ component {
 		};
 	}
 
-	public array function listQuickFilters( required string objectName, array extraFields=[] ) {
+	public array function listQuickFilters( required string objectName, array extraFields=[], string listingContextKey="" ) {
 		var customized = _getCustomizationService().runCustomization(
 			  objectName    = arguments.objectName
 			, action        = "getListingQuickFilterFields"
@@ -413,24 +417,27 @@ component {
 
 	public struct function getToolbarConfig(
 		  required string  objectName
-		,          string  listingKey        = arguments.objectName
-		,          string  contextKey        = ""
-		,          string  contextLabel      = ""
-		,          boolean namedContext      = false
-		,          array   gridFields        = listDefaultColumns( arguments.objectName )
-		,          array   hiddenGridFields  = _getDataManagerService().listHiddenGridFields( arguments.objectName )
-		,          boolean allowFilter       = true
-		,          boolean allowColumnFilter = true
-		,          boolean allowSearch       = true
-		,          boolean allowManageFilter = false
-		,          string  manageFilterLink  = ""
-		,          boolean allowSavedViews   = false
-		,          boolean canShareViews     = false
+		,          string  listingKey             = arguments.objectName
+		,          string  contextKey             = ""
+		,          string  contextLabel           = ""
+		,          boolean namedContext           = false
+		,          array   gridFields             = listDefaultColumns( arguments.objectName )
+		,          array   hiddenGridFields       = _getDataManagerService().listHiddenGridFields( arguments.objectName )
+		,          boolean allowFilter            = true
+		,          boolean allowColumnFilter      = true
+		,          boolean allowSearch            = true
+		,          boolean allowManageFilter      = false
+		,          string  manageFilterLink       = ""
+		,          boolean allowSavedViews        = false
+		,          boolean canShareViews          = false
 	) {
 		var extraFields = Duplicate( arguments.gridFields );
 		ArrayAppend( extraFields, arguments.hiddenGridFields, true );
 
-		var available = listAvailableColumns( objectName=arguments.objectName, extraFields=extraFields );
+		var available = listAvailableColumns(
+			  objectName  = arguments.objectName
+			, extraFields = extraFields
+		);
 		var pref      = getUserPreference(
 			  objectName  = arguments.objectName
 			, listingKey  = arguments.listingKey
@@ -482,7 +489,10 @@ component {
 		return {
 			  savedFilters         = _serializeSavedFilters( arguments.objectName )
 			, segmentationFilters  = _serializeSegmentationFilters( arguments.objectName )
-			, quickFilters         = ( arguments.allowFilter && arguments.allowColumnFilter ) ? listQuickFilters( objectName=arguments.objectName, extraFields=extraFields ) : []
+			, quickFilters         = ( arguments.allowFilter && arguments.allowColumnFilter ) ? listQuickFilters(
+				  objectName  = arguments.objectName
+				, extraFields = extraFields
+			  ) : []
 			, columns              = columns
 			, currentColumns       = current
 			, defaultColumns       = defaultColumns
@@ -1926,7 +1936,10 @@ component {
 		var propType     = prop.type ?: "string";
 		var formula      = Len( Trim( prop.formula ?: "" ) ) > 0;
 
-		if ( !Len( propName ) || !autofilter || renderer == "none" || renderer == "encrypted" || relationship == "select-data-view" ) {
+		if ( !Len( propName ) || !autofilter || relationship == "select-data-view" ) {
+			return {};
+		}
+		if ( ( renderer == "none" || renderer == "encrypted" ) && !$helpers.isTrue( prop.customField ?: "" ) ) {
 			return {};
 		}
 		if ( IsBoolean( prop.secret ?: "" ) && prop.secret ) {
@@ -1936,7 +1949,10 @@ component {
 			return {};
 		}
 		if ( formula ) {
-			return {};
+			if ( !$helpers.isTrue( prop.customField ?: "" ) || !autofilter ) {
+				return {};
+			}
+			return _quickFilterForCustomField( arguments.objectName, prop );
 		}
 
 		var label = $translatePropertyName( arguments.objectName, propName, "listing" );
@@ -1985,6 +2001,58 @@ component {
 			default:
 				base.type         = "text";
 				base.expressionId = "presideobject_stringmatches_#arguments.objectName#.#propName#";
+				return base;
+		}
+	}
+
+	private struct function _quickFilterForCustomField( required string objectName, required struct propertyDefinition ) {
+		var prop     = arguments.propertyDefinition;
+		var propName = prop.name ?: "";
+		var propType = prop.type ?: "string";
+		var dataType = prop.customFieldDataType ?: "";
+		var base     = {
+			  field = propName
+			, label = $translatePropertyName( arguments.objectName, propName, "listing" )
+			, type  = propType
+		};
+
+		if ( ( prop.customFieldKind ?: "" ) == "conditional_label" && !IsNull( variables.customFieldsService ) ) {
+			base.type         = "enum";
+			base.expressionId = "presideobject_conditionallabelmatches_#arguments.objectName#.#propName#";
+			base.options      = variables.customFieldsService.listConditionalRuleOptions( prop.customFieldId ?: "" );
+			return base;
+		}
+
+		if ( dataType == "lookup" ) {
+			base.type         = "enum";
+			base.expressionId = "presideobject_formulamatches_#arguments.objectName#.#propName#";
+			base.options      = prop.customFieldLookupOptions ?: [];
+			return base;
+		}
+
+		if ( dataType == "object_ref" && Len( Trim( prop.relatedto ?: "" ) ) && ( prop.relatedto ?: "none" ) != "none" ) {
+			base.type         = "text";
+			base.expressionId = "presideobject_formulamatches_#arguments.objectName#.#propName#";
+			return base;
+		}
+
+		switch( propType ) {
+			case "boolean":
+				base.type         = "boolean";
+				base.expressionId = "presideobject_booleanformulaistrue_#arguments.objectName#.#propName#";
+				return base;
+			case "date":
+				base.type         = "date";
+				base.expressionId = "presideobject_formulainrange_#arguments.objectName#.#propName#";
+				base.isDate       = dataType == "date";
+				return base;
+			case "numeric":
+				base.type         = "numeric";
+				base.expressionId = "presideobject_formulacompares_#arguments.objectName#.#propName#";
+				return base;
+			default:
+				base.type         = "text";
+				base.expressionId = "presideobject_formulamatches_#arguments.objectName#.#propName#";
 				return base;
 		}
 	}

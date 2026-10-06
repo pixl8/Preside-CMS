@@ -56,6 +56,7 @@ component displayName="AssetManager Service" {
 		if ( !$isFeatureEnabled( "assetManager" ) ) {
 			return;
 		}
+
 		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( _getConfiguredFolders() );
 	}

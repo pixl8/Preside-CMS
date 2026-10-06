@@ -2442,6 +2442,10 @@ component displayName="Preside Object Service" {
 		return _getObject( arguments.objectName ).meta.properties;
 	}
 
+	public void function setObjectAttribute( required string objectName, required string attributeName, required any value ) {
+		_getObject( arguments.objectName ).meta[ arguments.attributeName ] = arguments.value;
+	}
+
 	public any function getObjectProperty( required string objectName, required string propertyName ) {
 		var props = _getObject( arguments.objectName ).meta.properties;
 

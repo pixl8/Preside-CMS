@@ -636,10 +636,14 @@ component displayName="Forms service" {
 
 	    formControlArgs.type         = fieldType;
 	    formControlArgs.sourceObject = arguments.objectName;
-	    formControlArgs.label        = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.title"      , defaultValue=arguments.fieldName );
+	    formControlArgs.label        = i18n.translatePropertyName( arguments.objectName, arguments.fieldName );
 	    formControlArgs.placeholder  = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.placeholder", defaultValue="" );
 	    formControlArgs.help         = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.help"       , defaultValue="" );
 	    formControlArgs.object       = formControlArgs.relatedto ?: "";
+
+	    if ( Len( Trim( fieldAttributes.customFieldHelp ?: "" ) ) ) {
+	    	formControlArgs.help = fieldAttributes.customFieldHelp;
+	    }
 
 	    return renderFormControl( argumentCollection = formControlArgs );
 	}

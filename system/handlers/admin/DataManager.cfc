@@ -10,6 +10,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="dataExportTemplateService"        inject="featureInjector:dataExport:dataExportTemplateService";
 	property name="scheduledExportService"           inject="featureInjector:dataExport:scheduledExportService";
 	property name="formsService"                     inject="formsService";
+	property name="customFieldsService"              inject="featureInjector:customFields:customFieldsService";
 	property name="siteService"                      inject="featureInjector:sites:siteService";
 	property name="versioningService"                inject="versioningService";
 	property name="rulesEngineFilterService"         inject="featureInjector:rulesEngine:rulesEngineFilterService";
@@ -772,7 +773,7 @@ component extends="preside.system.base.AdminHandler" {
 		var field        = rc.field        ?: "";
 		var formControl  = {};
 		var recordCount  = ListLen( Trim( ids ) );
-		var fieldName    = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
+		var fieldName    = translatePropertyName( objectName, field );
 		var listingView  = event.buildAdminLink( objectName=objectName, operation="listing" );
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
@@ -2321,7 +2322,7 @@ component extends="preside.system.base.AdminHandler" {
 			, args           = { objectName=objectName, actions=actions }
 		);
 
-		announceInterception( "postExtraTopRightButtonsForViewRecord", { objectName=objectName, actions=actions } );
+		announceInterception( "postExtraTopRightButtonsForViewRecord", { objectName=objectName, recordId=recordId, actions=actions } );
 
 		return actions;
 	}
@@ -3970,7 +3971,7 @@ component extends="preside.system.base.AdminHandler" {
 		var batchAll    = isTrue( args.batchAll ?: "" );
 		var recordCount = args.recordCount ?: ListLen( ids );
 		var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-		var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
+		var fieldName   = translatePropertyName( object, field );
 
 		args.fieldFormControl = formsService.renderFormControlForObjectField(
 		      objectName = object
@@ -5167,12 +5168,14 @@ component extends="preside.system.base.AdminHandler" {
 		  required string objectName
 		,          struct args = {}
 	) {
-		return customizationService.runCustomization(
+		var formName = customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "getEditRecordFormName"
 			, defaultHandler = "admin.datamanager._getEditRecordFormName"
 			, args           = { objectName=objectName, args=args }
 		);
+
+		return _mergeCustomFieldRecordForm( arguments.objectName, formName, "edit" );
 	}
 
 	private string function _getDefaultCloneFormName( required string objectName ) {
@@ -5186,12 +5189,30 @@ component extends="preside.system.base.AdminHandler" {
 
 
 	private string function _getDefaultAddFormName( required string objectName ) {
-		return customizationService.runCustomization(
+		var formName = customizationService.runCustomization(
 			  objectName     = objectName
 			, action         = "getAddRecordFormName"
 			, defaultHandler = "admin.datamanager._getAddRecordFormName"
 			, args           = { objectName=objectName }
 		);
+
+		return _mergeCustomFieldRecordForm( arguments.objectName, formName, "add" );
+	}
+
+	private string function _mergeCustomFieldRecordForm( required string objectName, required string formName, required string operation ) {
+		if ( !isFeatureEnabled( "customFields" ) || !Len( Trim( arguments.formName ) ) ) {
+			return arguments.formName;
+		}
+
+		try {
+			return customFieldsService.getMergedRecordFormName(
+				  objectName   = arguments.objectName
+				, baseFormName = arguments.formName
+				, operation    = arguments.operation
+			);
+		} catch ( any e ) {
+			return arguments.formName;
+		}
 	}
 
 	private string function _getDefaultQuickAddFormName( required string objectName ) {

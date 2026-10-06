@@ -448,6 +448,68 @@ component displayName="RulesEngine Expression Service" {
 	 * Allows developers to dynamically add a new rules engine condition
 	 *
 	 */
+	/**
+	 * Drops auto-generated expressions for an object so they rebuild
+	 * on the next request that needs them.
+	 *
+	 * @autodoc true
+	 */
+	public void function clearDynamicExpressionsForObject( required string objectName ) {
+		variables._lazyLoadDone = variables._lazyLoadDone ?: {};
+		StructDelete( variables._lazyLoadDone, arguments.objectName );
+
+		var expressions = _getExpressions();
+		var toDelete    = [];
+
+		for( var expressionId in expressions ) {
+			var filterObjects = expressions[ expressionId ].filterObjects ?: [];
+			if ( ArrayFindNoCase( filterObjects, arguments.objectName ) && ReFindNoCase( "^presideobject_", expressionId ) ) {
+				ArrayAppend( toDelete, expressionId );
+			}
+		}
+
+		for( var expressionId in toDelete ) {
+			StructDelete( expressions, expressionId );
+		}
+	}
+
+	/**
+	 * Rebuilds auto-generated expressions for an object and replaces
+	 * the cached JSON files the filter and condition builders download.
+	 *
+	 * @autodoc true
+	 */
+	public array function invalidateAutoExpressionCache( required string objectName ) {
+		var contexts = [];
+
+		clearDynamicExpressionsForObject( arguments.objectName );
+		_clearRoleLimitCache( arguments.objectName );
+
+		try {
+			contexts = _getContextService().getObjectContexts( arguments.objectName );
+		} catch ( any e ) {
+			contexts = [];
+		}
+
+		_clearGeneratedExpressionFiles( objectName=arguments.objectName, contexts=contexts );
+
+		return contexts;
+	}
+
+	public void function refreshAutoExpressionsForObject( required string objectName, string locale="" ) {
+		if ( Len( Trim( arguments.locale ) ) ) {
+			$i18n.setFwLocale( arguments.locale );
+		}
+
+		var contexts = invalidateAutoExpressionCache( arguments.objectName );
+
+		getExpressionsFile( filterObject=arguments.objectName, includeRoleLimits=false );
+
+		for( var contextId in contexts ) {
+			getExpressionsFile( context=contextId, includeRoleLimits=false );
+		}
+	}
+
 	public void function addExpression(
 		  required string id
 		, required string expressionHandler
@@ -514,11 +576,11 @@ component displayName="RulesEngine Expression Service" {
 	 * containing json representation of all expressions for the given object
 	 *
 	 */
-	public string function getExpressionsFile( string context="", string filterObject="", string excludeTags="" ) {
+	public string function getExpressionsFile( string context="", string filterObject="", string excludeTags="", boolean includeRoleLimits=true ) {
 		var fileName   = "";
 		var filePath   = GetTempDirectory();
 		var locale     = $i18n.getFwLocale();
-		var roleLimits = getObjectFieldsExpressionRoleLimits( arguments.filterObject );
+		var roleLimits = arguments.includeRoleLimits ? getObjectFieldsExpressionRoleLimits( arguments.filterObject ) : {};
 		var userRoles  = StructCount( roleLimits ) ? _getAdminUserRoles() : [];
 		var suffix     = arguments.excludeTags;
 
@@ -594,6 +656,87 @@ component displayName="RulesEngine Expression Service" {
 			}
 		}
 		return false;
+	}
+
+	private void function _clearRoleLimitCache( required string objectName ) {
+		var cache    = _getRulesEngineExpressionCache();
+		var toDelete = [];
+
+		for( var cacheKey in cache ) {
+			if ( cacheKey.endsWith( "_#arguments.objectName#" ) || FindNoCase( "_#arguments.objectName#_", cacheKey ) ) {
+				ArrayAppend( toDelete, cacheKey );
+			}
+		}
+
+		for( var cacheKey in toDelete ) {
+			StructDelete( cache, cacheKey );
+		}
+	}
+
+	private void function _clearGeneratedExpressionFiles( required string objectName, array contexts=[] ) {
+		variables._generatedExpressionFiles = variables._generatedExpressionFiles ?: {};
+
+		var tempDir   = GetTempDirectory();
+		var fileNames = {};
+
+		for( var fileName in variables._generatedExpressionFiles ) {
+			fileNames[ fileName ] = true;
+		}
+
+		try {
+			for( var fileName in DirectoryList( tempDir, false, "name", function( path ){
+				return ReFindNoCase( "^(filter|condition)expressions-.+\.json$", ListLast( path, "/" & Chr( 92 ) ) ) > 0;
+			} ) ) {
+				fileNames[ fileName ] = true;
+			}
+		} catch ( any e ) {}
+
+		for( var fileName in fileNames ) {
+			if ( !_expressionFileIsForObject( fileName, arguments.objectName, arguments.contexts ) ) {
+				continue;
+			}
+
+			StructDelete( variables._generatedExpressionFiles, fileName );
+
+			if ( FileExists( tempDir & fileName ) ) {
+				try {
+					FileDelete( tempDir & fileName );
+				} catch ( any e ) {}
+			}
+		}
+	}
+
+	private boolean function _expressionFileIsForObject( required string fileName, required string objectName, required array contexts ) {
+		var objectToken = _expressionFileToken( arguments.objectName );
+
+		if ( ReFindNoCase( "^filterexpressions-[^-]+-#objectToken#-[0-9A-Fa-f]+\.json$", arguments.fileName ) ) {
+			return true;
+		}
+
+		for( var contextId in arguments.contexts ) {
+			var contextToken = _expressionFileToken( contextId );
+			if ( ReFindNoCase( "^conditionexpressions-[^-]+-#contextToken#-[0-9A-Fa-f]+\.json$", arguments.fileName ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private string function _expressionFileToken( required string value ) {
+		var escaped = "";
+		var i       = 0;
+
+		for( i = 1; i <= Len( arguments.value ); i++ ) {
+			var character = Mid( arguments.value, i, 1 );
+			if ( ReFind( "[a-zA-Z0-9_]", character ) ) {
+				escaped &= character;
+			} else {
+				escaped &= Chr( 92 ) & character;
+			}
+		}
+
+		return escaped;
 	}
 
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
