@@ -306,6 +306,7 @@ component {
 		if ( kind == "static" ) {
 			data.data_type           = Trim( merged.data_type      ?: "" );
 			data.related_object      = Trim( merged.related_object ?: "" );
+			data.related_multiple    = data.data_type == "object_ref" && IsBoolean( merged.related_multiple ?: "" ) && merged.related_multiple;
 			data.type_config         = customFieldTypesService.buildTypeConfig( dataType=data.data_type, formData=merged );
 			data.include_in_add_form = StructKeyExists( merged, "include_in_add_form" ) ? merged.include_in_add_form : true;
 			data.include_in_edit_form = StructKeyExists( merged, "include_in_edit_form" ) ? merged.include_in_edit_form : true;

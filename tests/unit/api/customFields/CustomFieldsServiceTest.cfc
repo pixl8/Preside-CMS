@@ -485,6 +485,23 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( Val( generalTab.fieldsets[ 1 ].fields[ 1 ].sortOrder ) ).toBe( 1000000005 );
 				expect( generalTab.fieldsets[ 1 ].fields[ 1 ].required ).toBeTrue();
 			} );
+
+			it( "should offer a multiple object picker when a related record allows more than one", function(){
+				var svc        = _getService();
+				var definition = "";
+				var field      = {};
+
+				variables.mockTypesService.$( "getType", { control="objectPicker" } );
+
+				definition = svc.buildRecordFormDefinition( [
+					{ key="related_record", label="Related record", data_type="object_ref", related_object="cobj_e2e_store_oct7", related_multiple=true, form_placement="auto", kind="static" }
+				] );
+				field = definition.tabs[ 1 ].fieldsets[ 1 ].fields[ 1 ];
+
+				expect( field.control ).toBe( "objectPicker" );
+				expect( field.object ).toBe( "cobj_e2e_store_oct7" );
+				expect( field.multiple ).toBeTrue();
+			} );
 		} );
 
 		describe( "deletion confirmation", function(){

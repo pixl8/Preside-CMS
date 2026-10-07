@@ -35,6 +35,7 @@ component displayname="Custom field" extends="preside.system.base.SystemPresideO
 	property name="data_type"   type="string" dbtype="varchar" maxlength=30 required=false enum="customFieldDataType";
 	property name="type_config" type="string" dbtype="text" required=false autofilter=false adminRenderer="none";
 	property name="related_object" type="string" dbtype="varchar" maxlength=100 required=false control="dataManagerObjectPicker";
+	property name="related_multiple" type="boolean" dbtype="boolean" required=false default=false renderer="boolean";
 	property name="conditional_label_mode" type="string" dbtype="varchar" maxlength=20 required=false default="single" enum="customFieldConditionalLabelMode";
 
 	property name="aggregate_property"       type="string" dbtype="varchar" maxlength=100 required=false control="customFieldAggregateProperty";

@@ -65,6 +65,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		_validateDisplayConfig( argumentCollection=arguments );
 		_serialiseDisplayConfig( argumentCollection=arguments );
 		_normaliseFormPlacement( argumentCollection=arguments );
+		_normaliseRelatedMultiple( argumentCollection=arguments );
 	}
 
 	private string function getEditRecordFormName( event, rc, prc, args={} ) {
@@ -727,6 +728,14 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		args.formData.form_tab_label       = prepared.form_tab_label;
 		args.formData.form_fieldset        = prepared.form_fieldset;
 		args.formData.form_fieldset_label  = prepared.form_fieldset_label;
+	}
+
+	private void function _normaliseRelatedMultiple( event, rc, prc, args={} ) {
+		if ( ( prc.record.data_type ?: "" ) != "object_ref" ) {
+			return;
+		}
+
+		args.formData.related_multiple = IsBoolean( args.formData.related_multiple ?: "" ) && args.formData.related_multiple;
 	}
 
 	private string function _sortReturnLink( event, rc, prc, args={}, required string targetObject ) {

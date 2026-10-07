@@ -38,6 +38,13 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( mapped.field_value ).toBe( "hello" );
 				expect( StructKeyExists( mapped, "shorttext_value" ) ).toBeFalse();
 			} );
+
+			it( "should store several related record ids as one list", function(){
+				var mapped = _getService().mapValueToTypedColumns( "object_ref", [ "aaa", " bbb ", "" ] );
+
+				expect( mapped.field_value ).toBe( "aaa,bbb" );
+				expect( mapped.shorttext_value ).toBe( "aaa,bbb" );
+			} );
 		} );
 
 		describe( "getDisplayConfig()", function(){
@@ -143,6 +150,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			, textarea = { control="textarea" , type="string", typedColumn=""               , renderer="plaintext" }
 			, integer  = { control="spinner"  , type="numeric", typedColumn="int_value"     , renderer="integer"   }
 			, boolean  = { control="yesNoSwitch", type="boolean", typedColumn="boolean_value", renderer="boolean" }
+			, object_ref = { control="objectPicker", type="string", typedColumn="shorttext_value", renderer="manyToOne" }
 		} );
 	}
 

@@ -3,6 +3,7 @@
 	<tab id="default">
 		<fieldset id="object_ref" sortorder="30">
 			<field binding="custom_field.related_object" control="dataManagerObjectPicker" required="true" />
+			<field binding="custom_field.related_multiple" control="yesNoSwitch" />
 		</fieldset>
 	</tab>
 </form>

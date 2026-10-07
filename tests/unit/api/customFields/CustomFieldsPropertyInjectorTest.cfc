@@ -314,6 +314,31 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( definition.adminViewGroup ).toBe( "customFields" );
 				expect( definition.sortOrder ).toBe( 5 );
 			} );
+
+			it( "should render a multiple related record as a list and read the full value", function(){
+				var injector = _getInjector();
+
+				variables.mockTypesService.$( "getType" ).$args( "object_ref" ).$results( { type="string", control="objectPicker" } );
+				variables.mockTypesService.$( "getControl" ).$args( "object_ref" ).$results( "objectPicker" );
+				variables.mockTypesService.$( "getTypedColumn" ).$args( "object_ref" ).$results( "shorttext_value" );
+
+				var multiple = injector.buildPropertyDefinition(
+					  field      = { id=20, kind="static", data_type="object_ref", key="related_record", label="Related record", related_object="cobj_e2e_store_oct7", related_multiple=true }
+					, objectName = "elf_test_object"
+				);
+				var single = injector.buildPropertyDefinition(
+					  field      = { id=21, kind="static", data_type="object_ref", key="related_record", label="Related record", related_object="cobj_e2e_store_oct7", related_multiple=false }
+					, objectName = "elf_test_object"
+				);
+
+				expect( multiple.renderer ).toBe( "customFieldObjectRef" );
+				expect( multiple.multiple ).toBeTrue();
+				expect( multiple.relatedto ).toBe( "cobj_e2e_store_oct7" );
+				expect( multiple.formula ).toInclude( "field_value" );
+				expect( multiple.formula ).notToInclude( "shorttext_value" );
+				expect( single.renderer ).toBe( "manyToOne" );
+				expect( single.formula ).toInclude( "shorttext_value" );
+			} );
 		} );
 	}
 

@@ -197,7 +197,12 @@ component {
 
 			if ( dataType == "object_ref" && Len( Trim( field.related_object ?: "" ) ) ) {
 				definition.relatedto = field.related_object;
-				definition.renderer  = "manyToOne";
+				if ( $helpers.isTrue( field.related_multiple ?: "" ) ) {
+					definition.renderer = "customFieldObjectRef";
+					definition.multiple = true;
+				} else {
+					definition.renderer = "manyToOne";
+				}
 			}
 			if ( dataType == "lookup" ) {
 				definition.renderer = "customFieldLookup";
@@ -272,7 +277,11 @@ component {
 		var table       = presideObjectService.getObjectAttribute( valueObject, "tableName" );
 		var typedCol    = customFieldTypesService.getTypedColumn( arguments.field.data_type ?: "text" );
 		var selectCol   = Len( Trim( typedCol ) ) ? typedCol : "field_value";
-		var idField = presideObjectService.getIdField( arguments.objectName );
+		var idField     = presideObjectService.getIdField( arguments.objectName );
+
+		if ( ( arguments.field.data_type ?: "" ) == "object_ref" && $helpers.isTrue( arguments.field.related_multiple ?: "" ) ) {
+			selectCol = "field_value";
+		}
 
 		return "( select #selectCol# from #table# where field = #_sqlFieldId( arguments.field.id )# and record = ${prefix}#idField# )";
 	}

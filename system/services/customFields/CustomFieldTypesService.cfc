@@ -138,7 +138,8 @@ component {
 	}
 
 	public struct function mapValueToTypedColumns( required string dataType, required any value ) {
-		var mapped      = { field_value=ToString( arguments.value ?: "" ) };
+		var stored      = arguments.dataType == "object_ref" ? _objectRefList( arguments.value ) : arguments.value;
+		var mapped      = { field_value=ToString( stored ?: "" ) };
 		var typedColumn = getTypedColumn( arguments.dataType );
 
 		if ( !Len( Trim( typedColumn ) ) ) {
@@ -159,11 +160,27 @@ component {
 				mapped.date_value = IsDate( arguments.value ) ? arguments.value : "";
 			break;
 			case "shorttext_value":
-				mapped.shorttext_value = Left( ToString( arguments.value ?: "" ), 255 );
+				mapped.shorttext_value = Left( ToString( stored ?: "" ), 255 );
 			break;
 		}
 
 		return mapped;
+	}
+
+	private string function _objectRefList( required any value ) {
+		if ( IsArray( arguments.value ) ) {
+			var ids = [];
+
+			for ( var id in arguments.value ) {
+				if ( Len( Trim( id ) ) ) {
+					ArrayAppend( ids, Trim( id ) );
+				}
+			}
+
+			return ArrayToList( ids );
+		}
+
+		return Trim( ToString( arguments.value ?: "" ) );
 	}
 
 	private struct function _getDisplayDefaults( required string dataType ) {

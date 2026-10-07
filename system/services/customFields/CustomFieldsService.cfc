@@ -1306,8 +1306,9 @@ component {
 		}
 
 		if ( ( arguments.field.data_type ?: "" ) == "object_ref" && Len( Trim( arguments.field.related_object ?: "" ) ) ) {
-			args.control = "objectPicker";
-			args.object  = arguments.field.related_object;
+			args.control  = "objectPicker";
+			args.object   = arguments.field.related_object;
+			args.multiple = _booleanWithDefault( arguments.field.related_multiple ?: "", false );
 		}
 
 		return args;

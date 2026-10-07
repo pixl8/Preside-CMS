@@ -329,14 +329,18 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 			var textFields     = formsService.listTextFields( argumentCollection=arguments, formName=name );
 
 			for( var field in formFields ){
-				var fieldName = arguments.fieldNamePrefix & field & arguments.fieldNameSuffix;
-				if ( ( arguments.autoTrim && !autoTrimFields.disabled.find( field ) ) || autoTrimFields.enabled.find( field ) ) {
-					collection[ field ] = trim( rc[ fieldName ] ?: "" );
+				var fieldName  = arguments.fieldNamePrefix & field & arguments.fieldNameSuffix;
+				var submitted  = rc[ fieldName ] ?: "";
+
+				if ( !IsSimpleValue( submitted ) ) {
+					collection[ field ] = submitted;
+				} else if ( ( arguments.autoTrim && !autoTrimFields.disabled.find( field ) ) || autoTrimFields.enabled.find( field ) ) {
+					collection[ field ] = trim( submitted );
 				} else {
-					collection[ field ] = ( rc[ fieldName ] ?: "" );
+					collection[ field ] = submitted;
 				}
-				if ( ArrayFind( textFields, field ) ) {
-					collection[ field ] = Replace( collection[ fieldName ], Chr(13) & Chr(10), Chr(10), "all" );
+				if ( IsSimpleValue( collection[ field ] ) && ArrayFind( textFields, field ) ) {
+					collection[ field ] = Replace( collection[ field ], Chr(13) & Chr(10), Chr(10), "all" );
 				}
 			}
 		}
