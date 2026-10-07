@@ -40,8 +40,15 @@ describe( 'Custom objects', () => {
 		const exportFileName = `e2e-store-export-${ stamp }`;
 
 		cy.get( 'a.object-listing-data-export-button' ).should( 'be.visible' ).click();
-		cy.get( '.modal iframe, .bootbox iframe' ).should( 'be.visible' ).its( '0.contentDocument.body' ).should( 'not.be.empty' ).then( cy.wrap ).find( 'input[name="filename"]' ).invoke( 'val', exportFileName );
-		cy.get( '.modal .ok-button, .bootbox .ok-button' ).click();
+		cy.get( '.bootbox-body iframe, .modal iframe' ).should( ( $iframe ) => {
+			const frameWindow = $iframe[ 0 ].contentWindow;
+
+			expect( frameWindow && frameWindow.parentPresideBootbox, 'export dialog' ).to.exist;
+			expect( frameWindow.document.querySelector( 'input[name="filename"]' ), 'filename' ).to.exist;
+		} ).then( ( $iframe ) => {
+			$iframe[ 0 ].contentDocument.querySelector( 'input[name="filename"]' ).value = exportFileName;
+		} );
+		cy.get( '.bootbox .ok-button, .modal .ok-button' ).click();
 		cy.readFile( `cypress/downloads/${ exportFileName }.csv`, { timeout : 20000 } ).should( 'include', recordLabel );
 
 		cy.visit( `/admin/datamanager/addRecord/?object=custom_field&target_object=${ objectName }` );
