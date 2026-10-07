@@ -262,8 +262,8 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var chosen     = Trim( record.label_field ?: "" );
 		var objectName = customObjectsService.getObjectName( record.key ?: "" );
 
-		if ( !Len( chosen ) || CompareNoCase( chosen, "label" ) == 0 ) {
-			return translateResource( uri="preside-objects.custom_object:field.label_field.option.label" );
+		if ( !Len( chosen ) || IsTrue( record.has_label_field ?: "" ) ) {
+			return "";
 		}
 
 		for ( var field in customFieldsService.listFields( objectName=objectName, includeInactive=true ) ) {
