@@ -19,7 +19,8 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( StructKeyExists( meta.properties, "label" ) ).toBeTrue();
 				expect( meta.properties.label.required ).toBeTrue();
 				expect( meta.properties.custom_object.control ).toBe( "none" );
-				expect( meta.properties.custom_object.excludeFromExport ).toBeTrue();
+				expect( meta.properties.custom_object.excludeDataExport ).toBeTrue();
+				expect( meta.properties.custom_object.autofilter ).toBeFalse();
 				expect( meta.datamanagerGroup ).toBe( "cobj_stores" );
 			} );
 

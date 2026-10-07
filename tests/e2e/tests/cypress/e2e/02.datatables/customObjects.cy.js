@@ -18,7 +18,7 @@ describe( 'Custom objects', () => {
 		cy.setListingLabPreference( 'on' );
 	} );
 
-	it( 'creates a custom object, lists it under its category, stores a record and accepts a custom field', () => {
+	it( 'creates a custom object, lists it under its category, stores a record, exports it and accepts a custom field', () => {
 		cy.visit( '/admin/datamanager/addRecord/?object=custom_object' );
 		cy.get( 'form.form-horizontal' ).should( 'be.visible' );
 		cy.get( 'input[name="label"]' ).clear().type( plural );
@@ -34,7 +34,15 @@ describe( 'Custom objects', () => {
 		cy.visit( `/admin/datamanager/addRecord/?object=${ objectName }` );
 		cy.get( 'input[name="label"]' ).clear().type( recordLabel );
 		cy.get( 'form.form-horizontal button[type="submit"], form button[type="submit"]' ).first().click();
+		cy.visit( `/admin/datamanager/object/?id=${ objectName }` );
 		cy.contains( recordLabel ).should( 'be.visible' );
+
+		const exportFileName = `e2e-store-export-${ stamp }`;
+
+		cy.get( 'a.object-listing-data-export-button' ).should( 'be.visible' ).click();
+		cy.get( '.modal iframe, .bootbox iframe' ).should( 'be.visible' ).its( '0.contentDocument.body' ).should( 'not.be.empty' ).then( cy.wrap ).find( 'input[name="filename"]' ).invoke( 'val', exportFileName );
+		cy.get( '.modal .ok-button, .bootbox .ok-button' ).click();
+		cy.readFile( `cypress/downloads/${ exportFileName }.csv`, { timeout : 20000 } ).should( 'include', recordLabel );
 
 		cy.visit( `/admin/datamanager/addRecord/?object=custom_field&target_object=${ objectName }` );
 		cy.get( 'form.webflow-form' ).should( 'be.visible' );

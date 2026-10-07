@@ -181,7 +181,8 @@ component {
 		if ( StructKeyExists( meta.properties, "custom_object" ) ) {
 			meta.properties.custom_object.control            = "none";
 			meta.properties.custom_object.adminRenderer      = "none";
-			meta.properties.custom_object.excludeFromExport  = true;
+			meta.properties.custom_object.excludeDataExport  = true;
+			meta.properties.custom_object.autofilter         = false;
 		}
 
 		if ( hasLabel ) {

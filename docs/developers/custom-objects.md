@@ -6,7 +6,7 @@ Privileged admins can define record stores in the database. Each definition beco
 
 `psys_custom_object` holds the definition: label, key, category, icon and whether records have a label.
 
-`psys_custom_object_record` holds every record of every custom object. `datecreated` and `datemodified` are always present. The label column is always in the table; a definition can hide it. When a definition includes the label, add and edit forms require it. The `custom_object` foreign key says which definition a row belongs to.
+`psys_custom_object_record` holds every record of every custom object. `datecreated` and `datemodified` are always present. The label column is always in the table; a definition can hide it. When a definition includes the label, add and edit forms require it. The `custom_object` foreign key says which definition a row belongs to. Data export and rules engine expressions leave that column out.
 
 Custom field values for every custom object share one table, `_cfv_custom_object_record`, created with the normal startup schema sync. Record ids are unique across that shared records table, so values stay separated by record and field. Creating a definition or a field does not run DDL, and deleting one does not drop a table.
 

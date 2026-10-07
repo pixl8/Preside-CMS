@@ -53,7 +53,7 @@ Free-form SQL formulas are out of v1.
 - Static fields appear on the standard add and edit forms. By default they sit on a **Custom fields** tab. A field can be limited to the add form, the edit form, or both, or placed on an existing tab and fieldset (or a new tab and fieldset created for custom fields). A field on those forms can be marked **Required**; an empty value then fails form validation. Values are edited on those forms.
 - Aggregates, related data and conditional labels are read-only everywhere and are not added to add or edit forms.
 - Each field can be marked **Show in datamanager listings** (on by default). When off, it is omitted from the listing column picker.
-- Each field can be marked **Allow in listing filters** (on by default, always off for conditional labels). When off, it is omitted from listing filters and rules-engine auto expressions.
+- Each field can be marked **Allow in listing filters** (on by default, always off for conditional labels). When off, it is omitted from listing filters and rules-engine auto expressions. Lookup fields use a "matches option(s)" expression whose choices are that field's lookup values.
 - Each field can be marked **Include in data export** (on by default). When off, it is omitted from export field pickers and default export columns.
 - Stored fields can be marked **Batch editable** (on by default). Flagged static fields appear in the listing batch-edit menu and persist through the per-object value table.
 - Deleting a field opens a confirmation screen. The button is labelled **Delete...**. The admin must type the field name. Stored fields report how many records have a value. Confirming runs the standard data manager delete, including the delete permission and the audit log.

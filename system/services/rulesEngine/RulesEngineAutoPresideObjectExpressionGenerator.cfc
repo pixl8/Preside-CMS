@@ -99,7 +99,11 @@ component {
 		if ( !relationship contains "many" ) {
 			switch( propType ) {
 				case "string":
-					if ( isFormula ) {
+					if ( ( propertyDefinition.customFieldDataType ?: "" ) == "lookup" ) {
+						if ( !arrayContainsNoCase( excludedKeys, "LookupFormulaPropertyMatches" ) ) {
+							arrayAppend( expressions, _createLookupMatchesExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+						}
+					} else if ( isFormula ) {
 						if ( !arrayContainsNoCase( excludedKeys, "TextFormulaPropertyMatches" ) ) {
 							arrayAppend( expressions, _createStringFormulaMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 						}
@@ -318,6 +322,42 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createLookupMatchesExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName ) {
+		var expression = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=arguments.propertyDefinition.name );
+		var values     = arguments.propertyDefinition.values ?: [];
+		var labels     = arguments.propertyDefinition.labels ?: [];
+
+		if ( IsSimpleValue( values ) ) {
+			values = ListToArray( values );
+		}
+		if ( IsSimpleValue( labels ) ) {
+			labels = ListToArray( labels );
+		}
+
+		expression.append( {
+			  id                = "presideobject_lookupFormulaMatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
+			, fields            = {
+				  _is       = { fieldType="boolean", variety="isIsNot", required=false, default=true }
+				, enumValue = {
+					  fieldType    = "select"
+					, values       = values
+					, labels       = labels
+					, multiple     = true
+					, sortable     = false
+					, required     = false
+					, default      = ""
+					, defaultLabel = "rules.dynamicExpressions:enumFormulaPropertyMatches.enumValue.default.label"
+				  }
+			  }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.getText"
 		} );
 
 		return expression;

@@ -2,6 +2,32 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	function run() {
 		describe( "generateExpressionsForProperty()", function(){
+			it( "should offer a lookup custom field as a choice of its options", function(){
+				var builder = _getBuilder();
+				_mockContexts( "cobj_lead" );
+				mockPresideObjectService.$( "getIdField", "id" );
+				var expressions = builder.generateExpressionsForProperty(
+					  objectName         = "cobj_lead"
+					, propertyDefinition = {
+						  name                 = "lead_status"
+						, type                 = "string"
+						, formula              = "( select shorttext_value from _cfv_custom_object_record where field = 1 and record = ${prefix}id )"
+						, customFieldDataType  = "lookup"
+						, values               = [ "new", "won" ]
+						, labels               = [ "New", "Won" ]
+						, autofilter           = true
+					}
+				);
+				expect( expressions.len() ).toBe( 1 );
+
+				var lookupExpression = expressions[ 1 ];
+				expect( lookupExpression.fields.enumValue.fieldType ).toBe( "select" );
+				expect( lookupExpression.fields.enumValue.values ).toBe( [ "new", "won" ] );
+				expect( lookupExpression.fields.enumValue.labels ).toBe( [ "New", "Won" ] );
+				expect( lookupExpression.fields.enumValue.multiple ).toBeTrue();
+				expect( lookupExpression.labelHandler ).toBe( "rules.dynamic.presideObjectExpressions.EnumFormulaPropertyMatches.getLabel" );
+			} );
+
 			it( "should generate the conditional-label expression instead of a formula-text expression", function(){
 				var builder = _getBuilder();
 				_mockContexts( "elf_test_object" );
