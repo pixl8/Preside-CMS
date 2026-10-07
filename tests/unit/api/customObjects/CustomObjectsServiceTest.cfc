@@ -63,6 +63,32 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getLabelFieldValidationError()", function(){
+			it( "should accept the built-in label when records have one", function(){
+				var svc = _getService();
+
+				variables.mockFields.$( "listFields", [] );
+
+				expect( svc.getLabelFieldValidationError( "cobj_widget", "label", true ) ).toBe( "" );
+			} );
+
+			it( "should reject the built-in label when records do not have one", function(){
+				var svc = _getService();
+
+				variables.mockFields.$( "listFields", [] );
+
+				expect( svc.getLabelFieldValidationError( "cobj_widget", "label", false ) ).toBe( "preside-objects.custom_object:field.label_field.validation.unknown" );
+			} );
+
+			it( "should accept a custom field that exists on the object", function(){
+				var svc = _getService();
+
+				variables.mockFields.$( "listFields", [ { key="store_note" } ] );
+
+				expect( svc.getLabelFieldValidationError( "cobj_widget", "store_note", false ) ).toBe( "" );
+			} );
+		} );
+
 		describe( "shared value object mapping", function(){
 			it( "should point every custom object at the one shared value object", function(){
 				var valueTables = new preside.system.services.customFields.CustomFieldsValueTableService();

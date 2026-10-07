@@ -225,6 +225,9 @@ component {
 		if ( !Len( chosen ) ) {
 			return "";
 		}
+		if ( CompareNoCase( chosen, "label" ) == 0 ) {
+			return arguments.hasLabelField ? "" : "preside-objects.custom_object:field.label_field.validation.unknown";
+		}
 		if ( !Len( arguments.objectName ) || !IsObject( customFieldsService ) ) {
 			return "preside-objects.custom_object:field.label_field.validation.unknown";
 		}

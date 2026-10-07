@@ -340,7 +340,7 @@ component displayName="Forms service" {
 			if ( ( field.control ?: "" ) == "none" ) {
 				continue;
 			}
-			if ( _isCustomObjectField( arguments.objectName, field ) ) {
+			if ( _isCustomFieldProperty( field ) ) {
 				continue;
 			}
 
@@ -1639,11 +1639,7 @@ component displayName="Forms service" {
 		}
 	}
 
-	private boolean function _isCustomObjectField( required string objectName, required struct field ) {
-		if ( Left( arguments.objectName, 5 ) != "cobj_" ) {
-			return false;
-		}
-
+	private boolean function _isCustomFieldProperty( required struct field ) {
 		return StructKeyExists( arguments.field, "customField" ) && IsBoolean( arguments.field.customField ) && arguments.field.customField;
 	}
 
