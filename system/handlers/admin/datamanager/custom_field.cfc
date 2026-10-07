@@ -4,6 +4,7 @@
 component extends="preside.system.base.EnhancedDataManagerBase" {
 
 	property name="customFieldsService"          inject="customFieldsService";
+	property name="customObjectsService"         inject="featureInjector:customObjects:customObjectsService";
 	property name="formsService"                 inject="formsService";
 	property name="presideObjectService"         inject="presideObjectService";
 	property name="customFieldsPropertyInjector" inject="customFieldsPropertyInjector";
@@ -17,6 +18,22 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	variables.infoCol3              = [ "show_in_listing", "filterable", "data_exportable", "batch_editable" ];
 	variables.tabs                  = [ "lookups", "conditional_labels" ];
 	variables.extraSelectFieldsForViewRecord = [ "lookup_count", "conditional_rule_count", "related_data_relationship", "related_data_property" ];
+
+	private void function rootBreadcrumb( event, rc, prc, args={} ) {
+		var definitionId = _owningCustomObjectId( argumentCollection=arguments );
+
+		if ( !Len( definitionId ) ) {
+			runEvent(
+				  event          = "admin.datamanager._rootBreadcrumb"
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { args=args }
+			);
+			return;
+		}
+
+		_addCustomObjectBreadcrumbs( definitionId );
+	}
 
 	public string function addRecordForm( event, rc, prc, args={} ) {
 		if ( !hasCmsPermission( "customfields.add" ) ) {
@@ -270,10 +287,15 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var targetObject = field.target_object ?: "";
 		var objectTitle  = Len( targetObject ) ? translateResource( uri="preside-objects.#targetObject#:title", defaultValue=targetObject ) : targetObject;
 		var fieldName    = customFieldsService.getDeletionConfirmationName( field );
+		var definitionId = _owningCustomObjectId( targetObject=targetObject );
 		var storesValues = ( field.kind ?: "" ) == "static";
 
 		prc.pageIcon  = "trash";
 		prc.pageTitle = translateResource( uri="preside-objects.custom_field:delete.page.title" );
+
+		if ( Len( definitionId ) ) {
+			_addCustomObjectBreadcrumbs( definitionId );
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="preside-objects.custom_field:title" )
@@ -402,7 +424,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 		args.extraFilters = args.extraFilters ?: [];
 		ArrayAppend( args.extraFilters, { filter={ target_object=targetObject } } );
-		prc.cancelLink = event.buildAdminLink( objectName="custom_field" );
+		prc.cancelLink = _sortReturnLink( argumentCollection=arguments, targetObject=targetObject );
 	}
 
 	private string function buildSortRecordsLink( event, rc, prc, args={} ) {
@@ -436,7 +458,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		var targetObject = _getTargetObject( argumentCollection=arguments );
 
 		if ( Len( targetObject ) ) {
-			args.cancelAction = event.buildAdminLink( objectName="custom_field" );
+			args.cancelAction = _sortReturnLink( argumentCollection=arguments, targetObject=targetObject );
 		}
 
 		return runEvent(
@@ -456,6 +478,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		}
 		if ( Len( targetObject ) ) {
 			customFieldsPropertyInjector.refreshObject( targetObject );
+			args.redirectUrl = _sortReturnLink( argumentCollection=arguments, targetObject=targetObject );
 		}
 	}
 
@@ -646,6 +669,10 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 	private string function _getTargetObject( event, rc, prc, args={} ) {
 		var targetObject = Trim( rc.target_object ?: "" );
 
+		if ( !Len( targetObject ) ) {
+			targetObject = Trim( args.target_object ?: "" );
+		}
+
 		if ( !Len( targetObject ) && !IsSimpleValue( prc.record ?: "" ) ) {
 			targetObject = Trim( prc.record.target_object ?: "" );
 		}
@@ -694,11 +721,106 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 		args.formData.include_in_add_form  = prepared.include_in_add_form;
 		args.formData.include_in_edit_form = prepared.include_in_edit_form;
+		args.formData.form_required        = prepared.form_required;
 		args.formData.form_placement       = prepared.form_placement;
 		args.formData.form_tab             = prepared.form_tab;
 		args.formData.form_tab_label       = prepared.form_tab_label;
 		args.formData.form_fieldset        = prepared.form_fieldset;
 		args.formData.form_fieldset_label  = prepared.form_fieldset_label;
+	}
+
+	private string function _sortReturnLink( event, rc, prc, args={}, required string targetObject ) {
+		var definitionId = _owningCustomObjectId( argumentCollection=arguments, targetObject=arguments.targetObject );
+
+		if ( Len( definitionId ) ) {
+			return event.buildAdminLink(
+				  objectName  = "custom_object"
+				, operation   = "viewRecord"
+				, recordId    = definitionId
+				, queryString = "tab=fields"
+			);
+		}
+
+		return event.buildAdminLink( objectName="custom_field" );
+	}
+
+	private string function _owningCustomObjectId( event, rc, prc, args={}, string targetObject="" ) {
+		if ( !isFeatureEnabled( "customObjects" ) ) {
+			return "";
+		}
+
+		var target = Trim( arguments.targetObject );
+		if ( !Len( target ) ) {
+			target = _targetObjectForBreadcrumb( argumentCollection=arguments );
+		}
+		if ( !Len( target ) || target == "custom_field" || !customObjectsService.isCustomObject( target ) ) {
+			return "";
+		}
+
+		return customObjectsService.getCustomObjectId( target );
+	}
+
+	private string function _targetObjectForBreadcrumb( event, rc, prc, args={} ) {
+		var targetObject = Trim( rc.target_object ?: "" );
+		if ( Len( targetObject ) && targetObject != "custom_field" ) {
+			return targetObject;
+		}
+
+		var record = prc.record ?: "";
+		if ( IsQuery( record ) && record.recordCount ) {
+			if ( ListFindNoCase( record.columnList, "target_object" ) ) {
+				return Trim( record.target_object );
+			}
+			if ( ListFindNoCase( record.columnList, "field" ) && Len( Trim( record.field ) ) ) {
+				return _targetObjectForField( record.field );
+			}
+		} else if ( IsStruct( record ) ) {
+			if ( Len( Trim( record.target_object ?: "" ) ) && record.target_object != "custom_field" ) {
+				return Trim( record.target_object );
+			}
+			if ( Len( Trim( record.field ?: "" ) ) ) {
+				return _targetObjectForField( record.field );
+			}
+		}
+
+		if ( Len( Trim( rc.field ?: "" ) ) ) {
+			return _targetObjectForField( rc.field );
+		}
+
+		return "";
+	}
+
+	private string function _targetObjectForField( required string fieldId ) {
+		var field = customFieldsService.getField( arguments.fieldId );
+
+		return Trim( field.target_object ?: "" );
+	}
+
+	private void function _addCustomObjectBreadcrumbs( required string definitionId ) {
+		var objectTitle = translateResource( uri="preside-objects.custom_object:title", defaultValue="Custom objects" );
+
+		customizationService.runCustomization(
+			  objectName     = "custom_object"
+			, action         = "rootBreadcrumb"
+			, defaultHandler = "admin.datamanager._rootBreadcrumb"
+			, args           = { objectName="custom_object", objectTitle=objectTitle }
+		);
+		customizationService.runCustomization(
+			  objectName     = "custom_object"
+			, action         = "objectBreadcrumb"
+			, defaultHandler = "admin.datamanager._objectBreadcrumb"
+			, args           = { objectName="custom_object", objectTitle=objectTitle }
+		);
+		customizationService.runCustomization(
+			  objectName     = "custom_object"
+			, action         = "recordBreadcrumb"
+			, defaultHandler = "admin.datamanager._recordBreadcrumb"
+			, args           = {
+				  objectName  = "custom_object"
+				, recordId    = arguments.definitionId
+				, recordLabel = renderLabel( objectName="custom_object", recordId=arguments.definitionId )
+			}
+		);
 	}
 
 }

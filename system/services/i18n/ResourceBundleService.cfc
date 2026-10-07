@@ -80,6 +80,14 @@ component {
 		_discoverBundles();
 	}
 
+	public void function registerDynamicResources( required string bundle, required struct resources ) {
+		_getDynamicResources()[ arguments.bundle ] = Duplicate( arguments.resources );
+	}
+
+	public void function clearDynamicResources( required string bundle ) {
+		StructDelete( _getDynamicResources(), arguments.bundle );
+	}
+
 	public boolean function isValidResourceUri( required string uri ) {
 		var validUriRegex = "[\w][\w-\.]*\:[\w][\w-\.]*[^\.]";
 
@@ -192,12 +200,33 @@ component {
 
 		if ( StructKeyExists( arguments, "language" ) ) {
 			if ( StructKeyExists( arguments, "country" ) ) {
-				return bundleDataCache[ countryCacheKey ];
+				return _overlayDynamicResources( arguments.bundleName, bundleDataCache[ countryCacheKey ] );
 			}
-			return bundleDataCache[ languageCacheKey ];
+			return _overlayDynamicResources( arguments.bundleName, bundleDataCache[ languageCacheKey ] );
 		}
 
-		return bundleDataCache[ bundleCacheKey ];
+		return _overlayDynamicResources( arguments.bundleName, bundleDataCache[ bundleCacheKey ] );
+	}
+
+	private struct function _overlayDynamicResources( required string bundleName, required struct bundleData ) {
+		var dynamicResources = _getDynamicResources();
+
+		if ( !StructKeyExists( dynamicResources, arguments.bundleName ) || StructIsEmpty( dynamicResources[ arguments.bundleName ] ) ) {
+			return arguments.bundleData;
+		}
+
+		var merged = Duplicate( arguments.bundleData );
+		StructAppend( merged, dynamicResources[ arguments.bundleName ], true );
+
+		return merged;
+	}
+
+	private struct function _getDynamicResources() {
+		if ( !StructKeyExists( variables, "_dynamicResources" ) ) {
+			variables._dynamicResources = {};
+		}
+
+		return variables._dynamicResources;
 	}
 
 	private struct function _readBundleData( required string bundleName, string language, string country ) output=false {

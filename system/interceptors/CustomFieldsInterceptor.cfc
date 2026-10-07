@@ -102,29 +102,6 @@ component extends="coldbox.system.Interceptor" {
 		}
 	}
 
-	public void function postExtraTopRightButtonsForViewRecord( event, interceptData ) {
-		var objectName = interceptData.objectName ?: "";
-		var recordId   = interceptData.recordId   ?: ( prc.recordId ?: "" );
-
-		if ( !customFieldsService.isObjectEnabled( objectName ) || !Len( Trim( recordId ) ) ) {
-			return;
-		}
-
-		var record   = presideObjectService.selectData( objectName=objectName, id=recordId );
-		var fields   = customFieldsService.listFieldsForRecord( objectName=objectName, record=record, kind="static" );
-		if ( !ArrayLen( fields ) ) {
-			return;
-		}
-
-		var actions = interceptData.actions ?: [];
-		ArrayAppend( actions, {
-			  link      = event.buildAdminLink( linkto="customFields.editRecordValues", queryString="object=#objectName#&id=#recordId#" )
-			, btnClass  = "btn-info"
-			, iconClass = "fa-puzzle-piece"
-			, title     = translateResource( uri="customFields:edit.values.btn" )
-		} );
-	}
-
 	public void function preRenderRecordForViewRecord( event, interceptData ) {
 		var objectName = interceptData.objectName ?: "";
 		if ( !customFieldsService.isObjectEnabled( objectName ) ) {

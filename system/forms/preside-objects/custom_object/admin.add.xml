@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="preside-objects.custom_object:">
+	<tab id="default">
+		<fieldset id="basics" sortorder="10">
+			<field binding="custom_object.label_singular"  control="textinput" required="true" />
+			<field binding="custom_object.label"           control="textinput" required="true" />
+			<field binding="custom_object.key"             control="autoSlug"  required="true" basedOn="label_singular" slugDelimiter="_" />
+			<field binding="custom_object.category"        control="customObjectCategory" required="true" />
+			<field binding="custom_object.description"     control="textarea" />
+			<field binding="custom_object.icon_class"      control="iconPicker" />
+		</fieldset>
+		<fieldset id="labelfield" sortorder="20">
+			<field binding="custom_object.has_label_field" control="yesNoSwitch" defaultValue="true" />
+		</fieldset>
+	</tab>
+</form>

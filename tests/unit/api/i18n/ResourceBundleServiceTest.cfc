@@ -240,6 +240,23 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test21_getResource_shouldPreferDynamicResourcesAndForgetThemWhenCleared" returntype="void">
+		<cfscript>
+			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles/" ];
+			var rbService  = _getRBService( bundleDirs );
+
+			rbService.registerDynamicResources( "secondary", { "some.key"="from the database", "dynamic.only"="only dynamic" } );
+
+			super.assertEquals( "from the database", rbService.getResource( "secondary:some.key" ) );
+			super.assertEquals( "only dynamic", rbService.getResource( "secondary:dynamic.only" ) );
+
+			rbService.clearDynamicResources( "secondary" );
+
+			super.assertEquals( "This is not a pipe", rbService.getResource( "secondary:some.key" ) );
+			super.assertEquals( "fallback", rbService.getResource( "secondary:dynamic.only", "fallback" ) );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getRBService" access="private" returntype="any" output="false">
 		<cfargument name="bundleDirectories" type="array" required="true" />

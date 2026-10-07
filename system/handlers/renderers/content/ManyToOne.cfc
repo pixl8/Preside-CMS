@@ -24,8 +24,10 @@ component {
 		args.recordLabel = renderLabel( fkObjectName, fkId );
 
 		return renderView( view="/renderers/content/manyToOne/adminView", args=args );
+	}
 
-
+	public string function adminDataTable( event, rc, prc, args={} ) {
+		return adminView( argumentCollection=arguments );
 	}
 
 }

@@ -2163,6 +2163,51 @@ component displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Inserts or replaces one already-built object definition.
+	 * The definition must set dbsync to false. No schema sync is performed.
+	 */
+	public void function registerRuntimeObject( required string objectName, required struct definition ) {
+		var meta = arguments.definition.meta ?: {};
+
+		if ( !IsBoolean( meta.dbsync ?: "" ) || meta.dbsync ) {
+			throw(
+				  type    = "PresideObjectService.RuntimeObjectMustNotSync"
+				, message = "Runtime objects must set dbsync to false."
+			);
+		}
+
+		lock name="presideRuntimeObjectRegistry" type="exclusive" timeout="10" {
+			var objects = _getObjects();
+
+			StructDelete( objects, arguments.objectName );
+			objects[ arguments.objectName ] = {
+				  meta     = Duplicate( meta )
+				, instance = arguments.definition.instance ?: ""
+			};
+
+			_refreshObjectAliasCache( arguments.objectName );
+			_clearRuntimeObjectCaches( arguments.objectName );
+		}
+	}
+
+	/**
+	 * Removes one runtime object and its object-scoped caches.
+	 */
+	public void function unregisterRuntimeObject( required string objectName ) {
+		lock name="presideRuntimeObjectRegistry" type="exclusive" timeout="10" {
+			var objects = _getObjects();
+
+			if ( !StructKeyExists( objects, arguments.objectName ) ) {
+				return;
+			}
+
+			_clearRuntimeObjectCaches( arguments.objectName );
+			StructDelete( objects, arguments.objectName );
+			StructDelete( _getAliasCache(), arguments.objectName );
+		}
+	}
+
+	/**
 	 * Returns whether or not the passed field exists on the passed object
 	 *
 	 * @objectName.hint Name of the object whose field you wish to check
@@ -3125,6 +3170,35 @@ component displayName="Preside Object Service" {
 		}
 	}
 
+	private void function _refreshObjectAliasCache( required string objectName ) {
+		var aliasCache = _getAliasCache();
+		var objects    = _getObjects();
+		var props      = objects[ arguments.objectName ].meta.properties ?: {};
+
+		StructDelete( aliasCache, arguments.objectName );
+
+		for( var propName in props ) {
+			var aliases = Trim( props[ propName ].aliases ?: "" ).listToArray();
+
+			for( var alias in aliases ) {
+				aliasCache[ arguments.objectName ] = aliasCache[ arguments.objectName ] ?: {};
+				aliasCache[ arguments.objectName ][ alias ] = propName;
+			}
+		}
+	}
+
+	private void function _clearRuntimeObjectCaches( required string objectName ) {
+		var simpleCache = _getSimpleLocalCache();
+
+		_clearRelatedCachesWithQueryCachePerObject( arguments.objectName );
+
+		for( var cacheKey in simpleCache ) {
+			if ( FindNoCase( arguments.objectName, cacheKey ) ) {
+				StructDelete( simpleCache, cacheKey );
+			}
+		}
+	}
+
 	private void function _setupAliasCache() {
 		var objects    = _getObjects();
 		var aliasCache = {};
@@ -3150,6 +3224,10 @@ component displayName="Preside Object Service" {
 		var lookupCache = {};
 
 		for( var objName in objects ) {
+			if ( IsBoolean( objects[ objName ].meta.dbsync ?: "" ) && !objects[ objName ].meta.dbsync ) {
+				continue;
+			}
+
 			lookupCache[ objects[ objName ].meta.tableName ] = objName;
 		}
 

@@ -365,7 +365,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, catalogue = catalogue
 				);
 				var created = svc.prepareFormPlacement(
-					  formData  = { form_placement="manual", form_tab="__new__", form_tab_label="Billing", form_fieldset="__new__", form_fieldset_label="Main", include_in_add_form=true, include_in_edit_form=true }
+					  formData  = { form_placement="manual", form_tab="__new__", form_tab_label="Billing", form_fieldset="__new__", form_fieldset_label="Main", include_in_add_form=true, include_in_edit_form=true, form_required=1 }
 					, catalogue = catalogue
 				);
 				var existing = svc.prepareFormPlacement(
@@ -384,7 +384,9 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( automatic.form_tab ).toBe( "" );
 				expect( automatic.include_in_add_form ).toBeFalse();
 				expect( automatic.include_in_edit_form ).toBeTrue();
+				expect( automatic.form_required ).toBeFalse();
 				expect( created.form_tab ).toBe( "cf_billing_2" );
+				expect( created.form_required ).toBeTrue();
 				expect( created.form_tab_label ).toBe( "Billing" );
 				expect( created.form_fieldset ).toBe( "cf_main" );
 				expect( existing.form_tab_label ).toBe( "" );
@@ -448,6 +450,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( customTab.title ).toBe( "customFields:formtab.customFields.title" );
 				expect( customTab.fieldsets[ 1 ].fields[ 1 ].name ).toBe( "nickname" );
 				expect( customTab.fieldsets[ 1 ].fields[ 1 ].label ).toBe( "Nickname" );
+				expect( customTab.fieldsets[ 1 ].fields[ 1 ].required ).toBeFalse();
 				expect( basicTab.fieldsets[ 1 ].fields[ 1 ].name ).toBe( "website" );
 				expect( Val( basicTab.sortorder ?: basicTab.sortOrder ?: 0 ) ).toBe( 0 );
 				expect( billingTab.title ).toBe( "Billing" );
@@ -455,6 +458,32 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( Val( customTab.sortorder ?: customTab.sortOrder ?: 0 ) ).toBeGT( 999999999 );
 				expect( billingTab.fieldsets[ 1 ].fields[ 1 ].name ).toBe( "po_number" );
 				expect( billingTab.fieldsets[ 1 ].title ).toBe( "Main" );
+			} );
+
+			it( "should place automatic fields for a custom object on the general tab after the label", function(){
+				var svc        = _getService();
+				var definition = "";
+				var generalTab = {};
+				var tabIds     = [];
+
+				variables.mockTypesService.$( "getType", { control="textinput" } );
+
+				definition = svc.buildRecordFormDefinition( [
+					  { key="store_note", label="Store note", data_type="text", sort_order=5, form_placement="auto", kind="static", target_object="cobj_e2e_store_oct7", form_required=true }
+					, { key="website", label="Website", data_type="text", sort_order=8, form_placement="manual", form_tab="basic", form_fieldset="details", kind="static", target_object="cobj_e2e_store_oct7" }
+				] );
+
+				for ( var tab in definition.tabs ) {
+					ArrayAppend( tabIds, tab.id );
+					if ( tab.id == "default" ) {
+						generalTab = tab;
+					}
+				}
+
+				expect( tabIds ).notToInclude( "customFields" );
+				expect( generalTab.fieldsets[ 1 ].fields[ 1 ].name ).toBe( "store_note" );
+				expect( Val( generalTab.fieldsets[ 1 ].fields[ 1 ].sortOrder ) ).toBe( 1000000005 );
+				expect( generalTab.fieldsets[ 1 ].fields[ 1 ].required ).toBeTrue();
 			} );
 		} );
 

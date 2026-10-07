@@ -11,9 +11,8 @@ component {
 	variables._operationsCache = {};
 	variables.UNKNOWN_TOTAL = 1000000001; // a hardcoded magic number to communicate pagination unknown
 
-	property name="dataManagerDefaults" inject="coldbox:setting:dataManager.defaults";
-	property name="rowCountTimeout"     inject="coldbox:setting:queryTimeout.datamanagerRowCount";
-
+	property name="dataManagerDefaults"  inject="coldbox:setting:dataManager.defaults";
+	property name="rowCountTimeout"      inject="coldbox:setting:queryTimeout.datamanagerRowCount";
 // CONSTRUCTOR
 
 	/**
@@ -72,7 +71,6 @@ component {
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
 			var siteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" ) : "";
 			var isInActiveTemplate = !useSites || siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
-
 			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
 					groups[ groupId ] = {

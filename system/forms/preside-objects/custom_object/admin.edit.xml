@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form extends="preside-objects.custom_object.admin.add">
+	<tab id="default">
+		<fieldset id="basics">
+			<field name="key" deleted="true" />
+		</fieldset>
+		<fieldset id="labelfield" sortorder="20" description="preside-objects.custom_object:fieldset.labelfield.description.edit">
+			<field binding="custom_object.has_label_field" control="toggle" toggleType="switch" defaultValue="true" toggleDefaultFields="label_field" />
+			<field binding="custom_object.label_field"     control="customObjectLabelField" />
+		</fieldset>
+	</tab>
+</form>

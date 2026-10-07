@@ -1782,7 +1782,11 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ objectTitle  ] ) );
-		setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
+		var nextUrl = Trim( args.redirectUrl ?: "" );
+		if ( !Len( nextUrl ) ) {
+			nextUrl = event.buildAdminLink( objectName=objectName, operation="listing" );
+		}
+		setNextEvent( url=nextUrl );
 	}
 
 	public void function dataExportConfigModal( event, rc, prc ) {

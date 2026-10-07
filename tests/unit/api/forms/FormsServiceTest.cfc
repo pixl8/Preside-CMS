@@ -886,6 +886,29 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				) ).toBe( expectedStrippedForm );
 			} );
 		} );
+
+		describe( "clearDynamicFormsForObject()", function(){
+			it( "should remove only dynamic forms tagged for that object", function(){
+				var service      = _getFormsService( "/tests/resources/formsService/forms1" );
+				var wasReloading = application._preside_reloading ?: false;
+
+				application._preside_reloading = true;
+				try {
+					var taggedName = service.createForm( function( formDefinition ){}, "", "custom-object-tagged-form" );
+					var otherName  = service.createForm( function( formDefinition ){}, "", "custom-object-other-form" );
+
+					service.getForm( taggedName ).customFieldObject = "cobj_widget";
+					service.getForm( otherName ).customFieldObject  = "cobj_other";
+
+					service.clearDynamicFormsForObject( "cobj_widget" );
+
+					expect( service.formExists( taggedName ) ).toBeFalse();
+					expect( service.formExists( otherName ) ).toBeTrue();
+				} finally {
+					application._preside_reloading = wasReloading;
+				}
+			} );
+		} );
 	}
 
 	private any function _getFormsService(

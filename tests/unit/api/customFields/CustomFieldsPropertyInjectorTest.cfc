@@ -287,6 +287,33 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( definition.renderer ).toBe( "customFieldBoolean" );
 			} );
+
+			it( "should place custom object fields in the default view group after the built-in fields", function(){
+				var injector = _getInjector();
+
+				variables.mockValueTables.$( "getValueObjectName" ).$args( "cobj_e2e_store_oct7" ).$results( "_cfv_custom_object_record" );
+				variables.mockPoService.$( "getObjectAttribute" ).$args( "_cfv_custom_object_record", "tableName" ).$results( "_cfv_custom_object_record" );
+				variables.mockPoService.$( "getIdField" ).$args( "cobj_e2e_store_oct7" ).$results( "id" );
+
+				var definition = injector.buildPropertyDefinition(
+					  field      = { id=18, kind="static", data_type="text", key="store_note", label="Store note", sort_order=5 }
+					, objectName = "cobj_e2e_store_oct7"
+				);
+
+				expect( definition.adminViewGroup ).toBe( "default" );
+				expect( definition.sortOrder ).toBe( 1000000005 );
+			} );
+
+			it( "should keep code-defined object fields in the custom fields view group", function(){
+				var injector   = _getInjector();
+				var definition = injector.buildPropertyDefinition(
+					  field      = { id=19, kind="static", data_type="text", key="nickname", label="Nickname", sort_order=5 }
+					, objectName = "elf_test_object"
+				);
+
+				expect( definition.adminViewGroup ).toBe( "customFields" );
+				expect( definition.sortOrder ).toBe( 5 );
+			} );
 		} );
 	}
 

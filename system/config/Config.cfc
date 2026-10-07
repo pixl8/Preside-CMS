@@ -166,6 +166,7 @@ component {
 			, { class="preside.system.interceptors.PresideCfFlowInterceptors"           , properties={} }
 			, { class="preside.system.interceptors.DatamanagerWorkflowInterceptors"     , properties={} }
 			, { class="preside.system.interceptors.DraftManagerInterceptor"             , properties={} }
+			, { class="preside.system.interceptors.CustomObjectsInterceptor"             , properties={} }
 			, { class="preside.system.interceptors.CustomFieldsInterceptor"             , properties={} }
 		];
 
@@ -418,6 +419,7 @@ component {
 			, "links"
 			, "urlRedirects"
 			, "customFields"
+			, "customObjects"
 			, "errorLogs"
 			, "auditTrail"
 			, "maintenanceMode"
@@ -657,6 +659,14 @@ component {
 			, icon          = "fa-puzzle-piece"
 			, title         = "preside-objects.custom_field:title"
 		};
+		settings.adminMenuItems.customObjects = {
+			  feature       = "customObjects"
+			, permissionKey = "customobjects.navigate"
+			, buildLinkArgs = { objectName="custom_object" }
+			, activeChecks  = { datamanagerObject="custom_object" }
+			, icon          = "fa-database"
+			, title         = "preside-objects.custom_object:title"
+		};
 		settings.adminMenuItems.savedexport = {
 			  feature       = "dataexport"
 			, permissionKey = "savedExport.navigate"
@@ -769,11 +779,12 @@ component {
 			, webflows               = [ "navigate", "read", "add", "edit", "delete", "archiveInstance" ]
 			, draftManager           = [ "navigate", "read", "add", "edit", "delete", "review", "publish" ]
 			, customfields           = [ "navigate", "read", "add", "edit", "delete" ]
+			, customobjects          = [ "navigate", "read", "add", "edit", "delete" ]
 		};
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.system_alert.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*", "formbuilder.*", "formquestions.*", "draftManager.*", "customfields.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.system_alert.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*", "rulesEngine.*", "emailCenter.*", "!emailCenter.queue.*", "savedExport.*", "formbuilder.*", "formquestions.*", "draftManager.*", "customfields.*", "customobjects.*" ];
 		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "formquestions.*", "!formbuilder.lockForm", "!formbuilder.activateForm", "!formbuilder.deleteForm", "rulesEngine.read", "emailCenter.*", "!emailCenter.queue.*", "draftManager.*" ];
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add", "rulesEngine.read", "draftManager.*" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*", "formquestions.*" ];
@@ -1040,6 +1051,7 @@ component {
 			, passwordVisibilityToggle        = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, draftManager                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "cfflow", "datamanager", "datamanagerWorkflow" ] }
 			, customFields                    = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "admin", "datamanager" ] }
+			, customObjects                   = { enabled=true,  siteTemplates=[ "*" ]                                  , dependsOn=[ "customFields", "datamanager" ] }
 			, labs                            = { enabled=true,  siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 		};
 

@@ -50,12 +50,13 @@ describe( 'Custom fields', () => {
 		cy.closeListingOverlays();
 
 		cy.get( '.object-listing-table tbody tr a' ).first().click();
-		cy.contains( 'a, button', 'Edit custom fields' ).click();
+		cy.get( 'a[href*="editRecord"]' ).filter( ':visible' ).first().click();
+		cy.contains( '.nav-tabs a', 'Custom fields' ).click();
 		cy.get( `input[name="${ fieldKey }"], textarea[name="${ fieldKey }"]` )
 			.first()
 			.clear()
 			.type( fieldValue );
-		cy.get( 'form button[type="submit"]' ).first().click();
+		cy.get( 'form.edit-object-form button[type="submit"]' ).first().click();
 
 		cy.contains( fieldLabel ).should( 'be.visible' );
 		cy.contains( fieldValue ).should( 'be.visible' );

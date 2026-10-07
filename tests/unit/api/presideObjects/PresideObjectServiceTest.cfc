@@ -4824,6 +4824,47 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test028_registerRuntimeObject_shouldRejectSyncableObjectsAndLeaveTheSharedTableLookupAlone" returntype="void">
+		<cfscript>
+			var poService   = _getPresideObjectService(
+				  objectDirectories = [ "/tests/resources/PresideObjectService/basicEmptyComponents/" ]
+				, defaultPrefix     = "ptest_"
+				, forceNewInstance  = true
+			);
+			var errorThrown = false;
+			var tableName   = poService.getObjectAttribute( "object_1", "tableName" );
+
+			try {
+				poService.registerRuntimeObject( "runtime_obj", { meta={ dbsync=true, tableName=tableName, properties={} } } );
+			} catch ( "PresideObjectService.RuntimeObjectMustNotSync" e ) {
+				errorThrown = true;
+			}
+
+			super.assertTrue( errorThrown );
+			super.assertFalse( poService.objectExists( "runtime_obj" ) );
+
+			poService.registerRuntimeObject( "runtime_obj", {
+				  meta = {
+					  dbsync     = false
+					, tableName  = tableName
+					, properties = { id={ name="id", aliases="" } }
+					, name       = "runtime_obj"
+				  }
+				, instance = new preside.system.base.SystemPresideObject()
+			} );
+
+			super.assertTrue( poService.objectExists( "runtime_obj" ) );
+			super.assertEquals( "object_1", poService.getObjectByTable( tableName ) );
+			super.assertTrue( poService.objectExists( "object_2" ) );
+
+			poService.unregisterRuntimeObject( "runtime_obj" );
+
+			super.assertFalse( poService.objectExists( "runtime_obj" ) );
+			super.assertTrue( poService.objectExists( "object_1" ) );
+			super.assertEquals( "object_1", poService.getObjectByTable( tableName ) );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="_getNowSql" access="private" returntype="string" output="false">
 		<cfreturn _getDbAdapter().getNowFunctionSql() />
 	</cffunction>

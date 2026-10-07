@@ -5,6 +5,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			it( "should prefix the host object name with _cfv_", function(){
 				expect( _getService().getValueObjectName( "my_table" ) ).toBe( "_cfv_my_table" );
 			} );
+
+			it( "should map every custom object onto the shared custom object record value table", function(){
+				expect( _getService().getValueObjectName( "cobj_widget" ) ).toBe( "_cfv_custom_object_record" );
+			} );
 		} );
 
 		describe( "getValueTableName()", function(){
@@ -64,6 +68,25 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( objects._cfv_my_table.instance ).toBe( "auto_created" );
 				expect( objects._cfv_my_table.meta.tableName ).toBe( "_cfv_pobj_my_table" );
 				expect( StructKeyExists( objects, "_cfv_other" ) ).toBeFalse();
+			} );
+
+			it( "should not create a per-definition value object for a virtual custom object", function(){
+				var svc     = _getService();
+				var objects = {
+					cobj_widget = {
+						meta = {
+							  customObject        = "definition-1"
+							, customFieldsEnabled = true
+							, tableName           = "psys_custom_object_record"
+							, properties          = { id={ type="string", dbtype="varchar", maxLength=35 } }
+						}
+					}
+				};
+
+				svc.addValueObjects( objects );
+
+				expect( StructKeyExists( objects, "_cfv_cobj_widget" ) ).toBeFalse();
+				expect( StructKeyExists( objects, "_cfv_custom_object_record" ) ).toBeFalse();
 			} );
 		} );
 

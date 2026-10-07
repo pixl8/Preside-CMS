@@ -322,23 +322,6 @@ component {
 		);
 	}
 
-	public string function buildValueEditFormName( required string objectName, required any record ) {
-		var fields = listFieldsForRecord( objectName=arguments.objectName, record=arguments.record, kind="static" );
-
-		return formsService.createForm( function( formDefinition ){
-			formDefinition.setAttributes( i18nBaseUri="customFields:" );
-			formDefinition.addTab( id="default" );
-			formDefinition.addFieldset( id="default", tab="default" );
-
-			for( var field in fields ) {
-				var args = _staticValueFieldArgs( field );
-				args.tab      = "default";
-				args.fieldset = "default";
-				formDefinition.addField( argumentCollection=args );
-			}
-		} );
-	}
-
 	/**
 	 * Tabs and fieldsets an admin can place a custom field on.
 	 * Built from the object's add and edit forms, plus tabs created by other custom fields.
@@ -466,6 +449,7 @@ component {
 		var result    = {
 			  include_in_add_form  = _booleanWithDefault( arguments.formData.include_in_add_form  ?: "", true )
 			, include_in_edit_form = _booleanWithDefault( arguments.formData.include_in_edit_form ?: "", true )
+			, form_required        = _booleanWithDefault( arguments.formData.form_required        ?: "", false )
 			, form_placement       = placement
 			, form_tab             = ""
 			, form_tab_label       = ""
@@ -571,7 +555,8 @@ component {
 	 * @autodoc true
 	 */
 	public void function appendRecordFormFields( required any formDefinition, required array fields ) {
-		var hasAuto = false;
+		var hasAuto             = false;
+		var placeAutoOnGeneral  = _autoFieldsUseGeneralTab( arguments.fields );
 
 		for( var field in arguments.fields ) {
 			if ( ( field.form_placement ?: "auto" ) != "manual" ) {
@@ -580,7 +565,7 @@ component {
 			}
 		}
 
-		if ( hasAuto ) {
+		if ( hasAuto && !placeAutoOnGeneral ) {
 			arguments.formDefinition.addTab(
 				  id        = "customFields"
 				, sortorder = CUSTOM_FIELDS_TAB_SORTORDER
@@ -596,8 +581,8 @@ component {
 
 		for( var field in arguments.fields ) {
 			var placement  = ( field.form_placement ?: "auto" ) == "manual" ? "manual" : "auto";
-			var tabId      = "customFields";
-			var fieldsetId = "customFields";
+			var tabId      = placeAutoOnGeneral ? "default" : "customFields";
+			var fieldsetId = placeAutoOnGeneral ? "default" : "customFields";
 
 			if ( placement == "manual" ) {
 				tabId      = Trim( field.form_tab      ?: "" );
@@ -625,6 +610,10 @@ component {
 			var args = _staticValueFieldArgs( field );
 			args.tab      = tabId;
 			args.fieldset = fieldsetId;
+			if ( placeAutoOnGeneral && placement == "auto" ) {
+				args.sortorder = CREATED_ITEM_SORTORDER + Val( field.sort_order ?: 0 );
+				args.sortOrder = args.sortorder;
+			}
 			arguments.formDefinition.addField( argumentCollection=args );
 		}
 	}
@@ -1280,6 +1269,16 @@ component {
 		);
 	}
 
+	private boolean function _autoFieldsUseGeneralTab( required array fields ) {
+		for ( var field in arguments.fields ) {
+			if ( Left( Trim( field.target_object ?: "" ), 5 ) == "cobj_" ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private struct function _staticValueFieldArgs( required struct field ) {
 		var type = customFieldTypesService.getType( arguments.field.data_type ?: "text" );
 		var args = {
@@ -1287,7 +1286,7 @@ component {
 			, control   = type.control ?: "textinput"
 			, label     = arguments.field.label ?: ""
 			, help      = arguments.field.help_text ?: ""
-			, required  = false
+			, required  = _booleanWithDefault( arguments.field.form_required ?: "", false )
 			, sortorder = Val( arguments.field.sort_order ?: 0 )
 		};
 

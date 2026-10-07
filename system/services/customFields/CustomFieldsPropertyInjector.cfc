@@ -161,9 +161,10 @@ component {
 	}
 
 	public struct function buildPropertyDefinition( required struct field, required string objectName ) {
-		var field      = arguments.field;
-		var kind       = field.kind ?: "static";
-		var definition = {
+		var field          = arguments.field;
+		var kind           = field.kind ?: "static";
+		var isCustomObject = Left( arguments.objectName, 5 ) == "cobj_";
+		var definition     = {
 			  name                   = field.key
 			, formula                = buildFormula( field=field, objectName=arguments.objectName )
 			, dbtype                 = "none"
@@ -180,8 +181,8 @@ component {
 			, datamanagerUserColumn  = $helpers.isTrue( field.show_in_listing ?: true )
 			, excludeDataExport      = !$helpers.isTrue( field.data_exportable ?: true )
 			, batchEditable          = false
-			, adminViewGroup         = "customFields"
-			, sortOrder              = Val( field.sort_order ?: 0 )
+			, adminViewGroup         = isCustomObject ? "default" : "customFields"
+			, sortOrder              = isCustomObject ? ( 1000000000 + Val( field.sort_order ?: 0 ) ) : Val( field.sort_order ?: 0 )
 		};
 
 		if ( kind == "static" ) {

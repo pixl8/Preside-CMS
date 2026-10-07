@@ -337,11 +337,15 @@ component displayName="Forms service" {
 
 		for( var fieldName in fieldNames ){
 			var field = fields[ fieldName ];
-			if ( ( field.control ?: "" ) != "none" ) {
-				ArrayAppend( formLayout.tabs[1].fieldsets[1].fields, field );
-
-				formLayout.tabs[1].fieldsets[1].fields[ ArrayLen( formLayout.tabs[1].fieldsets[1].fields ) ].sourceObject = arguments.objectName;
+			if ( ( field.control ?: "" ) == "none" ) {
+				continue;
 			}
+			if ( _isCustomObjectField( arguments.objectName, field ) ) {
+				continue;
+			}
+
+			ArrayAppend( formLayout.tabs[1].fieldsets[1].fields, field );
+			formLayout.tabs[1].fieldsets[1].fields[ ArrayLen( formLayout.tabs[1].fieldsets[1].fields ) ].sourceObject = arguments.objectName;
 		}
 
 		formLayout.tabs[1].fieldsets[1].fields.sort( function( field1, field2 ){
@@ -849,6 +853,20 @@ component displayName="Forms service" {
 	 * @formName.hint  If supplied, specifies the name of the form that will be registered. If not supplied, a name will be generated based on the unique full definition of the form. Warning, if using this argument, ensure that the name will be unique for each distinct form definition.
 	 *
 	 */
+	public void function clearDynamicFormsForObject( required string objectName ) {
+		if ( !Len( Trim( arguments.objectName ) ) ) {
+			return;
+		}
+
+		var forms = _getForms();
+
+		for( var formName in StructKeyArray( forms ) ) {
+			if ( Compare( forms[ formName ].customFieldObject ?: "", arguments.objectName ) == 0 ) {
+				StructDelete( forms, formName );
+			}
+		}
+	}
+
 	public string function createForm( any generator, string basedOn="", string formName ) {
 		var basedOnDef       = Len( Trim( arguments.basedOn ) ) ? Duplicate( getForm( arguments.basedOn ) ) : { tabs=[] };
 		var formDefinition   = new FormDefinition( basedOnDef );
@@ -1619,6 +1637,14 @@ component displayName="Forms service" {
 				}
 			}
 		}
+	}
+
+	private boolean function _isCustomObjectField( required string objectName, required struct field ) {
+		if ( Left( arguments.objectName, 5 ) != "cobj_" ) {
+			return false;
+		}
+
+		return StructKeyExists( arguments.field, "customField" ) && IsBoolean( arguments.field.customField ) && arguments.field.customField;
 	}
 
 	private string function _generateFormNameFromDefinition( required struct definition ) {

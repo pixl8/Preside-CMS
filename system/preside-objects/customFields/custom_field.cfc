@@ -25,6 +25,7 @@ component displayname="Custom field" extends="preside.system.base.SystemPresideO
 	property name="batch_editable"       type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
 	property name="include_in_add_form"  type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
 	property name="include_in_edit_form" type="boolean" dbtype="boolean" required=false default=true  renderer="boolean";
+	property name="form_required"        type="boolean" dbtype="boolean" required=false default=false renderer="boolean";
 	property name="form_placement"       type="string"  dbtype="varchar" maxlength=20  required=false default="auto" enum="customFieldFormPlacement";
 	property name="form_tab"             type="string"  dbtype="varchar" maxlength=100 required=false;
 	property name="form_tab_label"       type="string"  dbtype="varchar" maxlength=200 required=false;

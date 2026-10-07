@@ -16,6 +16,10 @@ component {
 	}
 
 	public string function getValueObjectName( required string objectName ) {
+		if ( Left( arguments.objectName, 5 ) == "cobj_" ) {
+			return "_cfv_custom_object_record";
+		}
+
 		return "_cfv_" & arguments.objectName;
 	}
 
@@ -32,6 +36,9 @@ component {
 
 		for( var objectName in objectNames ) {
 			if ( _isGeneratedValueObjectName( objectName ) || Left( objectName, 5 ) == "vrsn_" ) {
+				continue;
+			}
+			if ( Len( Trim( arguments.objects[ objectName ].meta.customObject ?: "" ) ) ) {
 				continue;
 			}
 			if ( !_objectMetaEnablesCustomFields( arguments.objects[ objectName ].meta ?: {} ) ) {
@@ -339,20 +346,6 @@ component {
 		} catch ( any e ) {
 			return {};
 		}
-	}
-
-	public void function forceHostVersion( required string objectName, required string recordId ) {
-		if ( !presideObjectService.objectIsVersioned( arguments.objectName ) || !Len( Trim( arguments.recordId ) ) ) {
-			return;
-		}
-
-		presideObjectService.updateData(
-			  objectName           = arguments.objectName
-			, id                   = arguments.recordId
-			, data                 = {}
-			, forceVersionCreation = true
-			, setDateModified      = true
-		);
 	}
 
 	public void function migrateFromSharedTable() {
