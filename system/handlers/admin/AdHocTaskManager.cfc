@@ -51,7 +51,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.taskProgress = adHocTaskManagerService.getProgress( taskId );
 
 		if ( prc.task.status == "pending" ) {
-			prc.taskProgress.timeTaken = translateResource( "enum.adhocTaskStatus:pending.title" );
+			prc.taskProgress.timeTaken = renderEnum( data="pending", enum="adhocTaskStatus", property="title" );
 			prc.taskProgress.log       = logRendererUtil.renderLegacyLogs( translateResource( "cms:adhoctaskmanager.progress.pending.log" ) );
 			prc.taskProgress.lineCount = 0;
 		} else {
@@ -95,7 +95,7 @@ component extends="preside.system.base.AdminHandler" {
 		taskProgress.log          = logRendererUtil.renderLogs( adhocTaskManagerService.getLogLines( taskId, fetchAfter ), fetchAfter );
 
 		if ( task.status == "pending" ) {
-			taskProgress.timeTaken = translateResource( "enum.adhocTaskStatus:pending.title" );
+			taskProgress.timeTaken = renderEnum( data="pending", enum="adhocTaskStatus", property="title" );
 		} else {
 			taskProgress.timeTaken = renderContent( renderer="TaskTimeTaken", data=taskProgress.timeTaken*1000, context=[ "accurate" ] );
 		}

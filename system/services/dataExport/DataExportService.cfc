@@ -193,7 +193,11 @@ component {
 				}
 
 				if ( renderType == "enum" ) {
-					return $translateResource( uri="enum.#propertyDefinitions[ arguments.fieldName ].enum#:#arguments.value#.label", defaultValue=arguments.value );
+					return $helpers.renderEnum(
+						  data     = arguments.value
+						, enum     = propertyDefinitions[ arguments.fieldName ].enum
+						, property = "label"
+					);
 				}
 			}
 
