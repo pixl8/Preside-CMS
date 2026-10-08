@@ -67,7 +67,7 @@ jobs:
           AWS_REGION: 'eu-west-2'
 
       - name: Publish to forgebox
-        uses: pixl8/github-action-box-publish@v5
+        uses: pixl8/github-action-box-publish@v6
         with:
           forgebox_user: pixl8
           forgebox_pass: ${{ secrets.FORGEBOX_PASS }}
