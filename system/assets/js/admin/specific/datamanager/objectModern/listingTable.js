@@ -228,7 +228,7 @@
 			  , stripListingTableColumnControlState, getListingUrlState, encodeCurrentListingUrl, pushListingUrl
 			  , applyListingUrlState, setupListingUrlSync, getListingSortState, setListingSortState
 			  , listingColumnIndexForField, listingSortMatchesDefault, persistListingFilterState, loadListingFilterState
-			  , syncListingSortBadges, listingTableScroller, syncPinnedColumnOverflow, fitListingToViewport
+			  , syncListingSortBadges, listingTableScroller, syncPinnedColumnOverflow, fitListingToViewport, scheduleListingViewportFit
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -2549,6 +2549,19 @@
 				}
 			};
 
+			scheduleListingViewportFit = function() {
+				if ( scheduleListingViewportFit.scheduled ) {
+					return;
+				}
+
+				scheduleListingViewportFit.scheduled = true;
+				window.requestAnimationFrame( function() {
+					scheduleListingViewportFit.scheduled = false;
+					fitListingToViewport();
+					syncPinnedColumnOverflow();
+				} );
+			};
+
 			syncPinnedColumnOverflow = function() {
 				var $scroller, el, overflowing;
 
@@ -2801,8 +2814,7 @@
 						syncPinnedColumnOverflow();
 						if ( window.ResizeObserver ) {
 							new window.ResizeObserver( function() {
-								fitListingToViewport();
-								syncPinnedColumnOverflow();
+								scheduleListingViewportFit();
 							} ).observe( $listingTable.closest( ".object-listing-wrap" ).get( 0 ) || $listingTable.get( 0 ) );
 						}
 						$( window ).on( "resize.listingPinOverflow." + tableId, function() {
