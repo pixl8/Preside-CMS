@@ -614,10 +614,10 @@
 		}
 
 		> .dt-layout-row.dt-layout-table {
-			display   : block;
-			max-width : 100%;
+			display    : block;
+			max-width  : 100%;
 			overflow-x : auto;
-			overflow-y : visible;
+			overflow-y : auto;
 		}
 
 		> .dt-layout-row.dt-layout-table > .dt-layout-cell {
@@ -650,14 +650,18 @@
 
 		> thead > tr > th,
 		> thead > tr > td {
-			vertical-align : middle;
-			white-space    : nowrap;
-			padding-top    : 8px;
-			padding-bottom : 8px;
-			border-top     : none;
-			border-right   : none;
-			border-bottom  : 1px solid #d0d0d3;
-			border-left    : 1px solid #e3e3e3;
+			position         : sticky;
+			top              : 0;
+			z-index          : 3;
+			vertical-align   : middle;
+			white-space      : nowrap;
+			padding-top      : 8px;
+			padding-bottom   : 8px;
+			border-top       : none;
+			border-right     : none;
+			border-bottom    : 1px solid #d0d0d3;
+			border-left      : 1px solid #e3e3e3;
+			background-color : @white;
 		}
 
 		> tbody > tr > th,
