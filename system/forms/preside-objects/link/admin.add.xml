@@ -12,7 +12,7 @@ This form is used to a add a link through general "manage links" screens
 		</fieldset>
 
 		<!-- we will show/hide these fieldsets depending on the selected link type -->
-		<fieldset id="sitetreelink" sortorder="20" class="link-type-group">
+		<fieldset id="sitetreelink" sortorder="20" class="link-type-group" feature="sitetree">
 			<field sortorder="10" binding="link.page"        />
 			<field sortorder="15" binding="link.query_string" control="textinput">
 				<rule validator="queryString" />
@@ -32,7 +32,7 @@ This form is used to a add a link through general "manage links" screens
 			<field sortorder="40" binding="link.email_anti_spam" defaultValue="true" />
 		</fieldset>
 
-		<fieldset id="asset" sortorder="50" class="link-type-group">
+		<fieldset id="asset" sortorder="50" class="link-type-group" feature="assetManager">
 			<field sortorder="10" binding="link.asset"    />
 			<field sortorder="20" binding="link.download" />
 		</fieldset>

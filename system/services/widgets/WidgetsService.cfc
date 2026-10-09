@@ -1,6 +1,6 @@
 /**
  * @singleton true
- * @feature   cms
+ * @feature   widgets
  */
 component {
 

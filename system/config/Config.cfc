@@ -604,7 +604,7 @@ component {
 			, icon          = "fa-link"
 			, title         = "cms:links.navigation.link"
 			, permissionKey = "presideobject.link.read"
-			, feature       = "cms"
+			, feature       = "links"
 		};
 		settings.adminMenuItems.workflow = {
 			  feature       = "webflow"
@@ -961,6 +961,8 @@ component {
 			, presideForms                    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, sitetree                        = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, sites                           = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
+			, links                           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, widgets                         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, sticker                         = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "admin" ] }
 			, urlRedirects                    = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms" ] }
 			, taskManager                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
