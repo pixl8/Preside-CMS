@@ -763,6 +763,8 @@
 							  , pickerId          = "listing-object-filter-" + String( Math.random() ).replace( ".", "" )
 							  , current           = { object : { ids : [], labels : [] }, filter : { ids : [], labels : [] } }
 							  , loadingState      = false
+							  , pickersInitialized = false
+							  , pickerObserver
 							  , $objectSelect, $filterSelect;
 
 							function pickerUrls( handler, qs ) {
@@ -862,6 +864,35 @@
 								}
 							}
 
+							function initializePickers() {
+								var wasLoading = loadingState;
+
+								if ( pickersInitialized ) {
+									return;
+								}
+
+								pickersInitialized = true;
+								loadingState = true;
+								$wrap.off( ".listingObjectSearchInit" );
+								if ( pickerObserver ) {
+									pickerObserver.disconnect();
+								}
+
+								$objectSelect.presideObjectPicker();
+								$objectSelect.on( "change", function() {
+									applySearch( true );
+								} );
+
+								if ( $filterSelect && $filterSelect.length ) {
+									$filterSelect.presideObjectPicker();
+									$filterSelect.on( "change", function() {
+										applySearch( true );
+									} );
+								}
+
+								loadingState = wasLoading;
+							}
+
 							function loadFromState( state ) {
 								var idx        = host.idxOriginal ? host.idxOriginal() : originalIdx
 								  , columnName = dt.column( idx ).name()
@@ -958,16 +989,14 @@
 							} );
 
 							loadingState = true;
-							$objectSelect.presideObjectPicker();
-							$objectSelect.on( "change", function() {
-								applySearch( true );
-							} );
-
-							if ( $filterSelect && $filterSelect.length ) {
-								$filterSelect.presideObjectPicker();
-								$filterSelect.on( "change", function() {
-									applySearch( true );
+							$wrap.one( "mouseenter.listingObjectSearchInit focusin.listingObjectSearchInit pointerdown.listingObjectSearchInit touchstart.listingObjectSearchInit", initializePickers );
+							if ( window.IntersectionObserver ) {
+								pickerObserver = new window.IntersectionObserver( function( entries ) {
+									if ( entries.some( function( entry ) { return entry.isIntersecting; } ) ) {
+										initializePickers();
+									}
 								} );
+								pickerObserver.observe( $wrap.get( 0 ) );
 							}
 
 							dt.on( "preXhr.DT", function( e, s, d ) {
