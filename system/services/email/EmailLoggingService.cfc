@@ -911,6 +911,7 @@ component {
 			, "email_template_send_log.marked_as_spam_date"
 			, "email_template_send_log.unsubscribed_date"
 			, "email_template_send_log.click_count"
+			, "email_template_send_log.open_count"
 			, "email_template_send_log.email_template"
 			, "email_template_send_log.datecreated"
 			, "email_template_send_log.resend_of"

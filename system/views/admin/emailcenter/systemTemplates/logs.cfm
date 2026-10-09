@@ -3,7 +3,7 @@
 	templateId = rc.template ?: "";
 	ajaxUrl    = event.buildAdminLink( linkTo="emailCenter.systemTemplates.getLogsForAjaxDataTables", querystring="template=" & templateid );
 	showClicks = IsTrue( prc.showClicks ?: "" );
-	gridFields = [ "recipient", "subject", "datecreated", "sent", "delivered", "failed", "opened" ];
+	gridFields = [ "recipient", "subject", "datecreated", "sent", "delivered", "failed", "opened", "open_count" ];
 
 	if ( showClicks ) {
 		gridFields.append( "click_count" );

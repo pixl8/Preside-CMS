@@ -52,7 +52,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
 		var useDistinct = len( rc.sFilterExpression ?: "" ) || len( rc.sSavedFilterExpression ?: "" );
-		var gridFields  = "email_template,recipient,subject,datecreated,sent,delivered,failed,opened,click_count";
+		var gridFields  = "email_template,recipient,subject,datecreated,sent,delivered,failed,opened,open_count,click_count";
 
 		if ( !IsFeatureEnabled( "emailDeliveryStats" ) ) {
 			gridFields = Replace( gridFields, ",delivered", "" );
