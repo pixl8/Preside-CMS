@@ -31,6 +31,10 @@
 			<dd>#prc.log.sender#</dd>
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.template.label" )#</dt>
 			<dd>#prc.log.name#</dd>
+			<dt>#translateResource( "cms:mailcenter.logs.metadata.opens.label" )#</dt>
+			<dd>#Val( prc.log.open_count ?: 0 )#</dd>
+			<dt>#translateResource( "cms:mailcenter.logs.metadata.clicks.label" )#</dt>
+			<dd>#Val( prc.log.click_count ?: 0 )#</dd>
 			<cfif canResendEmails && len( prc.log.resend_of )>
 				<dt>#translateResource( "cms:mailcenter.logs.metadata.resent.label" )#</dt>
 				<dd><a href="#event.buildAdminLink( linkTo="emailCenter.logs.viewLog", queryString="id=#prc.log.resend_of#" )#" class="load-in-place">#translateResource( "cms:mailcenter.logs.metadata.resent.link" )#</a></dd>
@@ -198,6 +202,9 @@
 									, ipAddress       = prc.activity.user_ip
 									, userAgent       = prc.activity.user_agent
 									, showAuditTrail  = ArrayFindNoCase( [ "open", "click", "bot_open", "bot_click" ], prc.activity.activity_type )
+									, classification  = prc.activity.classification
+									, botScore        = prc.activity.bot_score
+									, botSignals      = prc.activity.bot_signals
 								} )#
 							</cfloop>
 						</div>
