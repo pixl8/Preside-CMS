@@ -8,6 +8,21 @@
 <cfparam name="args.ipAddress"       default="" />
 <cfparam name="args.userAgent"       default="" />
 <cfparam name="args.showAuditTrail"  default=true />
+<cfparam name="args.classification"  default="" />
+<cfparam name="args.botScore"        default="" />
+<cfparam name="args.botSignals"      default="" />
+
+<cfscript>
+	classification       = LCase( Trim( args.classification ) );
+	knownClassifications = [ "human", "bot", "tentative" ];
+	classificationLabel  = "";
+
+	if ( ArrayFind( knownClassifications, classification ) ) {
+		classificationLabel = translateResource( "cms:mailcenter.logs.action.classification.#classification#" );
+	}
+
+	signalsLabel = Len( Trim( args.botSignals ) ) ? HtmlEditFormat( args.botSignals ) : translateResource( "cms:mailcenter.logs.action.signals.none" );
+</cfscript>
 
 <cfoutput>
 	<div class="timeline-item clearfix" data-date="#args.logDate#">
@@ -30,6 +45,15 @@
 			<div class="widget-body">
 				<div class="widget-main">
 					#args.message#
+					<cfif Len( classificationLabel )>
+						<div class="light-grey">
+							<strong>#translateResource( 'cms:mailcenter.logs.action.classification.label' )#:</strong> #classificationLabel#
+							<cfif IsNumeric( args.botScore )>
+								<strong>#translateResource( 'cms:mailcenter.logs.action.score.label' )#:</strong> #NumberFormat( args.botScore, "0" )#
+							</cfif>
+							<strong>#translateResource( 'cms:mailcenter.logs.action.signals.label' )#:</strong> #signalsLabel#
+						</div>
+					</cfif>
 				</div>
 			</div>
 
