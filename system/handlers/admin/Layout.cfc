@@ -12,6 +12,9 @@ component {
 	property name="environmentMessage"       inject="coldbox:setting:environmentMessage";
 	property name="applicationsService"      inject="applicationsService";
 	property name="labsService"              inject="labsService";
+	property name="widgetsService"           inject="delayedInjector:widgetsService";
+	property name="siteService"              inject="delayedInjector:siteService";
+	property name="ckeditorSettings"         inject="coldbox:setting:ckeditor";
 	property name="i18n"                     inject="i18n";
 
 	private string function environmentBanner( event, rc, prc, args={} ) {
