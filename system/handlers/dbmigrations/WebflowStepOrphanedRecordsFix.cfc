@@ -1,9 +1,14 @@
 /**
  * @feature webflow
+ * @feature sites
  */
 component {
 
 	property name="sqlRunner" inject="SqlRunner";
+
+	private function isEnabled() {
+		return isFeatureEnabled( "sitetree" );
+	}
 
 	private void function run() {
 		var dsn = getPresideObject( "webflow_configuration" ).getDsn();
