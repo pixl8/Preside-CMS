@@ -6,6 +6,10 @@ component {
 
 	property name="sqlRunner" inject="SqlRunner";
 
+	private function isEnabled() {
+		return isFeatureEnabled( "webflow" ) && isFeatureEnabled( "sitetree" );
+	}
+
 	private void function run() {
 		var dsn = getPresideObject( "webflow_configuration" ).getDsn();
 
