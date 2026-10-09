@@ -1,5 +1,5 @@
 /**
- * @feature presideForms and cms
+ * @feature presideForms and links
  */
 component {
 

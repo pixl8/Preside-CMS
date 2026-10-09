@@ -1,4 +1,4 @@
-<!---@feature admin and cms--->
+<!---@feature admin and links--->
 <cfscript>
 	record    = prc.record    ?: {};
 	linkTypes = prc.linkTypes ?: [];
