@@ -1,0 +1,16 @@
+/* Content CSS whose only class-bearing selectors are `table.*` - so every style
+   harvested from it is an OBJECT style (CKEditor's `L` element table puts `table`
+   there), and in a paragraph NONE of them is applicable.
+
+   That makes the whole Styles combo go TRISTATE_DISABLED, which is stylescombo's
+   `refresh`: it returns early the moment one style is checkApplicable, and calls
+   setState( TRISTATE_DISABLED ) if none is. It is the case in the reported
+   screenshot - real CKEditor showing a greyed-out Styles button on a Bootstrap-ish
+   site while the caret sat in a paragraph. Put the caret in the table and the combo
+   comes back to life. */
+table.table-striped tbody tr:nth-child(2n) { background: #f7f7f7; }
+table.table-hover tbody tr:hover { background: #eef4fb; }
+table.table-ruled tbody tr td { border-bottom: 1px solid #ddd; }
+
+/* Skipped (leading dot), so it must not accidentally keep the combo enabled. */
+.btn-primary { background: #2679b5; }

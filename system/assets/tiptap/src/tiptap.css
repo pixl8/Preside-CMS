@@ -1,0 +1,979 @@
+/* Editor chrome + content styles. SOURCE file - built (minified + content-hashed)
+   into assets/dist/ by esbuild.mjs alongside the js bundles.
+
+   Colours go through the custom properties declared on .tiptap-editor-container so
+   the dark theme (toolbar toggle -> .tiptap-dark, see src/theme.js) is a single
+   variable override at the bottom of this file rather than a duplicated ruleset.
+   The picker/anchor overlays are appended to <body> (outside the container) and
+   stay light - they host Preside admin forms in an iframe.
+
+   COLOURS COME FROM THE PRESIDE ADMIN PALETTE - Preside-CMS
+   system/assets/css/admin/lessglobals/colours.less. Do not invent hex values;
+   pick the admin variable that means the same thing and note it here:
+     --tt-accent       #4c8fbd  @blue          (@default-link-colour)
+     --tt-accent-soft  #f0f7fc  @pale-blue     (@default-row-hover-colour)
+     --tt-active-bg    #f0f7fc  @pale-blue
+     --tt-active-border #93cbf9 @light-blue    (@default-selected-input-border-colour)
+     --tt-active-fg    #1b6aaa  @blue-darker
+     --tt-selected     #6fb3e0  @lighter-blue
+     --tt-border       #cccccc  @grey12
+     --tt-border-soft  #dddddd  @grey13        (@default-panel-border-colour)
+     --tt-muted        #777777  @grey7
+     --tt-chrome-bg    #eeeeee  @grey14        (CKEditor's own .cke_top grey)
+     --tt-group-bg     #ffffff  white          (CKEditor's own .cke_toolgroup)
+     --tt-embed-bg     #eeeeee  @grey14        (@default-panel-background-colour)
+     --tt-outline-line #cccccc  @grey12
+     --tt-outline-flash #fee188 @yellow        (the admin's highlight yellow)
+   The dark theme has no admin equivalent (the admin is light-only), so its
+   overrides at the bottom of this file are ours - kept as muted versions of the
+   same hues. */
+/* The variables are declared for EVERY document that renders our chrome, because a
+   custom property declared on the container cannot cross a document boundary.
+   `.tiptap-editor-doc` is the editing frame's own <html> (src/editorFrame.js),
+   where the editable and the chrome glued to it live (embeds, image tools, drag
+   gutter, table bubble); `.tiptap-combo-doc` is the Format/Styles panel frame's
+   (src/comboPanel.js). The container-only properties (border, position) stay
+   below, on the container. */
+.tiptap-editor-container,.tiptap-editor-doc,.tiptap-combo-doc,.tiptap-combo-panel{
+	--tt-bg:#fff;
+	--tt-fg:#222;
+	--tt-muted:#777;
+	--tt-border:#ccc;
+	--tt-border-soft:#ddd;
+	--tt-chrome-bg:#eeeeee;
+	--tt-group-bg:#ffffff;
+	--tt-btn-fg:#333;
+	--tt-btn-hover-bg:#e9e9e9;
+	--tt-active-bg:#f0f7fc;
+	--tt-active-border:#93cbf9;
+	--tt-active-fg:#1b6aaa;
+	--tt-accent:#4c8fbd;
+	--tt-accent-soft:#f0f7fc;
+	--tt-selected:#6fb3e0;
+	--tt-menu-bg:#fff;
+	--tt-menu-shadow:rgba(0,0,0,.16);
+	--tt-embed-bg:#eee;
+	--tt-th-bg:#f0f0f0;
+	--tt-table-border:#bbb;
+	--tt-outline-line:#cccccc;
+	--tt-outline-flash:#fee188;
+	/* Baseline CONTENT typography for the editable (see the isolation block
+	   below). Values are CKEditor's own contents.css / .cke_editable defaults, so
+	   a field with no content stylesheets looks like the editor we replace rather
+	   than like the admin page. Overridable per site with these variables. */
+	--tt-content-font:sans-serif,Arial,Verdana,"Trebuchet MS";
+	--tt-content-size:13px;
+	--tt-content-line:1.6;
+	--tt-content-fg:#333;
+}
+.tiptap-editor-container{
+	/* position: the outline navigator is absolutely positioned against it. */
+	position:relative;
+	border:1px solid var(--tt-border);border-radius:3px;background:var(--tt-bg);color:var(--tt-fg)
+}
+/* The frame itself. A replaced element, so it does not grow with its content -
+   editorFrame.js measures and sets the height. `display:block` kills the inline
+   baseline gap under it; the width is the container's. */
+.tiptap-editor-frame{display:block;width:100%;border:0;background:transparent}
+/* The toolbar is a GREY tray of WHITE GROUPED BLOCKS, which is how CKEditor's own
+   toolbar reads and the thing a Preside author recognises. The numbers are lifted
+   from the bootstrapck skin as computed in the browser: .cke_top is #eee with
+   3px top padding, and .cke_toolgroup is white, 1px #ddd, 4px radius, 2px padding,
+   `margin:0 6px 3px 0`. Groups own their spacing, so the toolbar itself has no
+   flex `gap` - one source of the "two separators" look was a gap AND a margin AND
+   a drawn separator all landing between the same pair of buttons. */
+.tiptap-toolbar{border-bottom:1px solid var(--tt-border-soft);padding:3px 6px 0;background:var(--tt-chrome-bg);display:flex;flex-wrap:wrap;align-items:center}
+.tiptap-toolbar-group{
+	display:inline-flex;align-items:center;gap:1px;
+	margin:0 6px 3px 0;padding:2px;
+	background:var(--tt-group-bg);border:1px solid var(--tt-border-soft);border-radius:4px
+}
+/* A separator inside a group. Centred by the group's own align-items rather than a
+   magic top margin, so it lines up whatever height the row happens to be - and
+   renderNames() drops any that end up leading, trailing or doubled once unknown
+   buttons have been skipped (tidySeparators), since a rule against the group's own
+   border is exactly the "double line" that read as a mistake. */
+.tiptap-toolbar-sep{display:inline-block;width:1px;height:16px;background:var(--tt-border-soft);margin:0 3px}
+/* Pushed to the far right of the toolbar row (holds the light/dark toggle). */
+.tiptap-toolbar-right{margin-left:auto;margin-right:0}
+/* Button metrics follow CKEditor's (.cke_button computes to a 16px icon in 2px/4px
+   padding, radius 2) so a group of ours is the same size as a group of theirs -
+   which is also what makes the same toolbar config wrap into the same number of
+   rows. The floating bubbles deliberately keep their own larger 24px buttons. */
+.tiptap-btn{min-width:24px;height:22px;padding:0 4px;border:1px solid transparent;background:none;border-radius:2px;cursor:pointer;font-size:12px;line-height:1;color:var(--tt-btn-fg);display:inline-flex;align-items:center;justify-content:center}
+.tiptap-btn svg{width:16px;height:16px;display:block;pointer-events:none}
+.tiptap-btn:hover{background-color:var(--tt-btn-hover-bg);border-color:var(--tt-border-soft)}
+.tiptap-btn.is-active{background:var(--tt-active-bg);border-color:var(--tt-active-border);color:var(--tt-active-fg)}
+.tiptap-theme-toggle{border-radius:50%;width:26px;min-width:26px;padding:0}
+/* ---- CONTENT BASELINE (the frame's only typography) -------------------------
+   THERE IS NO ISOLATION RESET HERE ANY MORE, and that is the point of the
+   editing frame (src/editorFrame.js). There used to be an `all:revert` wall on
+   the editable plus a (0,2,0) specificity contract ordering it against the
+   admin's CSS. It could not work, for a reason no ordering fixes: a reset at
+   (0,2,0) is beaten by any admin/theme rule at (0,2,1) or above and by ANY
+   `!important`, both of which real admin stylesheets contain. It also cost us a
+   Safari outage - reverting `all` discards the presentational hint WebKit maps
+   `contenteditable` onto, so the editable went read-only.
+
+   The editable is now in its own document, where the admin's CSS is not present
+   at all. Nothing needs walling out, so nothing is.
+
+   THE DROPDOWN PREVIEWS DO NOT NEED A WALL EITHER, for the same reason: they moved
+   into a document of their own too (src/comboPanel.js). They used to be chrome in
+   the HOST document with a scoped, rewritten copy of the content CSS behind an
+   `all:revert` of their own, and that reset was itself the bug - at (0,1,1) it beat
+   any content rule of lower specificity, so a `:where()`d or `@layer`ed rule never
+   reached the preview, while an admin rule at (0,2,2) reached it regardless. An
+   unstyled preview is now raw browser defaults plus the site's own sheet, exactly
+   like an unstyled editable.
+
+   DO NOT REINTRODUCE `all: revert` ANYWHERE. */
+.tiptap-editor-mount{padding:8px 10px}
+/* prosemirror-view injects its own editable CSS into `view.root`, which for the
+   editing frame IS the frame's document - so it now applies normally and there is
+   nothing to restate. What is left here is layout, not content:
+
+   The `-webkit-user-modify` / `-webkit-line-break` / `-webkit-nbsp-mode` triplet
+   that used to live here is GONE with the reset that made it necessary. WebKit
+   maps `contenteditable` onto those as presentational hints; only `all:revert`
+   could throw them away, and there is no longer an `all:revert` in the editable's
+   cascade. (Keep that in mind before ever reintroducing one - it cost a release.)
+
+   `p{margin:0 0 .6em}` is gone too, and deliberately: it was a CONTENT opinion at
+   (0,2,1), which beat a site's own `p{margin}` at (0,0,1). In the frame an
+   unstyled field is now raw browser defaults, and a styled one is the site's
+   stylesheet alone - and in Modern inline mode that rule had been quietly
+   overriding the theme's paragraph spacing on the real page. */
+.tiptap-editor-mount .ProseMirror{
+	outline:none;min-height:60px;
+	position:relative;
+	white-space:break-spaces;overflow-wrap:break-word
+}
+.tiptap-editor-mount .ProseMirror [contenteditable=false]{white-space:normal}
+.tiptap-editor-mount .ProseMirror [contenteditable=false] [contenteditable=true]{white-space:pre-wrap}
+.tiptap-editor-mount .ProseMirror-hideselection *{caret-color:transparent}
+/* Maximized: the container is portalled to <body> first (see src/maximize.js) so
+   it escapes any ancestor stacking context / containing block - on the front end
+   it lives inside a fixed, max-width, z-index:100 wrapper. z-index sits above the
+   frontend admin toolbar (103) but below the picker/anchor overlays (2000/2100).
+   `width` is !important because the field's data-width is an inline style. */
+.tiptap-editor-container.is-maximized{position:fixed;inset:0;width:auto!important;height:auto!important;max-width:none;z-index:calc(var(--tt-z-base,1040) + 10);border:0;border-radius:0;display:flex;flex-direction:column;background:var(--tt-bg)}
+/* Maximized, the FRAME is the flex child that takes the remaining height (the
+   mount is inside it, in the other document, and cannot be a flex child of the
+   container). Its own document scrolls. The mount rule stays for Modern inline
+   mode, which has no frame. */
+.tiptap-editor-container.is-maximized .tiptap-editor-frame{flex:1;min-height:0;height:auto!important;max-height:none!important}
+.tiptap-editor-container.is-maximized .tiptap-editor-mount{flex:1;min-height:0;max-height:none!important;overflow-y:auto}
+html.tiptap-maximized-host,html.tiptap-maximized-host body{overflow:hidden}
+/* Frontend (in-page) editors render inside core's `.content-editor-editor-container`
+   (system/views/admin/frontendEditing/_editorTemplate.cfm), which frontendEditor.less
+   caps at max-width:810px - about half the viewport on a desktop. Widen that to 75%
+   of the viewport (core's min-width:500px still floors it on narrow screens) and let
+   the editor fill the wrapper: the field's data-width (800, from _editorTemplate.cfm)
+   is applied as an inline style, hence !important. */
+.content-editor-editor-container{max-width:75vw!important}
+.content-editor-editor-container .tiptap-editor-container{width:100%!important;max-width:100%}
+/* ...and lift it out of core's z-index band. frontendEditor.less gives the editor
+   z-index:100 and its sheen 99 - numbers that predate sticky site headers. Any
+   theme header above that paints OVER the editor, and being anchored to the top of
+   the viewport it lands exactly on the toolbar (core's top is 100px).
+
+   EVERY z-index we own is expressed against `--tt-z-base` so the whole ladder can
+   be lifted as one - src/frontendFit.js measures the site's own fixed/sticky chrome
+   and raises the base above it. The base's DEFAULT (1040) reproduces the previous
+   fixed numbers exactly, so nothing changes in the admin, where the var is never
+   set. The rungs, in order: sheen (base-1) < frontend container (base) < maximized
+   (base+10) < picker overlay (base+960) < anchor overlay / slash menu (base+1060).
+   Keep them relative: a literal here is a rung that stops moving with the rest. */
+.content-editor-editor-container{z-index:var(--tt-z-base,1040)!important}
+.frontend-editor-modal-sheen{z-index:calc(var(--tt-z-base,1040) - 1)!important}
+/* ...and the same for height: the field's data-max-height (400) is inline on the
+   mount, so grow the editable to whatever the fixed wrapper leaves - core's
+   top:100px + padding-bottom:100px (the fixed save bar) plus ~90px of our own
+   toolbar+footer chrome - with a 240px floor for short viewports. `--tt-frontend-offset`
+   is however far frontendFit.js had to push the editor down to clear a fixed header;
+   the editable gives back exactly that much so the fixed save bar stays clear. */
+/* The FRAME carries the cap on the front end, not the mount - the mount is in the
+   frame's document and this stylesheet's `.content-editor-editor-container`
+   ancestor does not exist there. `max-height` also has to beat the fitted inline
+   height, hence the `height:auto` alongside it: editorFrame.js writes an explicit
+   px height, which would otherwise win. The mount rule stays for Modern inline
+   mode, which has no frame. */
+.content-editor-editor-container .tiptap-editor-frame{max-height:max(240px,calc(100vh - 290px - var(--tt-frontend-offset,0px)))!important}
+.content-editor-editor-container .tiptap-editor-mount{max-height:max(240px,calc(100vh - 290px - var(--tt-frontend-offset,0px)))!important}
+.tiptap-editor-mount .ProseMirror a{color:var(--tt-accent);text-decoration:underline}
+/* Neutralise the <p> ProseMirror puts inside every <li>.
+
+   The stored markup does not have it (normalize.js unwraps it, sublists included),
+   but the SCHEMA requires it while editing - ListItem is `paragraph block*`, which
+   is what makes sublists and multi-paragraph items possible at all. So the wrapper
+   exists only in the editable, where the site's content CSS has no reason to expect
+   it: with the `all:revert` wall gone an unstyled field gets the UA's
+   `p{margin:1em 0}` and every list item reads double-spaced against CKEditor, and a
+   styled one can add padding, a background or a border meant for real paragraphs.
+   `display:contents` removes the box entirely rather than just its margins, so all
+   of that goes at once.
+
+   TWO THINGS ARE LOAD-BEARING:
+   - `:only-of-type`. A genuinely multi-paragraph item still stores two <p>s (the
+     normaliser deliberately keeps them), and `display:contents` on both would run
+     their text together on ONE LINE with no break at all. This matches the
+     artifact - one <p>, with or without a sublist beside it - and leaves real
+     multi-paragraph items as the stacked blocks they are.
+   - Everything is in `:where()`, so the whole rule is (0,0,0). It still beats the UA
+     sheet (an author sheet always does, at any specificity) but loses to ANY site
+     rule that sets `display` on that <p>, which is exactly when we should defer.
+     That is the same discipline that keeps `p{margin:0 0 .6em}` out of this file.
+   The `.tiptap-editor-mount` scope is not optional: in Modern inline mode the
+   editable IS the site page and this stylesheet is loaded there, so an unscoped
+   `li>p` rule would restyle the whole theme.
+
+   Legacy rows authored before the normaliser fix still carry the <p> in the DB, and
+   we cannot reach the site's own stylesheet - the same one-liner has to go in the
+   theme for those. Any such row that gets opened and saved comes back clean. */
+:where(.tiptap-editor-mount li)>:where(p:only-of-type){display:contents}
+/* All three embeds are BLOCK nodes in the schema, so their DOM must be
+   block-level too - as `inline-block` they shared a line, and two widgets in a row
+   sat side by side instead of stacking. `width:fit-content` keeps the shrink-wrap
+   that makes a widget read as a chip rather than a full-width bar (verified
+   shrinking AND stacking in blink, webkit and gecko).
+
+   THE IMAGE KEEPS `inline-block`, deliberately: its alignment feature floats the
+   wrapper (see the [data-tt-align] rules below) so text can sit beside it, and
+   `center` already switches itself to `display:block` to get the auto margins. */
+.tiptap-editor-mount .img-placeholder{display:inline-block;vertical-align:middle}
+.tiptap-editor-mount .attachment-placeholder,.tiptap-editor-mount .widget-placeholder{display:block;width:fit-content;max-width:100%}
+/* Clicking an embed selects the NODE (see makePreviewDom in
+   src/extensions/presideEmbeds.js) - so a drag across the preview must not paint a
+   text selection over it either. These previews are placeholders, not content;
+   CKEditor's widgets were not text-selectable. */
+.tiptap-editor-mount .img-placeholder,.tiptap-editor-mount .attachment-placeholder,.tiptap-editor-mount .widget-placeholder{user-select:none;-webkit-user-select:none}
+/* Widget placeholder glyph: inline data-URI SVG (Tabler "puzzle", MIT) — no icon files. */
+.tiptap-editor-mount .widget-placeholder{background:var(--tt-embed-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h3a1 1 0 0 0 1 -1v-1a2 2 0 0 1 4 0v1a1 1 0 0 0 1 1h3a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 1 0 4h-1a1 1 0 0 0 -1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-1a2 2 0 0 0 -4 0v1a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h1a2 2 0 0 0 0 -4h-1a1 1 0 0 1 -1 -1z'/%3E%3C/svg%3E") 6px center/14px 14px no-repeat;border:1px solid var(--tt-border);border-radius:5px;padding:6px 10px 6px 26px;margin:2px;color:var(--tt-fg)}
+.tiptap-editor-mount .attachment-placeholder{padding:2px}
+/* All three embeds render as `dom > frame > preview`: `preview` holds the
+   server-rendered HTML (replaced wholesale on every refresh), `frame` shrink-wraps
+   it and is the containing block the image tools' absolute chrome measures
+   against - so handles land on the image's edges, not the paragraph's. */
+.tiptap-editor-mount .tiptap-embed-frame{position:relative;display:inline-block;max-width:100%;vertical-align:middle}
+.tiptap-editor-mount .tiptap-embed-preview{display:block}
+.tiptap-editor-mount .tiptap-embed-preview img{max-width:100%;height:auto}
+/* The selection outline goes on the FRAME, which shrink-wraps the embed, not on the
+   node view's wrapper: a centre-aligned image makes that wrapper a full-width block
+   (that is how it centres), so outlining it drew a selection box spanning the whole
+   editor instead of the image. The frame is also where the resize handles live, so
+   outline and handles now always agree. */
+.tiptap-editor-mount .ProseMirror-selectednode>.tiptap-embed-frame{outline:2px solid var(--tt-selected);outline-offset:1px}
+/* The image's outline goes on the FRAME, not the wrapper: a centre-aligned image
+   makes the wrapper a full-width block (that is how it centres), so outlining the
+   wrapper drew a selection box across the whole editor. A widget/attachment chip
+   shrink-wraps and has no alignment, so IT is the right thing to outline - and it
+   is the box the user sees. */
+.tiptap-editor-mount .img-placeholder.ProseMirror-selectednode{outline:none}
+.tiptap-editor-mount .attachment-placeholder.ProseMirror-selectednode>.tiptap-embed-frame,.tiptap-editor-mount .widget-placeholder.ProseMirror-selectednode>.tiptap-embed-frame{outline:none}
+.tiptap-editor-mount .attachment-placeholder.ProseMirror-selectednode,.tiptap-editor-mount .widget-placeholder.ProseMirror-selectednode{outline:2px solid var(--tt-selected);outline-offset:1px}
+.tiptap-editor-mount .loading{color:#999;font-style:italic}
+.tiptap-editor-mount .error{color:#c00;border:1px solid #f4b4b4;padding:1px 4px;border-radius:3px}
+.tiptap-editor-mount .ProseMirror-selectednode{outline:2px solid var(--tt-selected);outline-offset:1px}
+.tiptap-editor-mount .preside-anchor{display:inline-block;color:var(--tt-active-fg);border:1px dotted var(--tt-active-fg);border-radius:3px;padding:0 3px;font-size:.8em;line-height:1.4;background:var(--tt-accent-soft);cursor:pointer;vertical-align:middle;margin:0 1px}
+.preside-anchor-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:calc(var(--tt-z-base,1040) + 1060);display:flex;align-items:center;justify-content:center}
+.preside-anchor-dialog{background:#fff;border-radius:4px;padding:16px 18px;width:340px;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.preside-anchor-head{font-weight:bold;margin-bottom:10px}
+.preside-anchor-input{width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;font-size:14px}
+.preside-anchor-foot{text-align:right;margin-top:14px}
+.preside-anchor-foot button{padding:6px 14px;margin-left:8px;border:1px solid #ccc;border-radius:3px;cursor:pointer}
+.preside-anchor-foot .pa-ok{background:#4c8fbd;color:#fff;border-color:#4c8fbd}
+
+/* ---- Modal dialogs (src/dialog.js) --------------------------------------------
+   Find and Replace (src/findReplace.js) and Insert Special Character
+   (src/specialChar.js). Body-portalled like the pickers, so - as with the picker
+   and anchor overlays - they are OUTSIDE the container's `--tt-*` scope and stay
+   light on purpose; the admin is light-only and a dialog over the site page in
+   Modern inline mode must not go dark because the OS is.
+
+   THE DIALOG DECLARES ITS OWN TYPOGRAPHY, AND THAT IS NOT COSMETIC TIDYING.
+   Living on <body> means the HOST page styles it: the Preside admin is bootstrap
+   + Ace, whose `legend` is 21px with a bottom border, whose `label` has its own
+   weight, and - the one that made the first version look ragged - form controls
+   DO NOT INHERIT FONT AT ALL, so an input or button with only a font-size set
+   renders in the UA's Arial 13.33px next to panel text in the page's own family.
+   Hence: one family/size/line-height on the panel, `font:inherit` on every
+   control inside it, and the fieldset/legend defaults neutralised.
+
+   ONE TYPE SCALE for both dialogs - 14px semibold title, 13px body/controls,
+   12px status and secondary previews. If you add a row here, use those three;
+   the only deliberately larger type is the special-character glyphs, which are
+   the content. */
+.tiptap-dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:calc(var(--tt-z-base,1040) + 1060);display:flex;align-items:flex-start;justify-content:center;padding:48px 16px 16px}
+.tiptap-dialog{
+	font-family:"Open Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,Helvetica,sans-serif;
+	font-size:13px;line-height:20px;font-weight:400;font-style:normal;
+	letter-spacing:normal;text-transform:none;text-align:left;
+	color:#333;background:#fff;
+	border-radius:4px;box-shadow:0 8px 28px rgba(0,0,0,.28);
+	max-width:calc(100vw - 32px);max-height:calc(100vh - 64px);
+	display:flex;flex-direction:column;overflow:hidden
+}
+/* Form controls do not inherit font, and the host page has opinions about the
+   rest - so everything inside the panel is restated from the panel.
+   `:where()` keeps this at (0,1,0), i.e. the same weight as a single class: it
+   still beats the host page's element selectors, but every styled part below can
+   override it by simply coming later, without a specificity arms race. (The first
+   version of this reset used descendant selectors at (0,2,0) and silently ate the
+   title's weight and the character grid's glyph size.) */
+.tiptap-dialog :where(input,button,select,textarea,label,legend,fieldset,span,div){
+	font-family:inherit;font-size:inherit;line-height:inherit;font-weight:inherit;
+	letter-spacing:inherit;text-transform:none;color:inherit;box-sizing:border-box
+}
+.tiptap-dialog :where(fieldset){min-width:0;margin:0;padding:0;border:0}
+.tiptap-dialog :where(legend){display:block;width:auto;margin:0;padding:0;border:0;float:none}
+.tiptap-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid #e3e3e3;background:#f7f7f7}
+.tiptap-dialog-title{font-size:14px;font-weight:600}
+.tiptap-dialog-x{width:24px;height:24px;flex:none;padding:0;border:0;border-radius:3px;background:none;color:#777;cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center}
+.tiptap-dialog-x:hover{background:#e9e9e9;color:#333}
+.tiptap-dialog-tabs{display:flex;gap:4px;padding:10px 16px 0;background:#f7f7f7;border-bottom:1px solid #e3e3e3}
+.tiptap-dialog-tab{padding:6px 14px;margin-bottom:-1px;border:1px solid transparent;border-bottom-color:transparent;border-radius:3px 3px 0 0;background:none;color:#555;cursor:pointer}
+.tiptap-dialog-tab:hover{color:#333;background:#efefef}
+.tiptap-dialog-tab.is-active{background:#fff;border-color:#e3e3e3;border-bottom-color:#fff;color:#333;font-weight:600}
+.tiptap-dialog-body{padding:16px;overflow:auto}
+/* Empty until something is reported, but it holds its line so the buttons do not
+   jump when a message appears. */
+.tiptap-dialog-status{padding:0 16px;min-height:20px;font-size:12px;color:#1b6aaa}
+.tiptap-dialog-foot{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid #e3e3e3;background:#f7f7f7}
+.tiptap-dialog-btn{height:30px;padding:0 14px;border:1px solid #ccc;border-radius:3px;background:#fff;color:#333;cursor:pointer;white-space:nowrap}
+.tiptap-dialog-btn:hover{background:#f0f0f0;border-color:#bbb}
+.tiptap-dialog-btn.is-primary{background:#4c8fbd;border-color:#4c8fbd;color:#fff;font-weight:600}
+.tiptap-dialog-btn.is-primary:hover{background:#3f7ca6;border-color:#3f7ca6}
+.tiptap-dialog-btn:focus-visible,.tiptap-dialog-x:focus-visible,.tiptap-dialog-tab:focus-visible{outline:2px solid #93cbf9;outline-offset:1px}
+.tiptap-dialog-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.tiptap-dialog-label{flex:none;width:92px;color:#555}
+.tiptap-dialog-input{flex:1 1 auto;min-width:0;height:30px;padding:0 8px;border:1px solid #ccc;border-radius:3px;background:#fff}
+.tiptap-dialog-input:focus{border-color:#93cbf9;outline:none;box-shadow:0 0 0 2px rgba(147,203,249,.4)}
+
+/* Find/Replace: the replace row only belongs to the Replace tab. The body's
+   markup stays static across tabs (that is what keeps the two tabs' values in
+   step - CKEditor had to copy them across by hand), so the tab drives visibility
+   from the panel's data-tab. */
+.tiptap-find-dialog{width:440px}
+.tiptap-find-dialog[data-tab="find"] .tiptap-dialog-row-replace{display:none}
+.tiptap-find-options{margin:14px 0 0;padding:10px 12px 12px;border:1px solid #e3e3e3;border-radius:3px}
+.tiptap-find-options legend{padding:0 5px;color:#777;font-size:12px}
+.tiptap-find-option{display:flex;align-items:center;gap:7px;padding:2px 0;cursor:pointer}
+.tiptap-find-option input{width:14px;height:14px;margin:0;flex:none}
+
+/* The current match, as a decoration inside the editable. Colours are CKEditor's
+   own config.find_highlight ({ "background-color": "#004", color: "#fff" }). */
+.tiptap-find-match{background-color:#004;color:#fff}
+
+/* Special characters: CKEditor's 17-column grid, plus its two preview panes. The
+   glyphs are the one place larger type belongs - they ARE the content. */
+.tiptap-specialchar-dialog{width:620px}
+.tiptap-specialchar-wrap{display:flex;gap:16px;align-items:flex-start}
+.tiptap-specialchar-grid{display:grid;gap:3px;flex:1 1 auto;min-width:0}
+.tiptap-specialchar-cell{
+	height:26px;padding:0;border:1px solid #e3e3e3;border-radius:2px;background:#fafafa;cursor:pointer;
+	font-size:15px;line-height:24px;color:#333;
+	display:flex;align-items:center;justify-content:center;overflow:hidden
+}
+.tiptap-specialchar-cell:hover,.tiptap-specialchar-cell:focus{background:#f0f7fc;border-color:#93cbf9;color:#1b6aaa;outline:none}
+.tiptap-specialchar-preview{flex:none;width:84px;text-align:center}
+.tiptap-specialchar-big{height:56px;border:1px solid #e3e3e3;border-radius:2px;background:#fafafa;font-size:30px;line-height:54px}
+.tiptap-specialchar-html{
+	margin-top:6px;padding:3px 4px;border:1px solid #e3e3e3;border-radius:2px;background:#fafafa;
+	font-size:12px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+
+/* FLEX, NOT INLINE-BLOCK, and that is a height bug fix rather than a preference.
+   As an inline-block the wrapper opened an INLINE formatting context, so its
+   trigger sat on a text baseline against the strut of the wrapper's own font -
+   and where the trigger's baseline falls depends on what is inside it. A trigger
+   with a text label (Format/Styles) puts its baseline mid-button and fitted in
+   22px; a trigger holding only boxes (the Table picker's svg, the Align picker's
+   icon span) has its baseline SYNTHESIZED at its bottom edge, so the strut's
+   descent was added below it and the wrapper measured 23px. One pixel, but it
+   made those two GROUPS a pixel taller than every other group in the tray and
+   shifted their buttons half a pixel up - the "the custom buttons are taller"
+   report. A flex container has no strut, so every wrapper is exactly its
+   trigger's height whatever it contains. */
+.tiptap-dropdown{position:relative;display:inline-flex;align-items:center;margin:0 2px}
+/* A COMBO IS ITS OWN BLOCK, NOT A CONTROL INSIDE A GROUP.
+   CKEditor's richCombo constructor sets `canGroup:!1`, so its toolbar renderer
+   CLOSES any open .cke_toolgroup and emits the combo outside it - a combo is never
+   inside a group there. The visible box is .cke_combo_button, whose metrics these
+   mirror: `margin:0 6px 5px 0; border:1px solid #ddd; border-radius:4px`, matching
+   .cke_toolgroup's own `margin:0 6px 3px 0` + same border + same radius. So Styles
+   and Format read as two distinct pills wherever a config puts them, which is the
+   whole point: sharing one group block put them 5px apart with no border between,
+   and they read as a single merged control.
+   Only Format/Styles get this (see COMBO_NAMES) - the Table and Align triggers were
+   plain buttons in CKEditor and stay inside their group. */
+.tiptap-combo{
+	margin:0 6px 3px 0;padding:2px;
+	background:var(--tt-group-bg);border:1px solid var(--tt-border-soft);border-radius:4px
+}
+/* The trigger IS the block's content, so it carries no border of its own (that
+   would draw a second box inside the combo's).
+   Text metrics follow .cke_combo_text: 12px, #474747-ish, padded left. */
+.tiptap-dropdown-trigger{min-width:104px;display:inline-flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;padding:0 6px 0 8px}
+/* THE CARET IS `tiptap-caret`, NOT `caret`, AND IS DRAWN AS A BORDER TRIANGLE.
+   `caret` is a BOOTSTRAP class (and an Ace one): in the admin, bootstrap's own
+   `.caret` rule drew its border triangle on top of the glyph we were printing, so
+   every dropdown showed TWO arrows stacked. The toolbar lives in the light DOM
+   (unlike the dialogs' shadow root), so bare class names that a theme might own
+   are a real hazard - namespace anything new here the same way. */
+.tiptap-caret{
+	width:0;height:0;flex:none;
+	border-left:4px solid transparent;border-right:4px solid transparent;
+	border-top:4px solid currentColor;opacity:.6
+}
+.tiptap-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tiptap-dropdown-menu{position:absolute;top:100%;left:0;margin-top:3px;min-width:190px;background:var(--tt-menu-bg);border:1px solid var(--tt-border);border-radius:4px;box-shadow:0 4px 16px var(--tt-menu-shadow);z-index:1200;padding:4px 0;display:none;max-height:360px;overflow:auto}
+.tiptap-dropdown-menu.open{display:block}
+/* THE FORMAT/STYLES PANEL IS AN IFRAME (see src/comboPanel.js): the only way an
+   entry can preview in the site's own content CSS, since that sheet has to arrive
+   byte-unmodified, in a document with its own root, out of reach of the admin's
+   stylesheets. The panel chrome is on this HOST; the list inside the frame reuses
+   .tiptap-dropdown-item / -group, which our own sheet supplies in there too.
+   Body-portalled and `fixed`, like the slash menu and the picker overlays, so a
+   capped-height or overflow:hidden field cannot clip it. It shares the slash
+   menu's rung on the --tt-z-base ladder - never a literal z-index (see the ladder
+   note above). */
+.tiptap-combo-panel{
+	position:fixed;top:0;left:0;display:none;
+	z-index:calc(var(--tt-z-base,1040) + 1060);
+	background:var(--tt-menu-bg);border:1px solid var(--tt-border);border-radius:4px;
+	box-shadow:0 4px 16px var(--tt-menu-shadow);padding:4px 0;overflow:hidden
+}
+.tiptap-combo-panel.is-open{display:block}
+.tiptap-combo-panel>iframe{display:block;border:0;width:190px;height:0;background:transparent}
+/* The frame's own root carries the --tt-* variables (declared for
+   .tiptap-combo-doc alongside the container and the editing frame's root), so the
+   list re-themes with everything else - a class on the host cannot cross the
+   document boundary, which is why comboPanel.syncTheme() sets it on both. */
+.tiptap-combo-list{min-width:190px}
+.tiptap-dropdown-item{padding:5px 14px;cursor:pointer;color:var(--tt-fg);line-height:1.25;white-space:nowrap}
+.tiptap-dropdown-item:hover{background:var(--tt-accent-soft)}
+.tiptap-dropdown-item.active{background:var(--tt-active-bg);color:var(--tt-active-fg)}
+.tiptap-dropdown-empty{color:var(--tt-muted);font-style:italic;cursor:default}
+/* The panel group title (richcombo's startGroup -> .cke_panel_grouptitle), with
+   that skin's own metrics: 11px bold, 6px padding, ruled off from the list. */
+.tiptap-dropdown-group{
+	font-size:11px;font-weight:700;white-space:nowrap;padding:6px 14px;
+	color:var(--tt-muted);background:var(--tt-chrome-bg);
+	border-bottom:1px solid var(--tt-border-soft)
+}
+.tiptap-dropdown-group~.tiptap-dropdown-group{border-top:1px solid var(--tt-border-soft)}
+/* stylescombo's TRISTATE_DISABLED - the combo greys out when no style applies at
+   the caret. .cke_combo_disabled uses opacity:.3 on the label and the arrow. */
+.tiptap-dropdown-trigger:disabled{cursor:default}
+.tiptap-dropdown-trigger:disabled .tiptap-lbl,
+.tiptap-dropdown-trigger:disabled .tiptap-caret{opacity:.3}
+
+/* Block drag handle (src/dragHandle.js). The gutter it sits in is added by the
+   .tiptap-has-draghandle class rather than baked into .tiptap-editor-mount, so a
+   field opting out (defaultConfigs.dragHandle = false) keeps the original
+   padding and loses no editable width. */
+/* Gutter width tracks how many controls are actually rendered: "+" plus grip, or
+   the grip alone when the slash menu is off (the "+" only types a "/", so it
+   would be useless without it). */
+/* Also keyed off the FRAME's own root (`html.tiptap-editor-doc.tiptap-gutter-*`):
+   the mount lives in the frame's document, so a class on the container cannot
+   select it. dragHandle.js sets the class on whichever root can reach the mount. */
+.tiptap-gutter-1 .tiptap-editor-mount,.tiptap-editor-doc.tiptap-gutter-1 .tiptap-editor-mount{padding-left:28px}
+.tiptap-gutter-2 .tiptap-editor-mount,.tiptap-editor-doc.tiptap-gutter-2 .tiptap-editor-mount{padding-left:48px}
+.tiptap-block-gutter{position:absolute;left:4px;display:none;align-items:center;gap:1px}
+.tiptap-block-gutter.is-visible{display:inline-flex}
+.tiptap-block-gutter button{
+	width:20px;height:20px;padding:0;
+	display:inline-flex;align-items:center;justify-content:center;
+	border:0;border-radius:3px;background:none;
+	color:var(--tt-muted);opacity:.55;transition:opacity .1s ease,background .1s ease
+}
+.tiptap-block-gutter button:hover{opacity:1;background:var(--tt-btn-hover-bg)}
+.tiptap-block-gutter button svg{width:16px;height:16px;display:block;pointer-events:none}
+.tiptap-block-insert{cursor:pointer}
+.tiptap-drag-handle{cursor:grab}
+.tiptap-drag-handle.is-dragging{cursor:grabbing;opacity:1}
+/* The drop indicator is prosemirror-dropcursor (via StarterKit) - colour it to
+   match the admin palette rather than its default black. */
+.tiptap-editor-mount .ProseMirror-dropcursor,.prosemirror-dropcursor-block{background-color:var(--tt-accent)!important;border-color:var(--tt-accent)!important}
+
+/* The "/" insert menu (src/slashMenu.js). Appended to <body>, NOT the container:
+   a capped-height or overflow-hidden field would otherwise clip it. That means
+   the --tt-* variables (declared on .tiptap-editor-container) are out of scope
+   here, so this block carries its own values. Dark comes from the EDITOR's
+   theme (popup syncs the container's tiptap-dark class at open), NOT from
+   prefers-color-scheme: the OS being dark must not put a dark menu over a
+   light editor - or over the site page in Modern inline mode. */
+.tiptap-slash-menu{
+	position:fixed;z-index:calc(var(--tt-z-base,1040) + 1060);display:none;
+	min-width:270px;max-width:340px;max-height:320px;overflow-y:auto;
+	background:#fff;color:#222;border:1px solid #ccc;border-radius:5px;
+	box-shadow:0 6px 24px rgba(0,0,0,.18);padding:4px;
+	font-size:13px;line-height:1.3
+}
+.tiptap-slash-menu.is-open{display:block}
+.tiptap-slash-group{padding:6px 8px 3px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#777}
+.tiptap-slash-item{display:flex;align-items:flex-start;gap:8px;padding:5px 8px;border-radius:3px;cursor:pointer}
+.tiptap-slash-item.is-active{background:#f0f7fc}
+.tiptap-slash-icon{flex:0 0 16px;margin-top:1px;color:#555}
+.tiptap-slash-icon svg{width:16px;height:16px;display:block}
+.tiptap-slash-text{display:flex;flex-direction:column;min-width:0}
+.tiptap-slash-label{color:#222}
+.tiptap-slash-item.is-active .tiptap-slash-label{color:#1b6aaa}
+.tiptap-slash-hint{font-size:11px;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tiptap-slash-empty{padding:8px;color:#777;font-style:italic}
+.tiptap-slash-menu.tiptap-dark{background:#2b2d33;color:#e6e6e6;border-color:#4a4d55;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.tiptap-slash-menu.tiptap-dark .tiptap-slash-item.is-active{background:#33414d}
+.tiptap-slash-menu.tiptap-dark .tiptap-slash-label{color:#e6e6e6}
+.tiptap-slash-menu.tiptap-dark .tiptap-slash-item.is-active .tiptap-slash-label{color:#9ccbe8}
+.tiptap-slash-menu.tiptap-dark .tiptap-slash-icon{color:#b0b0b0}
+.tiptap-slash-menu.tiptap-dark .tiptap-slash-group,.tiptap-slash-menu.tiptap-dark .tiptap-slash-hint,.tiptap-slash-menu.tiptap-dark .tiptap-slash-empty{color:#9a9a9a}
+
+/* Alignment dropdown (src/toolbar.js renderAlign) — one trigger showing the
+   current alignment, opening a compact single ROW of icons rather than the
+   stacked list the format/styles menus use. */
+.tiptap-align-picker .tiptap-btn[data-cmd=Align]{gap:1px;padding:0 3px}
+.tiptap-align-icon{display:inline-flex}
+.tiptap-align-icon svg{width:16px;height:16px;display:block;pointer-events:none}
+.tiptap-align-picker .tiptap-caret{opacity:.5}
+.tiptap-align-menu{min-width:0;padding:3px;display:none}
+.tiptap-align-menu.open{display:flex;gap:1px}
+.tiptap-align-item{height:24px;min-width:24px}
+
+/* Table grid-size picker (toolbar "Table" button -> src/toolbar.js renderTable).
+   Reuses .tiptap-dropdown for the positioning context only - the trigger is a
+   plain .tiptap-btn (see renderTable), and the menu shrink-wraps the grid
+   instead of taking the 190px list width. */
+.tiptap-table-grid-menu{min-width:0;padding:8px;overflow:visible}
+.tiptap-table-grid{display:flex;flex-direction:column;gap:2px;cursor:pointer}
+.tiptap-table-grid-row{display:flex;gap:2px}
+.tiptap-table-grid-cell{width:16px;height:16px;box-sizing:border-box;border:1px solid var(--tt-border);border-radius:2px;background:var(--tt-bg)}
+.tiptap-table-grid-cell.is-on{background:var(--tt-active-bg);border-color:var(--tt-accent)}
+.tiptap-table-grid-caption{margin-top:6px;text-align:center;font-size:11px;color:var(--tt-muted);white-space:nowrap}
+.tiptap-table-grid-header{display:flex;align-items:center;gap:2px;margin-top:6px;padding-top:6px;border-top:1px solid var(--tt-border-soft);font-size:11px;color:var(--tt-fg);white-space:nowrap;cursor:pointer}
+.tiptap-table-grid-header input{margin:0}
+
+/* Table bubble toolbar (src/tableTools.js). Positioned in px against
+   .tiptap-editor-container, so it must not be display:none while measuring -
+   `is-open` is added before place() reads offsetWidth/offsetHeight. */
+.tiptap-table-bubble{position:absolute;top:0;left:0;display:none;align-items:center;gap:1px;padding:3px 4px;white-space:nowrap;background:var(--tt-menu-bg);border:1px solid var(--tt-border);border-radius:5px;box-shadow:0 4px 16px var(--tt-menu-shadow);z-index:6}
+.tiptap-table-bubble.is-open{display:flex}
+.tiptap-table-bubble .tiptap-btn{height:24px;min-width:24px}
+.tiptap-table-bubble .tiptap-btn:disabled{opacity:.35;cursor:default;background:none}
+/* Selected cells (ProseMirror CellSelection) — the merge/split buttons act on
+   these, so the selection has to be visible. --tt-selected is @lighter-blue. */
+.tiptap-editor-mount .selectedCell{position:relative}
+.tiptap-editor-mount .selectedCell:after{content:"";position:absolute;inset:0;background:var(--tt-selected);opacity:.28;pointer-events:none}
+/* An entry IS a real h1..h6/p/pre/span, styled by the content CSS linked into the
+   panel frame - so the only thing we take off it is the block margin that would
+   otherwise space the list out. That is exactly what CKEditor's skin does, and no
+   more: `.cke_panel_listItem h1,...,p,pre{margin-top:0;margin-bottom:0}`.
+   Deliberately NOT zeroing padding/border/background, and not imposing a monospace
+   font on `pre`: a content sheet's `p.lead{border-left:3px solid}` is part of what
+   the author is being shown, and the whole point of the frame is that the site's
+   sheet wins in here. */
+.tiptap-fmt-preview>*{margin-top:0;margin-bottom:0}
+/* ---- Source view (src/sourceView.js) ----------------------------------------
+   A transparent <textarea> over a highlighted <pre>. THE SHARED SELECTOR BELOW IS
+   LOAD-BEARING: every property that affects where a glyph lands - family, size,
+   line-height, letter-spacing, padding, wrapping, tab-size, box-sizing - must be
+   identical in both layers, or the paint drifts off the text it is painting. Add
+   any new metric there, never to one of them.
+
+   The view soft-wraps and has no line-number gutter on purpose: an image or widget
+   token is one line hundreds of characters long, so wrapping beats a horizontal
+   scrollbar - and numbering wrapped lines correctly means measuring every soft
+   break, where a gutter that mis-counts is worse than none. */
+/* The mount's padding is for the CONTENT - the left inset is the block drag
+   gutter's room (.tiptap-gutter-1/-2, padding-left 28/48px). The source view has no
+   rail and no blocks to grab, so it takes the full box and its layers' own 10/12px
+   is the only inset. The frame-root form is repeated here to MATCH the gutter rule's
+   (0,3,0): `.tiptap-editor-doc.tiptap-gutter-2 .tiptap-editor-mount` outranks a bare
+   `.tiptap-editor-mount.is-source`, so the plain version alone lost and the code
+   stayed indented by a gutter it does not have. */
+.tiptap-editor-doc .tiptap-editor-mount.is-source,
+.tiptap-inline > .tiptap-editor-mount.is-source,
+.tiptap-editor-mount.is-source{padding:0}
+.tiptap-source-wrap{position:relative;width:100%;height:220px;min-height:180px;background:var(--tt-bg)}
+/* While the source is up the outline rail would navigate headings in a document
+   that is not on screen, so it is hidden (the other content-glued chrome cannot
+   appear - it all hangs off the hidden editable). */
+.tiptap-editor-container.is-source .tiptap-outline{display:none}
+.tiptap-source,.tiptap-source-hl{
+	margin:0;border:0;width:100%;height:100%;box-sizing:border-box;padding:10px 12px;
+	font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+	font-size:12px;line-height:1.55;letter-spacing:normal;tab-size:4;-moz-tab-size:4;
+	white-space:pre-wrap;overflow-wrap:break-word;word-break:normal
+}
+.tiptap-source-hl{position:absolute;inset:0;overflow:hidden;pointer-events:none;color:var(--tt-fg);background:none}
+/* The paint layer is a DIV, not a <pre> - see the note in src/sourceView.js. Our own
+   `.tiptap-editor-mount pre` code-block rule is (0,1,1) and would beat it, and a
+   field's content stylesheet styling `pre` is completely ordinary; either one
+   changing its font or padding would slide the highlight off the text. */
+/* The text is transparent and only the CARET keeps a colour: what you read is the
+   painted layer underneath, pixel-aligned with it. `background:none` matters as
+   much - an opaque textarea would simply hide the paint. */
+.tiptap-source{
+	position:relative;display:block;resize:none;outline:none;background:none;overflow:auto;
+	color:transparent;caret-color:var(--tt-fg);-webkit-text-fill-color:transparent
+}
+.tiptap-source::selection{background:var(--tt-active-border);color:transparent}
+/* Palette from the admin colours (Preside-CMS lessglobals/colours.less), same rule
+   as everywhere else in this file - no invented hex values:
+     tag      #1b6aaa @blue-darker      attr     #c96338 @clay-brown
+     value    #629b58 @green-darker     comment  #999999 @grey9
+     punct    #888888 @grey8            decl     #777777 @grey7
+   A Preside {{...}} token is the one thing here that is neither markup nor text, so
+   it reads as a chip rather than a fourth colour - and it is drawn with the
+   --tt-active-* pair, which already has a dark value, so it needs no override. */
+.tt-src-tag{color:#1b6aaa}
+.tt-src-attr{color:#c96338}
+.tt-src-val{color:#629b58}
+.tt-src-punct{color:#888888}
+.tt-src-comment{color:#999999;font-style:italic}
+.tt-src-decl{color:#777777}
+.tt-src-token{color:var(--tt-active-fg);background:var(--tt-active-bg);border-radius:2px}
+/* Dark: the admin is light-only, so these are ours - the same hues, lifted for a
+   dark surface, exactly as the variable overrides at the bottom of this file are.
+   The prefix is the bare `.tiptap-dark` because the class lands on whichever root
+   can reach the mount: the FRAME's <html> for a boxed editor (theme.js mirrors it
+   across the document boundary), the container in Modern inline mode. */
+.tiptap-dark .tt-src-tag{color:#79b0d6}
+.tiptap-dark .tt-src-attr{color:#e0a06a}
+.tiptap-dark .tt-src-val{color:#a8c98f}
+.tiptap-dark .tt-src-punct{color:#8b9096}
+.tiptap-dark .tt-src-comment{color:#7f858c}
+.tiptap-dark .tt-src-decl{color:#9a9a9a}
+/* These four used to carry a `.tiptap-editor-container` prefix purely for
+   SPECIFICITY - (0,2,1), to sit above the (0,2,0) isolation reset. The reset is
+   gone, and the prefix had become actively WRONG: inside the editing frame there
+   is no container ancestor, so all four stopped matching (T19's td border-box and
+   T12's .selectedCell highlight both caught it). */
+.tiptap-editor-mount table{border-collapse:collapse;margin:8px 0}
+/* box-sizing:border-box so `min-width` means the WHOLE cell, matching what a
+   stored column width means. With the default content-box the 44px floor became
+   ~61px once padding and borders were added, so a dragged column stored a number
+   that did not match what the editor had just rendered. */
+.tiptap-editor-mount td,.tiptap-editor-mount th{box-sizing:border-box;border:1px solid var(--tt-table-border);padding:4px 8px;min-width:44px;position:relative}
+.tiptap-editor-mount th{background:var(--tt-th-bg);font-weight:bold}
+.tiptap-editor-mount pre{background:#2b2b2b;color:#e6e6e6;padding:10px 12px;border-radius:4px;overflow:auto;font-family:monospace}
+/* Column resizing (prosemirror-tables). The handle is the blue bar on the cell
+   border; `resize-cursor` is the class the plugin puts on the EDITABLE while the
+   pointer is over a draggable border - without a cursor rule there is no hint
+   that columns can be dragged at all, which is the whole discoverability cue. */
+.tiptap-editor-mount .column-resize-handle{position:absolute;right:-2px;top:0;bottom:0;width:4px;background:var(--tt-selected);pointer-events:none;z-index:2}
+.tiptap-editor-mount .ProseMirror.resize-cursor{cursor:col-resize}
+/* While resizing, stop the drag turning into a text selection across cells. */
+.tiptap-editor-mount .ProseMirror.resize-cursor ::selection{background:transparent}
+.preside-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:calc(var(--tt-z-base,1040) + 960);display:flex;align-items:center;justify-content:center}
+.preside-picker-dialog{background:#fff;border-radius:4px;width:96vw;max-width:96vw;height:88vh;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 6px 30px rgba(0,0,0,.3)}
+.preside-picker-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #e5e5e5;font-weight:bold}
+.preside-picker-close{border:0;background:none;font-size:22px;line-height:1;cursor:pointer;color:#888}
+.preside-picker-body{flex:1;overflow:hidden}
+.preside-picker-iframe{width:100%;height:100%;border:0}
+.preside-picker-footer{padding:10px 14px;border-top:1px solid #e5e5e5;text-align:right}
+.preside-picker-footer button{padding:6px 14px;margin-left:8px;border-radius:3px;border:1px solid #ccc;cursor:pointer}
+.preside-picker-ok{background:#4c8fbd;color:#fff;border-color:#4c8fbd}
+.preside-picker-ok:disabled{opacity:.5;cursor:not-allowed}
+/* Word/char counts on the left, the light/dark toggle right-aligned on the same
+   row (the facade puts it here unless a toolbar config places it explicitly).
+   Tall enough for the 26px toggle button to sit comfortably. */
+.tiptap-footer{display:flex;gap:14px;align-items:center;min-height:34px;border-top:1px solid var(--tt-border-soft);background:var(--tt-chrome-bg);padding:2px 6px 2px 10px;font-size:11px;line-height:1.6;color:var(--tt-muted);border-radius:0 0 3px 3px}
+.tiptap-footer .tiptap-footer-right{margin-left:auto;display:inline-flex;align-items:center;gap:2px}
+.tiptap-editor-container.is-maximized .tiptap-footer{border-radius:0}
+
+/* ---- Manual resize grip (src/resize.js) --------------------------------------
+   CKEditor's `.cke_resizer`: a 10px CSS triangle in the bottom-right corner of the
+   bottom bar, drawn with the border trick (dashed transparent sides, one solid
+   edge) rather than the ◢ glyph its skin falls back to - the same reasoning as the
+   dropdown caret, which a theme's own `.caret` rule was able to double up. The
+   cursor states which axis is live, and `touch-action:none` is what lets a touch
+   drag reach the pointer handlers at all. */
+.tiptap-resizer{
+	width:0;height:0;flex:none;overflow:hidden;font-size:0;
+	border-width:10px 10px 0 0;border-style:dashed solid dashed dashed;
+	border-color:transparent var(--tt-muted) transparent transparent;
+	cursor:se-resize;touch-action:none;opacity:.6;margin-left:4px;align-self:flex-end;
+	margin-bottom:1px
+}
+.tiptap-resizer:hover,.tiptap-resizer:focus-visible{opacity:1;outline:none}
+.tiptap-resizer.is-vertical{cursor:ns-resize}
+.tiptap-resizer.is-horizontal{cursor:ew-resize}
+/* A field with `wordcount:false` has no footer to sit in, so the grip floats in the
+   container's own corner - the same place the author reaches for. */
+.tiptap-resizer.is-floating{position:absolute;right:2px;bottom:2px;margin:0}
+/* Maximized, the editor IS the viewport - there is nothing to resize (CKEditor
+   hides its resizer on the maximize event for the same reason). */
+.tiptap-editor-container.is-maximized .tiptap-resizer{display:none}
+
+/* ---- Document outline navigator (src/outline.js) ----------------------------
+   Collapsed rail of heading markers pinned to the right edge of the container,
+   expanding on hover/focus (or a click, which pins it) into the heading list.
+   The wrapper is pointer-events:none so only the drawn rows and the open panel
+   are clickable - the right-hand edge of the editable stays fully usable.
+   `.tiptap-outline:hover` still matches when a pointer-events:auto descendant is
+   the hit target, which is what opens the panel. */
+/* The wrapper holds ONLY the rail in flow, so its height is the rail's height and
+   `translateY(-50%)` centres the rail itself. (The panel used to be a flex
+   sibling: hidden, but still contributing its full height to the wrapper, so the
+   top-aligned rail drifted upwards as the heading list grew.) `top` is overwritten
+   in px by src/outline.js to centre on the EDITABLE rather than the container -
+   they differ whenever the toolbar wraps to two rows. */
+.tiptap-outline{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:6;pointer-events:none;width:26px}
+/* Modern inline mode: the page is the scroller, so the rail pins to the
+   viewport's right edge (outline.js `fixed`). Still a container child - the
+   --tt-* variables keep cascading - just fixed, on the z ladder. */
+.tiptap-outline.is-fixed{position:fixed;right:12px;z-index:calc(var(--tt-z-base,1040) + 40)}
+.tiptap-outline.is-empty{display:none}
+/* Row COUNT is what src/outline.js caps to the editable's height (railPlan:
+   fewer heading levels, then every Nth). */
+.tiptap-outline-rail{display:flex;flex-direction:column;align-items:flex-end;width:26px;overflow:hidden}
+.tiptap-outline-row{pointer-events:auto;cursor:pointer;width:100%;height:8px;display:flex;align-items:center;justify-content:flex-end;box-sizing:border-box}
+.tiptap-outline-line{height:2px;border-radius:1px;background:var(--tt-outline-line);transition:background-color .12s ease}
+.tiptap-outline-row:hover .tiptap-outline-line{background:var(--tt-accent)}
+.tiptap-outline-row.is-active .tiptap-outline-line{background:var(--tt-active-fg)}
+/* Out of flow (see above) and centred on the rail, immediately to its left - no
+   gap, which would break the hover chain when moving the pointer across. Its
+   px max-height is set by src/outline.js so a long list scrolls inside the
+   editor instead of spilling over the page. */
+.tiptap-outline-panel{position:absolute;right:100%;top:50%;opacity:0;visibility:hidden;pointer-events:none;transform:translate(6px,-50%);transition:opacity .12s ease,visibility .12s ease,transform .12s ease;min-width:170px;max-width:260px;overflow:auto;background:var(--tt-menu-bg);border:1px solid var(--tt-border);border-radius:5px;box-shadow:0 4px 16px var(--tt-menu-shadow);padding:5px 0}
+.tiptap-outline:hover .tiptap-outline-panel,.tiptap-outline:focus-within .tiptap-outline-panel,.tiptap-outline.is-pinned .tiptap-outline-panel{opacity:1;visibility:visible;pointer-events:auto;transform:translate(0,-50%)}
+/* Entries follow the admin's list conventions: pale-blue row hover, and the
+   current entry marked by the tree-list highlight bar rather than recoloured
+   text (`@tree-list-selected-highlight-color`). The left border is transparent
+   until active so the label never shifts. */
+.tiptap-outline-item{display:block;width:100%;box-sizing:border-box;text-align:left;border:0;border-left:2px solid transparent;background:none;cursor:pointer;font-size:12px;line-height:1.5;padding:3px 10px;color:var(--tt-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tiptap-outline-item[data-level="1"],.tiptap-outline-item[data-level="2"]{font-weight:600}
+.tiptap-outline-item:hover{background:var(--tt-accent-soft)}
+.tiptap-outline-item.is-active{background:var(--tt-active-bg);border-left-color:var(--tt-accent)}
+.tiptap-outline-empty{padding:3px 10px 5px;font-size:12px;color:var(--tt-muted);font-style:italic;white-space:normal}
+/* Brief flash on the heading you navigated to - the admin's highlight yellow
+   (@yellow), so it reads as "here" instead of competing with the blues that mean
+   selection everywhere else in the chrome. */
+.tiptap-editor-mount .tiptap-outline-target{background:var(--tt-outline-flash);border-radius:2px;transition:background-color .5s ease}
+
+/* ---- Image tools (src/imageTools.js) ----------------------------------------
+   Corner drag handles + a bubble toolbar over the SELECTED image, and a refresh
+   button that appears in the middle whenever the local geometry has moved ahead
+   of the server-rendered preview. Everything here is chrome inside the node
+   view's wrapper: it never enters the document, so getData() is unaffected.
+   Colours are the admin palette's blues, as elsewhere - @blue for the handles
+   (they read as "selected"), the standard menu surface for the bubble. */
+.tiptap-image-tools{position:absolute;inset:0;pointer-events:none;z-index:2}
+.tiptap-image-handle{position:absolute;width:10px;height:10px;box-sizing:border-box;border:1px solid #fff;border-radius:2px;background:var(--tt-accent);opacity:0;pointer-events:none;transition:opacity .1s ease}
+.img-placeholder.is-selected .tiptap-image-handle,.img-placeholder.is-resizing .tiptap-image-handle{opacity:1;pointer-events:auto}
+.tiptap-image-handle.is-tl{top:-5px;left:-5px;cursor:nwse-resize}
+.tiptap-image-handle.is-tr{top:-5px;right:-5px;cursor:nesw-resize}
+.tiptap-image-handle.is-bl{bottom:-5px;left:-5px;cursor:nesw-resize}
+.tiptap-image-handle.is-br{bottom:-5px;right:-5px;cursor:nwse-resize}
+/* Live WxH readout, only written to during a drag. */
+.tiptap-image-size{position:absolute;bottom:6px;right:6px;padding:1px 6px;border-radius:3px;background:rgba(0,0,0,.66);color:#fff;font-size:11px;line-height:1.6;font-family:ui-monospace,Menlo,monospace;pointer-events:none;white-space:nowrap}
+.tiptap-image-size:empty{display:none}
+/* THE BUBBLE CHROME IS SHARED BY ALL THREE EMBEDS: the image's full set
+   (align/size/edit/remove) and the widget/attachment Edit+Remove pair are the same
+   floating toolbar, drawn and placed by the same code (src/embedBubble.js). Only the
+   image-specific extras below key off .tiptap-image-bubble.
+
+   It sits above the embed, out of the way of the image's top handles. Anchored to the
+   embed's LEFT edge (not centred on it) and never wrapping, so a narrow embed still
+   gets the full control set; placeBubble() then nudges `left` to keep it inside the
+   editable - centring it would clip half the buttons off the editor's left border on
+   any small or left-floated one. */
+.tiptap-embed-bubble{position:absolute;bottom:100%;left:0;transform:translateY(-8px);display:none;align-items:center;gap:1px;padding:3px 4px;white-space:nowrap;background:var(--tt-menu-bg);border:1px solid var(--tt-border);border-radius:5px;box-shadow:0 4px 16px var(--tt-menu-shadow);z-index:4}
+/* Flipped below the embed - see placeBubble() in src/embedBubble.js. One at the top
+   of the editable has no room above it, and a bubble drawn there lands on the toolbar
+   (or outside the mount) with none of its buttons reachable. */
+.tiptap-embed-bubble.is-below{top:100%;bottom:auto;transform:translateY(8px)}
+.is-selected > .tiptap-embed-frame > .tiptap-embed-bubble{display:flex}
+.img-placeholder.is-resizing .tiptap-embed-bubble{display:none}
+.tiptap-embed-bubble .tiptap-btn{height:24px;min-width:24px}
+.tiptap-image-bubble .tiptap-image-preset{font-size:11px;padding:0 5px}
+.tiptap-image-bubble .tiptap-btn.is-busy{opacity:.5;pointer-events:none}
+/* Stale-preview affordance: shown whenever the token's geometry differs from what
+   the visible HTML was rendered for - resizing does NOT re-request the preview
+   (that would make Preside generate a derivative per drag), so this is how the
+   real render is asked for. */
+.tiptap-image-refresh{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;min-width:34px;border-radius:50%;background:var(--tt-menu-bg);border:1px solid var(--tt-border);box-shadow:0 2px 10px var(--tt-menu-shadow);color:var(--tt-active-fg);z-index:3;display:flex}
+.tiptap-image-refresh[hidden]{display:none}
+.tiptap-image-refresh:hover{background:var(--tt-active-bg);border-color:var(--tt-active-border)}
+.tiptap-image-refresh.is-busy{opacity:.6;pointer-events:none}
+.img-placeholder.is-resizing .tiptap-image-refresh{display:none}
+.img-placeholder.is-resizing .tiptap-embed-preview img{pointer-events:none}
+/* Alignment AND spacing live on the node view WRAPPER, always, computed from the
+   token by src/imageTools.js applyAlignment - not only while the preview is stale,
+   and not copied off the rendered HTML. richEditor.cfm renders float/margins onto the
+   image (or its figure/link) itself, which cannot work inside the frame that
+   shrink-wraps it - the same wall CKEditor's imagepicker plugin hit and solved by
+   moving those styles onto its widget wrapper. So the rendered element's own float
+   and margins are zeroed here: the wrapper is the single owner of both, which is what
+   makes the geometry exact whether or not the preview has been re-rendered. The
+   direct child of `preview` is whichever of <figure>/<a>/<img> carries them. */
+.tiptap-editor-mount .img-placeholder[data-tt-align] .tiptap-embed-preview>*{float:none!important;margin:0!important}
+.tiptap-editor-mount .img-placeholder[data-tt-align="left"]{float:left}
+.tiptap-editor-mount .img-placeholder[data-tt-align="right"]{float:right}
+.tiptap-editor-mount .img-placeholder[data-tt-align="center"]{display:block;float:none;text-align:center}
+.tiptap-editor-mount .img-placeholder[data-tt-align="auto"]{float:none}
+
+/* ---- Dark theme -------------------------------------------------------------
+   Chrome + editable surface only; the document itself is unchanged (getData() is
+   identical in either mode). A field's own content stylesheets
+   (contentsCss/stylesheets) are authored for a light page, so any explicit colour
+   they set still wins inside the editable - that is intentional: what you see is
+   what the site will render. */
+/* DECLARED FOR BOTH DOCUMENTS, exactly as the light block above is. This used to
+   be `.tiptap-editor-container.tiptap-dark` alone, which CANNOT match inside the
+   editing frame - the class is mirrored onto the frame's own <html> (theme.js), and
+   a container selector has no meaning in there. So every --tt-* variable stayed at
+   its LIGHT value inside the frame: dark mode drew a dark surface (the container,
+   behind a transparent frame) under BLACK content text, with light table borders,
+   light embed placeholders and a light selected-cell highlight. */
+.tiptap-editor-container.tiptap-dark,.tiptap-editor-doc.tiptap-dark,.tiptap-combo-doc.tiptap-dark,.tiptap-combo-panel.tiptap-dark{
+	--tt-bg:#1f2126;
+	--tt-fg:#e6e6e6;
+	--tt-muted:#9a9a9a;
+	--tt-border:#3a3d44;
+	--tt-border-soft:#33363c;
+	--tt-chrome-bg:#22242a;
+	--tt-group-bg:#2b2e35;
+	--tt-btn-fg:#d8d8d8;
+	--tt-btn-hover-bg:#35383f;
+	--tt-active-bg:#2c4a63;
+	--tt-active-border:#3f6e94;
+	--tt-active-fg:#cfe3f5;
+	--tt-accent:#79b0d6;
+	--tt-accent-soft:#2b333d;
+	--tt-selected:#5b9bd9;
+	--tt-menu-bg:#282b31;
+	--tt-menu-shadow:rgba(0,0,0,.5);
+	--tt-embed-bg:#33363c;
+	--tt-th-bg:#2f3238;
+	--tt-table-border:#4a4d55;
+	--tt-outline-line:#5c616b;
+	--tt-outline-flash:#59491d;
+	/* The isolation layer sets the editable's colour explicitly (it can no longer
+	   inherit the mount's), so the dark surface has to recolour the content here. */
+	--tt-content-fg:#e6e6e6;
+	color-scheme:dark
+}
+.tiptap-dark .tiptap-editor-mount{color:var(--tt-fg)}
+.tiptap-dark .tiptap-editor-mount .loading{color:#8d8d8d}
+.tiptap-dark .tiptap-editor-mount .error{color:#ff9c9c;border-color:#6d3b3b}
+.tiptap-dark .tiptap-editor-mount pre{background:#15171a}
+/* Recolour the widget-placeholder glyph for the dark surface (the stroke colour is
+   baked into the data-URI, so the whole background shorthand is restated). */
+.tiptap-dark .tiptap-editor-mount .widget-placeholder{background:var(--tt-embed-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b0b0b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h3a1 1 0 0 0 1 -1v-1a2 2 0 0 1 4 0v1a1 1 0 0 0 1 1h3a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 1 0 4h-1a1 1 0 0 0 -1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-1a2 2 0 0 0 -4 0v1a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h1a2 2 0 0 0 0 -4h-1a1 1 0 0 1 -1 -1z'/%3E%3C/svg%3E") 6px center/14px 14px no-repeat}
+
+/* ================================================================================
+   MODERN INLINE MODE (frontend only - src/inlineMode.js / src/editModeSwitch.js)
+   The editor mounts chrome-less INSIDE the page, exactly where the rendered
+   content was; core's modal container is collapsed to nothing but its fixed
+   save/publish/cancel bar. All still driven by core's own frontendEditors.js.
+   ================================================================================ */
+
+/* The inline container: no box of its own - the page IS the editing surface.
+   It keeps the class (and with it the --tt-* variables, position:relative, the
+   key-isolation boundary) because the table bubble / drag handle / maximize all
+   position and colour against it. */
+.tiptap-editor-container.tiptap-inline{border:0;border-radius:0;background:transparent;box-shadow:none}
+.tiptap-inline > .tiptap-editor-mount{padding:0}
+.tiptap-inline .tiptap-editor-mount .ProseMirror{min-height:2em}
+/* Full-width layouts leave no page margin for the fixed rail to float in, so
+   dragHandle.js falls back to reserving an interior gutter - re-asserted here
+   because the inline padding reset above would otherwise win the cascade. */
+.tiptap-inline.tiptap-gutter-1 > .tiptap-editor-mount{padding-left:28px}
+.tiptap-inline.tiptap-gutter-2 > .tiptap-editor-mount{padding-left:48px}
+/* No gutter classes inline: the drag rail is a position:fixed <body> child
+   (dragHandle.js fixed mode) floating in the page margin, so the content
+   column keeps exactly the geometry the rendered page had - and no theme
+   overflow:hidden can clip the grip away. It sits outside the container's
+   --tt-* scope, hence its own (light - the site page is the editing surface)
+   values here. */
+.tiptap-block-gutter.is-fixed{
+	--tt-btn-hover-bg:#e9e9e9;
+	position:fixed;left:0;z-index:calc(var(--tt-z-base,1040) + 1050);
+	background:#fff;border:1px solid #ddd;border-radius:4px;
+	box-shadow:0 2px 8px rgba(0,0,0,.12);padding:1px;
+	color:#555
+}
+
+/* While Modern editing is active: hide every region overlay/label (only the one
+   rich field is editable, and it is edited in place) and the modal sheen; keep
+   core's fixed-bottom buttons bar - and ONLY it - from the modal container.
+   Only ever HIDE core chrome under this class, never restyle it globally. */
+/* visibility (not display): core positions these absolutely over the region and
+   scrolls to $editor.offset() on edit-open - hidden-but-positioned keeps that
+   geometry (and the 1s reposition interval) meaningful, while a display:none
+   region would measure 0,0 and yank the page to the top on every Modern entry. */
+/* position:absolute is load-bearing too: core's frontend-editors-editing state
+   flips .content-editor to position:RELATIVE - in flow, at the end of <body>
+   where core appended it - and its 1s interval sets an explicit height equal to
+   the whole region. visibility:hidden keeps layout space, so that combination
+   was a region-sized band of invisible whitespace under the page for the whole
+   Modern session. Absolute (core's own non-editing value; the interval sets
+   top/left px against <body>) takes it out of flow while keeping $editor.offset()
+   meaningful. */
+body.frontend-editing-modern .content-editor{position:absolute!important;visibility:hidden!important;pointer-events:none!important}
+body.frontend-editing-modern .frontend-editor-modal-sheen{display:none!important}
+body.frontend-editing-modern .content-editor-editor-container.edit-active{
+	position:static!important;top:auto!important;
+	width:auto!important;max-width:none!important;min-width:0!important;
+	height:0;padding:0;margin:0;border:0;background:transparent;box-shadow:none;overflow:visible
+}
+body.frontend-editing-modern .content-editor-editor-container.edit-active .content-editor-form > :not(.content-editor-editor-buttons){display:none!important}
+
+/* The edit-mode dropdown lives in core's admin toolbar and reuses its dropdown
+   CSS wholesale; only a fallback for browsers/admin builds where li.disabled
+   has no styling of its own. */
+#preside-admin-toolbar .tiptap-editmode-switch .dropdown-menu li.disabled a{opacity:.5;cursor:not-allowed}
+
+/* Selection bubble (src/selectionBubble.js). Body-portalled like the slash menu
+   and for the same reasons - so, like it, it is outside the container's --tt-*
+   scope and carries its own variable values (light + prefers-color-scheme dark).
+   Declaring the vars rather than literal colours lets the toolbar-button /
+   dropdown rules above apply unchanged inside it. */
+.tiptap-selection-bubble{
+	--tt-bg:#fff;
+	--tt-fg:#222;
+	--tt-muted:#777;
+	--tt-border:#ccc;
+	--tt-border-soft:#ddd;
+	--tt-chrome-bg:#f7f7f7;
+	--tt-btn-fg:#333;
+	--tt-btn-hover-bg:#e9e9e9;
+	--tt-active-bg:#f0f7fc;
+	--tt-active-border:#93cbf9;
+	--tt-active-fg:#1b6aaa;
+	--tt-accent:#4c8fbd;
+	--tt-accent-soft:#f0f7fc;
+	--tt-menu-bg:#fff;
+	--tt-menu-shadow:rgba(0,0,0,.16);
+	position:fixed;top:0;left:0;display:none;align-items:center;gap:1px;
+	padding:3px 4px;white-space:nowrap;
+	background:var(--tt-menu-bg);color:var(--tt-fg);
+	border:1px solid var(--tt-border);border-radius:5px;
+	box-shadow:0 4px 16px var(--tt-menu-shadow);
+	z-index:calc(var(--tt-z-base,1040) + 1060)
+}
+.tiptap-selection-bubble.is-open{display:flex}
+/* Idle fade (selectionBubble.js): ~2.5s without a click/keystroke fades it out
+   of the author's face; any activity (or hovering it) fades it back. Still
+   is-open - only opacity, so removing is-idle transitions cleanly - and
+   pointer-events off so the invisible pill cannot swallow clicks. */
+.tiptap-selection-bubble{opacity:1;transition:opacity .3s ease}
+.tiptap-selection-bubble.is-idle{opacity:0;pointer-events:none}
+/* The bubble is one floating pill, so its group carries none of the toolbar's
+   block chrome (a white box inside the white bubble). */
+.tiptap-selection-bubble .tiptap-toolbar-group,
+.tiptap-selection-bubble .tiptap-combo{margin:0;padding:0;background:none;border:0}
+.tiptap-selection-bubble .tiptap-btn{height:24px;min-width:24px}
+/* Deliberately LIGHT always (no prefers-color-scheme block): the bubble only
+   exists in Modern inline mode, where the editing surface is the site page -
+   the default editor chrome is light and a dark OS must not darken it. */
+
+/* The edit-mode dropdown trigger's SVG icon (ICONS.EditMode) - sized to sit
+   like the font-awesome icons beside it in core's admin toolbar. nowrap keeps
+   icon/label/caret on one line whatever the theme's toolbar CSS does. */
+.tiptap-editmode-switch .dropdown-toggle{white-space:nowrap}
+.tiptap-editmode-icon{display:inline-block;vertical-align:middle;margin-right:4px;line-height:0}
+.tiptap-editmode-icon svg{width:17px;height:17px;fill:none;stroke:currentColor}
