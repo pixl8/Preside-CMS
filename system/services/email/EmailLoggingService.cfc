@@ -736,10 +736,14 @@ component {
 	) {
 		var fieldsToAddFromExtraData = [ "link", "code", "reason", "link_title", "link_body" ];
 		var extra = StructCopy( arguments.extraData );
+		var userIp = arguments.userIp;
+		if ( isPrivateIp( userIp ) ) {
+			userIp = "";
+		}
 		var data = {
 			  message       = arguments.messageId
 			, activity_type = arguments.activity
-			, user_ip       = arguments.userIp
+			, user_ip       = userIp
 			, user_agent    = arguments.userAgent
 			, datecreated   = arguments.eventDate
 		};
@@ -1145,6 +1149,31 @@ component {
 	}
 	private void function _setEmailStatsService( required any emailStatsService ) {
 		_emailStatsService = arguments.emailStatsService;
+	}
+
+	/**
+	 * Checks if the given IP address is a private, loopback, or local IP address.
+	 *
+	 * @ipAddress.hint IP address to check
+	 */
+	public boolean function isPrivateIp( required string ipAddress ) {
+		var ip = Trim( arguments.ipAddress );
+		if ( ip == "::1" || ip == "localhost" ) {
+			return true;
+		}
+		// Match IPv4 private subnets (10.x, 127.x, 169.254.x, 192.168.x)
+		if ( ReFindNoCase( "^(10\.|127\.|169\.254\.|192\.168\.)", ip ) ) {
+			return true;
+		}
+		// Match IPv4 private subnet (172.16.x - 172.31.x)
+		if ( ReFindNoCase( "^172\.(1[6-9]|2[0-9]|3[0-1])\.", ip ) ) {
+			return true;
+		}
+		// Match IPv6 private/link-local ranges (fc00::/7, fe80::/10)
+		if ( ReFindNoCase( "^(fe[89ab][0-9a-f]:|fc[0-9a-f]{2}:|fd[0-9a-f]{2}:)", ip ) ) {
+			return true;
+		}
+		return false;
 	}
 
 }
