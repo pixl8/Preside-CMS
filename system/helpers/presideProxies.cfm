@@ -285,6 +285,12 @@
 		<cfreturn getSingleton( "featureService" ).isFeatureDefined( argumentCollection=arguments ) />
 	</cfsilent></cffunction>
 
+	<cffunction name="isLabEnabled" access="public" returntype="boolean" output="false">
+		<cfargument name="experimentId" type="string" required="true" /><cfsilent>
+
+		<cfreturn getSingleton( "labsService" ).isEnabled( argumentCollection=arguments ) />
+	</cfsilent></cffunction>
+
 	<cffunction name="isExtensionInstalled" access="public" returntype="boolean" output="false">
 		<cfargument name="extensionId" type="string" required="true" /><cfsilent>
 
