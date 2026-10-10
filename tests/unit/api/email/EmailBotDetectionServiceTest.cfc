@@ -19,10 +19,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var svc = _getService();
 				expect( svc.isBotAgent( "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0 " ) ).toBe( false );
 			} );
+			it( "should not classify mail clients that fetch images for a human reader as bots", function(){
+				var svc = _getService();
+
+				expect( svc.isBotAgent( "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Microsoft Outlook 16.0" ) ).toBe( false );
+				expect( svc.isBotAgent( "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Thunderbird/102.0" ) ).toBe( false );
+				expect( svc.isBotAgent( "Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)" ) ).toBe( false );
+				expect( svc.isBotAgent( "Mozilla/4.0 (compatible; ms-office; MSOffice 16)" ) ).toBe( false );
+			} );
 		} );
 
 		describe( "matchesHoneyPot()", function(){
-			it( "should return true if the request belongs to a message that had a recent honey pot click or matches IP or user agent of recent honey pot click activity", function(){
+			it( "should return true if the message had a honeypot click within the configured time frame of the event", function(){
 				var svc                = _getService();
 				var mockLogActivityDao = createStub();
 				var messageId          = CreateUUId();
@@ -31,18 +39,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var eventDate          = Now();
 				var args               = {};
 
-				args.filter = "message = :message and activity_type = :activity_type and (
-		       user_ip     = :user_ip
-		    or user_agent  = :user_agent
-		    or datecreated between :startdate and :enddate
-		)";
+				args.filter = "message = :message and activity_type = :activity_type and datecreated between :startdate and :enddate";
 				args.filterParams = {
 					  message       = messageId
 					, activity_type = "honeypotclick"
-					, user_ip       = ipAddress
-					, user_agent    = userAgent
-					, startDate = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
-					, endDate   = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
+					, startDate     = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
+					, endDate       = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
 				};
 
 				svc.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao )
@@ -66,18 +68,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var eventDate          = Now();
 				var args               = {};
 
-				args.filter = "message = :message and activity_type = :activity_type and (
-		       user_ip     = :user_ip
-		    or user_agent  = :user_agent
-		    or datecreated between :startdate and :enddate
-		)";
+				args.filter = "message = :message and activity_type = :activity_type and datecreated between :startdate and :enddate";
 				args.filterParams = {
 					  message       = messageId
 					, activity_type = "honeypotclick"
-					, user_ip       = ipAddress
-					, user_agent    = userAgent
-					, startDate = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
-					, endDate   = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
+					, startDate     = { type="cf_sql_timestamp", value=DateAdd( "s", -5, eventDate ) }
+					, endDate       = { type="cf_sql_timestamp", value=DateAdd( "s",  5, eventDate ) }
 				};
 
 				svc.$( "$getPresideObject" ).$args( "email_template_send_log_activity" ).$results( mockLogActivityDao )
@@ -227,7 +223,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		var svc = createMock( object=new preside.system.services.email.EmailBotDetectionService() );
 
 		variables.botDetectionSettings = {
-			  userAgents              = [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "Microsoft Outlook", "ms-office", "googleimageproxy", "thunderbird", "healthcheck", "zabbix", "kube-probe" ]
+			  userAgents              = [ "(bot\b|crawler\b|spider\b|80legs|ia_archiver|voyager|curl|wget|wget|python|yahoo! slurp|mediapartners-google)", "healthcheck", "zabbix", "kube-probe" ]
 			, tooManyClicksCount      = 10
 			, tooManyClicksSeconds    = 10
 			, honeyPotTimezoneSeconds = 10

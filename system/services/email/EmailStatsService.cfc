@@ -462,6 +462,8 @@ component {
 			, click       = "click"
 			, markAsSpam  = "spam"
 			, unsubscribe = "unsubscribe"
+			, bot_open    = "bot_open"
+			, bot_click   = "bot_click"
 		};
 
 		for( var at in activityTypes ) {
@@ -525,11 +527,7 @@ component {
 			);
 		}
 
-		sqlrunner.runSql(
-			  dsn = activityDao.getDsn()
-			, sql = "update psys_email_template_send_log as l inner join ( select count(1) as n, message from psys_email_template_send_log_activity where activity_type = :activity_type group by message ) as sub on sub.message = l.id set l.open_count = sub.n where l.email_template = :email_template"
-			, params = [ { name="email_template", type="cf_sql_varchar", value=arguments.templateId }, { name="activity_type", type="cf_sql_varchar", value="open" } ]
-		);
+		$getColdbox().getWirebox().getInstance( "emailLoggingService" ).recomputeOpenAndClickCounts( templateId=arguments.templateId );
 
 		$systemOutput( "[EmailLogPerformance] Finished migrating email template with id [#arguments.templateId#] in #NumberFormat( GetTickCount()-startms )#ms" );
 	}

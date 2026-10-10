@@ -316,10 +316,22 @@ component {
 		);
 	}
 
-	public void function recordBotOpen( required string id ) {
-		_processEventForStatsTables(
-			  message  = arguments.id
-			, activity = "bot_open"
+	public void function recordBotOpen(
+		  required string id
+		,          string userAgent = ""
+		,          string ipAddress = ""
+		,          date   eventDate
+	) {
+		if ( !StructKeyExists( arguments, "eventDate" ) || !IsDate( arguments.eventDate ) ) {
+			arguments.eventDate = _getNow();
+		}
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "bot_open"
+			, userIp    = arguments.ipAddress
+			, userAgent = arguments.userAgent
+			, eventDate = arguments.eventDate
 		);
 	}
 
@@ -330,7 +342,12 @@ component {
 		, required date   eventDate
 	) {
 		if ( _getEmailBotDetectionService().isBot( argumentCollection=arguments ) ) {
-			recordBotOpen( arguments.messageId );
+			recordBotOpen(
+				  id        = arguments.messageId
+				, userAgent = arguments.userAgent
+				, ipAddress = arguments.ipAddress
+				, eventDate = arguments.eventDate
+			);
 		} else {
 			markAsOpened( argumentCollection=arguments, id=arguments.messageId );
 		}
@@ -349,12 +366,17 @@ component {
 		,          boolean softMark  = false
 		,          string  userAgent = cgi.http_user_agent
 		,          string  ipAddress = cgi.remote_addr
-		,          date    eventDate = Now()
- 	) {
-		var data = { opened = true, opened_count=1 };
+		,          date    eventDate
+	) {
+		if ( !StructKeyExists( arguments, "eventDate" ) || !IsDate( arguments.eventDate ) ) {
+			arguments.eventDate = _getNow();
+		}
+
+		var data = { opened=true };
 
 		if ( !arguments.softMark ) {
-			data.opened_date = _getNow();
+			data.opened_date = arguments.eventDate;
+			data.open_count  = 1;
 		}
 
 		var dao     = $getPresideObject( "email_template_send_log" );
@@ -364,7 +386,7 @@ component {
 			, data         = data
 		);
 
-		if ( !updated ) {
+		if ( !updated && !arguments.softMark ) {
 			_getSqlRunner().runSql(
 				  dsn        = dao.getDsn()
 				, sql        = _getRecordOpenSql()
@@ -374,7 +396,8 @@ component {
 		}
 
 		markAsDelivered( arguments.id, true );
-		if ( !( arguments.softmark && !updated ) ) {
+
+		if ( !arguments.softMark ) {
 			recordActivity(
 				  messageId = arguments.id
 				, activity  = "open"
@@ -424,10 +447,26 @@ component {
 		);
 	}
 
-	public void function recordBotClick( required string id ) {
-		_processEventForStatsTables(
-			  message  = arguments.id
-			, activity = "bot_click"
+	public void function recordBotClick(
+		  required string id
+		,          string link      = ""
+		,          string linkTitle = ""
+		,          string linkBody  = ""
+		,          string userAgent = ""
+		,          string ipAddress = ""
+		,          date   eventDate
+	) {
+		if ( !StructKeyExists( arguments, "eventDate" ) || !IsDate( arguments.eventDate ) ) {
+			arguments.eventDate = _getNow();
+		}
+
+		recordActivity(
+			  messageId = arguments.id
+			, activity  = "bot_click"
+			, extraData = { link=arguments.link, link_title=arguments.linkTitle, link_body=arguments.linkBody }
+			, userIp    = arguments.ipAddress
+			, userAgent = arguments.userAgent
+			, eventDate = arguments.eventDate
 		);
 	}
 
@@ -441,7 +480,15 @@ component {
 		,          string ipAddress = cgi.remote_addr
 	) {
 		if ( _getEmailBotDetectionService().isBot( argumentCollection=arguments ) ) {
-			recordBotClick( arguments.messageId );
+			recordBotClick(
+				  id        = arguments.messageId
+				, link      = arguments.link
+				, linkTitle = arguments.linkTitle
+				, linkBody  = arguments.linkBody
+				, userAgent = arguments.userAgent
+				, ipAddress = arguments.ipAddress
+				, eventDate = arguments.eventDate
+			);
 		} else {
 			recordClick( argumentCollection=arguments, id=arguments.messageId );
 		}
@@ -663,6 +710,7 @@ component {
 		var shortenedLinkId = "";
 		var storeInDb       = $isFeatureEnabled( "emailLinkShortener" );
 		var baseTrackingUrl = $getRequestContext().buildLink( linkto="email.tracking.click", queryString="mid=#arguments.messageId#&link=" );
+		var honeyPotPath    = _linkPath( $getRequestContext().buildLink( linkto="email.tracking.honeypot" ) );
 		var linkDao         = storeInDb ? $getPresideObject( "email_template_shortened_link" ) : "";
 
 		try {
@@ -677,7 +725,7 @@ component {
 			attribs = link.attributes();
 			href = Trim( attribs.get( "href" ) );
 
-			if ( Len( href ) && ReFindNoCase( "^https?://", href ) && !ReFindNoCase( "^https?://[^/]+/e/t/h/", href ) ) {
+			if ( Len( href ) && ReFindNoCase( "^https?://", href ) && !_hrefIsHoneyPot( href, honeyPotPath ) ) {
 				if ( storeInDb ) {
 					title           = Trim( attribs.get( "title" ) );
 					body            = Trim( link.text() );
@@ -831,6 +879,25 @@ component {
 			  filter  = { message = arguments.id }
 			, orderBy = "datecreated"
 		);
+	}
+
+	public boolean function sendLogExists( required string messageId ) {
+		if ( !Len( Trim( arguments.messageId ) ) ) {
+			return false;
+		}
+
+		return $getPresideObject( "email_template_send_log" ).dataExists( id=arguments.messageId );
+	}
+
+	/**
+	 * Recomputes open_count and click_count on send logs from stored activity.
+	 * An absolute replacement of the stored counts, not an adjustment.
+	 *
+	 * @templateId.hint Limit the recompute to send logs for one email template
+	 */
+	public void function recomputeOpenAndClickCounts( string templateId="" ) {
+		_recomputeActivityCount( activityType="open", countColumn="open_count", templateId=arguments.templateId );
+		_recomputeActivityCount( activityType="click", countColumn="click_count", templateId=arguments.templateId );
 	}
 
 	/**
@@ -1004,6 +1071,59 @@ component {
 
 	private date function _getNow() {
 		return Now(); // abstracting this makes testing easier
+	}
+
+	private string function _linkPath( required string link ) {
+		var path = ReReplace( arguments.link, "^https?://[^/]+", "" );
+
+		return ListFirst( path, "?" );
+	}
+
+	private boolean function _hrefIsHoneyPot( required string href, required string honeyPotPath ) {
+		if ( !Len( arguments.honeyPotPath ) ) {
+			return false;
+		}
+
+		var hrefPath = _linkPath( arguments.href );
+
+		return hrefPath == arguments.honeyPotPath || FindNoCase( arguments.honeyPotPath, hrefPath );
+	}
+
+	private void function _recomputeActivityCount( required string activityType, required string countColumn, string templateId="" ) {
+		var logDao        = $getPresideObject( "email_template_send_log" );
+		var activityDao   = $getPresideObject( "email_template_send_log_activity" );
+		var adapter       = logDao.getDbAdapter();
+		var adapterName   = ListLast( GetMetaData( adapter ).name, "." );
+		var logTable      = adapter.escapeEntity( logDao.getTableName() );
+		var activityTable = adapter.escapeEntity( activityDao.getTableName() );
+		var countCol      = adapter.escapeEntity( arguments.countColumn );
+		var idCol         = adapter.escapeEntity( "id" );
+		var messageCol    = adapter.escapeEntity( "message" );
+		var typeCol       = adapter.escapeEntity( "activity_type" );
+		var templateCol   = adapter.escapeEntity( "email_template" );
+		var subQuery      = "select #messageCol# as message, count(1) as n from #activityTable# where #typeCol# = :activity_type group by #messageCol#";
+		var templateSql   = Len( arguments.templateId ) ? " where l.#templateCol# = :email_template" : "";
+		var sql           = "";
+
+		if ( adapterName == "MsSqlAdapter" ) {
+			sql = "update l set l.#countCol# = coalesce( sub.n, 0 ) from #logTable# as l left join ( #subQuery# ) as sub on sub.message = l.#idCol##templateSql#";
+		} else if ( adapterName == "PostgreSqlAdapter" ) {
+			sql = "update #logTable# as l set #countCol# = ( select count(1) from #activityTable# where #messageCol# = l.#idCol# and #typeCol# = :activity_type )#templateSql#";
+		} else {
+			sql = "update #logTable# as l left join ( #subQuery# ) as sub on sub.message = l.#idCol# set l.#countCol# = coalesce( sub.n, 0 )#templateSql#";
+		}
+
+		var params = [ { name="activity_type", type="cf_sql_varchar", value=arguments.activityType } ];
+
+		if ( Len( arguments.templateId ) ) {
+			params.append( { name="email_template", type="cf_sql_varchar", value=arguments.templateId } );
+		}
+
+		_getSqlRunner().runSql(
+			  dsn    = logDao.getDsn()
+			, sql    = sql
+			, params = params
+		);
 	}
 
 	private any function _new( required string className ) {
