@@ -58,7 +58,7 @@ component {
 	}
 
 // PUBLIC METHODS
-	public array function getGroupedObjects() {
+	public array function getGroupedObjects( array extraObjects=[] ) {
 		var poService          = _getPresideObjectService();
 		var permsService       = _getPermissionService();
 		var useSites           = $isFeatureEnabled( "sites" );
@@ -68,10 +68,20 @@ component {
 		var groups             = {};
 		var groupedObjects     = [];
 
+		for( var objectName in arguments.extraObjects ) {
+			if ( Len( Trim( objectName ) ) && poService.objectExists( objectName ) && !objectNames.findNoCase( objectName ) ) {
+				objectNames.append( objectName );
+			}
+		}
+
 		for( var objectName in objectNames ){
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
 			var siteTemplates      = useSites ? poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" ) : "";
 			var isInActiveTemplate = !useSites || siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
+
+			if ( !Len( Trim( groupId ) ) && arguments.extraObjects.findNoCase( objectName ) ) {
+				groupId = objectName;
+			}
 
 			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
