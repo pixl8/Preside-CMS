@@ -886,6 +886,93 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				) ).toBe( expectedStrippedForm );
 			} );
 		} );
+
+		describe( "userCanAccessForm()", function(){
+			it( "should return true when the form does not declare a root permissionKey", function(){
+				var service = _getFormsService( "/tests/resources/formsService/permissionKey/folder1" );
+
+				service.$( "$hasAdminPermission", false );
+
+				expect( service.userCanAccessForm( formName="unkeyedForm" ) ).toBeTrue();
+			} );
+
+			it( "should return false when the form does not declare a root permissionKey and allowedIfNoPermissionKey is passed as false", function(){
+				var service = _getFormsService( "/tests/resources/formsService/permissionKey/folder1" );
+
+				expect( service.userCanAccessForm( formName="unkeyedForm", allowedIfNoPermissionKey=false ) ).toBeFalse();
+			} );
+
+			it( "should return true when the logged in user has the permission declared on the root form element", function(){
+				var service = _getFormsService( "/tests/resources/formsService/permissionKey/folder1" );
+
+				service.$( "$hasAdminPermission" ).$args(
+					  permissionKey = "some.key"
+					, context       = ""
+					, contextKeys   = []
+				).$results( true );
+
+				expect( service.userCanAccessForm( formName="keyedForm" ) ).toBeTrue();
+			} );
+
+			it( "should return false when the logged in user does not have the permission declared on the root form element", function(){
+				var service = _getFormsService( "/tests/resources/formsService/permissionKey/folder1" );
+
+				service.$( "$hasAdminPermission" ).$args(
+					  permissionKey = "some.key"
+					, context       = ""
+					, contextKeys   = []
+				).$results( false );
+
+				expect( service.userCanAccessForm( formName="keyedForm" ) ).toBeFalse();
+			} );
+
+			it( "should pass the given permission context and context keys through to the admin permission check", function(){
+				var service     = _getFormsService( "/tests/resources/formsService/permissionKey/folder1" );
+				var contextKeys = [ CreateUUId() ];
+
+				service.$( "$hasAdminPermission", false );
+				service.$( "$hasAdminPermission" ).$args(
+					  permissionKey = "some.key"
+					, context       = "somecontext"
+					, contextKeys   = contextKeys
+				).$results( true );
+
+				expect( service.userCanAccessForm(
+					  formName              = "keyedForm"
+					, permissionContext     = "somecontext"
+					, permissionContextKeys = contextKeys
+				) ).toBeTrue();
+			} );
+
+			it( "should use a root permissionKey declared in an earlier form directory when a later directory's definition does not redeclare it", function(){
+				var service = _getFormsService( "/tests/resources/formsService/permissionKey/folder1,/tests/resources/formsService/permissionKey/folder2" );
+
+				service.$( "$hasAdminPermission" ).$args(
+					  permissionKey = "folder1.key"
+					, context       = ""
+					, contextKeys   = []
+				).$results( false );
+
+				expect( service.userCanAccessForm( formName="inheritedKeyForm" ) ).toBeFalse();
+			} );
+
+			it( "should use the root permissionKey declared in the last form directory when redeclared there", function(){
+				var service = _getFormsService( "/tests/resources/formsService/permissionKey/folder1,/tests/resources/formsService/permissionKey/folder2" );
+
+				service.$( "$hasAdminPermission" ).$args(
+					  permissionKey = "folder1.key"
+					, context       = ""
+					, contextKeys   = []
+				).$results( true );
+				service.$( "$hasAdminPermission" ).$args(
+					  permissionKey = "folder2.key"
+					, context       = ""
+					, contextKeys   = []
+				).$results( false );
+
+				expect( service.userCanAccessForm( formName="overriddenKeyForm" ) ).toBeFalse();
+			} );
+		} );
 	}
 
 	private any function _getFormsService(
