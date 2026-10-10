@@ -1,0 +1,300 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>conditionalFieldVisibility tests</title>
+	<style>
+		body { font-family: monospace; padding: 1rem; }
+		.pass { color: #157f3b; }
+		.fail { color: #c0392b; font-weight: bold; }
+		#summary { font-size: 1.2rem; margin-bottom: 1rem; }
+		#sandbox { border: 1px dashed #ccc; margin-top: 2rem; padding: .5rem; }
+	</style>
+</head>
+<body>
+	<div id="summary">running…</div>
+	<ol id="results"></ol>
+	<div id="sandbox"></div>
+
+	<script src="../../../../system/assets/js/admin/lib/jquery-2.2.5-sec.js"></script>
+	<script>
+		// Preside's jquery build ends with $.noConflict( true ), so only presideJQuery
+		// is global. Mirror what Preside pages get.
+		var $ = window.jQuery || presideJQuery;
+
+		// ---- tiny assertion runner -------------------------------------------------
+		window.__results = { pass: 0, fail: 0, tests: [] };
+
+		function record( name, ok, detail ) {
+			window.__results.tests.push( { name: name, ok: ok, detail: detail || "" } );
+			ok ? window.__results.pass++ : window.__results.fail++;
+			var li = document.createElement( "li" );
+			li.className = ok ? "pass" : "fail";
+			li.textContent = ( ok ? "PASS  " : "FAIL  " ) + name + ( ok ? "" : "  → " + detail );
+			document.getElementById( "results" ).appendChild( li );
+		}
+
+		function test( name, fn ) {
+			// fresh sandbox per test so nothing leaks between cases
+			$( "#sandbox" ).empty();
+			try {
+				fn( function assert( ok, detail ) { record( name, !!ok, detail ); } );
+			} catch ( e ) {
+				record( name, false, "threw: " + ( e && e.message ? e.message : e ) );
+			}
+		}
+
+		// build markup exactly as field.cfm emits it
+		function group( opts ) {
+			var attrs = "";
+			if ( opts.toggleFields ) { attrs += ' data-toggle-fields="' + opts.toggleFields + '"'; }
+			if ( opts.toggleWhen  ) { attrs += ' data-toggle-when="' + opts.toggleWhen + '"'; }
+			return '<div class="form-group form-group-grid"' + attrs + '>' + ( opts.inner || "" ) + '</div>';
+		}
+
+		function targetGroup( name, extra ) {
+			return '<div class="form-group form-group-grid"' + ( extra || "" ) + '>'
+			     + '<input type="text" name="' + name + '">'
+			     + '</div>';
+		}
+
+		function selectControl( name, values, selected ) {
+			var html = '<select name="' + name + '">';
+			for ( var i = 0; i < values.length; i++ ) {
+				html += '<option value="' + values[i] + '"' + ( values[i] === selected ? ' selected' : '' ) + '>' + values[i] + '</option>';
+			}
+			return html + '</select>';
+		}
+
+		// run the plugin over the sandbox, as the document-ready binding would
+		function boot() {
+			$( "#sandbox .form-group[data-toggle-when]" ).presideConditionalFieldVisibility();
+		}
+
+		function visible( sel ) {
+			return $( "#sandbox" ).find( sel ).closest( ".form-group" ).is( ":visible" );
+		}
+	</script>
+
+	<!-- the real, unmodified plugin under test -->
+	<script src="../../../../system/assets/js/frontend/conditionalFieldVisibility/conditionalFieldVisibility.js"></script>
+
+	<script>
+	$( function() {
+
+		// AC1: select — initial render matches -> target visible
+		test( "AC1 select: initial render, value matches -> target shown", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"site_theme", toggleWhen:"specific",
+				          inner: selectControl( "theme_behaviour", ["inherit","specific"], "specific" ) })
+				+ targetGroup( "site_theme" )
+			);
+			boot();
+			assert( visible( '[name="site_theme"]' ), "expected target visible on initial render" );
+		} );
+
+		// AC1: select — initial render does not match -> target hidden
+		test( "AC1 select: initial render, value does not match -> target hidden", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"site_theme", toggleWhen:"specific",
+				          inner: selectControl( "theme_behaviour", ["inherit","specific"], "inherit" ) })
+				+ targetGroup( "site_theme" )
+			);
+			boot();
+			assert( !visible( '[name="site_theme"]' ), "expected target hidden" );
+		} );
+
+		// AC1: select — reveal on change
+		test( "AC1 select: reveals on change", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"site_theme", toggleWhen:"specific",
+				          inner: selectControl( "theme_behaviour", ["inherit","specific"], "inherit" ) })
+				+ targetGroup( "site_theme" )
+			);
+			boot();
+			$( '#sandbox [name="theme_behaviour"]' ).val( "specific" ).trigger( "change" );
+			assert( visible( '[name="site_theme"]' ), "expected target shown after change" );
+		} );
+
+		// AC1: select — hides again on change back
+		test( "AC1 select: hides again when value changes away", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"site_theme", toggleWhen:"specific",
+				          inner: selectControl( "theme_behaviour", ["inherit","specific"], "specific" ) })
+				+ targetGroup( "site_theme" )
+			);
+			boot();
+			$( '#sandbox [name="theme_behaviour"]' ).val( "inherit" ).trigger( "change" );
+			assert( !visible( '[name="site_theme"]' ), "expected target hidden after change away" );
+		} );
+
+		// AC2: radio
+		test( "AC2 radio: reveals when matching radio checked", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"other_reason", toggleWhen:"other",
+				          inner: '<div class="radio"><input type="radio" name="reason" value="spam"></div>'
+				               + '<div class="radio"><input type="radio" name="reason" value="other"></div>' })
+				+ targetGroup( "other_reason" )
+			);
+			boot();
+			assert( !visible( '[name="other_reason"]' ), "expected hidden while nothing checked" );
+			$( '#sandbox [name="reason"][value="other"]' ).prop( "checked", true ).trigger( "change" );
+			assert( visible( '[name="other_reason"]' ), "expected shown once 'other' checked" );
+		} );
+
+		// AC2: checkbox
+		test( "AC2 checkbox: reveals on checked value match", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"vat_number", toggleWhen:"1",
+				          inner: '<input type="checkbox" name="vat_registered" value="1">' })
+				+ targetGroup( "vat_number" )
+			);
+			boot();
+			assert( !visible( '[name="vat_number"]' ), "expected hidden while unchecked" );
+			$( '#sandbox [name="vat_registered"]' ).prop( "checked", true ).trigger( "change" );
+			assert( visible( '[name="vat_number"]' ), "expected shown once checked" );
+		} );
+
+		// AC2: composite / picker-shaped control (hidden input driven, like objectPicker/select2)
+		test( "AC2 composite control: works with select2-shaped markup", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"branch", toggleWhen:"branch_scope",
+				          inner: '<div class="select2-container"><span class="select2-chosen">Branch scope</span></div>'
+				               + '<select name="scope"><option value="global">global</option><option value="branch_scope" selected>branch</option></select>' })
+				+ targetGroup( "branch" )
+			);
+			boot();
+			assert( visible( '[name="branch"]' ), "expected target visible for composite control" );
+		} );
+
+		// AC3: multi-value match-any
+		test( 'AC3 toggleWhen="a,b" matches either value', function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"detail", toggleWhen:"a,b",
+				          inner: selectControl( "src", ["a","b","c"], "a" ) })
+				+ targetGroup( "detail" )
+			);
+			boot();
+			assert( visible( '[name="detail"]' ), "expected visible for 'a'" );
+			$( '#sandbox [name="src"]' ).val( "b" ).trigger( "change" );
+			assert( visible( '[name="detail"]' ), "expected visible for 'b'" );
+			$( '#sandbox [name="src"]' ).val( "c" ).trigger( "change" );
+			assert( !visible( '[name="detail"]' ), "expected hidden for 'c'" );
+		} );
+
+		// AC3: invert
+		test( 'AC3 toggleWhen="!a" inverts', function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"detail", toggleWhen:"!a",
+				          inner: selectControl( "src", ["a","b"], "a" ) })
+				+ targetGroup( "detail" )
+			);
+			boot();
+			assert( !visible( '[name="detail"]' ), "expected hidden for 'a'" );
+			$( '#sandbox [name="src"]' ).val( "b" ).trigger( "change" );
+			assert( visible( '[name="detail"]' ), "expected visible for 'b'" );
+		} );
+
+		// AC4: target by #id
+		test( "AC4 target by #id", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"#extra_id", toggleWhen:"yes",
+				          inner: selectControl( "src", ["no","yes"], "yes" ) })
+				+ '<div class="form-group form-group-grid"><input type="text" id="extra_id"></div>'
+			);
+			boot();
+			assert( $( "#sandbox #extra_id" ).closest( ".form-group" ).is( ":visible" ), "expected #id target visible" );
+		} );
+
+		// AC4: target by .class
+		test( "AC4 target by .class", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:".extra_cls", toggleWhen:"yes",
+				          inner: selectControl( "src", ["no","yes"], "no" ) })
+				+ '<div class="form-group form-group-grid"><input type="text" class="extra_cls"></div>'
+			);
+			boot();
+			assert( !$( "#sandbox .extra_cls" ).closest( ".form-group" ).is( ":visible" ), "expected .class target hidden" );
+			$( '#sandbox [name="src"]' ).val( "yes" ).trigger( "change" );
+			assert( $( "#sandbox .extra_cls" ).closest( ".form-group" ).is( ":visible" ), "expected .class target visible after change" );
+		} );
+
+		// AC4: fieldset target
+		test( "AC4 fieldset target toggles whole fieldset", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"#fieldset-advanced", toggleWhen:"yes",
+				          inner: selectControl( "src", ["no","yes"], "yes" ) })
+				+ '<fieldset id="fieldset-advanced"><input type="text" name="adv"></fieldset>'
+			);
+			boot();
+			assert( $( "#sandbox #fieldset-advanced" ).is( ":visible" ), "expected fieldset visible" );
+			$( '#sandbox [name="src"]' ).val( "no" ).trigger( "change" );
+			assert( !$( "#sandbox #fieldset-advanced" ).is( ":visible" ), "expected fieldset hidden" );
+		} );
+
+		// AC5: no toggleWhen -> plugin must not interfere
+		test( "AC5 wrapper without data-toggle-when is untouched", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"legacy_target", inner: '<input type="checkbox" class="toggle-fields" name="legacy">' })
+				+ targetGroup( "legacy_target" )
+			);
+			boot();
+			assert( visible( '[name="legacy_target"]' ), "plugin must not hide legacy boolean targets" );
+		} );
+
+		// AC6: toggledon / toggledoff events
+		test( "AC6 fires toggledon and toggledoff", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"detail", toggleWhen:"yes",
+				          inner: selectControl( "src", ["no","yes"], "no" ) })
+				+ targetGroup( "detail" )
+			);
+			var on = 0, off = 0;
+			$( "#sandbox" ).on( "toggledon",  '[name="detail"]', function() { on++;  } );
+			$( "#sandbox" ).on( "toggledoff", '[name="detail"]', function() { off++; } );
+			boot();
+			assert( off > 0, "expected toggledoff on initial hidden state (got " + off + ")" );
+			$( '#sandbox [name="src"]' ).val( "yes" ).trigger( "change" );
+			assert( on > 0, "expected toggledon after reveal (got " + on + ")" );
+		} );
+
+		// AC7: nested toggles
+		test( "AC7 nested: revealed field that is itself a source", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"level2", toggleWhen:"yes",
+				          inner: selectControl( "level1", ["no","yes"], "no" ) })
+				+ group({ toggleFields:"level3", toggleWhen:"yes",
+				          inner: '<select name="level2"><option value="no">no</option><option value="yes" selected>yes</option></select>' })
+				+ targetGroup( "level3" )
+			);
+			boot();
+			// level1=no -> level2 group hidden -> level3 must also be hidden even though level2 value is "yes"
+			assert( !visible( '[name="level2"]' ), "expected level2 hidden" );
+			assert( !visible( '[name="level3"]' ), "expected level3 hidden while its source is hidden" );
+			$( '#sandbox [name="level1"]' ).val( "yes" ).trigger( "change" );
+			assert( visible( '[name="level2"]' ), "expected level2 shown" );
+			assert( visible( '[name="level3"]' ), "expected level3 shown once source revealed and matching" );
+		} );
+
+		// AC8: nothing selected on load -> hidden
+		test( "AC8 no value selected on load -> target hidden", function( assert ) {
+			$( "#sandbox" ).html(
+				  group({ toggleFields:"detail", toggleWhen:"other",
+				          inner: '<select name="src"><option value="" selected></option><option value="other">other</option></select>' })
+				+ targetGroup( "detail" )
+			);
+			boot();
+			assert( !visible( '[name="detail"]' ), "expected hidden when no meaningful value selected" );
+		} );
+
+		// finish
+		var r = window.__results;
+		window.__done = true;
+		document.getElementById( "summary" ).textContent =
+			r.fail === 0 ? ( "ALL PASS — " + r.pass + " assertions" )
+			             : ( r.fail + " FAILED / " + ( r.pass + r.fail ) + " assertions" );
+		document.getElementById( "summary" ).className = r.fail === 0 ? "pass" : "fail";
+	} );
+	</script>
+</body>
+</html>

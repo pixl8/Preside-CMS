@@ -1,6 +1,38 @@
 ( function( $ ) {
 
 	$.fn.presideToggleControl = function() {
+		function resolveTargets( list ) {
+			var targets = { controls: [], fieldsets: [] }
+			  , items   = list ? list.split( "," ) : [];
+
+			for ( var i=0; i<items.length; i++ ) {
+				var name     = $.trim( items[ i ] )
+				  , selector = "";
+
+				if ( !name.length ) {
+					continue;
+				}
+
+				switch ( name.charAt( 0 ) ) {
+					case "#":
+					case ".":
+						selector = name;
+						break;
+
+					default:
+						selector = '[name="' + name + '"]';
+				}
+
+				if ( $( selector ).is( "fieldset" ) ) {
+					targets.fieldsets.push( selector );
+				} else {
+					targets.controls.push( selector );
+				}
+			}
+
+			return targets;
+		}
+
 		function toggleControl( $control, overridden ) {
 			var controlAttributes = [ "toggleFields", "toggleDefaultFields" ]
 			  , controlChecked    = false;
@@ -21,30 +53,11 @@
 			}
 
 			for ( var i=0; i<controlAttributes.length; i++ ) {
-				var controlsName = []
-				  , fieldsets    = []
-				  , controlsList = $control.data( controlAttributes[ i ] ) ? $control.data( controlAttributes[ i ] ).split( "," ) : [];
+				var targets   = resolveTargets( $control.data( controlAttributes[ i ] ) )
+				  , selectors = targets.controls.concat( targets.fieldsets );
 
-				for ( var j=0; j<controlsList.length; j++ ) {
-					var selector = "";
-
-					switch ( controlsList[ j ].charAt(0) ) {
-						case "#":
-						case ".":
-							selector = controlsList[ j ];
-							break;
-
-						default:
-							selector = '[name="' + controlsList[ j ] + '"]';
-					}
-
-					if ( $( selector ).is( "fieldset" ) ) {
-						fieldsets.push( selector );
-					} else {
-						controlsName.push( selector );
-					}
-
-					var $child = $( selector );
+				for ( var j=0; j<selectors.length; j++ ) {
+					var $child = $( selectors[ j ] );
 
 					if ( typeof $child.data( controlAttributes[ i ] ) !== "undefined" ) {
 						if ( controlChecked ) {
@@ -61,13 +74,13 @@
 				} else {
 					toggleEvent = controlChecked ? "toggledon" : "toggledoff";
 				}
-				if ( fieldsets.length ) {
-					$( fieldsets.join( "," ) ).toggle( controlAttributes[ i ] == "toggleDefaultFields" ? !controlChecked : controlChecked );
-					$( fieldsets.join( "," ) ).trigger( toggleEvent );
+				if ( targets.fieldsets.length ) {
+					$( targets.fieldsets.join( "," ) ).toggle( controlAttributes[ i ] == "toggleDefaultFields" ? !controlChecked : controlChecked );
+					$( targets.fieldsets.join( "," ) ).trigger( toggleEvent );
 				}
-				if ( controlsName.length ) {
-					$( controlsName.join( "," ) ).closest( ".form-group" ).toggle( controlAttributes[ i ] == "toggleDefaultFields" ? !controlChecked : controlChecked );
-					$( controlsName.join( "," ) ).trigger( toggleEvent );
+				if ( targets.controls.length ) {
+					$( targets.controls.join( "," ) ).closest( ".form-group" ).toggle( controlAttributes[ i ] == "toggleDefaultFields" ? !controlChecked : controlChecked );
+					$( targets.controls.join( "," ) ).trigger( toggleEvent );
 				}
 			}
 		}
