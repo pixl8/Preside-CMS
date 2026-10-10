@@ -228,7 +228,7 @@
 			  , stripListingTableColumnControlState, getListingUrlState, encodeCurrentListingUrl, pushListingUrl
 			  , applyListingUrlState, setupListingUrlSync, getListingSortState, setListingSortState
 			  , listingColumnIndexForField, listingSortMatchesDefault, persistListingFilterState, loadListingFilterState
-			  , syncListingSortBadges, syncPinnedColumnOverflow
+			  , syncListingSortBadges, listingTableScroller, syncPinnedColumnOverflow, fitListingToViewport, scheduleListingViewportFit
 			  , prePopulateFilter, toggleAdvancedFilter, syncAdvancedFilterToggle, getFavourites, getMergedFilterExpression
 			  , enabledContextHotkeys, refreshFavourites, updateSelectAllOptionRecordCount
 			  , activateSelectAllOption, deactivateSelectAllOption, redrawTable, getSearchQuery
@@ -763,6 +763,8 @@
 							  , pickerId          = "listing-object-filter-" + String( Math.random() ).replace( ".", "" )
 							  , current           = { object : { ids : [], labels : [] }, filter : { ids : [], labels : [] } }
 							  , loadingState      = false
+							  , pickersInitialized = false
+							  , pickerObserver
 							  , $objectSelect, $filterSelect;
 
 							function pickerUrls( handler, qs ) {
@@ -862,6 +864,35 @@
 								}
 							}
 
+							function initializePickers() {
+								var wasLoading = loadingState;
+
+								if ( pickersInitialized ) {
+									return;
+								}
+
+								pickersInitialized = true;
+								loadingState = true;
+								$wrap.off( ".listingObjectSearchInit" );
+								if ( pickerObserver ) {
+									pickerObserver.disconnect();
+								}
+
+								$objectSelect.presideObjectPicker();
+								$objectSelect.on( "change", function() {
+									applySearch( true );
+								} );
+
+								if ( $filterSelect && $filterSelect.length ) {
+									$filterSelect.presideObjectPicker();
+									$filterSelect.on( "change", function() {
+										applySearch( true );
+									} );
+								}
+
+								loadingState = wasLoading;
+							}
+
 							function loadFromState( state ) {
 								var idx        = host.idxOriginal ? host.idxOriginal() : originalIdx
 								  , columnName = dt.column( idx ).name()
@@ -958,16 +989,14 @@
 							} );
 
 							loadingState = true;
-							$objectSelect.presideObjectPicker();
-							$objectSelect.on( "change", function() {
-								applySearch( true );
-							} );
-
-							if ( $filterSelect && $filterSelect.length ) {
-								$filterSelect.presideObjectPicker();
-								$filterSelect.on( "change", function() {
-									applySearch( true );
+							$wrap.one( "mouseenter.listingObjectSearchInit focusin.listingObjectSearchInit pointerdown.listingObjectSearchInit touchstart.listingObjectSearchInit", initializePickers );
+							if ( window.IntersectionObserver ) {
+								pickerObserver = new window.IntersectionObserver( function( entries ) {
+									if ( entries.some( function( entry ) { return entry.isIntersecting; } ) ) {
+										initializePickers();
+									}
 								} );
+								pickerObserver.observe( $wrap.get( 0 ) );
 							}
 
 							dt.on( "preXhr.DT", function( e, s, d ) {
@@ -2519,6 +2548,53 @@
 				} );
 			};
 
+			listingTableScroller = function() {
+				return $listingTable.closest( ".dt-container" ).children( ".dt-layout-row.dt-layout-table" );
+			};
+
+			fitListingToViewport = function() {
+				var $scroller = listingTableScroller()
+				  , el = $scroller.get( 0 )
+				  , footerHeight = 0
+				  , node, topAtRest, available, nextMaxHeight;
+
+				if ( !el ) {
+					return;
+				}
+
+				node = el.nextElementSibling;
+				while ( node ) {
+					if ( node.classList && node.classList.contains( "dt-layout-row" ) ) {
+						footerHeight += node.offsetHeight;
+					}
+					node = node.nextElementSibling;
+				}
+
+				topAtRest = el.getBoundingClientRect().top + ( window.scrollY || window.pageYOffset || 0 );
+				available = window.innerHeight - topAtRest - footerHeight - 24;
+				if ( available < 220 ) {
+					available = 220;
+				}
+
+				nextMaxHeight = Math.floor( available ) + "px";
+				if ( el.style.maxHeight !== nextMaxHeight ) {
+					el.style.maxHeight = nextMaxHeight;
+				}
+			};
+
+			scheduleListingViewportFit = function() {
+				if ( scheduleListingViewportFit.scheduled ) {
+					return;
+				}
+
+				scheduleListingViewportFit.scheduled = true;
+				window.requestAnimationFrame( function() {
+					scheduleListingViewportFit.scheduled = false;
+					fitListingToViewport();
+					syncPinnedColumnOverflow();
+				} );
+			};
+
 			syncPinnedColumnOverflow = function() {
 				var $scroller, el, overflowing;
 
@@ -2527,7 +2603,7 @@
 					return;
 				}
 
-				$scroller = $listingTable.closest( ".dt-container" ).children( ".dt-layout-row.dt-layout-table" );
+				$scroller = listingTableScroller();
 				el = $scroller.get( 0 );
 				overflowing = !!( el && ( el.scrollWidth > ( el.clientWidth + 1 ) ) );
 				$listingTable.toggleClass( "is-horizontally-overflowing", overflowing );
@@ -2767,13 +2843,15 @@
 						}
 						listingUrlReady = true;
 						syncListingSortBadges();
+						fitListingToViewport();
 						syncPinnedColumnOverflow();
 						if ( window.ResizeObserver ) {
 							new window.ResizeObserver( function() {
-								syncPinnedColumnOverflow();
-							} ).observe( $listingTable.closest( ".dt-container" ).children( ".dt-layout-row.dt-layout-table" ).get( 0 ) || $listingTable.get( 0 ) );
+								scheduleListingViewportFit();
+							} ).observe( $listingTable.closest( ".object-listing-wrap" ).get( 0 ) || $listingTable.get( 0 ) );
 						}
 						$( window ).on( "resize.listingPinOverflow." + tableId, function() {
+							fitListingToViewport();
 							syncPinnedColumnOverflow();
 						} );
 					}
@@ -2868,6 +2946,7 @@
 							updateSelectAllOptionRecordCount( dtApi.page.info().recordsTotal );
 						}
 						api.columns.adjust();
+						fitListingToViewport();
 						syncPinnedColumnOverflow();
 					}
 					, footerCallback: function() {
