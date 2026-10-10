@@ -20,7 +20,8 @@ component {
 
 	property name="state" type="string" dbtype="longtext" autofilter=false;
 
-	property name="instance_histories"relationship="one-to-many" relatedto="cfflow_workflow_instance_history" relationshipKey="instance" cloneable=false;
+	property name="instance_histories" relationship="one-to-many" relatedto="cfflow_workflow_instance_history" relationshipKey="instance" cloneable=false;
+	property name="instance_steps"     relationship="one-to-many" relatedto="cfflow_workflow_instance_step"    relationshipKey="instance" cloneable=false;
 
 	property name="current_step"   formula="MAX( ${prefix}instance_histories.result )" batcheditable=false autofilter=false control="none" renderer="webflowInstanceStepTitle";
 	property name="current_status" formula="${prefix}id" renderer="webflowInstanceStatus";
