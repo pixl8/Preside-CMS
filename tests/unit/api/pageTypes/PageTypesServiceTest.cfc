@@ -41,7 +41,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( "page-types.casestudy.index"                         , pageTypeBean.getViewlet()            );
 		super.assertEquals( "page-types.casestudy.add"                           , pageTypeBean.getAddForm()            );
 		super.assertEquals( "page-types.casestudy.edit"                          , pageTypeBean.getEditForm()           );
-		super.assertEquals( "casestudy,blog,event,some_page_type,page,teammember", pageTypeBean.getAllowedChildTypes()  );
+		// A `*` allowedChildTypes resolves to every site-tree page type; the ORDER is just
+		// the iteration order of the registered-page-types struct, which is an engine
+		// implementation detail (Lucee's default struct is HashMap/hash-ordered, others are
+		// insertion-ordered). Assert MEMBERSHIP, not incidental order — as test02 already does.
+		super.assertEquals( ListSort( "casestudy,blog,event,some_page_type,page,teammember", "textnocase" )
+		                  , ListSort( pageTypeBean.getAllowedChildTypes(), "textnocase" ) );
 		super.assertEquals( "*"                                                  , pageTypeBean.getAllowedParentTypes() );
 	}
 
