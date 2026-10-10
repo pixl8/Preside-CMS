@@ -5,23 +5,15 @@
  */
 component extends="preside.system.base.AdminHandler" {
 
-	property name="emailTemplateService"       inject="emailTemplateService";
-	property name="emailStatsService"          inject="emailStatsService";
-	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
-	property name="emailRecipientTypeService"  inject="emailRecipientTypeService";
+	property name="emailTemplateService"      inject="emailTemplateService";
+	property name="emailStatsService"         inject="emailStatsService";
+	property name="emailRecipientTypeService" inject="emailRecipientTypeService";
 
 	private string function emailParamsHelper( event, rc, prc, args={} ) {
-		var systemTemplate = Trim( args.systemTemplate ?: "" );
-		var recipientType  = Trim( args.recipientType  ?: "" );
-
-		args.params = [];
-
-		if ( systemTemplate.len() ) {
-			args.params.append( systemEmailTemplateService.listTemplateParameters( systemTemplate ), true );
-		}
-		if ( recipientType.len() ) {
-			args.params.append( emailRecipientTypeService.listRecipientTypeParameters( recipientType ), true );
-		}
+		args.params = emailTemplateService.listAvailableParameters(
+			  systemTemplate = Trim( args.systemTemplate ?: "" )
+			, recipientType  = Trim( args.recipientType  ?: "" )
+		);
 
 		args.params.sort( function( a, b ){
 			return  a.required == b.required ? ( a.title > b.title ? 1 : -1 ) : ( a.required ? -1 : 1 );
