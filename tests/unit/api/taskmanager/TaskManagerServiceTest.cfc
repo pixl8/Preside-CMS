@@ -232,8 +232,24 @@ component extends="testbox.system.BaseSpec" {
 				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
 				expect( tm.$callLog().markTaskAsRunning.len() ).toBe( 0 );
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
+			} );
 
+			it( "should not start the task when another process has already claimed it", function(){
+				var tm      = _getTaskManagerService();
+				var taskKey = "syncEvents";
 
+				tm.$( "taskIsRunning" ).$args( taskKey ).$results( false );
+				tm.$( "markTaskAsRunning", 0 );
+				tm.$( "createTaskHistoryLog" );
+				tm.$( "markTaskAsStarted" );
+				mockExecutor.$( "isStarted", true );
+				mockExecutor.$( "submit" );
+
+				tm.runTask( taskKey );
+
+				expect( tm.$callLog().markTaskAsRunning.len() ).toBe( 1 );
+				expect( tm.$callLog().createTaskHistoryLog.len() ).toBe( 0 );
+				expect( mockExecutor.$callLog().submit.len() ).toBe( 0 );
 			} );
 		} );
 
@@ -414,12 +430,36 @@ component extends="testbox.system.BaseSpec" {
 				tm.$( "_getMachineId", machineId );
 
 				mockTaskDao.$( "updateData" ).$args(
-					  data = { is_running = true, next_run=nextRunDate, running_thread=threadId, running_machine=machineId }
-					, filter = { task_key = taskKey }
+					  data   = { is_running = true, next_run=nextRunDate, running_thread=threadId, running_machine=machineId }
+					, filter = { task_key = taskKey, is_running=false }
 				).$results( 1 );
 
 				expect( tm.markTaskAsRunning( taskKey, threadId ) ).toBe( 1 );
 				expect( mockTaskDao.$callLog().updateData.len() ).toBe( 1 );
+			} );
+
+			it( "should not record a local thread when the task is already claimed", function(){
+				var tm          = _getTaskManagerService();
+				var taskKey     = "sometask";
+				var nextRunDate = DateAdd( "h", 1, Now() );
+				var threadId    = CreateUUId();
+				var machineId   = CreateUUId();
+
+				tm.$( "getNextRunDate" ).$args( taskKey ).$results( nextRunDate );
+				tm.$( "_getMachineId", machineId );
+
+				mockTaskDao.$( "updateData" ).$args(
+					  data   = { is_running = true, next_run=nextRunDate, running_thread=threadId, running_machine=machineId }
+					, filter = { task_key = taskKey, is_running=false }
+				).$results( 0 );
+				mockTaskDao.$( "selectData" ).$results( QueryNew(
+					  "running_thread,running_machine"
+					, "varchar,varchar"
+					, [ [ threadId, machineId ] ]
+				) );
+
+				expect( tm.markTaskAsRunning( taskKey, threadId ) ).toBe( 0 );
+				expect( tm.taskThreadIsRunning( taskKey ) ).toBeFalse();
 			} );
 		} );
 
@@ -508,6 +548,26 @@ component extends="testbox.system.BaseSpec" {
 				expect( mockTaskDao.$callLog().updateData[1].data.was_last_run_success ).toBe( false );
 			} );
 
+			it( "should only clear the claim for the thread that finished", function(){
+				var tm       = _getTaskManagerService();
+				var taskKey  = "sometask";
+				var threadId = CreateUUId();
+
+				tm.$( "getNextRunDate" );
+				tm.$( "completeTaskHistoryLog" );
+
+				mockTaskDao.$( "updateData", 1 );
+
+				tm.markTaskAsCompleted( taskKey=taskKey, success=true, timeTaken=36, threadId=threadId );
+
+				expect( mockTaskDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockTaskDao.$callLog().updateData[1].filter ).toBe( {
+					  task_key       = taskKey
+					, is_running     = true
+					, running_thread = threadId
+				} );
+			} );
+
 			it( "should set the time taken field to the time taken", function(){
 				var tm        = _getTaskManagerService();
 				var taskKey   = "sometask";
@@ -539,7 +599,51 @@ component extends="testbox.system.BaseSpec" {
 				tm.markTaskAsCompleted( taskKey, false, timeTaken );
 
 				expect( tm.$callLog().completeTaskHistoryLog.len() ).toBe( 1 );
-				expect( tm.$callLog().completeTaskHistoryLog[1] ).toBe( [ taskKey, false, timeTaken ]  );
+				expect( tm.$callLog().completeTaskHistoryLog[1] ).toBe( [ taskKey, false, timeTaken, "" ]  );
+			} );
+		} );
+
+		describe( "cleanupNoLongerRunningTasks()", function(){
+			it( "should release a claim held by another machine once the claim is older than the stuck period", function(){
+				var tm        = _getTaskManagerService();
+				var threadId  = CreateUUId();
+				var otherTask = QueryNew(
+					  "task_key,running_thread,running_machine"
+					, "varchar,varchar,varchar"
+					, [ [ "task_a", threadId, "other-machine" ] ]
+				);
+
+				tm.$( "$getPresideSetting", 1 );
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "markTaskAsCompleted" );
+				mockTaskDao.$( "selectData", otherTask );
+				mockTaskDao.$( "dataExists", false );
+
+				tm.cleanupNoLongerRunningTasks();
+
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 1 );
+				expect( tm.$callLog().markTaskAsCompleted[1].taskKey ).toBe( "task_a" );
+				expect( tm.$callLog().markTaskAsCompleted[1].threadId ).toBe( threadId );
+			} );
+
+			it( "should leave a task that is still running on this machine", function(){
+				var tm        = _getTaskManagerService();
+				var localTask = QueryNew(
+					  "task_key,running_thread,running_machine"
+					, "varchar,varchar,varchar"
+					, [ [ "task_a", CreateUUId(), "this-machine" ] ]
+				);
+
+				tm.$( "$getPresideSetting", 1 );
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "_taskIsRunningOnLocalMachine", true );
+				tm.$( "markTaskAsCompleted" );
+				mockTaskDao.$( "selectData", localTask );
+				mockTaskDao.$( "dataExists", true );
+
+				tm.cleanupNoLongerRunningTasks();
+
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
 			} );
 		} );
 
