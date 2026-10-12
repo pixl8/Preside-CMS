@@ -44,5 +44,15 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
+		if ( !Len( Trim( recordId ) ) ) {
+			return;
+		}
+
+		ArrayAppend( args.actions, {
+			  link       = event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id=#recordId#" )
+			, icon       = "fa-external-link"
+			, title      = translateResource( uri="cms:sitetree.preview.page.link" )
+			, target     = "_blank"
+		} );
 	}
 }
