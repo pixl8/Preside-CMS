@@ -1542,8 +1542,15 @@ component extends="preside.system.base.AdminHandler" {
 			default: return "";
 		}
 
+		var formName = "";
+		if ( formsService.formExists( specificForm ) ) {
+			formName = specificForm;
+		} else if ( formsService.formExists( defaultForm ) ) {
+			formName = defaultForm;
+		}
+
 		var interceptArgs = {
-			  formName = ( formsService.formExists( specificForm ) ? specificForm : defaultForm )
+			  formName = formName
 			, pageType = arguments.pageType.getId()
 			, page     = arguments.page
 			, action   = arguments.action
