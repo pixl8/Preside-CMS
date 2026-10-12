@@ -21,15 +21,25 @@ component {
 		_setScheduledThreadpoolExecutor( arguments.scheduledThreadpoolExecutor );
 		_setFeature( arguments.feature );
 		_setHostname( arguments.hostname );
+		_setRunInProgress( false );
+		_setAcceptingRuns( true );
 
 		return this;
 	}
 
 	public void function run() {
-		$getRequestContext().autoSetSiteByHost();
-		$getRequestContext().isBackgroundThread( true );
-		$run();
-		setLastRun();
+		if ( !_beginRun() ) {
+			return;
+		}
+
+		try {
+			$getRequestContext().autoSetSiteByHost();
+			$getRequestContext().isBackgroundThread( true );
+			$run();
+			setLastRun();
+		} finally {
+			_endRun();
+		}
 	}
 
 	public void function $run() {
@@ -40,6 +50,15 @@ component {
 		if( _isFeatureDisabled() ) {
 			return;
 		}
+
+		_waitForRunToFinish();
+
+		if ( _isRunInProgress() ) {
+			$systemOutput( "Not starting #_getThreadName()# heartbeat because a previous run is still in progress." );
+			return;
+		}
+
+		_setAcceptingRuns( true );
 
 		if ( _isStopped() ) {
 			var tpe = _getScheduledThreadpoolExecutor();
@@ -72,19 +91,23 @@ component {
 	}
 
 	public void function stop() {
-		var taskFuture = _getTaskFuture();
+		var taskFuture    = _getTaskFuture();
+		var futureStopped = IsNull( local.taskFuture );
 
 		$systemOutput( "Shutting down #_getThreadName()# heartbeat." );
+		_setAcceptingRuns( false );
 		_getScheduledThreadpoolExecutor().cancelTask( _getThreadName() );
+		_waitForRunToFinish();
 
-		for( var i=1; i<=10; i++ ) {
-			if ( taskFuture.isDone() || taskFuture.isCancelled() ) {
-				$systemOutput( "Successfully shut down #_getThreadName()# heartbeat." );
-				break;
-			}
+		if ( !futureStopped ) {
+			futureStopped = taskFuture.isDone() || taskFuture.isCancelled();
 		}
 
-		if ( !taskFuture.isDone() && !taskFuture.isCancelled() ) {
+		if ( _isRunInProgress() ) {
+			$systemOutput( "FAILED TO SHUTDOWN #_getThreadName()#. A run is still in progress." );
+		} else if ( futureStopped ) {
+			$systemOutput( "Successfully shut down #_getThreadName()# heartbeat." );
+		} else {
 			$systemOutput( "FAILED TO SHUTDOWN #_getThreadName()#" );
 		}
 	}
@@ -118,6 +141,63 @@ component {
 		var taskFuture = _getTaskFuture();
 
 		return IsNull( local.taskFuture ) || taskFuture.isDone() || taskFuture.isCancelled();
+	}
+
+	private boolean function _beginRun() {
+		var accepted = false;
+
+		lock name=_getRunLockName() type="exclusive" timeout=5 {
+			if ( _acceptingRuns ?: true ) {
+				_runInProgress = true;
+				accepted = true;
+			}
+		}
+
+		return accepted;
+	}
+
+	private void function _endRun() {
+		lock name=_getRunLockName() type="exclusive" timeout=5 {
+			_runInProgress = false;
+		}
+	}
+
+	private void function _waitForRunToFinish() {
+		var attempts = 100;
+
+		for( var i=1; i<=attempts; i++ ) {
+			if ( !_isRunInProgress() ) {
+				return;
+			}
+
+			sleep( 100 );
+		}
+	}
+
+	private boolean function _isRunInProgress() {
+		var inProgress = false;
+
+		lock name=_getRunLockName() type="readonly" timeout=5 {
+			inProgress = IsBoolean( _runInProgress ?: "" ) && _runInProgress;
+		}
+
+		return inProgress;
+	}
+
+	private void function _setRunInProgress( required boolean runInProgress ) {
+		lock name=_getRunLockName() type="exclusive" timeout=5 {
+			_runInProgress = arguments.runInProgress;
+		}
+	}
+
+	private void function _setAcceptingRuns( required boolean acceptingRuns ) {
+		lock name=_getRunLockName() type="exclusive" timeout=5 {
+			_acceptingRuns = arguments.acceptingRuns;
+		}
+	}
+
+	private string function _getRunLockName() {
+		return "preside-heartbeat-run-" & Hash( _getThreadName() );
 	}
 
 // GETTERS / SETTERS
