@@ -544,6 +544,14 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		messageBox.info( translateResource( uri="cms:sitetree.pageCloned.confirmation" ) );
+
+		var pageRecord = siteTreeService.getPage( id=newId );
+		var pageType   = pageTypesService.getPageType( pageRecord.page_type );
+
+		if ( !pageType.getShowInSiteTree() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editpage", queryString="id=#newId#" ) );
+		}
+
 		setNextEvent( url=event.buildAdminLink( linkto="sitetree", querystring="selected=#newId#", siteId=( formData.site ?: "" ) ) );
 	}
 
@@ -1551,8 +1559,15 @@ component extends="preside.system.base.AdminHandler" {
 			default: return "";
 		}
 
+		var formName = "";
+		if ( formsService.formExists( specificForm ) ) {
+			formName = specificForm;
+		} else if ( formsService.formExists( defaultForm ) ) {
+			formName = defaultForm;
+		}
+
 		var interceptArgs = {
-			  formName = ( formsService.formExists( specificForm ) ? specificForm : defaultForm )
+			  formName = formName
 			, pageType = arguments.pageType.getId()
 			, page     = arguments.page
 			, action   = arguments.action

@@ -6,7 +6,7 @@
  * @datamanagerEnabled              true
  * @datamanagerGridFields           internal_title,type,datecreated,datemodified
  * @datamanagerDisallowedOperations delete,clone
- * @feature                         cms
+ * @feature                         links
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Link" {
 
@@ -28,8 +28,8 @@ component extends="preside.system.base.SystemPresideObject" displayname="Link" {
 	property name="email_body"        adminviewgroup="email"    type="string"  dbtype="varchar" maxlength="255" required=false;
 	property name="email_anti_spam"   adminviewgroup="email"    type="boolean" dbtype="boolean"                 required=false default=true;
 
-	property name="page"  adminviewgroup="page"  relationship="many-to-one" relatedto="page"  required=false;
-	property name="asset" adminviewgroup="asset" relationship="many-to-one" relatedto="asset" required=false ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="image"                        relationship="many-to-one" relatedto="asset" required=false ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check" allowedTypes="image";
+	property name="page"  adminviewgroup="page"  relationship="many-to-one" relatedto="page"  required=false feature="sitetree";
+	property name="asset" adminviewgroup="asset" relationship="many-to-one" relatedto="asset" required=false ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check" feature="assetManager";
+	property name="image"                        relationship="many-to-one" relatedto="asset" required=false ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check" allowedTypes="image" feature="assetManager";
 
 }

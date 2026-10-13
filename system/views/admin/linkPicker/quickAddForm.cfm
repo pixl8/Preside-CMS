@@ -1,4 +1,4 @@
-<!---@feature admin and cms--->
+<!---@feature admin and links--->
 <cfscript>
 	linkTypes = prc.linkTypes ?: [];
 	linkType  = LCase( rc.type ?: ( linkTypes[ 1 ] ?: "" ) );
