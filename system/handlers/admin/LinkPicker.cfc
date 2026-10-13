@@ -1,5 +1,5 @@
 /**
- * @feature admin and cms
+ * @feature admin and links
  */
 component extends="preside.system.base.AdminHandler" {
 
@@ -8,15 +8,15 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function preHandler( event, action ) {
 		super.preHandler( argumentCollection=arguments );
-		
+
 		if( !isEmptyString( rc.allowedTypes ?:"" ) ) {
 			prc.linkTypes = listToArray( rc.allowedTypes );
-		}else {
+		} else {
 			var configCat = rc.linkPickerCategory ?: "default";
 			if ( !StructKeyExists( linkPickerConfig, configCat ) ) {
 				configCat = "default";
 			}
-			
+
 			var defaultTypes = [ "sitetreelink", "url", "email", "asset", "anchor" ];
 			switch ( action ) {
 				case "quickAddForm"  :
@@ -26,6 +26,21 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			prc.linkTypes = linkPickerConfig[ configCat ].types ?: defaultTypes;
+		}
+
+		for( var i=ArrayLen( prc.linkTypes ); i>0; i-- ) {
+			switch( prc.linkTypes[ i ] ) {
+				case "sitetreelink":
+					if ( !isFeatureEnabled( "sitetree" ) ) {
+						ArrayDelete( prc.linkTypes, i );
+					}
+				break;
+				case "asset":
+					if ( !isFeatureEnabled( "assetmanager" ) ) {
+						ArrayDelete( prc.linkTypes, i );
+					}
+				break;
+			}
 		}
 	}
 

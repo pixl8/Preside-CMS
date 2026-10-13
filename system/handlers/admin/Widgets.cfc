@@ -1,5 +1,5 @@
 /**
- * @feature admin and cms
+ * @feature admin and widgets
  */
 component extends="preside.system.base.AdminHandler" {
 

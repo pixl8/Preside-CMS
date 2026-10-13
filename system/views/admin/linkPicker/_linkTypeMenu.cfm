@@ -1,4 +1,4 @@
-<!---@feature admin and cms--->
+<!---@feature admin and links--->
 <cfscript>
 	param name="args.selectedType" type="string";
 	param name="args.allowedTypes" type="any" default="sitetreelink,url,email,asset,anchor";

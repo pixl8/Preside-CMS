@@ -4,10 +4,10 @@ Richeditor: link form
 
 This form is used for the add/edit link screen in the richeditor.
 -->
-<form feature="cms">
+<form feature="links">
 	<tab id="basic" sortorder="10" title="cms:ckeditor.linkpicker.basic.tab">
 		<!-- we will show/hide these fieldsets depending on the selected link type -->
-		<fieldset id="sitetree" sortorder="10">
+		<fieldset id="sitetree" sortorder="10" feature="sitetree">
 			<field sortorder="10" name="page"       control="sitetreePagePicker" required="true"  label="cms:ckeditor.linkpicker.page.label" />
 			<field sortorder="20" name="title"      control="textinput"          required="false" label="cms:ckeditor.linkpicker.title.label" placeholder="cms:ckeditor.linkpicker.title.placeholder" maxlength="200" />
 			<field sortorder="30" name="pageanchor" control="textinput"          required="false" label="cms:ckeditor.linkpicker.pageanchor.label" placeholder="cms:ckeditor.linkpicker.pageanchor.placeholder" help="cms:ckeditor.linkpicker.pageanchor.help" maxlength="30" />
@@ -27,7 +27,7 @@ This form is used for the add/edit link screen in the richeditor.
 			<field sortorder="50" name="title"         control="textinput"   required="false" maxlength="200" label="cms:ckeditor.linkpicker.title.label"        placeholder="cms:ckeditor.linkpicker.title.placeholder" />
 		</fieldset>
 
-		<fieldset id="asset" sortorder="35">
+		<fieldset id="asset" sortorder="35" feature="assetManager">
 			<field sortorder="10" name="asset"  control="assetPicker" required="true" label="cms:ckeditor.linkpicker.asset.label" />
 		</fieldset>
 
