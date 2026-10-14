@@ -608,9 +608,9 @@ component extends="testbox.system.BaseSpec" {
 				var tm        = _getTaskManagerService();
 				var threadId  = CreateUUId();
 				var otherTask = QueryNew(
-					  "task_key,running_thread,running_machine"
-					, "varchar,varchar,varchar"
-					, [ [ "task_a", threadId, "other-machine" ] ]
+					  "task_key,running_thread,running_machine,datemodified"
+					, "varchar,varchar,varchar,timestamp"
+					, [ [ "task_a", threadId, "other-machine", DateAdd( "d", -2, Now() ) ] ]
 				);
 
 				tm.$( "$getPresideSetting", 1 );
@@ -624,6 +624,98 @@ component extends="testbox.system.BaseSpec" {
 				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 1 );
 				expect( tm.$callLog().markTaskAsCompleted[1].taskKey ).toBe( "task_a" );
 				expect( tm.$callLog().markTaskAsCompleted[1].threadId ).toBe( threadId );
+			} );
+
+			it( "should leave a fresh claim held by another machine when its owner status is unknown", function(){
+				var tm        = _getTaskManagerService();
+				var threadId  = CreateUUId();
+				var otherTask = QueryNew(
+					  "task_key,running_thread,running_machine,datemodified"
+					, "varchar,varchar,varchar,timestamp"
+					, [ [ "task_a", threadId, "other-machine", Now() ] ]
+				);
+
+				tm.$( "$getPresideSetting", 1 );
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "markTaskAsCompleted" );
+				mockTaskDao.$( "selectData", otherTask );
+				mockTaskDao.$( "dataExists", false );
+
+				tm.cleanupNoLongerRunningTasks();
+
+				var announced = tm.$callLog()[ "$announceInterception" ];
+
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
+				expect( announced.len() ).toBe( 1 );
+				expect( announced[ 1 ].state ).toBe( "onCheckRunningTaskInCluster" );
+				expect( announced[ 1 ].interceptData.taskKey ).toBe( "task_a" );
+				expect( announced[ 1 ].interceptData.threadId ).toBe( threadId );
+				expect( announced[ 1 ].interceptData.machineId ).toBe( "other-machine" );
+				expect( announced[ 1 ].interceptData.ownerStatus ).toBe( "unknown" );
+			} );
+
+			it( "should release a fresh claim when the owning machine is missing from the cluster", function(){
+				var tm        = _getTaskManagerService();
+				var threadId  = CreateUUId();
+				var otherTask = QueryNew(
+					  "task_key,running_thread,running_machine,datemodified"
+					, "varchar,varchar,varchar,timestamp"
+					, [ [ "task_a", threadId, "other-machine", Now() ] ]
+				);
+
+				tm.$( "$getPresideSetting", 1 );
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "_getRemoteTaskOwnerStatus", "missing" );
+				tm.$( "markTaskAsCompleted" );
+				mockTaskDao.$( "selectData", otherTask );
+				mockTaskDao.$( "dataExists", false );
+
+				tm.cleanupNoLongerRunningTasks();
+
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 1 );
+				expect( tm.$callLog().markTaskAsCompleted[1].threadId ).toBe( threadId );
+			} );
+
+			it( "should leave a fresh claim when the owning machine is present in the cluster", function(){
+				var tm        = _getTaskManagerService();
+				var otherTask = QueryNew(
+					  "task_key,running_thread,running_machine,datemodified"
+					, "varchar,varchar,varchar,timestamp"
+					, [ [ "task_a", CreateUUId(), "other-machine", Now() ] ]
+				);
+
+				tm.$( "$getPresideSetting", 1 );
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "_getRemoteTaskOwnerStatus", "present" );
+				tm.$( "markTaskAsCompleted" );
+				mockTaskDao.$( "selectData", otherTask );
+				mockTaskDao.$( "dataExists", false );
+
+				tm.cleanupNoLongerRunningTasks();
+
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
+			} );
+
+			it( "should release a local claim whose thread is no longer running", function(){
+				var tm        = _getTaskManagerService();
+				var threadId  = CreateUUId();
+				var localTask = QueryNew(
+					  "task_key,running_thread,running_machine,datemodified"
+					, "varchar,varchar,varchar,timestamp"
+					, [ [ "task_a", threadId, "this-machine", Now() ] ]
+				);
+
+				tm.$( "$getPresideSetting", 1 );
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "markTaskAsCompleted" );
+				mockTaskDao.$( "selectData", localTask );
+				mockTaskDao.$( "dataExists", false );
+
+				tm.cleanupNoLongerRunningTasks();
+
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 1 );
+				expect( tm.$callLog().markTaskAsCompleted[1].threadId ).toBe( threadId );
+				expect( tm.$callLog()[ "$announceInterception" ].len() ).toBe( 0 );
 			} );
 
 			it( "should leave a task that is still running on this machine", function(){
@@ -644,6 +736,55 @@ component extends="testbox.system.BaseSpec" {
 				tm.cleanupNoLongerRunningTasks();
 
 				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
+			} );
+		} );
+
+		describe( "cleanupTaskClaimIfNotRunning()", function(){
+			it( "should ignore a claim owned by another machine", function(){
+				var tm = _getTaskManagerService();
+
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "markTaskAsCompleted" );
+
+				expect( tm.cleanupTaskClaimIfNotRunning(
+					  taskKey   = "task_a"
+					, threadId  = CreateUUId()
+					, machineId = "other-machine"
+				) ).toBeFalse();
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
+			} );
+
+			it( "should leave the claim when the thread is running on this machine", function(){
+				var tm       = _getTaskManagerService();
+				var threadId = CreateUUId();
+
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "_getRunningTasks", { "#threadId#" = { status="started" } } );
+				tm.$( "markTaskAsCompleted" );
+
+				expect( tm.cleanupTaskClaimIfNotRunning(
+					  taskKey   = "task_a"
+					, threadId  = threadId
+					, machineId = "this-machine"
+				) ).toBeFalse();
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
+			} );
+
+			it( "should release the claim when the thread is not running on this machine", function(){
+				var tm       = _getTaskManagerService();
+				var threadId = CreateUUId();
+
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "markTaskAsCompleted", 1 );
+
+				expect( tm.cleanupTaskClaimIfNotRunning(
+					  taskKey   = "task_a"
+					, threadId  = threadId
+					, machineId = "this-machine"
+				) ).toBeTrue();
+				expect( tm.$callLog().markTaskAsCompleted[1].taskKey ).toBe( "task_a" );
+				expect( tm.$callLog().markTaskAsCompleted[1].threadId ).toBe( threadId );
+				expect( tm.$callLog().markTaskAsCompleted[1].success ).toBeFalse();
 			} );
 		} );
 
@@ -765,6 +906,7 @@ component extends="testbox.system.BaseSpec" {
 		var tm = mockBox.createMock( object=CreateObject( "preside.system.services.taskmanager.TaskManagerService" ) );
 
 		tm.$( "_initialiseDb" );
+		tm.$( "$announceInterception" );
 		tm.$( "$getRequestContext", mockRc );
 		tm.$( "$getErrorLogService", mockErrorLogService );
 		tm.$( "$isFeatureEnabled" ).$args( "sslInternalHttpCalls" ).$results( true );
