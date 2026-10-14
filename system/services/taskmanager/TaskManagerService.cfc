@@ -330,59 +330,25 @@ component displayName="Task Manager Service" {
 		}
 	}
 
-	public boolean function killRunningTask( required string taskKey, numeric timeout=1000 ) {
+	public boolean function killRunningTask( required string taskKey, numeric timeout=1000, boolean allowRemote=true ) {
 		var task = _getTaskDao().selectData(
 			  selectFields = [ "running_thread", "running_machine" ]
 			, filter       = { task_key=arguments.taskKey }
 		);
 
-		if ( task.recordCount && Len( Trim( task.running_thread ) ) && task.running_machine == _getMachineId() ) {
-			var logger       = _getLogger( taskKey=arguments.taskKey );
-			var runningTasks = _getRunningTasks();
-			var hasLocalTask = StructKeyExists( runningTasks, task.running_thread );
-
-			if ( logger.canWarn() ) {
-				logger.warn( "Task manually cancelled by user. Killing task thread now..." );
-			}
-			try {
-				var theThread = hasLocalTask ? ( runningTasks[ task.running_thread ].thread ?: NullValue() ) : NullValue();
-
-				if ( hasLocalTask && !IsNull( local.theThread ) ) {
-					var attempt     = 0;
-					var maxAttempts = 10;
-					var cancelled   = false;
-
-					while( ++attempt <= maxAttempts && !cancelled ) {
-						if ( attempt > 1 ) {
-							$systemOutput( "Waiting to gracefully shutdown thread for [#arguments.taskKey#]." );
-							if ( logger.canWarn() ) { logger.warn( "Waiting to gracefully shutdown task." ); }
-						}
-
-						cancelled = theThread.cancel( true ) && theThread.isCancelled();
-						if ( !cancelled ) {
-							sleep( 100 );
-						}
-					}
-
-					if ( theThread.isCancelled() ) {
-						$systemOutput( "Successfully shutdown scheduled task thread for [#arguments.taskKey#]." );
-						if ( logger.canWarn() ) { logger.warn( "Successfully shutdown scheduled task thread." ); }
-					} else {
-						$systemOutput( "Failed to gracefully shutdown scheduled task thread for [#arguments.taskKey#]." );
-						if ( logger.canWarn() ) { logger.warn( "Failed to gracefully shutdown scheduled task thread." ); }
-					}
-				} else if ( !hasLocalTask ) {
-					markTaskAsCompleted(
-						  taskKey   = arguments.taskKey
-						, success   = false
-						, timeTaken = 0
-						, threadId  = task.running_thread
-					);
-				}
-			} catch( any e ) {
-				if ( logger.canError() ) {
-					logger.error( "Task errored while terminating. Error: #e.message#. Detail: #e.detail#." );
-				}
+		if ( task.recordCount && Len( Trim( task.running_thread ) ) ) {
+			if ( task.running_machine == _getMachineId() ) {
+				_killLocalRunningTask(
+					  taskKey  = arguments.taskKey
+					, threadId = task.running_thread
+				);
+			} else if ( arguments.allowRemote ) {
+				_killRemoteRunningTask(
+					  taskKey   = arguments.taskKey
+					, threadId  = task.running_thread
+					, machineId = task.running_machine ?: ""
+					, timeout   = arguments.timeout
+				);
 			}
 		}
 
@@ -392,7 +358,7 @@ component displayName="Task Manager Service" {
 	public void function killAllRunningTasks( numeric timeout=0 ) {
 		for( var taskKey in listTasks() ){
 			if ( taskIsRunning( taskKey ) ) {
-				killRunningTask( taskKey, arguments.timeout );
+				killRunningTask( taskKey, arguments.timeout, false );
 			}
 		}
 	}
@@ -931,6 +897,97 @@ component displayName="Task Manager Service" {
 
 	private date function _getOperationDate() {
 		return Now();
+	}
+
+	private void function _killLocalRunningTask( required string taskKey, required string threadId ) {
+		var logger       = _getLogger( taskKey=arguments.taskKey );
+		var runningTasks = _getRunningTasks();
+		var hasLocalTask = StructKeyExists( runningTasks, arguments.threadId );
+
+		if ( logger.canWarn() ) {
+			logger.warn( "Task manually cancelled by user. Killing task thread now..." );
+		}
+
+		try {
+			var theThread = hasLocalTask ? ( runningTasks[ arguments.threadId ].thread ?: NullValue() ) : NullValue();
+
+			if ( hasLocalTask && !IsNull( local.theThread ) ) {
+				var attempt     = 0;
+				var maxAttempts = 10;
+				var cancelled   = false;
+
+				while( ++attempt <= maxAttempts && !cancelled ) {
+					if ( attempt > 1 ) {
+						$systemOutput( "Waiting to gracefully shutdown thread for [#arguments.taskKey#]." );
+						if ( logger.canWarn() ) { logger.warn( "Waiting to gracefully shutdown task." ); }
+					}
+
+					cancelled = theThread.cancel( true ) && theThread.isCancelled();
+					if ( !cancelled ) {
+						sleep( 100 );
+					}
+				}
+
+				if ( theThread.isCancelled() ) {
+					$systemOutput( "Successfully shutdown scheduled task thread for [#arguments.taskKey#]." );
+					if ( logger.canWarn() ) { logger.warn( "Successfully shutdown scheduled task thread." ); }
+				} else {
+					$systemOutput( "Failed to gracefully shutdown scheduled task thread for [#arguments.taskKey#]." );
+					if ( logger.canWarn() ) { logger.warn( "Failed to gracefully shutdown scheduled task thread." ); }
+				}
+			} else if ( !hasLocalTask ) {
+				markTaskAsCompleted(
+					  taskKey   = arguments.taskKey
+					, success   = false
+					, timeTaken = 0
+					, threadId  = arguments.threadId
+				);
+			}
+		} catch( any e ) {
+			if ( logger.canError() ) {
+				logger.error( "Task errored while terminating. Error: #e.message#. Detail: #e.detail#." );
+			}
+		}
+	}
+
+	private void function _killRemoteRunningTask(
+		  required string taskKey
+		, required string threadId
+		, required string machineId
+		, required numeric timeout
+	) {
+		var ownerStatus = _requestRemoteRunningTaskKill( argumentCollection=arguments );
+
+		if ( ownerStatus == "missing" ) {
+			markTaskAsCompleted(
+				  taskKey   = arguments.taskKey
+				, success   = false
+				, timeTaken = 0
+				, threadId  = arguments.threadId
+			);
+		}
+	}
+
+	private string function _requestRemoteRunningTaskKill(
+		  required string taskKey
+		, required string threadId
+		, required string machineId
+		, required numeric timeout
+	) {
+		var killRequest = {
+			  taskKey     = arguments.taskKey
+			, threadId    = arguments.threadId
+			, machineId   = arguments.machineId
+			, timeout     = arguments.timeout
+			, ownerStatus = "unknown"
+		};
+
+		$announceInterception(
+			  state         = "onKillRunningTaskInCluster"
+			, interceptData = killRequest
+		);
+
+		return killRequest.ownerStatus ?: "unknown";
 	}
 
 	private boolean function _taskClaimShouldBeReleased( required any task, required date stuckTaskCutoffDate ) {
