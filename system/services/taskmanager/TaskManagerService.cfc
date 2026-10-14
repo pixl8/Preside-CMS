@@ -401,19 +401,12 @@ component displayName="Task Manager Service" {
 		var localTaskThreads          = _getRunningTasks();
 		var localTaskThreadIds        = StructKeyArray( localTaskThreads );
 		var stuckTaskCutoffDate       = DateAdd( "d", -( Val( $getPresideSetting( "taskmanager", "stuck_thread_period", 1 ) ) ), Now() );
-		var runningTasksAccordingToDb = _getTaskDao().selectData(
-			  filter       = "is_running = :is_running and ( running_machine = :running_machine or datemodified <= :stuck_since )"
-			, filterParams = {
-				  is_running      = true
-				, running_machine = _getMachineId()
-				, stuck_since     = { value=stuckTaskCutoffDate, type="cf_sql_timestamp" }
-			}
-		);
+		var runningTasksAccordingToDb = _getTaskDao().selectData( filter={
+			is_running = true
+		} );
 
 		for( var task in runningTasksAccordingToDb ) {
-			var ownedByThisMachine = task.running_machine == _getMachineId();
-
-			if ( ownedByThisMachine && _taskisRunningOnLocalMachine( task ) ) {
+			if ( !_taskClaimShouldBeReleased( task, stuckTaskCutoffDate ) ) {
 				continue;
 			}
 
@@ -434,8 +427,51 @@ component displayName="Task Manager Service" {
 				localTaskThreads.delete( threadId, false );
 			}
 		}
+	}
 
+	/**
+	 * Releases a claim owned by this replica when its thread is no longer running.
+	 * Cluster listeners call this after an `onCheckRunningTaskInCluster` check
+	 * is delivered to the replica named by `machineId`.
+	 *
+	 * The check interception data is:
+	 * `taskKey`, `threadId`, `machineId` and `ownerStatus`.
+	 * `ownerStatus` starts as "unknown". An extension sets it to "missing" when
+	 * that machine is absent, or "present" when the check has been sent to it.
+	 *
+	 * @autodoc
+	 * @taskKey.hint   Task key of the claim to check
+	 * @threadId.hint  Thread id of the claim to check
+	 * @machineId.hint Machine id that owns the claim
+	 */
+	public boolean function cleanupTaskClaimIfNotRunning(
+		  required string taskKey
+		, required string threadId
+		, required string machineId
+	) {
+		if ( !Len( Trim( arguments.threadId ) ) || arguments.machineId != _getMachineId() ) {
+			return false;
+		}
 
+		if ( StructKeyExists( _getRunningTasks(), arguments.threadId ) ) {
+			return false;
+		}
+
+		return markTaskAsCompleted(
+			  taskKey   = arguments.taskKey
+			, success   = false
+			, timeTaken = -1
+			, threadId  = arguments.threadId
+		) > 0;
+	}
+
+	/**
+	 * Machine id stored against task claims started by this replica.
+	 *
+	 * @autodoc
+	 */
+	public string function getMachineId() {
+		return _getMachineId();
 	}
 
 	public array function listTasksStoredInStatusDb() {
@@ -898,6 +934,53 @@ component displayName="Task Manager Service" {
 
 	private date function _getOperationDate() {
 		return Now();
+	}
+
+	private boolean function _taskClaimShouldBeReleased( required any task, required date stuckTaskCutoffDate ) {
+		var runningMachine = arguments.task.running_machine ?: "";
+		var threadId       = arguments.task.running_thread ?: "";
+
+		if ( runningMachine == _getMachineId() ) {
+			return !_taskIsRunningOnLocalMachine( arguments.task );
+		}
+
+		var ownerStatus = _getRemoteTaskOwnerStatus(
+			  taskKey   = arguments.task.task_key ?: ""
+			, threadId  = threadId
+			, machineId = runningMachine
+		);
+
+		if ( ownerStatus == "missing" ) {
+			return true;
+		}
+
+		return _claimIsOlderThanStuckPeriod( arguments.task, arguments.stuckTaskCutoffDate );
+	}
+
+	private string function _getRemoteTaskOwnerStatus(
+		  required string taskKey
+		, required string threadId
+		, required string machineId
+	) {
+		var check = {
+			  taskKey     = arguments.taskKey
+			, threadId    = arguments.threadId
+			, machineId   = arguments.machineId
+			, ownerStatus = "unknown"
+		};
+
+		$announceInterception(
+			  state         = "onCheckRunningTaskInCluster"
+			, interceptData = check
+		);
+
+		return check.ownerStatus ?: "unknown";
+	}
+
+	private boolean function _claimIsOlderThanStuckPeriod( required any task, required date stuckTaskCutoffDate ) {
+		var modified = arguments.task.datemodified ?: "";
+
+		return IsDate( modified ) && modified <= arguments.stuckTaskCutoffDate;
 	}
 
 	private boolean function _taskIsRunningOnLocalMachine( required any task ){
