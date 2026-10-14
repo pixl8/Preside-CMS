@@ -788,6 +788,71 @@ component extends="testbox.system.BaseSpec" {
 			} );
 		} );
 
+		describe( "killRunningTask()", function(){
+			it( "should ask the cluster to kill a task running on another machine", function(){
+				var tm       = _getTaskManagerService();
+				var threadId = CreateUUId();
+
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "taskIsRunning", true );
+				tm.$( "markTaskAsCompleted" );
+				mockTaskDao.$( "selectData" ).$results( QueryNew(
+					  "running_thread,running_machine"
+					, "varchar,varchar"
+					, [ [ threadId, "other-machine" ] ]
+				) );
+
+				expect( tm.killRunningTask( "task_a" ) ).toBeFalse();
+
+				var announced = tm.$callLog()[ "$announceInterception" ];
+
+				expect( announced.len() ).toBe( 1 );
+				expect( announced[ 1 ].state ).toBe( "onKillRunningTaskInCluster" );
+				expect( announced[ 1 ].interceptData.taskKey ).toBe( "task_a" );
+				expect( announced[ 1 ].interceptData.threadId ).toBe( threadId );
+				expect( announced[ 1 ].interceptData.machineId ).toBe( "other-machine" );
+				expect( announced[ 1 ].interceptData.ownerStatus ).toBe( "unknown" );
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
+			} );
+
+			it( "should release a task whose owning machine is missing from the cluster", function(){
+				var tm       = _getTaskManagerService();
+				var threadId = CreateUUId();
+
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "_requestRemoteRunningTaskKill", "missing" );
+				tm.$( "markTaskAsCompleted", 1 );
+				tm.$( "taskIsRunning", false );
+				mockTaskDao.$( "selectData" ).$results( QueryNew(
+					  "running_thread,running_machine"
+					, "varchar,varchar"
+					, [ [ threadId, "other-machine" ] ]
+				) );
+
+				expect( tm.killRunningTask( "task_a" ) ).toBeTrue();
+				expect( tm.$callLog().markTaskAsCompleted[ 1 ].taskKey ).toBe( "task_a" );
+				expect( tm.$callLog().markTaskAsCompleted[ 1 ].threadId ).toBe( threadId );
+			} );
+
+			it( "should leave the database claim when the owning machine is still in the cluster", function(){
+				var tm       = _getTaskManagerService();
+				var threadId = CreateUUId();
+
+				tm.$( "_getMachineId", "this-machine" );
+				tm.$( "_requestRemoteRunningTaskKill", "present" );
+				tm.$( "markTaskAsCompleted" );
+				tm.$( "taskIsRunning", true );
+				mockTaskDao.$( "selectData" ).$results( QueryNew(
+					  "running_thread,running_machine"
+					, "varchar,varchar"
+					, [ [ threadId, "other-machine" ] ]
+				) );
+
+				expect( tm.killRunningTask( "task_a" ) ).toBeFalse();
+				expect( tm.$callLog().markTaskAsCompleted.len() ).toBe( 0 );
+			} );
+		} );
+
 		describe( "getRunnableTasks()", function(){
 			it( "should return an array of all the tasks that require running based on their database status, taking mutual exclusivity into account", function(){
 				var tm             = _getTaskManagerService({
