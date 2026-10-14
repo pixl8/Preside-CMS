@@ -334,6 +334,8 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postGetEmailLayoutConfig" );
 		interceptorSettings.customInterceptionPoints.append( "onClearAssetDerivatives" );
 		interceptorSettings.customInterceptionPoints.append( "onClearFolderDerivatives" );
+		interceptorSettings.customInterceptionPoints.append( "onCheckRunningTaskInCluster" );
+		interceptorSettings.customInterceptionPoints.append( "onKillRunningTaskInCluster" );
 	}
 
 	private void function __setupCachebox() {
