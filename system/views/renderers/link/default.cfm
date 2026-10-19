@@ -1,4 +1,4 @@
-<!---@feature cms--->
+<!---@feature links--->
 <cfscript>
 	param name="args.href"     type="string"  default="";
 	param name="args.title"    type="string"  default="";
