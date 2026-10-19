@@ -28,7 +28,7 @@
 
 <cfoutput>
 	<cfloop array="#values#" index="i" item="selectValue">
-		<cfset checked    = ListFindNoCase( value, selectValue ) />
+		<cfset checked    = FindNoCase( ",#selectValue#,", ",#value#," ) />
 		<cfset valueFound = valueFound || checked />
 		<cfset elementId  = inputId & "_" & i />
 

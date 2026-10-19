@@ -2,7 +2,7 @@
 <cfscript>
 	templateId = rc.id ?: "";
 	ajaxUrl    = event.buildAdminLink( linkTo="emailCenter.logs.getLogsForAjaxDataTables" );
-	gridFields = [ "email_template", "recipient", "subject", "datecreated", "sent", "delivered", "failed", "opened", "click_count" ];
+	gridFields = [ "email_template", "recipient", "subject", "datecreated", "sent", "delivered", "failed", "opened", "open_count", "click_count" ];
 
 	if ( !IsFeatureEnabled( "emailDeliveryStats" ) ) {
 		ArrayDelete( gridFields, "delivered" );

@@ -131,10 +131,22 @@ component displayName="Task Manager Service" {
 		var markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 
 		if ( markedAsRunning && !taskThreadIsRunning( arguments.taskKey ) ) {
-			sleep( 1000 );
-			markedAsRunning = _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
+			var taskBeforeWait = _getTaskRunState( arguments.taskKey );
 
-			if ( markedAsRunning ) {
+			if ( !taskBeforeWait.recordCount ) {
+				return false;
+			}
+
+			sleep( 1000 );
+
+			var taskAfterWait  = _getTaskRunState( arguments.taskKey );
+			var sameLocalClaim = taskAfterWait.recordCount
+				&& IsBoolean( taskAfterWait.is_running ?: "" )
+				&& taskAfterWait.is_running
+				&& taskAfterWait.running_machine == _getMachineId()
+				&& taskAfterWait.running_thread == ( taskBeforeWait.running_thread ?: "" );
+
+			if ( sameLocalClaim && !taskThreadIsRunning( arguments.taskKey ) ) {
 				var logger = _getLogger( taskKey=arguments.taskKey );
 
 				if ( logger.canError() ) {
@@ -144,10 +156,13 @@ component displayName="Task Manager Service" {
 				markTaskAsCompleted(
 					  taskKey   = arguments.taskKey
 					, success   = false
-					, timetaken = -1
+					, timeTaken = -1
+					, threadId  = taskBeforeWait.running_thread ?: ""
 				);
 				return false;
 			}
+
+			return _getTaskDao().dataExists( filter = { task_key=arguments.taskKey, is_running=true } );
 		}
 
 		return markedAsRunning;
@@ -212,32 +227,49 @@ component displayName="Task Manager Service" {
 	 *
 	 */
 	public void function runTask( required string taskKey, struct args={} ) {
-		var lockName = "runtask-#taskKey#" & Hash( ExpandPath( "/" ) );
+		var lockName = "runtask-#arguments.taskKey#" & Hash( ExpandPath( "/" ) );
 
 		lock name=lockName type="exclusive" timeout=1 {
-			var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
-			var newLogId    = createTaskHistoryLog( arguments.taskKey, newThreadId );
-			var logger      =  _getLogger( newLogId );
-
 			if ( taskIsRunning( arguments.taskKey ) ) {
 				return;
 			}
 
-			markTaskAsRunning( arguments.taskKey, newThreadId );
+			var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
 
-			if ( !_getExecutor().isStarted() ) {
-				_getExecutor().start();
+			if ( !markTaskAsRunning( arguments.taskKey, newThreadId ) ) {
+				return;
 			}
 
-			var executor = _getExecutor().submit( new TaskManagerRunnable(
-				  service  = this
-				, taskKey  = arguments.taskKey
-				, args     = arguments.args
-				, threadId = newThreadId
-				, logger   = logger
-			) );
+			try {
+				var newLogId = createTaskHistoryLog( arguments.taskKey, newThreadId );
+				var logger   = _getLogger( newLogId );
 
-			markTaskAsStarted( newThreadId, executor );
+				if ( !_getExecutor().isStarted() ) {
+					_getExecutor().start();
+				}
+
+				var executor = _getExecutor().submit( new TaskManagerRunnable(
+					  service  = this
+					, taskKey  = arguments.taskKey
+					, args     = arguments.args
+					, threadId = newThreadId
+					, logger   = logger
+				) );
+
+				markTaskAsStarted( newThreadId, executor );
+			} catch( any e ) {
+				try {
+					markTaskAsCompleted(
+						  taskKey   = arguments.taskKey
+						, success   = false
+						, timeTaken = 0
+						, threadId  = newThreadId
+					);
+				} catch( any releaseError ) {
+					_getErrorLogService().raiseError( releaseError );
+				}
+				rethrow;
+			}
 		}
 	}
 
@@ -298,61 +330,35 @@ component displayName="Task Manager Service" {
 		}
 	}
 
-	public boolean function killRunningTask( required string taskKey, numeric timeout=1000 ) {
+	public boolean function killRunningTask( required string taskKey, numeric timeout=1000, boolean allowRemote=true ) {
 		var task = _getTaskDao().selectData(
-			  selectFields = [ "running_thread" ]
-			, filter = { task_key=arguments.taskKey }
+			  selectFields = [ "running_thread", "running_machine" ]
+			, filter       = { task_key=arguments.taskKey }
 		);
 
 		if ( task.recordCount && Len( Trim( task.running_thread ) ) ) {
-			var logger = _getLogger( taskKey=arguments.taskKey );
-			if ( logger.canWarn() ) {
-				logger.warn( "Task manually cancelled by user. Killing task thread now..." );
+			if ( task.running_machine == _getMachineId() ) {
+				_killLocalRunningTask(
+					  taskKey  = arguments.taskKey
+					, threadId = task.running_thread
+				);
+			} else if ( arguments.allowRemote ) {
+				_killRemoteRunningTask(
+					  taskKey   = arguments.taskKey
+					, threadId  = task.running_thread
+					, machineId = task.running_machine ?: ""
+					, timeout   = arguments.timeout
+				);
 			}
-			try {
-				var runningTasks = _getRunningTasks();
-				var theThread    = runningTasks[ task.running_thread ].thread ?: NullValue();
-
-				if ( !IsNull( theThread ) ) {
-					var attempt = 0;
-					var maxAttempts = 10;
-					var cancelled = false;
-					while( ++attempt <= maxAttempts && !cancelled ) {
-						if ( attempt > 1 ) {
-							$systemOutput( "Waiting to gracefully shutdown thread for [#arguments.taskKey#]." );
-							if ( logger.canWarn() ) { logger.warn( "Waiting to gracefully shutdown task." ); }
-						}
-
-						cancelled = theThread.cancel( true ) && theThread.isCancelled();
-						if ( !cancelled ) {
-							sleep( 100 );
-						}
-					}
-
-					if ( theThread.isCancelled() ) {
-						$systemOutput( "Successfully shutdown scheduled task thread for [#arguments.taskKey#]." );
-						if ( logger.canWarn() ) { logger.warn( "Successfully shutdown scheduled task thread." ); }
-					} else {
-						$systemOutput( "Failed to gracefully shutdown scheduled task thread for [#arguments.taskKey#]." );
-						if ( logger.canWarn() ) { logger.warn( "Failed to gracefully shutdown scheduled task thread." ); }
-					}
-				}
-			} catch( any e ) {
-				if ( logger.canError() ) {
-					logger.error( "Task errored while terminating. Error: #e.message#. Detail: #e.detail#." );
-				}
-			}
-
-			markTaskAsCompleted( taskKey=arguments.taskKey, success=false, timeTaken=0 );
 		}
 
-		return !taskIsRunning( taskKey );
+		return !taskIsRunning( arguments.taskKey );
 	}
 
 	public void function killAllRunningTasks( numeric timeout=0 ) {
 		for( var taskKey in listTasks() ){
 			if ( taskIsRunning( taskKey ) ) {
-				killRunningTask( taskKey, arguments.timeout );
+				killRunningTask( taskKey, arguments.timeout, false );
 			}
 		}
 	}
@@ -361,23 +367,21 @@ component displayName="Task Manager Service" {
 		var localTaskThreads          = _getRunningTasks();
 		var localTaskThreadIds        = StructKeyArray( localTaskThreads );
 		var stuckTaskCutoffDate       = DateAdd( "d", -( Val( $getPresideSetting( "taskmanager", "stuck_thread_period", 1 ) ) ), Now() );
-		var runningTasksAccordingToDb = _getTaskDao().selectData(
-			  filter       = "is_running = :is_running AND ( running_machine = :running_machine OR last_ran <= :dayFromNow )"
-			, filterParams = {
-				  is_running      = true
-				, running_machine = _getMachineId()
-				, dayFromNow      = { value=stuckTaskCutoffDate, type="cf_sql_timestamp" }
-			}
-		);
+		var runningTasksAccordingToDb = _getTaskDao().selectData( filter={
+			is_running = true
+		} );
 
 		for( var task in runningTasksAccordingToDb ) {
-			if ( !_taskisRunningOnLocalMachine( task ) ) {
-				markTaskAsCompleted(
-					  taskKey   = task.task_key
-					, success   = false
-					, timetaken = -1
-				);
+			if ( !_taskClaimShouldBeReleased( task, stuckTaskCutoffDate ) ) {
+				continue;
 			}
+
+			markTaskAsCompleted(
+				  taskKey   = task.task_key
+				, success   = false
+				, timeTaken = -1
+				, threadId  = task.running_thread ?: ""
+			);
 		}
 
 		for( var threadId in localTaskThreadIds ) {
@@ -389,8 +393,51 @@ component displayName="Task Manager Service" {
 				localTaskThreads.delete( threadId, false );
 			}
 		}
+	}
 
+	/**
+	 * Releases a claim owned by this replica when its thread is no longer running.
+	 * Cluster listeners call this after an `onCheckRunningTaskInCluster` check
+	 * is delivered to the replica named by `machineId`.
+	 *
+	 * The check interception data is:
+	 * `taskKey`, `threadId`, `machineId` and `ownerStatus`.
+	 * `ownerStatus` starts as "unknown". An extension sets it to "missing" when
+	 * that machine is absent, or "present" when the check has been sent to it.
+	 *
+	 * @autodoc
+	 * @taskKey.hint   Task key of the claim to check
+	 * @threadId.hint  Thread id of the claim to check
+	 * @machineId.hint Machine id that owns the claim
+	 */
+	public boolean function cleanupTaskClaimIfNotRunning(
+		  required string taskKey
+		, required string threadId
+		, required string machineId
+	) {
+		if ( !Len( Trim( arguments.threadId ) ) || arguments.machineId != _getMachineId() ) {
+			return false;
+		}
 
+		if ( StructKeyExists( _getRunningTasks(), arguments.threadId ) ) {
+			return false;
+		}
+
+		return markTaskAsCompleted(
+			  taskKey   = arguments.taskKey
+			, success   = false
+			, timeTaken = -1
+			, threadId  = arguments.threadId
+		) > 0;
+	}
+
+	/**
+	 * Machine id stored against task claims started by this replica.
+	 *
+	 * @autodoc
+	 */
+	public string function getMachineId() {
+		return _getMachineId();
 	}
 
 	public array function listTasksStoredInStatusDb() {
@@ -417,19 +464,22 @@ component displayName="Task Manager Service" {
 	}
 
 	public numeric function markTaskAsRunning( required string taskKey, required string threadId ) {
-		var runningTasks = _getRunningTasks();
-
-		runningTasks[ arguments.threadId ] = { status="queued", thread=NullValue() };
-
-		return _getTaskDao().updateData(
-			  filter = { task_key = arguments.taskKey }
+		var nextRunDate = getNextRunDate( arguments.taskKey );
+		var updatedRows = _getTaskDao().updateData(
+			  filter = { task_key=arguments.taskKey, is_running=false }
 			, data   = {
 				  is_running      = true
-				, next_run        = getNextRunDate( arguments.taskKey )
+				, next_run        = nextRunDate
 				, running_thread  = arguments.threadId
 				, running_machine = _getMachineId()
 			  }
 		);
+
+		if ( updatedRows ) {
+			_getRunningTasks()[ arguments.threadId ] = { status="queued", thread=NullValue() };
+		}
+
+		return updatedRows;
 	}
 
 	public void function markTaskAsStarted( required string threadId, required any threadRef ) {
@@ -438,15 +488,23 @@ component displayName="Task Manager Service" {
 		runningTasks[ arguments.threadId ] = { status="started", thread=arguments.threadRef };
 	}
 
-	public numeric function markTaskAsCompleted( required string taskKey, required boolean success, required numeric timeTaken ) {
+	public numeric function markTaskAsCompleted( required string taskKey, required boolean success, required numeric timeTaken, string threadId="" ) {
 		completeTaskHistoryLog( argumentCollection=arguments );
+
 		var runningTasks = _getRunningTasks();
-		var taskRecord   = _getTaskDao().selectData( filter={ task_key=arguments.taskKey } );
+		var filter       = { task_key=arguments.taskKey, is_running=true };
 
-		runningTasks.delete( taskRecord.running_thread ?: "", false );
+		if ( Len( Trim( arguments.threadId ) ) ) {
+			filter.running_thread = arguments.threadId;
+			runningTasks.delete( arguments.threadId, false );
+		} else {
+			var taskRecord = _getTaskDao().selectData( filter={ task_key=arguments.taskKey } );
 
-		var updatedRows = _getTaskDao().updateData(
-			  filter = { task_key=arguments.taskKey, is_running=true }
+			runningTasks.delete( taskRecord.running_thread ?: "", false );
+		}
+
+		return _getTaskDao().updateData(
+			  filter = filter
 			, data   = {
 				  is_running           = false
 				, last_ran             = _getOperationDate()
@@ -457,8 +515,6 @@ component displayName="Task Manager Service" {
 				, running_machine      = ""
 			  }
 		);
-
-		return updatedRows;
 	}
 
 	public string function createTaskHistoryLog( required string taskKey, required string threadId ) {
@@ -471,15 +527,33 @@ component displayName="Task Manager Service" {
 		} );
 	}
 
-	public numeric function completeTaskHistoryLog( required string taskKey, required boolean success, required numeric timeTaken ) {
-		var historyId = getActiveHistoryIdForTask( arguments.taskKey );
+	public numeric function completeTaskHistoryLog( required string taskKey, required boolean success, required numeric timeTaken, string threadId="" ) {
+		var historyId = "";
+
+		if ( Len( Trim( arguments.threadId ) ) ) {
+			var history = _getTaskHistoryDao().selectData(
+				  selectFields = [ "id" ]
+				, filter       = { thread_id=arguments.threadId, task_key=arguments.taskKey }
+				, orderBy      = "datecreated desc"
+				, maxRows      = 1
+			);
+
+			if ( history.recordCount ) {
+				historyId = history.id;
+			}
+		} else {
+			historyId = getActiveHistoryIdForTask( arguments.taskKey );
+		}
+
 		if ( Len( Trim( historyId ) ) ) {
-			_getTaskHistoryDao().updateData(
-				  id = historyId
-				, data = { complete=true, success=arguments.success, time_taken=arguments.timeTaken }
+			return _getTaskHistoryDao().updateData(
+				  id     = historyId
+				, data   = { complete=true, success=arguments.success, time_taken=arguments.timeTaken }
 				, filter = { complete=false }
 			);
 		}
+
+		return 0;
 	}
 
 	public string function getActiveHistoryIdForTask( required string taskKey ) {
@@ -828,20 +902,155 @@ component displayName="Task Manager Service" {
 		return Now();
 	}
 
-	private boolean function _taskIsRunningOnLocalMachine( required any task ){
+	private void function _killLocalRunningTask( required string taskKey, required string threadId ) {
+		var logger       = _getLogger( taskKey=arguments.taskKey );
 		var runningTasks = _getRunningTasks();
-		var threadRef    = runningTasks[ task.running_thread ].thread ?: NullValue();
+		var hasLocalTask = StructKeyExists( runningTasks, arguments.threadId );
 
-		if ( IsNull( threadRef ) ) {
-			return false;
+		if ( logger.canWarn() ) {
+			logger.warn( "Task manually cancelled by user. Killing task thread now..." );
 		}
+
 		try {
-			return !threadRef.isDone() && !threadRef.isCancelled();
+			var theThread = hasLocalTask ? ( runningTasks[ arguments.threadId ].thread ?: NullValue() ) : NullValue();
+
+			if ( hasLocalTask && !IsNull( local.theThread ) ) {
+				var attempt     = 0;
+				var maxAttempts = 10;
+				var cancelled   = false;
+
+				while( ++attempt <= maxAttempts && !cancelled ) {
+					if ( attempt > 1 ) {
+						$systemOutput( "Waiting to gracefully shutdown thread for [#arguments.taskKey#]." );
+						if ( logger.canWarn() ) { logger.warn( "Waiting to gracefully shutdown task." ); }
+					}
+
+					cancelled = theThread.cancel( true ) && theThread.isCancelled();
+					if ( !cancelled ) {
+						sleep( 100 );
+					}
+				}
+
+				if ( theThread.isCancelled() ) {
+					$systemOutput( "Successfully shutdown scheduled task thread for [#arguments.taskKey#]." );
+					if ( logger.canWarn() ) { logger.warn( "Successfully shutdown scheduled task thread." ); }
+				} else {
+					$systemOutput( "Failed to gracefully shutdown scheduled task thread for [#arguments.taskKey#]." );
+					if ( logger.canWarn() ) { logger.warn( "Failed to gracefully shutdown scheduled task thread." ); }
+				}
+			} else if ( !hasLocalTask ) {
+				markTaskAsCompleted(
+					  taskKey   = arguments.taskKey
+					, success   = false
+					, timeTaken = 0
+					, threadId  = arguments.threadId
+				);
+			}
 		} catch( any e ) {
-			_getErrorLogService().raiseError( e );
+			if ( logger.canError() ) {
+				logger.error( "Task errored while terminating. Error: #e.message#. Detail: #e.detail#." );
+			}
+		}
+	}
+
+	private void function _killRemoteRunningTask(
+		  required string taskKey
+		, required string threadId
+		, required string machineId
+		, required numeric timeout
+	) {
+		var ownerStatus = _requestRemoteRunningTaskKill( argumentCollection=arguments );
+
+		if ( ownerStatus == "missing" ) {
+			markTaskAsCompleted(
+				  taskKey   = arguments.taskKey
+				, success   = false
+				, timeTaken = 0
+				, threadId  = arguments.threadId
+			);
+		}
+	}
+
+	private string function _requestRemoteRunningTaskKill(
+		  required string taskKey
+		, required string threadId
+		, required string machineId
+		, required numeric timeout
+	) {
+		var killRequest = {
+			  taskKey     = arguments.taskKey
+			, threadId    = arguments.threadId
+			, machineId   = arguments.machineId
+			, timeout     = arguments.timeout
+			, ownerStatus = "unknown"
+		};
+
+		$announceInterception(
+			  state         = "onKillRunningTaskInCluster"
+			, interceptData = killRequest
+		);
+
+		return killRequest.ownerStatus ?: "unknown";
+	}
+
+	private boolean function _taskClaimShouldBeReleased( required any task, required date stuckTaskCutoffDate ) {
+		var runningMachine = arguments.task.running_machine ?: "";
+		var threadId       = arguments.task.running_thread ?: "";
+
+		if ( runningMachine == _getMachineId() ) {
+			return !_taskIsRunningOnLocalMachine( arguments.task );
 		}
 
-		return false;
+		var ownerStatus = _getRemoteTaskOwnerStatus(
+			  taskKey   = arguments.task.task_key ?: ""
+			, threadId  = threadId
+			, machineId = runningMachine
+		);
+
+		if ( ownerStatus == "missing" ) {
+			return true;
+		}
+
+		return _claimIsOlderThanStuckPeriod( arguments.task, arguments.stuckTaskCutoffDate );
+	}
+
+	private string function _getRemoteTaskOwnerStatus(
+		  required string taskKey
+		, required string threadId
+		, required string machineId
+	) {
+		var check = {
+			  taskKey     = arguments.taskKey
+			, threadId    = arguments.threadId
+			, machineId   = arguments.machineId
+			, ownerStatus = "unknown"
+		};
+
+		$announceInterception(
+			  state         = "onCheckRunningTaskInCluster"
+			, interceptData = check
+		);
+
+		return check.ownerStatus ?: "unknown";
+	}
+
+	private boolean function _claimIsOlderThanStuckPeriod( required any task, required date stuckTaskCutoffDate ) {
+		var modified = arguments.task.datemodified ?: "";
+
+		return IsDate( modified ) && modified <= arguments.stuckTaskCutoffDate;
+	}
+
+	private boolean function _taskIsRunningOnLocalMachine( required any task ){
+		var threadId = arguments.task.running_thread ?: "";
+
+		return Len( Trim( threadId ) ) && StructKeyExists( _getRunningTasks(), threadId );
+	}
+
+	private query function _getTaskRunState( required string taskKey ) {
+		return _getTaskDao().selectData(
+			  selectFields = [ "is_running", "running_thread", "running_machine" ]
+			, filter       = { task_key=arguments.taskKey }
+		);
 	}
 
 	private void function _setActiveSite(){

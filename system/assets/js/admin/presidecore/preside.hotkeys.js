@@ -28,6 +28,9 @@
 	  , switchUiTabs
 	  , addHotKeyHints
 	  , userIsTyping
+	  , typingNodeFrom
+	  , deepestActiveElement
+	  , isTypingNode
 	  , terminalIsPresent
 	  , getTerminal
 	  , terminalIsActive
@@ -37,19 +40,19 @@
 
 	registerHotkeys = function(){
 		$('body')
-				.keydown( 'g'     , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { toggleGotoMode( e );   } } )
-				.keyup  ( '/'     , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { focusInSearchBox( e ); } } )
+				.keydown( 'g'     , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { toggleGotoMode( e );   } } )
+				.keyup  ( '/'     , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { focusInSearchBox( e ); } } )
 				.keydown( 'esc'   , escapeFeatures )
-				.keydown( 'comma' , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
-				.keydown( 'period', function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
-				.keydown( 't'     , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { switchUiTabs( e );     } } )
-				.keydown( 'up'    , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { processArrows( e, 'up'    ); } } )
-				.keydown( 'down'  , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { processArrows( e, 'down'  ); } } )
-				.keydown( 'left'  , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { processArrows( e, 'left'  ); } } )
-				.keydown( 'right' , function( e ){ if( !userIsTyping( e.target ) && !isModifierPressed( e ) ) { processArrows( e, 'right' ); } } )
+				.keydown( 'comma' , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
+				.keydown( 'period', function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
+				.keydown( 't'     , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { switchUiTabs( e );     } } )
+				.keydown( 'up'    , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { processArrows( e, 'up'    ); } } )
+				.keydown( 'down'  , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { processArrows( e, 'down'  ); } } )
+				.keydown( 'left'  , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { processArrows( e, 'left'  ); } } )
+				.keydown( 'right' , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { processArrows( e, 'right' ); } } )
 				.keypress( function( e ){
 					if ( e.which === devConsoleToggleKey ){
-						if ( !userIsTyping( e.target ) || ( userIsTyping( e.target ) && terminalIsActive() ) ) {
+						if ( !userIsTyping( e ) || ( userIsTyping( e ) && terminalIsActive() ) ) {
 							toggleTerminal(e) ;
 						}
 					}
@@ -236,7 +239,7 @@
 		  , $container
 		  , $target;
 
-		if ( userIsTyping( e.target ) || isModifierPressed( e ) ) {
+		if ( userIsTyping( e ) || isModifierPressed( e ) ) {
 			if ( e.keyCode === 27 ) { // escape key
 				if ( terminalIsActive() ) {
 					disableTerminal();
@@ -334,21 +337,75 @@
 		}
 	};
 
-	userIsTyping = function( eventTarget ){
-		var $focused = eventTarget ? $( eventTarget ) : $(':focus')
-
+	userIsTyping = function( eventOrTarget ){
 		if ( terminalIsActive() ) {
 			return true;
 		}
 
-		if ( !$focused.length ) {
+		return isTypingNode( typingNodeFrom( eventOrTarget ) );
+	};
+
+	// Key events that start inside an open shadow root are retargeted to the host
+	// by the time they reach the body listener. composedPath() still points at the
+	// real control; otherwise walk shadowRoot.activeElement from the host.
+	typingNodeFrom = function( eventOrTarget ){
+		var nativeEvent, path, node;
+
+		if ( !eventOrTarget ) {
+			return deepestActiveElement( document.activeElement );
+		}
+
+		if ( eventOrTarget.nodeType ) {
+			return deepestActiveElement( eventOrTarget );
+		}
+
+		nativeEvent = eventOrTarget.originalEvent || eventOrTarget;
+
+		if ( typeof nativeEvent.composedPath === "function" ) {
+			path = nativeEvent.composedPath();
+
+			if ( path && path.length && path[ 0 ] ) {
+				node = path[ 0 ].nodeType === 1 ? path[ 0 ] : path[ 0 ].parentElement;
+
+				if ( node ) {
+					return deepestActiveElement( node );
+				}
+			}
+		}
+
+		return deepestActiveElement( eventOrTarget.target || document.activeElement );
+	};
+
+	deepestActiveElement = function( node ){
+		while ( node && node.shadowRoot && node.shadowRoot.activeElement ) {
+			node = node.shadowRoot.activeElement;
+		}
+
+		return node;
+	};
+
+	isTypingNode = function( node ){
+		var $node, nodeName, nodeType;
+
+		if ( !node || node.nodeType !== 1 ) {
 			return false;
 		}
 
-		isInFormField = ( $.inArray( $focused.prop('nodeName'), [ 'INPUT','TEXTAREA' ] ) >= 0 && $.inArray( $focused.prop('type').toLowerCase(), [ 'checkbox','radio','submit','button' ] ) === -1 ) || $focused.prop( 'isContentEditable' ) === true;
-		if ( isInFormField ) {
+		$node = $( node );
+
+		if ( $node.prop( "isContentEditable" ) === true ) {
 			return true;
 		}
+
+		nodeName = $node.prop( "nodeName" );
+
+		if ( $.inArray( nodeName, [ "INPUT", "TEXTAREA" ] ) === -1 ) {
+			return false;
+		}
+
+		nodeType = ( $node.prop( "type" ) || "" ).toLowerCase();
+
+		return $.inArray( nodeType, [ "checkbox", "radio", "submit", "button" ] ) === -1;
 	};
 
 	terminalIsPresent = function(){

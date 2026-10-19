@@ -290,15 +290,16 @@ component {
 	) {
 		var messageTemplate = getTemplate( id=arguments.template, allowDrafts=true );
 
-		var expectedParams  = [];
 		var missingParams   = [];
 
 		if ( messageTemplate.count() ) {
-			if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
-				expectedParams.append( _getSystemEmailTemplateService().listTemplateParameters( arguments.template ), true );
-			}
-			expectedParams.append( _getEmailRecipientTypeService().listRecipientTypeParameters( messageTemplate.recipient_type ), true );
-			for( var param in expectedParams ) {
+			var systemTemplate = _getSystemEmailTemplateService().templateExists( arguments.template ) ? arguments.template : "";
+			var expectedParams = listAvailableParameters(
+				  systemTemplate = systemTemplate
+				, recipientType  = messageTemplate.recipient_type
+			);
+
+			for ( var param in expectedParams ) {
 				if ( param.required && !arguments.content.findNoCase( "${#param.id#}" ) ) {
 					missingParams.append( "${#param.id#}" );
 				}
@@ -306,6 +307,38 @@ component {
 		}
 
 		return missingParams;
+	}
+
+	/**
+	 * Returns the email parameters available to a template: those of the
+	 * system template followed by those of the recipient type, one entry per
+	 * parameter ID. Where both define a parameter, the system template's title
+	 * and description are used, and the parameter is required if either
+	 * definition requires it.
+	 *
+	 * @autodoc             true
+	 * @systemTemplate.hint ID of the system template, if any
+	 * @recipientType.hint  ID of the recipient type, if any
+	 */
+	public array function listAvailableParameters(
+		  string systemTemplate = ""
+		, string recipientType  = ""
+	) {
+		var templateParams      = Len( arguments.systemTemplate ) ? _getSystemEmailTemplateService().listTemplateParameters( arguments.systemTemplate ) : [];
+		var recipientTypeParams = Len( arguments.recipientType  ) ? _getEmailRecipientTypeService().listRecipientTypeParameters( arguments.recipientType ) : [];
+		var params              = [];
+		var paramIndexes        = {};
+
+		for ( var param in ArrayMerge( templateParams, recipientTypeParams ) ) {
+			if ( !StructKeyExists( paramIndexes, param.id ) ) {
+				ArrayAppend( params, StructCopy( param ) );
+				paramIndexes[ param.id ] = ArrayLen( params );
+			} else if ( param.required ) {
+				params[ paramIndexes[ param.id ] ].required = true;
+			}
+		}
+
+		return params;
 	}
 
 	/**
