@@ -44,5 +44,11 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
+		ArrayAppend( args.actions, {
+			  title  = translateResource( "cms:sitetree.preview.page.btn" )
+			, link   = event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id=#recordId#" )
+			, icon   = "fa-external-link"
+			, target = "_blank"
+		} );
 	}
 }
