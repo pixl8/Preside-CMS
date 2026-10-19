@@ -1356,6 +1356,75 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.listMissingParams( content=content, template=templateId ) ).toBe( [] );
 			} );
+
+			it( "should list a missing parameter only once when both the template and the recipient type require it", function(){
+				var service                 = _getService();
+				var content                 = "blah blah blah";
+				var templateId              = "mytemplate";
+				var mockTemplateParams      = [ { id="known_as", required=true } ];
+				var mockRecipientTypeParams = [ { id="known_as", required=true } ];
+				var mockTemplate            = { recipient_type="test" };
+
+				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true ).$results( mockTemplate );
+				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( mockTemplate.recipient_type ).$results( mockRecipientTypeParams );
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( templateId ).$results( true );
+				mockSystemEmailTemplateService.$( "listTemplateParameters" ).$args( templateId ).$results( mockTemplateParams );
+
+				expect( service.listMissingParams( content=content, template=templateId ) ).toBe( [ "${known_as}" ] );
+			} );
+		} );
+
+		describe( "listAvailableParameters()", function(){
+			it( "should return the system template parameters followed by the recipient type parameters", function(){
+				var service                 = _getService();
+				var mockTemplateParams      = [ { id="reset_link", title="Reset link", description="", required=true } ];
+				var mockRecipientTypeParams = [ { id="known_as", title="Known as", description="", required=false } ];
+
+				mockSystemEmailTemplateService.$( "listTemplateParameters" ).$args( "mytemplate" ).$results( mockTemplateParams );
+				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( "websiteUser" ).$results( mockRecipientTypeParams );
+
+				expect( service.listAvailableParameters( systemTemplate="mytemplate", recipientType="websiteUser" ) ).toBe( [
+					  { id="reset_link", title="Reset link", description="", required=true }
+					, { id="known_as"  , title="Known as"  , description="", required=false }
+				] );
+			} );
+
+			it( "should list a parameter defined on both the system template and the recipient type only once, using the system template's definition", function(){
+				var service                 = _getService();
+				var mockTemplateParams      = [ { id="known_as", title="Template title", description="Template description", required=false } ];
+				var mockRecipientTypeParams = [ { id="known_as", title="Recipient title", description="Recipient description", required=false } ];
+
+				mockSystemEmailTemplateService.$( "listTemplateParameters" ).$args( "mytemplate" ).$results( mockTemplateParams );
+				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( "websiteUser" ).$results( mockRecipientTypeParams );
+
+				expect( service.listAvailableParameters( systemTemplate="mytemplate", recipientType="websiteUser" ) ).toBe( [
+					{ id="known_as", title="Template title", description="Template description", required=false }
+				] );
+			} );
+
+			it( "should mark a parameter defined on both as required when only the recipient type requires it", function(){
+				var service                 = _getService();
+				var mockTemplateParams      = [ { id="known_as", title="Template title", description="", required=false } ];
+				var mockRecipientTypeParams = [ { id="known_as", title="Recipient title", description="", required=true } ];
+
+				mockSystemEmailTemplateService.$( "listTemplateParameters" ).$args( "mytemplate" ).$results( mockTemplateParams );
+				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( "websiteUser" ).$results( mockRecipientTypeParams );
+
+				var params = service.listAvailableParameters( systemTemplate="mytemplate", recipientType="websiteUser" );
+
+				expect( params.len() ).toBe( 1 );
+				expect( params[ 1 ].required ).toBeTrue();
+				expect( mockTemplateParams[ 1 ].required ).toBeFalse();
+			} );
+
+			it( "should only return the recipient type parameters when no system template is given", function(){
+				var service                 = _getService();
+				var mockRecipientTypeParams = [ { id="known_as", title="Known as", description="", required=false } ];
+
+				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( "websiteUser" ).$results( mockRecipientTypeParams );
+
+				expect( service.listAvailableParameters( recipientType="websiteUser" ) ).toBe( mockRecipientTypeParams );
+			} );
 		} );
 
 		describe( "listDueOneTimeScheduleTemplates()", function(){
