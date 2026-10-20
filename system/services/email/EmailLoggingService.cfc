@@ -62,11 +62,15 @@ component {
 		,          struct sendArgs = {}
 		,          string layoutOverride = ""
 		,          string customLayout   = ""
+		,          string cc             = ""
+		,          string bcc            = ""
 	) {
 		var data = {
 			  email_template  = arguments.template
 			, recipient       = arguments.recipient
 			, sender          = arguments.sender
+			, cc              = arguments.cc
+			, bcc             = arguments.bcc
 			, subject         = arguments.subject
 			, resend_of       = arguments.resendOf
 			, send_args       = SerializeJson( arguments.sendArgs )
@@ -611,6 +615,8 @@ component {
 		      template              = message.email_template
 		    , recipientId           = message[ recipientIdLogProperty ] ?: ""
 		    , to                    = [ message.recipient ]
+		    , cc                    = ListToArray( message.cc  ?: "", ", " )
+		    , bcc                   = ListToArray( message.bcc ?: "", ", " )
 		    , from                  = message.sender
 		    , subject               = message.subject
 		    , htmlBody              = message.html_body
@@ -654,6 +660,8 @@ component {
 			  template     = message.email_template
 			, recipientId  = message[ recipientIdLogProperty ] ?: ""
 			, to           = !len( message[ recipientIdLogProperty ] ?: "" ) ? [ message.recipient ] : []
+			, cc           = ListToArray( message.cc  ?: "", ", " )
+			, bcc          = ListToArray( message.bcc ?: "", ", " )
 			, args         = sendArgs
 			, resendOf     = message.id
 			, returnLogId  = true
@@ -896,6 +904,8 @@ component {
 			  "email_template_send_log.id"
 			, "email_template_send_log.recipient"
 			, "email_template_send_log.sender"
+			, "email_template_send_log.cc"
+			, "email_template_send_log.bcc"
 			, "email_template_send_log.subject"
 			, "email_template_send_log.sent"
 			, "email_template_send_log.failed"
