@@ -188,7 +188,8 @@ component displayName="Forms service" {
 		var frm = getForm( arguments.formName );
 
 		for( var tab in frm.tabs ){
-			for( var fieldset in tab.fieldsets ) {
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
 				for( var field in fieldset.fields ) {
 					if ( ( field.name ?: "" ) eq arguments.fieldName ) {
 						return field;
@@ -252,7 +253,8 @@ component displayName="Forms service" {
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
 				continue;
 			}
-			for( var fieldset in tab.fieldsets ) {
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
 				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
 					continue;
 				}
@@ -291,7 +293,8 @@ component displayName="Forms service" {
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
 				continue;
 			}
-			for( var fieldset in tab.fieldsets ) {
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
 				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
 					continue;
 				}
@@ -424,7 +427,8 @@ component displayName="Forms service" {
 				tab.id = CreateUUId();
 			}
 
-			for( var fieldset in tab.fieldsets ) {
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
 				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
 					continue;
 				}
@@ -1391,7 +1395,8 @@ component displayName="Forms service" {
 				continue;
 			}
 
-			for( var fieldSet in tab.fieldSets ){
+			var fieldsets = tab.fieldSets ?: [];
+			for( var fieldSet in fieldsets ){
 				var matchingFieldset = {};
 				if ( Len( Trim( fieldSet.id ?: "" ) ) ) {
 					for( var mFieldset in matchingTab.fieldsets ){
