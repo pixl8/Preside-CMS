@@ -44,18 +44,22 @@ component extends="preside.system.base.AdminHandler" {
 // viewlets
 	private string function _generalTab( event, rc, prc, args={} ) {
 		var dbresult           = DbInfoService.getDatabaseVersion( getSetting('dsn') );
-		var javaVersion        = server.java.version              ?: "";
+		var runtimeVersion     = server.java.version              ?: "";
 		var osName             = server.os.name                   ?: "";
 		var osVersion          = server.os.version                ?: "";
 		var databaseName       = dbresult.database_productname    ?: "";
 		var databaseVersion    = dbresult.database_version        ?: "";
-		var productName        = server.coldfusion.productname    ?: "";
+		var productName        = ( server.lucee.versionName ?: "" ) == "RustCFML" ? "RustCFML" : ( server.coldfusion.productname ?: "" );
 		var productVersion     = _getProductVersion();
 		var timezoneInfo       = getTimezoneInfo();
 
 		args.presideCmsVersion  = updateManagerService.getCurrentVersion();
 		args.applicationServer  = productName & ' (' & productVersion & ')';
-		args.java               = javaVersion;
+		if (productName == "RustCFML"){
+			args.runtime  = "Rust";
+		}else{	
+			args.runtime  = "Java "&runtimeVersion;	
+		}
 		args.os                 = osName & ' (' & osVersion & ')';
 		args.dataBase           = databaseName & ' (' & databaseVersion & ')';
 		args.timezoneId         = timezoneInfo.timezone;
@@ -90,14 +94,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function _getProductVersion() {
-		switch( server.coldfusion.productName ) {
-			case "lucee":
-			case "railo":
-				return server[ server.coldfusion.productName ].version ?: "unknown";
 
-		}
-
-		return server.coldfusion.productVersion;
+		return server.lucee.version;
 	}
 
 }

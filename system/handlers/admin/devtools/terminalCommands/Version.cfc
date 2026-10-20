@@ -6,12 +6,13 @@ component hint="Display system version information" extends="preside.system.base
 
 	private function index( event, rc, prc ) {
 		var dbresult           = DbInfoService.getDatabaseVersion( getSetting('dsn') );
-		var javaVersion        = server.java.version              ?: "";
+		var runtimeVersion     = server.java.version              ?: "";
 		var osName             = server.os.name                   ?: "";
 		var osVersion          = server.os.version                ?: "";
 		var databaseName       = dbresult.database_productname    ?: "";
 		var databaseVersion    = dbresult.database_version        ?: "";
-		var productName        = server.coldfusion.productname    ?: "";
+		var productName        = ( server.lucee.versionName ?: "" ) == "RustCFML" ? "RustCFML" : ( server.coldfusion.productname ?: "" );
+		var runtime            = productName == "RustCFML" ? "Rust" : "Java " & runtimeVersion;
 		var productVersion     = _getProductVersion();
 		var timezoneInfo       = getTimezoneInfo();
 		var timezoneId         = timezoneInfo.timezone;
@@ -24,7 +25,7 @@ component hint="Display system version information" extends="preside.system.base
 			  [ translateResource( uri="cms:systemInformation.cms.th" )              , updateManagerService.getCurrentVersionAndBuildDate() ]
 			, [ translateResource( uri="cms:systemInformation.applicationServer.th" ), productName & ' (' & productVersion & ')' ]
 			, [ translateResource( uri="cms:systemInformation.dataBase.th" )         , databaseName & ' (' & databaseVersion & ')' ]
-			, [ translateResource( uri="cms:systemInformation.java.th" )             , javaVersion ]
+			, [ translateResource( uri="cms:systemInformation.runtime.th" )          , runtime ]
 			, [ translateResource( uri="cms:systemInformation.os.th" )               , osName & ' (' & osVersion & ')' ]
 			, [ translateResource( uri="cms:systemInformation.timezoneId.th" )       , timezoneId ]
 			, [ translateResource( uri="cms:systemInformation.timezoneName.th" )     , timezoneName & ' (' & timezoneShortName & ')' ]
