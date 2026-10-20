@@ -96,6 +96,28 @@ component displayName="RulesEngine Time Period Service" {
 				};
 			break;
 
+			case "betweenago":
+				return _convertRelativeBetweenToDateRange(
+					  currentDateTime = currentDateTime
+					, measure         = timePeriod.measure  ?: ""
+					, unit            = timePeriod.unit     ?: ""
+					, measure2        = timePeriod.measure2 ?: ""
+					, unit2           = timePeriod.unit2    ?: ""
+					, direction       = -1
+				);
+			break;
+
+			case "betweenupcoming":
+				return _convertRelativeBetweenToDateRange(
+					  currentDateTime = currentDateTime
+					, measure         = timePeriod.measure  ?: ""
+					, unit            = timePeriod.unit     ?: ""
+					, measure2        = timePeriod.measure2 ?: ""
+					, unit2           = timePeriod.unit2    ?: ""
+					, direction       = 1
+				);
+			break;
+
 			case "future":
 				return { from=currentDateTime };
 			break;
@@ -287,6 +309,37 @@ component displayName="RulesEngine Time Period Service" {
 // private helpers
 	private date function _getCurrentDateTime() {
 		return Now();
+	}
+
+	private struct function _convertRelativeBetweenToDateRange(
+		  required date    currentDateTime
+		,          string  measure   = ""
+		,          string  unit      = ""
+		,          string  measure2  = ""
+		,          string  unit2     = ""
+		,          numeric direction = -1
+	) {
+		var fromDate = "";
+		var toDate   = "";
+		var unitTo   = Len( Trim( arguments.unit2 ) ) ? arguments.unit2 : arguments.unit;
+
+		try {
+			fromDate = DateAdd( arguments.unit, arguments.direction * Val( arguments.measure  ), arguments.currentDateTime );
+			toDate   = DateAdd( unitTo        , arguments.direction * Val( arguments.measure2 ), arguments.currentDateTime );
+		} catch( any e ) {
+			return {};
+		}
+
+		if ( fromDate > toDate ) {
+			var swapDate = fromDate;
+			fromDate     = toDate;
+			toDate       = swapDate;
+		}
+
+		return {
+			  from = fromDate
+			, to   = toDate
+		};
 	}
 
 }
