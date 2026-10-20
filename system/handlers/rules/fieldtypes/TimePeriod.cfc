@@ -42,6 +42,16 @@ component {
 					, translateResource( "cms:time.period.unit.#( timePeriod.unit ?: 'd' )#" )
 				];
 			break;
+			case "betweenago":
+			case "betweenupcoming":
+				type = timePeriod.type;
+				data = [
+					  NumberFormat( Val( timePeriod.measure ?: "" ) )
+					, translateResource( "cms:time.period.unit.#( timePeriod.unit ?: 'd' )#" )
+					, NumberFormat( Val( timePeriod.measure2 ?: "" ) )
+					, translateResource( "cms:time.period.unit.#( timePeriod.unit2 ?: ( timePeriod.unit ?: 'd' ) )#" )
+				];
+			break;
 			case "pastequal":
 			case "futureequal":
 				type = timePeriod.type;
