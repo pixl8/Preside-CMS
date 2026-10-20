@@ -1078,17 +1078,19 @@ component {
 			var fieldRelationship = objectProps[ orderByField ].relationship ?: "";
 
 			if ( fieldRelationship == "many-to-one" ) {
-				var relatedLabelField       = _getFullFieldName( "${labelfield}", _getPresideObjectService().getObjectProperties( arguments.objectName )["#orderByField#"].relatedTo );
-				var foreignObject           = _getPresideObjectService().getObjectProperties( objectProps[ orderByField ].relatedTo );
-				var foreignObjectLabelField = _getPresideObjectService().getLabelField(       objectProps[ orderByField ].relatedTo );
+				var relatedTo  = objectProps[ orderByField ].relatedTo ?: "";
+				var labelField = "label";
+				var delim      = ".";
 
-				if ( !structKeyExists( foreignObject[ foreignObjectLabelField ], "formula" ) ) {
-					var delim = relatedLabelField.find( "$" ) ? "$" : ".";
-
-					relatedLabelField = orderByField & delim & ListRest( relatedLabelField, delim );
+				if ( Len( relatedTo ) ) {
+					labelField = _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
+					if ( !Len( Trim( labelField ) ) ) {
+						labelField = "label";
+					}
 				}
 
-				newOrderBy.append( relatedLabelField & " " & orderDirection );
+				delim = Find( ".", labelField ) ? "$" : ".";
+				newOrderBy.append( orderByField & delim & labelField & ( Len( Trim( orderDirection ) ) ? " " & orderDirection : "" ) );
 			} else {
 				newOrderBy.append( item );
 			}
