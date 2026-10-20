@@ -58,7 +58,8 @@ component output="false" singleton=true {
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
 				continue;
 			}
-			for( fieldset in tab.fieldsets ){
+			var fieldsets = tab.fieldsets ?: [];
+			for( fieldset in fieldsets ){
 				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
 					continue;
 				}
