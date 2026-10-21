@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="presideObjectService"       inject="presideObjectService";
+	property name="formsService"               inject="formsService";
 	property name="messageBox"                 inject="messagebox@cbmessagebox";
 	property name="tenancyConfig"              inject="coldbox:setting:tenancy";
 	property name="systemAlertsService"        inject="systemAlertsService";
@@ -15,18 +16,22 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		if ( !hasCmsPermission( permissionKey="systemConfiguration.manage" ) ) {
-			event.adminAccessDenied();
-		}
+		prc.hasGlobalConfigPermission = hasCmsPermission( permissionKey="systemConfiguration.manage" );
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:sysConfig" )
-			, link  = event.buildAdminLink( linkTo="sysConfig" )
-		);
+		if ( prc.hasGlobalConfigPermission ) {
+			event.addAdminBreadCrumb(
+				  title = translateResource( "cms:sysConfig" )
+				, link  = event.buildAdminLink( linkTo="sysConfig" )
+			);
+		}
 	}
 
 // FIRST CLASS EVENTS
 	public any function index( event, rc, prc ) {
+		if ( !prc.hasGlobalConfigPermission ) {
+			event.adminAccessDenied();
+		}
+
 		prc.categories = systemConfigurationService.listConfigCategories();
 		ArraySort( prc.categories, function(a,b){
 			var aTitle = LCase( translateResource( uri=a.getName(), defaultValue=a.getId() ) );
@@ -50,6 +55,10 @@ component extends="preside.system.base.AdminHandler" {
 			prc.category = systemConfigurationService.getConfigCategory( id=categoryId );
 		} catch( "SystemConfigurationService.category.notFound" e ) {
 			event.notFound();
+		}
+
+		if ( !_userCanAccessCategory( argumentCollection=arguments, category=prc.category ) ) {
+			event.adminAccessDenied();
 		}
 
 		prc.tenancy = systemConfigurationService.getConfigCategoryTenancy( id=categoryId );
@@ -105,6 +114,10 @@ component extends="preside.system.base.AdminHandler" {
 			prc.category = systemConfigurationService.getConfigCategory( id=categoryId );
 		} catch( "SystemConfigurationService.category.notFound" e ) {
 			event.notFound();
+		}
+
+		if ( !_userCanAccessCategory( argumentCollection=arguments, category=prc.category ) ) {
+			event.adminAccessDenied();
 		}
 
 		var formName = Len( Trim( tenantId ) ) ? prc.category.getSiteForm() : prc.category.getForm();
@@ -177,9 +190,29 @@ component extends="preside.system.base.AdminHandler" {
 
 // VIEWLETS
 	private string function categoryMenu( event, rc, prc, args ) {
-		args.categories = systemConfigurationService.listConfigCategories();
+		var categories = systemConfigurationService.listConfigCategories();
+
+		args.categories = [];
+		for ( var category in categories ) {
+			if ( _userCanAccessCategory( argumentCollection=arguments, category=category ) ) {
+				ArrayAppend( args.categories, category );
+			}
+		}
 
 		return renderView( view="admin/sysconfig/categoryMenu", args=args );
+	}
+
+// PRIVATE HELPERS
+	private boolean function _userCanAccessCategory( event, rc, prc, required any category ) {
+		if ( hasCmsPermission( permissionKey="systemConfiguration.manage" ) ) {
+			return true;
+		}
+
+		// categories without a form-level permissionKey stay restricted to systemConfiguration.manage
+		return formsService.userCanAccessForm(
+			  formName                 = arguments.category.getForm()
+			, allowedIfNoPermissionKey = false
+		);
 	}
 
 }
