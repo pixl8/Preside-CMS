@@ -120,7 +120,7 @@ component {
 		selectDataArgs.autoGroupBy  = true;
 		selectDataArgs.useCache     = false;
 		selectDataArgs.selectFields = _expandRelationshipFields( arguments.objectname, selectDataArgs.selectFields, arguments.expandNestedFields );
-		selectDataArgs.groupBy      = presideObjectService.getIdField( arguments.objectName );
+		selectDataArgs.groupBy      = _getExportGroupBy( arguments.objectName, selectDataArgs.selectFields );
 		selectDataArgs.orderBy      = _getOrderBy( arguments.objectName, arguments.orderBy );
 		selectDataArgs.extraFilters = selectDataArgs.extraFilters ?: [];
 		selectDataArgs.gridFields   = selectDataArgs.gridFields   ?: [];
@@ -775,6 +775,26 @@ component {
 		}
 
 		return processed;
+	}
+
+	private string function _getExportGroupBy( required string objectName, required array selectFields ) {
+		var pos     = $getPresideObjectService();
+		var props   = pos.getObjectProperties( arguments.objectName );
+		var groupBy = [ "#arguments.objectName#.#pos.getIdField( arguments.objectName )#" ];
+
+		for ( var propName in props ) {
+			if ( ( props[ propName ].relationship ?: "" ) != "one-to-many" ) {
+				continue;
+			}
+			for ( var field in arguments.selectFields ) {
+				if ( ReFindNoCase( "\\b#propName#[\\.\\$]", field ) ) {
+					ArrayAppend( groupBy, "#propName#.#pos.getIdField( props[ propName ].relatedTo )#" );
+					break;
+				}
+			}
+		}
+
+		return ArrayToList( groupBy );
 	}
 
 // GETTERS AND SETTERS
