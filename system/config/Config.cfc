@@ -1029,6 +1029,7 @@ component {
 			  admin                           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cms                             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, presideForms                    = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, conditionalFieldVisibility      = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "presideForms" ] }
 			, sitetree                        = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, sites                           = { enabled=true , siteTemplates=[ "*" ], widgets=[]                      , dependsOn=[ "cms"   ] }
 			, links                           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
