@@ -29,7 +29,7 @@
 		</div>
 	</cfif>
 
-	#renderView( view="/admin/datamanager/_objectDataTable", args={
+	#renderView( view=getObjectDataTableView(), args={
 		  objectName      = objectName
 		, datasourceUrl   = datatableSourceUrl
 		, useMultiActions = canDelete

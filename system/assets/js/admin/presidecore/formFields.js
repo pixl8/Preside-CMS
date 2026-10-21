@@ -39,9 +39,17 @@
             limitText: 'max allowed : %n.'
         });
     });
-    $( 'textarea.richeditor' ).not( '.frontend-container' ).each( function(){
-        new PresideRichEditor( this );
-    } );
+    function bootRichEditors() {
+        $( 'textarea.richeditor' ).not( '.frontend-container' ).each( function(){
+            new PresideRichEditor( this );
+        } );
+    }
+
+    if ( document.readyState === "loading" ) {
+        document.addEventListener( "DOMContentLoaded", bootRichEditors );
+    } else {
+        bootRichEditors();
+    }
 
     $('[data-rel=popover]').popover({container:'body'});
 

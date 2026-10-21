@@ -18,7 +18,7 @@
 </cfscript>
 <cfoutput>
 	<cfsavecontent variable="body">
-		#renderView( view="/admin/datamanager/_objectDataTable", args={
+		#renderView( view=getObjectDataTableView(), args={
 			  objectName      = "email_template_send_log"
 			, useMultiActions = false
 			, datasourceUrl   = ajaxUrl

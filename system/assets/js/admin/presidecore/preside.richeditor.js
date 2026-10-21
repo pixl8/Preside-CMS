@@ -1,10 +1,10 @@
-PresideRichEditor = ( function( $ ){
+PresideCkEditor = ( function( $ ){
 
-	function PresideRichEditor( elementToReplace ) {
+	function PresideCkEditor( elementToReplace ) {
 		this.init( elementToReplace );
 	}
 
-	PresideRichEditor.prototype.init = function( elementToReplace ){
+	PresideCkEditor.prototype.init = function( elementToReplace ){
 		var $elementToReplace     = $( elementToReplace )
 		  , config                = {}
 		  , placeholder           = $elementToReplace.attr( "placeholder" )        || cfrequest.ckeditorDefaultPlaceholder || ""
@@ -202,7 +202,7 @@ PresideRichEditor = ( function( $ ){
 		$elementToReplace.data( 'ckeditorinstance', this.editor );
 	};
 
-	PresideRichEditor.prototype.parseToolbarConfig = function( rawToolbarText ){
+	PresideCkEditor.prototype.parseToolbarConfig = function( rawToolbarText ){
 		var bars = rawToolbarText.split( '|' )
 		  , barCount = bars.length
 		  , toolbar = []
@@ -232,6 +232,21 @@ PresideRichEditor = ( function( $ ){
 	};
 
 
-	return PresideRichEditor;
+	return PresideCkEditor;
 
 } )( presideJQuery );
+
+PresideRichEditor = function( elementToReplace ) {
+	var useTiptap = ( window.cfrequest || {} ).richeditorEngine === "tiptap" && window.PresideTiptapRichEditor;
+	var Impl      = useTiptap ? window.PresideTiptapRichEditor : PresideCkEditor;
+
+	return new Impl( elementToReplace );
+};
+
+PresideRichEditor.parseToolbarConfig = PresideCkEditor.prototype.parseToolbarConfig;
+
+PresideRichEditor.bootstrap = function( root ) {
+	if ( window.PresideTiptapRichEditor && typeof window.PresideTiptapRichEditor.bootstrap === "function" ) {
+		return window.PresideTiptapRichEditor.bootstrap( root );
+	}
+};

@@ -5,12 +5,17 @@ component output=false {
 		// REGISTER ASSETS
 		bundle.addAsset( id="i18n-resource-bundle"        , url="/preside/system/assets/_dynamic/i18nBundle.js" );
 		bundle.addAsset( id="ckeditor"                    , url="/preside/system/assets/ckeditor/ckeditor.js?v=4.17.1" );
+		bundle.addAsset( id="tiptap"                      , path="/tiptap/dist/tiptap.bundle.*.min.js" );
+		bundle.addAsset( id="tiptap-facade"               , path="/tiptap/dist/facade.*.min.js" );
+		bundle.addAsset( id="tiptap-css"                  , path="/tiptap/dist/tiptap.*.min.css" );
 		bundle.addAsset( id="/js/admin/lib/jquery/"       , path="/js/admin/lib/jquery-2*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-ui/"    , path="/js/admin/lib/jquery-ui*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/ace/"          , path="/js/admin/lib/ace*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/bootstrap/"    , path="/js/admin/lib/bootstrap*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plotly/"       , path="/js/admin/lib/plotly*.min.js" );
-		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
+		bundle.addAsset( id="/js/admin/lib/plugins/"         , path="/js/admin/lib/plugins-1.8.004.min.js" );
+		bundle.addAsset( id="/js/admin/lib/datatables/"      , path="/js/admin/lib/datatables-1.9.4.min.js" );
+		bundle.addAsset( id="/js/admin/lib/datatablesModern/", path="/js/admin/lib/datatables-3.0.4.min.js" );
 		bundle.addAsset( id="recaptcha-js"                , url="//www.recaptcha.net/recaptcha/api.js", async=true, defer=true );
 
 		bundle.addAsset( id="highlightjs-css"             , url="/preside/system/assets/ckeditorExtensions/plugins/codesnippet/lib/highlight/styles/preside-atelier-dune.dark.css" );
@@ -35,13 +40,21 @@ component output=false {
 
 		// DEFINE DEPENDENCIES AND SORT ORDERS
 		bundle.asset( "/js/admin/lib/jquery/"    ).before( "ckeditor" );
+		bundle.asset( "tiptap"               ).dependsOn( "/js/admin/lib/jquery/" ).before( "/js/admin/presidecore/" );
+		bundle.asset( "tiptap-facade"        ).dependsOn( "tiptap", "/js/admin/lib/jquery/" ).before( "/js/admin/presidecore/" );
 		bundle.asset( "/js/admin/lib/jquery-ui/" ).dependsOn( "/js/admin/lib/jquery/" );
 		bundle.asset( "/js/admin/lib/bootstrap/" ).dependsOn( "/js/admin/lib/jquery/" );
 		bundle.asset( "/js/admin/lib/ace/"       ).dependsOn( "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" );
-		bundle.asset( "/js/admin/lib/plugins/"   ).dependsOn( "/js/admin/lib/bootstrap/" );
+		bundle.asset( "/js/admin/lib/plugins/"         ).dependsOn( "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" );
+		bundle.asset( "/js/admin/lib/datatables/"      ).dependsOn( "/js/admin/lib/plugins/" );
+		bundle.asset( "/js/admin/lib/datatablesModern/" ).dependsOn( "/js/admin/lib/plugins/" );
 		bundle.asset( "/js/admin/presidecore/"   ).dependsOn( "/js/admin/lib/ace/", "/js/admin/lib/plugins/", "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" )
 			                                      .after    ( "i18n-resource-bundle", "ckeditor" )
 			                                      .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
+		bundle.asset( "/js/admin/datatablesCore/"       ).dependsOn( "/js/admin/presidecore/", "/js/admin/lib/datatables/" )
+			                                             .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
+		bundle.asset( "/js/admin/datatablesCoreModern/" ).dependsOn( "/js/admin/presidecore/", "/js/admin/lib/datatablesModern/" )
+			                                             .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
 
 		bundle.asset( "/js/admin/specific/assetmanager/editasset/" ).dependsOn( "/js/admin/specific/owlcarousel/" );
 		bundle.asset( "/js/frontend/formbuilder/" ).after( "*jquery*" );

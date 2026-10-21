@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Harness — Tiptap (Preside facade, mocked)</title>
+	<link rel="stylesheet" href="/dist/tiptap.min.css">
+	<style>
+		body{font-family:sans-serif;margin:0;background:#eef1f4;color:#222}
+		header{background:#0a7d5a;color:#fff;padding:10px 16px;font-size:15px}
+		header a{color:#c9f0e2}
+		main{max-width:900px;margin:20px auto;background:#fff;padding:20px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+		.note{font-size:12px;color:#666;margin:0 0 14px}
+	</style>
+</head>
+<body>
+	<header>Preside <strong>Tiptap</strong> facade harness (server deps mocked) &nbsp;·&nbsp; <a href="/">index</a> &nbsp;·&nbsp; <a href="/ckeditor.html">← CKEditor</a></header>
+	<main>
+		<p class="note">The Tiptap facade (assets/dist/), booted standalone with the SAME textarea markup as the CKEditor page. Full toolbar, content tokens rendered as live previews, pickers mocked server-side.</p>
+
+		<textarea id="content" name="content"
+			class="richeditor"
+			placeholder="Type here…"
+			data-toolbar="Maximize,-,Source|Undo,Redo|Find,Replace|Bold,Italic,Underline,Strike,Subscript,Superscript,-,RemoveFormat|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock|PresideLink,PresideUnlink,PresideAnchor|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,CodeSnippet|BidiLtr,BidiRtl|Format"
+			data-stylesheets="/content-sample.css"
+			data-min-height="180" data-max-height="420"><h1>Welcome</h1>
+<p class="lead">This is <strong>bold</strong> and <em>italic</em> text with a <a href="{{link:PAGE-123:link}}">site link</a>.</p>
+<blockquote>A styled blockquote, to show the content CSS applying inside the editor.</blockquote>
+<ul><li>First item</li><li>Second item</li></ul>
+<p>Embedded image: {{image:%7B%22asset%22%3A%22SAMPLE%22%7D:image}}</p>
+<p>Embedded widget: {{widget:featurednews:%7B%22count%22%3A3%7D:widget}}</p>
+<h2>Outline navigator</h2>
+<p>The rail on the right edge draws one line per heading (wider = higher level). Hover it to see the titles, click one to jump there.</p>
+<h3>Nested section</h3>
+<p>Deeper headings draw shorter lines and indent in the panel.</p>
+<h4>Deeper still</h4>
+<p>Filler so the editable actually scrolls: lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+<p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+<h2>Second top-level section</h2>
+<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+<p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<h3>Wrap up</h3>
+<p>The last section, far enough down that the click-to-scroll is visible.</p></textarea>
+	</main>
+
+	<script src="/vendor/jquery.js"></script>
+	<script src="/mocks.js"></script>
+	<script src="/dist/tiptap.bundle.min.js"></script>
+	<script src="/dist/facade.min.js"></script>
+	<script>
+		presideJQuery(function(){
+			presideJQuery( "textarea.richeditor" ).not( ".frontend-container" ).each(function(){
+				new PresideRichEditor( this );
+			});
+		});
+	</script>
+</body>
+</html>

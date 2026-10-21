@@ -1,0 +1,49 @@
+/* Sample "content CSS" for the harness — stands in for an app's front-end
+   stylesheet loaded into the editor via data-stylesheets (contentsCss). */
+/* `body` IS the editable (it was CKEditor's iframe body) — the commonest way a
+   site sets its content font, and `rem` here must resolve against the 16px an
+   iframe had, not the admin page's html{font-size:10px}. */
+body { font-family: Palatino, Georgia, serif; font-size: 1.5rem; }
+h2 { color: #0a7d5a; font-family: Georgia, serif; }
+p.lead { font-size: 1.25em; color: #444; font-weight: 300; }
+blockquote { border-left: 4px solid #0a7d5a; padding-left: 14px; color: #666; font-style: italic; }
+a { color: #b5179e; }
+ul li { margin-bottom: 4px; }
+
+/* ---- Styles-dropdown harvesting fixtures ---------------------------------
+   Bootstrap-shaped selectors: DESCENDANT selectors whose first simple selector
+   is `element.class`. These are what produced the mangled entries before the
+   harvest was ported from CKEditor's stylesheetparser - a naive test of the raw
+   selectorText matched on the `table.table-` prefix and turned the whole
+   descendant tail into the "class name" (and into the visible label). Each of
+   these must yield exactly ONE clean entry, and the two table-ruled rules must
+   dedupe to a single `table.table-ruled`. */
+table.table-striped tbody tr:nth-child(2n) { background: #f7f7f7; }
+table.table-hover tbody tr:hover { background: #eef4fb; }
+table.table-ruled tbody tr td { border-bottom: 1px solid #ddd; }
+table.table-ruled tbody tr th { border-bottom: 2px solid #bbb; }
+p.lead a { text-decoration: underline; }
+ul.nav li.active a { font-weight: 700; }
+
+/* Must be SKIPPED by stylesheetParser_skipSelectors (/(^body\.|^\.)/i). */
+body.home p { color: #222; }
+.btn-primary { background: #2679b5; color: #fff; }
+
+/* An attribute selector: CKEditor's own strip regex leaves a stray `]`, giving
+   a broken `p.lead]` entry that dedupes separately from the real `p.lead`. */
+p.lead[data-featured] { border-left: 3px solid #2679b5; }
+
+/* Inline-style fixtures (small/strong/em carry a class - see STYLE_TYPES). */
+small.text-muted { color: #888; }
+strong.text-danger { color: #c0392b; }
+em.subtle { color: #999; font-style: italic; }
+span.hl { background: #fff3a3; }
+
+/* Two shapes the OLD scoped-copy preview path could not style, and which the
+   iframe panel handles by construction: a `:where()` rule (specificity 0, so
+   `.tiptap-fmt-preview *{all:revert}` beat it) and an `@layer` block (no legacy
+   numeric rule type, so serialiseRules dumped it UNSCOPED into the admin head). */
+:where( h3 ) { letter-spacing: .02em; }
+@layer content {
+	h4 { color: #6a1b9a; }
+}
