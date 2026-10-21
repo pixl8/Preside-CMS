@@ -40,7 +40,8 @@
         "coldbox":"5.4.0",
         "cfconcurrent":"3.0.0",
         "JSONPrettyPrint":"1.4.1",
-        "cfflow":"0.8.0"
+        "cfflow":"0.8.0",
+        "chrono":"0.1.2"
     },
     "devDependencies":{
         "testbox":"5.4.0"
@@ -57,7 +58,8 @@
         "cbjavaloader":"system/modules/cbjavaloader/",
         "coldbox":"system/externals/coldbox/",
         "cfconcurrent":"system/externals/cfconcurrent/",
-        "JSONPrettyPrint":"system/modules/JSONPrettyPrint/"
+        "JSONPrettyPrint":"system/modules/JSONPrettyPrint/",
+        "chrono":"system/modules/chrono/"
     },
     "ignore":[
         ".git/*",
