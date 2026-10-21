@@ -65,7 +65,13 @@
         ".travis.yml",
         ".twgit_features_subject",
         "build.sh",
-        "test.sh"
+        "test.sh",
+        "system/assets/tiptap/src/*",
+        "system/assets/tiptap/harness/*",
+        "system/assets/tiptap/node_modules/*",
+        "system/assets/tiptap/package.json",
+        "system/assets/tiptap/package-lock.json",
+        "system/assets/tiptap/esbuild.mjs"
     ],
     "testbox":{
         "runner":"http://127.0.0.1:9999/runtests.cfm"

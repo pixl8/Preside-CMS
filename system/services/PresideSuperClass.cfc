@@ -19,6 +19,7 @@ component displayName="Preside Super Class" {
 	 * @errorLogService.inject            delayedInjector:errorLogService
 	 * @systemAlertsService.inject        delayedInjector:systemAlertsService
 	 * @featureService.inject             delayedInjector:featureService
+	 * @labsService.inject                delayedInjector:labsService
 	 * @notificationService.inject        delayedInjector:notificationService
 	 * @auditService.inject               delayedInjector:auditService
 	 * @contentRendererService.inject     delayedInjector:contentRendererService
@@ -47,6 +48,7 @@ component displayName="Preside Super Class" {
 		, required any errorLogService
 		, required any systemAlertsService
 		, required any featureService
+		, required any labsService
 		, required any notificationService
 		, required any auditService
 		, required any contentRendererService
@@ -73,6 +75,7 @@ component displayName="Preside Super Class" {
 		$errorLogService            = arguments.errorLogService;
 		$systemAlertsService        = arguments.systemAlertsService;
 		$featureService             = arguments.featureService;
+		$labsService                = arguments.labsService;
 		$notificationService        = arguments.notificationService;
 		$auditService               = arguments.auditService;
 		$contentRendererService     = arguments.contentRendererService;
@@ -596,6 +599,34 @@ component displayName="Preside Super Class" {
 	 */
 	public any function $isFeatureEnabled() {
 		return $getFeatureService().isFeatureEnabled( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns an instance of the Labs service used to resolve experimental features.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $getLabsService() {
+		return $labsService;
+	}
+
+	/**
+	 * Proxy to [[labsservice-isenabled]].
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * if ( $isLabEnabled( "datatablesOverhaul" ) ) {
+	 * \t    // ...
+	 * }
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public boolean function $isLabEnabled() {
+		return $getLabsService().isEnabled( argumentCollection=arguments );
 	}
 
 	/**

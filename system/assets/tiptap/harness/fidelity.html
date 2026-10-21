@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Harness — persistence fidelity (CKEditor vs Tiptap)</title>
+	<style>
+		body{font-family:sans-serif;margin:0;background:#eef1f4;color:#222}
+		header{background:#222;color:#fff;padding:12px 16px}
+		header .sum{float:right;font-weight:normal}
+		main{padding:16px}
+		table{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+		th,td{border:1px solid #e2e2e2;padding:8px;vertical-align:top;text-align:left;font-size:12px}
+		th{background:#f4f4f4;position:sticky;top:0}
+		td.name{font-weight:bold;white-space:nowrap;font-size:13px}
+		pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Menlo,monospace;font-size:11px;max-width:360px}
+		.ok{color:#0a7d3a;font-weight:bold}
+		.no{color:#c0392b;font-weight:bold}
+		.pill{display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px}
+		.pill.ok{background:#e3f6e9}.pill.no{background:#fbe4e0}
+		.frames{opacity:.35;height:220px;display:flex;gap:8px;margin-top:16px}
+		.frames iframe{flex:1;border:1px solid #ccc}
+		.legend{font-size:12px;color:#555;margin:6px 0 12px}
+	</style>
+</head>
+<body>
+	<header>Persistence fidelity — feed the SAME stored HTML into both editors, compare <code>getData()</code> <span class="sum" id="summary">running…</span></header>
+	<main>
+		<div class="legend">
+			<b>CK==TT</b>: do both editors persist a fragment identically? &nbsp;·&nbsp;
+			<b>TT idem</b> / <b>CK idem</b>: does re-saving the editor's own output leave it unchanged (no churn on repeated saves)? &nbsp;·&nbsp;
+			Differences are expected in places (documented); the key bar is <b>idempotency</b>.
+		</div>
+		<table id="results">
+			<thead><tr><th>Fragment</th><th>Input</th><th>CKEditor getData()</th><th>Tiptap getData()</th><th>CK==TT<br><small>exact</small></th><th>CK≈TT<br><small>semantic</small></th><th>TT idem</th><th>CK idem</th></tr></thead>
+			<tbody></tbody>
+		</table>
+		<div class="frames">
+			<iframe id="ckf" src="/ckeditor.html" title="ckeditor"></iframe>
+			<iframe id="ttf" src="/tiptap.html" title="tiptap"></iframe>
+		</div>
+	</main>
+
+	<script>
+	var FRAGMENTS = [
+		  { name: "headings + inline", html: '<h2>Title</h2><p>Some <strong>bold</strong>, <em>italic</em>, <u>underline</u>, <s>strike</s> text.</p>' }
+		, { name: "lists", html: '<ul><li>one</li><li>two</li></ul><ol><li>a</li><li>b</li></ol>' }
+		// Nested lists. The first list is the reported bug: ListItem is
+		// `paragraph block*`, so Tiptap wraps the parent item's text in a <p> that
+		// normalize.js's length test used to leave in place, persisting
+		// `<li><p>parent</p><ul>…</ul></li>` where CKEditor stored it bare. It now
+		// matches CKEditor semantically.
+		//
+		// The second list is an UNLABELLED sublist parent, and it is here as a
+		// DOCUMENTED DIVERGENCE rather than a target: CKEditor's `<li><ol>` cannot
+		// satisfy `paragraph block*`, so our parser splits the item into two sibling
+		// lists on the way in and the nesting is lost. That is an input-side
+		// limitation, not something the normaliser can reach - and it is why the
+		// normaliser keeps the empty <p> on the way out (see T28).
+		, { name: "nested lists", html: '<ul><li>parent<ul><li>child</li><li>sibling</li></ul></li><li>after</li></ul><ol><li><ol><li>bare parent</li></ol></li></ol>' }
+		, { name: "link tokens", html: '<p>A <a href="{{link:PAGE-1:link}}">page</a>, an <a href="{{asset:AID:asset}}">asset</a>, and an <a href="https://x.com" target="_blank" rel="nofollow">external</a>.</p>' }
+		, { name: "image token", html: '<p>{{image:%7B%22asset%22%3A%22A1%22%7D:image}}</p>' }
+		, { name: "widget token", html: '<p>{{widget:mywidget:%7B%22n%22%3A2%7D:widget}}</p>' }
+		, { name: "class + style", html: '<p class="lead">lead para</p><blockquote class="q">quote</blockquote><p>x <span class="hl" style="color:red">y</span> z</p>' }
+		, { name: "table", html: '<table><tbody><tr><th>h1</th><th>h2</th></tr><tr><td>a</td><td>b</td></tr></tbody></table>' }
+		, { name: "nested inline", html: '<p>text <strong>bold <em>and italic</em></strong> end</p>' }
+		, { name: "empty paragraphs", html: '<p>one</p><p></p><p>two</p>' }
+		// Class-bearing inline MARKS - the shapes a `small.text-muted` /
+		// `strong.text-danger` style from the Styles dropdown produces. `class` on
+		// bold/italic comes from presideAttributes' second addGlobalAttributes entry,
+		// and <small> from presideInlineStyle's `tag` attribute. Here to keep the
+		// no-churn guarantee honest: these are the only shapes §5 changed, and an
+		// UNCLASSED <strong>/<em>/<small> has to stay byte-identical (see "headings +
+		// inline" above, which carries the plain forms).
+		, { name: "classed inline marks", html: '<p><small class="text-muted">muted</small>, <strong class="text-danger">danger</strong>, <em class="subtle">subtle</em>, and a plain <small>small</small>.</p>' }
+	];
+
+	function ready( win ) { try { return win && win.CKEDITOR && win.CKEDITOR.instances && win.CKEDITOR.instances.content; } catch ( e ) { return null; } }
+	function waitReady( iframe ) {
+		return new Promise( function( res ) {
+			var t = setInterval( function() { var i = ready( iframe.contentWindow ); if ( i ) { clearInterval( t ); res( i ); } }, 100 );
+		} );
+	}
+	// CKEditor setData is async (data processor); resolve on its callback (with a timeout guard).
+	function ckSetData( inst, html ) {
+		return new Promise( function( res ) {
+			var done = false, fin = function() { if ( !done ) { done = true; setTimeout( res, 40 ); } };
+			try { inst.setData( html, { callback: fin } ); } catch ( e ) { inst.setData( html ); fin(); }
+			setTimeout( fin, 600 );
+		} );
+	}
+	// Canonicalise for a "renders-the-same" comparison: drop inter-tag whitespace,
+	// normalise empty paragraphs, sort attributes, normalise style spacing.
+	function canon( html ) {
+		var d = document.createElement( "div" );
+		d.innerHTML = String( html ).trim().replace( />\s+</g, "><" );
+		Array.prototype.forEach.call( d.querySelectorAll( "*" ), function( el ) {
+			if ( el.tagName === "P" && !el.children.length && el.textContent.replace( / /g, "" ).trim() === "" ) { el.innerHTML = ""; }
+			var attrs = Array.prototype.slice.call( el.attributes ).sort( function( a, b ) { return a.name < b.name ? -1 : 1; } );
+			attrs.forEach( function( a ) { el.removeAttribute( a.name ); } );
+			attrs.forEach( function( a ) {
+				var v = a.value;
+				if ( a.name === "style" ) { v = v.replace( /\s*:\s*/g, ":" ).replace( /;\s*$/, "" ).replace( /;\s*/g, ";" ).trim(); }
+				el.setAttribute( a.name, v );
+			} );
+		} );
+		return d.innerHTML.trim();
+	}
+
+	function esc( s ) { return String( s ).replace( /&/g, "&amp;" ).replace( /</g, "&lt;" ).replace( />/g, "&gt;" ); }
+	function cell( s ) { return '<pre>' + esc( s ) + '</pre>'; }
+	function yn( b ) { return b ? '<span class="pill ok">yes</span>' : '<span class="pill no">no</span>'; }
+
+	async function run() {
+		var ck = await waitReady( document.getElementById( "ckf" ) );
+		var tt = await waitReady( document.getElementById( "ttf" ) );
+
+		var tbody = document.querySelector( "#results tbody" );
+		var ckEqTt = 0, ckApproxTt = 0, ttIdem = 0, ckIdem = 0, n = FRAGMENTS.length;
+
+		for ( var k = 0; k < FRAGMENTS.length; k++ ) {
+			var frag = FRAGMENTS[ k ];
+
+			await ckSetData( ck, frag.html ); var ckOut = ck.getData();
+			await ckSetData( ck, ckOut );      var ckOut2 = ck.getData();
+
+			tt.setData( frag.html ); var ttOut = tt.getData();
+			tt.setData( ttOut );      var ttOut2 = tt.getData();
+
+			var eq = ckOut === ttOut, approx = canon( ckOut ) === canon( ttOut ), ti = ttOut === ttOut2, ci = ckOut === ckOut2;
+			if ( eq ) { ckEqTt++; } if ( approx ) { ckApproxTt++; } if ( ti ) { ttIdem++; } if ( ci ) { ckIdem++; }
+
+			var tr = document.createElement( "tr" );
+			tr.innerHTML = '<td class="name">' + esc( frag.name ) + '</td>'
+				+ '<td>' + cell( frag.html ) + '</td>'
+				+ '<td>' + cell( ckOut ) + '</td>'
+				+ '<td>' + cell( ttOut ) + '</td>'
+				+ '<td>' + yn( eq ) + '</td>'
+				+ '<td>' + yn( approx ) + '</td>'
+				+ '<td>' + yn( ti ) + '</td>'
+				+ '<td>' + yn( ci ) + '</td>';
+			tbody.appendChild( tr );
+		}
+
+		document.getElementById( "summary" ).innerHTML =
+			"CK==TT exact: " + ckEqTt + "/" + n + " &nbsp; CK≈TT semantic: " + ckApproxTt + "/" + n +
+			" &nbsp; TT idempotent: " + ttIdem + "/" + n + " &nbsp; CK idempotent: " + ckIdem + "/" + n;
+	}
+
+	window.addEventListener( "load", function() { setTimeout( run, 400 ); } );
+	</script>
+</body>
+</html>
