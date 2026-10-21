@@ -175,6 +175,46 @@ component {
 		return ListToArray( fields, ", " );
 	}
 
+	/**
+	 * Fields that should be center-aligned in admin listings.
+	 * Combines `@datamanagerCenterAlignFields` with properties that set `listingAlign="center"`.
+	 *
+	 * @autodoc true
+	 */
+	public array function listCenterAlignFields( required string objectName ) {
+		return _listAlignedListingFields(
+			  objectName      = arguments.objectName
+			, attributeName   = "datamanagerCenterAlignFields"
+			, listingAlign    = "center"
+			, includeDefaults = false
+		);
+	}
+
+	/**
+	 * Fields that should be right-aligned in admin listings.
+	 * Combines `@datamanagerRightAlignFields` with decimal/money properties
+	 * and any property that sets `listingAlign="right"`. Use `listingAlign="left"`
+	 * or `@datamanagerLeftAlignFields` to opt a numeric field out of the default.
+	 *
+	 * @autodoc true
+	 */
+	public array function listRightAlignFields( required string objectName ) {
+		return _listAlignedListingFields(
+			  objectName      = arguments.objectName
+			, attributeName   = "datamanagerRightAlignFields"
+			, listingAlign    = "right"
+			, includeDefaults = true
+			, excludeFields   = _mergedListingFields(
+				  listCenterAlignFields( arguments.objectName )
+				, ListToArray( _getPresideObjectService().getObjectAttribute(
+					  objectName    = arguments.objectName
+					, attributeName = "datamanagerLeftAlignFields"
+					, defaultValue  = ""
+				  ), ", " )
+			  )
+		);
+	}
+
 	public string function listCategoryField( required string objectName ) {
 		return Trim( _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerListingCategoryField") );
 	}
@@ -977,6 +1017,67 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private array function _listAlignedListingFields(
+		  required string  objectName
+		, required string  attributeName
+		, required string  listingAlign
+		,          boolean includeDefaults = false
+		,          array   excludeFields   = []
+	) {
+		var fields     = ListToArray( _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = arguments.attributeName
+			, defaultValue  = ""
+		), ", " );
+		var properties = _getPresideObjectService().getObjectProperties( arguments.objectName );
+
+		for( var propertyName in properties ) {
+			var align = _listingAlignForProperty( properties[ propertyName ], arguments.includeDefaults );
+
+			if ( align == arguments.listingAlign && !_arrayContainsNoCase( fields, propertyName ) && !_arrayContainsNoCase( arguments.excludeFields, propertyName ) ) {
+				ArrayAppend( fields, propertyName );
+			}
+		}
+
+		return fields;
+	}
+
+	private string function _listingAlignForProperty( required struct propertyDefinition, boolean includeDefaults=false ) {
+		var listingAlign = LCase( Trim( arguments.propertyDefinition.listingAlign ?: "" ) );
+
+		if ( Len( listingAlign ) ) {
+			return listingAlign;
+		}
+
+		if ( arguments.includeDefaults && _propertyIsNumericAmount( arguments.propertyDefinition ) ) {
+			return "right";
+		}
+
+		return "";
+	}
+
+	private boolean function _propertyIsNumericAmount( required struct propertyDefinition ) {
+		var dbType = LCase( ListFirst( arguments.propertyDefinition.dbtype ?: "", "(" ) );
+
+		return ListFindNoCase( "decimal,float,double,money,real,numeric", dbType ) > 0;
+	}
+
+	private array function _mergedListingFields( required array first, required array second ) {
+		var merged = Duplicate( arguments.first );
+
+		for( var fieldName in arguments.second ) {
+			if ( !_arrayContainsNoCase( merged, fieldName ) ) {
+				ArrayAppend( merged, fieldName );
+			}
+		}
+
+		return merged;
+	}
+
+	private boolean function _arrayContainsNoCase( required array fields, required string fieldName ) {
+		return ArrayFindNoCase( arguments.fields, arguments.fieldName ) > 0;
+	}
+
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
 		var field                    = "";

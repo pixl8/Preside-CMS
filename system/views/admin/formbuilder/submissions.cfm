@@ -20,7 +20,7 @@
 
 		<div class="tab-content">
 			<div class="tab-pane active">
-				#renderView( view="/admin/datamanager/_objectDataTable", args={
+				#renderView( view=getObjectDataTableView(), args={
 					  objectName        = "formbuilder_formsubmission"
 					, id                = "formbuilder_formsubmission-" & formId
 					, useMultiActions   = canDelete

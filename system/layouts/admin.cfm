@@ -18,11 +18,7 @@
 	currentAction  = event.getCurrentAction();
 
 	event.include( "/css/admin/core/" );
-	event.include( "/css/admin/specific/#currentHandler#/", false );
-	event.include( "/css/admin/specific/#currentHandler#/#currentAction#/", false );
-	event.include( "/js/admin/presidecore/" );
-	event.include( "/js/admin/specific/#currentHandler#/", false );
-	event.include( "/js/admin/specific/#currentHandler#/#currentAction#/", false );
+	includeAdminRequestAssets( handler=currentHandler, action=currentAction );
 
 	event.include( "i18n-resource-bundle" );
 

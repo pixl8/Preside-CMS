@@ -712,7 +712,7 @@ component {
 			  cms                    = [ "access" ]
 			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate", "clearcaches", "clone" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
-			, datamanager            = [ "navigate", "read", "add", "edit","batchedit", "delete", "batchdelete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft", "clone", "usefilters", "managefilters" ]
+			, datamanager            = [ "navigate", "read", "add", "edit","batchedit", "delete", "batchdelete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft", "clone", "usefilters", "managefilters", "sharelistingviews" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
 			, passwordPolicyManager  = [ "manage" ]
@@ -896,6 +896,7 @@ component {
 		settings.dataManager.defaults = {};
 		settings.dataManager.defaults.typeToConfirmDelete      = false;
 		settings.dataManager.defaults.typeToConfirmBatchDelete = true;
+		settings.dataManager.defaults.columnPickerFields       = "auto";
 		settings.dataManager.defaults.datatable = {}
 		settings.dataManager.defaults.datatable.paginationOptions = [ 5, 10, 25, 50, 100 ];
 		settings.dataManager.defaults.datatable.defaultPageLength = 10;
@@ -1133,6 +1134,8 @@ component {
 		settings.enum.adhocTaskStatus             = [ "pending", "locked", "running", "requeued", "succeeded", "failed", "cancelled" ];
 		settings.enum.assetQueueStatus            = [ "pending", "running", "failed" ];
 		settings.enum.rulesfilterScopeAll         = [ "global", "individual", "group" ];
+		settings.enum.listingViewSharingScope     = [ "global", "individual", "group" ];
+		settings.enum.listingViewDefaultScope     = [ "individual", "group", "global" ];
 		settings.enum.rulesfilterScopeGroup       = [ "global", "group" ];
 		settings.enum.rulesEngineConditionType    = [ "condition", "filter" ];
 		settings.enum.dataExportExcelDataTypes    = [ "mapped", "string" ];
@@ -1149,10 +1152,11 @@ component {
 	}
 
 	private void function __setupLabs() {
-		var experimentId    = "";
-		var experiment      = "";
-		var mode            = "";
-		var hasConfigurable = false;
+		var experimentId         = "";
+		var experiment           = "";
+		var mode                 = "";
+		var hasConfigurable      = false;
+		var defaultOnExperiments = [];
 
 		settings.labs = settings.labs ?: {};
 		settings.labs.experiments = settings.labs.experiments ?: {};
@@ -1160,6 +1164,11 @@ component {
 		if ( !StructKeyExists( settings.labs.experiments, "tiptapEditor" ) ) {
 			settings.labs.experiments.tiptapEditor = {
 				mode = settings.env.LABS_TIPTAP_EDITOR ?: "labsDefaultOff"
+			};
+		}
+		if ( !StructKeyExists( settings.labs.experiments, "datatablesOverhaul" ) ) {
+			settings.labs.experiments.datatablesOverhaul = {
+				mode = settings.env.LABS_DATATABLES_OVERHAUL ?: "labsDefaultOff"
 			};
 		}
 
@@ -1172,8 +1181,15 @@ component {
 			}
 			if ( mode != "alwaysOn" ) {
 				hasConfigurable = true;
-				break;
 			}
+			if ( mode == "labsDefaultOn" ) {
+				ArrayAppend( defaultOnExperiments, experimentId );
+			}
+		}
+
+		if ( !StructKeyExists( settings.env, "labs.enabled_experiments" ) ) {
+			ArraySort( defaultOnExperiments, "textnocase" );
+			settings.env[ "labs.enabled_experiments" ] = ArrayToList( defaultOnExperiments );
 		}
 
 		settings.features.labs = settings.features.labs ?: { enabled=true, siteTemplates=[ "*" ], widgets=[], dependsOn=[ "admin" ] };

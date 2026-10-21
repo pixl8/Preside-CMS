@@ -1,4 +1,8 @@
 <!---@feature admin--->
+<cfif isLabEnabled( "datatablesOverhaul" )>
+	<cfoutput>#renderViewlet( event="admin.datamanager._objectDataTableModernFromLegacy", args=args )#</cfoutput>
+	<cfexit>
+</cfif>
 <cfscript>
 	param name="args.objectName"                  type="string";
 	param name="args.multiActions"                type="string"  default="";

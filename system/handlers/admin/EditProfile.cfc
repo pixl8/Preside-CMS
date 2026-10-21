@@ -307,8 +307,8 @@ component extends="preside.system.base.AdminHandler" {
 				formDefinition.addFieldset(
 					  id          = experimentId
 					, tab         = "default"
-					, title       = "cms:editProfile.labs.experiment.#experimentId#.title"
-					, description = "cms:editProfile.labs.experiment.#experimentId#.description"
+					, title       = "labs:#experimentId#.title"
+					, description = "labs:#experimentId#.description"
 				);
 
 				formDefinition.addField( argumentCollection={
@@ -317,7 +317,7 @@ component extends="preside.system.base.AdminHandler" {
 					, tab      = "default"
 					, control  = "enumRadioList"
 					, enum     = "labPreference"
-					, label    = "cms:editProfile.labs.experiment.#experimentId#.title"
+					, label    = "labs:#experimentId#.title"
 					, layout   = "formcontrols.layouts.fieldWithHiddenLabel"
 					, required = false
 					, default  = "default"
