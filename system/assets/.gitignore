@@ -1,6 +1,8 @@
 # Ignore ckeditor (pulled in externally)
 /ckeditor/*
 /node_modules/*
+/tiptap/node_modules/
+/tiptap/dist/
 *.min.js
 *.min.css
 *.less.css

@@ -1,0 +1,275 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Harness — plugin API (T29)</title>
+	<link rel="stylesheet" href="/dist/tiptap.min.css">
+	<style>
+		body{font-family:sans-serif;margin:0;background:#eef1f4;color:#222}
+		header{background:#1f6f4a;color:#fff;padding:10px 16px;font-size:15px}
+		header a{color:#c7ead9}
+		main{max-width:900px;margin:20px auto;background:#fff;padding:20px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+		.note{font-size:12px;color:#666;margin:0 0 14px}
+		#results li{font-size:13px;margin:3px 0}
+		#results .pass{color:#0a7d5a}
+		#results .fail{color:#c0392b;font-weight:bold}
+		#summary{font-size:15px;font-weight:bold;margin:12px 0}
+		.fixture{margin:18px 0}
+		.fixture h3{font-size:13px;margin:0 0 4px;color:#555}
+	</style>
+</head>
+<body>
+	<header>Preside Tiptap — <strong>plugin API (T29)</strong> &nbsp;·&nbsp; <a href="/">index</a></header>
+	<main>
+		<p class="note">
+			<code>plugin-fixture.js</code> is a dummy dependent extension registering
+			<em>one of everything</em> against <code>PresideTiptap.plugins</code>, loaded
+			after the facade exactly as a real <code>preside-ext-tiptap-*</code> bundle is.
+			These assertions are the contract: the hooks fire, the toolbar/slash/bubble
+			merge points hold, a field can opt out, and <strong>a registered but idle
+			plugin changes <code>getData()</code> by nothing at all</strong>.
+			Results below and on <code>window.__results</code> / <code>window.__done</code>.
+		</p>
+
+		<div id="summary">running…</div>
+		<ul id="results"></ul>
+
+		<!-- P1: the plugin's command sits BETWEEN separators in one group, and ENDS
+		     the next one - the two shapes that leave a dangling rule if a name is
+		     dropped. Both are asserted here and in P2, where the plugin is off. -->
+		<div class="fixture"><h3>P1 — plugin enabled</h3>
+			<textarea name="p1" class="richeditor"
+				data-toolbar="Bold,-,HarnessDemo,-,Undo|Italic,-,HarnessDemo"><p>alpha</p></textarea>
+		</div>
+
+		<!-- P2: the conventional per-field opt-out. The field must look EXACTLY as if
+		     the plugin had never registered - no button, no extension, no chrome, and
+		     no separator left behind where its button would have been. -->
+		<div class="fixture"><h3>P2 — plugin disabled for this field (defaultConfigs.harnessdemo = false)</h3>
+			<textarea name="p2" class="richeditor"
+				data-toolbar="Bold,-,HarnessDemo,-,Undo|Italic,-,HarnessDemo"
+				data-custom-default-configs='{"harnessdemo":false}'><p>alpha</p></textarea>
+		</div>
+
+		<!-- P3: mounted and destroyed, for the teardown / beforeDestroy ordering. -->
+		<div class="fixture"><h3>P3 — destroy target</h3>
+			<textarea name="p3" class="richeditor" data-toolbar="Bold"><p>gamma</p></textarea>
+		</div>
+	</main>
+
+	<script src="/vendor/jquery.js"></script>
+	<script src="/mocks.js"></script>
+	<script src="/dist/tiptap.bundle.min.js"></script>
+	<script src="/dist/facade.min.js"></script>
+	<!-- A dependent extension's bundle: after the facade (Sticker's
+	     .dependsOn("tiptap-facade")), registering at its own parse time. -->
+	<script src="/plugin-fixture.js"></script>
+	<script>
+	presideJQuery( function() {
+		var $ = presideJQuery;
+		var results = [], listEl = document.getElementById( "results" );
+		var demo = window.__demo;
+
+		function check( label, ok, detail ) {
+			results.push( { label: label, ok: !!ok, detail: detail || "" } );
+			var li = document.createElement( "li" );
+			li.className = ok ? "pass" : "fail";
+			li.textContent = ( ok ? "✓ " : "✗ " ) + label + ( !ok && detail ? " — " + detail : "" );
+			listEl.appendChild( li );
+		}
+		function containerOf( name ) {
+			return $( "textarea[name=" + name + "]" ).next( ".tiptap-editor-container" )[ 0 ];
+		}
+		function toolbarOf( name ) { return containerOf( name ).querySelector( ".tiptap-toolbar" ); }
+		function groupsOf( name ) {
+			return [].slice.call( toolbarOf( name ).querySelectorAll( ".tiptap-toolbar-group" ) );
+		}
+		function isSep( el ) { return !!el && el.classList.contains( "tiptap-toolbar-sep" ); }
+		// No leading, trailing or doubled separator in any group of this toolbar.
+		function separatorsTidy( name ) {
+			return groupsOf( name ).every( function( g ) {
+				var kids = [].slice.call( g.children );
+				if ( !kids.length ) { return false; }
+				if ( isSep( kids[ 0 ] ) || isSep( kids[ kids.length - 1 ] ) ) { return false; }
+				return kids.every( function( el, i ) { return !( isSep( el ) && isSep( kids[ i - 1 ] ) ); } );
+			} );
+		}
+		function sepCount( name ) { return toolbarOf( name ).querySelectorAll( ".tiptap-toolbar-sep" ).length; }
+		function demoBtn( name ) { return toolbarOf( name ).querySelector( 'button[data-cmd="HarnessDemo"]' ); }
+		function hasExt( inst ) {
+			return ( inst._t.extensionManager.extensions || [] ).some( function( e ) { return e.name === demo.extName; } );
+		}
+
+		// Mount explicitly, as formFields.js does (jQuery's ready runs before the
+		// facade's own DOMContentLoaded bootstrap).
+		PresideRichEditor.bootstrap( document );
+
+		var api = window.PresideTiptap.api;
+		var p1  = CKEDITOR.instances.p1;
+		var p2  = CKEDITOR.instances.p2;
+		var p3  = CKEDITOR.instances.p3;
+
+		// ---- PresideTiptap.api -------------------------------------------------
+		var API_FNS = [ "t", "openDialog", "closeDialog", "surfaceOf", "pageRect", "containerOf"
+			, "frameOf", "focusEditable", "placeBubble", "bubbleButton", "applyTheme", "isDark"
+			, "tokenize", "detokenize", "normalizeOutput" ];
+		var missing = API_FNS.filter( function( k ) { return typeof api[ k ] !== "function"; } );
+		check( "T29 PresideTiptap.api exposes every documented helper", !missing.length, missing.join( "," ) );
+		check( "T29 api.ICONS is our icon set", !!api.ICONS && typeof api.ICONS.Bold === "string" );
+		check( "T29 apiVersion is 1 on both api and the vendor global",
+			api.apiVersion === 1 && window.PresideTiptap.apiVersion === 1 && window.PresideTiptap.plugins.apiVersion === 1 );
+		check( "T29 the ProseMirror primitives a plugin needs are exported",
+			[ "Slice", "Fragment", "DOMSerializer", "DOMParser", "TextSelection", "Transform" ]
+				.every( function( k ) { return !!window.PresideTiptap[ k ]; } ) );
+
+		// ---- The registry ------------------------------------------------------
+		check( "T29 the plugin is registered and retrievable by name",
+			!!window.PresideTiptap.plugins.get( "harnessdemo" )
+			&& window.PresideTiptap.plugins.all().length >= 1 );
+		var dup = window.PresideTiptap.plugins.register( { name: "harnessdemo" } );
+		check( "T29 a duplicate name is refused (the first registration stands)",
+			dup === window.PresideTiptap.plugins.get( "harnessdemo" )
+			&& window.PresideTiptap.plugins.all().filter( function( p ) { return p.name === "harnessdemo"; } ).length === 1 );
+		check( "T29 register() without a name is rejected, not thrown",
+			window.PresideTiptap.plugins.register( {} ) === null );
+
+		// ---- tiptapExtensions --------------------------------------------------
+		check( "T29 the plugin's Tiptap extension is in the built editor", hasExt( p1 ) );
+		check( "T29 ...and absent from the field that opted out", !hasExt( p2 ) );
+
+		// ---- commands / the toolbar -------------------------------------------
+		check( "T29 the plugin's command renders as a toolbar button", !!demoBtn( "p1" ) );
+		check( "T29 ...with its own icon", !!demoBtn( "p1" ).querySelector( "svg[data-demo-icon]" ) );
+		check( "T29 ...and its title from the plugin's i18nDefaults",
+			demoBtn( "p1" ).title === "Harness demo", demoBtn( "p1" ).title );
+		check( "T29 built-ins still win over a plugin (Bold is ours)",
+			!!toolbarOf( "p1" ).querySelector( 'button[data-cmd="Bold"]' ) );
+
+		var runsBefore = demo.runs;
+		demoBtn( "p1" ).click();
+		check( "T29 clicking it runs the plugin's command", demo.runs === runsBefore + 1 );
+		check( "T29 ...which receives the field config", !!( demo.lastRunCfg && demo.lastRunCfg.defaultConfigs ) );
+		check( "T29 ...and its active state lights the button",
+			demoBtn( "p1" ).classList.contains( "is-active" ) );
+		demoBtn( "p1" ).click();
+		check( "T29 ...and unlights it again", !demoBtn( "p1" ).classList.contains( "is-active" ) );
+
+		// ---- separators around a plugin button --------------------------------
+		check( "T29 no leading/trailing/doubled separator with the plugin ON", separatorsTidy( "p1" ) );
+		check( "T29 the separators around it really are rendered", sepCount( "p1" ) === 3, String( sepCount( "p1" ) ) );
+		check( "T29 the opted-out field has no plugin button", !demoBtn( "p2" ) );
+		check( "T29 ...no leading/trailing/doubled separator either", separatorsTidy( "p2" ) );
+		check( "T29 ...and the separator that would have trailed it is gone",
+			sepCount( "p2" ) === 1, String( sepCount( "p2" ) ) );
+
+		// ---- the "/" menu ------------------------------------------------------
+		function slashLabels() {
+			return [].map.call( document.querySelectorAll( ".tiptap-slash-menu .tiptap-slash-label" ),
+				function( e ) { return e.textContent; } );
+		}
+		function closeSlash() { document.dispatchEvent( new KeyboardEvent( "keydown", { key: "Escape", bubbles: true } ) ); }
+
+		p1._t.storage.presideSlashMenu.openManual();
+		check( "T29 a plugin's slash item is offered", slashLabels().indexOf( "Demo block" ) !== -1, slashLabels().join( "," ) );
+		check( "T29 ...under its own group heading",
+			[].some.call( document.querySelectorAll( ".tiptap-slash-menu .tiptap-slash-group" ),
+				function( e ) { return e.textContent === "demo"; } ) );
+		check( "T29 an item whose command does not exist is DROPPED",
+			slashLabels().indexOf( "Demo missing" ) === -1 );
+		[ "d", "e", "m", "o" ].forEach( function( k ) {
+			document.dispatchEvent( new KeyboardEvent( "keydown", { key: k, bubbles: true } ) );
+		} );
+		check( "T29 ...and it filters like any other item",
+			JSON.stringify( slashLabels() ) === JSON.stringify( [ "Demo block" ] ), slashLabels().join( "," ) );
+		closeSlash();
+
+		p2._t.storage.presideSlashMenu.openManual();
+		check( "T29 the opted-out field is offered no plugin item",
+			slashLabels().indexOf( "Demo block" ) === -1 );
+		closeSlash();
+
+		// ---- the context object ------------------------------------------------
+		// The chrome hook's ctx is the last one built synchronously, i.e. P3's.
+		var ctx = demo.ctxs.chrome;
+		check( "T29 ctx.mode is 'boxed' and ctx.frame is the editing iframe",
+			ctx.mode === "boxed" && !!ctx.frame && ctx.frame.tagName === "IFRAME" );
+		check( "T29 ctx.container is the host-document container", ctx.container === containerOf( "p3" ) );
+		check( "T29 ctx.editor / ctx.instance are live in chrome()",
+			!!ctx.editor && !ctx.editor.isDestroyed && !!ctx.instance && typeof ctx.instance.getData === "function" );
+		check( "T29 ...and the editor was already live when chrome() ran",
+			ctx.container.querySelector( ".demo-plugin-marker" ).getAttribute( "data-editor-live" ) === "1" );
+		check( "T29 tiptapExtensions() is handed the SAME ctx, filled in later",
+			demo.ctxs.tiptapExtensions === ctx );
+		// The closest() trap: from inside the frame a same-document closest() finds
+		// nothing, which is why containerOf() is in the API at all.
+		check( "T29 api.containerOf resolves from INSIDE the frame",
+			api.containerOf( p1._t.view.dom ) === containerOf( "p1" )
+			&& p1._t.view.dom.closest( ".tiptap-editor-container" ) === null );
+
+		// ---- lifecycle ordering -------------------------------------------------
+		check( "T29 beforeExtensions fires, before the editor exists",
+			demo.ctxs.beforeExtensions !== null && demo.order.indexOf( "beforeExtensions" ) !== -1 );
+		check( "T29 ...with the extension array on the ctx to push onto",
+			Array.isArray( demo.ctxs.beforeExtensions.extensions ) );
+		check( "T29 toolbarReady fires after it", demo.order.indexOf( "toolbarReady" ) > demo.order.indexOf( "beforeExtensions" ) );
+		check( "T29 chrome() ran for both enabled fields and neither disabled one",
+			demo.chromeCalls === 2
+			&& !!containerOf( "p1" ).querySelector( ".demo-plugin-marker" )
+			&& !!containerOf( "p3" ).querySelector( ".demo-plugin-marker" ), String( demo.chromeCalls ) );
+		check( "T29 chrome() is not run for the opted-out field",
+			!containerOf( "p2" ).querySelector( ".demo-plugin-marker" ) );
+
+		// ---- fidelity: the seam itself changes nothing --------------------------
+		check( "T29 getData() is byte-identical with the plugin registered and idle",
+			p1.getData() === "<p>alpha</p>" && p1.getData() === p2.getData(), p1.getData() );
+
+		( async function run() {
+			// instanceReady is a setTimeout(0), and the toolbarReady/instanceReady
+			// order can only be asserted once both have fired.
+			await new Promise( function( r ) { setTimeout( r, 30 ); } );
+
+			check( "T29 instanceReady fires last of the three build events",
+				demo.order.indexOf( "instanceReady" ) > demo.order.indexOf( "toolbarReady" ) );
+
+			// The instance's own CKEditor-shaped bus carries them too.
+			var seen = [];
+			p3.on( "beforeDestroy", function( e ) { seen.push( "beforeDestroy" ); seen.push( !!e.editor ); } );
+
+			var teardownsBefore = demo.teardowns;
+			var markerBefore    = !!containerOf( "p3" ).querySelector( ".demo-plugin-marker" );
+			check( "T29 the plugin's chrome is in the container before destroy", markerBefore );
+
+			p3.destroy();
+			check( "T29 beforeDestroy fires on the instance's own bus too",
+				seen[ 0 ] === "beforeDestroy" && seen[ 1 ] === true );
+			check( "T29 ...and BEFORE the cleanups run", demo.cleanupsAtDestroy > 0, String( demo.cleanupsAtDestroy ) );
+			check( "T29 ...with the editor still alive to revert into", demo.editorAliveAtDestroy === true );
+			check( "T29 chrome()'s teardown is called on destroy", demo.teardowns === teardownsBefore + 1 );
+			check( "T29 no plugin chrome outlives the editor - only P1's is left",
+				document.querySelectorAll( ".demo-plugin-marker" ).length === 1,
+				String( document.querySelectorAll( ".demo-plugin-marker" ).length ) );
+			check( "T29 instanceReady also reached the registry bus with a live ctx",
+				!!demo.ctxs.instanceReady && !!demo.ctxs.instanceReady.instance );
+
+			// A late registration is a warning, not a silent no-op.
+			var warned = false, origWarn = window.console.warn;
+			window.console.warn = function() { warned = true; origWarn.apply( window.console, arguments ); };
+			window.PresideTiptap.plugins.register( { name: "harnesslate" } );
+			window.console.warn = origWarn;
+			check( "T29 registering after an editor exists warns", warned );
+
+			finish();
+		} )();
+
+		function finish() {
+			var failed = results.filter( function( r ) { return !r.ok; } ).length;
+			document.getElementById( "summary" ).textContent =
+				( results.length - failed ) + " passed, " + failed + " failed";
+			document.getElementById( "summary" ).style.color = failed ? "#c0392b" : "#0a7d5a";
+			window.__results = results;
+			window.__done = true;
+		}
+	} );
+	</script>
+</body>
+</html>

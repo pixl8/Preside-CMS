@@ -19,8 +19,8 @@ Cypress.Commands.add( 'superuserAdminLogin', () => {
 
 			cy.url().should( 'include', '/admin/' );
 		} );
-	});
-});
+	} );
+} );
 
 Cypress.Commands.add( 'clearListingTableState', () => {
 	cy.window().then( ( win ) => {
