@@ -27,6 +27,14 @@
 		<dl class="dl-horizontal">
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.to.label" )#</dt>
 			<dd>#( prc.log.recipients ?: prc.log.recipient )#</dd>
+			<cfif Len( prc.log.cc ?: "" )>
+				<dt>#translateResource( "cms:mailcenter.logs.metadata.cc.label" )#</dt>
+				<dd>#EncodeForHtml( prc.log.cc )#</dd>
+			</cfif>
+			<cfif Len( prc.log.bcc ?: "" )>
+				<dt>#translateResource( "cms:mailcenter.logs.metadata.bcc.label" )#</dt>
+				<dd>#EncodeForHtml( prc.log.bcc )#</dd>
+			</cfif>
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.from.label" )#</dt>
 			<dd>#prc.log.sender#</dd>
 			<dt>#translateResource( "cms:mailcenter.logs.metadata.template.label" )#</dt>
