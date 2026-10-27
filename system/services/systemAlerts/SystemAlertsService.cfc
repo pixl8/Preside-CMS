@@ -8,7 +8,7 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @validAlertLevels.inject coldbox:setting:enum.systemAlertLevel
-	 * @cronUtil.inject         cronUtil
+	 * @cronUtil.inject         chrono@chrono
 	 *
 	 */
 	public any function init( required array validAlertLevels, required any cronUtil ) {

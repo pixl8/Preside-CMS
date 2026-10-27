@@ -188,7 +188,8 @@ component displayName="Forms service" {
 		var frm = getForm( arguments.formName );
 
 		for( var tab in frm.tabs ){
-			for( var fieldset in tab.fieldsets ) {
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
 				for( var field in fieldset.fields ) {
 					if ( ( field.name ?: "" ) eq arguments.fieldName ) {
 						return field;
@@ -252,7 +253,8 @@ component displayName="Forms service" {
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
 				continue;
 			}
-			for( var fieldset in tab.fieldsets ) {
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
 				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
 					continue;
 				}
@@ -291,7 +293,8 @@ component displayName="Forms service" {
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
 				continue;
 			}
-			for( var fieldset in tab.fieldsets ) {
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
 				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
 					continue;
 				}
@@ -424,7 +427,8 @@ component displayName="Forms service" {
 				tab.id = CreateUUId();
 			}
 
-			for( var fieldset in tab.fieldsets ) {
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
 				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
 					continue;
 				}
@@ -863,6 +867,40 @@ component displayName="Forms service" {
 		_registerForm( arguments.formName, rawDefinition, persistToDbCache );
 
 		return arguments.formName;
+	}
+
+	/**
+	 * Returns whether or not the currently logged in admin user has permission
+	 * to access the given form, based on the optional `permissionKey` attribute
+	 * declared on the root `form` element of the form's definition. Forms that
+	 * do not declare a permission key are treated as accessible by default;
+	 * use the `allowedIfNoPermissionKey` argument to change that behaviour.
+	 *
+	 * @autodoc                        true
+	 * @formName.hint                  The name of the form whose access you wish to check
+	 * @permissionContext.hint         Optional context for permission lookups (see [[permissionsservice-haspermission]])
+	 * @permissionContextKeys.hint     Optional array of context keys for permission lookups (see [[permissionsservice-haspermission]])
+	 * @allowedIfNoPermissionKey.hint  Whether or not access is allowed when the form does not declare a permission key
+	 *
+	 */
+	public boolean function userCanAccessForm(
+		  required string  formName
+		,          string  permissionContext        = ""
+		,          array   permissionContextKeys    = []
+		,          boolean allowedIfNoPermissionKey = true
+	) {
+		var theForm       = getForm( arguments.formName );
+		var permissionKey = Trim( theForm.permissionKey ?: "" );
+
+		if ( !Len( permissionKey ) ) {
+			return arguments.allowedIfNoPermissionKey;
+		}
+
+		return $hasAdminPermission(
+			  permissionKey = permissionKey
+			, context       = arguments.permissionContext
+			, contextKeys   = arguments.permissionContextKeys
+		);
 	}
 
 	/**
@@ -1391,7 +1429,8 @@ component displayName="Forms service" {
 				continue;
 			}
 
-			for( var fieldSet in tab.fieldSets ){
+			var fieldsets = tab.fieldSets ?: [];
+			for( var fieldSet in fieldsets ){
 				var matchingFieldset = {};
 				if ( Len( Trim( fieldSet.id ?: "" ) ) ) {
 					for( var mFieldset in matchingTab.fieldsets ){

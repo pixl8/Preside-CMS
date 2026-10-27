@@ -7,8 +7,8 @@
 	topic       = rc.topic    ?: "";
 	filtered    = Len( Trim( dateFrom & dateTo & topic) ) > 0;
 
-	event.include( "/js/admin/specific/datamanager/object/");
-	event.include( "/css/admin/specific/datamanager/object/");
+	event.include( isLabEnabled( "datatablesOverhaul" ) ? "/js/admin/specific/datamanager/objectModern/" : "/js/admin/specific/datamanager/object/" );
+	event.include( isLabEnabled( "datatablesOverhaul" ) ? "/css/admin/specific/datamanager/objectModern/" : "/css/admin/specific/datamanager/object/" );
 	event.includeData( {
 		  objectName      = "admin_notification_consumer"
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=notifications.getNotificationsForAjaxDataTables&topic=#topic#&dateFrom=#dateFrom#&dateTo=#dateTo#" )

@@ -6,6 +6,7 @@
 		  allowManageFilter = false // inception!
 		, allowFilter       = false
 		, allowDataExport   = false
+		, allowColumnPicker = false
 		, usesTreeView      = false
 		, gridFields        = [ "condition_name", "is_favourite", "filter_folder", "filter_sharing_scope", "owner", "datemodified" ]
 		, compact           = true
@@ -20,7 +21,7 @@
 	</cfif>
 
 	<cfif useSegmentationFilters>
-		<div class="tabbable">
+		<div class="tabbable manage-filters-chrome">
 			<ul class="nav nav-tabs">
 				<li<cfif activeTab neq "segmentation"> class="active"</cfif>>
 					<a href="##tab-datatable" data-toggle="tab">

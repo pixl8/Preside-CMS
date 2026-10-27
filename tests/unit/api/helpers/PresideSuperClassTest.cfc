@@ -28,6 +28,7 @@ component extends="testbox.system.BaseSpec" {
 			, errorLogService            = createStub()
 			, systemAlertsService        = createStub()
 			, featureService             = createStub()
+			, labsService                = createStub()
 			, notificationService        = createStub()
 			, auditService               = createStub()
 			, contentRendererService     = createStub()

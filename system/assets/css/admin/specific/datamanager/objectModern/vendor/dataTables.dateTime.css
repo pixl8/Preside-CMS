@@ -1,0 +1,322 @@
+:root {
+  --dt-datetime_background: white;
+  --dt-datetime_zindex: 2050;
+  --dt-datetime_border: 1px solid #ccc;
+  --dt-datetime_box-shadow: 0 5px 15px -5px rgba(0,0,0,.5);
+  --dt-datetime_padding: 6px 20px;
+  --dt-datetime_width: 275px;
+  --dt-datetime_border-radius: 5px;
+  --dt-datetime-inline_padding: 6px 0;
+  --dt-datetime-inline_background: transparent;
+  --dt-datetime-title_padding: 5px 0px 3px;
+  --dt-datetime-buttons-link_padding: 0 0.5em 0.5em 0.5em;
+  --dt-datetime-buttons-link_font-size: 0.9em;
+  --dt-datetime-table-header_font-size: 0.8em;
+  --dt-datetime-table-header_color: #777;
+  --dt-datetime-table-header_padding: 0 0 4px 0;
+  --dt-datetime-table-body_font-size: 0.9em;
+  --dt-datetime-table-body_color: #444;
+  --dt-datetime-table-body_padding: 0;
+  --dt-datetime-table-selectable_background: #f5f5f5;
+  --dt-datetime-table-selectable_disabled-color: #aaa;
+  --dt-datetime-table-selectable_disabled-background: white;
+  --dt-datetime-table-selectable_disabled-hover-color: #aaa;
+  --dt-datetime-table-selectable_disabled-hover-background: white;
+  --dt-datetime-table_hover-background: #ff8000;
+  --dt-datetime-table_hover-color: white;
+  --dt-datetime-table-now_background: #ddd;
+  --dt-datetime-table-selected_background: #4E6CA3;
+  --dt-datetime-table-selected_color: white;
+  --dt-datetime-label_height: 30px;
+  --dt-datetime-label_border: 1px solid transparent;
+  --dt-datetime-label_padding: 5px 6px;
+  --dt-datetime-label_hover-border: 1px solid #ddd;
+  --dt-datetime-label_hover-background: #f5f5f5;
+  --dt-datetime-icon_border: 1px solid transparent;
+  --dt-datetime-icon-opacity: 0.3;
+  --dt-datetime-icon_hover-border: 1px solid #ccc;
+  --dt-datetime-icon_hover-background: #f0f0f0;
+  --dt-datetime-icon_hover-opacity: 0.6;
+  --dt-datetime-icon-triangle_border-color: black;
+  --dt-datetime-error_color: #b11f1f;
+}
+
+html.dark,
+:root[data-theme=dark],
+:root[data-bs-theme=dark] {
+  --dt-datetime_background: rgb(33, 37, 41);
+  --dt-datetime_border: 1px solid rgb(89, 91, 94);
+  --dt-datetime_box-shadow: 3px 4px 10px 1px rgba(0, 0, 0, 0.8);
+  --dt-datetime-table-header_color: #ccc;
+  --dt-datetime-table-body_color: #eee;
+  --dt-datetime-table-selectable_background: rgb(55, 60, 65);
+  --dt-datetime-table-selectable_disabled-color: #aaa;
+  --dt-datetime-table-selectable_disabled-background: rgb(23, 27, 31);
+  --dt-datetime-table-selectable_disabled-hover-color: #aaa;
+  --dt-datetime-table-selectable_disabled-hover-background: rgb(23, 27, 31);
+  --dt-datetime-table_hover-background: #ff8000;
+  --dt-datetime-table_hover-color: black;
+  --dt-datetime-table-now_background: rgb(75, 80, 85);
+  --dt-datetime-table-selected_background: #6ea8fe;
+  --dt-datetime-table-selected_color: black;
+  --dt-datetime-label_border: 1px solid transparent;
+  --dt-datetime-label_hover-border: 1px solid transparent;
+  --dt-datetime-label_hover-background: rgba(255, 255, 255, 0.1);
+  --dt-datetime-icon_border: 1px solid transparent;
+  --dt-datetime-icon_hover-border: 1px solid transparent;
+  --dt-datetime-icon_hover-background: rgba(255, 255, 255, 0.1);
+  --dt-datetime-icon-triangle_border-color: white;
+  --dt-datetime-error_color: #b11f1f;
+}
+
+div.dt-datetime {
+  position: absolute;
+  background-color: var(--dt-datetime_background);
+  z-index: var(--dt-datetime_zindex);
+  border: var(--dt-datetime_border);
+  box-shadow: var(--dt-datetime_box-shadow);
+  padding: var(--dt-datetime_padding);
+  width: var(--dt-datetime_width);
+  border-radius: var(--dt-datetime_border-radius);
+}
+div.dt-datetime.inline {
+  position: relative;
+  box-shadow: none;
+  border: none;
+  z-index: inherit;
+  padding: var(--dt-datetime-inline_padding);
+  background-color: var(--dt-datetime-inline_background);
+}
+div.dt-datetime div.dt-datetime-title {
+  text-align: center;
+  padding: var(--dt-datetime-title_padding);
+}
+div.dt-datetime div.dt-datetime-buttons {
+  text-align: center;
+}
+div.dt-datetime div.dt-datetime-buttons a {
+  display: inline-block;
+  padding: var(--dt-datetime-buttons-link_padding);
+  margin: 0;
+  font-size: var(--dt-datetime-buttons-link_font-size);
+}
+div.dt-datetime div.dt-datetime-buttons a:hover {
+  text-decoration: underline;
+}
+div.dt-datetime table {
+  border-spacing: 0;
+  margin: 12px 0;
+  width: 100%;
+}
+div.dt-datetime table.dt-datetime-table-nospace {
+  margin-top: -12px;
+}
+div.dt-datetime table th {
+  font-size: var(--dt-datetime-table-header_font-size);
+  color: var(--dt-datetime-table-header_color);
+  font-weight: normal;
+  width: 14.285714286%;
+  padding: var(--dt-datetime-table-header_padding);
+  text-align: center;
+}
+div.dt-datetime table td {
+  font-size: var(--dt-datetime-table-body_font-size);
+  color: var(--dt-datetime-table-body_color);
+  padding: var(--dt-datetime-table-body_padding);
+}
+div.dt-datetime table td.selectable {
+  text-align: center;
+  background: var(--dt-datetime-table-selectable_background);
+}
+div.dt-datetime table td.selectable.disabled {
+  color: var(--dt-datetime-table-selectable_disabled-color);
+  background: var(--dt-datetime-table-selectable_disabled-background);
+}
+div.dt-datetime table td.selectable.disabled button:hover {
+  color: var(--dt-datetime-table-selectable_disabled-hover-color);
+  background: var(--dt-datetime-table-selectable_disabled-hover-background);
+}
+div.dt-datetime table td.selectable.now {
+  background-color: var(--dt-datetime-table-now_background);
+}
+div.dt-datetime table td.selectable.now button {
+  font-weight: bold;
+}
+div.dt-datetime table td.selectable.selected button {
+  background: var(--dt-datetime-table-selected_background);
+  color: var(--dt-datetime-table-selected_color);
+  border-radius: 2px;
+}
+div.dt-datetime table td.selectable button:hover {
+  background: var(--dt-datetime-table_hover-background);
+  color: var(--dt-datetime-table_hover-color);
+  border-radius: 2px;
+}
+div.dt-datetime table td.dt-datetime-week {
+  font-size: 0.7em;
+}
+div.dt-datetime table button {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  font-size: inherit;
+  color: inherit;
+  text-align: center;
+  padding: 4px 0;
+  cursor: pointer;
+  margin: 0;
+}
+div.dt-datetime table button span {
+  display: inline-block;
+  min-width: 14px;
+  text-align: right;
+}
+div.dt-datetime table.weekNumber th {
+  width: 12.5%;
+}
+div.dt-datetime div.dt-datetime-calendar table {
+  margin-top: 0;
+}
+div.dt-datetime div.dt-datetime-label {
+  position: relative;
+  display: inline-block;
+  height: var(--dt-datetime-label_height);
+  padding: var(--dt-datetime-label_padding);
+  border: var(--dt-datetime-label_border);
+  box-sizing: border-box;
+  cursor: pointer;
+}
+div.dt-datetime div.dt-datetime-label:hover {
+  border: var(--dt-datetime-label_hover-border);
+  border-radius: 2px;
+  background-color: var(--dt-datetime-label_hover-background);
+}
+div.dt-datetime div.dt-datetime-label select {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+div.dt-datetime.horizontal {
+  width: 550px;
+}
+div.dt-datetime.horizontal div.dt-datetime-date,
+div.dt-datetime.horizontal div.dt-datetime-time {
+  width: 48%;
+}
+div.dt-datetime.horizontal div.dt-datetime-time {
+  margin-left: 4%;
+}
+div.dt-datetime div.dt-datetime-date {
+  position: relative;
+  float: left;
+  width: 100%;
+}
+div.dt-datetime div.dt-datetime-time {
+  position: relative;
+  float: left;
+  width: 100%;
+  text-align: center;
+}
+div.dt-datetime div.dt-datetime-time > span {
+  vertical-align: middle;
+}
+div.dt-datetime div.dt-datetime-time th {
+  text-align: left;
+}
+div.dt-datetime div.dt-datetime-time div.dt-datetime-timeblock {
+  display: inline-block;
+  vertical-align: middle;
+}
+div.dt-datetime div.dt-datetime-iconLeft,
+div.dt-datetime div.dt-datetime-iconRight {
+  width: 30px;
+  height: 30px;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: var(--dt-datetime-icon-opacity);
+  overflow: hidden;
+  box-sizing: border-box;
+  border: var(--dt-datetime-icon_border);
+}
+div.dt-datetime div.dt-datetime-iconLeft:hover,
+div.dt-datetime div.dt-datetime-iconRight:hover {
+  border: var(--dt-datetime-icon_hover-border);
+  border-radius: 2px;
+  background-color: var(--dt-datetime-icon_hover-background);
+  opacity: var(--dt-datetime-icon_hover-opacity);
+}
+div.dt-datetime div.dt-datetime-iconLeft button,
+div.dt-datetime div.dt-datetime-iconRight button {
+  border: none;
+  background: transparent;
+  text-indent: 30px;
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+}
+div.dt-datetime div.dt-datetime-iconLeft {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+div.dt-datetime div.dt-datetime-iconLeft button {
+  position: relative;
+  z-index: 1;
+}
+div.dt-datetime div.dt-datetime-iconLeft:after {
+  position: absolute;
+  top: 7px;
+  left: 10px;
+  display: block;
+  content: "";
+  border-top: 7px solid transparent;
+  border-right: 7px solid var(--dt-datetime-icon-triangle_border-color);
+  border-bottom: 7px solid transparent;
+}
+div.dt-datetime div.dt-datetime-iconRight {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+div.dt-datetime div.dt-datetime-iconRight button {
+  position: relative;
+  z-index: 1;
+}
+div.dt-datetime div.dt-datetime-iconRight:after {
+  position: absolute;
+  top: 7px;
+  left: 12px;
+  display: block;
+  content: "";
+  border-top: 7px solid transparent;
+  border-left: 7px solid var(--dt-datetime-icon-triangle_border-color);
+  border-bottom: 7px solid transparent;
+}
+
+div.dt-datetime-error {
+  clear: both;
+  padding: 0 1em;
+  max-width: 240px;
+  font-size: 11px;
+  line-height: 1.25em;
+  text-align: center;
+  color: var(--dt-datetime-error_color);
+}
+
+html.dark input.dt-datetime,
+html.dark select,
+:root[data-theme=dark] input.dt-datetime,
+:root[data-theme=dark] select,
+:root[data-bs-theme=dark] input.dt-datetime,
+:root[data-bs-theme=dark] select {
+  color-scheme: dark;
+}
+html.dark.inline,
+:root[data-theme=dark].inline,
+:root[data-bs-theme=dark].inline {
+  box-shadow: none;
+  border: none;
+}

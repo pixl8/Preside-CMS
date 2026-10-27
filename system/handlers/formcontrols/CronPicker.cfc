@@ -2,7 +2,7 @@
  * @feature presideForms
  */
 component {
-	property name="cronUtil" inject="cronUtil";
+	property name="cronUtil" inject="chrono@chrono";
 	property name="i18n"     inject="i18n";
 
 	private string function index( event, rc, prc, args={} ) {

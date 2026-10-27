@@ -1,0 +1,33 @@
+component {
+
+	private string function listingViewlet( event, rc, prc, args={} ) {
+		args.listingContextKey   = "e2eStarred";
+		args.listingContextLabel = "Starred alphas";
+
+		return renderViewlet( event="admin.datamanager._objectListingViewlet", args=args );
+	}
+
+	private array function getEverythingBarActions( event, rc, prc, args={} ) {
+		return [{
+			  id           = "e2eAskFilter"
+			, icon         = "magic"
+			, label        = "Ask filter for ""{1}"""
+			, requireQuery = true
+			, endpoint     = event.buildAdminLink( linkTo="e2eListingAskFilter" )
+			, chipIcon     = "magic"
+		}];
+	}
+
+	private any function renderFooterForGridListing( event, rc, prc, args={} ) {
+		return {
+			  labelField = "label"
+			, label      = "E2E column totals"
+			, cells      = {
+				  status   = "e2e-status-footer"
+				, category = "e2e-category-footer"
+				, notes    = "e2e-notes-footer"
+			  }
+		};
+	}
+
+}

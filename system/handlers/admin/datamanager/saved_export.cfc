@@ -7,7 +7,7 @@ component {
 	property name="customizationService"      inject="dataManagerCustomizationService";
 	property name="datamanagerService"        inject="datamanagerService";
 	property name="messageBox"                inject="messagebox@cbmessagebox";
-	property name="cronUtil"                  inject="cronUtil";
+	property name="cronUtil"                  inject="chrono@chrono";
 	property name="i18n"                      inject="i18n";
 	property name="dataExportTemplateService" inject="dataExportTemplateService";
 	property name="formsService"              inject="FormsService";

@@ -1,0 +1,645 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Harness — frontend inline (Modern) editing</title>
+	<link rel="stylesheet" href="/dist/tiptap.min.css">
+	<style>
+		/* Replicates the relevant bits of Preside's frontend chrome
+		   (frontendEditor.less + toolbar.less) - same approach as
+		   test-frontend-maximize.html. */
+		body{font-family:sans-serif;margin:0;background:#fff;color:#222;padding-top:45px}
+		.preside-admin-toolbar{position:fixed;top:0;left:0;width:100%;height:45px;background:#2c3d4e;color:#fff;z-index:103;line-height:45px;padding:0 10px;box-sizing:border-box}
+		.preside-admin-toolbar ul{display:inline;list-style:none;margin:0;padding:0}
+		.preside-admin-toolbar li{display:inline-block;margin-right:14px;position:relative}
+		.preside-admin-toolbar a{color:#fff;text-decoration:none;cursor:pointer}
+		.preside-admin-toolbar .dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#fff;color:#222;border:1px solid #ccc;border-radius:4px;min-width:180px;padding:4px 0;margin:0;list-style:none;z-index:120}
+		.preside-admin-toolbar li.open > .dropdown-menu{display:block}
+		.preside-admin-toolbar .dropdown-menu li{display:block;margin:0}
+		.preside-admin-toolbar .dropdown-menu a{display:block;color:#222;padding:4px 12px;white-space:nowrap}
+		.frontend-editor-modal-sheen{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;opacity:.5;z-index:99;display:none}
+		body.frontend-editors-editing .frontend-editor-modal-sheen{display:block}
+		.content-editor{position:absolute;left:-99999px;opacity:0}
+		body.show-frontend-editors .content-editor{position:absolute;left:auto;opacity:.4;background:#4c8fbd;cursor:pointer}
+		/* Core's frontendEditor.less flips .content-editor to position:RELATIVE (in
+		   flow, at the end of <body> where core appended it) while an editor is
+		   active - combined with the explicit region-height the sizing interval
+		   sets, this is what made Modern mode show a region-sized band of
+		   invisible whitespace under the page (tiptap.css re-absolutes it). */
+		body.frontend-editors-editing .content-editor{position:relative}
+		.content-editor-editor-container{display:none;position:fixed;top:100px;left:0;right:0;margin:0 auto;z-index:100;min-width:500px;max-width:810px;background:#eee;padding:10px}
+		.content-editor-editor-container.edit-active{display:block}
+		.content-editor-editor-buttons{position:fixed;bottom:0;left:0;width:100%;background:#2c3d4e;text-align:right;padding:5px;box-sizing:border-box}
+		main{max-width:760px;margin:20px auto;padding:0 16px}
+		#summary{font-weight:bold;margin:12px 0}
+		.results div{font-family:monospace;font-size:12px;margin:2px 0}
+		.results .ok{color:#0a7d5a}.results .fail{color:#c0392b}
+	</style>
+</head>
+<body>
+	<script>
+		/* Deterministic start: clear both mode cookies BEFORE core's mock (parse
+		   time) restores from them and before the facade's DOMContentLoaded init. */
+		document.cookie = "_presideEditMode=";
+		document.cookie = "_presideEditModeStyle=";
+	</script>
+
+	<!-- Admin toolbar, as _adminToolbar.cfm renders the quick-edit switch -->
+	<div class="presidecms preside-admin-toolbar">
+		<div class="navbar" id="preside-admin-toolbar">
+			<ul class="nav ace-nav">
+				<li>
+					<a class="edit-mode-toggle-container">
+						<label>Quick edit
+							<input id="edit-mode-options" class="ace ace-switch ace-switch-6" type="checkbox" />
+							<span class="lbl"></span>
+						</label>
+					</a>
+					<a href="#" class="full-edit-link">Full edit</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<main>
+		<h1>Harness — frontend inline (Modern) editing</h1>
+		<p id="summary">running…</p>
+		<div class="results" id="results"></div>
+
+		<h2>The page's editable region</h2>
+		<div id="pageContent">
+			<!-- container: _inline01 --><div class="rendered-content"><p>Hello <strong>world</strong>, this is <a href="/somewhere">linked</a> text.</p><ul><li>first item</li><li>second item</li></ul></div><!-- !container: _inline01 -->
+			<script type="text/template" class="content-editor"></script>
+		</div>
+	</main>
+
+	<script src="/vendor/jquery.js"></script>
+	<script src="/mocks.js"></script>
+	<script>
+	/* Emulate the broken "2.2.5-jqnext" jQuery build some Preside versions
+	   ship: after() inserts multi-node content REVERSED (fixed-reference
+	   insertBefore loop instead of a fragment). Installed BEFORE the facade so
+	   its feature-detected fix (src/jqueryOrderFix.js) must kick in - every
+	   save-path test below then exercises the healed path, since the core
+	   mock's setContent goes through $( comment ).after( rendered ). */
+	( function( $ ) {
+		var orig = $.fn.after;
+		$.fn.after = function( content ) {
+			if ( arguments.length === 1 ) {
+				return this.each( function() {
+					var parent = this.parentNode;
+					if ( !parent ) { return; }
+					var ref   = this.nextSibling; // FIXED ref - this is the bug
+					var nodes = content && content.jquery ? content.toArray()
+						: content && content.nodeType ? [ content ]
+						: Array.isArray( content ) ? content.slice()
+						: $.parseHTML( String( content ), document, true ) || [];
+					for ( var i = 0; i < nodes.length; i++ ) { parent.insertBefore( nodes[ i ], ref ); }
+				} );
+			}
+			return orig.apply( this, arguments );
+		};
+	} )( window.presideJQuery );
+	</script>
+	<script src="/dist/tiptap.bundle.min.js"></script>
+	<script src="/dist/facade.min.js"></script>
+	<!-- A dependent extension, for T29's two Modern-mode context assertions. It
+	     contributes no toolbar name this page's field uses, so the only thing it
+	     adds to the page is its own chrome marker inside our container (removed
+	     with it - the leak checks below still hold). -->
+	<script src="/plugin-fixture.js"></script>
+	<script>
+	// Fill the region's base64 editor template (what renderFrontendEditor.cfm +
+	// _editorTemplate.cfm emit) BEFORE the frontendEditors mock decodes it.
+	( function() {
+		var rawContent = "<p>Hello <strong>world</strong>, this is <a href=\"/somewhere\">linked</a> text.</p><ul><li>first item</li><li>second item</li></ul>";
+		var template =
+			  '<div class="presidecms content-editor richeditor" id="_inline01">'
+			+   '<div class="content-editor-overlay" title="Click to edit"><div class="inner"></div></div>'
+			+   '<div class="content-editor-label">Main content</div>'
+			+   '<div class="presidecms content-editor-editor-container">'
+			+     '<form method="post" class="content-editor-form preside-theme" action="/mock/frontend/save"'
+			+       ' data-publish-prompt-endpoint="/mock/frontend/publishPrompt" data-publish-action="/mock/frontend/publish">'
+			+       '<input type="hidden" name="pageId" value="page1"/>'
+			+       '<input type="hidden" name="object" value="page"/>'
+			+       '<input type="hidden" name="property" value="main_content"/>'
+			+       '<input type="hidden" name="recordId" value="page1"/>'
+			+       '<input type="hidden" name="renderer" value="richeditor"/>'
+			+       '<textarea name="content" class="richeditor frontend-container"'
+			+         ' data-toolbar="Bold,Italic,Underline,Strike|Format|BulletedList,NumberedList,Outdent,Indent|PresideLink,PresideUnlink|Table|Maximize,Source,Undo,Redo">'
+			+         rawContent.replace( /&/g, "&amp;" ).replace( /</g, "&lt;" )
+			+       '</textarea>'
+			+       '<div class="content-editor-editor-buttons">'
+			+         '<p class="content-editor-editor-notifications"></p>'
+			+         '<button type="button" name="_saveAction" value="savedraft" class="btn editor-btn editor-btn-save">Save draft</button>'
+			+         '<button type="button" name="_saveAction" value="publish" class="btn editor-btn editor-btn-publish">Publish changes</button>'
+			+         '<button class="btn editor-btn-cancel">Cancel</button>'
+			+       '</div>'
+			+     '</form>'
+			+   '</div>'
+			+ '</div>';
+		document.querySelector( "script.content-editor" ).textContent = btoa( template );
+	} )();
+	</script>
+	<script src="/mockFrontendEditors.js"></script>
+	<script>
+	presideJQuery( function( $ ) {
+		var results = [];
+		// Take the DOM focus BEFORE building a command chain, then chain without
+		// `.focus()`. Tiptap's focus command has a Safari-only branch that focuses the
+		// DOM synchronously; that makes prosemirror dispatch a selection correction
+		// mid-chain, and the chain's own transaction is then applied to a state it was
+		// not built from ("Applying a mismatched transaction"), losing the chain. Its
+		// own `view.hasFocus()` guard is the way out, so focus first. This is the same
+		// discipline src/editorFocus.js applies in the editor's own chrome - a real
+		// user click focuses the editable natively, which is what this stands in for.
+		function edFocus( e ) {
+			try { if ( e && !e.isDestroyed && e.view && !e.view.hasFocus() ) { e.view.focus(); } } catch ( err ) {}
+			return e;
+		}
+		// Track every AJAX post for diagnosis/assertions.
+		window.__posts = [];
+		var __origPost = $.post;
+		$.post = function( url ) { window.__posts.push( url ); return __origPost.apply( this, arguments ); };
+		function check( label, ok, detail ) {
+			results.push( { label: label, ok: !!ok, detail: detail } );
+			var el = document.createElement( "div" );
+			el.className = ok ? "ok" : "fail";
+			el.textContent = ( ok ? "✓ " : "✗ " ) + label + ( !ok && detail ? " — " + detail : "" );
+			document.getElementById( "results" ).appendChild( el );
+		}
+		function wait( ms ) { return new Promise( function( r ) { setTimeout( r, ms ); } ); }
+		function until( fn, timeout ) {
+			timeout = timeout || 3000;
+			return new Promise( function( resolve ) {
+				var t0 = Date.now();
+				( function poll() {
+					var v = false;
+					try { v = fn(); } catch ( e ) {}
+					if ( v ) { return resolve( true ); }
+					if ( Date.now() - t0 > timeout ) { return resolve( false ); }
+					setTimeout( poll, 50 );
+				} )();
+			} );
+		}
+
+		var switchLi = function() { return document.querySelector( ".tiptap-editmode-switch" ); };
+		function menuItem( mode ) {
+			// off/modern/classic in DOM order (editModeSwitch builds them in that order)
+			var idx = { off: 0, modern: 1, classic: 2 }[ mode ];
+			return switchLi().querySelectorAll( ".dropdown-menu > li" )[ idx ];
+		}
+		// native .click(): jQuery's trigger("click") deliberately skips the native
+		// default on <a> elements, so addEventListener handlers would never fire.
+		function clickMode( mode ) { menuItem( mode ).querySelector( "a" ).click(); }
+		function cookie( name ) {
+			var m = document.cookie.match( new RegExp( "(?:^|;\\s*)" + name + "=([^;]*)" ) );
+			return m ? decodeURIComponent( m[ 1 ] ) : "";
+		}
+		function regionHTML() {
+			var parent = document.getElementById( "pageContent" ), out = [], started = false;
+			for ( var n = parent.firstChild; n; n = n.nextSibling ) {
+				if ( n.nodeType === 8 && n.nodeValue.trim() === "container: _inline01" ) { started = true; continue; }
+				if ( n.nodeType === 8 && n.nodeValue.trim() === "!container: _inline01" ) { break; }
+				if ( started ) { out.push( n.outerHTML !== undefined ? n.outerHTML : n.textContent ); }
+			}
+			return out.join( "" );
+		}
+		function startComment() {
+			var parent = document.getElementById( "pageContent" );
+			for ( var n = parent.firstChild; n; n = n.nextSibling ) {
+				if ( n.nodeType === 8 && n.nodeValue.trim() === "container: _inline01" ) { return n; }
+			}
+			return null;
+		}
+		var checkbox = document.getElementById( "edit-mode-options" );
+
+		( async function run() {
+
+			// The facade builds the dropdown on ITS DOMContentLoaded listener, which
+			// runs after jQuery's ready (jQuery registered first) - wait for it.
+			await until( function() { return !!switchLi(); } );
+
+			// ---- T0: the jQuery insert-order fix (this page emulates the broken
+			// "jqnext" build above; the facade's feature-detected shim must heal it,
+			// or every save re-render comes back in reverse block order) ------------
+			var probeHost = document.createElement( "div" );
+			var probeC    = document.createComment( "probe" );
+			probeHost.appendChild( probeC );
+			$( probeC ).after( "<i>1</i><i>2</i><i>3</i>" );
+			check( "T0 broken-jQuery after() healed (multi-node order preserved)",
+				probeHost.textContent === "123", probeHost.textContent );
+
+			// ---- T1: the dropdown replaces the switch --------------------------
+			check( "T1 dropdown rendered in the admin toolbar", !!switchLi() );
+			check( "T1 original quick-edit switch hidden, not removed",
+				document.querySelector( ".edit-mode-toggle-container" ).style.display === "none"
+				&& !!document.getElementById( "edit-mode-options" ) );
+			check( "T1 three options in dropdown", switchLi() && switchLi().querySelectorAll( ".dropdown-menu > li" ).length === 3 );
+			check( "T1 trigger reuses core's translated label", /Quick edit/.test( switchLi().textContent ) );
+			check( "T1 initial state is Off", /Off/.test( switchLi().querySelector( ".dropdown-toggle" ).textContent )
+				&& !switchLi().querySelector( ".dropdown-toggle" ).classList.contains( "orange" ) );
+
+			// ---- T2: Modern availability ---------------------------------------
+			check( "T2 Modern enabled with exactly one rich region", !menuItem( "modern" ).classList.contains( "disabled" ) );
+			var fake = document.createElement( "div" );
+			fake.className = "content-editor richeditor";
+			fake.id = "_fake99";
+			document.body.appendChild( fake );
+			clickMode( "off" ); // any mode change re-renders availability
+			check( "T2 Modern disabled with two rich regions", menuItem( "modern" ).classList.contains( "disabled" ) );
+			check( "T2 disabled option carries the tooltip", ( menuItem( "modern" ).querySelector( "a" ).title || "" ).length > 0 );
+			clickMode( "modern" );
+			check( "T2 clicking the disabled option does nothing", !document.body.classList.contains( "frontend-editing-modern" ) );
+			fake.remove();
+			clickMode( "off" );
+			check( "T2 Modern re-enabled when back to one region", !menuItem( "modern" ).classList.contains( "disabled" ) );
+
+			// ---- T3: Off/Classic drive core's checkbox --------------------------
+			clickMode( "classic" );
+			check( "T3 Classic checks core's checkbox", checkbox.checked );
+			check( "T3 Classic sets core's edit-mode state", document.body.classList.contains( "show-frontend-editors" ) );
+			check( "T3 core's cookie owned by core", cookie( "_presideEditMode" ) === "true" );
+			check( "T3 style cookie is ours", cookie( "_presideEditModeStyle" ) === "classic" );
+			check( "T3 trigger shows Classic + orange", /Classic/.test( switchLi().querySelector( ".dropdown-toggle" ).textContent )
+				&& switchLi().querySelector( ".dropdown-toggle" ).classList.contains( "orange" ) );
+			clickMode( "off" );
+			check( "T3 Off unchecks and clears", !checkbox.checked && !document.body.classList.contains( "show-frontend-editors" )
+				&& cookie( "_presideEditMode" ) === "false" );
+
+			// the "e" hotkey still round-trips through core's togglePageEditMode
+			document.activeElement && document.activeElement.blur();
+			$( document.body ).trigger( $.Event( "keydown", { key: "e" } ) );
+			check( "T3 'e' hotkey enters the cookie's style (classic)", checkbox.checked
+				&& document.body.classList.contains( "show-frontend-editors" )
+				&& !document.body.classList.contains( "frontend-editing-modern" ) );
+			$( document.body ).trigger( $.Event( "keydown", { key: "e" } ) );
+			check( "T3 'e' hotkey toggles back off", !checkbox.checked );
+
+			// ---- T4: Modern enter ------------------------------------------------
+			var originalHTML = regionHTML();
+			clickMode( "modern" );
+			check( "T4 body enters modern state", document.body.classList.contains( "frontend-editing-modern" ) );
+			var inlineC = document.querySelector( ".tiptap-editor-container.tiptap-inline" );
+			check( "T4 inline container mounted", !!inlineC );
+			check( "T4 ...directly after the region's start comment",
+				inlineC && inlineC.previousSibling === startComment() );
+			check( "T4 original rendered nodes detached", !document.querySelector( "#pageContent .rendered-content" ) );
+			check( "T4 chrome-less: no toolbar/footer",
+				inlineC && !inlineC.querySelector( ".tiptap-toolbar" ) && !inlineC.querySelector( ".tiptap-footer" ) );
+			check( "T4 outline present, pinned to the viewport (is-fixed)",
+				!!inlineC.querySelector( ".tiptap-outline.is-fixed" )
+				&& getComputedStyle( inlineC.querySelector( ".tiptap-outline" ) ).position === "fixed" );
+			// position:fixed elements have offsetParent === null - test client rects.
+			var buttons = document.querySelector( ".content-editor-editor-container.edit-active .content-editor-editor-buttons" );
+			check( "T4 core's save/publish/cancel bar is visible", !!buttons && buttons.getClientRects().length > 0
+				&& getComputedStyle( buttons ).visibility !== "hidden" );
+			var modalC = document.querySelector( ".content-editor-editor-container.edit-active" );
+			check( "T4 modal container collapsed (position static)", modalC && getComputedStyle( modalC ).position === "static" );
+			check( "T4 sheen suppressed", getComputedStyle( document.querySelector( ".frontend-editor-modal-sheen" ) ).display === "none" );
+			check( "T4 style cookie is modern", cookie( "_presideEditModeStyle" ) === "modern" );
+			check( "T4 editor registered under core's expected name", !!CKEDITOR.instances.content );
+			// The plugin API's view of Modern mode (the other half of T29, which can
+			// only assert the boxed shape): there is NO editing frame here - the
+			// editable IS the site page - and a plugin must be told so rather than
+			// having to work it out. plugin-fixture.js is loaded on this page for
+			// exactly these two assertions.
+			check( "T29 ctx.mode is 'inline' in Modern mode", window.__demo.ctxs.chrome.mode === "inline" );
+			check( "T29 ...and ctx.frame is null (there is no editing iframe)",
+				window.__demo.ctxs.chrome.frame === null );
+			check( "T4 no height cap on the inline mount",
+				inlineC && !inlineC.querySelector( ".tiptap-editor-mount" ).style.maxHeight );
+			// The hidden .content-editor div sits at the end of <body>. Core's
+			// editing state makes it position:relative (IN FLOW) and its sizing
+			// interval sets an explicit region-height on it; visibility:hidden keeps
+			// layout space, so unless tiptap.css re-absolutes it, Modern shows a
+			// region-sized band of invisible whitespace under the page.
+			var hiddenRegion = document.getElementById( "_inline01" );
+			check( "T4 hidden region div is out of flow (no whitespace band under the page)",
+				hiddenRegion && getComputedStyle( hiddenRegion ).position === "absolute"
+				&& getComputedStyle( hiddenRegion ).visibility === "hidden" );
+
+			// core's instanceReady scroll parks the region ~20px from the viewport
+			// top - UNDER the fixed admin toolbar; our post-scroll fixup must give
+			// the toolbar's height back
+			var barBottom4 = document.querySelector( ".preside-admin-toolbar" ).getBoundingClientRect().bottom;
+			var clearOfBar = await until( function() {
+				return document.querySelector( ".tiptap-inline" ).getBoundingClientRect().top >= barBottom4;
+			} );
+			check( "T4 content scrolled clear of the fixed admin toolbar", clearOfBar,
+				document.querySelector( ".tiptap-inline" ).getBoundingClientRect().top + " vs bar bottom " + barBottom4 );
+
+			// ---- T5: save round-trip lands on Off with the saved content visible ----
+			// (UX decision: re-entering Modern after a save looked identical to
+			// before the save, which read as "nothing happened" - the re-rendered
+			// page IS the confirmation.)
+			CKEDITOR.instances.content._t.commands.insertContentAt( 0, "<p>ADDED BY TEST</p>" );
+			$( ".content-editor-editor-container .editor-btn-save" ).trigger( "click" );
+			var saved = await until( function() {
+				return /ADDED BY TEST/.test( regionHTML() ) && !document.querySelector( "#pageContent .tiptap-inline aside" );
+			} );
+			check( "T5 save POSTs and the rendered content replaces the region", saved, regionHTML().slice( 0, 120 ) );
+			var landedOffAfterSave = await until( function() {
+				return !document.body.classList.contains( "frontend-editing-modern" )
+					&& !document.querySelector( ".tiptap-editor-container.tiptap-inline" )
+					&& !checkbox.checked;
+			} );
+			check( "T5 save lands on Off (visible confirmation, no re-enter)", landedOffAfterSave );
+			// Core's sizing interval writes an inline region-height onto the (now
+			// position:static, in-flow) .content-editor div and never clears it -
+			// the whitespace band under the page that persisted after leaving
+			// Modern. editModeSwitch clears it on every off-landing.
+			check( "T5 stale inline region sizes cleared on landing Off",
+				!document.getElementById( "_inline01" ).style.height
+				&& !document.getElementById( "_inline01" ).style.width );
+			check( "T5 the saved edit stays visible on the page", /ADDED BY TEST/.test( regionHTML() ) );
+			check( "T5 trigger shows Off after save", /Off/.test( switchLi().querySelector( ".dropdown-toggle" ).textContent ) );
+
+			// ---- T5b: publish flow (auto-confirmed bootbox) ------------------------
+			clickMode( "modern" );
+			await until( function() { return !!document.querySelector( ".tiptap-inline" ); } );
+			// core's flows leave the buttons disabled for a few ms while its
+			// always-handler and instanceReady run - wait as a human effectively does
+			await until( function() {
+				var b = document.querySelector( ".content-editor-editor-container .editor-btn-publish" );
+				return b && !b.disabled;
+			} );
+			window.__posts.length = 0;
+			document.querySelector( ".content-editor-editor-container .editor-btn-publish" ).click();
+			var published = await until( function() {
+				return window.__alerts.some( function( a ) { return /Published \(mock\)/.test( a.message || "" ); } );
+			} );
+			check( "T5b publish saves, prompts and posts publishAction", published, "posts: " + window.__posts.join( ", " ) );
+			var landedOffAfterPublish = await until( function() {
+				return !document.body.classList.contains( "frontend-editing-modern" )
+					&& !document.querySelector( ".tiptap-editor-container.tiptap-inline" ) && !checkbox.checked;
+			} );
+			check( "T5b publish lands on Off", landedOffAfterPublish );
+
+			// ---- T6: cancel restores byte-identically and lands on Off -------------
+			// capture what the region SHOULD be after cancel: the current saved render
+			// (cancel discards the pending edit, not the saved content).
+			var savedRender = regionHTML();
+			// the save re-render went through $(comment).after() on the emulated
+			// broken build - block ORDER must survive (ADDED BY TEST was block 1)
+			check( "T6 saved render preserves block order through the broken build",
+				savedRender.indexOf( "<p>ADDED BY TEST</p>" ) === 0, savedRender.slice( 0, 80 ) );
+			clickMode( "modern" );
+			await until( function() { return !!document.querySelector( ".tiptap-inline" ); } );
+			CKEDITOR.instances.content._t.commands.insertContentAt( 0, "<p>DISCARD ME</p>" );
+			// Esc inside the editor = core's cancel path
+			var pmEl = document.querySelector( ".tiptap-inline .ProseMirror" );
+			pmEl.dispatchEvent( new KeyboardEvent( "keydown", { key: "Escape", keyCode: 27, bubbles: true } ) );
+			var restored = await until( function() { return regionHTML() === savedRender; } );
+			check( "T6 Esc cancels and restores the region byte-identically", restored, regionHTML().slice( 0, 120 ) );
+			var landedOff = await until( function() {
+				return !checkbox.checked && !document.body.classList.contains( "frontend-editing-modern" );
+			} );
+			check( "T6 cancel falls back to Off", landedOff );
+			check( "T6 trigger shows Off again", /Off/.test( switchLi().querySelector( ".dropdown-toggle" ).textContent ) );
+
+			// ---- T6b: unsaved-changes guard on mode switch ---------------------------
+			var confirmCalls = 0, confirmAnswer = true;
+			var origConfirm  = window.presideBootbox.confirm;
+			window.presideBootbox.confirm = function( msg, cb ) { confirmCalls++; cb( confirmAnswer ); };
+
+			// clean editor -> no prompt, straight out
+			clickMode( "modern" );
+			await until( function() { return !!document.querySelector( ".tiptap-inline" ); } );
+			clickMode( "off" );
+			await until( function() { return !document.querySelector( ".tiptap-inline" ); } );
+			check( "T6b no prompt when nothing changed", confirmCalls === 0, confirmCalls + " prompts" );
+
+			// dirty + accept: the draft is saved on the way out, edits stay visible
+			clickMode( "modern" );
+			await until( function() { return !!document.querySelector( ".tiptap-inline" ); } );
+			CKEDITOR.instances.content._t.commands.insertContentAt( 0, "<p>KEEP ME</p>" );
+			window.__posts.length = 0;
+			clickMode( "off" );
+			var savedOut = await until( function() {
+				return confirmCalls === 1 && /KEEP ME/.test( regionHTML() )
+					&& !document.body.classList.contains( "frontend-editing-modern" ) && !checkbox.checked;
+			} );
+			check( "T6b dirty switch prompts, saves the draft and lands on Off", savedOut,
+				JSON.stringify( { calls: confirmCalls, posts: window.__posts, modern: document.body.classList.contains( "frontend-editing-modern" ),
+					checked: checkbox.checked, inline: !!document.querySelector( ".tiptap-inline" ), keep: /KEEP ME/.test( regionHTML() ) } ) );
+
+			// dirty + decline: edits discarded, exactly like Cancel
+			confirmAnswer = false;
+			clickMode( "modern" );
+			await until( function() { return !!document.querySelector( ".tiptap-inline" ); } );
+			CKEDITOR.instances.content._t.commands.insertContentAt( 0, "<p>DROP ME</p>" );
+			clickMode( "off" );
+			var discarded = await until( function() {
+				return !document.body.classList.contains( "frontend-editing-modern" )
+					&& !/DROP ME/.test( regionHTML() ) && /KEEP ME/.test( regionHTML() );
+			} );
+			check( "T6b declining the prompt discards the edits", discarded, regionHTML().slice( 0, 80 ) );
+			window.presideBootbox.confirm = origConfirm;
+
+			// ---- T7: selection bubble, filtered per block ---------------------------
+			clickMode( "modern" );
+			await until( function() { return !!document.querySelector( ".tiptap-inline" ); } );
+			var ed = CKEDITOR.instances.content._t;
+
+			function bubbleEl() { return document.querySelector( ".tiptap-selection-bubble" ); }
+			function bubbleBtn( cmd ) { return bubbleEl() && bubbleEl().querySelector( '[data-cmd="' + cmd + '"]' ); }
+			function selectFirst( text ) {
+				var found = null;
+				ed.state.doc.descendants( function( node, pos ) {
+					if ( found === null && node.isText && node.text.indexOf( text ) !== -1 ) {
+						var i = node.text.indexOf( text );
+						found = { from: pos + i, to: pos + i + text.length };
+					}
+				} );
+				if ( found ) { edFocus( ed ).chain().setTextSelection( found ).run(); }
+				return !!found;
+			}
+
+			check( "T7 bubble element exists on <body>", !!bubbleEl() && bubbleEl().parentNode === document.body );
+
+			// a single CLICK (caret, no selection) is enough context for the bubble
+			var pm7 = document.querySelector( ".tiptap-inline .ProseMirror" );
+			edFocus( ed ).chain().setTextSelection( 2 ).run();
+			pm7.dispatchEvent( new MouseEvent( "mouseup", { bubbles: true } ) );
+			var caretShown = await until( function() { return bubbleEl().classList.contains( "is-open" ); } );
+			check( "T7 single click shows the bubble (caret context)", caretShown );
+			check( "T7 caret bubble is filtered for the block", !!bubbleBtn( "Bold" ) && !bubbleBtn( "Outdent" ) );
+			// ...and TYPING keeps it: the focused block is still the context
+			edFocus( ed ).chain().insertContent( "x" ).run();
+			await wait( 250 );
+			check( "T7 typing keeps the bubble up", bubbleEl().classList.contains( "is-open" ) );
+			edFocus( ed ).chain().undo().run();
+			// blur is what drops it
+			ed.commands.blur();
+			var blurred = await until( function() { return !bubbleEl().classList.contains( "is-open" ); } );
+			check( "T7 blur hides the bubble", blurred );
+
+			selectFirst( "Hello" );
+			var shown = await until( function() { return bubbleEl().classList.contains( "is-open" ); } );
+			check( "T7 bubble appears over a text selection", shown );
+			check( "T7 marks offered in a paragraph", !!bubbleBtn( "Bold" ) && !!bubbleBtn( "Italic" ) );
+			check( "T7 Format dropdown offered in a paragraph (the way OUT of one)", !!bubbleBtn( "Format" ) );
+			check( "T7 insert/global commands excluded", !bubbleBtn( "Table" ) && !bubbleBtn( "Undo" ) && !bubbleBtn( "Maximize" ) && !bubbleBtn( "Source" ) );
+			check( "T7 Outdent/Indent hidden outside a list", !bubbleBtn( "Outdent" ) && !bubbleBtn( "Indent" ) );
+			check( "T7 Unlink hidden outside a link", !bubbleBtn( "PresideUnlink" ) );
+
+			selectFirst( "first item" );
+			await wait( 80 );
+			var listOk = await until( function() { return !!bubbleBtn( "Outdent" ) && !!bubbleBtn( "Indent" ); } );
+			check( "T7 Outdent/Indent offered inside a list item", listOk );
+
+			selectFirst( "linked" );
+			var unlinkOk = await until( function() { return !!bubbleBtn( "PresideUnlink" ); } );
+			check( "T7 Unlink offered inside a link", unlinkOk );
+
+			// collapsing to a caret while FOCUSED keeps the bubble (the block is
+			// still the context); it re-filters for the caret's block
+			edFocus( ed ).chain().setTextSelection( 1 ).run();
+			await wait( 250 );
+			check( "T7 collapsed-but-focused caret keeps the bubble", bubbleEl().classList.contains( "is-open" ) );
+			check( "T7 ...re-filtered for the caret's block", !bubbleBtn( "PresideUnlink" ) && !bubbleBtn( "Outdent" ) );
+
+			// left-anchored to the caret's block, never following the caret across
+			// the page: typing must not move it horizontally
+			var blockLeft7 = document.querySelector( ".tiptap-inline .ProseMirror > p" ).getBoundingClientRect().left;
+			check( "T7 bubble left-aligned to the block", Math.abs( bubbleEl().getBoundingClientRect().left - blockLeft7 ) <= 1,
+				bubbleEl().getBoundingClientRect().left + " vs " + blockLeft7 );
+			var xBefore7 = bubbleEl().getBoundingClientRect().left;
+			// caret to the END of the same block - different caret x, same block left
+			edFocus( ed ).chain().setTextSelection( ed.state.doc.firstChild.content.size + 1 ).run();
+			await wait( 250 );
+			check( "T7 caret position does not drag it horizontally",
+				Math.abs( bubbleEl().getBoundingClientRect().left - xBefore7 ) <= 1,
+				bubbleEl().getBoundingClientRect().left + " vs " + xBefore7 );
+
+			// idle fade: ~2.5s of no activity fades it out; activity fades it back
+			await wait( 3000 );
+			check( "T7 idle (2.5s no activity) fades the bubble", bubbleEl().classList.contains( "is-idle" )
+				&& bubbleEl().classList.contains( "is-open" ) );
+			edFocus( ed ).chain().insertContent( "y" ).run();
+			var woke = await until( function() { return !bubbleEl().classList.contains( "is-idle" ); } );
+			check( "T7 typing wakes it again", woke );
+			edFocus( ed ).chain().undo().run();
+
+			// ---- T7d: the fixed outline navigator -------------------------------------
+			var outline7 = document.querySelector( ".tiptap-inline .tiptap-outline.is-fixed" );
+			check( "T7d outline hidden while the doc has no headings", outline7.classList.contains( "is-empty" ) );
+			ed.chain().focus( "end" ).insertContent( "<h2>Alpha</h2><p>a</p><h2>Beta</h2><p>b</p>" ).run();
+			var outlineUp = await until( function() {
+				return !outline7.classList.contains( "is-empty" )
+					&& outline7.querySelectorAll( ".tiptap-outline-row" ).length === 2;
+			} );
+			check( "T7d headings populate the fixed rail", outlineUp,
+				outline7.querySelectorAll( ".tiptap-outline-row" ).length + " rows" );
+			check( "T7d rail sits at the viewport's right edge",
+				Math.abs( outline7.getBoundingClientRect().right - ( window.innerWidth - 12 ) ) <= 2,
+				outline7.getBoundingClientRect().right + " vs " + window.innerWidth );
+			edFocus( ed ).chain().undo().run();
+			await until( function() { return outline7.classList.contains( "is-empty" ); } );
+
+			// ---- T7b: the fixed drag rail (body-portalled, clip-proof) ---------------
+			var rail = document.querySelector( ".tiptap-block-gutter.is-fixed" );
+			check( "T7b inline drag rail is a fixed <body> child", !!rail && rail.parentNode === document.body
+				&& getComputedStyle( rail ).position === "fixed" );
+			check( "T7b inline container reserves no gutter",
+				!document.querySelector( ".tiptap-inline" ).classList.contains( "tiptap-has-draghandle" ) );
+			// Scroll the block into view FIRST. The grip is only shown for a block
+			// inside the visible band (src/dragHandle.js clamps to mount-intersect-
+			// viewport), which is correct behaviour - a user cannot hover what is off
+			// screen. Whether this paragraph starts above or below the fold is a matter
+			// of a few pixels of font metrics, so without the scroll the test passes in
+			// Blink and fails in WebKit and Gecko for no product reason.
+			var pEl7b = document.querySelector( ".tiptap-inline .ProseMirror > p" );
+			pEl7b.scrollIntoView( { block: "center" } );
+			await wait( 60 );
+			var pRect = pEl7b.getBoundingClientRect();
+			document.querySelector( ".tiptap-inline" ).dispatchEvent(
+				new MouseEvent( "mousemove", { bubbles: true, clientX: pRect.left + 20, clientY: pRect.top + 5 } ) );
+			var railShown = await until( function() { return rail.classList.contains( "is-visible" ); } );
+			check( "T7b rail shows on block hover, left of the content", railShown
+				&& rail.getBoundingClientRect().right <= pRect.left,
+				"shown=" + railShown + ", rail.right=" + Math.round( rail.getBoundingClientRect().right )
+					+ ", p.left=" + Math.round( pRect.left ) + ", p.top=" + Math.round( pRect.top ) );
+			check( "T7b rail carries both + and grip", rail.querySelectorAll( "button" ).length === 2 );
+
+			// ---- T7c: full-width layout - no page margin to float the rail in --------
+			// (the real-site bug: content column at the viewport edge put the rail at
+			// a negative x, i.e. invisible). The editor must reserve an interior
+			// gutter instead and draw the rail inside it.
+			clickMode( "off" );
+			await until( function() { return !document.querySelector( ".tiptap-inline" ); } );
+			var mainEl = document.querySelector( "main" );
+			var oldMainStyle = mainEl.getAttribute( "style" ) || "";
+			mainEl.style.maxWidth = "none";
+			mainEl.style.margin = "0";
+			mainEl.style.padding = "0";
+			clickMode( "modern" );
+			await until( function() { return !!document.querySelector( ".tiptap-inline" ); } );
+			var inlineC7 = document.querySelector( ".tiptap-inline" );
+			check( "T7c full-width: interior gutter reserved", inlineC7.classList.contains( "tiptap-has-draghandle" )
+				&& parseInt( getComputedStyle( inlineC7.querySelector( ".tiptap-editor-mount" ) ).paddingLeft, 10 ) >= 28 );
+			var pEl7c = inlineC7.querySelector( ".ProseMirror > p" );
+			pEl7c.scrollIntoView( { block: "center" } );   // see T7b: hovering off screen shows nothing, by design
+			await wait( 60 );
+			var pRect7 = pEl7c.getBoundingClientRect();
+			inlineC7.dispatchEvent( new MouseEvent( "mousemove", { bubbles: true, clientX: pRect7.left + 20, clientY: pRect7.top + 5 } ) );
+			var rail7 = document.querySelector( ".tiptap-block-gutter.is-fixed" );
+			var rail7Shown = await until( function() { return rail7.classList.contains( "is-visible" ); } );
+			check( "T7c full-width: rail visible ON SCREEN inside the gutter", rail7Shown
+				&& rail7.getBoundingClientRect().left >= 0, JSON.stringify( rail7.getBoundingClientRect() ) );
+			clickMode( "off" );
+			await until( function() { return !document.querySelector( ".tiptap-inline" ); } );
+			mainEl.setAttribute( "style", oldMainStyle );
+			clickMode( "modern" );
+			await until( function() { return !!document.querySelector( ".tiptap-inline" ); } );
+
+			// ---- T9 (before the leak loop): maximize escape hatch --------------------
+			CKEDITOR.instances.content.execCommand( "maximize" );
+			var inline9 = document.querySelector( ".tiptap-editor-container.tiptap-inline" );
+			check( "T9 maximize portals the inline editor", inline9.classList.contains( "is-maximized" )
+				&& CKEDITOR.instances.content.commands.maximize.state === 1 );
+			CKEDITOR.instances.content.execCommand( "maximize" );
+			check( "T9 restore returns it between the comments",
+				document.querySelector( ".tiptap-editor-container.tiptap-inline" ).previousSibling === startComment() );
+
+			// ---- T8: leak audit --------------------------------------------------------
+			clickMode( "off" );
+			await wait( 20 );
+			var bodyKids = document.body.children.length;
+			for ( var i = 0; i < 10; i++ ) {
+				clickMode( "modern" );
+				await until( function() { return !!document.querySelector( ".tiptap-inline" ); }, 1000 );
+				clickMode( "off" );
+				await until( function() { return !document.querySelector( ".tiptap-inline" ); }, 1000 );
+			}
+			await wait( 50 );
+			check( "T8 no leaked containers after 10 enter/exit cycles", document.querySelectorAll( ".tiptap-editor-container" ).length === 0 );
+			check( "T8 no leaked selection bubbles", document.querySelectorAll( ".tiptap-selection-bubble" ).length === 0 );
+			check( "T8 no leaked slash-menu popups", document.querySelectorAll( ".tiptap-slash-menu" ).length === 0 );
+			check( "T8 no leaked drag rails", document.querySelectorAll( ".tiptap-block-gutter" ).length === 0 );
+			check( "T8 body child count stable", document.body.children.length === bodyKids,
+				document.body.children.length + " vs " + bodyKids );
+			check( "T8 region content intact after churn", /ADDED BY TEST/.test( regionHTML() ) );
+			check( "T8 --tt-z-base cleaned off <html>", !document.documentElement.style.getPropertyValue( "--tt-z-base" ) );
+
+			// done
+			var failed = results.filter( function( r ) { return !r.ok; } ).length;
+			var s = document.getElementById( "summary" );
+			s.textContent = ( results.length - failed ) + " passed, " + failed + " failed";
+			s.style.color = failed ? "#c0392b" : "#0a7d5a";
+			window.__results = results;
+			window.__done = true;
+		} )().catch( function( e ) {
+			check( "UNCAUGHT: " + e.message, false, e.stack );
+			document.getElementById( "summary" ).textContent = "crashed";
+			// Publish what DID run: without this a crash reports zero assertions and
+			// an automated run cannot tell "died on the first line" from "died at the
+			// last one".
+			window.__results = results;
+			window.__done = true;
+		} );
+	} );
+	</script>
+</body>
+</html>
