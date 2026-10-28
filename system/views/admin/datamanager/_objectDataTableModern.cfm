@@ -141,17 +141,18 @@
 	if ( !StructIsEmpty( args.gridHeaderLabels ) ) {
 		var toolbarColumns = toolbarConfig.columns      ?: [];
 		var quickFilters   = toolbarConfig.quickFilters ?: [];
+		var columnField    = "";
 
 		for( var toolbarColumn in toolbarColumns ) {
-			var fieldName = toolbarColumn.field ?: "";
-			if ( StructKeyExists( args.gridHeaderLabels, fieldName ) ) {
-				toolbarColumn.label = args.gridHeaderLabels[ fieldName ];
+			columnField = toolbarColumn.field ?: "";
+			if ( StructKeyExists( args.gridHeaderLabels, columnField ) ) {
+				toolbarColumn.label = args.gridHeaderLabels[ columnField ];
 			}
 		}
 		for( var quickFilter in quickFilters ) {
-			var fieldName = quickFilter.field ?: "";
-			if ( StructKeyExists( args.gridHeaderLabels, fieldName ) ) {
-				quickFilter.label = args.gridHeaderLabels[ fieldName ];
+			columnField = quickFilter.field ?: "";
+			if ( StructKeyExists( args.gridHeaderLabels, columnField ) ) {
+				quickFilter.label = args.gridHeaderLabels[ columnField ];
 			}
 		}
 	}
