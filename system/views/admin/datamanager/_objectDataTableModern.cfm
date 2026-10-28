@@ -138,6 +138,24 @@
 		, canShareViews      = canShareViews
 	);
 
+	if ( !StructIsEmpty( args.gridHeaderLabels ) ) {
+		var toolbarColumns = toolbarConfig.columns      ?: [];
+		var quickFilters   = toolbarConfig.quickFilters ?: [];
+
+		for( var toolbarColumn in toolbarColumns ) {
+			var fieldName = toolbarColumn.field ?: "";
+			if ( StructKeyExists( args.gridHeaderLabels, fieldName ) ) {
+				toolbarColumn.label = args.gridHeaderLabels[ fieldName ];
+			}
+		}
+		for( var quickFilter in quickFilters ) {
+			var fieldName = quickFilter.field ?: "";
+			if ( StructKeyExists( args.gridHeaderLabels, fieldName ) ) {
+				quickFilter.label = args.gridHeaderLabels[ fieldName ];
+			}
+		}
+	}
+
 	if ( args.footerEnabled ) {
 		headerFieldCount = ArrayLen( toolbarConfig.columns ?: [] );
 		if ( !headerFieldCount ) {
