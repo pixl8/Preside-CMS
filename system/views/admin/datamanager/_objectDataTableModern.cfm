@@ -389,7 +389,7 @@
 							data-visible="#booleanFormat( IsTrue( listingCol.visible ?: true ) )#"
 							data-class="<cfif ArrayFindNoCase( args.centerAlignFields, fieldName )>dt-align-center<cfelseif ArrayFindNoCase( args.rightAlignFields, fieldName )>dt-align-right<cfelse></cfif>"
 						>
-							<cfif structKeyExists( args.gridHeaderLabels, fieldName ) >
+							<cfif StructKeyExists( args.gridHeaderLabels, fieldName ) >
 								#args.gridHeaderLabels[ fieldName ]#
 							<cfelseif Len( Trim( listingCol.label ?: "" ) )>
 								#listingCol.label#
