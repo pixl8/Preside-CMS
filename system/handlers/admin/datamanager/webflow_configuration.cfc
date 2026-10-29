@@ -55,7 +55,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 					ArrayAppend( optionsCol, '<a href="#event.buildAdminLink(
 						  objectName  = "webflow_configuration"
 						, recordId    = recordId
-						, querystring = "tab=#activeTab#&reference=#row.reference_id#"
+						, querystring = "tab=#activeTab#&reference=#EncodeForUrl( row.reference_id )#"
 					)#" class="card-body-link"><i class="fa fa-fw fa-eye"></i></a>' );
 
 					QuerySetCell(
@@ -161,7 +161,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 							if ( Len( refLabel ) ) {
 								ArrayAppend( activeInstancesItem.submenuItems, {
 									  title  = refLabel
-									, link   = event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=activeInstances&reference=#refId#" )
+									, link   = event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=activeInstances&reference=#EncodeForUrl( refId )#" )
 									, active = ( ( args.instanceObjectName ?: "" ) == "cfflow_workflow_instance" ) && ( referenceId == refId )
 								} );
 							}
