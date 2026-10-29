@@ -17,6 +17,10 @@ component {
 			}
 		}
 
+		if ( IsNumeric( value ) && value != Int( value ) ) {
+			return decimalFormat( value );
+		}
+
 		return NumberFormat( value );
 	}
 
@@ -30,6 +34,7 @@ component {
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value
 			, required     = true
+			, step         = config.step ?: "0.01"
 		);
 	}
 
