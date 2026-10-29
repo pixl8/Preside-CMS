@@ -135,7 +135,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		} else {
 			messageBox.error( translateResource( uri="preside-objects.cfflow_workflow_instance:admin.archiveInstance.failed.message" ) );
 		}
-		setNextEvent( url=event.buildAdminLink( objectName="webflow_configuration", recordId=instanceWebflow.id, querystring="tab=activeInstances&reference=#instanceRef#" ) );
+		setNextEvent( url=event.buildAdminLink( objectName="webflow_configuration", recordId=instanceWebflow.id, querystring="tab=activeInstances&reference=#EncodeForUrl( instanceRef )#" ) );
 	}
 
 	public void function flowDiagram() {
@@ -161,7 +161,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			return event.buildAdminLink(
 				  objectName  = "webflow_configuration"
 				, recordId    = webflowDetail.id
-				, queryString = "#Len( instanceRef ) ? "reference=#instanceRef#" : ""#"
+				, queryString = "#Len( instanceRef ) ? "reference=#EncodeForUrl( instanceRef )#" : ""#"
 			);
 		}
 
@@ -175,7 +175,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 
 		if ( Len( recordId ) && hasCmsPermission( "webflows.archiveInstance" ) ) {
 			ArrayAppend( args.actions, {
-				  link  = event.buildAdminLink( linkto="datamanager.cfflow_workflow_instance.archiveInstanceAction", queryString="id=#recordId#&reference=#rc.reference ?: ""#" )
+				  link  = event.buildAdminLink( linkto="datamanager.cfflow_workflow_instance.archiveInstanceAction", queryString="id=#recordId#&reference=#EncodeForUrl( rc.reference ?: "" )#" )
 				, icon  = "fa-archive"
 				, class = "red confirmation-prompt"
 				, title = translateResource( uri="preside-objects.cfflow_workflow_instance:admin.archiveInstance.prompt", data=[ renderContent( "webflowOwner", record.owner ?: "" ) ] )
@@ -194,9 +194,9 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		}
 
 		if ( Len( Trim( rc.reference ?: "" ) ) ) {
-			ArrayAppend( qs, "reference=#reference#" );
+			ArrayAppend( qs, "reference=#EncodeForUrl( rc.reference )#" );
 		} else if ( Len( Trim( prc.record.instance_ref ?: "" ) ) ) {
-			ArrayAppend( qs, "reference=#prc.record.instance_ref#" );
+			ArrayAppend( qs, "reference=#EncodeForUrl( prc.record.instance_ref )#" );
 		}
 
 		return ArrayToList( qs, "&" );
@@ -224,7 +224,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 			var instanceRef = Trim( record.sub_reference ?: "" );
 
 			ArrayPrepend( args.actions, {
-				  link      = event.buildAdminLink( linkto="datamanager.cfflow_workflow_instance.archiveInstanceAction", queryString="id=#recordId#&reference=#instanceRef#" )
+				  link      = event.buildAdminLink( linkto="datamanager.cfflow_workflow_instance.archiveInstanceAction", queryString="id=#recordId#&reference=#EncodeForUrl( instanceRef )#" )
 				, iconClass = "fa-archive"
 				, btnClass  = "btn-danger"
 				, title     = translateResource( uri="preside-objects.cfflow_workflow_instance:admin.archiveInstance.title" )
@@ -259,7 +259,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				if ( webflow.getSingleton() && Len( webflowRef ) ) {
 					event.addAdminBreadCrumb(
 						  title = renderContent( renderer="webflowInstanceReference", data=webflowRef, args={ webflowId=webflowId, plainText=true } )
-						, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id, queryString="tab=activeInstances&reference=#webflowRef#" )
+						, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id, queryString="tab=activeInstances&reference=#EncodeForUrl( webflowRef )#" )
 					);
 				}
 			}

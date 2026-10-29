@@ -55,9 +55,9 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 		}
 
 		if ( Len( Trim( rc.reference ?: "" ) ) ) {
-			ArrayAppend( qs, "reference=#reference#" );
+			ArrayAppend( qs, "reference=#EncodeForUrl( rc.reference )#" );
 		} else if ( Len( Trim( prc.record.instance_ref ?: "" ) ) ) {
-			ArrayAppend( qs, "reference=#prc.record.instance_ref#" );
+			ArrayAppend( qs, "reference=#EncodeForUrl( prc.record.instance_ref )#" );
 		}
 
 		return ArrayToList( qs, "&" );
@@ -104,7 +104,7 @@ component extends="preside.system.base.EnhancedDataManagerBase" {
 				if ( webflow.getSingleton() && Len( webflowRef ) ) {
 					event.addAdminBreadCrumb(
 						  title = renderContent( renderer="webflowInstanceReference", data=webflowRef, args={ webflowId=webflowId, plainText=true } )
-						, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id, queryString="tab=archivedInstances&reference=#webflowRef#" )
+						, link  = event.buildAdminLink( objectName="webflow_configuration", recordId=webflowConfig.id, queryString="tab=archivedInstances&reference=#EncodeForUrl( webflowRef )#" )
 					);
 				}
 			}
