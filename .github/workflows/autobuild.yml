@@ -117,7 +117,7 @@ jobs:
         run: |
           cd ./system/assets &&
           npm install &&
-          grunt all &&
+          npx grunt all &&
           rm -rf node_modules
 
       - name: Setup Database and Fixtures
@@ -197,7 +197,7 @@ jobs:
         run: |
           cd ./system/assets &&
           npm install &&
-          grunt all &&
+          npx grunt all &&
           rm -rf node_modules
 
       - name: Push to Translation Manager
