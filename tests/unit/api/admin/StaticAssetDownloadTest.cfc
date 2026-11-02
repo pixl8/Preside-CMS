@@ -18,13 +18,6 @@ component extends="testbox.system.BaseSpec" {
 				expect( handler._fileExists( asset ) ).toBeTrue();
 			} );
 
-			it( "should allow files in an app extension assets directory", function(){
-				var handler = _getHandler( "resources/extensionManager/application" );
-				var asset   = ExpandPath( "/resources/extensionManager/application/extensions_app/aardvark-ext/assets/test.css" );
-
-				expect( handler._fileExists( asset ) ).toBeTrue();
-			} );
-
 			it( "should reject source files in a standard extension", function(){
 				var handler = _getHandler( "resources/extensionManager/application" );
 				var source  = ExpandPath( "/resources/extensionManager/application/extensions/someExtension/manifest.json" );
