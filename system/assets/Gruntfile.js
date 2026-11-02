@@ -123,6 +123,8 @@ module.exports = function( grunt ) {
 		less: {
 			options: {
 				paths : [ "css/admin/lessglobals", "css/admin/bootstrap", "css/admin/ace" ],
+				math  : "always",
+				javascriptEnabled : true
 			},
 			all : {
 				files: [{
