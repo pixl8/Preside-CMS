@@ -6,7 +6,7 @@ component extends="testbox.system.BaseSpec" {
 
 			it( "should allow files in the core static assets directory", function(){
 				var handler = _getHandler( "resources/testSite" );
-				var asset   = ExpandPath( "/preside/system/assets/css/admin/core/core.less.css" );
+				var asset   = ExpandPath( "/preside/system/assets/css/admin/core/core.less" );
 
 				expect( handler._fileExists( asset ) ).toBeTrue();
 			} );
