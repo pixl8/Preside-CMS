@@ -25,14 +25,34 @@ component {
 
 // PRIVATE HELPERS
 	private boolean function _fileExists( required string fullPath ) {
-		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
-		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
+		var canonicalPath          = GetCanonicalPath( arguments.fullPath );
+		var rootAllowedDirectory   = GetCanonicalPath( ExpandPath( "/preside/system/assets" ) );
+		var extensionsDirectory    = GetCanonicalPath( ExpandPath( "/#appMapping#/extensions" ) );
 
-		if ( ( fullPath.left( rootAllowedDirectory.len() ) != rootAllowedDirectory && fullPath.left( extensionsDirectory.len() ) != extensionsDirectory ) || fullPath contains ".." ) {
+		if (
+			   !_isPathWithinDirectory( canonicalPath, rootAllowedDirectory )
+			&& !_isExtensionAssetPath( canonicalPath, extensionsDirectory )
+		) {
 			return false;
 		}
 
-		return FileExists( arguments.fullPath );
+		return FileExists( canonicalPath );
+	}
+
+	private boolean function _isExtensionAssetPath( required string fullPath, required string extensionsDirectory ) {
+		if ( !_isPathWithinDirectory( arguments.fullPath, arguments.extensionsDirectory ) ) {
+			return false;
+		}
+
+		var relativePath = Mid( arguments.fullPath, Len( arguments.extensionsDirectory ) + 2 );
+
+		return ReFindNoCase( "^[^\\/]+[\\/]assets[\\/].+", relativePath );
+	}
+
+	private boolean function _isPathWithinDirectory( required string fullPath, required string directory ) {
+		return Len( arguments.fullPath ) > Len( arguments.directory )
+		    && Left( arguments.fullPath, Len( arguments.directory ) ) == arguments.directory
+		    && ReFind( "^[\\/]", Mid( arguments.fullPath, Len( arguments.directory ) + 1, 1 ) );
 	}
 
 	private string function _getEtag( required string fullPath ) {
