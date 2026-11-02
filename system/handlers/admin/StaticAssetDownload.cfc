@@ -29,15 +29,46 @@ component {
 
 // PRIVATE HELPERS
 	private boolean function _fileExists( required string fullPath ) {
-		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
-		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
-		var appExtensionsDirectory  = ExpandPath( "/#appMapping#/extensions_app/" );
+		var canonicalPath          = GetCanonicalPath( arguments.fullPath );
+		var rootAllowedDirectory   = GetCanonicalPath( ExpandPath( "/preside/system/assets" ) );
+		var extensionsDirectory    = GetCanonicalPath( ExpandPath( "/#appMapping#/extensions" ) );
+		var appExtensionsDirectory = GetCanonicalPath( ExpandPath( "/#appMapping#/extensions_app" ) );
 
-		if ( ( Left( fullPath, Len( rootAllowedDirectory ) ) != rootAllowedDirectory && Left( fullPath, Len( extensionsDirectory ) ) != extensionsDirectory && Left( fullPath, Len( appExtensionsDirectory ) ) != appExtensionsDirectory ) || fullPath contains ".." ) {
+		if (
+			   !_isPathWithinDirectory( canonicalPath, rootAllowedDirectory )
+			&& !_isExtensionAssetPath( canonicalPath, extensionsDirectory )
+			&& !_isExtensionAssetPath( canonicalPath, appExtensionsDirectory )
+		) {
 			return false;
 		}
 
-		return FileExists( arguments.fullPath );
+		return FileExists( canonicalPath );
+	}
+
+	private boolean function _isExtensionAssetPath( required string fullPath, required string extensionsDirectory ) {
+		var normalizedDirectory = _trimTrailingSeparator( arguments.extensionsDirectory );
+		var normalizedPath      = _trimTrailingSeparator( arguments.fullPath );
+
+		if ( !_isPathWithinDirectory( normalizedPath, normalizedDirectory ) ) {
+			return false;
+		}
+
+		var relativePath = Mid( normalizedPath, Len( normalizedDirectory ) + 2 );
+
+		return ReFindNoCase( "^[^\\/]+[\\/]assets[\\/].+", relativePath );
+	}
+
+	private boolean function _isPathWithinDirectory( required string fullPath, required string directory ) {
+		var normalizedDirectory = _trimTrailingSeparator( arguments.directory );
+		var normalizedPath      = _trimTrailingSeparator( arguments.fullPath );
+
+		return Len( normalizedPath ) > Len( normalizedDirectory )
+		    && Left( normalizedPath, Len( normalizedDirectory ) ) == normalizedDirectory
+		    && ReFind( "^[\\/]", Mid( normalizedPath, Len( normalizedDirectory ) + 1, 1 ) );
+	}
+
+	private string function _trimTrailingSeparator( required string path ) {
+		return ReReplace( arguments.path, "[\\/]+$", "" );
 	}
 
 	private string function _getEtag( required string fullPath ) {
