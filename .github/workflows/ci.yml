@@ -65,7 +65,7 @@ jobs:
         run: |
           cd ./system/assets &&
           npm install &&
-          grunt all &&
+          npx --no-install grunt all &&
           rm -rf node_modules
 
       - name: Generate release version number
