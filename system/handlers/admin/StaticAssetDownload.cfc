@@ -40,19 +40,29 @@ component {
 	}
 
 	private boolean function _isExtensionAssetPath( required string fullPath, required string extensionsDirectory ) {
-		if ( !_isPathWithinDirectory( arguments.fullPath, arguments.extensionsDirectory ) ) {
+		var normalizedDirectory = _trimTrailingSeparator( arguments.extensionsDirectory );
+		var normalizedPath      = _trimTrailingSeparator( arguments.fullPath );
+
+		if ( !_isPathWithinDirectory( normalizedPath, normalizedDirectory ) ) {
 			return false;
 		}
 
-		var relativePath = Mid( arguments.fullPath, Len( arguments.extensionsDirectory ) + 2 );
+		var relativePath = Mid( normalizedPath, Len( normalizedDirectory ) + 2 );
 
 		return ReFindNoCase( "^[^\\/]+[\\/]assets[\\/].+", relativePath );
 	}
 
 	private boolean function _isPathWithinDirectory( required string fullPath, required string directory ) {
-		return Len( arguments.fullPath ) > Len( arguments.directory )
-		    && Left( arguments.fullPath, Len( arguments.directory ) ) == arguments.directory
-		    && ReFind( "^[\\/]", Mid( arguments.fullPath, Len( arguments.directory ) + 1, 1 ) );
+		var normalizedDirectory = _trimTrailingSeparator( arguments.directory );
+		var normalizedPath      = _trimTrailingSeparator( arguments.fullPath );
+
+		return Len( normalizedPath ) > Len( normalizedDirectory )
+		    && Left( normalizedPath, Len( normalizedDirectory ) ) == normalizedDirectory
+		    && ReFind( "^[\\/]", Mid( normalizedPath, Len( normalizedDirectory ) + 1, 1 ) );
+	}
+
+	private string function _trimTrailingSeparator( required string path ) {
+		return ReReplace( arguments.path, "[\\/]+$", "" );
 	}
 
 	private string function _getEtag( required string fullPath ) {
