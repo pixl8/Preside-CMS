@@ -1,4 +1,4 @@
-component {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="frontendEditingService" inject="frontendEditingService";
 	property name="contentRendererService" inject="contentRendererService";
@@ -6,9 +6,8 @@ component {
 	property name="versioningService"      inject="versioningService";
 	property name="siteTreeService"        inject="siteTreeService";
 
-
 <!--- actions --->
-	public void function saveAction( event, rc, prc ) {
+	public any function saveAction( event, rc, prc ) {
 		var pageId   = rc.pageId   ?: "";
 		var object   = rc.object   ?: "";
 		var property = rc.property ?: "";
@@ -16,6 +15,10 @@ component {
 		var content  = rc.content  ?: "";
 		var renderer = rc.renderer ?: "";
 		var success  = "";
+
+		if ( !hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=[ pageId ] ) ) {
+			event.adminAccessDenied();
+		}
 
 		success = frontendEditingService.saveContent(
 			  object   = object
@@ -68,6 +71,10 @@ component {
 		var object   = rc.object   ?: "";
 		var property = rc.property ?: "";
 
+		if ( object != "page" || !presideObjectService.isPageType( object ) ) {
+			event.adminAccessDenied();
+		}
+
 		runEvent(
 			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
 			, prePostExempt  = true
@@ -88,6 +95,11 @@ component {
 		var property = rc.property ?: "";
 		var version  = Val( rc.version  ?: "" );
 		var result   = { success=true, content="" };
+
+		if ( object != "page" || !presideObjectService.isPageType( object ) ) {
+			event.adminAccessDenied();
+		}
+
 		var record   = presideObjectService.selectData(
 			  objectName       = object
 			, selectFields     = [ property ]
@@ -109,6 +121,11 @@ component {
 		var property = rc.property ?: "";
 		var version  = Val( rc.version  ?: "" );
 		var preview  = "";
+
+		if ( object != "page" || !presideObjectService.isPageType( object ) ) {
+			event.adminAccessDenied();
+		}
+
 		var record   = presideObjectService.selectData(
 			  objectName       = object
 			, selectFields     = [ property ]
