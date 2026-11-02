@@ -29,15 +29,36 @@ component {
 
 // PRIVATE HELPERS
 	private boolean function _fileExists( required string fullPath ) {
-		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
-		var extensionsDirectory  = ExpandPath( "/#appMapping#/extensions/" );
-		var appExtensionsDirectory  = ExpandPath( "/#appMapping#/extensions_app/" );
+		var canonicalPath          = GetCanonicalPath( arguments.fullPath );
+		var rootAllowedDirectory   = GetCanonicalPath( ExpandPath( "/preside/system/assets" ) );
+		var extensionsDirectory    = GetCanonicalPath( ExpandPath( "/#appMapping#/extensions" ) );
+		var appExtensionsDirectory = GetCanonicalPath( ExpandPath( "/#appMapping#/extensions_app" ) );
 
-		if ( ( Left( fullPath, Len( rootAllowedDirectory ) ) != rootAllowedDirectory && Left( fullPath, Len( extensionsDirectory ) ) != extensionsDirectory && Left( fullPath, Len( appExtensionsDirectory ) ) != appExtensionsDirectory ) || fullPath contains ".." ) {
+		if (
+			   !_isPathWithinDirectory( canonicalPath, rootAllowedDirectory )
+			&& !_isExtensionAssetPath( canonicalPath, extensionsDirectory )
+			&& !_isExtensionAssetPath( canonicalPath, appExtensionsDirectory )
+		) {
 			return false;
 		}
 
-		return FileExists( arguments.fullPath );
+		return FileExists( canonicalPath );
+	}
+
+	private boolean function _isExtensionAssetPath( required string fullPath, required string extensionsDirectory ) {
+		if ( !_isPathWithinDirectory( arguments.fullPath, arguments.extensionsDirectory ) ) {
+			return false;
+		}
+
+		var relativePath = Mid( arguments.fullPath, Len( arguments.extensionsDirectory ) + 2 );
+
+		return ReFindNoCase( "^[^\\/]+[\\/]assets[\\/].+", relativePath );
+	}
+
+	private boolean function _isPathWithinDirectory( required string fullPath, required string directory ) {
+		return Len( arguments.fullPath ) > Len( arguments.directory )
+		    && Left( arguments.fullPath, Len( arguments.directory ) ) == arguments.directory
+		    && ReFind( "^[\\/]", Mid( arguments.fullPath, Len( arguments.directory ) + 1, 1 ) );
 	}
 
 	private string function _getEtag( required string fullPath ) {
