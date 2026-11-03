@@ -4,7 +4,7 @@
 component {
 	property name="webflowConfigurationService" inject="webflowConfigurationService";
 
-	public string function index( event, rc, prc, args={} ) {
+	private string function index( event, rc, prc, args={} ) {
 		var fieldName    = args.name         ?: "";
 		var webflowField = args.webflowField ?: "webflow";
 		var typeField    = args.typeField    ?: "type";
@@ -35,6 +35,10 @@ component {
 	}
 
 	public struct function getInstanceOptions( event, rc, prc, args={} ) {
+		if ( !hasCmsPermission( "webflows.read" ) ) {
+			event.adminAccessDenied();
+		}
+
 		var webflowId    = args.webflowId    ?: ( rc.webflowId    ?: "" );
 		var selectedType = args.selectedType ?: ( rc.selectedType ?: "" );
 		var options      = { values=[], labels=[] };
