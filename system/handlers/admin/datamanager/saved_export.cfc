@@ -1,4 +1,4 @@
-component {
+component extends="preside.system.base.AdminHandler" {
 	property name="presideObjectService"   inject="presideObjectService";
 	property name="scheduledExportService" inject="scheduledExportService";
 	property name="customizationService"   inject="dataManagerCustomizationService";
@@ -130,6 +130,10 @@ component {
 	}
 
 	public void function adhocRunSavedExport( event, rc, prc, args={} ) {
+		if ( !hasCmsPermission( "savedExport.edit" ) ) {
+			event.adminAccessDenied();
+		}
+
 		var recordId = rc.savedExportId ?: "";
 
 		if ( !isEmptyString( recordId ) ) {
