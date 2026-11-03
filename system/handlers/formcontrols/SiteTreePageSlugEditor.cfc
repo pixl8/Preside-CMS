@@ -2,7 +2,7 @@
  * @feature presideForms and siteTree
  */
 component {
-	public string function index( event, rc, prc, args={} ) {
+	private string function index( event, rc, prc, args={} ) {
 		var parentPage = rc.parent_page ?: ( prc.page.parent_page ?: "" );
 
 		if ( Len( Trim( parentPage ) ) ) {
@@ -19,6 +19,10 @@ component {
 	}
 
 	public string function getParentPage( event, rc, prc, args={} ) {
+		if ( !hasCmsPermission( "sitetree.navigate" ) ) {
+			event.adminAccessDenied();
+		}
+
 		var parentUrl = event.buildLink(
 			  page        = rc.parent_page ?: ""
 			, siteId      = rc._sid ?: ""
