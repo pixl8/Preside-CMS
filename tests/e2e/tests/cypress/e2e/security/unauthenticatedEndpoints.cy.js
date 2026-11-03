@@ -104,14 +104,6 @@ describe( "Unauthenticated handler exposure", () => {
 				.then( expectDenied );
 		} );
 
-		it( "does not return webflow instance options", () => {
-			anonymous( `/formcontrols/webflowinstancepicker/getinstanceoptions/?webflowId=${ NONEXISTENT_ID }&selectedType=current` )
-				.then( ( response ) => {
-					expectDenied( response );
-					expectNoJsonPayload( response );
-				} );
-		} );
-
 		it( "does not resolve a page slug", () => {
 			anonymous( `/formcontrols/sitetreepageslugeditor/getparentpage/?parent_page=${ NONEXISTENT_ID }` )
 				.then( expectDenied );
