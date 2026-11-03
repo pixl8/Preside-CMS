@@ -20,30 +20,22 @@ component {
 	public boolean function saveContent( required string object, required string property, required string recordId, required string content ) {
 		var poService = $getPresideObjectService();
 
-		if ( poService.isPageType( arguments.object ) || arguments.object == "page" ) {
-			return _getSiteTreeService().editPage(
+		if ( arguments.object != "page" && !( poService.objectExists( arguments.object ) && poService.isPageType( arguments.object ) ) ) {
+			return false;
+		}
+
+		try {
+			_getSiteTreeService().editPage(
 				  id           = arguments.recordId
 				, isDraft      = true
 				, "#property#" = arguments.content
 			);
+		} catch ( any e ) {
+			$raiseError( e );
+			return false;
 		}
 
-		var result = poService.updateData(
-			  objectName = arguments.object
-			, data       = { "#property#" = arguments.content }
-			, id         = arguments.recordId
-			, isDraft    = true
-		);
-
-		$audit(
-			  action   = "frontend_save_draft"
-			, type     = "frontendeditor"
-			, detail   = Duplicate( arguments )
-			, recordId = arguments.recordId
-		);
-
-
-		return result;
+		return true;
 	}
 
 // GETTERS AND SETTERS
