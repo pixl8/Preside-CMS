@@ -106,7 +106,7 @@ component extends="preside.system.base.AdminHandler" {
 		,          boolean throwOnError    = false
 		,          boolean checkOperations = true
 	) {
-		return checkPermission( argumentCollection=arguments );
+		return checkPermission( argumentCollection=arguments, args={ key=arguments.key, throwOnError=arguments.throwOnError } );
 	}
 
 }
