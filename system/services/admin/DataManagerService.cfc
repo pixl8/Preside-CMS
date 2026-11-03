@@ -1095,7 +1095,7 @@ component {
 		for( var item in ListToArray( arguments.orderBy ) ) {
 			var safeItem = _safeOrderByItem( arguments.objectName, item );
 			if ( Len( safeItem ) ) {
-				kept.append( safeItem );
+				ArrayAppend( kept, safeItem );
 			}
 		}
 
@@ -1103,7 +1103,7 @@ component {
 			return arguments.fallback;
 		}
 
-		return kept.toList( ", " );
+		return ArrayToList( kept, ", " );
 	}
 
 	private string function _safeOrderByItem( required string objectName, required string item ) {
