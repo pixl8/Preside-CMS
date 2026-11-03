@@ -1,7 +1,7 @@
 /**
  * @feature admin and urlRedirects
  */
-component {
+component extends="preside.system.base.AdminHandler" {
 
 	variables.permissionBase = "urlRedirects";
 
@@ -21,7 +21,7 @@ component {
 			event.adminAccessDenied();
 		}
 
-		return true;
+		return hasPermission;
 	}
 
 	private string function preRenderAddRecordForm( event, rc, prc, args={} ) {
