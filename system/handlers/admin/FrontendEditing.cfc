@@ -19,6 +19,9 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=[ pageId ] ) ) {
 			event.adminAccessDenied();
 		}
+		if ( !presideObjectService.fieldExists( object, property ) ) {
+			event.adminAccessDenied();
+		}
 
 		success = frontendEditingService.saveContent(
 			  object   = object
@@ -43,7 +46,6 @@ component extends="preside.system.base.AdminHandler" {
 		var recordId = rc.recordId ?: "";
 		var pageId   = rc.pageId   ?: "";
 
-
 		if ( !hasCmsPermission( permissionKey="sitetree.publish", context="page", contextKeys=[ pageId ] ) ) {
 			event.adminAccessDenied();
 		}
@@ -53,7 +55,7 @@ component extends="preside.system.base.AdminHandler" {
 		} else {
 			versioningService.publishLatestDraft( object, recordId );
 			event.audit(
-				 action   = "frontend_publish_changes"
+				  action   = "frontend_publish_changes"
 				, type     = "frontendeditor"
 				, detail   = { object=object, recordId=recordId }
 				, recordId = recordId
@@ -96,7 +98,10 @@ component extends="preside.system.base.AdminHandler" {
 		var version  = Val( rc.version  ?: "" );
 		var result   = { success=true, content="" };
 
-		if ( object != "page" || !presideObjectService.isPageType( object ) ) {
+		if ( object != "page" && !presideObjectService.isPageType( object ) ) {
+			event.adminAccessDenied();
+		}
+		if ( !presideObjectService.fieldExists( object, property ) ) {
 			event.adminAccessDenied();
 		}
 
@@ -122,7 +127,10 @@ component extends="preside.system.base.AdminHandler" {
 		var version  = Val( rc.version  ?: "" );
 		var preview  = "";
 
-		if ( object != "page" || !presideObjectService.isPageType( object ) ) {
+		if ( object != "page" && !presideObjectService.isPageType( object ) ) {
+			event.adminAccessDenied();
+		}
+		if ( !presideObjectService.fieldExists( object, property ) ) {
 			event.adminAccessDenied();
 		}
 
