@@ -4,6 +4,9 @@
 component {
 	property name="applicationsService"        inject="applicationsService";
 	property name="adminAuthenticationService" inject="adminAuthenticationService";
+	property name="loginService"               inject="loginService";
+	property name="sessionStorage"             inject="sessionStorage";
+	property name="messageBox"                 inject="messagebox@cbmessagebox";
 
 	public void function preHandler( event, action, eventArguments ) {
 		if ( event.isStatelessRequest() && !adminAuthenticationService.allowsStatelessRequest( event.getCurrentEvent() ) ) {
