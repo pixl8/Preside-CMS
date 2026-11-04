@@ -1075,7 +1075,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var interceptArgs = {
-			  objectName   = rc.object ?: ""
+			  objectName   = objectName
 			, defaultValue = defaultValue
 			, extraFilters = extraFilters
 			, savedFilters = ListToArray( rc.savedFilters ?: "" )
