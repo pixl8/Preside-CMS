@@ -32,6 +32,6 @@ component {
 			ArrayPrepend( label, translateResource( uri="preside-objects.email_layout_config_item:renderer.labels.layout_prefix", data=[ layoutLabel ] ) );
 		}
 
-		return ArrayToList( label, " - " );
+		return EncodeForHtml( ArrayToList( label, " - " ) );
 	}
 }
