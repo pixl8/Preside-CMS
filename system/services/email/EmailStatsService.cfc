@@ -107,22 +107,54 @@ component {
 		  required string  templateId
 		,          boolean customTemplatesOnly = false
 	) {
-		var dateTo   = Now();
-		var dateFrom = DateAdd( "yyyy", -1, dateTo );
+		var dateTo       = Now();
+		var dateFrom     = DateAdd( "yyyy", -1, dateTo );
+		var filter       = {};
+		var extraFilters = [];
+
+		if ( Len( Trim( arguments.templateId ) ) ) {
+			filter.template = arguments.templateId;
+		}
+
+		if ( arguments.customTemplatesOnly ) {
+			ArrayAppend( extraFilters, {
+				  filter       = "email_template.is_system_email = :is_system_email"
+				, filterParams = { is_system_email = { type="cf_sql_boolean", value=false } }
+			});
+		}
+
+		var counts = statsSummaryDao.selectData(
+			  selectFields = [
+				  "sum( case when hour_start >= #Val( _epochInHours( dateFrom ) )# and hour_start <= #Val( _epochInHours( dateTo ) )# then send_count else 0 end ) as send_count_filtered"
+				, "sum( send_count ) as send_count"
+				, "sum( delivery_count ) as delivery_count"
+				, "sum( fail_count ) as fail_count"
+				, "sum( unique_open_count ) as unique_open_count"
+				, "sum( open_count ) as open_count"
+				, "sum( unique_click_count ) as unique_click_count"
+				, "sum( click_count ) as click_count"
+				, "sum( unsubscribe_count ) as unsubscribe_count"
+				, "sum( spam_count ) as spam_count"
+				, "sum( bot_open_count ) as bot_open_count"
+				, "sum( bot_click_count ) as bot_click_count"
+			  ]
+			, filter       = filter
+			, extraFilters = extraFilters
+		);
 
 		var stats = {
-			  sendCountFiltered = getStatCount( templateId=arguments.templateId, field="send_count"        , customTemplatesOnly=arguments.customTemplatesOnly, dateFrom=dateFrom, dateTo=dateTo )
-			, sendCount         = getStatCount( templateId=arguments.templateId, field="send_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
-			, deliveryCount     = getStatCount( templateId=arguments.templateId, field="delivery_count"    , customTemplatesOnly=arguments.customTemplatesOnly )
-			, bounceCount       = getStatCount( templateId=arguments.templateId, field="fail_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
-			, uniqueOpenCount   = getStatCount( templateId=arguments.templateId, field="unique_open_count" , customTemplatesOnly=arguments.customTemplatesOnly )
-			, totalOpenCount    = getStatCount( templateId=arguments.templateId, field="open_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
-			, uniqueClickCount  = getStatCount( templateId=arguments.templateId, field="unique_click_count", customTemplatesOnly=arguments.customTemplatesOnly )
-			, totalClickCount   = getStatCount( templateId=arguments.templateId, field="click_count"       , customTemplatesOnly=arguments.customTemplatesOnly )
-			, unsubscribeCount  = getStatCount( templateId=arguments.templateId, field="unsubscribe_count" , customTemplatesOnly=arguments.customTemplatesOnly )
-			, complaintCount    = getStatCount( templateId=arguments.templateId, field="spam_count"        , customTemplatesOnly=arguments.customTemplatesOnly )
-			, botOpenCount      = getStatCount( templateId=arguments.templateId, field="bot_open_count"    , customTemplatesOnly=arguments.customTemplatesOnly )
-			, botClickCount     = getStatCount( templateId=arguments.templateId, field="bot_click_count"   , customTemplatesOnly=arguments.customTemplatesOnly )
+			  sendCountFiltered = Val( counts.send_count_filtered )
+			, sendCount         = Val( counts.send_count )
+			, deliveryCount     = Val( counts.delivery_count )
+			, bounceCount       = Val( counts.fail_count )
+			, uniqueOpenCount   = Val( counts.unique_open_count )
+			, totalOpenCount    = Val( counts.open_count )
+			, uniqueClickCount  = Val( counts.unique_click_count )
+			, totalClickCount   = Val( counts.click_count )
+			, unsubscribeCount  = Val( counts.unsubscribe_count )
+			, complaintCount    = Val( counts.spam_count )
+			, botOpenCount      = Val( counts.bot_open_count )
+			, botClickCount     = Val( counts.bot_click_count )
 		};
 
 		if ( ( stats.bounceCount + stats.deliveryCount ) > stats.sendCount ) {
