@@ -1071,6 +1071,7 @@ component {
 			, apiManager                      = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, restTokenAuth                   = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "apiManager" ] }
 			, adminCsrfProtection             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
+			, allowDirectEventDispatch        = { enabled=false, siteTemplates=[ "*" ] }
 			, fullPageCaching                 = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "cms" ] }
 			, fullPageCachingForLoggedInUsers = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "websiteUsers" ] }
 			, delayedViewlets                 = { enabled=true , siteTemplates=[ "*" ] }
