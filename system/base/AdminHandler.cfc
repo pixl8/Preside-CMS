@@ -6,7 +6,7 @@ component {
 	property name="adminAuthenticationService" inject="adminAuthenticationService";
 
 	public void function preHandler( event, action, eventArguments ) {
-		if ( event.isStatelessRequest() ) {
+		if ( event.isStatelessRequest() && !adminAuthenticationService.allowsStatelessRequest( event.getCurrentEvent() ) ) {
 			event.adminAccessDenied();
 		}
 
