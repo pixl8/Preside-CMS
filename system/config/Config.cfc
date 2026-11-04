@@ -374,6 +374,7 @@ component {
 		settings.notificationCountLimit      = 100;
 		settings.showNonLiveContentByDefault = true;
 		settings.adminLoginProviders         = [ "preside" ];
+		settings.adminAuthenticationExemptEvents = [];
 	}
 
 	private void function __setupAdminNavigation() {

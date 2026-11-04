@@ -41,6 +41,44 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "configured exemptions", function(){
+			it( "exempts a configured event and its child actions", function(){
+				var service = _getService( [ "admin.custom.publicHook" ] );
+
+				expect( service.isAdminAuthenticationExempt( "admin.custom.publicHook" ) ).toBeTrue();
+				expect( service.isAdminAuthenticationExempt( "admin.custom.publicHook.index" ) ).toBeTrue();
+				expect( service.eventRequiresAdminAuthentication( "admin.custom.publicHook.index" ) ).toBeFalse();
+			} );
+
+			it( "matches a configured event without case sensitivity", function(){
+				var service = _getService( [ "Admin.Custom.PublicHook" ] );
+
+				expect( service.isAdminAuthenticationExempt( "admin.custom.publichook.detail" ) ).toBeTrue();
+			} );
+
+			it( "does not exempt a longer event name that only shares a prefix", function(){
+				var service = _getService( [ "admin.custom.publicHook" ] );
+
+				expect( service.isAdminAuthenticationExempt( "admin.custom.publicHooked" ) ).toBeFalse();
+				expect( service.isAdminAuthenticationExempt( "admin.datamanager.index" ) ).toBeFalse();
+			} );
+
+			it( "ignores a blank entry and an entry that is not an event name", function(){
+				var service = _getService( [ "", "admin" ] );
+
+				expect( service.isAdminAuthenticationExempt( "admin.datamanager.index" ) ).toBeFalse();
+				expect( service.eventRequiresAdminAuthentication( "admin.datamanager.index" ) ).toBeTrue();
+			} );
+
+			it( "allows a stateless request to a configured event", function(){
+				var service = _getService( [ "admin.custom.publicHook" ] );
+
+				expect( service.allowsStatelessRequest( "admin.custom.publicHook.index" ) ).toBeTrue();
+				expect( service.backstopDeniesStatelessRequest( "admin.custom.publicHook.index" ) ).toBeFalse();
+				expect( service.backstopDeniesStatelessRequest( "admin.login.index" ) ).toBeTrue();
+			} );
+		} );
+
 		describe( "backstopDeniesStatelessRequest()", function(){
 			it( "denies a stateless admin request", function(){
 				expect( _getService().backstopDeniesStatelessRequest( "admin.login.index" ) ).toBeTrue();
@@ -57,8 +95,12 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 	}
 
-	private any function _getService() {
-		return new preside.system.services.admin.AdminAuthenticationService();
+	private any function _getService( array exemptEvents=[] ) {
+		var service = new preside.system.services.admin.AdminAuthenticationService();
+
+		service.setAdminAuthenticationExemptEvents( arguments.exemptEvents );
+
+		return service;
 	}
 
 }
