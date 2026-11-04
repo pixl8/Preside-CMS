@@ -67,7 +67,10 @@ describe( "Admin authentication boundary", () => {
 		} );
 
 		it( "does not run that handler when the event is supplied on the request", () => {
-			anonymous( "/?event=admin.devtools.terminal.index" ).then( expectLoginRedirect );
+			anonymous( "/?event=admin.devtools.terminal.index" ).then( ( response ) => {
+				expect( response.status, "the event parameter must not dispatch a different handler" ).to.eq( 200 );
+				expect( response.body, "the request must fall through to the normal homepage" ).to.include( "<h1>Homepage</h1>" );
+			} );
 		} );
 	} );
 
