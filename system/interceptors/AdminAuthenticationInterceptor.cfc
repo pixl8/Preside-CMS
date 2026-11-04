@@ -5,7 +5,7 @@ component extends="coldbox.system.Interceptor" {
 
 	public void function configure() {}
 
-	public void function preEvent( event ) {
+	public void function preProcess( event ) {
 		var eventName = "";
 
 		if ( !featureService.isFeatureEnabled( "admin" ) ) {

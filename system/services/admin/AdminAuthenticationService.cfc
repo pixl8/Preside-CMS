@@ -6,6 +6,10 @@ component accessors=true {
 
 	property name="adminAuthenticationExemptEvents" type="array" inject="coldbox:setting:adminAuthenticationExemptEvents";
 
+	public function init() {
+		return this;
+	}
+
 	public boolean function eventRequiresAdminAuthentication( required string eventName ) {
 		return _isAdminEvent( arguments.eventName ) && !isAdminAuthenticationExempt( arguments.eventName );
 	}
