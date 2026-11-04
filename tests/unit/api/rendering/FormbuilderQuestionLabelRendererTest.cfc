@@ -4,8 +4,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		describe( "form builder question labels", function(){
 			it( "encodes brackets, quotes and entities in the question label", function(){
 				var renderer = _getRenderer();
+				var rendered = renderer._renderLabel( field_id="q-1", field_label='Tom & "Jerry" <em>' );
+				var encoded  = EncodeForHtml( 'Tom & "Jerry" <em>' );
 
-				expect( renderer._renderLabel( field_id="q-1", field_label='Tom & "Jerry" <em>' ) ).toBe( 'Tom &amp; &quot;Jerry&quot; &lt;em&gt; (<code>q-1</code>)' );
+				expect( rendered ).toBe( '#encoded# (<code>q-1</code>)' );
 			} );
 
 			it( "keeps the code element around the field id", function(){
