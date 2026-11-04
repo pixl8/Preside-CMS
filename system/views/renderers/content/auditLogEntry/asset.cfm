@@ -8,7 +8,7 @@
 
 <cfscript>
 	assetUrl  = event.buildAdminLink( linkTo='assetmanager.editAsset', queryString='asset=' & args.detail.id );
-	assetLink = '<a href="#assetUrl#">#args.detail.title#</a>';
+	assetLink = '<a href="#EncodeForHtmlAttribute( assetUrl )#">#EncodeForHtml( args.detail.title )#</a>';
 	message = translateResource(
 		  uri  = "auditlog.assetManager:#args.action#.message"
 		, data = [ args.userLink, assetLink ]
