@@ -3,7 +3,7 @@
 <cfparam name="args.recordLabel" default="" />
 
 <cfoutput>
-	<cfset recordLabel = isTrue( args.labelContainsMarkup ?: false ) ? args.recordLabel : EncodeForHtml( args.recordLabel ) />
+	<cfset recordLabel = isTrue( args.labelIsHtml ?: false ) ? args.recordLabel : EncodeForHtml( args.recordLabel ) />
 	<cfif args.recordLink.len()>
 		<a href="#EncodeForHtmlAttribute( args.recordLink )#">#recordLabel#</a>
 	<cfelse>
