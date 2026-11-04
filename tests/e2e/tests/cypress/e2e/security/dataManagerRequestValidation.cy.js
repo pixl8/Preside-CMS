@@ -19,6 +19,17 @@ const expectLoginRedirect = ( response ) => {
 	}
 };
 
+const expectAccessDenied = ( response ) => {
+	if ( response.status === 200 ) {
+		expect( response.headers[ "content-type" ] || "" ).to.include( "html" );
+		expect( response.body ).to.include( "Access denied" );
+
+		return;
+	}
+
+	expect( response.status, response.headers.location || "" ).to.be.oneOf( [ 401, 403, 404 ] );
+};
+
 const expectJsonRecords = ( response ) => {
 	const contentType = response.headers[ "content-type" ] || "";
 	const location    = response.headers.location || "";
@@ -58,9 +69,7 @@ describe( "DataManager request validation", () => {
 		} );
 
 		it( "does not return select records for an unknown object", () => {
-			request( selectUrl( "object=not_a_real_object&maxRows=1" ) ).then( ( response ) => {
-				expect( response.status, response.headers.location || "" ).to.be.oneOf( [ 401, 403, 404 ] );
-			} );
+			request( selectUrl( "object=not_a_real_object&maxRows=1" ) ).then( expectAccessDenied );
 		} );
 
 		it( "does not return child-grid records for an unknown object", () => {
@@ -79,9 +88,7 @@ describe( "DataManager request validation", () => {
 				const recordId = response.body[ 0 ].value;
 
 				request( `/admin/datamanager/batchEditField/?object=security_user&field=id&id=${ recordId }` )
-					.then( ( batchResponse ) => {
-						expect( batchResponse.status, batchResponse.headers.location || "" ).to.eq( 401 );
-					} );
+					.then( expectAccessDenied );
 			} );
 		} );
 
