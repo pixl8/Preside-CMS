@@ -37,17 +37,17 @@ component {
 
 		if ( processed.seconds > 86400 ) {
 			processed.days  = Floor( processed.seconds / 86400 );
-			processed.hours = processed.seconds = processed.seconds - ( processed.days * 86400 );
+			processed.seconds = processed.seconds - ( processed.days * 86400 );
 		}
 
 		if ( processed.seconds > 3600 ) {
 			processed.hours   = Floor( processed.seconds / 3600 );
-			processed.minutes = processed.seconds = processed.seconds - ( processed.hours * 3600 );
+			processed.seconds = processed.seconds - ( processed.hours * 3600 );
 		}
 
 		if ( processed.seconds > 60 ) {
 			processed.minutes = Floor( processed.seconds / 60 );
-			processed.seconds = processed.seconds = Int( processed.seconds % 60 );
+			processed.seconds = processed.seconds - ( processed.minutes * 60 );
 		}
 
 		return processed;
