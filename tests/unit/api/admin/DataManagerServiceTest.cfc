@@ -233,6 +233,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			it( "should order many-to-one fields by the relationship alias label field", function(){
 				var dataManagerService = _getService();
 
+				_stubOrderByFields( [ "main_contact" ] );
 				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
 					main_contact = { name="main_contact", relationship="many-to-one", relatedTo="crm_contact" }
 				} );
@@ -245,6 +246,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			it( "should still use the relationship alias when the related object label is a formula", function(){
 				var dataManagerService = _getService();
 
+				_stubOrderByFields( [ "main_contact" ] );
 				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
 					main_contact = { name="main_contact", relationship="many-to-one", relatedTo="crm_contact" }
 				} );
@@ -264,6 +266,107 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "label asc" ) ).toBe( "label asc" );
 			} );
+
+			it( "should drop a clause that is not an object field", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "label" ] );
+				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
+					label = { name="label", relationship="none" }
+				} );
+				makePublic( dataManagerService, "_prepareOrderByForObject" );
+
+				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "label asc, label;select" ) ).toBe( "label asc" );
+			} );
+		} );
+
+		describe( "sanitizeOrderBy()", function(){
+			it( "should keep a real field and an asc or desc direction", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "known_as" ] );
+
+				expect( dataManagerService.sanitizeOrderBy( objectName="security_user", orderBy="known_as desc", fallback="label" ) ).toBe( "known_as desc" );
+			} );
+
+			it( "should fall back when the direction is not asc or desc", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "known_as" ] );
+
+				expect( dataManagerService.sanitizeOrderBy( objectName="security_user", orderBy="known_as not_a_direction", fallback="label" ) ).toBe( "label" );
+			} );
+
+			it( "should keep the literal label sort without a matching property", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [] );
+
+				expect( dataManagerService.sanitizeOrderBy( objectName="security_user", orderBy="label", fallback="id" ) ).toBe( "label" );
+			} );
+		} );
+
+		describe( "_prependPreferredValueSort()", function(){
+			it( "should escape a quote in the preferred value", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "id" ] );
+				makePublic( dataManagerService, "_prependPreferredValueSort" );
+
+				expect( dataManagerService._prependPreferredValueSort(
+					  objectName  = "security_user"
+					, orderBy     = "label"
+					, preferField = "id"
+					, preferValue = "o'brien"
+				) ).toBe( "CASE WHEN security_user.id = 'o''brien' THEN 0 ELSE 1 END, label" );
+			} );
+
+			it( "should ignore a preferred value that contains a backslash", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "id" ] );
+				makePublic( dataManagerService, "_prependPreferredValueSort" );
+
+				expect( dataManagerService._prependPreferredValueSort(
+					  objectName  = "security_user"
+					, orderBy     = "label"
+					, preferField = "id"
+					, preferValue = "a" & Chr( 92 ) & "b"
+				) ).toBe( "label" );
+			} );
+
+			it( "should ignore a preferred field that is not on the object", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "id" ] );
+				makePublic( dataManagerService, "_prependPreferredValueSort" );
+
+				expect( dataManagerService._prependPreferredValueSort(
+					  objectName  = "security_user"
+					, orderBy     = "label"
+					, preferField = "not_a_field"
+					, preferValue = "x"
+				) ).toBe( "label" );
+			} );
+		} );
+	}
+
+	private void function _stubOrderByFields( required array fieldNames ) {
+		var allowedFields = arguments.fieldNames;
+
+		mockPoService.$( "fieldExists" ).$callback( function(){
+			var fieldName = arguments.fieldName ?: ( arguments[ 2 ] ?: "" );
+
+			return allowedFields.findNoCase( fieldName ) > 0;
+		} );
+		mockPoService.$( "getObjectProperty" ).$callback( function(){
+			var fieldName = arguments.propertyName ?: ( arguments[ 2 ] ?: "" );
+
+			if ( allowedFields.findNoCase( fieldName ) ) {
+				return { name=fieldName };
+			}
+
+			throw( type="preside.object.property.not.found", message="missing field" );
 		} );
 	}
 
