@@ -426,6 +426,49 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		abort;
 	}
 
+	public void function denyUnauthenticatedAdminRequest() {
+		var loginService    = getModel( "loginService" );
+		var sessionStorage  = getModel( "sessionStorage" );
+		var messageBox      = getModel( "messagebox@cbmessagebox" );
+		var i18n            = getModel( "i18n" );
+		var userIsAdmin     = isAdminUser();
+		var isAuthenticated = userIsAdmin && !loginService.twoFactorAuthenticationRequired();
+		var postLoginUrl    = "";
+		var rc              = getCollection();
+
+		if ( isAuthenticated ) {
+			return;
+		}
+
+		if ( isAjax() ) {
+			content reset=true type="application/json";
+			header statuscode="401" statustext="Access denied";
+			echo( SerializeJson( { error="access denied" } ) );
+			abort;
+		} else if ( isActionRequest() ) {
+			if ( Len( Trim( cgi.http_referer ) ) ) {
+				postLoginUrl = cgi.http_referer;
+
+				if ( getHttpMethod() == "POST" ) {
+					sessionStorage.setVar( "_unsavedFormData", Duplicate( form ) );
+					messageBox.warn( i18n.translateResource( uri="cms:loggedout.saveddata.warning" ) );
+				} else {
+					messageBox.warn( i18n.translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
+				}
+			} else {
+				postLoginUrl = buildAdminLink( linkTo="" );
+			}
+		} else {
+			postLoginUrl = rc.postLoginUrl ?: getCurrentUrl();
+		}
+
+		if ( userIsAdmin ) {
+			getController().setNextEvent( url=buildAdminLink( "login.twoStep" ), persistStruct={ postLoginUrl=postLoginUrl } );
+		} else {
+			getController().setNextEvent( url=buildAdminLink( "login" ), persistStruct={ postLoginUrl=postLoginUrl } );
+		}
+	}
+
 	public void function audit( userId=getAdminUserId() ) {
 		return getModel( "AuditService" ).log( argumentCollection = arguments );
 	}
