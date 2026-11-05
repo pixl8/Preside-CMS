@@ -594,6 +594,10 @@ component extends="preside.system.base.AdminHandler" {
 		var fieldName   = translateResource( uri="#presideObjectService.getResourceBundleUriRoot( objectName )#field.#field#.title", defaultValue=field );
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+		if ( !dataManagerService.listBatchEditableFields( objectName ).findNoCase( field ) ) {
+			event.adminAccessDenied();
+		}
+
 		if ( !recordCount ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle  ] ) );
 			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
@@ -644,6 +648,9 @@ component extends="preside.system.base.AdminHandler" {
 		var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+		if ( !dataManagerService.listBatchEditableFields( objectName ).findNoCase( updateField ) ) {
+			event.adminAccessDenied();
+		}
 		if ( !sourceIds.len() ) {
 			messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ objectTitle ] ) );
 			setNextEvent( url=event.buildAdminLink( objectName=objectName, operation="listing" ) );
@@ -816,6 +823,8 @@ component extends="preside.system.base.AdminHandler" {
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
 
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
@@ -872,12 +881,23 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
 		var objectName     = prc.objectName ?: "";
 		var extraFilters   = [];
+
+		if ( !Len( Trim( objectName ) ) || !presideObjectService.objectExists( objectName ) ) {
+			event.adminAccessDenied();
+		}
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 		var filterByFields = ListToArray( rc.filterByField ?: ( rc.filterByFields ?: "" ) );
 		var bypassTenants  = listToArray( rc.bypassTenants ?: "" );
 		var filterValue    = "";
 		var orderBy        = rc.orderBy       ?: "label";
 		var labelRenderer  = rc.labelRenderer ?: "";
 		var useCache       = IsTrue( rc.useCache ?: "" );
+		var targetIdField  = Len( Trim( rc.targetIdField ?: "" ) ) ? rc.targetIdField : presideObjectService.getIdField( objectName );
+
+		if ( !presideObjectService.fieldExists( objectName, targetIdField ) ) {
+			targetIdField = presideObjectService.getIdField( objectName );
+		}
 
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
@@ -887,7 +907,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var records = dataManagerService.getRecordsForAjaxSelect(
-			  objectName    = rc.object  ?: ""
+			  objectName    = objectName
 			, maxRows       = rc.maxRows ?: 1000
 			, searchQuery   = rc.q       ?: ""
 			, savedFilters  = ListToArray( rc.savedFilters ?: "" )
@@ -897,6 +917,9 @@ component extends="preside.system.base.AdminHandler" {
 			, labelRenderer = labelRenderer
 			, bypassTenants = bypassTenants
 			, useCache      = useCache
+			, preferValue   = rc.defaultValue  ?: ""
+			, preferField   = targetIdField
+			, idField       = targetIdField
 		);
 
 		event.renderData( type="json", data=records );
@@ -967,9 +990,7 @@ component extends="preside.system.base.AdminHandler" {
 		var relationshipKey = rc.relationshipKey ?: "";
 		var parentId        = rc.parentId ?: "";
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "delete"   ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 		rc.forceDelete = true;
 
 		runEvent(
@@ -986,9 +1007,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function addOneToManyRecordAction( event, rc, prc ) {
 		var objectName = prc.objectName ?: "";
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "add" ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
 		runEvent(
 			  event          = "admin.DataManager._addOneToManyRecordAction"
@@ -1149,9 +1168,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName  = prc.objectName ?: "";
 		var objectTitle = prc.objectTitle ?: "";
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "add"   ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
 		var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
 
@@ -1171,9 +1188,7 @@ component extends="preside.system.base.AdminHandler" {
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "edit"   ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
 		prc.record = queryRowToStruct( prc.record );
 
@@ -1194,9 +1209,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		rc[ relationshipKey ] = parentId;
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "edit"   ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"
@@ -3518,7 +3531,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getNodesForTreeView( event, rc, prc ) {
-		var objectName = rc.object ?: "";
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+
+		if ( !Len( Trim( objectName ) ) || !presideObjectService.objectExists( objectName ) ) {
+			event.adminAccessDenied();
+		}
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
 		var args = {
 			  parent             = rc.parentId ?: ""
 			, objectName         = objectName
