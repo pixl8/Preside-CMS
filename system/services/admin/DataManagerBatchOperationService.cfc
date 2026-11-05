@@ -103,6 +103,7 @@ component displayName="Data manager batch operation service" {
 							, filter                  = { id=sourceId }
 							, clearCaches             = false
 							, skipTrivialInterceptors = true
+							, versionAuthor           = arguments.auditUserId
 						);
 					} else {
 						var existingIds  = [];
@@ -143,6 +144,7 @@ component displayName="Data manager batch operation service" {
 							, updateManyToManyRecords = true
 							, clearCaches             = false
 							, skipTrivialInterceptors = true
+							, versionAuthor           = arguments.auditUserId
 						);
 					}
 
