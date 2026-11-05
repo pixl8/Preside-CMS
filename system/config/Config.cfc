@@ -938,6 +938,7 @@ component {
 			, apiManager                      = { enabled=false, siteTemplates=[ "*" ] }
 			, restTokenAuth                   = { enabled=false, siteTemplates=[ "*" ] }
 			, adminCsrfProtection             = { enabled=true , siteTemplates=[ "*" ] }
+			, allowDirectEventDispatch        = { enabled=false, siteTemplates=[ "*" ] }
 			, fullPageCaching                 = { enabled=false, siteTemplates=[ "*" ] }
 			, fullPageCachingForLoggedInUsers = { enabled=false, siteTemplates=[ "*" ] }
 			, healthchecks                    = { enabled=true , siteTemplates=[ "*" ] }

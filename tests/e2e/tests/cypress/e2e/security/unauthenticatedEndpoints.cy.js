@@ -4,6 +4,10 @@
 // vulnerable build returns an empty result rather than real data, and a fixed
 // build denies the request. Redirects are not followed, because the denial is a
 // redirect to the admin login and following it would hide the status.
+//
+// Requests that name a handler through the event parameter are different. Direct
+// event dispatch is disabled, so those requests must be served by the normal
+// homepage route rather than reaching the named handler.
 
 const NONEXISTENT_ID = "00000000-0000-0000-0000-000000000000";
 
@@ -30,6 +34,15 @@ const expectNoJsonPayload = ( response ) => {
 	expect( contentType, "a denied request must not return the JSON payload" ).to.not.include( "json" );
 };
 
+const expectHomepageRoute = ( response ) => {
+	const location = response.headers[ "location" ] || "";
+
+	expect( response.status, "direct event dispatch must leave the normal homepage route in place" ).to.eq( 200 );
+	expect( location, "the named handler must not redirect this request" ).to.not.include( "/admin/login" );
+	expect( response.body, "the homepage must be rendered" ).to.include( "<h1>Homepage</h1>" );
+	expectNoJsonPayload( response );
+};
+
 describe( "Unauthenticated handler exposure", () => {
 	describe( "Frontend editing", () => {
 		const versionContent = {
@@ -47,16 +60,13 @@ describe( "Unauthenticated handler exposure", () => {
 				} );
 		} );
 
-		it( "does not return record content when the event is passed as a query parameter", () => {
+		it( "does not dispatch the version lookup when the event is passed as a query parameter", () => {
 			const query = new URLSearchParams( { event : "admin.frontendediting.getVersionContent", ...versionContent } ).toString();
 
-			anonymous( `/?${ query }` ).then( ( response ) => {
-				expectDenied( response );
-				expectNoJsonPayload( response );
-			} );
+			anonymous( `/?${ query }` ).then( expectHomepageRoute );
 		} );
 
-		it( "does not save content through a POST body event", () => {
+		it( "does not dispatch the save action through a POST body event", () => {
 			anonymous( "/", {
 				  method : "POST"
 				, form   : true
@@ -67,10 +77,7 @@ describe( "Unauthenticated handler exposure", () => {
 					, recordId : NONEXISTENT_ID
 					, content  : "security-regression-probe"
 				}
-			} ).then( ( response ) => {
-				expectDenied( response );
-				expectNoJsonPayload( response );
-			} );
+			} ).then( expectHomepageRoute );
 		} );
 	} );
 
