@@ -598,6 +598,8 @@ component {
 		,          array   bypassTenants = []
 		,          boolean useCache      = false
 		,          string  idField       = ""
+		,          string  preferValue   = ""
+		,          string  preferField   = ""
 	) {
 		var result = [];
 		var records = "";
@@ -635,6 +637,17 @@ component {
 			args.selectFields.delete( "id" );
 		}
 		args.selectFields.append( "#arguments.objectName#.#idField# as id" );
+		args.orderBy = sanitizeOrderBy(
+			  objectName = arguments.objectName
+			, orderBy    = args.orderBy
+			, fallback   = labelField
+		);
+		args.orderBy = _prependPreferredValueSort(
+			  objectName  = arguments.objectName
+			, orderBy     = args.orderBy
+			, preferField = Len( Trim( arguments.preferField ) ) ? arguments.preferField : idField
+			, preferValue = arguments.preferValue
+		);
 
 		if ( arguments.ids.len() ) {
 			args.filter = { "#idField#" = arguments.ids };
@@ -993,8 +1006,107 @@ component {
 		return sqlFields;
 	}
 
+	public string function sanitizeOrderBy(
+		  required string objectName
+		,          string orderBy  = ""
+		,          string fallback = ""
+	) {
+		var kept = [];
+
+		for( var item in ListToArray( arguments.orderBy ) ) {
+			var safeItem = _safeOrderByItem( arguments.objectName, item );
+			if ( Len( safeItem ) ) {
+				ArrayAppend( kept, safeItem );
+			}
+		}
+
+		if ( !kept.len() ) {
+			return arguments.fallback;
+		}
+
+		return ArrayToList( kept, ", " );
+	}
+
+	private string function _safeOrderByItem( required string objectName, required string item ) {
+		var trimmed    = Trim( arguments.item );
+		var expression = trimmed;
+		var direction  = "";
+		var matches    = ReFindNoCase( "^(.*\S)\s+(asc|desc)$", trimmed, 1, true );
+
+		if ( !Len( trimmed ) ) {
+			return "";
+		}
+
+		if ( ArrayLen( matches.pos ?: [] ) > 2 && matches.pos[ 3 ] > 0 ) {
+			expression = Trim( Mid( trimmed, matches.pos[ 2 ], matches.len[ 2 ] ) );
+			direction  = " " & LCase( Mid( trimmed, matches.pos[ 3 ], matches.len[ 3 ] ) );
+		}
+
+		if ( !ReFind( "^[A-Za-z_][A-Za-z0-9_$.]*$", expression ) ) {
+			return "";
+		}
+
+		if ( expression == "label" || _orderByFieldExists( arguments.objectName, expression ) ) {
+			return expression & direction;
+		}
+
+		if ( ListLen( expression, "." ) == 2 && CompareNoCase( ListFirst( expression, "." ), arguments.objectName ) == 0 ) {
+			var bareField = ListRest( expression, "." );
+			if ( bareField == "label" || _orderByFieldExists( arguments.objectName, bareField ) ) {
+				return bareField & direction;
+			}
+		}
+
+		return "";
+	}
+
+	private boolean function _orderByFieldExists( required string objectName, required string fieldName ) {
+		var poService = _getPresideObjectService();
+
+		if ( !Find( ".", arguments.fieldName ) ) {
+			return poService.fieldExists( arguments.objectName, arguments.fieldName );
+		}
+
+		try {
+			poService.getObjectProperty( arguments.objectName, arguments.fieldName );
+			return true;
+		} catch ( any e ) {
+			return false;
+		}
+	}
+
+	private string function _prependPreferredValueSort(
+		  required string objectName
+		, required string orderBy
+		, required string preferField
+		, required string preferValue
+	) {
+		if ( !Len( arguments.preferValue ) || !_orderByFieldExists( arguments.objectName, arguments.preferField ) ) {
+			return arguments.orderBy;
+		}
+
+		if ( _preferredValueBreaksSqlStringLiteral( arguments.preferValue ) ) {
+			return arguments.orderBy;
+		}
+
+		var escapedValue  = Replace( arguments.preferValue, "'", "''", "all" );
+		var preferredSort = "CASE WHEN #arguments.objectName#.#arguments.preferField# = '#escapedValue#' THEN 0 ELSE 1 END";
+
+		if ( Len( arguments.orderBy ) ) {
+			return preferredSort & ", " & arguments.orderBy;
+		}
+
+		return preferredSort;
+	}
+
+	private boolean function _preferredValueBreaksSqlStringLiteral( required string value ) {
+		var backslash = Chr( 92 );
+
+		return Find( backslash, arguments.value ) > 0;
+	}
+
 	private string function _prepareOrderByForObject( required string objectName, required string orderBy ) {
-		var orderByItems = ListToArray( Trim( arguments.orderBy ) );
+		var orderByItems = ListToArray( sanitizeOrderBy( arguments.objectName, arguments.orderBy ) );
 		var newOrderBy   = [];
 
 		for( var item in orderByItems ) {
