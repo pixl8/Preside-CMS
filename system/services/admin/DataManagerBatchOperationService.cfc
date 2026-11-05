@@ -9,6 +9,8 @@
  */
 component displayName="Data manager batch operation service" {
 
+	property name="dataManagerService" inject="dataManagerService";
+
 // CONSTRUCTOR
 	/**
 	 *
@@ -41,7 +43,7 @@ component displayName="Data manager batch operation service" {
 		,          any     progress
 	) {
 		var pobjService         = $getPresideObjectService();
-		var batchEditableFields = $getColdbox().getInstance( "dataManagerService" ).listBatchEditableFields( arguments.objectName );
+		var batchEditableFields = dataManagerService.listBatchEditableFields( arguments.objectName );
 
 		if ( !batchEditableFields.findNoCase( arguments.fieldName ) ) {
 			arguments.logger?.warn( "Field [#arguments.fieldName#] is not batch editable on [#arguments.objectName#]." );
