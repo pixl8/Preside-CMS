@@ -4,7 +4,7 @@
 <cfparam name="args.userLink"         type="string" />
 
 <cfscript>
-	args.userLink  = '<a href="#args.userLink#">#args.known_as#</a>';
+	args.userLink  = '<a href="#EncodeForHtmlAttribute( args.userLink )#">#EncodeForHtml( args.known_as )#</a>';
 
 	switch( args.action ) {
 		case "add_folder":

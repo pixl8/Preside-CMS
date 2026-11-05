@@ -13,7 +13,7 @@ component {
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
 		var known_as     = args.known_as          ?: "";
-		var userLink     = args.userLink          ?: "";
+		var userLink     = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var objectName   = args.detail.objectName ?: "";
 
 		var labelField   = objectName.len() ? presideObjectService.getObjectAttribute( objectName, "labelField" ) : "";
@@ -23,12 +23,11 @@ component {
 			recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
 		} catch (PresideObjectService.no.label.field e) {}
 
-		var userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
 		var objectTitle  = translateResource( uri="preside-objects.#objectName#:title.singular" );
 		var objectUrl    = event.buildAdminLink( objectName=objectName, operation="listing" );
-		var objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';
+		var objectLink   = _linkedAdminText( objectUrl, objectTitle );
 		var recordUrl    = event.buildAdminLink( objectName=objectName, recordId=record_id );
-		var recordLink   = '<a href="#recordUrl#">#recordLabel#</a>';
+		var recordLink   = _linkedAdminText( recordUrl, recordLabel );
 
 		switch( action ) {
 			case "datamanager_translate_record":
@@ -49,13 +48,13 @@ component {
 	private string function userManager( event, rc, prc, args={} ) {
 		var action     = args.action            ?: "";
 		var known_as   = args.known_as          ?: "";
-		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink   = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var recordId   = args.record_id         ?: "";
 		var type       = action.find( "_group" ) ? "group" : "user";
 		var labelField = type == "group" ? "label" : "known_as";
 		var label      = args.detail[ labelField ] ?: "unknown";
 		var recordUrl  = event.buildAdminLink( linkTo="usermanager.#( type == 'group' ? 'editGroup' : 'editUser' )#", queryString="id=" & recordId );
-		var recordLink = '<a href="#recordUrl#">#label#</a>';
+		var recordLink = _linkedAdminText( recordUrl, label );
 
 		return translateResource( uri="auditlog.usermanager:#action#.message", data=[ userLink, recordLink ] );
 	}
@@ -63,7 +62,7 @@ component {
 	private string function sysconfig( event, rc, prc ) {
 		var action       = args.action    ?: "";
 		var known_as     = args.known_as  ?: "";
-		var userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink     = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		if( isFeatureEnabled( "emailcenter" ) && ( args.record_id ?: "" ) == "email"  ){
 			var category     = translateResource( "cms:emailCenter.menu.title" );
 			var categoryUrl  = event.buildAdminLink( linkTo="emailcenter.settings" );
@@ -71,7 +70,7 @@ component {
 			var category     = translateResource( systemConfigurationService.getConfigCategory( args.record_id ?: "" ).getName() );
 			var categoryUrl  = event.buildAdminLink( linkTo="sysconfig.category", queryString="id=" & ( args.record_id ?: "" ) )
 		}
-		var categoryLink = '<a href="#categoryUrl#">#category#</a>';
+		var categoryLink = _linkedAdminText( categoryUrl, category );
 
 		return translateResource( uri="auditlog.sysconfig:#action#.message", data=[ userLink, categoryLink ] );
 	}
@@ -79,11 +78,11 @@ component {
 	private string function sitemanager( event, rc, prc ) {
 		var action   = args.action    ?: "";
 		var known_as = args.known_as  ?: "";
-		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var siteId   = args.record_id;
 		var siteName = args.detail.name ?: "unknown";
 		var siteUrl  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=" & ( args.record_id ?: "" ) )
-		var siteLink = '<a href="#siteUrl#">#siteName#</a>';
+		var siteLink = _linkedAdminText( siteUrl, siteName );
 
 		return translateResource( uri="auditlog.sitemanager:#action#.message", data=[ userLink, siteLink ] );
 	}
@@ -91,11 +90,11 @@ component {
 	private string function passwordpolicies( event, rc, prc ) {
 		var action      = args.action    ?: "";
 		var known_as    = args.known_as  ?: "";
-		var userLink    = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink    = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var context     = args.record_id;
 		var contextName = translateResource( "cms:passwordpolicycontext.#context#.title" );
 		var contextUrl  = event.buildAdminLink( linkTo="passwordpolicymanager", queryString="context=" & context );
-		var contextLink = '<a href="#contextUrl#">#contextName#</a>';
+		var contextLink = _linkedAdminText( contextUrl, contextName );
 
 		return translateResource( uri="auditlog.passwordpolicies:#action#.message", data=[ userLink, contextLink ] );
 	}
@@ -103,11 +102,11 @@ component {
 	private string function urlredirects( event, rc, prc ) {
 		var action   = args.action    ?: "";
 		var known_as = args.known_as  ?: "";
-		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var rule     = args.record_id;
 		var ruleName = args.detail.label ?: "unknown";
 		var ruleUrl  = event.buildAdminLink( linkTo="urlredirects.editrule", queryString="id=" & rule );
-		var ruleLink = '<a href="#ruleUrl#">#ruleName#</a>';
+		var ruleLink = _linkedAdminText( ruleUrl, ruleName );
 
 		return translateResource( uri="auditlog.urlredirects:#action#.message", data=[ userLink, ruleLink ] );
 	}
@@ -115,11 +114,11 @@ component {
 	private string function websiteusermanager( event, rc, prc ) {
 		var action      = args.action    ?: "";
 		var known_as    = args.known_as  ?: "";
-		var userLink    = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink    = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var webUser     = args.record_id;
 		var webUserName = args.detail.display_name ?: "unknown";
 		var webUserUrl  = event.buildAdminLink( linkTo="websiteusermanager.edituser", queryString="id=" & webUser );
-		var webUserLink = '<a href="#webUserUrl#">#webUserName#</a>';
+		var webUserLink = _linkedAdminText( webUserUrl, webUserName );
 
 		return translateResource( uri="auditlog.websiteusermanager:#action#.message", data=[ userLink, webUserLink ] );
 	}
@@ -127,11 +126,11 @@ component {
 	private string function websitebenefitsmanager( event, rc, prc ) {
 		var action   = args.action    ?: "";
 		var known_as = args.known_as  ?: "";
-		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var benefit     = args.record_id;
 		var benefitName = args.detail.label ?: "unknown";
 		var benefitUrl  = event.buildAdminLink( linkTo="websitebenefitsmanager.editbenefit", queryString="id=" & benefit );
-		var benefitLink = '<a href="#benefitUrl#">#benefitName#</a>';
+		var benefitLink = _linkedAdminText( benefitUrl, benefitName );
 
 		return translateResource( uri="auditlog.websitebenefitsmanager:#action#.message", data=[ userLink, benefitLink ] );
 	}
@@ -139,11 +138,11 @@ component {
 	private string function rulesEngine( event, rc, prc ) {
 		var action        = args.action    ?: "";
 		var known_as      = args.known_as  ?: "";
-		var userLink      = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink      = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var condition     = args.record_id;
 		var conditionName = args.detail.condition_name ?: "unknown";
 		var conditionUrl  = event.buildAdminLink( linkTo="rulesengine.editCondition", queryString="id=" & condition );
-		var conditionLink = '<a href="#conditionUrl#">#conditionName#</a>';
+		var conditionLink = _linkedAdminText( conditionUrl, conditionName );
 
 		return translateResource( uri="auditlog.rulesEngine:#action#.message", data=[ userLink, conditionLink ] );
 	}
@@ -151,7 +150,7 @@ component {
 	private string function taskmanager( event, rc, prc ) {
 		var action     = args.action    ?: "";
 		var known_as   = args.known_as  ?: "";
-		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink   = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var task       = args.record_id;
 		var taskDetail = {};
 		var taskLink   = "";
@@ -159,7 +158,7 @@ component {
 			taskDetail = Len( Trim( task ) ) ? taskmanagerService.getTask( task ) : {};
 			var taskName = taskDetail.name ?: "unknown";
 			var taskUrl  = event.buildAdminLink( linkTo="taskmanager.history", queryString="task=" & task );
-			taskLink     = '<a href="#taskUrl#">#taskName#</a>';
+			taskLink     = _linkedAdminText( taskUrl, taskName );
 		} catch( "TaskManager.missing.task" e ) {
 			action = "#action#.unknown_task";
 		}
@@ -174,24 +173,24 @@ component {
 		var record_id    = args.record_id     ?: "";
 		var objectName   = args.detail.object ?: "";
 		var labelField   = objectName.len() ? presideObjectService.getObjectAttribute( objectName, "labelField" ) : "";
-		var userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink     = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var objectTitle  = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 		var recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
 
-		return translateResource( uri="auditlog.frontendeditor:#args.action#.message", data=[ userLink, objectTitle, recordLabel ] );
+		return translateResource( uri="auditlog.frontendeditor:#args.action#.message", data=[ userLink, objectTitle, EncodeForHtml( recordLabel ) ] );
 	}
 
 	private string function emailtemplate( event, rc, prc, args={} ) {
 		var action = args.action ?: "";
 
 		var known_as = args.known_as ?: "";
-		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 
 		var recordId    = args.record_id ?: "";
 		var recordType  = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "customtemplates";
 		var recordLabel = renderLabel( "email_template", recordId );
 		var recordUrl   = event.buildAdminLink( linkTo="emailcenter.#recordType#.template", queryString="template=#recordId#" );
-		var recordLink  = '<a href="#recordUrl#">#recordLabel#</a>';
+		var recordLink  = _linkedAdminText( recordUrl, recordLabel );
 
 		var data = [ userLink, recordLink ];
 
@@ -202,9 +201,9 @@ component {
 				var recipientId    = args.detail.recipient ?: "";
 				var recipientLabel = renderLabel( "website_user", recipientId );
 				var recipientUrl   = event.buildAdminLink( linkto="usermanager.viewUser", queryString="id=#recipientId#" );
-				var recipientLink  = '<a href="#recipientUrl#">#recipientLabel#</a>';
+				var recipientLink  = _linkedAdminText( recipientUrl, recipientLabel );
 
-				ArrayAppend( data, [ to, recipientLink ], true );
+				ArrayAppend( data, [ EncodeForHtml( to ), recipientLink ], true );
 				break;
 
 			case "sendManualEmail":
@@ -219,12 +218,12 @@ component {
 	private string function emailLayout( event, rc, prc, args={} ) {
 		var action     = args.action            ?: "";
 		var known_as   = args.known_as          ?: "";
-		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink   = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var recordId   = args.record_id         ?: "";
 		var layout     = emailLayoutService.getLayout( recordId );
 		var label      = layout.title ?: "Unknown";
 		var recordUrl  = event.buildAdminLink( linkTo="emailcenter.layouts.layout", queryString="layout=" & recordId );
-		var recordLink = '<a href="#recordUrl#">#label#</a>';
+		var recordLink = _linkedAdminText( recordUrl, label );
 
 		return translateResource( uri="auditlog.emaillayout:#action#.message", data=[ userLink, recordLink ] );
 	}
@@ -234,29 +233,29 @@ component {
 		var known_as   = args.known_as         ?: "";
 		var subject    = args.detail.subject   ?: "";
 		var recipient  = args.detail.recipient ?: "";
-		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink   = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 
-		return translateResource( uri="auditlog.emailresend:#action#.message", data=[ userLink, subject, recipient ] );
+		return translateResource( uri="auditlog.emailresend:#action#.message", data=[ userLink, EncodeForHtml( subject ), EncodeForHtml( recipient ) ] );
 	}
 
 	private string function dataexport( event, rc, prc, args={} ) {
 		var action     = args.action            ?: "";
 		var known_as   = args.known_as          ?: "";
-		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var userLink   = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var file       = args.detail.file       ?: "";
 
-		return translateResource( uri="auditlog.dataexport:#action#.message", data=[ userLink, file ] );
+		return translateResource( uri="auditlog.dataexport:#action#.message", data=[ userLink, EncodeForHtml( file ) ] );
 	}
 
 	private string function userProfile( event, rc, prc, args={} ) {
 		var action = args.action ?: "";
 
-		var userLink = '<a href="#args.userLink#">#( args.known_as ?: "" )#</a>';
+		var userLink = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 
 		var recordId   = args.record_id ?: "";
 		var recordLink = "";
 		if ( !isEmptyString( recordId ) ) {
-			recordLink = '<a href="#event.buildAdminLink( linkTo="usermanager.viewUser", queryString="id=" & recordId )#">#renderLabel( "security_user", recordId )#</a>';
+			recordLink = _linkedAdminText( event.buildAdminLink( linkTo="usermanager.viewUser", queryString="id=" & recordId ), renderLabel( "security_user", recordId ) );
 		}
 
 		return translateResource( uri="auditlog.userprofile:#action#.message", data=[ userLink, recordLink ] );
@@ -269,7 +268,7 @@ component {
 
 		var action = args.action ?: "";
 
-		var userHtml = '<a href="#( args.userLink ?: "" )#">#( args.known_as ?: "" )#</a>';
+		var userHtml = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 
 		var recordId         = args.record_id         ?: "";
 		var recordObjectName = args.detail.objectName ?: "";
@@ -286,9 +285,9 @@ component {
 
 				recordLabel = translateResource( uri="formbuilder.actions.#formActionType#:title", defaultValue=recordId );
 				recordLink  = event.buildAdminLink( linkTo="formbuilder.actions", queryString="id=#formId#" );
-				recordHtml  = '<a href="#recordLink#">#recordLabel#</a>';
+				recordHtml  = _linkedAdminText( recordLink, recordLabel );
 
-				formHtml = '<a href="#event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=#formId#" )#">#renderLabel( "formbuilder_form", formId )#</a>';
+				formHtml = _linkedAdminText( event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=#formId#" ), renderLabel( "formbuilder_form", formId ) );
 				break;
 
 			case "item":
@@ -297,16 +296,16 @@ component {
 
 				var question = formBuilderService.getQuestion( id=formQuestionId );
 
-				recordLabel = question.field_label ?: ""
+				recordLabel = question.field_label ?: "";
 				if ( isEmptyString( recordLabel ) ) {
 					 recordLabel = args.detail.formQuestionLabel ?: formQuestionId;
 				}
-				recordLabel &= " (<code>#formItemName#</code>)";
+				recordLabel = EncodeForHtml( recordLabel ) & " (<code>#EncodeForHtml( formItemName )#</code>)";
 
 				recordLink = event.buildAdminLink( linkTo="formbuilder.manageForm", queryString="id=#formId#" );
-				recordHtml = '<a href="#recordLink#">#recordLabel#</a>';
+				recordHtml = _linkedAdminHtml( recordLink, recordLabel );
 
-				formHtml = '<a href="#event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=#formId#" )#">#renderLabel( "formbuilder_form", formId )#</a>';
+				formHtml = _linkedAdminText( event.buildAdminLink( linkTo="formbuilder.editform", queryString="id=#formId#" ), renderLabel( "formbuilder_form", formId ) );
 				break;
 
 			case "submission":
@@ -318,15 +317,23 @@ component {
 				recordLabel = renderLabel( objectName=recordObjectName, recordId=recordId );
 
 				if ( IsValid( "UUID", recordLabel ) ) {
-					recordHtml = args.detail.label ?: ( args.detail.formName ?: recordLabel );
+					recordHtml = EncodeForHtml( args.detail.label ?: ( args.detail.formName ?: recordLabel ) );
 				} else {
 					recordLink = event.buildAdminLink( objectName=recordObjectName, recordId=recordId );
-					recordHtml = '<a href="#recordLink#">#recordLabel#</a>';
+					recordHtml = _linkedAdminText( recordLink, recordLabel );
 				}
 				break;
 		}
 
 		return translateResource( uri="auditlog.formbuilder:#action#.message", data=[ userHtml, recordHtml, formHtml ] );
+	}
+
+	private string function _linkedAdminText( required string href, required string label ) {
+		return '<a href="#EncodeForHtmlAttribute( arguments.href )#">#EncodeForHtml( arguments.label )#</a>';
+	}
+
+	private string function _linkedAdminHtml( required string href, required string html ) {
+		return '<a href="#EncodeForHtmlAttribute( arguments.href )#">#arguments.html#</a>';
 	}
 
 }
