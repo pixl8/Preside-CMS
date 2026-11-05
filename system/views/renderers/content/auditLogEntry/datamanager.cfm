@@ -7,7 +7,7 @@
 <cfparam name="args.detail.objectName" type="string" default="" />
 
 <cfscript>
-	userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
+	userLink     = '<a href="#EncodeForHtmlAttribute( args.userLink )#">#EncodeForHtml( args.known_as )#</a>';
 	objectTitle  = translateResource( uri="preside-objects.#args.detail.objectName#:title.singular" );
 	objectUrl    = event.buildAdminLink( objectName=args.detail.objectName, operation="listing" );
 	objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';

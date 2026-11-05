@@ -4204,6 +4204,44 @@ component displayName="Preside Object Service" {
 		return Replace( expanded, "${labelfield}", labelField, "all" );
 	}
 
+	private struct function _splitSafeOrderByDirection( required string item ) {
+		var matches    = ReFindNoCase( "^(.*\S)\s+(asc|desc)$", arguments.item, 1, true );
+		var expression = arguments.item;
+		var direction  = "";
+
+		if ( ArrayLen( matches.pos ?: [] ) > 2 && matches.pos[ 3 ] > 0 ) {
+			expression = Trim( Mid( arguments.item, matches.pos[ 2 ], matches.len[ 2 ] ) );
+			direction  = " " & LCase( Mid( arguments.item, matches.pos[ 3 ], matches.len[ 3 ] ) );
+		}
+
+		return {
+			  allowed    = ReFind( "^[A-Za-z_][A-Za-z0-9_$.]*$", expression ) > 0
+			, expression = expression
+			, direction  = direction
+		};
+	}
+
+	private boolean function _isInternalLengthOrderBy( required string item ) {
+		return ReFindNoCase( "^(Length|Len)\(\s*[A-Za-z0-9_.]+\s*\)(\s+(asc|desc))?$", arguments.item ) > 0;
+	}
+
+	private boolean function _isPreferredValueOrderBy( required string objectName, required string item ) {
+		var matches = ReFindNoCase( "^CASE WHEN ([A-Za-z0-9_]+)\.([A-Za-z0-9_]+) = '((?:[^']|'')*)' THEN 0 ELSE 1 END$", arguments.item, 1, true );
+
+		if ( ArrayLen( matches.pos ?: [] ) < 4 || matches.pos[ 2 ] == 0 ) {
+			return false;
+		}
+
+		var sortObjectName = Mid( arguments.item, matches.pos[ 2 ], matches.len[ 2 ] );
+		var fieldName      = Mid( arguments.item, matches.pos[ 3 ], matches.len[ 3 ] );
+
+		if ( CompareNoCase( sortObjectName, arguments.objectName ) != 0 ) {
+			return false;
+		}
+
+		return fieldExists( arguments.objectName, fieldName );
+	}
+
 	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins, required array selectFields ) {
 		var items         = ListToArray( arguments.orderBy );
 		var rebuilt       = [];
@@ -4213,13 +4251,29 @@ component displayName="Preside Object Service" {
 		var aggregateArgs = {};
 
 		for( var item in items ) {
+			var trimmedItem = Trim( item );
+			var parsedOrder = _splitSafeOrderByDirection( trimmedItem );
+
+			if ( !Len( trimmedItem ) ) {
+				continue;
+			}
+
+			if ( _isInternalLengthOrderBy( trimmedItem ) || _isPreferredValueOrderBy( arguments.objectName, trimmedItem ) ) {
+				ArrayAppend( rebuilt, trimmedItem );
+				continue;
+			}
+
+			if ( !parsedOrder.allowed ) {
+				continue;
+			}
+
 			propertyName = expandFormulaFields(
 				  objectName   = arguments.objectName
-				, expression   = _expandLabelFieldPlaceholder( Trim( ListFirst( item, " " ) ), arguments.objectName )
+				, expression   = _expandLabelFieldPlaceholder( parsedOrder.expression, arguments.objectName )
 				, dbAdapter    = arguments.dbAdapter
 				, includeAlias = false
 			);
-			direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
+			direction    = parsedOrder.direction;
 
 			if ( left( propertyName, 4 ) == "agg:" ) {
 				var rawPropName = Trim( ListFirst( item, " " ) );

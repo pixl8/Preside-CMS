@@ -8,7 +8,7 @@ component {
 	}
 
 	private string function _renderLabel( type="" ) {
-		return translateResource( uri="systemAlerts.#type#:title", defaultValue=type );
+		return EncodeForHtml( translateResource( uri="systemAlerts.#type#:title", defaultValue=type ) );
 	}
 
 }
