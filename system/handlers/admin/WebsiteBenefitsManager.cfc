@@ -70,7 +70,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 			  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
-			, '<a href="#newRecordLink#">#event.getValue( name='label', defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+			, '<a href="#newRecordLink#">#EncodeForHTML( event.getValue( name='label', defaultValue=translateResource( uri="cms:datamanager.record" ) ) )#</a>'
 		] ) );
 
 		if ( Val( rc._addanother ?: 0 ) ) {
@@ -118,7 +118,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		websitePermissionService.syncBenefitPermissions( benefitId=rc.id ?: "", permissions=ListToArray( rc.permissions ?: "" ) );
 
-		messageBox.info( translateResource( uri="cms:websiteBenefitsManager.benefit.saved.confirmation", data=[ rc.label ?: "" ] ) );
+		messageBox.info( translateResource( uri="cms:websiteBenefitsManager.benefit.saved.confirmation", data=[ EncodeForHTML( rc.label ?: "" ) ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="websiteBenefitsManager" ) );
 	}
 
