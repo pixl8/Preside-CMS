@@ -14,7 +14,7 @@ component {
 	private string function _renderLabel( event, rc, prc, string condition_name="", string is_locked=false ) {
 		var iconClass = IsTrue( arguments.is_locked ) ? "fa-lock red" : "fa-lock-open light-grey"
 
-		return '<i class="fa fa-fw #iconClass#"></i>&nbsp; #arguments.condition_name#';
+		return '<i class="fa fa-fw #iconClass#"></i>&nbsp; #EncodeForHtml( arguments.condition_name )#';
 	}
 
 }
