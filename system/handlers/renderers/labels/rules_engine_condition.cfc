@@ -41,7 +41,7 @@ component {
 
 		var appliesTo = renderContent( renderer="rulesEngineAppliesTo", data={ data=arguments.applies_to, kind=arguments.kind }, context="picker" );
 
-		return '<i class="fa fa-fw #lockClass#"></i><i class="fa fa-fw #typeClass#"></i> #arguments.condition_name# (#appliesTo# )';
+		return '<i class="fa fa-fw #lockClass#"></i><i class="fa fa-fw #typeClass#"></i> #EncodeForHtml( arguments.condition_name )# (#appliesTo# )';
 	}
 
 }
