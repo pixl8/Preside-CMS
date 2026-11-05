@@ -18,7 +18,7 @@ component implements="iRouteHandler" singleton=true {
 
 // route handler methods
 	public boolean function match( required string path, required any event ) output=false {
-		if ( Len( Trim( event.getValue( "event", "" ) ) ) ) {
+		if ( Len( Trim( event.getValue( _getEventName(), "" ) ) ) ) {
 			return false;
 		}
 
