@@ -270,7 +270,7 @@ component displayName="Preside Object Service" {
 
 		args.adapter     = adapter;
 		args.objMeta     = objMeta;
-		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter, args.filterParams, args.extraJoins );
+		args.orderBy     = arguments.recordCountOnly ? "" : _parseOrderBy( args.orderBy, args.objectName, args.adapter, args.filterParams, args.extraJoins, args.selectFields );
 		args.groupBy     = _autoPrefixBareProperty( args.objectName, args.groupBy, args.adapter );
 		if ( !Len( Trim( args.groupBy ) ) && args.autoGroupBy ) {
 			args.groupBy = _autoCalculateGroupBy( args.selectFields, args.objectName, args.adapter );
@@ -3713,8 +3713,77 @@ component displayName="Preside Object Service" {
 		return REReplaceNoCase( Trim( text ), '\bas\b\s+(\w+)(?!\s*[`\"\[])$', "as #dbAdapter.escapeEntity( "\1" )#" );
 	}
 
-	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins ) {
-		var items         = arguments.orderBy.listToArray();
+	private string function _expandLabelFieldPlaceholder( required string expression, required string objectName ) {
+		var match      = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", arguments.expression, 1, true );
+		var objName    = "";
+		var labelField = "";
+		var expanded   = arguments.expression;
+
+		match = match.len[1] ? Mid( arguments.expression, match.pos[1], match.len[1] ) : "";
+
+		if ( !Len( Trim( match ) ) ) {
+			return arguments.expression;
+		}
+
+		if ( ListLen( match, "." ) == 1 ) {
+			objName = arguments.objectName;
+		} else {
+			objName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
+		}
+
+		labelField = getObjectAttribute( objName, "labelfield", "label" );
+		if ( !Len( labelField ) ) {
+			throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
+		}
+
+		if ( ListLen( labelField, "." ) > 1 ) {
+			expanded = Replace( expanded, "#arguments.objectName#.${labelfield}", "${labelfield}", "all" );
+			expanded = Replace( expanded, ".${labelfield}", "$${labelfield}", "all" );
+		}
+
+		return Replace( expanded, "${labelfield}", labelField, "all" );
+	}
+
+	private struct function _splitSafeOrderByDirection( required string item ) {
+		var matches    = ReFindNoCase( "^(.*\S)\s+(asc|desc)$", arguments.item, 1, true );
+		var expression = arguments.item;
+		var direction  = "";
+
+		if ( ArrayLen( matches.pos ?: [] ) > 2 && matches.pos[ 3 ] > 0 ) {
+			expression = Trim( Mid( arguments.item, matches.pos[ 2 ], matches.len[ 2 ] ) );
+			direction  = " " & LCase( Mid( arguments.item, matches.pos[ 3 ], matches.len[ 3 ] ) );
+		}
+
+		return {
+			  allowed    = ReFind( "^[A-Za-z_][A-Za-z0-9_$.]*$", expression ) > 0
+			, expression = expression
+			, direction  = direction
+		};
+	}
+
+	private boolean function _isInternalLengthOrderBy( required string item ) {
+		return ReFindNoCase( "^(Length|Len)\(\s*[A-Za-z0-9_.]+\s*\)(\s+(asc|desc))?$", arguments.item ) > 0;
+	}
+
+	private boolean function _isPreferredValueOrderBy( required string objectName, required string item ) {
+		var matches = ReFindNoCase( "^CASE WHEN ([A-Za-z0-9_]+)\.([A-Za-z0-9_]+) = '((?:[^']|'')*)' THEN 0 ELSE 1 END$", arguments.item, 1, true );
+
+		if ( ArrayLen( matches.pos ?: [] ) < 4 || matches.pos[ 2 ] == 0 ) {
+			return false;
+		}
+
+		var sortObjectName = Mid( arguments.item, matches.pos[ 2 ], matches.len[ 2 ] );
+		var fieldName      = Mid( arguments.item, matches.pos[ 3 ], matches.len[ 3 ] );
+
+		if ( CompareNoCase( sortObjectName, arguments.objectName ) != 0 ) {
+			return false;
+		}
+
+		return fieldExists( arguments.objectName, fieldName );
+	}
+
+	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins, required array selectFields ) {
+		var items         = ListToArray( arguments.orderBy );
 		var rebuilt       = [];
 		var aliased       = "";
 		var propertyName  = "";
@@ -3722,8 +3791,29 @@ component displayName="Preside Object Service" {
 		var aggregateArgs = {};
 
 		for( var item in items ) {
-			propertyName = expandFormulaFields( objectName=arguments.objectName, expression=Trim( ListFirst( item, " " ) ), dbAdapter=arguments.dbAdapter, includeAlias=false );
-			direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
+			var trimmedItem = Trim( item );
+			var parsedOrder = _splitSafeOrderByDirection( trimmedItem );
+
+			if ( !Len( trimmedItem ) ) {
+				continue;
+			}
+
+			if ( _isInternalLengthOrderBy( trimmedItem ) || _isPreferredValueOrderBy( arguments.objectName, trimmedItem ) ) {
+				ArrayAppend( rebuilt, trimmedItem );
+				continue;
+			}
+
+			if ( !parsedOrder.allowed ) {
+				continue;
+			}
+
+			propertyName = expandFormulaFields(
+				  objectName   = arguments.objectName
+				, expression   = _expandLabelFieldPlaceholder( parsedOrder.expression, arguments.objectName )
+				, dbAdapter    = arguments.dbAdapter
+				, includeAlias = false
+			);
+			direction    = parsedOrder.direction;
 
 			if ( left( propertyName, 4 ) == "agg:" ) {
 				aggregateArgs = {

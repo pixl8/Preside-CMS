@@ -8,6 +8,8 @@
  */
 component displayName="Data manager batch operation service" {
 
+	property name="dataManagerService" inject="dataManagerService";
+
 // CONSTRUCTOR
 	/**
 	 *
@@ -39,7 +41,14 @@ component displayName="Data manager batch operation service" {
 		,          any     logger
 		,          any     progress
 	) {
-		var pobjService       = $getPresideObjectService();
+		var pobjService         = $getPresideObjectService();
+		var batchEditableFields = dataManagerService.listBatchEditableFields( arguments.objectName );
+
+		if ( !batchEditableFields.findNoCase( arguments.fieldName ) ) {
+			arguments.logger?.warn( "Field [#arguments.fieldName#] is not batch editable on [#arguments.objectName#]." );
+			return false;
+		}
+
 		var isMultiValue      = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
 		var canLog            = StructKeyExists( arguments, "logger" );
 		var canInfo           = canLog && arguments.logger.canInfo();
