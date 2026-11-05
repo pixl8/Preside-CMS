@@ -668,6 +668,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
+		if ( !dataManagerService.listBatchEditableFields( objectName ).findNoCase( field ) ) {
+			event.adminAccessDenied();
+		}
+
 		if ( batchAll ) {
 			batchSrcArgs = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
 			recordCount  = batchOperationService.getBatchSourceRecordCount( objectName, batchSrcArgs );
@@ -743,6 +747,11 @@ component extends="preside.system.base.AdminHandler" {
 		var batchSrcArgs = {};
 
 		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+
+		if ( !dataManagerService.listBatchEditableFields( objectName ).findNoCase( updateField ) ) {
+			event.adminAccessDenied();
+		}
+
 		if ( batchAll ) {
 			batchSrcArgs = _deserializeSourceStringForBatchOperations( argumentCollection=arguments, listingView=listingView );
 		} else if ( !sourceIds.len() ) {
@@ -953,6 +962,8 @@ component extends="preside.system.base.AdminHandler" {
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
 
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
@@ -1009,6 +1020,12 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
 		var objectName     = rc.object ?: ( prc.objectName ?: "" );
 		var extraFilters   = [];
+
+		if ( !Len( Trim( objectName ) ) || !presideObjectService.objectExists( objectName ) ) {
+			event.adminAccessDenied();
+		}
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 		var filterByFields = ListToArray( rc.filterByField ?: ( rc.filterByFields ?: "" ) );
 		var bypassTenants  = listToArray( rc.bypassTenants ?: "" );
 		var filterValue    = "";
@@ -1017,6 +1034,10 @@ component extends="preside.system.base.AdminHandler" {
 		var useCache       = IsTrue( rc.useCache ?: "" );
 		var defaultValue   = rc.defaultValue  ?: "";
 		var targetIdField  = Len( Trim( rc.targetIdField ?: "" ) ) ? rc.targetIdField : presideObjectService.getIdField( objectName );
+
+		if ( !presideObjectService.fieldExists( objectName, targetIdField ) ) {
+			targetIdField = presideObjectService.getIdField( objectName );
+		}
 
 		for( var filterByField in filterByFields ) {
 			filterValue = rc[filterByField] ?: "";
@@ -1045,19 +1066,15 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		var interceptArgs = {
-			  objectName   = rc.object ?: ""
+			  objectName   = objectName
 			, defaultValue = defaultValue
 			, extraFilters = extraFilters
 			, savedFilters = ListToArray( rc.savedFilters ?: "" )
 		}
 		announceInterception( "preGetObjectRecordsForAjaxSelectControlSelect", interceptArgs );
 
-		if ( Len( defaultValue ) && Len( targetIdField ) ) {
-			orderBy = "CASE WHEN #interceptArgs.objectName#.#targetIdField# = '#defaultValue#' THEN 0 ELSE 1 END#Len( orderBy ) ? ", #orderBy#" : ""#";
-		}
-
 		var records = dataManagerService.getRecordsForAjaxSelect(
-			  objectName    = rc.object  ?: ""
+			  objectName    = objectName
 			, maxRows       = rc.maxRows ?: 1000
 			, searchQuery   = rc.q       ?: ""
 			, savedFilters  = interceptArgs.savedFilters
@@ -1067,6 +1084,8 @@ component extends="preside.system.base.AdminHandler" {
 			, labelRenderer = labelRenderer
 			, bypassTenants = bypassTenants
 			, useCache      = useCache
+			, preferValue   = interceptArgs.defaultValue
+			, preferField   = targetIdField
 			, idField       = targetIdField
 		);
 
@@ -1138,9 +1157,7 @@ component extends="preside.system.base.AdminHandler" {
 		var relationshipKey = rc.relationshipKey ?: "";
 		var parentId        = rc.parentId ?: "";
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "delete"   ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 		rc.forceDelete = true;
 
 		runEvent(
@@ -1157,9 +1174,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function addOneToManyRecordAction( event, rc, prc ) {
 		var objectName = prc.objectName ?: "";
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "add" ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
 		runEvent(
 			  event          = "admin.DataManager._addOneToManyRecordAction"
@@ -1328,9 +1343,7 @@ component extends="preside.system.base.AdminHandler" {
 		var objectName  = prc.objectName ?: "";
 		var objectTitle = prc.objectTitle ?: "";
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "add"   ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
 		var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
 
@@ -1350,9 +1363,7 @@ component extends="preside.system.base.AdminHandler" {
 		var parentId        = rc.parentId        ?: "";
 		var relationshipKey = rc.relationshipKey ?: "";
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "edit"   ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
 		prc.record = queryRowToStruct( prc.record );
 
@@ -1373,9 +1384,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		rc[ relationshipKey ] = parentId;
 
-		if ( !datamanagerService.isOperationAllowed( objectName, "edit"   ) ) {
-			event.adminAccessDenied();
-		}
+		_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"
@@ -4076,7 +4085,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getNodesForTreeView( event, rc, prc ) {
-		var objectName = rc.object ?: "";
+		var objectName = rc.object ?: ( prc.objectName ?: "" );
+
+		if ( !Len( Trim( objectName ) ) || !presideObjectService.objectExists( objectName ) ) {
+			event.adminAccessDenied();
+		}
+
+		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
 		var args = {
 			  parent             = rc.parentId ?: ""
 			, objectName         = objectName
