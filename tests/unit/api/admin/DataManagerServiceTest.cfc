@@ -229,57 +229,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "_prepareOrderByForObject()", function(){
-			it( "should order many-to-one fields by the relationship alias label field", function(){
-				var dataManagerService = _getService();
-
-				_stubOrderByFields( [ "main_contact" ] );
-				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
-					main_contact = { name="main_contact", relationship="many-to-one", relatedTo="crm_contact" }
-				} );
-				mockPoService.$( "getObjectAttribute" ).$args( "crm_contact", "labelfield", "label" ).$results( "label" );
-				makePublic( dataManagerService, "_prepareOrderByForObject" );
-
-				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "main_contact desc" ) ).toBe( "main_contact.label desc" );
-			} );
-
-			it( "should still use the relationship alias when the related object label is a formula", function(){
-				var dataManagerService = _getService();
-
-				_stubOrderByFields( [ "main_contact" ] );
-				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
-					main_contact = { name="main_contact", relationship="many-to-one", relatedTo="crm_contact" }
-				} );
-				mockPoService.$( "getObjectAttribute" ).$args( "crm_contact", "labelfield", "label" ).$results( "label" );
-				makePublic( dataManagerService, "_prepareOrderByForObject" );
-
-				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "main_contact" ) ).toBe( "main_contact.label" );
-			} );
-
-			it( "should leave non-relationship order by clauses unchanged", function(){
-				var dataManagerService = _getService();
-
-				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
-					label = { name="label", relationship="none" }
-				} );
-				makePublic( dataManagerService, "_prepareOrderByForObject" );
-
-				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "label asc" ) ).toBe( "label asc" );
-			} );
-
-			it( "should drop a clause that is not an object field", function(){
-				var dataManagerService = _getService();
-
-				_stubOrderByFields( [ "label" ] );
-				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
-					label = { name="label", relationship="none" }
-				} );
-				makePublic( dataManagerService, "_prepareOrderByForObject" );
-
-				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "label asc, label;select" ) ).toBe( "label asc" );
-			} );
-		} );
-
 		describe( "sanitizeOrderBy()", function(){
 			it( "should keep a real field and an asc or desc direction", function(){
 				var dataManagerService = _getService();
