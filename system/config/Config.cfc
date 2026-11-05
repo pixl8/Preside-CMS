@@ -53,6 +53,7 @@ component {
 
 		interceptors = [
 			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
+			{ class="preside.system.interceptors.AdminAuthenticationInterceptor"      , properties={} },
 			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} },
@@ -241,6 +242,7 @@ component {
 		settings.adminLanguages              = [];
 		settings.showNonLiveContentByDefault = true;
 		settings.coldboxVersion              = _calculateColdboxVersion();
+		settings.adminAuthenticationExemptEvents = [];
 
 		settings.forceSsl       = IsBoolean( settings.env.forceSsl ?: "" ) && settings.env.forceSsl;
 		settings.allowedDomains = ListToArray( LCase( settings.env.allowedDomains  ?: "" ) );
