@@ -65,6 +65,10 @@ component {
 		}
 	}
 
+	public boolean function rendersHtml( required string labelRenderer ) {
+		return Len( arguments.labelRenderer ) && $getColdbox().handlerExists( _getRenderLabelHandler( arguments.labelRenderer ) );
+	}
+
 	public string function getRendererCacheDate( required string labelRenderer ) {
 		var rendererExists = len( labelRenderer ) && $getColdbox().handlerExists( _getSelectFieldsHandler( labelRenderer ) );
 
