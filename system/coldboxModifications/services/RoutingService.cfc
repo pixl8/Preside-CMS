@@ -20,6 +20,7 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 	public void function onRequestCapture( event, interceptData ) {
+		_blockDirectEventDispatch( event );
 		_announceInterception( "prePresideRequestCapture", interceptData );
 		_checkRedirectDomains( argumentCollection=arguments );
 		if ( featureService.isFeatureEnabled( "sites" ) ) {
@@ -66,6 +67,14 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 	}
 
 // private utility methods
+	private void function _blockDirectEventDispatch( required any event ) {
+		if ( featureService.isFeatureEnabled( "allowDirectEventDispatch" ) ) {
+			return;
+		}
+
+		StructDelete( arguments.event.getCollection(), variables.eventName );
+	}
+
 	private void function _detectIncomingSite( event, interceptData ) {
 		var pathInfo       = _getCGIElement( "path_info", event );
 		var domain         = _getCGIElement( "server_name", event );
@@ -220,7 +229,7 @@ component extends="coldbox.system.web.services.RoutingService" accessors=true {
 				evName = rc.module & ":" & evName;
 			}
 
-			rc[ instance.eventName ] = evName;
+			rc[ variables.eventName ] = evName;
 		}
 	}
 
