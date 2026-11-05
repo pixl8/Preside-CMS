@@ -125,6 +125,39 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		} );
 
 
+		describe( "rendersHtml()", function(){
+
+			it( "should return true when the label renderer has a render label handler", function(){
+				var service       = _getService();
+				var labelRenderer = "custom_label_renderer";
+				var renderHandler = service.getRenderLabelHandler( labelRenderer );
+
+				mockColdboxController.$( "handlerExists" ).$args( renderHandler ).$results( true );
+
+				expect( service.rendersHtml( labelRenderer ) ).toBeTrue();
+			} );
+
+			it( "should return false when the label renderer has no render label handler", function(){
+				var service       = _getService();
+				var labelRenderer = "custom_label_renderer";
+				var renderHandler = service.getRenderLabelHandler( labelRenderer );
+
+				mockColdboxController.$( "handlerExists" ).$args( renderHandler ).$results( false );
+
+				expect( service.rendersHtml( labelRenderer ) ).toBeFalse();
+			} );
+
+			it( "should return false when no label renderer is given", function(){
+				var service = _getService();
+
+				mockColdboxController.$( "handlerExists", true );
+
+				expect( service.rendersHtml( "" ) ).toBeFalse();
+			} );
+
+		} );
+
+
 		describe( "getRendererCacheDate()", function(){
 
 			it( "should return current datetime if label renderer exists but is not in cache", function(){
