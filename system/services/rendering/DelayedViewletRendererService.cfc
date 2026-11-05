@@ -56,6 +56,7 @@ component {
 					return rendererSvc.render(
 						  renderer = "richeditor"
 						, data     = renderedViewlet
+						, args     = { isDelayedViewlet=true }
 					);
 				}
 				return renderedViewlet;
