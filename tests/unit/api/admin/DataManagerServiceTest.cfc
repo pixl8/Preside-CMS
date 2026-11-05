@@ -228,8 +228,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dataManagerService.areDraftsEnabledForObject( objectName ) ).toBeTrue();
 			} );
 		} );
-<<<<<<< HEAD
-=======
 
 		describe( "_prepareOrderByForObject()", function(){
 			it( "should order many-to-one fields by the relationship alias label field", function(){
@@ -370,7 +368,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 			throw( type="preside.object.property.not.found", message="missing field" );
 		} );
->>>>>>> 609808f5e (PRESIDECMS-3384 Harden DataManager request validation.)
 	}
 
 	private any function _getService() {
