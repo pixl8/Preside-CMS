@@ -1131,7 +1131,11 @@ component extends="preside.system.base.AdminHandler" {
 		var result = assetManagerService.getAssetsForGridListing(
 			  startRow    = datatableHelper.getStartRow()
 			, maxRows     = datatableHelper.getMaxRows()
-			, orderBy     = datatableHelper.getSortOrder()
+			, orderBy     = getModel( "dataManagerService" ).sanitizeOrderBy(
+				  objectName = "asset"
+				, orderBy    = datatableHelper.getSortOrder()
+				, fallback   = "datemodified desc"
+			)
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
@@ -1168,7 +1172,11 @@ component extends="preside.system.base.AdminHandler" {
 		var result = assetManagerService.getAssetsForGridListing(
 			  startRow    = datatableHelper.getStartRow()
 			, maxRows     = datatableHelper.getMaxRows()
-			, orderBy     = datatableHelper.getSortOrder()
+			, orderBy     = getModel( "dataManagerService" ).sanitizeOrderBy(
+				  objectName = "asset"
+				, orderBy    = datatableHelper.getSortOrder()
+				, fallback   = "datemodified desc"
+			)
 			, searchQuery = datatableHelper.getSearchQuery()
 			, trashed     = true
 		);
