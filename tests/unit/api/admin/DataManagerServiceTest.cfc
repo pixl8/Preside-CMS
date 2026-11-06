@@ -253,6 +253,35 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( dataManagerService.sanitizeOrderBy( objectName="security_user", orderBy="label", fallback="id" ) ).toBe( "label" );
 			} );
+
+			it( "should fall back when the sort is a function expression", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "id", "known_as" ] );
+
+				expect( dataManagerService.sanitizeOrderBy(
+					  objectName = "security_user"
+					, orderBy    = "field( id, 'c', 'a', 'b' )"
+					, fallback   = "label"
+				) ).toBe( "label" );
+				expect( dataManagerService.sanitizeOrderBy(
+					  objectName = "security_user"
+					, orderBy    = "max( known_as ) desc"
+					, fallback   = "label"
+				) ).toBe( "label" );
+			} );
+
+			it( "should drop a clause that is not an object field", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "label" ] );
+
+				expect( dataManagerService.sanitizeOrderBy(
+					  objectName = "crm_organisation"
+					, orderBy    = "label asc, label;select"
+					, fallback   = ""
+				) ).toBe( "label asc" );
+			} );
 		} );
 
 		describe( "_prependPreferredValueSort()", function(){
