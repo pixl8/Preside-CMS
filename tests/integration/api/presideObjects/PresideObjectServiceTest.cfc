@@ -3979,6 +3979,59 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test105_selectData_shouldOrderRecordsByMysqlFieldListOfKnownIds" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
+			var firstId   = "";
+			var secondId  = "";
+			var thirdId   = "";
+			var orderBy   = "";
+			var result    = "";
+
+			poService.dbSync();
+
+			firstId  = poService.insertData( objectName="object_a", data={ label="first" } );
+			secondId = poService.insertData( objectName="object_a", data={ label="second" } );
+			thirdId  = poService.insertData( objectName="object_a", data={ label="third" } );
+			orderBy  = "field( id, '#thirdId#', '#firstId#', '#secondId#' )";
+
+			result = poService.selectData(
+				  objectName = "object_a"
+				, orderBy    = orderBy
+			);
+
+			super.assertEquals( 3, result.recordCount, "Expected the three inserted records" );
+			super.assertEquals( "third", result.label[ 1 ], "FIELD() should put the first listed id first" );
+			super.assertEquals( "first", result.label[ 2 ] );
+			super.assertEquals( "second", result.label[ 3 ] );
+
+			result = poService.selectData(
+				  objectName          = "object_a"
+				, orderBy             = "field( object_a.id, '#thirdId#', '#firstId#', '#secondId#' ), label"
+				, getSqlAndParamsOnly = true
+			);
+
+			super.assert( FindNoCase( "field( object_a.id, '#thirdId#', '#firstId#', '#secondId#' )", result.sql ?: "" ), "A qualified FIELD() sort should survive in the generated SQL" );
+			super.assert( FindNoCase( "label", result.sql ?: "" ), "A normal column after FIELD() should still be ordered" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test106_selectData_shouldKeepDeveloperFunctionOrderBy" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
+			var result    = "";
+
+			result = poService.selectData(
+				  objectName          = "object_a"
+				, orderBy             = "max( label ) desc, label"
+				, getSqlAndParamsOnly = true
+			);
+
+			super.assert( FindNoCase( "max( label ) desc", result.sql ?: "" ), "A developer aggregate sort should survive in the generated SQL" );
+			super.assert( FindNoCase( "label", result.sql ?: "" ), "A plain column after the aggregate should still be ordered" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="_getNowSql" access="private" returntype="string" output="false">
 		<cfreturn _getDbAdapter().getNowFunctionSql() />
 	</cffunction>
