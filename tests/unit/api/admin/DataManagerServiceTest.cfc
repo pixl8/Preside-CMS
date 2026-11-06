@@ -278,6 +278,19 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "label asc, label;select" ) ).toBe( "label asc" );
 			} );
+
+			it( "should keep a mysql field() sort of known ids alongside a normal column", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "id" ] );
+				mockPoService.$( "getObjectProperties" ).$args( "security_user" ).$results( {
+					  id    = { name="id", relationship="none" }
+					, label = { name="label", relationship="none" }
+				} );
+				makePublic( dataManagerService, "_prepareOrderByForObject" );
+
+				expect( dataManagerService._prepareOrderByForObject( "security_user", "field( id, 'c', 'a', 'b' ), label" ) ).toBe( "field( id, 'c', 'a', 'b' ),label" );
+			} );
 		} );
 
 		describe( "sanitizeOrderBy()", function(){
@@ -303,6 +316,30 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				_stubOrderByFields( [] );
 
 				expect( dataManagerService.sanitizeOrderBy( objectName="security_user", orderBy="label", fallback="id" ) ).toBe( "label" );
+			} );
+
+			it( "should keep a mysql field() sort of known ids", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "id" ] );
+
+				expect( dataManagerService.sanitizeOrderBy(
+					  objectName = "security_user"
+					, orderBy    = "field( security_user.id, 'c', 'a', 'o''brien' ) desc"
+					, fallback   = "label"
+				) ).toBe( "field( security_user.id, 'c', 'a', 'o''brien' ) desc" );
+			} );
+
+			it( "should fall back when a field() sort is not a list of literal ids", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "id" ] );
+
+				expect( dataManagerService.sanitizeOrderBy(
+					  objectName = "security_user"
+					, orderBy    = "field( id, (select id from security_user) )"
+					, fallback   = "label"
+				) ).toBe( "label" );
 			} );
 		} );
 
