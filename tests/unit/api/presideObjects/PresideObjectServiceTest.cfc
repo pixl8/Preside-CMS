@@ -4861,35 +4861,19 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test106_selectData_shouldIgnoreUnsafeFieldOrderByExpressions" returntype="void">
+	<cffunction name="test106_selectData_shouldKeepDeveloperFunctionOrderBy" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
 
-			poService.dbSync();
-
-			poService.insertData( objectName="object_a", data={ label="first" } );
-			poService.insertData( objectName="object_a", data={ label="second" } );
-			poService.insertData( objectName="object_a", data={ label="third" } );
-
 			result = poService.selectData(
 				  objectName          = "object_a"
-				, orderBy             = "field( id, (select id from object_a) ), label"
+				, orderBy             = "max( label ) desc, label"
 				, getSqlAndParamsOnly = true
 			);
 
-			super.assertFalse( FindNoCase( "field(", result.sql ?: "" ), "A FIELD() clause with a subquery should be dropped" );
-			super.assertFalse( FindNoCase( "(select", result.sql ?: "" ), "The subquery should not be copied into the order by" );
-			super.assert( FindNoCase( "order by", result.sql ?: "" ), "The safe label sort should remain" );
-
-			result = poService.selectData(
-				  objectName = "object_a"
-				, orderBy    = "field( id, (select id from object_a) ), label"
-			);
-
-			super.assertEquals( "first", result.label[ 1 ] );
-			super.assertEquals( "second", result.label[ 2 ] );
-			super.assertEquals( "third", result.label[ 3 ] );
+			super.assert( FindNoCase( "max( label ) desc", result.sql ?: "" ), "A developer aggregate sort should survive in the generated SQL" );
+			super.assert( FindNoCase( "label", result.sql ?: "" ), "A plain column after the aggregate should still be ordered" );
 		</cfscript>
 	</cffunction>
 

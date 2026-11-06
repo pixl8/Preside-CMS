@@ -1234,115 +1234,6 @@ component {
 		return items;
 	}
 
-	private struct function _parseFieldOrderBy( required string item ) {
-		var trimmed     = Trim( arguments.item );
-		var matches     = ReFindNoCase( "^(.*\S)\s+(asc|desc)$", trimmed, 1, true );
-		var expression  = trimmed;
-		var openParen   = 0;
-		var closeParen  = 0;
-		var depth       = 0;
-		var inString    = false;
-		var length      = 0;
-		var i           = 0;
-		var character   = "";
-		var fieldArgs   = [];
-		var column      = "";
-		var segment     = "";
-		var literal     = "";
-		var inner       = "";
-
-		if ( ArrayLen( matches.pos ?: [] ) > 2 && matches.pos[ 3 ] > 0 ) {
-			expression = Trim( Mid( trimmed, matches.pos[ 2 ], matches.len[ 2 ] ) );
-		}
-
-		openParen = Find( "(", expression );
-
-		if ( !openParen || !ReFindNoCase( "^field\s*\(", expression ) ) {
-			return { safe=false, column="" };
-		}
-
-		length = Len( expression );
-		i      = openParen;
-
-		while ( i <= length ) {
-			character = Mid( expression, i, 1 );
-
-			if ( inString ) {
-				if ( character == "'" ) {
-					if ( i < length && Mid( expression, i + 1, 1 ) == "'" ) {
-						i++;
-					} else {
-						inString = false;
-					}
-				}
-			} else if ( character == "'" ) {
-				inString = true;
-			} else if ( character == "(" ) {
-				depth++;
-			} else if ( character == ")" ) {
-				depth--;
-				if ( !depth ) {
-					closeParen = i;
-					break;
-				}
-			}
-
-			i++;
-		}
-
-		if ( !closeParen || Len( Trim( Mid( expression, closeParen + 1, length ) ) ) ) {
-			return { safe=false, column="" };
-		}
-
-		fieldArgs = _splitOrderByItems( Mid( expression, openParen + 1, closeParen - openParen - 1 ) );
-
-		if ( fieldArgs.len() < 2 ) {
-			return { safe=false, column="" };
-		}
-
-		column = Trim( fieldArgs[ 1 ] );
-
-		for ( segment in ListToArray( column, "." ) ) {
-			if ( Left( segment, 1 ) == "`" && Right( segment, 1 ) == "`" && Len( segment ) > 2 ) {
-				segment = Mid( segment, 2, Len( segment ) - 2 );
-			}
-
-			if ( !ReFind( "^[A-Za-z_][A-Za-z0-9_$]*$", segment ) ) {
-				return { safe=false, column="" };
-			}
-		}
-
-		for ( i = 2; i <= fieldArgs.len(); i++ ) {
-			literal = Trim( fieldArgs[ i ] );
-
-			if ( ReFind( "^-?[0-9]+(\.[0-9]+)?$", literal ) ) {
-				continue;
-			}
-
-			if ( Len( literal ) < 2 || Left( literal, 1 ) != "'" || Right( literal, 1 ) != "'" ) {
-				return { safe=false, column="" };
-			}
-
-			inner = Mid( literal, 2, Len( literal ) - 2 );
-
-			if ( Find( "'", Replace( inner, "''", "", "all" ) ) ) {
-				return { safe=false, column="" };
-			}
-		}
-
-		return { safe=true, column=Replace( column, "`", "", "all" ) };
-	}
-
-	private boolean function _fieldOrderByColumnIsAllowed( required string objectName, required string column ) {
-		var fieldName = arguments.column;
-
-		if ( ListLen( fieldName, "." ) == 2 && CompareNoCase( ListFirst( fieldName, "." ), arguments.objectName ) == 0 ) {
-			fieldName = ListRest( fieldName, "." );
-		}
-
-		return fieldName == "label" || _orderByFieldExists( arguments.objectName, fieldName );
-	}
-
 	public string function sanitizeOrderBy(
 		  required string objectName
 		,          string orderBy  = ""
@@ -1351,13 +1242,6 @@ component {
 		var kept = [];
 
 		for( var item in _splitOrderByItems( arguments.orderBy ) ) {
-			var fieldSort = _parseFieldOrderBy( item );
-
-			if ( fieldSort.safe && _fieldOrderByColumnIsAllowed( arguments.objectName, fieldSort.column ) ) {
-				ArrayAppend( kept, Trim( item ) );
-				continue;
-			}
-
 			var safeItem = _safeOrderByItem( arguments.objectName, item );
 			if ( Len( safeItem ) ) {
 				ArrayAppend( kept, safeItem );
@@ -1450,15 +1334,10 @@ component {
 	}
 
 	private string function _prepareOrderByForObject( required string objectName, required string orderBy ) {
-		var orderByItems = _splitOrderByItems( sanitizeOrderBy( arguments.objectName, arguments.orderBy ) );
+		var orderByItems = _splitOrderByItems( arguments.orderBy );
 		var newOrderBy   = [];
 
 		for( var item in orderByItems ) {
-			if ( _parseFieldOrderBy( item ).safe ) {
-				newOrderBy.append( item );
-				continue;
-			}
-
 			var orderByField      = ListFirst( item, " " );
 			var orderDirection    = ListRest( item, " " );
 			var objectProps       = _getPresideObjectService().getObjectProperties( arguments.objectName );

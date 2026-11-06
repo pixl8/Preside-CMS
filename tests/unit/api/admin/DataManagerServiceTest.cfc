@@ -267,16 +267,15 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "label asc" ) ).toBe( "label asc" );
 			} );
 
-			it( "should drop a clause that is not an object field", function(){
+			it( "should keep a developer function expression", function(){
 				var dataManagerService = _getService();
 
-				_stubOrderByFields( [ "label" ] );
 				mockPoService.$( "getObjectProperties" ).$args( "crm_organisation" ).$results( {
 					label = { name="label", relationship="none" }
 				} );
 				makePublic( dataManagerService, "_prepareOrderByForObject" );
 
-				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "label asc, label;select" ) ).toBe( "label asc" );
+				expect( dataManagerService._prepareOrderByForObject( "crm_organisation", "max( label ) desc, label asc" ) ).toBe( "max( label ) desc,label asc" );
 			} );
 
 			it( "should keep a mysql field() sort of known ids alongside a normal column", function(){
@@ -318,28 +317,33 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( dataManagerService.sanitizeOrderBy( objectName="security_user", orderBy="label", fallback="id" ) ).toBe( "label" );
 			} );
 
-			it( "should keep a mysql field() sort of known ids", function(){
+			it( "should fall back when the sort is a function expression", function(){
 				var dataManagerService = _getService();
 
-				_stubOrderByFields( [ "id" ] );
+				_stubOrderByFields( [ "id", "known_as" ] );
 
 				expect( dataManagerService.sanitizeOrderBy(
 					  objectName = "security_user"
-					, orderBy    = "field( security_user.id, 'c', 'a', 'o''brien' ) desc"
-					, fallback   = "label"
-				) ).toBe( "field( security_user.id, 'c', 'a', 'o''brien' ) desc" );
-			} );
-
-			it( "should fall back when a field() sort is not a list of literal ids", function(){
-				var dataManagerService = _getService();
-
-				_stubOrderByFields( [ "id" ] );
-
-				expect( dataManagerService.sanitizeOrderBy(
-					  objectName = "security_user"
-					, orderBy    = "field( id, (select id from security_user) )"
+					, orderBy    = "field( id, 'c', 'a', 'b' )"
 					, fallback   = "label"
 				) ).toBe( "label" );
+				expect( dataManagerService.sanitizeOrderBy(
+					  objectName = "security_user"
+					, orderBy    = "max( known_as ) desc"
+					, fallback   = "label"
+				) ).toBe( "label" );
+			} );
+
+			it( "should drop a clause that is not an object field", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "label" ] );
+
+				expect( dataManagerService.sanitizeOrderBy(
+					  objectName = "crm_organisation"
+					, orderBy    = "label asc, label;select"
+					, fallback   = ""
+				) ).toBe( "label asc" );
 			} );
 		} );
 

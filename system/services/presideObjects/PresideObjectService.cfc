@@ -4221,27 +4221,6 @@ component displayName="Preside Object Service" {
 		};
 	}
 
-	private boolean function _isInternalLengthOrderBy( required string item ) {
-		return ReFindNoCase( "^(Length|Len)\(\s*[A-Za-z0-9_.]+\s*\)(\s+(asc|desc))?$", arguments.item ) > 0;
-	}
-
-	private boolean function _isPreferredValueOrderBy( required string objectName, required string item ) {
-		var matches = ReFindNoCase( "^CASE WHEN ([A-Za-z0-9_]+)\.([A-Za-z0-9_]+) = '((?:[^']|'')*)' THEN 0 ELSE 1 END$", arguments.item, 1, true );
-
-		if ( ArrayLen( matches.pos ?: [] ) < 4 || matches.pos[ 2 ] == 0 ) {
-			return false;
-		}
-
-		var sortObjectName = Mid( arguments.item, matches.pos[ 2 ], matches.len[ 2 ] );
-		var fieldName      = Mid( arguments.item, matches.pos[ 3 ], matches.len[ 3 ] );
-
-		if ( CompareNoCase( sortObjectName, arguments.objectName ) != 0 ) {
-			return false;
-		}
-
-		return fieldExists( arguments.objectName, fieldName );
-	}
-
 	private array function _splitOrderByItems( required string orderBy ) {
 		var items     = [];
 		var current   = "";
@@ -4295,105 +4274,6 @@ component displayName="Preside Object Service" {
 		return items;
 	}
 
-	private struct function _parseFieldOrderBy( required string item ) {
-		var trimmed     = Trim( arguments.item );
-		var matches     = ReFindNoCase( "^(.*\S)\s+(asc|desc)$", trimmed, 1, true );
-		var expression  = trimmed;
-		var openParen   = 0;
-		var closeParen  = 0;
-		var depth       = 0;
-		var inString    = false;
-		var length      = 0;
-		var i           = 0;
-		var character   = "";
-		var fieldArgs   = [];
-		var column      = "";
-		var segment     = "";
-		var literal     = "";
-		var inner       = "";
-
-		if ( ArrayLen( matches.pos ?: [] ) > 2 && matches.pos[ 3 ] > 0 ) {
-			expression = Trim( Mid( trimmed, matches.pos[ 2 ], matches.len[ 2 ] ) );
-		}
-
-		openParen = Find( "(", expression );
-
-		if ( !openParen || !ReFindNoCase( "^field\s*\(", expression ) ) {
-			return { safe=false, column="" };
-		}
-
-		length = Len( expression );
-		i      = openParen;
-
-		while ( i <= length ) {
-			character = Mid( expression, i, 1 );
-
-			if ( inString ) {
-				if ( character == "'" ) {
-					if ( i < length && Mid( expression, i + 1, 1 ) == "'" ) {
-						i++;
-					} else {
-						inString = false;
-					}
-				}
-			} else if ( character == "'" ) {
-				inString = true;
-			} else if ( character == "(" ) {
-				depth++;
-			} else if ( character == ")" ) {
-				depth--;
-				if ( !depth ) {
-					closeParen = i;
-					break;
-				}
-			}
-
-			i++;
-		}
-
-		if ( !closeParen || Len( Trim( Mid( expression, closeParen + 1, length ) ) ) ) {
-			return { safe=false, column="" };
-		}
-
-		fieldArgs = _splitOrderByItems( Mid( expression, openParen + 1, closeParen - openParen - 1 ) );
-
-		if ( fieldArgs.len() < 2 ) {
-			return { safe=false, column="" };
-		}
-
-		column = Trim( fieldArgs[ 1 ] );
-
-		for ( segment in ListToArray( column, "." ) ) {
-			if ( Left( segment, 1 ) == "`" && Right( segment, 1 ) == "`" && Len( segment ) > 2 ) {
-				segment = Mid( segment, 2, Len( segment ) - 2 );
-			}
-
-			if ( !ReFind( "^[A-Za-z_][A-Za-z0-9_$]*$", segment ) ) {
-				return { safe=false, column="" };
-			}
-		}
-
-		for ( i = 2; i <= fieldArgs.len(); i++ ) {
-			literal = Trim( fieldArgs[ i ] );
-
-			if ( ReFind( "^-?[0-9]+(\.[0-9]+)?$", literal ) ) {
-				continue;
-			}
-
-			if ( Len( literal ) < 2 || Left( literal, 1 ) != "'" || Right( literal, 1 ) != "'" ) {
-				return { safe=false, column="" };
-			}
-
-			inner = Mid( literal, 2, Len( literal ) - 2 );
-
-			if ( Find( "'", Replace( inner, "''", "", "all" ) ) ) {
-				return { safe=false, column="" };
-			}
-		}
-
-		return { safe=true, column=Replace( column, "`", "", "all" ) };
-	}
-
 	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins, required array selectFields ) {
 		var items         = _splitOrderByItems( arguments.orderBy );
 		var rebuilt       = [];
@@ -4410,12 +4290,8 @@ component displayName="Preside Object Service" {
 				continue;
 			}
 
-			if ( _parseFieldOrderBy( trimmedItem ).safe || _isInternalLengthOrderBy( trimmedItem ) || _isPreferredValueOrderBy( arguments.objectName, trimmedItem ) ) {
-				ArrayAppend( rebuilt, trimmedItem );
-				continue;
-			}
-
 			if ( !parsedOrder.allowed ) {
+				ArrayAppend( rebuilt, trimmedItem );
 				continue;
 			}
 
