@@ -84,7 +84,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 			  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
-			, '<a href="#newRecordLink#">#( rc.display_name ?: '')#</a>'
+			, '<a href="#newRecordLink#">#EncodeForHTML( rc.display_name ?: '' )#</a>'
 		] ) );
 
 		if ( Val( rc._addanother ?: 0 ) ) {
