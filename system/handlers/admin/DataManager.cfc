@@ -2107,7 +2107,11 @@ component extends="preside.system.base.AdminHandler" {
 		getRecordsArgs.objectName    = arguments.object;
 		getRecordsArgs.startRow      = dtHelper.getStartRow();
 		getRecordsArgs.maxRows       = dtHelper.getMaxRows();
-		getRecordsArgs.orderBy       = dtHelper.getSortOrder();
+		getRecordsArgs.orderBy       = dataManagerService.sanitizeOrderBy(
+			  objectName = arguments.object
+			, orderBy    = dtHelper.getSortOrder()
+			, fallback   = ""
+		);
 		getRecordsArgs.searchQuery   = dtHelper.getSearchQuery();
 		getRecordsArgs.gridFields    = getRecordsArgs.gridFields.listToArray();
 
@@ -2461,7 +2465,11 @@ component extends="preside.system.base.AdminHandler" {
 			, property    = property
 			, startRow    = dtHelper.getStartRow()
 			, maxRows     = dtHelper.getMaxRows()
-			, orderBy     = dtHelper.getSortOrder()
+			, orderBy     = dataManagerService.sanitizeOrderBy(
+				  objectName = versionObject
+				, orderBy    = dtHelper.getSortOrder()
+				, fallback   = "_version_number desc"
+			)
 			, searchQuery = dtHelper.getSearchQuery()
 		);
 		var records    = Duplicate( results.records );
@@ -2538,7 +2546,11 @@ component extends="preside.system.base.AdminHandler" {
 			, property    = property
 			, startRow    = dtHelper.getStartRow()
 			, maxRows     = dtHelper.getMaxRows()
-			, orderBy     = dtHelper.getSortOrder()
+			, orderBy     = dataManagerService.sanitizeOrderBy(
+				  objectName = versionObject
+				, orderBy    = dtHelper.getSortOrder()
+				, fallback   = "_version_number desc"
+			)
 			, searchQuery = dtHelper.getSearchQuery()
 			, filter      = { _translation_language = languageId }
 		);
