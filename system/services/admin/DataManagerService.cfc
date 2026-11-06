@@ -1046,6 +1046,59 @@ component {
 		return sqlFields;
 	}
 
+	private array function _splitOrderByItems( required string orderBy ) {
+		var items     = [];
+		var current   = "";
+		var depth     = 0;
+		var inString  = false;
+		var length    = Len( arguments.orderBy );
+		var i         = 1;
+		var character = "";
+
+		while ( i <= length ) {
+			character = Mid( arguments.orderBy, i, 1 );
+
+			if ( inString ) {
+				current &= character;
+
+				if ( character == "'" ) {
+					if ( i < length && Mid( arguments.orderBy, i + 1, 1 ) == "'" ) {
+						current &= "'";
+						i++;
+					} else {
+						inString = false;
+					}
+				}
+			} else if ( character == "'" ) {
+				inString = true;
+				current &= character;
+			} else if ( character == "(" ) {
+				depth++;
+				current &= character;
+			} else if ( character == ")" ) {
+				if ( depth ) {
+					depth--;
+				}
+				current &= character;
+			} else if ( character == "," && !depth ) {
+				if ( Len( Trim( current ) ) ) {
+					ArrayAppend( items, Trim( current ) );
+				}
+				current = "";
+			} else {
+				current &= character;
+			}
+
+			i++;
+		}
+
+		if ( Len( Trim( current ) ) ) {
+			ArrayAppend( items, Trim( current ) );
+		}
+
+		return items;
+	}
+
 	public string function sanitizeOrderBy(
 		  required string objectName
 		,          string orderBy  = ""
@@ -1053,7 +1106,7 @@ component {
 	) {
 		var kept = [];
 
-		for( var item in ListToArray( arguments.orderBy ) ) {
+		for( var item in _splitOrderByItems( arguments.orderBy ) ) {
 			var safeItem = _safeOrderByItem( arguments.objectName, item );
 			if ( Len( safeItem ) ) {
 				ArrayAppend( kept, safeItem );
@@ -1146,7 +1199,7 @@ component {
 	}
 
 	private string function _prepareOrderByForObject( required string objectName, required string orderBy ) {
-		var orderByItems = ListToArray( sanitizeOrderBy( arguments.objectName, arguments.orderBy ) );
+		var orderByItems = _splitOrderByItems( arguments.orderBy );
 		var newOrderBy   = [];
 
 		for( var item in orderByItems ) {
