@@ -3417,7 +3417,7 @@ component displayName="Preside Object Service" {
 		for( field in arguments.selectFields ){
 			addMatches( field );
 		}
-		for( field in ListToArray( arguments.orderBy ) ){
+		for( field in _splitOrderByItems( arguments.orderBy ) ){
 			addMatches( field );
 		}
 		if ( isSimpleValue( filter ) ) {
@@ -4221,29 +4221,61 @@ component displayName="Preside Object Service" {
 		};
 	}
 
-	private boolean function _isInternalLengthOrderBy( required string item ) {
-		return ReFindNoCase( "^(Length|Len)\(\s*[A-Za-z0-9_.]+\s*\)(\s+(asc|desc))?$", arguments.item ) > 0;
-	}
+	private array function _splitOrderByItems( required string orderBy ) {
+		var items     = [];
+		var current   = "";
+		var depth     = 0;
+		var inString  = false;
+		var length    = Len( arguments.orderBy );
+		var i         = 1;
+		var character = "";
 
-	private boolean function _isPreferredValueOrderBy( required string objectName, required string item ) {
-		var matches = ReFindNoCase( "^CASE WHEN ([A-Za-z0-9_]+)\.([A-Za-z0-9_]+) = '((?:[^']|'')*)' THEN 0 ELSE 1 END$", arguments.item, 1, true );
+		while ( i <= length ) {
+			character = Mid( arguments.orderBy, i, 1 );
 
-		if ( ArrayLen( matches.pos ?: [] ) < 4 || matches.pos[ 2 ] == 0 ) {
-			return false;
+			if ( inString ) {
+				current &= character;
+
+				if ( character == "'" ) {
+					if ( i < length && Mid( arguments.orderBy, i + 1, 1 ) == "'" ) {
+						current &= "'";
+						i++;
+					} else {
+						inString = false;
+					}
+				}
+			} else if ( character == "'" ) {
+				inString = true;
+				current &= character;
+			} else if ( character == "(" ) {
+				depth++;
+				current &= character;
+			} else if ( character == ")" ) {
+				if ( depth ) {
+					depth--;
+				}
+				current &= character;
+			} else if ( character == "," && !depth ) {
+				if ( Len( Trim( current ) ) ) {
+					ArrayAppend( items, Trim( current ) );
+				}
+				current = "";
+			} else {
+				current &= character;
+			}
+
+			i++;
 		}
 
-		var sortObjectName = Mid( arguments.item, matches.pos[ 2 ], matches.len[ 2 ] );
-		var fieldName      = Mid( arguments.item, matches.pos[ 3 ], matches.len[ 3 ] );
-
-		if ( CompareNoCase( sortObjectName, arguments.objectName ) != 0 ) {
-			return false;
+		if ( Len( Trim( current ) ) ) {
+			ArrayAppend( items, Trim( current ) );
 		}
 
-		return fieldExists( arguments.objectName, fieldName );
+		return items;
 	}
 
 	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter, required struct filterParams, required array extraJoins, required array selectFields ) {
-		var items         = ListToArray( arguments.orderBy );
+		var items         = _splitOrderByItems( arguments.orderBy );
 		var rebuilt       = [];
 		var aliased       = "";
 		var propertyName  = "";
@@ -4258,12 +4290,8 @@ component displayName="Preside Object Service" {
 				continue;
 			}
 
-			if ( _isInternalLengthOrderBy( trimmedItem ) || _isPreferredValueOrderBy( arguments.objectName, trimmedItem ) ) {
-				ArrayAppend( rebuilt, trimmedItem );
-				continue;
-			}
-
 			if ( !parsedOrder.allowed ) {
+				ArrayAppend( rebuilt, trimmedItem );
 				continue;
 			}
 
