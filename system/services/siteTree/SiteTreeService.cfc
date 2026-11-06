@@ -419,10 +419,13 @@ component {
 
 		if ( ListLen( args.orderBy, "." ) == 1 ) {
 			var col = ListFirst( args.orderBy, " " );
-			if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.pageType ), col ) ) {
-				args.orderBy = "#arguments.pageType#.#args.orderBy#";
-			} else {
-				args.orderBy = "page.#args.orderBy#";
+
+			if ( ReFind( "^[A-Za-z_][A-Za-z0-9_$]*$", col ) ) {
+				if ( StructKeyExists( _getPresideObjectService().getObjectProperties( arguments.pageType ), col ) ) {
+					args.orderBy = "#arguments.pageType#.#args.orderBy#";
+				} else {
+					args.orderBy = "page.#args.orderBy#";
+				}
 			}
 		}
 
