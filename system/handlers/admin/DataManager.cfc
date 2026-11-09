@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="cloningService"                   inject="presideObjectCloningService";
 	property name="dataManagerService"               inject="dataManagerService";
+	property name="ajaxSelectSignatureService"       inject="ajaxSelectSignatureService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
 	property name="scheduledExportService"           inject="scheduledExportService";
@@ -831,14 +832,17 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getObjectRecordsForAjaxSelectControl( event, rc, prc ) {
-		var objectName     = prc.objectName ?: "";
+		var objectName     = rc.object ?: ( prc.objectName ?: "" );
 		var extraFilters   = [];
 
 		if ( !Len( Trim( objectName ) ) || !presideObjectService.objectExists( objectName ) ) {
 			event.adminAccessDenied();
 		}
 
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+		if ( !ajaxSelectSignatureService.isValid( params=rc, signature=( rc.sig ?: "" ) ) ) {
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+		}
+
 		var filterByFields = ListToArray( rc.filterByField ?: ( rc.filterByFields ?: "" ) );
 		var bypassTenants  = listToArray( rc.bypassTenants ?: "" );
 		var filterValue    = "";
