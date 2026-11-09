@@ -1,8 +1,9 @@
 component {
 
-	property name="presideObjectService" inject="presideObjectService";
-	property name="labelRendererService" inject="LabelRendererService";
-	property name="dataManagerService"   inject="dataManagerService";
+	property name="presideObjectService"       inject="presideObjectService";
+	property name="labelRendererService"       inject="LabelRendererService";
+	property name="dataManagerService"         inject="dataManagerService";
+	property name="ajaxSelectSignatureService" inject="ajaxSelectSignatureService";
 
 	public string function index( event, rc, prc, args={} ) {
 
@@ -31,16 +32,31 @@ component {
 				valueQs = "sourceObject=#sourceObject#&sourceObjectField=#sourceObjectField#&sourceIdValue=#savedData[ sourceIdField ]#";
 			}
 
+			var useCacheValue = useCache ? "true" : "false";
+			var signature     = ajaxSelectSignatureService.sign( {
+				  object            = targetObject
+				, targetIdField     = targetIdField
+				, savedFilters      = savedFilters
+				, orderBy           = orderBy
+				, labelRenderer     = labelRenderer
+				, filterBy          = filterBy
+				, filterByField     = filterByField
+				, bypassTenants     = bypassTenants
+				, useCache          = useCacheValue
+				, sourceObject      = sourceObject
+				, sourceObjectField = sourceObjectField
+			} );
+
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&#valueQs#"
+					, querystring = "maxRows=100&targetIdField=#targetIdField#&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCacheValue#&#valueQs#&sig=#UrlEncodedFormat( signature )#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&#valueQs#&q=%QUERY"
+				, querystring = "object=#targetObject#&targetIdField=#targetIdField#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCacheValue#&#valueQs#&q=%QUERY&sig=#UrlEncodedFormat( signature )#"
 			);
 		} else {
 			var filter = {};
