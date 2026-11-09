@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="cloningService"                   inject="presideObjectCloningService";
 	property name="dataManagerService"               inject="dataManagerService";
+	property name="ajaxSelectSignatureService"       inject="ajaxSelectSignatureService";
 	property name="batchOperationService"            inject="dataManagerBatchOperationService";
 	property name="customizationService"             inject="dataManagerCustomizationService";
 	property name="dataExportService"                inject="dataExportService";
@@ -1017,7 +1018,10 @@ component extends="preside.system.base.AdminHandler" {
 			event.adminAccessDenied();
 		}
 
-		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+		if ( !ajaxSelectSignatureService.isValid( params=rc, signature=( rc.sig ?: "" ) ) ) {
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+		}
+
 		var filterByFields = ListToArray( rc.filterByField ?: ( rc.filterByFields ?: "" ) );
 		var bypassTenants  = listToArray( rc.bypassTenants ?: "" );
 		var filterValue    = "";

@@ -72,6 +72,49 @@ describe( "DataManager request validation", () => {
 			request( selectUrl( "object=not_a_real_object&maxRows=1" ) ).then( expectAccessDenied );
 		} );
 
+		it( "returns json access denied for an ajax request for an unknown object", () => {
+			cy.request( {
+				  url              : selectUrl( "object=not_a_real_object&maxRows=1" )
+				, failOnStatusCode : false
+				, followRedirect   : false
+				, headers          : { "X-Requested-With" : "XMLHttpRequest" }
+			} ).then( ( response ) => {
+				expect( response.status ).to.eq( 401 );
+				expect( response.headers[ "content-type" ] || "" ).to.include( "json" );
+				expect( response.body ).to.deep.equal( { error : "access denied" } );
+			} );
+		} );
+
+		it( "signs a rendered object picker search and refuses a tampered object", () => {
+			cy.visit( "/admin/auditTrail/" );
+			cy.get( "[data-remote-url*='getObjectRecordsForAjaxSelectControl']" )
+				.invoke( "attr", "data-remote-url" )
+				.then( ( remoteUrl ) => {
+					expect( remoteUrl ).to.include( "sig=" );
+
+					const signed   = remoteUrl.replace( "%QUERY", "a" );
+					const tampered = signed.replace( /([?&])object=[^&]*/, "$1object=not_a_real_object" );
+
+					cy.request( {
+						  url              : signed
+						, failOnStatusCode : false
+						, followRedirect   : false
+						, headers          : { "X-Requested-With" : "XMLHttpRequest" }
+					} ).then( expectJsonRecords );
+
+					cy.request( {
+						  url              : tampered
+						, failOnStatusCode : false
+						, followRedirect   : false
+						, headers          : { "X-Requested-With" : "XMLHttpRequest" }
+					} ).then( ( response ) => {
+						expect( response.status ).to.eq( 401 );
+						expect( response.headers[ "content-type" ] || "" ).to.include( "json" );
+						expect( response.body ).to.deep.equal( { error : "access denied" } );
+					} );
+				} );
+		} );
+
 		it( "does not return child-grid records for an unknown object", () => {
 			request( `/admin/datamanager/getChildObjectRecordsForAjaxDataTables/?object=not_a_real_object&parentId=${ NONEXISTENT_ID }&relationshipKey=parent` )
 				.then( ( response ) => {
