@@ -39,7 +39,8 @@
         "cbjavaloader":"1.5.0+35",
         "coldbox":"5.4.0",
         "cfconcurrent":"3.0.0",
-        "JSONPrettyPrint":"1.4.1"
+        "JSONPrettyPrint":"1.4.1",
+        "cfsignatures":"1.2.0+0000029"
     },
     "devDependencies":{
         "testbox":"5.4.0"
@@ -55,7 +56,8 @@
         "cbjavaloader":"system/modules/cbjavaloader/",
         "coldbox":"system/externals/coldbox/",
         "cfconcurrent":"system/externals/cfconcurrent/",
-        "JSONPrettyPrint":"system/modules/JSONPrettyPrint/"
+        "JSONPrettyPrint":"system/modules/JSONPrettyPrint/",
+        "cfsignatures":"system/modules/cfsignatures/"
     },
     "ignore":[
         ".git/*",
