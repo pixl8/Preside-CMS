@@ -26,6 +26,10 @@ component {
 	variables.sessionKeyName = "_ajaxSelectSignatureKey";
 	variables.algorithm      = "HS256";
 
+	public any function init() {
+		return this;
+	}
+
 	public string function sign( required struct params ) {
 		return cfsignatures.sign(
 			  payload    = _canonical( arguments.params )
