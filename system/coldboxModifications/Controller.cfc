@@ -319,4 +319,73 @@ component extends="coldbox.system.web.Controller" {
 			return arguments.target[ arguments.method ]( argumentCollection=arguments.argCollection );
 		}
 	}
+
+
+	/****************************************** RELOCATION HELPERS *************************************************/
+
+	/**
+	* Relocate user browser requests to other events, URLs, or URIs.
+	*
+	* @event The name of the event to relocate to, if not passed, then it will use the default event found in your configuration file.
+	* @queryString The query string to append, if needed. If in SES mode it will be translated to convention name value pairs
+	* @addToken Wether to add the tokens or not to the relocation. Default is false
+	* @persist What request collection keys to persist in flash RAM automatically for you
+	* @persistStruct A structure of key-value pairs to persist in flash RAM automatically for you
+	* @prcPersistStruct A structure of key-value pairs to persist in flash RAM and inflate to PRC automatically for you
+	* @ssl Whether to relocate in SSL or not. You need to explicitly say TRUE or FALSE if going out from SSL. If none passed, we look at the even's SES base URL (if in SES mode)
+	* @baseURL Use this baseURL instead of the index.cfm that is used by default. You can use this for SSL or any full base url you would like to use. Ex: https://mysite.com/index.cfm
+	* @postProcessExempt Do not fire the postProcess interceptors, by default it does
+	* @URL The full URL you would like to relocate to instead of an event: ex: URL='http://www.google.com'
+	* @URI The relative URI you would like to relocate to instead of an event: ex: URI='/mypath/awesome/here'
+	* @statusCode The status code to use in the relocation
+	*
+	* @return Controller
+	*/
+	function relocate(
+		event=getSetting( "DefaultEvent" ),
+		queryString="",
+		boolean addToken=false,
+		persist="",
+		struct persistStruct=StructNew(),
+		struct prcPersistStruct=StructNew()
+		boolean ssl,
+		baseURL="",
+		boolean postProcessExempt=false,
+		URL,
+		URI,
+		numeric statusCode=0
+	){
+		// This proxy method is included to make visible the addition of the prcPersistStruct argument
+		return super.relocate( argumentCollection=arguments );
+	}
+
+	/**
+	* Internal helper to flash persist elements.
+	* Overrides core ColdBox method to allow explicit persisting to PRC.
+	* @persist.hint A list of request collection keys you want to persist
+	* @persistStruct.hint A structure key-value pairs to persist in flash ram
+	* @prcPersistStruct.hint A structure key-value pairs to persist in flash ram and inflate to PRC
+	* @return Controller
+	*/
+	private function persistVariables( persist="", struct persistStruct={}, struct prcPersistStruct={} ){
+		var flash = getRequestService().getFlashScope();
+
+		// persist persistStruct if passed
+		if ( StructCount( arguments.persistStruct ) ) {
+			flash.putAll( map=arguments.persistStruct, saveNow=true );
+		}
+
+		// persist prcPersistStruct if passed
+		if ( StructCount( arguments.prcPersistStruct ) ) {
+			flash.putAll( map=arguments.prcPersistStruct, saveNow=true, inflateToRC=false, inflateToPRC=true );
+		}
+
+		// Persist RC keys if passed.
+		if ( Len( Trim( arguments.persist ) ) ) {
+			flash.persistRC( include=arguments.persist, saveNow=true);
+		}
+
+		return this;
+	}
+
 }
