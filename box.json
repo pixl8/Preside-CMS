@@ -41,7 +41,8 @@
         "cfconcurrent":"3.0.0",
         "JSONPrettyPrint":"1.4.1",
         "cfflow":"0.8.0",
-        "chrono":"0.1.2"
+        "chrono":"0.1.2",
+        "cfsignatures":"1.2.0+0000029"
     },
     "devDependencies":{
         "testbox":"5.4.0"
@@ -59,7 +60,8 @@
         "coldbox":"system/externals/coldbox/",
         "cfconcurrent":"system/externals/cfconcurrent/",
         "JSONPrettyPrint":"system/modules/JSONPrettyPrint/",
-        "chrono":"system/modules/chrono/"
+        "chrono":"system/modules/chrono/",
+		"cfsignatures":"system/modules/cfsignatures/"
     },
     "ignore":[
         ".git/*",
