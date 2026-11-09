@@ -1,8 +1,9 @@
 component {
 
-	property name="presideObjectService" inject="presideObjectService";
-	property name="labelRendererService" inject="LabelRendererService";
-	property name="dataManagerService"   inject="dataManagerService";
+	property name="presideObjectService"       inject="presideObjectService";
+	property name="labelRendererService"       inject="LabelRendererService";
+	property name="dataManagerService"         inject="dataManagerService";
+	property name="ajaxSelectSignatureService" inject="ajaxSelectSignatureService";
 
 	public string function index( event, rc, prc, args={} ) {
 
@@ -22,16 +23,29 @@ component {
 		args.defaultValue    = _removeInvalidValues( objectName=targetObject, values=args.defaultValue, bypassTenants=bypassTenants );
 
 		if ( IsBoolean( ajax ) && ajax ) {
+			var useCacheValue = useCache ? "true" : "false";
+			var signature     = ajaxSelectSignatureService.sign( {
+				  object        = targetObject
+				, targetIdField = targetIdField
+				, savedFilters  = savedFilters
+				, orderBy       = orderBy
+				, labelRenderer = labelRenderer
+				, filterBy      = filterBy
+				, filterByField = filterByField
+				, bypassTenants = bypassTenants
+				, useCache      = useCacheValue
+			} );
+
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
 				args.prefetchUrl = event.buildAdminLink(
 					  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#"
+					, querystring = "maxRows=100&object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&sig=#UrlEncodedFormat( signature )#"
 				);
 			}
 			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink(
 				  linkTo      = "datamanager.getObjectRecordsForAjaxSelectControl"
-				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&q=%QUERY"
+				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&orderBy=#orderBy#&labelRenderer=#labelRenderer#&filterBy=#filterBy#&filterByField=#filterByField#&bypassTenants=#bypassTenants#&useCache=#useCache#&q=%QUERY&sig=#UrlEncodedFormat( signature )#"
 			);
 		} else {
 			var filter = {};

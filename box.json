@@ -34,7 +34,8 @@
         "cbstorages":"1.3.0+14",
         "cbjavaloader":"1.5.0+35",
         "coldbox":"5.4.0",
-        "cfconcurrent":"3.0.0"
+        "cfconcurrent":"3.0.0",
+        "cfsignatures":"1.2.0+0000029"
     },
     "devDependencies":{
         "testbox":"2.7.0"
@@ -49,7 +50,8 @@
         "cbstorages":"system/modules/cbstorages/",
         "cbjavaloader":"system/modules/cbjavaloader/",
         "coldbox":"system/externals/coldbox/",
-        "cfconcurrent":"system/externals/cfconcurrent/"
+        "cfconcurrent":"system/externals/cfconcurrent/",
+        "cfsignatures":"system/modules/cfsignatures/"
     },
     "ignore":[
         ".git/*",

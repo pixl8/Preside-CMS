@@ -393,6 +393,17 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 
 		announceInterception( "onAccessDenied" , arguments );
 
+		if ( isAjax() ) {
+			event.setHTTPHeader( statusCode="401" );
+			event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
+			event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
+
+			content reset=true type="application/json";
+			header statuscode="401" statustext="Access denied";
+			echo( SerializeJson( { error="access denied" } ) );
+			abort;
+		}
+
 		event.setView( view="/admin/errorPages/accessDenied" );
 
 		event.setHTTPHeader( statusCode="401" );
