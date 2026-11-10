@@ -27,13 +27,8 @@ component {
 			var sourceObjectField = Trim( args.sourceObjectField ?: "" );
 			var sourceObject      = Trim( args.sourceObject      ?: "" );
 			var valueQs           = "defaultValue=#args.defaultValue#";
-
-			if ( Len( sourceObjectField ) && Len( sourceObject ) && Len( sourceIdField ) && Len( savedData[ sourceIdField ] ?: "" ) ) {
-				valueQs = "sourceObject=#sourceObject#&sourceObjectField=#sourceObjectField#&sourceIdValue=#savedData[ sourceIdField ]#";
-			}
-
-			var useCacheValue = useCache ? "true" : "false";
-			var signature     = ajaxSelectSignatureService.sign( {
+			var useCacheValue     = useCache ? "true" : "false";
+			var signArgs          = {
 				  object            = targetObject
 				, targetIdField     = targetIdField
 				, savedFilters      = savedFilters
@@ -43,9 +38,17 @@ component {
 				, filterByField     = filterByField
 				, bypassTenants     = bypassTenants
 				, useCache          = useCacheValue
-				, sourceObject      = sourceObject
-				, sourceObjectField = sourceObjectField
-			} );
+				, sourceObject      = ""
+				, sourceObjectField = ""
+			};
+
+			if ( Len( sourceObjectField ) && Len( sourceObject ) && Len( sourceIdField ) && Len( savedData[ sourceIdField ] ?: "" ) ) {
+				valueQs = "sourceObject=#sourceObject#&sourceObjectField=#sourceObjectField#&sourceIdValue=#savedData[ sourceIdField ]#";
+
+				signArgs.sourceObject      = sourceObject;
+				signArgs.sourceObjectField = sourceObjectField;
+			}
+			var signature = ajaxSelectSignatureService.sign( signArgs );
 
 			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject, labelRenderer );
