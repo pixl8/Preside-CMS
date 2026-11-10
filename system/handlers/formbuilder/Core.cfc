@@ -9,6 +9,12 @@ component {
 		var theForm      = formBuilderService.getForm( formId );
 		var validRequest = theForm.recordCount == 1 && Len( Trim( cgi.http_referer ) ) && event.getHTTPMethod() == "POST";
 
+		for ( var pageField in [ "formPageNumber", "formPageNext", "formPageCount" ] ) {
+			if ( StructKeyExists( rc, pageField ) && !IsValid( "integer", rc[ pageField ] ) ) {
+				validRequest = false;
+			}
+		}
+
 		if ( !validRequest ) {
 			event.notFound();
 		}
