@@ -423,7 +423,7 @@ component accessors=true extends="preside.system.coldboxModifications.RequestCon
 		var messageBox      = getModel( "messagebox@cbmessagebox" );
 		var i18n            = getModel( "i18n" );
 		var userIsAdmin     = isAdminUser();
-		var isAuthenticated = userIsAdmin && !loginService.twoFactorAuthenticationRequired();
+		var isAuthenticated = userIsAdmin && !loginService.twoFactorAuthenticationRequired(  ipAddress=getClientIp(), userAgent=getUserAgent() );
 		var postLoginUrl    = "";
 		var rc              = getCollection();
 
