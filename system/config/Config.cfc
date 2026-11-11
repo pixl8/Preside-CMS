@@ -1241,8 +1241,9 @@ component {
 			, "preside.webflow.instance.not.cancellable"
 		];
 
-		settings.webflow.state            = settings.webflow.state            ?: {};
-		settings.webflow.state.ignoreKeys = settings.webflow.state.ignoreKeys ?: [ "_rurl", "_wid", "$presideform" ];
+		settings.webflow.state                         = settings.webflow.state                         ?: {};
+		settings.webflow.state.ignoreKeys              = settings.webflow.state.ignoreKeys              ?: [ "_rurl", "_wid", "$presideform" ];
+		settings.webflow.state.persistUndeclaredFields = settings.webflow.state.persistUndeclaredFields ?: true;
 	}
 
 	private void function __loadConfigurationFromExtensions() {
