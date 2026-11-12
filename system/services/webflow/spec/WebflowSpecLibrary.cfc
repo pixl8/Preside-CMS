@@ -4,6 +4,7 @@
  * @singleton      true
  */
 component {
+	property name="defaultPersistUndeclaredFields" type="boolean" default=true inject="coldbox:setting:webflow.state.persistUndeclaredFields";
 
 	variables._flows = {};
 	variables._steps = {};
@@ -169,18 +170,19 @@ component {
 
 	private any function _readWebflow( required any spec ) {
 		return new Webflow(
-			  id                = spec.webflow.id    ?: ""
-			, meta              = spec.webflow.meta  ?: {}
-			, init              = spec.webflow.init  ?: {}
-			, steps             = _readRawSteps( spec.webflow.steps ?: [] )
-			, singleton         = IsBoolean( spec.webflow.singleton      ?: "" ) && spec.webflow.singleton
-			, adminFlow         = IsBoolean( spec.webflow.adminFlow      ?: "" ) && spec.webflow.adminFlow
-			, hideFromWidget    = IsBoolean( spec.webflow.hideFromWidget ?: "" ) && spec.webflow.hideFromWidget
-			, cfflowId          = "preside.webflow." & ( spec.webflow.id ?: "" )
-			, layout            = spec.webflow.layout ?: {}
-			, preCancelHandler  = spec.webflow.preCancelHandler ?: {}
-			, postCancelHandler = spec.webflow.postCancelHandler ?: {}
-			, instRefConfig     = spec.webflow.instRefConfig ?: {}
+			  id                      = spec.webflow.id    ?: ""
+			, meta                    = spec.webflow.meta  ?: {}
+			, init                    = spec.webflow.init  ?: {}
+			, steps                   = _readRawSteps( spec.webflow.steps ?: [] )
+			, singleton               = IsBoolean( spec.webflow.singleton      ?: "" ) && spec.webflow.singleton
+			, adminFlow               = IsBoolean( spec.webflow.adminFlow      ?: "" ) && spec.webflow.adminFlow
+			, hideFromWidget          = IsBoolean( spec.webflow.hideFromWidget ?: "" ) && spec.webflow.hideFromWidget
+			, persistUndeclaredFields = IsBoolean( spec.webflow.persistUndeclaredFields ?: "" ) ? spec.webflow.persistUndeclaredFields : defaultPersistUndeclaredFields
+			, cfflowId                = "preside.webflow." & ( spec.webflow.id ?: "" )
+			, layout                  = spec.webflow.layout ?: {}
+			, preCancelHandler        = spec.webflow.preCancelHandler ?: {}
+			, postCancelHandler       = spec.webflow.postCancelHandler ?: {}
+			, instRefConfig           = spec.webflow.instRefConfig ?: {}
 		);
 	}
 
