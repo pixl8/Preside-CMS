@@ -4,11 +4,11 @@
  * @feature rulesEngine
  */
 component {
-	property name="formBuilderService"   inject="formBuilderService";
+	property name="formBuilderService"   inject="featureInjector:formbuilder:formBuilderService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
 
-		if ( len( trim( arguments.config.question?:"" ) ) ) {
+		if ( len( trim( arguments.config.question?:"" ) ) && IsObject( formBuilderService ) ) {
 			var theQuestion  = formBuilderService.getQuestion( arguments.config.question );
 			var questionConfig = DeserializeJson( theQuestion.item_type_config );
 			switch ( questionConfig.format?:"" ) {
