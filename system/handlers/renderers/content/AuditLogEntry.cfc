@@ -18,6 +18,7 @@ component {
 		var labelField   = "";
 		var record_id    = args.record_id   ?: "";
 		var recordLabel  = record_id;
+		var labelIsHtml  = false;
 		var objectTitle  = translateResource( uri="preside-objects.#objectName#:title.singular" );
 		var objectUrl    = event.buildAdminLink( objectName=objectName, operation="listing" );
 		var objectLink   = _linkedAdminText( objectUrl, objectTitle );
@@ -34,11 +35,16 @@ component {
 
 		labelField = objectName.len() ? presideObjectService.getObjectAttribute( objectName, "labelField" ) : "";
 		try {
-			recordLabel = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
+			if ( StructKeyExists( args.detail, labelField ) ) {
+				recordLabel = args.detail[ labelField ];
+			} else {
+				recordLabel = renderLabel( objectName=objectName, recordId=record_id );
+				labelIsHtml = _labelRendererOutputsHtml( objectName );
+			}
 		} catch ( PresideObjectService.no.label.field e ) {}
 
 		recordUrl  = event.buildAdminLink( objectName=objectName, recordId=record_id );
-		recordLink = _linkedAdminText( recordUrl, recordLabel );
+		recordLink = labelIsHtml ? _linkedAdminHtml( recordUrl, recordLabel ) : _linkedAdminText( recordUrl, recordLabel );
 
 		switch( action ) {
 			case "datamanager_translate_record":
@@ -185,9 +191,18 @@ component {
 		var labelField   = objectName.len() ? presideObjectService.getObjectAttribute( objectName, "labelField" ) : "";
 		var userLink     = _linkedAdminText( args.userLink ?: "", args.known_as ?: "" );
 		var objectTitle  = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-		var recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
+		var recordLabel  = "";
 
-		return translateResource( uri="auditlog.frontendeditor:#args.action#.message", data=[ userLink, objectTitle, EncodeForHtml( recordLabel ) ] );
+		if ( StructKeyExists( args.detail, labelField ) ) {
+			recordLabel = EncodeForHtml( args.detail[ labelField ] );
+		} else {
+			recordLabel = renderLabel( objectName=objectName, recordId=record_id );
+			if ( !_labelRendererOutputsHtml( objectName ) ) {
+				recordLabel = EncodeForHtml( recordLabel );
+			}
+		}
+
+		return translateResource( uri="auditlog.frontendeditor:#args.action#.message", data=[ userLink, objectTitle, recordLabel ] );
 	}
 
 	private string function emailtemplate( event, rc, prc, args={} ) {
@@ -344,6 +359,14 @@ component {
 
 	private string function _linkedAdminHtml( required string href, required string html ) {
 		return '<a href="#EncodeForHtmlAttribute( arguments.href )#">#arguments.html#</a>';
+	}
+
+	private boolean function _labelRendererOutputsHtml( required string objectName ) {
+		if ( !Len( arguments.objectName ) || !presideObjectService.objectExists( arguments.objectName ) ) {
+			return false;
+		}
+
+		return Len( presideObjectService.getObjectAttribute( arguments.objectName, "labelRenderer" ) ) > 0;
 	}
 
 }
