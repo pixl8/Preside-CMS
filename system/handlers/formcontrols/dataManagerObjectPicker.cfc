@@ -5,7 +5,8 @@ component {
 	property name="dataManagerService" inject="dataManagerService";
 
 	public string function index( event, rc, prc, args={} ) {
-		var groupedObjects = dataManagerService.getGroupedObjects();
+		var extraObjects   = getSetting( name="dataManagerObjectPicker.extraObjects", defaultValue=[] );
+		var groupedObjects = dataManagerService.getGroupedObjects( extraObjects=extraObjects );
 
 		if ( !groupedObjects.len() ) {
 			return "";
