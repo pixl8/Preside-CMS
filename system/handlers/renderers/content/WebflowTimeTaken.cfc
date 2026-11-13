@@ -6,16 +6,12 @@ component {
 		var processed = _convertTimeToFormat( timeTaken=timeTaken );
 		var i18nKey   = "sec";
 
-		if ( processed.minutes > 0 ) {
-			i18nKey &= "_min";
-
-			if ( processed.hours > 0 ) {
-				i18nKey &= "_hour";
-
-				if ( processed.days > 0 ) {
-					i18nKey &= "_day";
-				}
-			}
+		if ( processed.days > 0 ) {
+			i18nKey = "sec_min_hour_day";
+		} else if ( processed.hours > 0 ) {
+			i18nKey = "sec_min_hour";
+		} else if ( processed.minutes > 0 ) {
+			i18nKey = "sec_min";
 		}
 
 		return translateResource( uri="cms:time.period.duration.#i18nKey#", data=[
@@ -35,17 +31,17 @@ component {
 			, seconds = arguments.timeTaken
 		};
 
-		if ( processed.seconds > 86400 ) {
-			processed.days  = Floor( processed.seconds / 86400 );
+		if ( processed.seconds >= 86400 ) {
+			processed.days    = Floor( processed.seconds / 86400 );
 			processed.seconds = processed.seconds - ( processed.days * 86400 );
 		}
 
-		if ( processed.seconds > 3600 ) {
+		if ( processed.seconds >= 3600 ) {
 			processed.hours   = Floor( processed.seconds / 3600 );
 			processed.seconds = processed.seconds - ( processed.hours * 3600 );
 		}
 
-		if ( processed.seconds > 60 ) {
+		if ( processed.seconds >= 60 ) {
 			processed.minutes = Floor( processed.seconds / 60 );
 			processed.seconds = processed.seconds - ( processed.minutes * 60 );
 		}
