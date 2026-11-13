@@ -22,6 +22,8 @@ component extends="preside.system.base.SystemPresideObject" {
 
 	property name="recipient" type="string" dbtype="varchar" maxlength=255 required=true indexes="recipient";
 	property name="sender"    type="string" dbtype="varchar" maxlength=255 required=true indexes="sender";
+	property name="cc"        type="string" dbtype="text"    required=false autofilter=false;
+	property name="bcc"       type="string" dbtype="text"    required=false autofilter=false;
 	property name="subject"   type="string" dbtype="varchar" maxlength=255               indexes="subject";
 	property name="resend_of" type="string" dbtype="varchar" maxlength=35                indexes="resendof";
 	property name="send_args" type="string" dbtype="text" autofilter=false;
