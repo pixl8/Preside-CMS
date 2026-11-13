@@ -51,7 +51,11 @@ proident, sunt in Test #replacements[ dvs[3] ]#==RICHRENDERED==RICHRENDERED culp
 				).$results( replacements[ dvs[3] ] );
 
 				for( var replacementKey in replacements ) {
-					mockContentRenderer.$( "render" ).$args( renderer="richeditor", data=replacements[ replacementKey ] ).$results( replacements[ replacementKey ] & "==RICHRENDERED" );
+					mockContentRenderer.$( "render" ).$args(
+						  renderer = "richeditor"
+						, data     = replacements[ replacementKey ]
+						, args     = { isDelayedViewlet=true }
+					).$results( replacements[ replacementKey ] & "==RICHRENDERED" );
 				}
 
 
