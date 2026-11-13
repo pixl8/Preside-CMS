@@ -9,7 +9,7 @@ component {
 		if ( Len( Trim( args.relativeOperator ?: "" ) ) && IsBoolean( args.relativeToCurrentTime ?: "" ) && args.relativeToCurrentTime ) {
 			var theDate   = Now();
 			var validator = "maximumTime";
-			
+
 
 			switch( args.relativeOperator ) {
 				case "lt":
@@ -30,7 +30,7 @@ component {
 				break;
 			}
 		}
-		
+
 		return renderFormControl(
 			  argumentCollection = args
 			, name               = controlName
@@ -46,16 +46,16 @@ component {
 		var rules = [];
 
 		if ( IsDate( args.minTime ?: "" ) ) {
-			rules.append( { fieldname=args.name, validator="minimumTime", params={ minimumTime=args.minTime } } );
+			ArrayAppend( rules, { fieldname=args.name, validator="minimumTime", params={ minimumTime=args.minTime } } );
 		}
 		if ( IsDate( args.maxTime ?: "" ) ) {
-			rules.append( { fieldname=args.name, validator="maximumTime", params={ maximumTime=args.maxTime } } );
+			ArrayAppend( rules, { fieldname=args.name, validator="maximumTime", params={ maximumTime=args.maxTime } } );
 		}
 		if ( Len( Trim( args.relativeOperator ?: "" ) ) ) {
 			if ( IsBoolean( args.relativeToCurrentTime ?: "" ) && args.relativeToCurrentTime ) {
 				var theTime   = Now();
 				var validator = "maximumTime";
-				
+
 				switch( args.relativeOperator ) {
 					case "lt":
 					theTime = datetimeformat( DateAdd( 'n', -1, theTime ) ,"HH:nn");
@@ -66,8 +66,12 @@ component {
 					validator = "minimumTime";
 					break;
 				}
-				rules.append( { fieldname=args.name, validator=validator, params={ "#validator#"=DateTimeFormat( theTime, "hh:nn tt" ) } } );
-				
+				ArrayAppend( rules, {
+					  fieldname = args.name
+					, validator = validator
+					, params    = { "#validator#"=DateTimeFormat( theTime, "hh:nn tt" ) }
+				} );
+
 			}
 			if ( Len( Trim( args.relativeToField ?: "" ) ) ) {
 				var validator = "";
@@ -85,13 +89,18 @@ component {
 					validator = "laterThanOrSameAsField";
 					break;
 				}
-				
-				rules.append( { fieldname=args.name, validator=validator, params={ field=args.relativeToField } } );
+
+				ArrayAppend( rules, {
+					  fieldname = args.name
+					, validator = validator
+					, message   = "cms:validation.time#validator#.default"
+					, params    = { field=args.relativeToField }
+				} );
 			}
 		}
 		return rules;
 	}
-	
+
 	private string function renderV2ResponsesForDb( event, rc, prc, args={} ) {
 		return IsDate( args.response ?: "" ) ? args.response : "";
 	}
