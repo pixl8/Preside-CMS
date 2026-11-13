@@ -69,7 +69,7 @@ component extends="preside.system.base.AdminHandler" {
 		var newRecordLink = event.buildAdminLink( linkto="apiUserManager.edit", queryString="id=" & userId );
 		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 			  translateResource( uri="preside-objects.rest_user:title.singular", defaultValue="rest_user" )
-			, '<a href="#newRecordLink#">#event.getValue( name="name", defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+			, '<a href="#newRecordLink#">#EncodeForHTML( event.getValue( name="name", defaultValue=translateResource( uri="cms:datamanager.record" ) ) )#</a>'
 		] ) );
 
 		if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {

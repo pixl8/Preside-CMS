@@ -3114,7 +3114,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
-				, '<a href="#newRecordLink#">#event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+				, '<a href="#newRecordLink#">#EncodeForHTML( event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) ) )#</a>'
 			] ) );
 
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
@@ -3197,7 +3197,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 			  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
-			, '<a href="#newRecordLink#">#event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+			, '<a href="#newRecordLink#">#EncodeForHTML( event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) ) )#</a>'
 		] ) );
 
 		if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
