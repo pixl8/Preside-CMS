@@ -142,7 +142,7 @@ component {
 			, getSqlAndParamsOnly = true
 			, formatSqlParams     = true
 			, selectFields        = [ "1" ]
-			, extraFilters        = extraFilters
+			, extraFilters        = subQueryFilters
 		);
 
 		var params = subQuery.params;
