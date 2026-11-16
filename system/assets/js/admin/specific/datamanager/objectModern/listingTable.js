@@ -207,6 +207,20 @@
 			  , filtersPopulated = false
 			  , hasPreFilters    = false
 			  , hasFilterVal     = $filterDiv.find( "[name=filter]" ).length > 0 && $filterDiv.find( "[name=filter]" ).val().length > 0
+			  , urlPreFilter     = ( function(){
+					var parsed;
+
+					if ( !hasFilterVal ) {
+						return [];
+					}
+					try {
+						parsed = JSON.parse( $filterDiv.find( "[name=filter]" ).val() );
+					} catch( e ) {
+						return [];
+					}
+
+					return $.isArray( parsed ) ? parsed : [];
+				} )()
 			  , listingUrlPending = ( typeof PresideDatatables.readListingUrlState === "function" ) ? PresideDatatables.readListingUrlState( tableId ) : null
 			  , listingUrlReady = false
 			  , listingUrlApplying = false
@@ -2802,6 +2816,8 @@
 						if ( listingUrlPending ) {
 							applyListingUrlState( listingUrlPending, { skipDraw : true } );
 							listingUrlPending = null;
+						} else if ( urlPreFilter.length ) {
+							applyListingUrlState( { a : urlPreFilter }, { skipDraw : true } );
 						} else if ( !( listingViews && listingViews.isNamedViewActive() ) && !( listingViews && listingViews.hasResolvedNamedDefault && listingViews.hasResolvedNamedDefault() ) ) {
 							storedFilters = loadListingFilterState();
 							if ( storedFilters ) {
