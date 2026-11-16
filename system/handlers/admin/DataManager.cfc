@@ -797,11 +797,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( presideObjectService.isManyToManyProperty( objectName, field ) ) {
 			prc.multiEditBehaviourControl = renderFormControl(
-				  type   = "select"
-				, name   = "multiValueBehaviour"
-				, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
-				, values = [ "append", "overwrite", "delete" ]
-				, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+				  type         = "select"
+				, name         = "multiValueBehaviour"
+				, label        = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
+				, values       = [ "append", "overwrite", "delete" ]
+				, labels       = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+				, deselectable = false
 			);
 
 			prc.batchEditWarning = translateResource(
@@ -4077,11 +4078,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( presideObjectService.isManyToManyProperty( object, field ) ) {
 			args.multiEditBehaviourControl = renderFormControl(
-				  type   = "select"
-				, name   = "multiValueBehaviour"
-				, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
-				, values = [ "append", "overwrite", "delete" ]
-				, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+				  type         = "select"
+				, name         = "multiValueBehaviour"
+				, label        = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
+				, values       = [ "append", "overwrite", "delete" ]
+				, labels       = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+				, deselectable = false
 			);
 
 			args.batchEditWarning = args.batchEditWarning ?: translateResource(
