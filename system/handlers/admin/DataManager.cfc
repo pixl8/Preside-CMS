@@ -855,7 +855,11 @@ component extends="preside.system.base.AdminHandler" {
 			targetIdField = presideObjectService.getIdField( objectName );
 		}
 
-		for( var filterByField in filterByFields ) {
+		for ( var filterByField in filterByFields ) {
+			if ( !dataManagerService.isFilterableField( objectName, filterByField ) ) {
+				event.adminAccessDenied();
+			}
+
 			filterValue = rc[filterByField] ?: "";
 			if( !isEmpty( filterValue ) ){
 				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
