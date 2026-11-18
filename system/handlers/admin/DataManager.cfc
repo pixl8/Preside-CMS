@@ -1046,7 +1046,11 @@ component extends="preside.system.base.AdminHandler" {
 			targetIdField = presideObjectService.getIdField( objectName );
 		}
 
-		for( var filterByField in filterByFields ) {
+		for ( var filterByField in filterByFields ) {
+			if ( !dataManagerService.isFilterableField( objectName, filterByField ) ) {
+				event.adminAccessDenied();
+			}
+
 			filterValue = rc[filterByField] ?: "";
 			if( !isEmpty( filterValue ) ){
 				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
@@ -2924,7 +2928,11 @@ component extends="preside.system.base.AdminHandler" {
 
 	) {
 		var filterData = {};
-		for( var field in ListToArray( rc.filterByFields ?: "" ) ) {
+		for ( var field in ListToArray( rc.filterByFields ?: "" ) ) {
+			if ( !dataManagerService.isFilterableField( arguments.object, field ) ) {
+				event.adminAccessDenied();
+			}
+
 			if ( Len( Trim( rc[ field ] ?: "" ) ) ) {
 				filterData[ field ] = ListLen( rc[ field ] ) > 1 ? ListToArray( rc[ field ] ) : rc[ field ];
 			}
