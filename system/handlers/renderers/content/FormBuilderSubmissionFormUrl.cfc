@@ -14,9 +14,13 @@ component  {
 
 			if ( !isEmptyString( submission.form_site ?: "" ) ) {
 
+				if ( Left( args.data, 1 ) != "/" ) {
+					return EncodeForHTML( args.data );
+				}
+
 				var link = event.getSiteUrl( submission.form_site ) & args.data;
 
-				return '<a href="#link#">#link#</a>';
+				return '<a href="#EncodeForHTMLAttribute( link )#">#EncodeForHTML( link )#</a>';
 			}
 		}
 
