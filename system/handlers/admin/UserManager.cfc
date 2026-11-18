@@ -221,7 +221,7 @@ component extends="preside.system.base.AdminHandler" {
 		var newRecordLink = event.buildAdminLink( linkTo="usermanager.editUser", queryString="id=#newUserId#" );
 		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 			  translateResource( uri="preside-objects.security_user:title.singular", defaultValue="security_user" )
-			, '<a href="#newRecordLink#">#( rc.known_as ?: "" )#</a>'
+			, '<a href="#newRecordLink#">#EncodeForHTML( rc.known_as ?: "" )#</a>'
 		] ) );
 
 		if ( Val( rc._addanother ?: 0 ) ) {
