@@ -1058,7 +1058,12 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getPagesForAjaxPicker( event, rc, prc ) {
 		var extraFilters   = [];
 		var filterByFields = ListToArray( rc.filterByFields ?: "" );
-		for( var filterByField in filterByFields ) {
+		var filterValue    = "";
+		for ( var filterByField in filterByFields ) {
+			if ( !dataManagerService.isFilterableField( "page", filterByField ) ) {
+				event.adminAccessDenied();
+			}
+
 			filterValue = rc[filterByField] ?: "";
 			if( !isEmpty( filterValue ) ){
 				extraFilters.append({ filter = { "#filterByField#" = listToArray( filterValue ) } });
