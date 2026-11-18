@@ -1076,6 +1076,14 @@ component {
 		return ArrayToList( kept, ", " );
 	}
 
+	public boolean function isFilterableField( required string objectName, required string fieldPath ) {
+		return _isFieldPathSyntax( arguments.fieldPath ) && _fieldPathExists( arguments.objectName, arguments.fieldPath );
+	}
+
+	private boolean function _isFieldPathSyntax( required string expression ) {
+		return ReFind( "^[A-Za-z_][A-Za-z0-9_$.]*$", arguments.expression ) > 0;
+	}
+
 	private string function _safeOrderByItem( required string objectName, required string item ) {
 		var trimmed    = Trim( arguments.item );
 		var expression = trimmed;
@@ -1091,17 +1099,17 @@ component {
 			direction  = " " & LCase( Mid( trimmed, matches.pos[ 3 ], matches.len[ 3 ] ) );
 		}
 
-		if ( !ReFind( "^[A-Za-z_][A-Za-z0-9_$.]*$", expression ) ) {
+		if ( !_isFieldPathSyntax( expression ) ) {
 			return "";
 		}
 
-		if ( expression == "label" || _orderByFieldExists( arguments.objectName, expression ) ) {
+		if ( expression == "label" || _fieldPathExists( arguments.objectName, expression ) ) {
 			return expression & direction;
 		}
 
 		if ( ListLen( expression, "." ) == 2 && CompareNoCase( ListFirst( expression, "." ), arguments.objectName ) == 0 ) {
 			var bareField = ListRest( expression, "." );
-			if ( bareField == "label" || _orderByFieldExists( arguments.objectName, bareField ) ) {
+			if ( bareField == "label" || _fieldPathExists( arguments.objectName, bareField ) ) {
 				return bareField & direction;
 			}
 		}
@@ -1109,7 +1117,7 @@ component {
 		return "";
 	}
 
-	private boolean function _orderByFieldExists( required string objectName, required string fieldName ) {
+	private boolean function _fieldPathExists( required string objectName, required string fieldName ) {
 		var poService = _getPresideObjectService();
 
 		if ( !Find( ".", arguments.fieldName ) ) {
@@ -1130,7 +1138,7 @@ component {
 		, required string preferField
 		, required string preferValue
 	) {
-		if ( !Len( arguments.preferValue ) || !_orderByFieldExists( arguments.objectName, arguments.preferField ) ) {
+		if ( !Len( arguments.preferValue ) || !_fieldPathExists( arguments.objectName, arguments.preferField ) ) {
 			return arguments.orderBy;
 		}
 
