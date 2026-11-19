@@ -347,6 +347,42 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "isFilterableField()", function(){
+			it( "should accept a property of the object", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "item_type" ] );
+
+				expect( dataManagerService.isFilterableField( objectName="formbuilder_question", fieldPath="item_type" ) ).toBeTrue();
+			} );
+
+			it( "should accept a relationship path that resolves to a property", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "forms.id" ] );
+
+				expect( dataManagerService.isFilterableField( objectName="formbuilder_question", fieldPath="forms.id" ) ).toBeTrue();
+			} );
+
+			it( "should reject a field that is not on the object", function(){
+				var dataManagerService = _getService();
+
+				_stubOrderByFields( [ "item_type" ] );
+
+				expect( dataManagerService.isFilterableField( objectName="formbuilder_question", fieldPath="not_a_field" ) ).toBeFalse();
+				expect( dataManagerService.isFilterableField( objectName="formbuilder_question", fieldPath="forms.not_a_field" ) ).toBeFalse();
+			} );
+
+			it( "should reject a field name that carries sql", function(){
+				var dataManagerService = _getService();
+				var injectedField      = "item_type` = 1 or sleep( 5 ) or `item_type";
+
+				_stubOrderByFields( [ "item_type", injectedField ] );
+
+				expect( dataManagerService.isFilterableField( objectName="formbuilder_question", fieldPath=injectedField ) ).toBeFalse();
+			} );
+		} );
+
 		describe( "_prependPreferredValueSort()", function(){
 			it( "should escape a quote in the preferred value", function(){
 				var dataManagerService = _getService();
