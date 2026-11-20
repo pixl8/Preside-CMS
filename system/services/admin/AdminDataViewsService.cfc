@@ -120,6 +120,9 @@ component {
 
 			switch( type ) {
 				case "numeric":
+					if ( ListFindNoCase( "decimal,numeric,float,double,real", ListFirst( dbType, "( " ) ) ) {
+						return "float";
+					}
 					return "integer";
 			}
 
