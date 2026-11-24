@@ -7,6 +7,7 @@
 	var $searchBox          = $( '#nav-search-input' )
 	  , $sidebar            = $( '#sidebar' )
 	  , $mainContainer      = $( '#main-container' )
+	  , legacyLayout        = $sidebar.parent().is( $mainContainer )
 	  , gotoMode            = false
 	  , devConsoleToggleKey = parseInt( typeof cfrequest.devConsoleToggleKeyCode === "undefined" ? 96 : cfrequest.devConsoleToggleKeyCode )
 	  , processArrows
@@ -15,11 +16,10 @@
 	  , genericKeyHandler
 	  , escapeFeatures
 	  , focusInSearchBox
-	  , toggleSideBar
+	  , toggleSidebar
 	  , toggleFixedWidth
 	  , navigateWithinList
 	  , traverseLists
-	  , focusOnListItem
 	  , blurCurrentFocus
 	  , getFocusedList
 	  , getNextAvailableTabIndex
@@ -43,8 +43,8 @@
 				.keydown( 'g'     , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { toggleGotoMode( e );   } } )
 				.keyup  ( '/'     , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { focusInSearchBox( e ); } } )
 				.keydown( 'esc'   , escapeFeatures )
-				.keydown( 'comma' , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
-				.keydown( 'period', function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
+				.keydown( 'comma' , function( e ){ if( legacyLayout && !userIsTyping( e ) && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
+				.keydown( 'period', function( e ){ if( legacyLayout && !userIsTyping( e ) && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
 				.keydown( 't'     , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { switchUiTabs( e );     } } )
 				.keydown( 'up'    , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { processArrows( e, 'up'    ); } } )
 				.keydown( 'down'  , function( e ){ if( !userIsTyping( e ) && !isModifierPressed( e ) ) { processArrows( e, 'down'  ); } } )

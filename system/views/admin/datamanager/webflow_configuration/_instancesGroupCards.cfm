@@ -30,7 +30,7 @@
 						</div>
 
 						<div class="card-body card-body-with-link">
-							<a href="#event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=#activeTab#&reference=#refId#" )#" class="card-body-link">
+							<a href="#event.buildAdminLink( objectName="webflow_configuration", recordId=recordId, querystring="tab=#activeTab#&reference=#EncodeForUrl( refId )#" )#" class="card-body-link">
 								#translateResource( uri="preside-objects.webflow_configuration:instance.group.count.#( totalNo == 1 ) ? "singular." : ""#label", data=[ totalNo ] )#
 							</a>
 						</div>
