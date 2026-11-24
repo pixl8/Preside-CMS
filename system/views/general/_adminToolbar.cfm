@@ -133,7 +133,7 @@
 									&nbsp;
 									<a class="pr-0 orange" href="#event.buildAdminLink( objectName="website_user", operation="viewRecord", recordId=getLoggedinUserId() )#">
 										<i class="fa fa-fw fa-lg fa-mask"></i>&nbsp;
-										#translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ getLoggedInUserDetails().email_address ] )#
+										#translateResource( uri="cms:admintoolbar.impersonating.web.user", data=[ EncodeForHtml( getLoggedInUserDetails().email_address ?: "" ) ] )#
 									</a>
 									<a class="p-0" href="#event.buildLink( linkto="login.logout" )#">
 										<i class="fa fa-fw fa-lg fa-times"></i>
