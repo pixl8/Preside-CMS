@@ -308,7 +308,12 @@ component extends="preside.system.base.AdminHandler" {
 		_getTemplate( argumentCollection=arguments, allowDrafts=true );
 
 		var id       = rc.id ?: "";
-		var formName = "preside-objects.email_template.admin.clone";
+		var formName = customizationService.runCustomization(
+			  objectName     = "email_template"
+			, action         = "getCloneRecordFormName"
+			, defaultHandler = "admin.datamanager._getCloneRecordFormName"
+			, args           = { objectName="email_template" }
+		);
 		var formData = event.getCollectionForForm( formName );
 		var validationResult = validateForm( formName, formData );
 

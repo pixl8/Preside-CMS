@@ -4,8 +4,8 @@
 		<fieldset id="clonefields">
 			<field binding="email_template.schedule_start_date" sortorder="40" />
 			<field binding="email_template.schedule_end_date"   sortorder="50" />
-			<field binding="email_template.schedule_measure"    sortorder="60" layout="formcontrols.layouts.timeUnitAndMeasureField" measure="true" label="preside-objects.email_template:field.schedule_measure.formtitle"/>
-			<field binding="email_template.schedule_unit"       sortorder="70" layout="formcontrols.layouts.timeUnitAndMeasureField" unit="true" />
+			<field binding="email_template.schedule_measure"    sortorder="60" layout="formcontrols.layouts.timeUnitAndMeasureField" measure="true" label="preside-objects.email_template:field.schedule_measure.formtitle" minValue="1" required="true" />
+			<field binding="email_template.schedule_unit"       sortorder="70" layout="formcontrols.layouts.timeUnitAndMeasureField" unit="true" required="true" />
 		</fieldset>
 	</tab>
 </form>
