@@ -21,8 +21,9 @@ component {
 		_setScheduledThreadpoolExecutor( arguments.scheduledThreadpoolExecutor );
 		_setFeature( arguments.feature );
 		_setHostname( arguments.hostname );
-		_setRunInProgress( false );
-		_setAcceptingRuns( true );
+
+		_runInProgress = CreateObject( "java", "java.util.concurrent.atomic.AtomicBoolean" ).init( false );
+		_acceptingRuns = CreateObject( "java", "java.util.concurrent.atomic.AtomicBoolean" ).init( true );
 
 		return this;
 	}
@@ -149,22 +150,15 @@ component {
 	}
 
 	private boolean function _beginRun() {
-		var accepted = false;
-
-		lock name=_getRunLockName() type="exclusive" timeout=5 {
-			if ( _acceptingRuns ?: true ) {
-				_runInProgress = true;
-				accepted = true;
-			}
+		if ( !_acceptingRuns.get() ) {
+			return false;
 		}
 
-		return accepted;
+		return _runInProgress.compareAndSet( false, true );
 	}
 
 	private void function _endRun() {
-		lock name=_getRunLockName() type="exclusive" timeout=5 {
-			_runInProgress = false;
-		}
+		_runInProgress.set( false );
 	}
 
 	private void function _waitForRunToFinish() {
@@ -180,29 +174,11 @@ component {
 	}
 
 	private boolean function _isRunInProgress() {
-		var inProgress = false;
-
-		lock name=_getRunLockName() type="readonly" timeout=5 {
-			inProgress = IsBoolean( _runInProgress ?: "" ) && _runInProgress;
-		}
-
-		return inProgress;
-	}
-
-	private void function _setRunInProgress( required boolean runInProgress ) {
-		lock name=_getRunLockName() type="exclusive" timeout=5 {
-			_runInProgress = arguments.runInProgress;
-		}
+		return _runInProgress.get();
 	}
 
 	private void function _setAcceptingRuns( required boolean acceptingRuns ) {
-		lock name=_getRunLockName() type="exclusive" timeout=5 {
-			_acceptingRuns = arguments.acceptingRuns;
-		}
-	}
-
-	private string function _getRunLockName() {
-		return "preside-heartbeat-run-" & Hash( _getThreadName() );
+		_acceptingRuns.set( arguments.acceptingRuns );
 	}
 
 // GETTERS / SETTERS
