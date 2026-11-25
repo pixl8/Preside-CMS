@@ -1210,7 +1210,11 @@ component extends="preside.system.base.AdminHandler" {
 		var optionsCol = [];
 		var statusCol  = [];
 		var dtHelper   = getModel( "JQueryDatatablesHelpers" );
-		var sortOrder  = dtHelper.getSortOrder();
+		var sortOrder  = dataManagerService.sanitizeOrderBy(
+			  objectName = pageType
+			, orderBy    = dtHelper.getSortOrder()
+			, fallback   = defaultSortOrder
+		);
 		var results    = siteTreeService.getManagedChildrenForDataTable(
 			  objectName   = pageType
 			, parentId     = parentId

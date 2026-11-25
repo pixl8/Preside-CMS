@@ -20,7 +20,7 @@ component {
 		var stepId    = arguments.step_id;
 		var webflowId = arguments.webflow_id ?: "";
 
-		return webflowConfigurationService.getStepLabel( stepId, webflowId );
+		return EncodeForHtml( webflowConfigurationService.getStepLabel( stepId, webflowId ) );
 	}
 
 }

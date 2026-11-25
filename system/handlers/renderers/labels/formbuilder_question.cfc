@@ -15,7 +15,7 @@ component {
 	}
 
 	private string function _renderLabel( required string field_id, required string field_label ) {
-		return arguments.field_label & " (<code>#arguments.field_id#</code>)";
+		return EncodeForHtml( arguments.field_label ) & " (<code>#EncodeForHtml( arguments.field_id )#</code>)";
 	}
 
 }

@@ -4,7 +4,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 	function run(){
 
 		describe( "saveContent()", function(){
-			it( "should save individual field to preside object record as a draft", function(){
+			it( "should refuse to save when the object is not a page or page type", function(){
 				var service    = _getService();
 				var objectName = "someObject";
 				var recordId   = CreateUUId();
@@ -12,23 +12,17 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var content    = CreateUUId();
 
 				mockPresideObjectService.$( "updateData", 1 );
+				mockSiteTreeService.$( "editPage", 1 );
 
 				expect( service.saveContent(
 					  object   = objectName
 					, property = propName
 					, recordId = recordId
 					, content  = content
-				) ).toBeTrue();
+				) ).toBeFalse();
 
-				var log = mockPresideObjectService.$callLog().updateData;
-				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( {
-					  objectName = objectName
-					, data       = { someProperty=content }
-					, id         = recordId
-					, isDraft    = true
-				} );
-
+				expect( mockPresideObjectService.$callLog().updateData.len() ).toBe( 0 );
+				expect( mockSiteTreeService.$callLog().editPage.len() ).toBe( 0 );
 			} );
 
 			it( "should use sitetree service to save draft when object is 'page'", function(){
@@ -64,6 +58,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var propName   = "title";
 				var content    = CreateUUId();
 
+				mockPresideObjectService.$( "objectExists" ).$args( objectName ).$results( true );
 				mockPresideObjectService.$( "isPageType" ).$args( objectName ).$results( true );
 				mockSiteTreeService.$( "editPage", 1 );
 
@@ -97,6 +92,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		service.$( "$audit" );
 
+		mockPresideObjectService.$( "objectExists", false );
 		mockPresideObjectService.$( "isPageType", false );
 
 		return service;

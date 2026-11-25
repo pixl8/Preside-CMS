@@ -17,7 +17,7 @@ component extends="preside.system.base.SystemPresideObject" {
 		var charsLength = chars.len();
 
 		do {
-			token &= chars[ RandRange( 1, charsLength ) ];
+			token &= chars[ RandRange( 1, charsLength, "SHA1PRNG" ) ];
 		} while( token.len() < 32 )
 
 		return token;

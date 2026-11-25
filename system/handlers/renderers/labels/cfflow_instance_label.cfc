@@ -8,7 +8,10 @@ component {
 	}
 
 	private string function _renderLabel( required string reference, required string owner ) {
-		return translateResource( uri="webflow.#arguments.reference#:title", defaultValue=arguments.reference ) & ": #renderContent( "webflowOwner", arguments.owner )#";
+		var title = translateResource( uri="webflow.#arguments.reference#:title", defaultValue=arguments.reference );
+		var owner = renderContent( "webflowOwner", arguments.owner );
+
+		return EncodeForHtml( title ) & ": " & EncodeForHtml( owner );
 	}
 
 }

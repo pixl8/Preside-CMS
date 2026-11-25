@@ -1,17 +1,15 @@
 /**
  * @feature admin and cms
  */
-component {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="frontendEditingService" inject="frontendEditingService";
 	property name="contentRendererService" inject="contentRendererService";
 	property name="presideObjectService"   inject="presideObjectService";
-	property name="versioningService"      inject="versioningService";
 	property name="siteTreeService"        inject="siteTreeService";
 
-
 <!--- actions --->
-	public void function saveAction( event, rc, prc ) {
+	public any function saveAction( event, rc, prc ) {
 		var pageId   = rc.pageId   ?: "";
 		var object   = rc.object   ?: "";
 		var property = rc.property ?: "";
@@ -20,10 +18,18 @@ component {
 		var renderer = rc.renderer ?: "";
 		var success  = "";
 
+		_denyUnlessPageOrPageType( event=event, object=object );
+		_denyUnlessPagePermission( event=event, permissionKey="sitetree.edit", pageId=pageId );
+		_denyUnlessRecordIsPage( event=event, pageId=pageId, recordId=recordId );
+
+		if ( !presideObjectService.fieldExists( object, property ) ) {
+			event.adminAccessDenied();
+		}
+
 		success = frontendEditingService.saveContent(
 			  object   = object
 			, property = property
-			, recordId = ( object == "page" ? pageId : recordId )
+			, recordId = pageId
 			, content  = content
 		);
 
@@ -43,22 +49,11 @@ component {
 		var recordId = rc.recordId ?: "";
 		var pageId   = rc.pageId   ?: "";
 
+		_denyUnlessPageOrPageType( event=event, object=object );
+		_denyUnlessPagePermission( event=event, permissionKey="sitetree.publish", pageId=pageId );
+		_denyUnlessRecordIsPage( event=event, pageId=pageId, recordId=recordId );
 
-		if ( !hasCmsPermission( permissionKey="sitetree.publish", context="page", contextKeys=[ pageId ] ) ) {
-			event.adminAccessDenied();
-		}
-
-		if ( object == "page" || presideObjectService.isPageType( object ) ) {
-			siteTreeService.publishDraft( recordId );
-		} else {
-			versioningService.publishLatestDraft( object, recordId );
-			event.audit(
-				 action   = "frontend_publish_changes"
-				, type     = "frontendeditor"
-				, detail   = { object=object, recordId=recordId }
-				, recordId = recordId
-			);
-		}
+		siteTreeService.publishDraft( pageId );
 
 		event.renderData( type="json", data={
 			  success  = true
@@ -70,6 +65,9 @@ component {
 		var recordId = rc.id       ?: "";
 		var object   = rc.object   ?: "";
 		var property = rc.property ?: "";
+
+		_denyUnlessPageOrPageType( event=event, object=object );
+		_denyUnlessPagePermission( event=event, permissionKey="sitetree.viewversions", pageId=recordId );
 
 		runEvent(
 			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
@@ -91,6 +89,14 @@ component {
 		var property = rc.property ?: "";
 		var version  = Val( rc.version  ?: "" );
 		var result   = { success=true, content="" };
+
+		_denyUnlessPageOrPageType( event=event, object=object );
+		_denyUnlessPagePermission( event=event, permissionKey="sitetree.viewversions", pageId=recordId );
+
+		if ( !presideObjectService.fieldExists( object, property ) ) {
+			event.adminAccessDenied();
+		}
+
 		var record   = presideObjectService.selectData(
 			  objectName       = object
 			, selectFields     = [ property ]
@@ -112,6 +118,14 @@ component {
 		var property = rc.property ?: "";
 		var version  = Val( rc.version  ?: "" );
 		var preview  = "";
+
+		_denyUnlessPageOrPageType( event=event, object=object );
+		_denyUnlessPagePermission( event=event, permissionKey="sitetree.viewversions", pageId=recordId );
+
+		if ( !presideObjectService.fieldExists( object, property ) ) {
+			event.adminAccessDenied();
+		}
+
 		var record   = presideObjectService.selectData(
 			  objectName       = object
 			, selectFields     = [ property ]
@@ -135,22 +149,20 @@ component {
 	public void function getPublishPrompt( event, rc, prc ) {
 		var object        = rc.object   ?: "";
 		var recordId      = rc.recordId ?: "";
-		var i18nBase      = presideObjectService.getResourceBundleUriRoot( object );
-		var objectTitle   = LCase( translateResource( "#i18nBase#title.singular" ) );
-		var recordLabel   = renderLabel( object, recordId );
+		var pageId        = rc.pageId   ?: "";
 		var changedFields = [];
+		var i18nBase      = "";
+		var objectTitle   = "";
+		var recordLabel   = "";
 
-		if ( object == "page" || presideObjectService.isPageType( object ) ) {
-			changedFields = siteTreeService.getDraftChangedFields( recordId );
-		} else if ( versioningService.objectUsesDrafts( object ) ) {
-			changedFields = versioningService.getDraftChangedFields( object, recordId );
-		} else {
-			event.renderData(
-				  type = "json"
-				, data = { message=translateResource( "cms:frontendeditor.nondraftpublish.success" ), publishable=false, nondraft=true }
-			);
-			return;
-		}
+		_denyUnlessPageOrPageType( event=event, object=object );
+		_denyUnlessPagePermission( event=event, permissionKey="sitetree.publish", pageId=pageId );
+		_denyUnlessRecordIsPage( event=event, pageId=pageId, recordId=recordId );
+
+		i18nBase    = presideObjectService.getResourceBundleUriRoot( object );
+		objectTitle = LCase( translateResource( "#i18nBase#title.singular" ) );
+		recordLabel = renderLabel( object, pageId );
+		changedFields = siteTreeService.getDraftChangedFields( pageId );
 
 		if ( changedFields.len() ) {
 			for( var i=changedFields.len(); i>0; i-- ) {
@@ -181,7 +193,9 @@ component {
 
 // VIEWLETS
 	private string function renderFrontendEditor( event, rc, prc, struct args={} ) {
-		if ( !event.isAdminUser() ) {
+		var objectName = args.object ?: "";
+
+		if ( !event.isAdminUser() || !_isPageOrPageType( objectName ) ) {
 			return args.renderedContent ?: ( args.rawContent ?: "" );
 		}
 
@@ -209,5 +223,31 @@ component {
 		};
 
 		return content;
+	}
+
+	private boolean function _isPageOrPageType( required string object ) {
+		if ( arguments.object == "page" ) {
+			return true;
+		}
+
+		return presideObjectService.objectExists( arguments.object ) && presideObjectService.isPageType( arguments.object );
+	}
+
+	private void function _denyUnlessPageOrPageType( required any event, required string object ) {
+		if ( !_isPageOrPageType( arguments.object ) ) {
+			arguments.event.adminAccessDenied();
+		}
+	}
+
+	private void function _denyUnlessPagePermission( required any event, required string permissionKey, required string pageId ) {
+		if ( !Len( Trim( arguments.pageId ) ) || !hasCmsPermission( permissionKey=arguments.permissionKey, context="page", contextKeys=[ arguments.pageId ] ) ) {
+			arguments.event.adminAccessDenied();
+		}
+	}
+
+	private void function _denyUnlessRecordIsPage( required any event, required string pageId, required string recordId ) {
+		if ( Len( Trim( arguments.recordId ) ) && arguments.recordId != arguments.pageId ) {
+			arguments.event.adminAccessDenied();
+		}
 	}
 }

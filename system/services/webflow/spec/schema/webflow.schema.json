@@ -28,6 +28,7 @@
                 "singleton":{ "type":"boolean", "description":"Whether or not more than one configured instance of this flow can exist, or not." },
                 "adminFlow":{ "type":"boolean", "description":"Whether or not this flow is for admin purpose only, or not." },
                 "hideFromWidget":{ "type":"boolean", "description":"Whether or not this flow is hide from widget, or not." },
+                "persistUndeclaredFields":{ "type":"boolean", "description":"Default for steps in this flow that do not declare submission.persistFields. When false, those steps save form fields only, even if the application setting webflow.state.persistUndeclaredFields is true. When true, those steps save the whole request, even if the application setting is false. When omitted, the application setting is used. A step that declares submission.persistFields always uses that list." },
                 "meta":{ "type":"object", "description":"Abitrary struct of metadata to describe/enhance the webflow definition" },
                 "init":{ "type":"object", "$ref": "webflow.init.schema.json" },
                 "layout":{ "type": "object", "$ref":"webflow.layout.schema.json", "description":"Explicit webflow layout viewlet in which to display steps" },

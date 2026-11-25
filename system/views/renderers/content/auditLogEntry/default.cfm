@@ -6,7 +6,7 @@
 <cfparam name="args.userLink"    type="string"/>
 
 <cfscript>
-	userLink  = '<a href="#args.userLink#">#args.known_as#</a>';
+	userLink  = '<a href="#EncodeForHtmlAttribute( args.userLink )#">#EncodeForHtml( args.known_as )#</a>';
 	message   = translateResource( uri="auditlog.#args.type#:#args.action#.message", data=[ userLink ] );
 </cfscript>
 

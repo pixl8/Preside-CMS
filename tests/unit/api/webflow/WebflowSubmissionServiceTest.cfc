@@ -10,6 +10,7 @@ component extends="testbox.system.BaseSpec" {
 				_configService    = CreateEmptyMock( "preside.system.services.webflow.WebflowConfigurationService" );
 
 				_instanceService  = CreateEmptyMock( "preside.system.services.webflow.WebflowInstanceService" );
+				_formsService     = CreateEmptyMock( "preside.system.services.forms.FormsService" );
 				_instance         = CreateEmptyMock( "cfflow.models.instances.WorkflowInstance" );
 				_validationResult = CreateStub();
 				_requestContext   = CreateStub();
@@ -22,6 +23,7 @@ component extends="testbox.system.BaseSpec" {
 					, actionsService  = _actionsService
 					, instanceService = _instanceService
 					, configService   = _configService
+					, formsService    = _formsService
 				) );
 				_svc.$helpers = CreateStub();
 
@@ -51,11 +53,15 @@ component extends="testbox.system.BaseSpec" {
 				beforeEach( function() {
 					_stepId = CreateUUId();
 					_step = CreateMock( object=new preside.system.services.webflow.spec.WebflowStep() );
+					_webflow = CreateMock( object=new preside.system.services.webflow.spec.Webflow() );
 					_stepConfig = { test=CreateUUId() };
 					_flowConfig = { test=CreateUUId() };
 					_instance.$( "getActiveStep", _stepId );
 					_actionsService.$( "hasNextAction", true );
+					_webflow.$( "getPersistUndeclaredFields", true );
+					_webflowLibrary.$( "getWebflow" ).$args( _webflowId ).$results( _webflow );
 					_webflowLibrary.$( "getWebflowStep" ).$args( _webflowId, _stepId ).$results( _step );
+					_step.$( "getDisplay", {} );
 					_configService.$( "getStepConfig" ).$args( webflowId=_webflowId, stepId=_stepId, instanceRef=_instanceRef ).$results( _stepConfig );
 					_configService.$( "getFlowConfig" ).$args( webflowId=_webflowId, instanceRef=_instanceRef ).$results( _flowConfig );
 				} );
@@ -175,6 +181,110 @@ component extends="testbox.system.BaseSpec" {
 
 				} );
 
+				it( "should save only the step form fields and declared persistFields when undeclared fields are not persisted", function(){
+					_stubDeclaredPersistRequest();
+					_stubPersistUndeclaredSetting( false );
+
+					_svc.doNext( _webflowId, _instanceRef, _subReference, _stepId );
+
+					expect( _requestContext.$callLog().getCollectionWithoutSystemVars.len() ).toBe( 1 );
+					expect( _instance.$callLog().appendState.len() ).toBe( 1 );
+					expect( _instance.$callLog().appendState[ 1 ][ 1 ] ).toBe( {
+						  loginId        = "member@example.com"
+						, loginregaction = "forgotpassword"
+					} );
+				} );
+
+				it( "should ignore undeclared request keys when the step declares persistFields even if the global setting allows them", function(){
+					_stubDeclaredPersistRequest();
+					_stubPersistUndeclaredSetting( true );
+
+					_svc.doNext( _webflowId, _instanceRef, _subReference, _stepId );
+
+					expect( _requestContext.$callLog().getCollectionWithoutSystemVars.len() ).toBe( 1 );
+					expect( _instance.$callLog().appendState[ 1 ][ 1 ] ).toBe( {
+						  loginId        = "member@example.com"
+						, loginregaction = "forgotpassword"
+					} );
+				} );
+
+				it( "should not copy system request keys listed in persistFields", function(){
+					_stubDeclaredPersistRequest( [ "loginregaction", "csrfToken" ] );
+					_stubPersistUndeclaredSetting( true );
+
+					_svc.doNext( _webflowId, _instanceRef, _subReference, _stepId );
+
+					expect( _instance.$callLog().appendState[ 1 ][ 1 ] ).toBe( {
+						  loginId        = "member@example.com"
+						, loginregaction = "forgotpassword"
+					} );
+				} );
+
+				it( "should save only step form fields when the step declares an empty persistFields list", function(){
+					_stubDeclaredPersistRequest( [] );
+					_stubPersistUndeclaredSetting( true );
+
+					_svc.doNext( _webflowId, _instanceRef, _subReference, _stepId );
+
+					expect( _requestContext.$callLog().getCollectionWithoutSystemVars.len() ).toBe( 1 );
+					expect( _instance.$callLog().appendState[ 1 ][ 1 ] ).toBe( {
+						loginId = "member@example.com"
+					} );
+				} );
+
+				it( "should save only step form fields when the webflow refuses undeclared fields and the application setting allows them", function(){
+					var formData    = { loginId="member@example.com" };
+					var requestData = {
+						  loginId                = "member@example.com"
+						, verified_email_address = "other@example.com"
+					};
+
+					_formsService.$( "formExists", true );
+					_formsService.$( "listFields", [ "loginId" ] );
+					_step.$( "getDisplay", { form="webflow.example.login" } );
+					_step.$( "getSubmission", {} );
+					_requestContext.$( "getCollectionForForm", formData );
+					_requestContext.$( "getCollectionWithoutSystemVars", requestData );
+					_svc.$helpers.$( "validateForms", _validationResult );
+					_stubPersistUndeclaredSetting( false );
+
+					_svc.doNext( _webflowId, _instanceRef, _subReference, _stepId );
+
+					expect( _requestContext.$callLog().getCollectionWithoutSystemVars.len() ).toBe( 0 );
+					expect( _instance.$callLog().appendState[ 1 ][ 1 ] ).toBe( {
+						loginId = "member@example.com"
+					} );
+				} );
+
+				it( "should save the whole request when the webflow allows undeclared fields and the application setting does not", function(){
+					var requestData = {
+						  loginId                = "member@example.com"
+						, verified_email_address = "other@example.com"
+					};
+
+					_step.$( "getSubmission", {} );
+					_requestContext.$( "getCollectionForForm", { loginId="member@example.com" } );
+					_requestContext.$( "getCollectionWithoutSystemVars", requestData );
+					_svc.$helpers.$( "validateForms", _validationResult );
+					_stubPersistUndeclaredSetting( true );
+
+					_svc.doNext( _webflowId, _instanceRef, _subReference, _stepId );
+
+					expect( _instance.$callLog().appendState[ 1 ][ 1 ] ).toBe( requestData );
+				} );
+
+				it( "should keep a step persistFields list when the webflow refuses undeclared fields", function(){
+					_stubDeclaredPersistRequest();
+					_stubPersistUndeclaredSetting( false );
+
+					_svc.doNext( _webflowId, _instanceRef, _subReference, _stepId );
+
+					expect( _instance.$callLog().appendState[ 1 ][ 1 ] ).toBe( {
+						  loginId        = "member@example.com"
+						, loginregaction = "forgotpassword"
+					} );
+				} );
+
 				it( "should persist auto-trimmed and empty checkbox form data in the workflow instance state", function(){
 					var _submittedTrimmed   = { check2="1", email="foo@bar.org" };
 					var _submittedUntrimmed = { check1="", check2="1", email=" foo@bar.org " };
@@ -266,5 +376,31 @@ component extends="testbox.system.BaseSpec" {
 				} );
 			} );
 		} );
+	}
+
+	private void function _stubDeclaredPersistRequest( array persistFields=[ "loginregaction" ] ) {
+		var formData     = { loginId="member@example.com" };
+		var requestData  = {
+			  loginId                = "member@example.com"
+			, loginregaction         = "forgotpassword"
+			, verified_email_address = "other@example.com"
+		};
+		var formsService = CreateEmptyMock( "preside.system.services.forms.FormsService" );
+
+		formsService.$( "formExists", true );
+		formsService.$( "listFields", [ "loginId" ] );
+		makePublic( _svc, "_setFormsService" );
+		_svc._setFormsService( formsService );
+
+		_step.$( "getDisplay", { form="webflow.example.login" } );
+		_step.$( "getSubmission", { persistFields=arguments.persistFields } );
+		_requestContext.$( "getCollectionForForm", formData );
+		_requestContext.$( "getCollectionWithoutSystemVars", requestData );
+		_requestContext.$( "getValue", "should-not-be-copied" );
+		_svc.$helpers.$( "validateForms", _validationResult );
+	}
+
+	private void function _stubPersistUndeclaredSetting( required boolean enabled ) {
+		_webflow.$( "getPersistUndeclaredFields", arguments.enabled );
 	}
 }

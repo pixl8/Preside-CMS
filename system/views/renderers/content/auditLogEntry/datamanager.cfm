@@ -7,7 +7,7 @@
 <cfparam name="args.detail.objectName" type="string" default="" />
 
 <cfscript>
-	userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
+	userLink     = '<a href="#EncodeForHtmlAttribute( args.userLink )#">#EncodeForHtml( args.known_as )#</a>';
 	objectTitle  = translateResource( uri="preside-objects.#args.detail.objectName#:title.singular" );
 	objectUrl    = event.buildAdminLink( objectName=args.detail.objectName, operation="listing" );
 	objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';
@@ -18,7 +18,7 @@
 	} else {
 		recordLabel  = Len( Trim( args.detail.objectName ) ) ? renderLabel( args.detail.objectName, args.record_id ) : "unknown";
 		recordUrl    = event.buildAdminLink( objectName=args.detail.objectName, recordId=args.record_id );
-		recordLink   = '<a href="#recordUrl#">#recordLabel#</a>';
+		recordLink   = '<a href="#EncodeForHtmlAttribute( recordUrl )#">#EncodeForHtml( recordLabel )#</a>';
 		messageData  = [ userLink, objectLink, recordLink ];
 	}
 

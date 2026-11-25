@@ -11,6 +11,7 @@ component {
 	 * @actionsService.inject  webflowActionsService
 	 * @instanceService.inject webflowInstanceService
 	 * @configService.inject   webflowConfigurationService
+	 * @formsService.inject    formsService
 	 *
 	 */
 	public any function init(
@@ -18,11 +19,13 @@ component {
 		, required any actionsService
 		, required any instanceService
 		, required any configService
+		, required any formsService
 	) {
 		_setWebflowLibrary( arguments.webflowLibrary );
 		_setActionsService( arguments.actionsService );
 		_setInstanceService( arguments.instanceService );
 		_setConfigService( arguments.configService );
+		_setFormsService( arguments.formsService );
 
 		return this;
 	}
@@ -46,8 +49,12 @@ component {
 		var validationResult = autoValidate ? this.$helpers.validateForms( formData ) : $newValidationResult();
 		var actionEvent      = submissionConfig.handler.event ?: "webflow.#arguments.webflowId#.#arguments.stepId#Action";
 		var handlerResult    = true;
-		var persistData      = $getRequestContext().getCollectionWithoutSystemVars();
-		StructAppend( persistData, formData );
+		var persistData      = _getDataToPersist(
+			  step      = step
+			, stepId    = arguments.stepId
+			, formData  = formData
+			, webflowId = arguments.webflowId
+		);
 
 		if ( Len( Trim( actionEvent ) ) && $getColdbox().handlerExists( actionEvent ) ) {
 			var configService = _getConfigService();
@@ -327,6 +334,62 @@ component {
 		return !IsBoolean( local.handlerResult ?: "" ) || handlerResult;
 	}
 
+	private struct function _getDataToPersist(
+		  required any    step
+		, required string stepId
+		, required struct formData
+		, required string webflowId
+	) {
+		var submission            = arguments.step.getSubmission();
+		var hasDeclaredFields     = StructKeyExists( submission, "persistFields" ) && IsArray( submission.persistFields );
+		var allowUndeclaredFields = _getWebflowLibrary().getWebflow( arguments.webflowId ).getPersistUndeclaredFields();
+		var persistData           = {};
+
+		if ( !hasDeclaredFields && allowUndeclaredFields ) {
+			persistData = $getRequestContext().getCollectionWithoutSystemVars();
+			StructAppend( persistData, arguments.formData );
+
+			return persistData;
+		}
+
+		for ( var fieldName in _listStepFormFields( arguments.step ) ) {
+			if ( StructKeyExists( arguments.formData, fieldName ) ) {
+				persistData[ fieldName ] = arguments.formData[ fieldName ];
+			}
+		}
+
+		if ( hasDeclaredFields ) {
+			var submitted = $getRequestContext().getCollectionWithoutSystemVars();
+
+			for ( var fieldName in submission.persistFields ) {
+				var declaredField = IsSimpleValue( fieldName ) ? Trim( fieldName ) : "";
+
+				if ( !Len( declaredField ) || StructKeyExists( persistData, declaredField ) || !StructKeyExists( submitted, declaredField ) ) {
+					continue;
+				}
+
+				persistData[ declaredField ] = submitted[ declaredField ];
+			}
+		}
+
+		return persistData;
+	}
+
+	private array function _listStepFormFields( required any step ) {
+		var display      = arguments.step.getDisplay();
+		var formName     = Trim( display.form ?: "" );
+		var formsService = _getFormsService();
+
+		if ( !Len( formName ) || !formsService.formExists( formName ) ) {
+			return [];
+		}
+
+		return formsService.listFields(
+			  formName                = formName
+			, stripPermissionedFields = false
+		);
+	}
+
 // GETTERS AND SETTERS
 	private any function _getWebflowLibrary() {
 	    return _webflowLibrary;
@@ -354,5 +417,16 @@ component {
 	}
 	private void function _setConfigService( required any configService ) {
 	    _configService = arguments.configService;
+	}
+
+	private any function _getFormsService() {
+		if ( !StructKeyExists( variables, "_formsService" ) ) {
+			return;
+		}
+
+		return _formsService;
+	}
+	private void function _setFormsService( required any formsService ) {
+		_formsService = arguments.formsService;
 	}
 }

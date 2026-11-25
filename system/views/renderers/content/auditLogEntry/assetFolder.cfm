@@ -6,7 +6,7 @@
 <cfparam name="args.detail.label" type="string" default="unknown" />
 
 <cfscript>
-	folderLink = '<a href="#event.buildAdminLink( linkTo='assetmanager', queryString='folder=' & args.detail.id )#">#args.detail.label#</a>';
+	folderLink = '<a href="#EncodeForHtmlAttribute( event.buildAdminLink( linkTo='assetmanager', queryString='folder=' & args.detail.id ) )#">#EncodeForHtml( args.detail.label )#</a>';
 	message = translateResource(
 		  uri  = "auditlog.assetManager:#args.action#.message"
 		, data = [ args.userLink, folderLink ]

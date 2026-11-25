@@ -90,13 +90,18 @@ component {
 		}
 	}
 
-	public void function stop() {
+	public void function stop( boolean waitForCurrentRun=true ) {
 		var taskFuture    = _getTaskFuture();
 		var futureStopped = IsNull( local.taskFuture );
 
 		$systemOutput( "Shutting down #_getThreadName()# heartbeat." );
 		_setAcceptingRuns( false );
 		_getScheduledThreadpoolExecutor().cancelTask( _getThreadName() );
+
+		if ( !arguments.waitForCurrentRun ) {
+			return;
+		}
+
 		_waitForRunToFinish();
 
 		if ( !futureStopped ) {

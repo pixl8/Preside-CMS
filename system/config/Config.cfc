@@ -156,6 +156,7 @@ component {
 	private void function __setupInterceptors() {
 		variables.interceptors = [
 			  { class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} }
+			, { class="preside.system.interceptors.AdminAuthenticationInterceptor"      , properties={} }
 			, { class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} }
 			, { class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} }
 			, { class="preside.system.interceptors.TenancyPresideObjectInterceptor"     , properties={} }
@@ -391,6 +392,7 @@ component {
 		settings.notificationCountLimit      = 100;
 		settings.showNonLiveContentByDefault = true;
 		settings.adminLoginProviders         = [ "preside" ];
+		settings.adminAuthenticationExemptEvents = [];
 	}
 
 	private void function __setupAdminNavigation() {
@@ -1094,6 +1096,7 @@ component {
 			, apiManager                      = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
 			, restTokenAuth                   = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "apiManager" ] }
 			, adminCsrfProtection             = { enabled=true , siteTemplates=[ "*" ]                                  , dependsOn=[ "admin" ] }
+			, allowDirectEventDispatch        = { enabled=false, siteTemplates=[ "*" ] }
 			, fullPageCaching                 = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "cms" ] }
 			, fullPageCachingForLoggedInUsers = { enabled=false, siteTemplates=[ "*" ]                                  , dependsOn=[ "websiteUsers" ] }
 			, delayedViewlets                 = { enabled=true , siteTemplates=[ "*" ] }
@@ -1425,8 +1428,9 @@ component {
 			, "preside.webflow.instance.not.cancellable"
 		];
 
-		settings.webflow.state            = settings.webflow.state            ?: {};
-		settings.webflow.state.ignoreKeys = settings.webflow.state.ignoreKeys ?: [ "_rurl", "_wid", "$presideform" ];
+		settings.webflow.state                         = settings.webflow.state                         ?: {};
+		settings.webflow.state.ignoreKeys              = settings.webflow.state.ignoreKeys              ?: [ "_rurl", "_wid", "$presideform" ];
+		settings.webflow.state.persistUndeclaredFields = settings.webflow.state.persistUndeclaredFields ?: true;
 	}
 
 	private void function __loadConfigurationFromExtensions() {
