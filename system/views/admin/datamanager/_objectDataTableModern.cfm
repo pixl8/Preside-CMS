@@ -138,6 +138,25 @@
 		, canShareViews      = canShareViews
 	);
 
+	if ( !StructIsEmpty( args.gridHeaderLabels ) ) {
+		var toolbarColumns = toolbarConfig.columns      ?: [];
+		var quickFilters   = toolbarConfig.quickFilters ?: [];
+		var columnField    = "";
+
+		for( var toolbarColumn in toolbarColumns ) {
+			columnField = toolbarColumn.field ?: "";
+			if ( StructKeyExists( args.gridHeaderLabels, columnField ) ) {
+				toolbarColumn.label = args.gridHeaderLabels[ columnField ];
+			}
+		}
+		for( var quickFilter in quickFilters ) {
+			columnField = quickFilter.field ?: "";
+			if ( StructKeyExists( args.gridHeaderLabels, columnField ) ) {
+				quickFilter.label = args.gridHeaderLabels[ columnField ];
+			}
+		}
+	}
+
 	if ( args.footerEnabled ) {
 		headerFieldCount = ArrayLen( toolbarConfig.columns ?: [] );
 		if ( !headerFieldCount ) {
@@ -370,10 +389,10 @@
 							data-visible="#booleanFormat( IsTrue( listingCol.visible ?: true ) )#"
 							data-class="<cfif ArrayFindNoCase( args.centerAlignFields, fieldName )>dt-align-center<cfelseif ArrayFindNoCase( args.rightAlignFields, fieldName )>dt-align-right<cfelse></cfif>"
 						>
-							<cfif Len( Trim( listingCol.label ?: "" ) )>
-								#listingCol.label#
-							<cfelseif structKeyExists( args.gridHeaderLabels, fieldName ) >
+							<cfif StructKeyExists( args.gridHeaderLabels, fieldName ) >
 								#args.gridHeaderLabels[ fieldName ]#
+							<cfelseif Len( Trim( listingCol.label ?: "" ) )>
+								#listingCol.label#
 							<cfelse>
 								#translatePropertyName( args.objectName, fieldName, "listing" )#
 							</cfif>
