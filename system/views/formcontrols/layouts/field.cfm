@@ -24,7 +24,7 @@
 		<cfif not args.nolabel>
 			<label class="control-label no-padding-right" for="#args.for#">
 				#args.label#
-				<cfif args.required>
+				<cfif args.required || IsTrue( args.showAsRequired ?: "" )>
 					<em class="required" role="presentation">
 						<sup><i class="fa fa-asterisk"></i></sup>
 						<span>#translateResource( "cms:form.control.required.label" )#</span>

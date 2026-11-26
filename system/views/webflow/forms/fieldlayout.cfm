@@ -16,7 +16,7 @@
 			<div class="col-xs-12 col-sm-4 col-lg-3">
 				<label class="control-label" for="#args.for#">
 					#args.label#
-					<cfif IsTrue( args.required )>
+					<cfif IsTrue( args.required ) || IsTrue( args.showAsRequired ?: "" )>
 						<span class="asterisk" role="presentation">*</span>
 					</cfif>
 					<cfif Len( Trim( args.help ) )>
