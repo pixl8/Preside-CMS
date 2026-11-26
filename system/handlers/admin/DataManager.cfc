@@ -22,6 +22,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="datamanagerWorkflowService"       inject="featureInjector:datamanagerWorkflow:datamanagerWorkflowService";
 	property name="draftManagerService"              inject="featureInjector:draftManager:DraftManagerService";
 	property name="dataListingPreferencesService"    inject="dataListingPreferencesService";
+	property name="labelRendererService"             inject="labelRendererService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
@@ -378,13 +379,14 @@ component extends="preside.system.base.AdminHandler" {
 		var canTranslate    = IsTrue( prc.canTranslate    ?: "" );
 		var useVersioning   = IsTrue( prc.useVersioning   ?: "" );
 		var canViewVersions = IsTrue( prc.canViewVersions ?: "" );
+		var labelIsHtml     = labelRendererService.rendersHtml( labelRenderer=presideObjectService.getObjectAttribute( objectName=objectName, attributeName="labelRenderer" ) );
 
 		_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
 		announceInterception( "preViewRecord", { objectName=objectName, recordId=recordId, version=version } );
 
 		prc.pageTitle    = translateResource( uri="cms:datamanager.viewrecord.page.title"   , data=[ objectTitle ] );
-		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ EncodeForHTML( recordLabel ) ] );
+		prc.pageSubtitle = translateResource( uri="cms:datamanager.viewrecord.page.subtitle", data=[ labelIsHtml ? recordLabel : EncodeForHTML( recordLabel ) ] );
 
 		if ( language.len() ) {
 			prc.language = multilingualPresideObjectService.getLanguage( language );
