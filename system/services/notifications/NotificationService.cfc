@@ -60,7 +60,12 @@ component autodoc=true displayName="Notification Service" {
 	 * @data.hint  Supporting data for the notification. This is used, in combination with the topic, to render the alert for the end users.
 	 *
 	 */
-	public string function createNotification( required string topic, required string type, required struct data ) autodoc=true {
+	public string function createNotification(
+		  required string topic
+		, required string type
+		, required struct data
+		,          string consumer = ""
+	) autodoc=true {
 		var topicConfig = getGlobalTopicConfiguration( arguments.topic );
 		var args        = Duplicate( arguments );
 
@@ -81,7 +86,7 @@ component autodoc=true displayName="Notification Service" {
 			} );
 
 			if ( existingNotification.recordCount ) {
-				createNotificationConsumers( existingNotification.id, args.topic, args.data );
+				createNotificationConsumers( existingNotification.id, args.topic, args.data, args.consumer );
 				return existingNotification.id;
 			}
 
@@ -91,7 +96,7 @@ component autodoc=true displayName="Notification Service" {
 
 			_announceInterception( "postCreateNotification", args );
 
-			createNotificationConsumers( args.notificationId, topic, args.data );
+			createNotificationConsumers( args.notificationId, topic, args.data, args.consumer );
 
 			if ( Len( Trim( topicConfig.send_to_email_address ?: "" ) ) ) {
 				sendGlobalNotificationEmail(
@@ -464,11 +469,24 @@ component autodoc=true displayName="Notification Service" {
 		}
 	}
 
-	public void function createNotificationConsumers( required string notificationId, required string topic, required struct data ) {
-		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true, active=true } );
-		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "security_user", "get_email_notifications" ], filter={ topic=arguments.topic , "security_user.active"=true } );
-		var subscribers = {};
-		var interceptorArgs = Duplicate( arguments );
+	public void function createNotificationConsumers(
+		  required string notificationId
+		, required string topic
+		, required struct data
+		,          string consumer = ""
+	) {
+		var subscribedToAllFilter   = { subscribed_to_all_notifications=true, active=true };
+		var subscribedToTopicFilter = { topic=arguments.topic, "security_user.active"=true };
+
+		if ( len( arguments.consumer ) ) {
+			subscribedToAllFilter.id              = arguments.consumer;
+			subscribedToTopicFilter.security_user = arguments.consumer;
+		}
+
+		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter=subscribedToAllFilter );
+		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "security_user", "get_email_notifications" ], filter=subscribedToTopicFilter );
+		var subscribers       = {};
+		var interceptorArgs   = Duplicate( arguments );
 
 		for( var subscriber in subscribedToAll ){ subscribers[ subscriber.id ] = {}; }
 		for( var subscriber in subscribedToTopic ){ subscribers[ subscriber.security_user ] = subscriber; }
