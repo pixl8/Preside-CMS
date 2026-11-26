@@ -42,6 +42,10 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 			var expiry = expiry=_getUnixTimeStamp() + _getSessionTimeoutInSeconds();
 
 			StructDelete( storage, "sessionId" );
+
+			$helpers.cleanStruct( storage );
+
+
 			var value = SerializeJson( storage );
 
 			if ( Len( Trim( sessionId ) ) ) {
@@ -253,6 +257,5 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 	private boolean function _sessionHasBeenUsed() {
 		return IsBoolean( request._presideSessionUsed ?: "" ) && request._presideSessionUsed;
 	}
-
 
 }
