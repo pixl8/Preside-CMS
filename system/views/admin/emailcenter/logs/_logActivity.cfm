@@ -24,6 +24,8 @@
 	signalsLabel = Len( Trim( args.botSignals ) ) ? HtmlEditFormat( args.botSignals ) : translateResource( "cms:mailcenter.logs.action.signals.none" );
 </cfscript>
 
+<cfset emailLoggingService = getModel( "emailLoggingService" ) />
+
 <cfoutput>
 	<div class="timeline-item clearfix" data-date="#args.logDate#">
 		<div class="timeline-info">
@@ -60,7 +62,7 @@
 			<cfif Len( Trim( args.ipAddress & args.userAgent ) ) && args.showAuditTrail>
 				<div class="widget-header widget-header-small">
 					<span class="widget-toolbar no-border light-grey">
-						<cfif Len( Trim( args.ipAddress ) )>
+						<cfif Len( Trim( args.ipAddress ) ) && !emailLoggingService.isPrivateIp( args.ipAddress )>
 							<strong>#translateResource( 'cms:audittrail.item.ip' )#:</strong> #args.ipAddress#
 						</cfif>
 						<cfif Len( Trim( args.userAgent ) )>
