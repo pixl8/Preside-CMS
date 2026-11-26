@@ -759,7 +759,7 @@ component {
 						updatedData.schedule_next_send_date = _calculateNextSendDate( template.schedule_measure, template.schedule_unit, template.schedule_start_date );
 					}
 
-					if ( IsDate( template.schedule_end_date ) && updatedData.schedule_next_send_date >= template.schedule_end_date ){
+					if ( IsDate( template.schedule_end_date ) && IsDate( updatedData.schedule_next_send_date ) && updatedData.schedule_next_send_date >= template.schedule_end_date ){
 						updatedData.schedule_next_send_date = "";
 					}
 				}
@@ -1551,7 +1551,7 @@ component {
 		, required string  unit
 		, required any     startDate
 	) {
-		if ( !StructKeyExists( _timeUnitToCfMapping, arguments.unit ) ) {
+		if ( !StructKeyExists( _timeUnitToCfMapping, arguments.unit ) || arguments.measure < 1 ) {
 			return "";
 		}
 

@@ -445,6 +445,107 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 			} );
 
+			it( "should return promptly and empty the schedule_next_send_date when a repeat template has a measure of zero and a start date in the past", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var nowish     = Now();
+				var template   = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 0
+					, schedule_unit           = "week"
+					, schedule_start_date     = DateAdd( "ww", -2, nowish )
+					, schedule_end_date       = ""
+					, schedule_next_send_date = DateAdd( "ww", -1, nowish )
+				};
+
+				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true, fromVersionTable=false, useRequestCache=false ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				var startTicks = GetTickCount();
+				service.updateScheduledSendFields( templateId );
+
+				expect( GetTickCount() - startTicks ).toBeLT( 5000 );
+				expect( ArrayLen( service.$callLog().saveTemplate ) ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "missing" ).toBe( "" );
+			} );
+
+			it( "should return promptly and empty the schedule_next_send_date when a repeat template has a negative measure and a start date in the past", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var nowish     = Now();
+				var template   = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = -1
+					, schedule_unit           = "day"
+					, schedule_start_date     = DateAdd( "d", -10, nowish )
+					, schedule_end_date       = ""
+					, schedule_next_send_date = DateAdd( "d", -1, nowish )
+				};
+
+				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true, fromVersionTable=false, useRequestCache=false ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				var startTicks = GetTickCount();
+				service.updateScheduledSendFields( templateId );
+
+				expect( GetTickCount() - startTicks ).toBeLT( 5000 );
+				expect( ArrayLen( service.$callLog().saveTemplate ) ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "missing" ).toBe( "" );
+			} );
+
+			it( "should empty the schedule_next_send_date when a repeat template has a measure of zero, a start date in the past and an end date in the future", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var nowish     = Now();
+				var template   = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 0
+					, schedule_unit           = "week"
+					, schedule_start_date     = DateAdd( "ww", -2, nowish )
+					, schedule_end_date       = DateAdd( "ww", 4, nowish )
+					, schedule_next_send_date = DateAdd( "ww", -1, nowish )
+				};
+
+				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true, fromVersionTable=false, useRequestCache=false ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( ArrayLen( service.$callLog().saveTemplate ) ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "missing" ).toBe( "" );
+			} );
+
+			it( "should empty the schedule_next_send_date rather than send immediately when a repeat template has a measure of zero and no start date", function(){
+				var service    = _getService();
+				var templateId = CreateUUId();
+				var nowish     = Now();
+				var template   = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 0
+					, schedule_unit           = "week"
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+				};
+
+				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true, fromVersionTable=false, useRequestCache=false ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( ArrayLen( service.$callLog().saveTemplate ) ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "missing" ).toBe( "" );
+			} );
+
 			it( "should set all schedule fields to empty when method is not 'scheduled", function(){
 				var service      = _getService();
 				var templateId   = CreateUUId();
