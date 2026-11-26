@@ -3,7 +3,7 @@
 	pageTitle          = args.pageTitle          ?: "";
 	presideCmsVersion  = args.presideCmsVersion  ?: "";
 	applicationServer  = args.applicationServer  ?: "";
-	java               = args.java               ?: "";
+	runtime            = args.runtime            ?: "";
 	os                 = args.os                 ?: "";
 	dataBase           = args.dataBase           ?: "";
 	timezoneId         = args.timezoneId         ?: "";
@@ -28,8 +28,8 @@
 				<td>#dataBase#</td>
 			</tr>
 			<tr>
-				<th>#translateResource( uri="cms:systemInformation.java.th" )#</th>
-				<td>#java#</td>
+				<th>#translateResource( uri="cms:systemInformation.runtime.th" )#</th>
+				<td>#runtime#</td>
 			</tr>
 			<tr>
 				<th>#translateResource( uri="cms:systemInformation.os.th" )#</th>
