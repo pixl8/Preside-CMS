@@ -361,6 +361,8 @@ component {
 			, recipientId    = sendArgs.recipientId  ?: ""
 			, recipient      = sendArgs.to[ 1 ]      ?: ""
 			, sender         = sendArgs.from         ?: ""
+			, cc             = ArrayToList( sendArgs.cc  ?: [], ", " )
+			, bcc            = ArrayToList( sendArgs.bcc ?: [], ", " )
 			, subject        = sendArgs.subject      ?: ""
 			, resendOf       = sendArgs.resendOf     ?: ""
 			, sendArgs       = sendArgs.args         ?: {}
