@@ -4023,7 +4023,7 @@ component displayName="Preside Object Service" {
 	private string function _getAlaisedFieldRegex() {
 		var entityPattern = "[a-zA-Z_][a-zA-Z0-9_]*";
 
-		return "(^|\s|,|\(|\)|`|\[)((#entityPattern#)(\$(#entityPattern#))*)[`\]]?\.[`\[]?(#entityPattern#)(\s|$|\)|,|`|\])";
+		return "(^|\s|,|\(|\)|`|\[|"")((#entityPattern#)(\$(#entityPattern#))*)[`\]""]?\.[`\[""]?(#entityPattern#)(\s|$|\)|,|`|\]|"")";
 	}
 
 	private struct function _getEntityNames() {
