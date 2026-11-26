@@ -30,13 +30,13 @@ component extends="BaseAdapter" {
 		, required array  updateColumns
 		, required array  conflictColumns
 	) {
-		var insertSql = super.getInsertSql(
-			  tableName     = arguments.tableName
-			, insertColumns = arguments.insertColumns
-		);
-		var sql       = insertSql[ 1 ];
-		var delim     = "";
-		var conflict  = "";
+		var delim        = "";
+		var col          = "";
+		var sql          = "";
+		var whereClause  = "";
+		var setClauses   = "";
+		var selectClause = "";
+		var columnList   = "";
 
 		if ( !ArrayLen( arguments.conflictColumns ) ) {
 			throw(
@@ -45,23 +45,30 @@ component extends="BaseAdapter" {
 			);
 		}
 
-		for( var col in arguments.conflictColumns ) {
-			conflict &= delim & escapeEntity( lcase( col ) );
+		delim = "";
+		for( col in arguments.conflictColumns ) {
+			whereClause &= delim & escapeEntity( lcase( col ) ) & " IS NOT DISTINCT FROM :" & lcase( col );
+			delim = " AND ";
+		}
+
+		if ( !ArrayLen( arguments.updateColumns ) ) {
+			arguments.updateColumns = [ arguments.conflictColumns[ 1 ] ];
+		}
+
+		delim = "";
+		for( col in arguments.updateColumns ) {
+			setClauses &= delim & escapeEntity( lcase( col ) ) & " = :set__" & col;
 			delim = ", ";
 		}
 
-		sql &= " on conflict ( #conflict# ) do update set";
 		delim = "";
-
-		if ( !ArrayLen( arguments.updateColumns ) ) {
-			sql &= " " & escapeEntity( lcase( arguments.conflictColumns[ 1 ] ) ) & " = excluded." & escapeEntity( lcase( arguments.conflictColumns[ 1 ] ) );
-			return [ sql ];
+		for( col in arguments.insertColumns ) {
+			columnList   &= delim & escapeEntity( lcase( col ) );
+			selectClause &= delim & ":" & lcase( col );
+			delim = ", ";
 		}
 
-		for( var updateCol in arguments.updateColumns ) {
-			sql &= delim & " " & escapeEntity( lcase( updateCol ) ) & " = :set__" & updateCol;
-			delim = ",";
-		}
+		sql = "WITH upd AS ( UPDATE " & escapeEntity( arguments.tableName ) & " SET " & setClauses & " WHERE " & whereClause & " RETURNING * ), ins AS ( INSERT INTO " & escapeEntity( arguments.tableName ) & " ( " & columnList & " ) SELECT " & selectClause & " WHERE NOT EXISTS ( SELECT 1 FROM upd ) RETURNING * ) SELECT * FROM upd UNION ALL SELECT * FROM ins";
 
 		return [ sql ];
 	}
@@ -83,11 +90,14 @@ component extends="BaseAdapter" {
 				case "datetime":
 					return "timestamp";
 				case "longtext":
+				case "mediumtext":
 					return "text";
 				case "double":
 					return "float";
 				case "bit":
 					return "bool";
+				case "tinyint":
+					return "smallint";
 				default:
 					return arguments.dataType;
 			}
@@ -115,11 +125,18 @@ component extends="BaseAdapter" {
 				case "datetime":
 				   columnDef &= " timestamp";
 				   break;
-				case "longtext":
+			case "longtext":
+			case "mediumtext":
 				   columnDef &= " text";
 				   break;
 				case "double":
 					   columnDef &= " float";
+					   arguments.maxLength = 0;
+					   break;
+				case "tinyint":
+				   columnDef &= " smallint";
+				   arguments.maxLength = 0;
+				   break;
 				case "bigint":
 				case "int":
 				case "float":
@@ -287,6 +304,7 @@ component extends="BaseAdapter" {
 		, required array   selectColumns
 		,          any     filter        = {}
 		,          string  orderBy       = ""
+		,          string  having        = ""
 		,          string  groupBy       = ""
 		,          string  tableAlias    = ""
 		,          array   joins         = []
@@ -308,7 +326,7 @@ component extends="BaseAdapter" {
 			delim = " ";
 			for( col in arguments.selectColumns ){
 				if ( !containsAggregateFunctions( col ) ) {
-					newGroupBy &= delim & REReplace(col, "as\s\w+", "", "one");
+					newGroupBy &= delim & REReplaceNoCase( col, "\s+as\s+""?\w+""?", "", "one" );
 					delim = ", ";
 				}
 			}
@@ -392,7 +410,7 @@ component extends="BaseAdapter" {
 				newSql &=" and " & col & " = " & " Temp." & REReplace( col, ".*?\.", "", "one" );
 			}
 		} else {
-			newSql &= " where ";
+			newSql = sqlNonGroupBy & newSql & " where ";
 			for( col in arrColumnInGroupBy ) {
 				newSql &= delim & col & " = " & " Temp." & REReplace( col, ".*?\.", "", "one" );
 				delim = " and ";
@@ -513,10 +531,15 @@ component extends="BaseAdapter" {
 						columnType &= " timestamp";
 						break;
 					case "longtext":
+					case "mediumtext":
 						columnType &= " text";
 						break;
 					case "double":
 						columnType &= " float";
+					case "tinyint":
+						columnType &= " smallint USING (#arguments.columnName#::::smallint)";
+						arguments.maxLength = 0;
+						break;
 					case "bigint":
 					case "int":
 					case "float":

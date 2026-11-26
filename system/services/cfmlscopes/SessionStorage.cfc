@@ -213,7 +213,7 @@ component extends="preside.system.modules.cbstorages.models.SessionStorage" outp
 	}
 
 	private string function _createSessionRecord( required numeric expiry, required string value ) {
-		var id = CreateUUId();
+		var id = LCase( CreateUUId() );
 
 		sqlRunner.runSql(
 			  sql        = "insert into psys_session_storage ( id, datecreated, expiry, value ) values ( :id, :datecreated, :expiry, :value )"

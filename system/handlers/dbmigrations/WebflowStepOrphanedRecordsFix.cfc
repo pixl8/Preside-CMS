@@ -11,6 +11,10 @@ component {
 	}
 
 	private void function run() {
+		if ( !getPresideObject( "webflow_configuration" ).dataExists() ) {
+			return;
+		}
+
 		var dsn = getPresideObject( "webflow_configuration" ).getDsn();
 
 		// Step 1: Delete duplicate steps (keep ones pointing to correct config)
