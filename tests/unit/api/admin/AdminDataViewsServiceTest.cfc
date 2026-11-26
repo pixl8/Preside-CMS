@@ -76,6 +76,23 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockPoService.$( "getObjectProperty" ).$args( "testobject", propName ).$results( { relationship="many-to-many", relatedto="blah" } );
 				expect( service.getRendererForField( "testobject", propName ) ).toBe( "objectRelatedRecords" );
 			} );
+
+			it( "should return the 'integer' renderer for numeric properties with an integer dbtype", function(){
+				var service = _getService();
+
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", "testprop" ).$results( { type="numeric", dbtype="int", relationship="none" } );
+				expect( service.getRendererForField( "testobject", "testprop" ) ).toBe( "integer" );
+			} );
+
+			it( "should return the 'float' renderer for numeric properties with a decimal dbtype", function(){
+				var service = _getService();
+
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", "decimalprop" ).$results( { type="numeric", dbtype="decimal(13,2)", relationship="none" } );
+				expect( service.getRendererForField( "testobject", "decimalprop" ) ).toBe( "float" );
+
+				mockPoService.$( "getObjectProperty" ).$args( "testobject", "upperdecimalprop" ).$results( { type="numeric", dbtype="DECIMAL", relationship="none" } );
+				expect( service.getRendererForField( "testobject", "upperdecimalprop" ) ).toBe( "float" );
+			} );
 		} );
 
 		describe( "renderField()", function() {
