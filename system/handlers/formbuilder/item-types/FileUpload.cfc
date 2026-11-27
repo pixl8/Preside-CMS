@@ -96,6 +96,10 @@ component {
 			return fieldData;
 		}
 
+		if ( !_requestHasFileUpload( fieldName ) ) {
+			return IsStruct( fieldData ) ? fieldData : {};
+		}
+
 		var tmpFileDetails = runEvent(
 			  event          = "preprocessors.fileupload.index"
 			, prePostExempt  = true
@@ -104,6 +108,22 @@ component {
 		);
 
 		return tmpFileDetails;
+	}
+
+	private boolean function _requestHasFileUpload( required string fieldName ) {
+		if ( !Len( Trim( arguments.fieldName ) ) ) {
+			return false;
+		}
+
+		var fileItems = GetPageContext().formScope().getFileItems();
+
+		for ( var fileItem in fileItems ) {
+			if ( fileItem.getFieldName() == arguments.fieldName ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private any function renderResponseToPersist( event, rc, prc, args={} ) {
