@@ -14,6 +14,7 @@ component {
 	property name="batchOperationService"   inject="featureInjector:admin:dataManagerBatchOperationService";
 	property name="formBuilderService"      inject="featureInjector:formbuilder:formBuilderService";
 	property name="emailTrackingLogService" inject="featureInjector:emailTrackingBotDetection:emailLoggingService";
+	property name="webflowArchivingService" inject="featureInjector:webflow:webflowArchivingService";
 
 	/**
 	 * Delete expired saved email content from the logs
@@ -55,6 +56,20 @@ component {
 	 */
 	private boolean function deleteExpiredWorkflows( logger ) {
 		return workflowService.deleteExpiredWorkflows( arguments.logger ?: NullValue() );
+	}
+
+	/**
+	 * Archive expired webflow instances
+	 *
+	 * @priority     5
+	 * @schedule     0 15 3 * * *
+	 * @timeout      1200
+	 * @displayName  Archive expired webflow instances
+	 * @displayGroup Cleanup
+	 * @feature      webflow
+	 */
+	private boolean function archiveExpiredWebflows( logger ) {
+		return webflowArchivingService.archiveExpiredWebflows( arguments.logger ?: NullValue() );
 	}
 
 	/**
